@@ -1,32 +1,5 @@
 # Moduł 6. Refaktoryzacje do wzorców projektowych - warsztat praktyczny
 
-## Cel modułu
-
-Celem modułu jest opanowanie bezpiecznego przechodzenia od problemów widocznych w kodzie legacy do prostszych struktur opartych na wzorcach projektowych. Uczestnik nie uczy się mechanicznego zastępowania instrukcji `if` klasami. Uczy się rozpoznawać rodzaj zmienności, definiować zachowanie chronione testami i wprowadzać wzorzec małymi krokami.
-
-Wzorzec nie jest celem refaktoryzacji. Jest jednym z możliwych rezultatów upraszczania kodu. Jeżeli prosty warunek jest czytelny, stabilny i lokalny, pozostawienie go może być lepszą decyzją niż utworzenie hierarchii typów.
-
-## Efekty uczenia się
-
-Po ukończeniu modułu uczestnik:
-
-- odróżnia Strategy, polimorfizm, State i Command na podstawie źródła zmienności,
-- zastępuje kod typu obiektem reprezentującym pojęcie domenowe,
-- centralizuje tworzenie obiektów bez przenoszenia do fabryki odpowiedzialności biznesowej,
-- oddziela zachowanie podstawowe od opcjonalnych dodatków przy użyciu Decoratora,
-- modeluje przejścia stanów i operacje niedozwolone za pomocą State,
-- usuwa bezpośrednie powiadomienia, definiując jawny kontrakt Observera,
-- zastępuje niejawne drzewa i rozróżnienie jeden lub wiele wzorcem Composite,
-- enkapsuluje budowanie złożonej struktury w Builderze,
-- ujednolica niezgodne interfejsy za pomocą Adaptera,
-- zastępuje warunkowy dispatcher rejestrem obiektów Command,
-- formuje Template Method z podobnych sekwencji kroków,
-- przenosi akumulację do parametru zbierającego albo Visitora,
-- wydziela wspólną obsługę dzieci do klasy Composite,
-- ocenia, kiedy Singleton jest uzasadniony i jakie wprowadza koszty,
-- zachowuje wyniki, wyjątki, kolejność efektów i stan po awarii,
-- uwzględnia semantykę lambd, typów `sealed`, rekordów, enumów i kolekcji współbieżnych w Javie 25.
-
 ## Zakres
 
 1. Wzorzec jako rezultat refaktoryzacji
@@ -47,67 +20,6 @@ Po ukończeniu modułu uczestnik:
 16. Move Accumulation to Collecting Parameter i Visitor
 17. Extract Composite
 18. Warsztat praktyczny
-
-## Nazwy technik
-
-Materiał zachowuje nazwy z agendy. Warto jednak znać ich dokładniejsze warianty:
-
-| Nazwa w agendzie | Doprecyzowanie używane w module |
-| --- | --- |
-| Replace Type Code with Class | współcześnie spotykane także jako Replace Primitive with Object |
-| Encapsulate Classes with Factory | fabryka ukrywa klasy konkretne należące do jednej rodziny |
-| Extract Factory Class | robocza nazwa z agendy; katalogowa technika dla rozproszonej wiedzy o tworzeniu to Move Creation Knowledge to Factory |
-| Apply Template Method | klasyczna nazwa techniki to Form Template Method |
-| Replace Distinctions with Composite | w tym module: Replace One/Many Distinctions with Composite |
-| Move Accumulation to Collecting Parameter / Visitor | dwie osobne transformacje o innych kosztach |
-| Extract Composite | wydzielenie wspólnego przechowywania i przetwarzania dzieci z kilku klas hierarchii |
-
-Factory Method, fabryka statyczna, obiekt Factory i Abstract Factory nie są synonimami. Podobnie Composite, Builder i Visitor rozwiązują różne problemy, mimo że mogą wystąpić razem w jednym modelu.
-
-## Konwencje przykładów
-
-Przykłady używają Javy 25, JUnit Jupiter 6.1.3 i projektu Maven `refactoring-legacy`. Kod znajduje się w pakiecie `pl.training.module6` oraz jego podpakietach.
-
-| Pakiet | Znaczenie |
-| --- | --- |
-| `pl.training.module6.strategy` | wybierany algorytm obliczenia kosztu |
-| `pl.training.module6.polymorphism` | trwałe rodzaje kroków wdrożenia |
-| `pl.training.module6.typecode` | kod środowiska zastąpiony obiektem wartości |
-| `pl.training.module6.factory` | ukrywanie konkretnych klas sond |
-| `pl.training.module6.decorator` | audyt jako dekoracja wykonawcy |
-| `pl.training.module6.state` | cykl życia wydania |
-| `pl.training.module6.observer` | synchroniczne zdarzenia publikacji |
-| `pl.training.module6.composite` | plan wdrożenia jako drzewo |
-| `pl.training.module6.adapter` | brama legacy za preferowanym interfejsem |
-| `pl.training.module6.command` | rejestr komend operacyjnych |
-| `pl.training.module6.templatemethod` | wspólny szkielet importerów |
-| `pl.training.module6.singleton` | niemutowalne ustawienia domyślne |
-| `pl.training.module6.extractcomposite` | osobny przykład Extract Composite |
-
-Pakiety `before` i `after` celowo współistnieją. Pozwala to kompilować oba stany oraz porównywać je w testach różnicowych. W zwykłym repozytorium kolejne kroki zastępują te same pliki i pozostają dostępne w historii wersji.
-
-Kompilacja, testy i uruchomienie:
-
-```shell
-cd refactoring-legacy
-mvn clean verify
-java -cp target/classes pl.training.module6.Module6Examples
-```
-
-## Organizacja pracy
-
-Sugerowany czas pracy synchronicznej wynosi 360 minut:
-
-| Część | Czas |
-| --- | ---: |
-| model decyzji i testy zachowania | 35 minut |
-| Strategy, polimorfizm i obiekt typu | 50 minut |
-| Builder, Factory i Composite | 55 minut |
-| Decorator, State i Observer | 55 minut |
-| Adapter, Command i Template Method | 45 minut |
-| Singleton, akumulacja i Extract Composite | 35 minut |
-| trzy ćwiczenia warsztatowe | 70 minut |
-| przegląd rozwiązań i podsumowanie | 15 minut |
 
 ## 1. Wzorzec jako rezultat refaktoryzacji
 

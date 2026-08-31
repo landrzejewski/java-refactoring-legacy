@@ -1,32 +1,5 @@
 # Moduł 7. Zaawansowane refaktoryzacje - warsztat praktyczny
 
-## Cel modułu
-
-Celem modułu jest opanowanie transformacji stosowanych wtedy, gdy proste Rename, Extract Method albo Move Method nie wystarczają do bezpiecznej zmiany kodu legacy. Uczestnik pracuje z zależnościami utrudniającymi testowanie, długimi algorytmami, skupiskami parametrów, zagnieżdżonymi warunkami, nadmiernymi odpowiedzialnościami i publicznym API wymagającym migracji.
-
-Techniki z agendy nie tworzą jednego katalogu o jednolitym poziomie szczegółowości. Część jest formalnymi refaktoryzacjami, część opisuje cel kampanii zmian, a część stanowi praktykę upraszczania przepływu sterowania. W każdym przypadku punktem odniesienia pozostaje obserwowalne zachowanie programu.
-
-## Efekty uczenia się
-
-Po ukończeniu modułu uczestnik:
-
-- tworzy w kodzie legacy wąskie punkty podstawienia zależności,
-- odróżnia zwykłe Extract Method od Extract Method Object,
-- dzieli odpowiedzialności na podstawie powodów zmiany, a nie liczby metod,
-- usuwa duplikację wiedzy bez łączenia przypadkowo podobnych reguł,
-- rozbija długą metodę na kroki o spójnym poziomie abstrakcji,
-- rozpoznaje spójną grupę parametrów, czyli data clump, i wprowadza Parameter Object,
-- spłaszcza kod strzałkowy z zachowaniem priorytetu warunków,
-- rozróżnia warunek wstępny, warunek końcowy i niezmiennik,
-- świadomie oddziela refaktoryzację od zaostrzenia kontraktu,
-- usuwa podwójne zaprzeczenia bez zmiany tablicy prawdy warunku,
-- prowadzi stopniową dekompozycję klasy typu God Class,
-- zastępuje flagę sterującą jawnymi operacjami,
-- odróżnia zbędnego pośrednika od wartościowej fasady,
-- wprowadza wcześniejszy zwrot bez pomijania skutków ubocznych,
-- planuje migrację publicznego API z uwzględnieniem zgodności źródłowej i binarnej,
-- weryfikuje wynik, wyjątki, stan, kolejność efektów i liczbę wywołań.
-
 ## Zakres
 
 1. Break Dependencies
@@ -42,58 +15,6 @@ Po ukończeniu modułu uczestnik:
 11. Remove Boolean Method Parameters
 12. Remove Middle Man
 13. Return ASAP
-
-## Doprecyzowanie nazw
-
-Materiał zachowuje nazwy z agendy, ale posługuje się ich precyzyjnym znaczeniem:
-
-| Nazwa w agendzie | Znaczenie używane w module |
-| --- | --- |
-| Break Dependencies | utworzenie punktu podstawienia zależności, zwykle seam, i zachowanie produkcyjnego połączenia |
-| Extract Method Object | przeniesienie pojedynczego wykonania złożonej metody do obiektu, dawniej Replace Method with Method Object, współcześnie Replace Function with Command |
-| Break Responsibilities | lokalne wydzielenie spójnej odpowiedzialności za pomocą Extract Class oraz Move Function lub Move Field |
-| Remove Duplication | cel projektowy realizowany techniką dobraną do rodzaju wspólnej wiedzy |
-| Break Method | seria Extract Method, czasem uzupełniona przez Split Phase |
-| Introduce Parameter Object | zastąpienie spójnej grupy parametrów nazwanym pojęciem |
-| Remove Arrowhead Antipattern | zastosowanie guard clauses do spłaszczenia zagnieżdżonych warunków |
-| Introduce Design by Contract Checks | jawne preconditions, postconditions i invariants, a nie synonim instrukcji `assert` |
-| Remove Double Negative | zastąpienie negacji negatywnego predykatu dokładnym predykatem pozytywnym |
-| Remove God Classes | stopniowa kampania wielu małych ekstrakcji, nie pojedynczy ruch |
-| Remove Boolean Method Parameters | Remove Flag Argument, dawniej Replace Parameter with Explicit Methods |
-| Remove Middle Man | usunięcie delegacji, która nie zapewnia polityki ani stabilnej granicy |
-| Return ASAP | wcześniejszy zwrot po ustaleniu ostatecznego wyniku, czasem połączony z Inline Variable |
-
-Break Method jest podstawową techniką dzielenia algorytmu. Extract Method Object jest rozwiązaniem eskalacyjnym, gdy liczne lokalne zmienne blokują dalsze ekstrakcje. Break Responsibilities opisuje lokalny podział, natomiast Remove God Classes oznacza dłuższą kampanię o większym ryzyku. Remove Arrowhead dotyczy kształtu przepływu sterowania, a Return ASAP jest jedną z technik jego upraszczania.
-
-## Konwencje przykładów
-
-Przykłady używają Javy 25, JUnit Jupiter 6.1.3 i projektu Maven `refactoring-legacy`. Kod znajduje się w pakiecie `pl.training.module7` oraz jego podpakietach.
-
-| Pakiet | Problem |
-| --- | --- |
-| `pl.training.module7.breakdependencies` | zależność tworzona wewnątrz logiki |
-| `pl.training.module7.methodobject` | długi algorytm ze współdzielonym stanem lokalnym |
-| `pl.training.module7.breakresponsibilities` | obliczanie i formatowanie w jednej klasie |
-| `pl.training.module7.duplication` | powielona reguła przygotowania współrzędnych artefaktu |
-| `pl.training.module7.breakmethod` | długa metoda budująca manifest |
-| `pl.training.module7.parameterobject` | powtarzający się klaster parametrów wdrożenia etapowego |
-| `pl.training.module7.arrowhead` | zagnieżdżona tabela decyzji |
-| `pl.training.module7.contract` | jawne warunki kontraktu pojemności |
-| `pl.training.module7.doublenegative` | negatywne predykaty gotowości wydania |
-| `pl.training.module7.godclass` | publikacja, zapis, audyt i powiadomienia w jednej klasie |
-| `pl.training.module7.booleanparameter` | flaga wybierająca tryb wykonania |
-| `pl.training.module7.middleman` | przezroczysta delegacja do rejestru |
-| `pl.training.module7.returnasap` | zbędna zmienna wyniku i sterowanie pętlą |
-
-Pakiety `before` i `after` celowo współistnieją. Testy różnicowe uruchamiają oba warianty na tych samych danych. W repozytorium produkcyjnym kolejne kroki zwykle zastępują te same pliki i pozostają widoczne w historii wersji.
-
-Kompilacja, testy i uruchomienie:
-
-```shell
-cd refactoring-legacy
-mvn clean verify
-java -cp target/classes pl.training.module7.Module7Examples
-```
 
 ## Model bezpieczeństwa
 

@@ -1,26 +1,5 @@
 # Moduł 2. Fundamenty refaktoryzacji
 
-## Cel modułu
-
-Celem modułu jest zbudowanie bezpiecznego sposobu zmiany struktury istniejącego kodu. Uczestnik uczy się określać zachowanie, które ma pozostać niezmienione, dobierać adekwatną sieć testów, wykonywać małe transformacje oraz wprowadzać punkty podmiany w kodzie, którego nie można jeszcze testować w izolacji.
-
-Moduł nie sprowadza bezpieczeństwa do wysokiego pokrycia ani do użycia biblioteki mockującej. Testy, kompilator, narzędzia IDE, przegląd różnicy i obserwacja systemu dostarczają uzupełniających się dowodów. Żaden pojedynczy mechanizm nie dowodzi pełnej równoważności zachowania.
-
-## Efekty uczenia się
-
-Po ukończeniu modułu uczestnik:
-
-- odróżnia refaktoryzację od naprawy defektu, optymalizacji, modernizacji i zmiany funkcjonalnej,
-- określa obserwowalne zachowanie wymagające zachowania podczas konkretnej zmiany,
-- prowadzi refaktoryzację w małych krokach z krótką pętlą informacji zwrotnej,
-- dobiera testy według ryzyka, zakresu, szybkości, realizmu i wartości diagnostycznej,
-- interpretuje piramidę testów jako heurystykę, a nie obowiązkową proporcję,
-- rozróżnia role stub, spy, fake i mock oraz stosuje je świadomie,
-- wykorzystuje pokrycie kodu do wykrywania luk, bez traktowania procentu jako miary poprawności,
-- tworzy testy charakteryzujące aktualne zachowanie kodu legacy,
-- rozpoznaje seam i jego punkt aktywacji,
-- wykonuje minimalne rozrywanie zależności potrzebne do uruchomienia i obserwowania kodu w teście.
-
 ## Zakres
 
 1. Istota i cele refaktoryzacji
@@ -32,43 +11,6 @@ Po ukończeniu modułu uczestnik:
 7. Testy charakteryzujące
 8. Seams i rozrywanie zależności
 9. Warsztat praktyczny
-
-## Konwencje przykładów
-
-Przykłady używają Javy 25, JUnit Jupiter 6.1.3 i JaCoCo 0.8.15. Kod domenowy jest celowo uproszczony. Nie stanowi kompletnego modelu płatności, podatków, faktur ani komunikacji z klientem. Klasy z przedrostkiem `Legacy` oraz ich nowsze odpowiedniki mają różne nazwy wyłącznie po to, aby kolejne etapy mogły współistnieć i być uruchamiane w jednym projekcie. W rzeczywistej refaktoryzacji byłyby kolejnymi wersjami tego samego kodu.
-
-Kod znajduje się w projekcie Maven `refactoring-legacy`. Bazowym pakietem jest `pl.training`, a przykłady tego modułu należą do pakietu `pl.training.module2`:
-
-| Lokalizacja | Zawartość |
-| --- | --- |
-| `src/main/java/pl/training/module2` | kod produkcyjny przykładów i klasa `Module2Examples` |
-| `src/test/java/pl/training/module2` | testy JUnit oraz ręcznie napisane obiekty zastępcze |
-| `target/site/jacoco/index.html` | raport pokrycia tworzony podczas fazy `verify` |
-
-Kompilacja, testy i uruchomienie przykładów:
-
-```shell
-cd refactoring-legacy
-mvn clean verify
-java -cp target/classes pl.training.module2.Module2Examples
-```
-
-Raport JaCoCo powstaje dla całego projektu. Podczas ćwiczeń należy analizować pakiet `pl.training.module2`, a nie wyłącznie globalny procent.
-
-## Organizacja pracy
-
-Sugerowany czas pracy synchronicznej wynosi 210 minut:
-
-| Część | Czas |
-| --- | ---: |
-| teoria wraz z krótkimi aktywnościami | 65 minut |
-| ćwiczenie 1 i omówienie | 20 minut |
-| ćwiczenie 2 i omówienie | 45 minut |
-| ćwiczenie 3 i omówienie | 35 minut |
-| ćwiczenie 4 i omówienie | 35 minut |
-| sprawdzenie wiedzy i podsumowanie | 10 minut |
-
-Na zajęciach obowiązkowe są definicja refaktoryzacji, cykl bezpiecznej zmiany, ograniczenia testów i pokrycia, role obiektów zastępczych, testy charakteryzujące oraz pojęcia seam i punkt aktywacji. Szczegółowe antywzorce, rozbudowane odpowiedzi wzorcowe i listy kontrolne mogą służyć jako materiał do samodzielnej pracy.
 
 ## 1. Istota i cele refaktoryzacji
 

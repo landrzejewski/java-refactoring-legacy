@@ -1,23 +1,5 @@
 # Moduł 1. Wprowadzenie do pracy z kodem legacy
 
-## Cel modułu
-
-Celem modułu jest zbudowanie wspólnego sposobu diagnozowania kodu legacy. Uczestnik uczy się oddzielać obserwowalne fakty od intuicyjnych ocen, rozpoznawać źródła ryzyka oraz łączyć problemy techniczne z kosztami dalszego rozwoju systemu.
-
-Moduł nie zakłada, że stary kod jest z definicji zły ani że każdy problem należy natychmiast naprawić. Punktem wyjścia jest wartość biznesowa systemu, planowane zmiany oraz zdolność zespołu do bezpiecznego przewidywania skutków tych zmian.
-
-## Efekty uczenia się
-
-Po ukończeniu modułu uczestnik:
-
-- wyjaśnia, dlaczego wiek kodu i użyta technologia nie wystarczają do zaklasyfikowania systemu jako legacy,
-- rozpoznaje techniczne, operacyjne i organizacyjne źródła ryzyka,
-- rozróżnia defekty, symptomy niskiej jakości, elementy długu technicznego i ograniczenia środowiskowe,
-- opisuje element długu technicznego, wskazując jego przyczynę, konsekwencje, koszt usunięcia oraz koszt dalszego utrzymania,
-- interpretuje złożoność cyklomatyczną i poznawczą, pokrycie testami, duplikacje oraz podstawowe miary sprzężenia i spójności bez wyciągania wniosków z pojedynczej liczby,
-- dobiera metryki do konkretnego celu i pytania,
-- ocenia, czy właściwym kierunkiem jest utrzymanie, refaktoryzacja, modernizacja przyrostowa, wymiana komponentu czy przepisanie systemu.
-
 ## Zakres
 
 1. Definicja i charakterystyka kodu legacy
@@ -28,39 +10,6 @@ Po ukończeniu modułu uczestnik:
 6. Przyczyny powstawania kodu niskiej jakości
 7. Kryteria wyboru między refaktoryzacją a przepisaniem
 8. Warsztat diagnostyczny
-
-## Konwencje przykładów
-
-Przykłady kodu używają Java 25. Testy zapisano z użyciem JUnit Jupiter 6. Fragmenty domenowe są celowo uproszczone i służą do analizy projektu. Nie stanowią specyfikacji rzeczywistych zasad podatkowych, księgowych ani handlowych.
-
-Kod znajduje się w projekcie Maven `refactoring-legacy`. Bazowym pakietem projektu jest `pl.training`, a wszystkie przykłady tego modułu należą do pakietu `pl.training.module1`:
-
-| Lokalizacja | Zawartość |
-| --- | --- |
-| `src/main/java/pl/training/module1` | przykłady oraz uruchamialna klasa `Module1Examples` |
-| `src/test/java/pl/training/module1` | testy JUnit sprawdzające przykłady |
-
-Wymagane jest JDK 25, a zmienna `JAVA_HOME` powinna wskazywać jego katalog. Kompilacja i uruchomienie:
-
-```shell
-cd refactoring-legacy
-mvn clean verify
-java -cp target/classes pl.training.module1.Module1Examples
-```
-
-## Organizacja pracy
-
-Sugerowany czas pracy synchronicznej wynosi 210 minut:
-
-| Część | Czas |
-| --- | ---: |
-| wprowadzenie teoretyczne wraz z krótkimi zadaniami | 65 minut |
-| ćwiczenie 1 i omówienie | 30 minut |
-| ćwiczenie 2 i omówienie | 40 minut |
-| ćwiczenie 3 i omówienie | 65 minut |
-| sprawdzenie wiedzy i podsumowanie | 10 minut |
-
-Podczas szkolenia należy omówić definicje, rozróżnienie pojęć, model długu, zasady interpretacji metryk oraz kryteria decyzji o modernizacji. Szczegółowe katalogi ryzyka, antywzorce użycia metryk, rozbudowane listy kontrolne i pełne wskazówki do ćwiczeń służą także jako materiał do samodzielnej lektury po zajęciach.
 
 ## 1. Czym jest kod legacy
 

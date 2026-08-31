@@ -1,28 +1,5 @@
 # Moduł 3. Zasady dobrego projektowania
 
-## Cel modułu
-
-Celem modułu jest zbudowanie praktycznego sposobu oceny i poprawiania projektu istniejącego kodu. Uczestnik uczy się łączyć zasady DRY, KISS, YAGNI i SOLID z konkretnymi kosztami zmian, rozpoznawać granice o wysokiej spójności, świadomie kierować zależności oraz traktować architekturę i wzorce jako narzędzia rozwiązujące potwierdzone problemy.
-
-Moduł nie przedstawia zasad jako praw ani jako listy kontrolnej gwarantującej dobry projekt. Ta sama konstrukcja może być właściwa w jednym kontekście i kosztowna w innym. Ocenie podlegają aktualne wymagania, przewidywalne osie zmian, ryzyko, kontrakty, koszt poznawczy i możliwość bezpiecznej ewolucji.
-
-## Efekty uczenia się
-
-Po ukończeniu modułu uczestnik:
-
-- odróżnia duplikację wiedzy od przypadkowego podobieństwa kodu,
-- stosuje KISS bez sprowadzania prostoty do liczby linii lub klas,
-- stosuje YAGNI bez zaniedbywania testów, refaktoryzacji i aktualnych wymagań jakościowych,
-- rozpoznaje napięcia między DRY, KISS i YAGNI,
-- interpretuje każdą zasadę SOLID przez koszt i kierunek konkretnej zmiany,
-- definiuje kontrakt behawioralny potrzebny do bezpiecznej substytucji,
-- odróżnia Dependency Inversion Principle od dependency injection,
-- ocenia spójność i sprzężenie na poziomie metod, klas, pakietów i komponentów,
-- odróżnia kierunek zależności źródłowych od przepływu sterowania w czasie wykonania,
-- wyznacza granice domeny, przypadku użycia i adapterów,
-- dobiera zakres Clean Architecture proporcjonalnie do ryzyka systemu,
-- refaktoryzuje w kierunku wzorca dopiero po rozpoznaniu problemu, kontekstu i kosztów rozwiązania.
-
 ## Zakres
 
 1. Jakość projektu w kontekście zmiany
@@ -33,49 +10,6 @@ Po ukończeniu modułu uczestnik:
 6. Wzorce projektowe jako kierunek refaktoryzacji
 7. Studium przypadku w Javie 25
 8. Warsztat praktyczny
-
-## Konwencje przykładów
-
-Przykłady używają Javy 25, JUnit Jupiter 6.1.3 i JaCoCo 0.8.15. Kod domenowy jest celowo uproszczony. Nie stanowi kompletnego modelu logistyki, rozliczeń, trwałości danych ani dostarczania wiadomości.
-
-Kod znajduje się w projekcie Maven `refactoring-legacy`. Bazowym pakietem jest `pl.training`, a przykłady tego modułu należą do pakietu głównego `pl.training.module3` i jego podpakietów:
-
-| Pakiet | Odpowiedzialność |
-| --- | --- |
-| `pl.training.module3.legacy` | zastana wersja łącząca kilka powodów zmian |
-| `pl.training.module3.domain` | pojęcia i reguły wyceny dostawy |
-| `pl.training.module3.application` | przypadek użycia oraz potrzebne mu porty |
-| `pl.training.module3.adapter` | implementacje zależne od mechanizmu zapisu i wyjścia |
-| `pl.training.module3` | zewnętrzne miejsce składania grafu obiektów i uruchamiania demonstracji |
-
-Podział pakietów ma uwidocznić kierunek zależności. Sam układ katalogów nie egzekwuje architektury. W większym systemie granice można dodatkowo chronić widocznością typów, osobnymi modułami Maven, modułami JPMS lub automatycznymi testami reguł architektonicznych.
-
-Klasa z przedrostkiem `Legacy` i wersja rozdzielona mają różne nazwy wyłącznie po to, aby oba etapy mogły współistnieć w jednym, kompilowalnym projekcie. W rzeczywistej refaktoryzacji byłyby kolejnymi stanami tego samego obszaru kodu.
-
-Na potrzeby studium zakładamy, że zastana klasa jest wewnętrzna, a wszystkie jej wywołania pozostają pod kontrolą zespołu. Dzięki temu migracja klientów z `createQuote(...)` do `execute(Command)` może być osobnym, bezpiecznym krokiem. Jeżeli stare API jest publiczne albo ma niezależnych konsumentów, sama zmiana sygnatur nie jest refaktoryzacją zachowującą kontrakt. Należy wtedy utrzymać fasadę ze starą sygnaturą, delegującą do nowego przypadku użycia, i migrować konsumentów oddzielnie przed usunięciem fasady.
-
-Kompilacja, testy i uruchomienie:
-
-```shell
-cd refactoring-legacy
-mvn clean verify
-java -cp target/classes pl.training.module3.Module3Examples
-```
-
-## Organizacja pracy
-
-Sugerowany czas pracy synchronicznej wynosi 210 minut:
-
-| Część | Czas |
-| --- | ---: |
-| teoria wraz z krótkimi aktywnościami | 70 minut |
-| ćwiczenie 1 i omówienie | 30 minut |
-| ćwiczenie 2 i omówienie | 35 minut |
-| ćwiczenie 3 i omówienie | 35 minut |
-| ćwiczenie 4 i omówienie | 30 minut |
-| sprawdzenie wiedzy i podsumowanie | 10 minut |
-
-Na zajęciach obowiązkowe są właściwe znaczenie DRY, KISS i YAGNI, pięć zasad SOLID, relacja między spójnością a sprzężeniem, reguła zależności Clean Architecture oraz kryteria zastosowania wzorca. Rozbudowane odpowiedzi, antywzorce i listy kontrolne mogą służyć jako materiał do samodzielnej pracy.
 
 ## 1. Jakość projektu w kontekście zmiany
 

@@ -1,29 +1,5 @@
 # Moduł 4. Podstawowe refaktoryzacje - warsztat praktyczny
 
-## Cel modułu
-
-Celem modułu jest opanowanie niewielkich, odwracalnych transformacji kodu i łączenie ich w bezpieczną sekwencję prowadzącą od nieczytelnej implementacji do lepiej rozdzielonych odpowiedzialności. Uczestnik ćwiczy nie tylko obsługę narzędzia refaktoryzacyjnego, lecz przede wszystkim rozpoznawanie kontraktu, warunków wstępnych i ryzyka każdej zmiany.
-
-Techniki są przedstawione jako operacje zachowujące ustalone zachowanie. Jeżeli krok ogranicza mutowalność, dodaje walidację albo zmienia publiczne API, zostaje nazwany zmianą kontraktu i oddzielony od refaktoryzacji strukturalnej.
-
-## Efekty uczenia się
-
-Po ukończeniu modułu uczestnik:
-
-- rozpoznaje fragment nadający się do Extract Method i analizuje przepływ danych przed wydzieleniem,
-- stosuje Extract Variable bez przypadkowej zmiany liczby ani momentu ewaluacji,
-- odróżnia wydzielenie stałej od zastąpienia magicznego literału nazwanym pojęciem,
-- używa Inline Method i Inline Variable do usuwania pośrednictwa bez znaczenia,
-- przeprowadza Rename z uwzględnieniem publicznego API, refleksji, konfiguracji i serializacji,
-- wybiera właściciela metody lub pola na podstawie odpowiedzialności, danych i cyklu życia,
-- wykonuje Move Method oraz Move Field przez delegowanie i jedno źródło prawdy,
-- wydziela klasę reprezentującą spójną odpowiedzialność, a nie przypadkową grupę pól,
-- hermetyzuje pole bez utożsamiania hermetyzacji z automatycznym dodaniem settera,
-- rozróżnia modyfikowalną kopię, niemodyfikowalny widok i niemodyfikowalną migawkę kolekcji,
-- upraszcza warunek przez nazwanie predykatu oraz gałęzi z zachowaniem short-circuit evaluation,
-- zabezpiecza kolejne stany refaktoryzacji testami charakterystyki i testami równoważności,
-- odróżnia mechaniczny krok refaktoryzacji od decyzji projektowej i zmiany zachowania.
-
 ## Zakres
 
 1. Kontrakt i rytm małych transformacji
@@ -39,63 +15,6 @@ Po ukończeniu modułu uczestnik:
 11. Replace Magic Numbers with Named Constants
 12. Studium przypadku w Javie 25
 13. Warsztat praktyczny
-
-## Nazwy technik
-
-Nazewnictwo katalogów i narzędzi różni się między wydaniami oraz językami. W materiale używamy nazw z agendy, a równolegle wskazujemy ich popularne odpowiedniki:
-
-| Nazwa w agendzie | Spotykany odpowiednik |
-| --- | --- |
-| Extract Method | Extract Function |
-| Inline Method | Inline Function |
-| Extract Variable | Introduce Explaining Variable |
-| Inline Variable | Inline Temp |
-| Move Method | Move Function |
-| Encapsulate Field | Encapsulate Variable, częściowo Self-Encapsulate Field |
-| Encapsulate Conditional | najbliższa technika katalogowa: Decompose Conditional |
-| Replace Magic Numbers with Named Constants | Replace Magic Literal, Replace Magic Number with Symbolic Constant |
-
-Encapsulate Conditional nie ma jednej powszechnie obowiązującej definicji katalogowej; nazwę tę spotyka się m.in. u Williama C. Wake'a w Refactoring Workbook. W tym module oznacza nazwanie złożonego predykatu i, gdy pomaga to czytelności, wydzielenie obliczeń jego gałęzi. Nie jest to automatycznie zastąpienie warunku polimorfizmem.
-
-## Konwencje przykładów
-
-Przykłady używają Javy 25, JUnit Jupiter 6.1.3 i JaCoCo 0.8.15. Kod znajduje się w projekcie Maven `refactoring-legacy`, w pakiecie głównym `pl.training.module4` i jego podpakietach.
-
-Studium przypadku przedstawia cztery pełne, kompilowalne stany generatora oferty wynajmu:
-
-| Pakiet | Znaczenie |
-| --- | --- |
-| `pl.training.module4.stage0` | kod początkowy zabezpieczony testami charakterystyki |
-| `pl.training.module4.stage1` | lokalne zmiany Rename, Extract, Inline i hermetyzacja warunku |
-| `pl.training.module4.pricing` | wynik Extract Class oraz Move Field i Move Method |
-| `pl.training.module4.stage2` | stan przejściowy z delegatem przygotowanym do Inline Method |
-| `pl.training.module4.stage3` | stan końcowy po usunięciu zbędnego delegata |
-| `pl.training.module4.encapsulation` | osobny przykład Encapsulate Field i Encapsulate Collection |
-
-Pakiety etapów celowo powtarzają kod. Dzięki temu materiał może pokazać wszystkie punkty kontrolne w jednym buildzie. Nie jest to zalecany układ kodu produkcyjnego. W rzeczywistym repozytorium kolejne etapy zwykle zastępują ten sam kod i pozostają widoczne w historii wersji.
-
-Reguły wyceny są uproszczonym kontraktem szkoleniowym. Przykład nie stanowi kompletnego modelu rozliczeń podatkowych ani prawnego modelu wynajmu.
-
-Kompilacja, testy i uruchomienie:
-
-```shell
-cd refactoring-legacy
-mvn clean verify
-java -cp target/classes pl.training.module4.Module4Examples
-```
-
-## Organizacja pracy
-
-Sugerowany czas pracy synchronicznej wynosi 240 minut:
-
-| Część | Czas |
-| --- | ---: |
-| teoria i demonstracja mechaniki | 50 minut |
-| ćwiczenie 1 i omówienie | 40 minut |
-| ćwiczenie 2 i omówienie | 35 minut |
-| ćwiczenie 3 i omówienie | 50 minut |
-| ćwiczenie 4 i omówienie | 45 minut |
-| sprawdzenie wiedzy i podsumowanie | 20 minut |
 
 ## 1. Kontrakt i rytm małych transformacji
 

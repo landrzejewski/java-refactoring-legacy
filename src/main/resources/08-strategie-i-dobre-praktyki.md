@@ -1,28 +1,5 @@
 # Moduł 8. Strategie i dobre praktyki
 
-## Cel modułu
-
-Celem modułu jest przygotowanie uczestnika do prowadzenia refaktoryzacji jako kontrolowanego procesu zespołowego. Sam dobór transformacji kodu nie wystarcza, gdy zmiana obejmuje krytyczny system, wielu autorów, zależności zewnętrzne albo wdrożenie nowej implementacji. Potrzebne są także jawne granice, małe partie pracy, wiarygodna weryfikacja, czytelny przegląd, dokumentacja decyzji i plan ograniczania ryzyka.
-
-Materiał rozróżnia refaktoryzację, migrację i zmianę zachowania. To rozróżnienie zapobiega zaniżaniu ryzyka przez nazywanie każdej modernizacji refaktoryzacją.
-
-## Efekty uczenia się
-
-Po ukończeniu modułu uczestnik:
-
-- rozróżnia rodzaj zmiany od sposobu jej dostarczania,
-- ocenia, kiedy preferować pracę przyrostową, a kiedy rozważyć ograniczone przepisanie komponentu,
-- stosuje Branch by Abstraction i Strangler Fig we właściwych granicach,
-- bezpiecznie wykorzystuje tryb równoległej weryfikacji, czyli shadow, i stopniowe przełączanie ruchu,
-- stosuje Boy Scout Rule bez niekontrolowanego rozszerzania zakresu,
-- dzieli zmianę na małe, samodzielnie weryfikowalne jednostki,
-- przygotowuje zmianę do skutecznego przeglądu kodu,
-- dobiera dokument do trwałości i odbiorcy informacji,
-- odróżnia możliwości IDE, kompilatora, formatera i analizatorów statycznych,
-- wprowadza narzędzia jakościowe do istniejącego projektu bez lawiny przypadkowych zmian,
-- definiuje kryteria `ADVANCE`, `HOLD` i `ROLLBACK` przed wdrożeniem etapowym,
-- zarządza ryzykiem funkcjonalnym, operacyjnym i związanym z danymi.
-
 ## Zakres
 
 1. Stopniowa refaktoryzacja kontra przepisanie systemu
@@ -31,42 +8,6 @@ Po ukończeniu modułu uczestnik:
 4. Dokumentowanie zmian
 5. Narzędzia wspierające refaktoryzację
 6. Zarządzanie ryzykiem
-
-## Konwencje przykładów
-
-Przykłady używają Javy 25, JUnit Jupiter 6.1.3 i projektu Maven `refactoring-legacy`. Kod znajduje się w pakiecie `pl.training.module8` oraz jego podpakietach.
-
-| Pakiet | Zagadnienie |
-| --- | --- |
-| `pl.training.module8.incremental` | Branch by Abstraction i weryfikacja równoległa |
-| `pl.training.module8.boyscout` | mała lokalna poprawa zachowująca zachowanie |
-| `pl.training.module8.collaboration` | przykładowa polityka gotowości do przeglądu kodu |
-| `pl.training.module8.documentation` | trwały zapis decyzji i deterministyczny renderer |
-| `pl.training.module8.tooling` | bramka kompilatora oparta na publicznym API JDK |
-| `pl.training.module8.risk` | jawna polityka kontrolowanego wdrożenia etapowego |
-
-Kompilacja, testy i uruchomienie:
-
-```shell
-cd refactoring-legacy
-mvn clean verify
-java -cp target/classes pl.training.module8.Module8Examples
-```
-
-## Model pracy
-
-### Dwie niezależne osie decyzji
-
-Pytanie o refaktoryzację i przepisanie systemu często łączy dwa różne wymiary:
-
-| Oś | Przykładowe wartości |
-| --- | --- |
-| rodzaj zmiany | refaktoryzacja, migracja, wymiana implementacji, zmiana zachowania |
-| sposób dostarczenia | małe przyrosty, wdrożenie etapowe, jednorazowe przełączenie |
-
-Refaktoryzacja zmienia strukturę bez zmiany obserwowalnego zachowania w przyjętej granicy. Nowa implementacja napisana obok starej jest elementem migracji, nawet jeśli ma spełniać ten sam kontrakt funkcjonalny. Naprawa błędu albo zmiana reguły biznesowej jest zmianą zachowania.
-
-Można przepisać mały, dobrze ograniczony komponent i dostarczać go stopniowo. Można także wykonać serię refaktoryzacji, a na końcu przeprowadzić jednorazowe przełączenie z przyczyn infrastrukturalnych. Rodzaj pracy i sposób wdrożenia należy więc opisywać oddzielnie.
 
 ### Obserwowalne zachowanie
 

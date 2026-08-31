@@ -1,29 +1,5 @@
 # Moduł 5. Refaktoryzacje hierarchii klas - warsztat praktyczny
 
-## Cel modułu
-
-Celem modułu jest opanowanie bezpiecznych zmian struktury dziedziczenia w istniejącym kodzie. Uczestnik uczy się odróżniać współdzielenie implementacji od rzeczywistego podtypowania, przenosić stan i zachowanie między poziomami hierarchii oraz zastępować niewłaściwe dziedziczenie węższym kontraktem albo kompozycją.
-
-Refaktoryzacje hierarchii mają większy promień oddziaływania niż lokalne zmiany wewnątrz metody. Mogą wpływać na dynamiczną dyspozycję, kolejność inicjalizacji, dostępność członków, zgodność plików `.class`, refleksję, proxy, mapowanie ORM i serializację. Dlatego każda technika jest omawiana wraz z warunkami wstępnymi, procedurą, testami i granicami bezpieczeństwa.
-
-## Efekty uczenia się
-
-Po ukończeniu modułu uczestnik:
-
-- rozpoznaje wspólny kontrakt uzasadniający Pull Up Method, Pull Up Field i Extract Superclass,
-- odróżnia podobieństwo tekstu od wspólnego znaczenia domenowego,
-- stosuje Push Down Method i Push Down Field do zawężania zbyt szerokiego typu bazowego,
-- wydziela podklasę dla stabilnego podzbioru instancji ze specyficznym stanem lub zachowaniem,
-- wydziela interfejs opisujący rolę klienta, a nie sumę publicznych metod klasy,
-- usuwa poziom hierarchii, który nie reprezentuje już odrębnego pojęcia,
-- zastępuje dziedziczenie kompozycją, gdy relacja `is-a` jest fałszywa albo zbyt szeroka,
-- wyjaśnia różnicę między nadpisywaniem metod a ukrywaniem pól,
-- analizuje konstruktory, inicjalizatory, `super`, metody `static`, `private`, `final` i `synchronized`,
-- uwzględnia erasure, metody bridge, dostęp `protected` i hierarchie `sealed`,
-- rozdziela zgodność zachowania, źródłową, binarną, refleksyjną i serializacyjną,
-- zabezpiecza transformacje testami charakterystyki, kontraktowymi, różnicowymi i integracyjnymi,
-- planuje migrację publicznego API zamiast nazywać zmianę łamiącą zwykłą refaktoryzacją.
-
 ## Zakres
 
 1. Kontrakt hierarchii i model ryzyka
@@ -39,62 +15,6 @@ Po ukończeniu modułu uczestnik:
 11. Studium przypadku: hierarchia powiadomień
 12. Dodatkowe przypadki przed i po
 13. Warsztat praktyczny
-
-## Nazwy technik
-
-Materiał zachowuje nazwy z agendy. W literaturze i narzędziach można spotkać także następujące warianty:
-
-| Nazwa w module | Spotykany odpowiednik lub doprecyzowanie |
-| --- | --- |
-| Pull Up Method | przeniesienie wspólnej metody do nadklasy |
-| Pull Up Field | przeniesienie wspólnego stanu do nadklasy |
-| Push Down Method | przeniesienie operacji do właściwej gałęzi hierarchii |
-| Push Down Field | przeniesienie stanu do właściwej gałęzi hierarchii |
-| Extract Superclass | wyodrębnienie wspólnej nadklasy |
-| Extract Subclass | klasyczne wydzielenie podklasy; bywa łączone z Replace Type Code with Subclasses |
-| Extract Interface | wydzielenie interfejsu roli klienta |
-| Collapse Hierarchy | scalenie poziomów bez istotnego rozróżnienia |
-| Replace Inheritance with Composition | Replace Superclass with Delegate, Replace Inheritance with Delegation |
-
-Kompozycja i delegowanie opisują powiązane, ale różne aspekty rozwiązania. Kompozycja oznacza, że obiekt posiada współpracownika. Delegowanie oznacza, że przekazuje mu wykonanie operacji. Wrapper może używać kompozycji bez delegowania całego API, a nie każde delegowanie oznacza silną własność cyklu życia.
-
-## Konwencje przykładów
-
-Przykłady używają Javy 25, JUnit Jupiter 6.1.3 i projektu Maven `refactoring-legacy`. Kod modułu znajduje się w pakiecie `pl.training.module5` oraz jego podpakietach.
-
-| Pakiet | Znaczenie |
-| --- | --- |
-| `pl.training.module5.stage0` | niezależne klasy powiadomień przed zmianą |
-| `pl.training.module5.stage1` | Extract Superclass oraz Pull Up Method i Field |
-| `pl.training.module5.stage2` | Push Down Method i Field dla potwierdzenia SMS |
-| `pl.training.module5.stage3` | Extract Interface i klient zależny od roli |
-| `pl.training.module5.extractsubclass` | osobny przykład Extract Subclass |
-| `pl.training.module5.collapse` | osobny przykład Collapse Hierarchy |
-| `pl.training.module5.composition` | osobny przykład zastąpienia dziedziczenia kompozycją |
-
-Pakiety `before`, `after` i `stage0` do `stage3` celowo zawierają kolejne wersje kodu. Dzięki temu wszystkie stany kompilują się w ramach jednego przebiegu budowania i mogą być porównywane przez testy różnicowe. W repozytorium produkcyjnym kolejne stany zwykle zastępują te same pliki i pozostają dostępne w historii wersji.
-
-Kompilacja, testy i uruchomienie:
-
-```shell
-cd refactoring-legacy
-mvn clean verify
-java -cp target/classes pl.training.module5.Module5Examples
-```
-
-## Organizacja pracy
-
-Sugerowany czas pracy synchronicznej wynosi 240 minut:
-
-| Część | Czas |
-| --- | ---: |
-| kontrakt hierarchii i semantyka Javy | 45 minut |
-| demonstracja Pull Up, Push Down i Extract Superclass | 40 minut |
-| ćwiczenie 1 i omówienie | 35 minut |
-| Extract Subclass, Extract Interface i Collapse Hierarchy | 35 minut |
-| ćwiczenie 2 i omówienie | 30 minut |
-| kompozycja, zgodność i ćwiczenie 3 | 40 minut |
-| ćwiczenie 4, sprawdzenie wiedzy i podsumowanie | 15 minut |
 
 ## 1. Kontrakt hierarchii i model ryzyka
 
