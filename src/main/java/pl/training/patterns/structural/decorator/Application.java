@@ -7,6 +7,5 @@ public class Application {
         Reader reader = new LowerCaseReaderDecorator(new UnderscoreReaderDecorator(new SystemInReader()));
         //------------------------------------------------
         log.info(reader.getText());
-        ((ReaderDecorator) reader).getInt();
     }
 }

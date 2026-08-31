@@ -66,7 +66,7 @@ Factory Method, fabryka statyczna, obiekt Factory i Abstract Factory nie są syn
 
 ## Konwencje przykładów
 
-Przykłady używają Javy 25, JUnit Jupiter 6.1.3 i projektu Maven `refactoring-legacy/refactoring-legacy`. Kod znajduje się w pakiecie `pl.training.module6` oraz jego podpakietach.
+Przykłady używają Javy 25, JUnit Jupiter 6.1.3 i projektu Maven `refactoring-legacy`. Kod znajduje się w pakiecie `pl.training.module6` oraz jego podpakietach.
 
 | Pakiet | Znaczenie |
 | --- | --- |
@@ -89,7 +89,7 @@ Pakiety `before` i `after` celowo współistnieją. Pozwala to kompilować oba s
 Kompilacja, testy i uruchomienie:
 
 ```shell
-cd refactoring-legacy/refactoring-legacy
+cd refactoring-legacy
 mvn clean verify
 java -cp target/classes pl.training.module6.Module6Examples
 ```
@@ -1755,7 +1755,7 @@ Safe Composite udostępnia zarządzanie dziećmi tylko typowi grupy. Przykład j
 
 Technika ogranicza tworzenie do jednej instancji dostępnej przez daną definicję klasy. Może być uzasadniona, gdy wiele równoważnych, kosztownych instancji nie daje wartości albo domena rzeczywiście wymaga jednej tożsamości.
 
-Nie należy wprowadzać Singletona na podstawie przypuszczenia o pamięci lub wydajności. Najpierw trzeba zmierzyć koszt i sprawdzić, czy współdzielenie zachowuje semantykę. Zastąpienie kilku obiektów jednym może połączyć ich wcześniej niezależny stan, blokady i cykle życia.
+Nie należy wprowadzać Singletona na podstawie przypuszczenia o pamięci lub wydajności. Najpierw trzeba zmierzyć koszt i sprawdzić, czy współdzielenie zachowuje semantykę. Zastąpienie kilku obiektów jednym może połączyć ich wcześniej niezależny stan, blokady i cykle życia. Katalog Kerievsky'ego zawiera też transformację odwrotną, Inline Singleton, która usuwa niepotrzebny Singleton i przywraca jawne przekazywanie zależności.
 
 ### 15.2. Niemutowalny enum singleton
 
@@ -2060,7 +2060,7 @@ Prywatne pole ukrywa wspólną reprezentację dzieci, a metody `final` uniemożl
 
 1. Znajdź wszystkie klasy przechowujące dzieci z tej samej hierarchii.
 2. Porównaj rzeczywiste kontrakty, nie tylko podobieństwo kodu.
-3. Ujednolić nazwy i typy kolekcji bez przenoszenia.
+3. Ujednolij nazwy i typy kolekcji bez przenoszenia.
 4. Wyodrębnij wspólną klasę bazową implementującą kontrakt węzła.
 5. Przenieś pole dzieci z jednej klasy i uruchom testy.
 6. Przenieś wspólne operacje pojedynczo.

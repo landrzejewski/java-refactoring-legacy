@@ -1,13 +1,23 @@
 package pl.training.patterns.behavioral.state;
 
 public class Order {
-    private final MovieType movieType;
 
-    public double getTotalValue(long periodInDays) {
-        return movieType.getValueFor(periodInDays);
+    private OrderState state = OrderStatus.NEW;
+
+    public void pay() {
+        state = state.pay();
     }
 
-    public Order(final MovieType movieType) {
-        this.movieType = movieType;
+    public void ship() {
+        state = state.ship();
     }
+
+    public void cancel() {
+        state = state.cancel();
+    }
+
+    public OrderState getState() {
+        return state;
+    }
+
 }

@@ -1,4 +1,4 @@
-package pl.training.patterns.behavioral.flyweight;
+package pl.training.patterns.structural.flyweight;
 
 public class Application {
 

@@ -50,7 +50,7 @@ Materiał zachowuje nazwy z agendy, ale posługuje się ich precyzyjnym znaczeni
 | Nazwa w agendzie | Znaczenie używane w module |
 | --- | --- |
 | Break Dependencies | utworzenie punktu podstawienia zależności, zwykle seam, i zachowanie produkcyjnego połączenia |
-| Extract Method Object | przeniesienie pojedynczego wykonania złożonej metody do obiektu, współcześnie nazywane także Replace Function with Command |
+| Extract Method Object | przeniesienie pojedynczego wykonania złożonej metody do obiektu, dawniej Replace Method with Method Object, współcześnie Replace Function with Command |
 | Break Responsibilities | lokalne wydzielenie spójnej odpowiedzialności za pomocą Extract Class oraz Move Function lub Move Field |
 | Remove Duplication | cel projektowy realizowany techniką dobraną do rodzaju wspólnej wiedzy |
 | Break Method | seria Extract Method, czasem uzupełniona przez Split Phase |
@@ -67,7 +67,7 @@ Break Method jest podstawową techniką dzielenia algorytmu. Extract Method Obje
 
 ## Konwencje przykładów
 
-Przykłady używają Javy 25, JUnit Jupiter 6.1.3 i projektu Maven `refactoring-legacy/refactoring-legacy`. Kod znajduje się w pakiecie `pl.training.module7` oraz jego podpakietach.
+Przykłady używają Javy 25, JUnit Jupiter 6.1.3 i projektu Maven `refactoring-legacy`. Kod znajduje się w pakiecie `pl.training.module7` oraz jego podpakietach.
 
 | Pakiet | Problem |
 | --- | --- |
@@ -90,7 +90,7 @@ Pakiety `before` i `after` celowo współistnieją. Testy różnicowe uruchamiaj
 Kompilacja, testy i uruchomienie:
 
 ```shell
-cd refactoring-legacy/refactoring-legacy
+cd refactoring-legacy
 mvn clean verify
 java -cp target/classes pl.training.module7.Module7Examples
 ```
@@ -1200,7 +1200,7 @@ Wariant legacy może akceptować wartości spoza zamierzonej domeny, przechodzi�
 
 ### 8.4. `assert` a publiczne API
 
-Instrukcja `assert` może być wyłączona, a jej naruszenie zgłasza `AssertionError`. Nie należy używać jej do sprawdzania argumentów metod publicznych. Typowe rozróżnienie w API Javy to:
+Instrukcja `assert` jest domyślnie wyłączona, działa dopiero po uruchomieniu JVM z flagą `-ea`, a jej naruszenie zgłasza `AssertionError`. Nie należy używać jej do sprawdzania argumentów metod publicznych. Typowe rozróżnienie w API Javy to:
 
 - `NullPointerException` dla wymaganego argumentu referencyjnego o wartości `null`,
 - `IllegalArgumentException` dla niedozwolonej wartości argumentu,

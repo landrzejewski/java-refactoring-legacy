@@ -11,8 +11,9 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import pl.training.patterns.behavioral.state.MovieType;
-import pl.training.patterns.behavioral.state.Order;
+import pl.training.patterns.behavioral.state.OrderStatus;
+import pl.training.patterns.behavioral.strategy.movies.MovieType;
+import pl.training.patterns.behavioral.strategy.movies.Order;
 import pl.training.patterns.creational.abstractfactory.ftp.FtpConnection;
 import pl.training.patterns.structural.adapter.AirConditioningController;
 import pl.training.patterns.structural.adapter.TemperatureControllerAdapter;
@@ -45,6 +46,26 @@ final class AdditionalPatternsExamplesTest {
     @Test
     void usesTheRegisteredFtpControlPort() {
         assertEquals(21, new FtpConnection().getPort());
+    }
+
+    @Test
+    void orderStateMovesThroughItsLifecycleAndRejectsInvalidTransitions() {
+        var order = new pl.training.patterns.behavioral.state.Order();
+        assertEquals(OrderStatus.NEW, order.getState());
+
+        order.pay();
+        assertEquals(OrderStatus.PAID, order.getState());
+
+        order.ship();
+        assertEquals(OrderStatus.SHIPPED, order.getState());
+
+        assertThrows(IllegalStateException.class, order::cancel);
+        assertEquals(OrderStatus.SHIPPED, order.getState());
+
+        var cancelled = new pl.training.patterns.behavioral.state.Order();
+        cancelled.cancel();
+        assertEquals(OrderStatus.CANCELLED, cancelled.getState());
+        assertThrows(IllegalStateException.class, cancelled::pay);
     }
 
     @Test

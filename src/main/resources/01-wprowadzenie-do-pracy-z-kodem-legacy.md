@@ -14,7 +14,7 @@ Po ukończeniu modułu uczestnik:
 - rozpoznaje techniczne, operacyjne i organizacyjne źródła ryzyka,
 - rozróżnia defekty, symptomy niskiej jakości, elementy długu technicznego i ograniczenia środowiskowe,
 - opisuje element długu technicznego, wskazując jego przyczynę, konsekwencje, koszt usunięcia oraz koszt dalszego utrzymania,
-- interpretuje złożoność cyklomatyczną, pokrycie testami i duplikacje bez wyciągania wniosków z pojedynczej liczby,
+- interpretuje złożoność cyklomatyczną i poznawczą, pokrycie testami, duplikacje oraz podstawowe miary sprzężenia i spójności bez wyciągania wniosków z pojedynczej liczby,
 - dobiera metryki do konkretnego celu i pytania,
 - ocenia, czy właściwym kierunkiem jest utrzymanie, refaktoryzacja, modernizacja przyrostowa, wymiana komponentu czy przepisanie systemu.
 
@@ -33,7 +33,7 @@ Po ukończeniu modułu uczestnik:
 
 Przykłady kodu używają Java 25. Testy zapisano z użyciem JUnit Jupiter 6. Fragmenty domenowe są celowo uproszczone i służą do analizy projektu. Nie stanowią specyfikacji rzeczywistych zasad podatkowych, księgowych ani handlowych.
 
-Kod znajduje się w projekcie Maven `refactoring-legacy/refactoring-legacy`. Bazowym pakietem projektu jest `pl.training`, a wszystkie przykłady tego modułu należą do pakietu `pl.training.module1`:
+Kod znajduje się w projekcie Maven `refactoring-legacy`. Bazowym pakietem projektu jest `pl.training`, a wszystkie przykłady tego modułu należą do pakietu `pl.training.module1`:
 
 | Lokalizacja | Zawartość |
 | --- | --- |
@@ -43,7 +43,7 @@ Kod znajduje się w projekcie Maven `refactoring-legacy/refactoring-legacy`. Baz
 Wymagane jest JDK 25, a zmienna `JAVA_HOME` powinna wskazywać jego katalog. Kompilacja i uruchomienie:
 
 ```shell
-cd refactoring-legacy/refactoring-legacy
+cd refactoring-legacy
 mvn clean verify
 java -cp target/classes pl.training.module1.Module1Examples
 ```
@@ -682,7 +682,26 @@ Wysoka wartość jest sygnałem do pytań:
 
 Nie istnieje uniwersalny próg, po którego przekroczeniu metoda jest automatycznie błędna. Próg skonfigurowany w narzędziu może być regułą zespołu wyzwalającą przegląd, ale nie zastępuje diagnozy.
 
-### 6.3. Pokrycie testami
+### 6.3. Złożoność poznawcza
+
+Złożoność poznawcza (cognitive complexity) powstała jako odpowiedź na opisaną wyżej słabość złożoności cyklomatycznej: pomija ona stopień zagnieżdżenia decyzji. Metryka próbuje przybliżyć wysiłek potrzebny człowiekowi do zrozumienia przepływu sterowania, a nie liczbę ścieżek do przetestowania. Nie jest częścią żadnej normy; jej najbardziej rozpowszechniona definicja pochodzi z narzędzi analizy statycznej, między innymi z rodziny SonarQube, i to od konkretnego narzędzia zależą szczegóły liczenia.
+
+Typowe reguły naliczania:
+
+- każde przerwanie liniowego przepływu, na przykład `if`, pętla, `catch` lub wyrażenie warunkowe, zwiększa wynik o jeden,
+- konstrukcja zagnieżdżona w innej konstrukcji sterującej otrzymuje dodatkowy narzut równy głębokości zagnieżdżenia,
+- `switch` liczony jest jako jedno przerwanie przepływu niezależnie od liczby wariantów, inaczej niż w złożoności cyklomatycznej,
+- sekwencja jednorodnych operatorów logicznych liczona jest raz, a dopiero zmiana operatora, na przykład z `&&` na `||`, dodaje kolejny punkt,
+- wczesne wyjście `return` w klauzuli ochronnej nie zwiększa wyniku, dzięki czemu spłaszczenie warunków realnie obniża metrykę,
+- rekurencja zwiększa wynik, ponieważ wymaga śledzenia dodatkowego cyklu rozumowania.
+
+W efekcie dwie metody o identycznej złożoności cyklomatycznej mogą mieć bardzo różną złożoność poznawczą. Metoda z czterema płaskimi warunkami ochronnymi uzyska niski wynik, a metoda z czterema warunkami zagnieżdżonymi jeden w drugim wysoki. To odróżnienie odpowiada intuicji czytelnika kodu i czyni metrykę użytecznym sygnałem do refaktoryzacji struktury metody, na przykład zastąpienia zagnieżdżonych warunków klauzulami ochronnymi lub wydzielenia metod.
+
+#### Jak interpretować
+
+Złożoność poznawcza uzupełnia złożoność cyklomatyczną, ale jej nie zastępuje. Do planowania testów nadal potrzebna jest informacja o liczbie niezależnych decyzji. Wynik zależy od wersji i konfiguracji narzędzia, więc porównania mają sens tylko w obrębie tego samego pomiaru. Metryka nadal nie mierzy trudności domeny: metoda o niskim wyniku może implementować regułę biznesową trudną do zrozumienia z powodów pojęciowych, nie strukturalnych.
+
+### 6.4. Pokrycie testami
 
 Pokrycie informuje, które elementy programu zostały wykonane podczas danego uruchomienia testów. Typowe odmiany to:
 
@@ -766,7 +785,7 @@ Najbardziej użyteczne pytania to:
 
 Globalny procent może ukryć krytyczny moduł z niemal zerowym pokryciem za dużą liczbą prostych, dobrze pokrytych klas. Dlatego analizuje się zakres zmiany i ryzyko, nie tylko średnią dla repozytorium.
 
-### 6.4. Duplikacje
+### 6.5. Duplikacje
 
 Duplikacja kodu oznacza podobne fragmenty implementacji. Narzędzia mogą wykrywać różne rodzaje podobieństwa:
 
@@ -830,7 +849,25 @@ Wynik zależy od:
 
 Procentów z różnych narzędzi nie należy bezpośrednio porównywać. Ważniejsze od całkowitego udziału duplikacji jest pytanie, czy kopie często zmieniają się razem i czy niespójne aktualizacje powodują defekty.
 
-### 6.5. Łączenie metryk
+### 6.6. Sprzężenie i spójność
+
+Sprzężenie opisuje, jak silnie moduł zależy od innych modułów, a spójność, jak mocno elementy wewnątrz modułu należą do jednej odpowiedzialności. Oba pojęcia wracają w module trzecim jako zasady projektowe; tutaj interesuje nas ich pomiar jako sygnał diagnostyczny w systemie legacy.
+
+Podstawowe mierzalne wskaźniki sprzężenia:
+
+- liczba zależności wychodzących klasy lub pakietu (efferent coupling, oznaczana `Ce`): od ilu typów dany moduł zależy; wysoka wartość oznacza wiele powodów, dla których moduł może wymagać zmiany lub przestać się kompilować,
+- liczba zależności przychodzących (afferent coupling, `Ca`): ile typów zależy od danego modułu; wysoka wartość oznacza szeroki promień oddziaływania każdej zmiany w tym module,
+- niestabilność `I = Ce / (Ca + Ce)`: wartość bliska zeru opisuje moduł, od którego wiele zależy, a który sam zależy od niewielu, więc powinien być stabilny i abstrakcyjny; wartość bliska jedynce opisuje moduł łatwy do zmiany,
+- cykle zależności między pakietami: uniemożliwiają zrozumienie, przetestowanie i wymianę modułów w izolacji, a w systemach legacy są jednym z najkosztowniejszych znalezisk,
+- współzmienność (change coupling) liczona z historii systemu kontroli wersji: pliki, które regularnie zmieniają się w tych samych rewizjach, są sprzężone wiedzą, nawet jeżeli nie łączy ich żadna zależność w kodzie.
+
+Spójność jest trudniejsza do bezpośredniego pomiaru. Rodzina metryk LCOM (lack of cohesion of methods) sprawdza, czy metody klasy operują na wspólnych polach; klasa, której metody rozpadają się na rozłączne grupy używające rozłącznych pól, jest kandydatem do podziału. Warianty LCOM różnią się definicją i skalą, więc wynik ma znaczenie tylko w ramach jednego narzędzia. Prostszym sygnałem bywa sama próba nazwania odpowiedzialności klasy: jeżeli opis wymaga spójnika „oraz”, metryka jedynie potwierdzi to, co widać w nazwach metod.
+
+#### Jak interpretować
+
+Celem nie jest minimalizacja sprzężenia do zera, bo moduł bez zależności nie robi niczego użytecznego. Znaczenie ma kierunek i charakter zależności: zależność od stabilnej abstrakcji jest tania, a zależność od często zmienianego konkretu droga. Wysokie `Ca` przy częstych zmianach modułu to sygnał ostrzegawczy sam w sobie. Metryki obiektowe generują też fałszywe alarmy: klasa przenosząca dane bez logiki uzyska złe wyniki LCOM, choć nie wymaga żadnej interwencji. Jak zawsze, liczba wskazuje kandydata do analizy, a nie werdykt.
+
+### 6.7. Łączenie metryk
 
 Najlepszych kandydatów do interwencji często wskazuje przecięcie kilku sygnałów.
 
@@ -844,7 +881,7 @@ Najlepszych kandydatów do interwencji często wskazuje przecięcie kilku sygna�
 
 Warto obserwować trend w czasie. Jednorazowy wynik może być anomalią lub skutkiem konfiguracji. Trend pokazuje, czy interwencja zmniejszyła koszt i ryzyko, ale nadal wymaga interpretacji wraz z wynikami dostarczania oraz działania systemu.
 
-### 6.6. Antywzorce użycia metryk
+### 6.8. Antywzorce użycia metryk
 
 #### Optymalizacja pod wynik metryki
 
@@ -866,7 +903,7 @@ Złożone komponenty mogą mieć więcej defektów, ale bywają też większe, c
 
 Polityka jakości powinna przede wszystkim zapobiegać pogarszaniu aktywnie zmienianego kodu i chronić zachowania krytyczne. Próba natychmiastowego doprowadzenia całego systemu legacy do jednego progu często tworzy dużą kolejkę pracy bez uzasadnionej wartości.
 
-### 6.7. Praktyczny pulpit diagnostyczny
+### 6.9. Praktyczny pulpit diagnostyczny
 
 Dla komponentu można zestawić niewielki pakiet informacji:
 
@@ -892,7 +929,7 @@ Zabezpieczenia:
 
 Pakiet powinien być mały i powiązany z decyzją. Jego zadaniem jest zidentyfikowanie miejsca do dalszej analizy, a nie stworzenie uniwersalnej oceny jakości.
 
-### 6.8. Krótka aktywność: dobór metryk
+### 6.10. Krótka aktywność: dobór metryk
 
 **Czas:** 4 minuty.
 

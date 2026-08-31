@@ -37,7 +37,7 @@ Po ukończeniu modułu uczestnik:
 
 Przykłady używają Javy 25, JUnit Jupiter 6.1.3 i JaCoCo 0.8.15. Kod domenowy jest celowo uproszczony. Nie stanowi kompletnego modelu płatności, podatków, faktur ani komunikacji z klientem. Klasy z przedrostkiem `Legacy` oraz ich nowsze odpowiedniki mają różne nazwy wyłącznie po to, aby kolejne etapy mogły współistnieć i być uruchamiane w jednym projekcie. W rzeczywistej refaktoryzacji byłyby kolejnymi wersjami tego samego kodu.
 
-Kod znajduje się w projekcie Maven `refactoring-legacy/refactoring-legacy`. Bazowym pakietem jest `pl.training`, a przykłady tego modułu należą do pakietu `pl.training.module2`:
+Kod znajduje się w projekcie Maven `refactoring-legacy`. Bazowym pakietem jest `pl.training`, a przykłady tego modułu należą do pakietu `pl.training.module2`:
 
 | Lokalizacja | Zawartość |
 | --- | --- |
@@ -48,7 +48,7 @@ Kod znajduje się w projekcie Maven `refactoring-legacy/refactoring-legacy`. Baz
 Kompilacja, testy i uruchomienie przykładów:
 
 ```shell
-cd refactoring-legacy/refactoring-legacy
+cd refactoring-legacy
 mvn clean verify
 java -cp target/classes pl.training.module2.Module2Examples
 ```
@@ -183,7 +183,7 @@ Stale czerwony test nie może pełnić funkcji czujnika nowej regresji. Należy 
 
 ### 2.2. Oddziel dwa tryby pracy
 
-W trybie strukturalnym celem jest zachowanie uzgodnionych obserwacji. W trybie funkcjonalnym celem jest ich jawna zmiana. Tryby można przełączać często, ale w danym kroku programista powinien wiedzieć, który z nich realizuje.
+W trybie strukturalnym celem jest zachowanie uzgodnionych obserwacji. W trybie funkcjonalnym celem jest ich jawna zmiana. Tryby można przełączać często, ale w danym kroku programista powinien wiedzieć, który z nich realizuje. Fowler opisuje to rozróżnienie metaforą dwóch kapeluszy: kapelusza dodawania funkcji i kapelusza refaktoryzacji, których nie należy nosić jednocześnie.
 
 Przykładowy przebieg:
 
@@ -1064,7 +1064,7 @@ Przykładami są:
 
 Sam interfejs nie jest jeszcze użytecznym szwem, jeżeli kod wewnątrz metody na stałe tworzy konkretną implementację. Musi istnieć dostępny punkt, w którym test lub konfiguracja produkcyjna wybierze współpracownika.
 
-W Javie najczęściej stosuje się szwy obiektowe oparte na polimorfizmie i przekazywaniu zależności. Możliwe są też szwy wynikające ze sposobu budowania lub ładowania klas, lecz zwykle są mniej lokalne i trudniejsze do zrozumienia. Bezpośrednie wywołanie statyczne, takie jak `LocalDate.now(...)`, nie daje szwu obiektowego. Trzeba przekazać źródło czasu albo najpierw owinąć wywołanie metodą, którą można zastąpić.
+W Javie najczęściej stosuje się szwy obiektowe (object seams) oparte na polimorfizmie i przekazywaniu zależności. Możliwe są też szwy wynikające ze sposobu budowania lub ładowania klas (link seams), lecz zwykle są mniej lokalne i trudniejsze do zrozumienia. Trzeci rodzaj opisywany przez Feathersa, szew preprocesora (preprocessing seam), nie ma w Javie praktycznego zastosowania, ponieważ język nie używa preprocesora. Bezpośrednie wywołanie statyczne, takie jak `LocalDate.now(...)`, nie daje szwu obiektowego. Trzeba przekazać źródło czasu albo najpierw owinąć wywołanie metodą, którą można zastąpić.
 
 ### 9.2. Dwa powody rozrywania zależności
 
@@ -1146,7 +1146,7 @@ public class SeamedReminderService {
 }
 ```
 
-Kod produkcyjny wykonuje nadal te same operacje. Punktem aktywacji w teście jest wyrażenie tworzące `new TestableReminderService(...)`. Dynamiczne wiązanie wywołań metod `currentDate` i `sendMessage` jest mechanizmem realizującym podmianę zachowania.
+Kod produkcyjny wykonuje nadal te same operacje. Punktem aktywacji w teście jest wyrażenie tworzące `new TestableReminderService(...)`. Dynamiczne wiązanie wywołań metod `currentDate` i `sendMessage` jest mechanizmem realizującym podmianę zachowania. W katalogu technik Feathersa to podejście nosi nazwę Subclass and Override Method.
 
 Zmiana klasy `final` na klasę rozszerzalną i dodanie metod `protected` zmienia kontrakt rozszerzalności oraz powierzchnię API. Krok można traktować jako refaktoryzację, gdy typ jest wewnętrzny, wszyscy konsumenci pozostają pod kontrolą, a rozszerzalność nie stanowi kontraktu zewnętrznego. Dla publicznej biblioteki wymaga to osobnej analizy kompatybilności i planu migracji, nawet jeśli wynik podstawowej operacji pozostaje taki sam.
 
@@ -1252,7 +1252,7 @@ Nie każda zależność musi natychmiast otrzymać interfejs. Minimalny szew ma 
 
 ### 9.5. Jawne zależności jako rozwiązanie docelowe
 
-Standardowy `Clock` kontroluje czas. Interfejs `ReminderGateway` nazywa efekt wyjściowy, a wyrażenie tworzące `ReminderService` jest punktem aktywacji obu szwów.
+Standardowy `Clock` kontroluje czas. Interfejs `ReminderGateway` nazywa efekt wyjściowy, a wyrażenie tworzące `ReminderService` jest punktem aktywacji obu szwów. Przekazanie zależności przez konstruktor odpowiada technice Parameterize Constructor, a nazwanie efektu własnym interfejsem — technice Extract Interface z katalogu Feathersa.
 
 ```java
 package pl.training.module2;
@@ -1406,7 +1406,7 @@ W produkcji konstruktor otrzyma zegar systemowy z ustaloną strefą i adapter wy
 Przed rozpoczęciem:
 
 1. Sprawdź `mvn -version` i potwierdź, że Maven korzysta z Javy 25.
-2. Przejdź do katalogu `refactoring-legacy/refactoring-legacy`.
+2. Przejdź do katalogu `refactoring-legacy`.
 3. Uruchom `mvn clean verify`.
 4. Potwierdź, że pracujesz wyłącznie w pakiecie `pl.training.module2`.
 5. Ustal sposób zapisywania małych punktów przywracania.

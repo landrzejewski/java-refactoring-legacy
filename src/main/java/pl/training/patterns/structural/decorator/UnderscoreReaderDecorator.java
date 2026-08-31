@@ -11,9 +11,4 @@ public class UnderscoreReaderDecorator extends ReaderDecorator {
         return super.getText().replaceAll("\\s", "_");
     }
 
-    @Override
-    public int getInt() {
-        return 0;
-    }
-
 }

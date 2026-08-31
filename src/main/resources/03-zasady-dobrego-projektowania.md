@@ -38,7 +38,7 @@ Po ukończeniu modułu uczestnik:
 
 Przykłady używają Javy 25, JUnit Jupiter 6.1.3 i JaCoCo 0.8.15. Kod domenowy jest celowo uproszczony. Nie stanowi kompletnego modelu logistyki, rozliczeń, trwałości danych ani dostarczania wiadomości.
 
-Kod znajduje się w projekcie Maven `refactoring-legacy/refactoring-legacy`. Bazowym pakietem jest `pl.training`, a przykłady tego modułu należą do pakietu głównego `pl.training.module3` i jego podpakietów:
+Kod znajduje się w projekcie Maven `refactoring-legacy`. Bazowym pakietem jest `pl.training`, a przykłady tego modułu należą do pakietu głównego `pl.training.module3` i jego podpakietów:
 
 | Pakiet | Odpowiedzialność |
 | --- | --- |
@@ -57,7 +57,7 @@ Na potrzeby studium zakładamy, że zastana klasa jest wewnętrzna, a wszystkie 
 Kompilacja, testy i uruchomienie:
 
 ```shell
-cd refactoring-legacy/refactoring-legacy
+cd refactoring-legacy
 mvn clean verify
 java -cp target/classes pl.training.module3.Module3Examples
 ```

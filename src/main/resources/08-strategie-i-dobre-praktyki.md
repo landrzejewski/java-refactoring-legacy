@@ -34,7 +34,7 @@ Po ukończeniu modułu uczestnik:
 
 ## Konwencje przykładów
 
-Przykłady używają Javy 25, JUnit Jupiter 6.1.3 i projektu Maven `refactoring-legacy/refactoring-legacy`. Kod znajduje się w pakiecie `pl.training.module8` oraz jego podpakietach.
+Przykłady używają Javy 25, JUnit Jupiter 6.1.3 i projektu Maven `refactoring-legacy`. Kod znajduje się w pakiecie `pl.training.module8` oraz jego podpakietach.
 
 | Pakiet | Zagadnienie |
 | --- | --- |
@@ -48,7 +48,7 @@ Przykłady używają Javy 25, JUnit Jupiter 6.1.3 i projektu Maven `refactoring-
 Kompilacja, testy i uruchomienie:
 
 ```shell
-cd refactoring-legacy/refactoring-legacy
+cd refactoring-legacy
 mvn clean verify
 java -cp target/classes pl.training.module8.Module8Examples
 ```
@@ -1605,7 +1605,7 @@ public final class DecisionRecordMarkdownRenderer {
 }
 ```
 
-Test zapisuje oczekiwany dokument jako text block Javy 25. Chroni kolejność sekcji, etykiety i końcowe znaki nowej linii.
+Test zapisuje oczekiwany dokument jako text block. Chroni kolejność sekcji, etykiety i końcowe znaki nowej linii.
 
 Plik `pl/training/module8/documentation/DecisionRecordMarkdownRendererTest.java`:
 
@@ -2504,7 +2504,7 @@ final class RolloutPolicyTest {
 Wycofanie pliku `.jar` jest proste tylko wtedy, gdy nowa wersja nie pozostawiła niezgodnego stanu. Migracja danych powinna preferować sekwencję rozszerz i zwęź, znaną jako expand and contract:
 
 1. dodaj strukturę zgodną ze starą i nową wersją,
-2. wdroż kod potrafiący pracować w okresie przejściowym,
+2. wdróż kod potrafiący pracować w okresie przejściowym,
 3. przenieś lub uzupełnij dane z kontrolą postępu,
 4. przełącz odczyty i zweryfikuj zgodność,
 5. zatrzymaj stare zapisy,

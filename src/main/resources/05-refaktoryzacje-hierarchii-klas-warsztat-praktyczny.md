@@ -60,7 +60,7 @@ Kompozycja i delegowanie opisują powiązane, ale różne aspekty rozwiązania. 
 
 ## Konwencje przykładów
 
-Przykłady używają Javy 25, JUnit Jupiter 6.1.3 i projektu Maven `refactoring-legacy/refactoring-legacy`. Kod modułu znajduje się w pakiecie `pl.training.module5` oraz jego podpakietach.
+Przykłady używają Javy 25, JUnit Jupiter 6.1.3 i projektu Maven `refactoring-legacy`. Kod modułu znajduje się w pakiecie `pl.training.module5` oraz jego podpakietach.
 
 | Pakiet | Znaczenie |
 | --- | --- |
@@ -77,7 +77,7 @@ Pakiety `before`, `after` i `stage0` do `stage3` celowo zawierają kolejne wersj
 Kompilacja, testy i uruchomienie:
 
 ```shell
-cd refactoring-legacy/refactoring-legacy
+cd refactoring-legacy
 mvn clean verify
 java -cp target/classes pl.training.module5.Module5Examples
 ```
@@ -238,7 +238,7 @@ Przeniesienie pola `static` może zmienić także moment inicjalizacji klasy. Zw
 
 Członek o dostępie pakietowym nie jest dziedziczony przez podklasę z innego pakietu. Metoda o tej samej sygnaturze zadeklarowana w takiej podklasie nie jest override niedostępnej metody nadklasy.
 
-`protected` poza pakietem również nie oznacza dostępu przez dowolną referencję typu bazowego. Kod podklasy może użyć chronionego członka przez odbiorcę, którego typ jest tą podklasą albo jej podtypem. Przeniesienie klasy lub metody między pakietami może więc zmienić dziedziczenie i dostępność mimo niezmienionej sygnatury.
+`protected` obejmuje pełny dostęp z pakietu deklaracji oraz dodatkowo dostęp z podklas w innych pakietach. Poza pakietem nie oznacza to jednak dostępu przez dowolną referencję typu bazowego. Kod podklasy może użyć chronionego członka przez odbiorcę, którego typ jest tą podklasą albo jej podtypem. Przeniesienie klasy lub metody między pakietami może więc zmienić dziedziczenie i dostępność mimo niezmienionej sygnatury.
 
 `protected` konstruktor jest dostępny podklasie przez `super(...)`, ale poza pakietem nie staje się przez to zwykłym publicznym punktem tworzenia `new Base(...)`.
 
@@ -546,7 +546,7 @@ Najważniejsze reguły:
 - konkretna metoda klasy ma pierwszeństwo przed metodą domyślną,
 - bardziej szczegółowy interfejs ma pierwszeństwo przed mniej szczegółowym,
 - dwa niespokrewnione interfejsy z równoważnymi metodami domyślnymi wymagają jawnego rozstrzygnięcia,
-- metoda domyślna nie może zastąpić nieprywatnej metody `Object`, takiej jak `equals`, `hashCode` lub `toString`,
+- metoda domyślna nie może zastąpić publicznej metody `Object`, takiej jak `equals`, `hashCode` lub `toString`,
 - dodanie metody domyślnej może być binarnie zgodne, ale konflikt w starym binarium może ujawnić się podczas wywołania,
 - sekwencja kilku wywołań w metodzie domyślnej nie staje się przez to atomowa,
 - dynamiczne proxy kieruje wywołanie metody domyślnej do swojego handlera.

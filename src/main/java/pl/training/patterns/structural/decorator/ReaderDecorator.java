@@ -8,8 +8,6 @@ public abstract class ReaderDecorator implements Reader {
         return reader.getText();
     }
 
-    public abstract int getInt();
-
     public ReaderDecorator(final Reader reader) {
         this.reader = reader;
     }

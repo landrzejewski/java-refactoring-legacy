@@ -1,4 +1,4 @@
-package pl.training.patterns.behavioral.state;
+package pl.training.patterns.behavioral.strategy.movies;
 
 public enum MovieType {
     REGULAR(2, 2, 1.5),

@@ -1,4 +1,4 @@
-package pl.training.patterns.behavioral.comman;
+package pl.training.patterns.behavioral.command;
 
 public class Application {
 

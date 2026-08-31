@@ -55,11 +55,11 @@ Nazewnictwo katalogów i narzędzi różni się między wydaniami oraz językami
 | Encapsulate Conditional | najbliższa technika katalogowa: Decompose Conditional |
 | Replace Magic Numbers with Named Constants | Replace Magic Literal, Replace Magic Number with Symbolic Constant |
 
-Encapsulate Conditional nie ma jednej powszechnie obowiązującej definicji katalogowej. W tym module oznacza nazwanie złożonego predykatu i, gdy pomaga to czytelności, wydzielenie obliczeń jego gałęzi. Nie jest to automatycznie zastąpienie warunku polimorfizmem.
+Encapsulate Conditional nie ma jednej powszechnie obowiązującej definicji katalogowej; nazwę tę spotyka się m.in. u Williama C. Wake'a w Refactoring Workbook. W tym module oznacza nazwanie złożonego predykatu i, gdy pomaga to czytelności, wydzielenie obliczeń jego gałęzi. Nie jest to automatycznie zastąpienie warunku polimorfizmem.
 
 ## Konwencje przykładów
 
-Przykłady używają Javy 25, JUnit Jupiter 6.1.3 i JaCoCo 0.8.15. Kod znajduje się w projekcie Maven `refactoring-legacy/refactoring-legacy`, w pakiecie głównym `pl.training.module4` i jego podpakietach.
+Przykłady używają Javy 25, JUnit Jupiter 6.1.3 i JaCoCo 0.8.15. Kod znajduje się w projekcie Maven `refactoring-legacy`, w pakiecie głównym `pl.training.module4` i jego podpakietach.
 
 Studium przypadku przedstawia cztery pełne, kompilowalne stany generatora oferty wynajmu:
 
@@ -79,7 +79,7 @@ Reguły wyceny są uproszczonym kontraktem szkoleniowym. Przykład nie stanowi k
 Kompilacja, testy i uruchomienie:
 
 ```shell
-cd refactoring-legacy/refactoring-legacy
+cd refactoring-legacy
 mvn clean verify
 java -cp target/classes pl.training.module4.Module4Examples
 ```
@@ -1748,7 +1748,7 @@ Test pokazuje trzy stany. <code>LegacyEquipmentCatalog</code> i <code>AccessorBa
 
 ### 12.9. Uruchamialny przykład
 
-Klasa <code>pl.training.module4.Module4Examples</code> sprawdza równoważność pierwszego i ostatniego etapu, a następnie demonstruje semantykę migawki katalogu.
+Klasa <code>pl.training.module4.Module4Examples</code> sprawdza równoważność etapu 0 i etapu 3, a następnie demonstruje semantykę migawki katalogu.
 
 ~~~java
 package pl.training.module4;

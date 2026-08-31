@@ -11,9 +11,4 @@ public class LowerCaseReaderDecorator extends ReaderDecorator {
         return super.getText().toLowerCase();
     }
 
-    @Override
-    public int getInt() {
-        return 0;
-    }
-
 }
