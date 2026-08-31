@@ -1,22 +1,27 @@
 package pl.training.patterns;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
+import pl.training.patterns.behavioral.memento.accounts.Account;
 import pl.training.patterns.behavioral.state.OrderStatus;
 import pl.training.patterns.behavioral.strategy.movies.MovieType;
 import pl.training.patterns.behavioral.strategy.movies.Order;
 import pl.training.patterns.creational.abstractfactory.ftp.FtpConnection;
 import pl.training.patterns.structural.adapter.AirConditioningController;
 import pl.training.patterns.structural.adapter.TemperatureControllerAdapter;
+import pl.training.patterns.structural.flyweight.TreeFactory;
 
 final class AdditionalPatternsExamplesTest {
     @Test
@@ -46,6 +51,25 @@ final class AdditionalPatternsExamplesTest {
     @Test
     void usesTheRegisteredFtpControlPort() {
         assertEquals(21, new FtpConnection().getPort());
+    }
+
+    @Test
+    void restoresTheBalanceRecordedInTheMemento() {
+        var account = new Account(UUID.randomUUID());
+        var memento = account.createMemento();
+
+        account.deposit(BigDecimal.TEN);
+        assertEquals(BigDecimal.TEN, account.getBalance());
+
+        account.restoreMemento(memento);
+        assertEquals(BigDecimal.ZERO, account.getBalance());
+    }
+
+    @Test
+    void sharesOneFlyweightInstancePerIntrinsicState() {
+        assertSame(
+                TreeFactory.getTreeType("Oak", "green"),
+                TreeFactory.getTreeType("Oak", "green"));
     }
 
     @Test

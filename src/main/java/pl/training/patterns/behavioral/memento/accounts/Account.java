@@ -1,33 +1,37 @@
 package pl.training.patterns.behavioral.memento.accounts;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 import java.util.UUID;
 
 public class Account {
-    UUID number;
-    BigDecimal balance = BigDecimal.ZERO;
+
+    private final UUID number;
+    private BigDecimal balance = BigDecimal.ZERO;
+
+    public Account(final UUID number) {
+        this.number = Objects.requireNonNull(number);
+    }
 
     public void deposit(BigDecimal amount) {
         balance = balance.add(amount);
     }
 
-    @Override
-    public String toString() {
-        return "Account(number=" + this.number + ", balance=" + this.getBalance() + ")";
+    public Memento createMemento() {
+        return new Memento(balance);
     }
 
-    public Account(final UUID number) {
-        if (number == null) {
-            throw new NullPointerException("number is marked non-null but is null");
-        }
-        this.number = number;
+    public void restoreMemento(Memento memento) {
+        balance = memento.balance();
     }
 
     public BigDecimal getBalance() {
-        return this.balance;
+        return balance;
     }
 
-    public void setBalance(final BigDecimal balance) {
-        this.balance = balance;
+    @Override
+    public String toString() {
+        return "Account(number=" + number + ", balance=" + balance + ")";
     }
+
 }

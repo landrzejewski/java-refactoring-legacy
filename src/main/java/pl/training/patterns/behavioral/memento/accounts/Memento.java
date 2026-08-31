@@ -1,9 +1,17 @@
 package pl.training.patterns.behavioral.memento.accounts;
 
-public class Memento {
-    String state;
+import java.math.BigDecimal;
 
-    Memento(final String state) {
-        this.state = state;
+public class Memento {
+
+    private final BigDecimal balance;
+
+    Memento(final BigDecimal balance) {
+        this.balance = balance;
     }
+
+    BigDecimal balance() {
+        return balance;
+    }
+
 }

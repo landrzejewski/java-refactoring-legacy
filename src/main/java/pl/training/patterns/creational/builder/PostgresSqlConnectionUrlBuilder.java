@@ -14,27 +14,37 @@ public class PostgresSqlConnectionUrlBuilder implements ConnectionUrlBuilder {
 
     @Override
     public ConnectionUrl build() {
-        return  builder.build();
+        return builder.build();
     }
 
-    public GenericConnectionUrlBuilder host(String host) {
-        return builder.host(host);
+    @Override
+    public PostgresSqlConnectionUrlBuilder host(String host) {
+        builder.host(host);
+        return this;
     }
 
-    public GenericConnectionUrlBuilder port(int port) {
-        return builder.port(port);
+    @Override
+    public PostgresSqlConnectionUrlBuilder port(int port) {
+        builder.port(port);
+        return this;
     }
 
-    public GenericConnectionUrlBuilder protocol(String protocol) {
-        return builder.protocol(protocol);
+    @Override
+    public PostgresSqlConnectionUrlBuilder protocol(String protocol) {
+        builder.protocol(protocol);
+        return this;
     }
 
-    public GenericConnectionUrlBuilder database(String database) {
-        return builder.database(database);
+    @Override
+    public PostgresSqlConnectionUrlBuilder database(String database) {
+        builder.database(database);
+        return this;
     }
 
-    public GenericConnectionUrlBuilder encoding(String encoding) {
-        return builder.encoding(encoding);
+    @Override
+    public PostgresSqlConnectionUrlBuilder encoding(String encoding) {
+        builder.encoding(encoding);
+        return this;
     }
 
 }
