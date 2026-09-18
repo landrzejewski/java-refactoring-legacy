@@ -1,0 +1,4 @@
+export enum DeploymentDecision {
+  ALLOWED = 'ALLOWED',
+  OUTSIDE_MAINTENANCE_WINDOW = 'OUTSIDE_MAINTENANCE_WINDOW',
+}

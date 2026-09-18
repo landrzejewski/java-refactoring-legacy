@@ -1,0 +1,29 @@
+{
+  "name": "refactoring-legacy-typescript",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node node_modules/typescript/bin/tsc -p tsconfig.build.json",
+    "typecheck": "node node_modules/typescript/bin/tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "module1": "node dist/module1/main.js",
+    "module2": "node dist/module2/main.js",
+    "module3": "node dist/module3/main.js",
+    "module4": "node dist/module4/main.js",
+    "module5": "node dist/module5/main.js",
+    "module6": "node dist/module6/main.js",
+    "module7": "node dist/module7/main.js",
+    "module8": "node dist/module8/main.js",
+    "patterns": "node dist/patterns/main.js"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.1",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.1"
+  },
+  "dependencies": {
+    "decimal.js": "^10.6.0",
+    "typescript-api": "npm:typescript@5.9"
+  }
+}

@@ -1,0 +1,4 @@
+// Wymusza wyczerpujący switch na unii dyskryminowanej.
+export function assertNever(value: never): never {
+  throw new Error(`Unexpected value: ${String(value)}`);
+}
