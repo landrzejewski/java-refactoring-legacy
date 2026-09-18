@@ -1,0 +1,24 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Training.Module1/Training.Module1.csproj" />
+    <Project Path="src/Training.Module2/Training.Module2.csproj" />
+    <Project Path="src/Training.Module3/Training.Module3.csproj" />
+    <Project Path="src/Training.Module4/Training.Module4.csproj" />
+    <Project Path="src/Training.Module5/Training.Module5.csproj" />
+    <Project Path="src/Training.Module6/Training.Module6.csproj" />
+    <Project Path="src/Training.Module7/Training.Module7.csproj" />
+    <Project Path="src/Training.Module8/Training.Module8.csproj" />
+    <Project Path="src/Training.Patterns/Training.Patterns.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Training.Module1.Tests/Training.Module1.Tests.csproj" />
+    <Project Path="tests/Training.Module2.Tests/Training.Module2.Tests.csproj" />
+    <Project Path="tests/Training.Module3.Tests/Training.Module3.Tests.csproj" />
+    <Project Path="tests/Training.Module4.Tests/Training.Module4.Tests.csproj" />
+    <Project Path="tests/Training.Module5.Tests/Training.Module5.Tests.csproj" />
+    <Project Path="tests/Training.Module6.Tests/Training.Module6.Tests.csproj" />
+    <Project Path="tests/Training.Module7.Tests/Training.Module7.Tests.csproj" />
+    <Project Path="tests/Training.Module8.Tests/Training.Module8.Tests.csproj" />
+    <Project Path="tests/Training.Patterns.Tests/Training.Patterns.Tests.csproj" />
+  </Folder>
+</Solution>
