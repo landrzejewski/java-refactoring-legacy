@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rozwiązania: Moduł 2. Fundamenty refaktoryzacji - rozwiązania dla prowadzącego</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1d1f23;--muted:#5f6670;--line:#e3e5e8;--card:#ffffff;--accent:#2457c5;--accent-bg:#eef3fd;
+--code-bg:#f4f5f7;--note-bg:#fff7e6;--note-line:#e6a700;--th:#f1f3f6;
+--k:#b3246b;--s:#1a7f37;--c:#6e7781;--n:#0550ae;--t:#8250df;--f:#6639ba;--a:#953800;
+--kind:#2457c5}
+@media (prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3036;--card:#1c1f23;--accent:#7aa7ff;--accent-bg:#1e2a40;
+--code-bg:#1f2328;--note-bg:#2b2412;--note-line:#c99400;--th:#23272d;
+--k:#ff7b9c;--s:#7ee2a0;--c:#8b949e;--n:#79c0ff;--t:#d2a8ff;--f:#d2a8ff;--a:#ffa657}}
+body.zadania{--kind:#1a7f37} body.rozwiazania{--kind:#b3246b} body.przyklady{--kind:#2457c5}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.topbar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 24px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);border-top:3px solid var(--kind)}
+.topbar a{color:var(--fg);text-decoration:none}
+.home{font-weight:600}
+.tabs{display:flex;gap:4px}
+.tab{padding:4px 12px;border-radius:999px;font-size:15px;color:var(--muted)!important}
+.tab:hover{background:var(--code-bg)}
+.tab.active{background:var(--accent-bg);color:var(--accent)!important;font-weight:600}
+.pager{margin-left:auto;display:flex;gap:14px;font-size:15px}
+.pager a{color:var(--muted)}.pager a:hover{color:var(--accent)}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:48px;max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+.layout.no-toc{grid-template-columns:minmax(0,1fr);max-width:1000px}
+aside{position:sticky;top:72px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px}
+.toc-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;font-weight:600}
+.toc ul{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.toc li a{display:block;padding:3px 12px;color:var(--muted);text-decoration:none;line-height:1.35}
+.toc li.h3 a{padding-left:24px;font-size:13px}
+.toc li a:hover{color:var(--accent)}
+main{min-width:0;max-width:860px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 1.2rem;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:2.6rem 0 .8rem;padding-top:.6rem;border-top:1px solid var(--line)}
+h3{font-size:1.18rem;margin:2rem 0 .6rem}
+h4{font-size:1rem;margin:1.5rem 0 .5rem}
+h1 a,h2 a,h3 a,h4 a{color:inherit;text-decoration:none}
+h2 a:hover::after,h3 a:hover::after{content:" #";color:var(--muted)}
+p,ul,ol{margin:.6rem 0 1rem}
+li{margin:.25rem 0}
+li>ul,li>ol{margin:.2rem 0}
+a{color:var(--accent)}
+strong{font-weight:650}
+code{font:0.88em/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre.code{position:relative;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:1rem 0 1.4rem}
+pre.code code{background:none;padding:0;font-size:14px;line-height:1.55}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:6px;right:10px;font:11px ui-monospace,Menlo,monospace;color:var(--muted);text-transform:uppercase}
+.table-wrap{overflow-x:auto;margin:1rem 0 1.4rem;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--th);font-weight:600}
+tr:last-child td{border-bottom:none}
+blockquote{margin:1rem 0 1.4rem;padding:10px 16px;background:var(--note-bg);border-left:4px solid var(--note-line);border-radius:0 8px 8px 0}
+blockquote p{margin:.3rem 0}
+hr{border:none;border-top:1px solid var(--line);margin:2rem 0}
+hr+h2{border-top:none;margin-top:1.4rem}
+main p code,main li code,main td code{overflow-wrap:break-word}
+.toc summary{cursor:pointer;list-style:none}.toc summary::-webkit-details-marker{display:none}
+.hljs-keyword,.hljs-selector-tag,.hljs-built_in,.hljs-literal{color:var(--k)}
+.hljs-string,.hljs-regexp,.hljs-addition{color:var(--s)}
+.hljs-comment,.hljs-quote,.hljs-meta{color:var(--c);font-style:italic}
+.hljs-number,.hljs-symbol{color:var(--n)}
+.hljs-type,.hljs-class .hljs-title,.hljs-title.class_{color:var(--t)}
+.hljs-title,.hljs-title.function_,.hljs-section{color:var(--f)}
+.hljs-attr,.hljs-attribute,.hljs-variable,.hljs-params,.hljs-tag{color:var(--a)}
+.hljs-deletion{color:var(--k)}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:16px;padding:20px 16px 60px}
+aside{position:static;max-height:none;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--card)}
+.toc-title{margin:0}.toc details[open] .toc-title{margin-bottom:8px}.toc summary::after{content:" ▾"}
+body{font-size:16px}.topbar{padding:8px 16px}.pager{margin-left:0}h1{font-size:1.6rem}}
+@media print{.topbar,aside{display:none}.layout{display:block;padding:0}main{max-width:none}
+pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#000;font-size:12pt}}
+</style>
+</head>
+<body class="rozwiazania">
+<header class="topbar"><a class="home" href="../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../zadania/02-fundamenty-refaktoryzacji.html">Zadania</a><a class="tab" href="../przyklady/02-fundamenty-refaktoryzacji.html">Przykłady</a><a class="tab active" href="/02-fundamenty-refaktoryzacji.html">Rozwiązania</a></div><div class="pager"><a href="01-wprowadzenie-do-pracy-z-kodem-legacy.html" title="Poprzedni moduł">&larr; 01</a><a href="03-zasady-dobrego-projektowania.html" title="Następny moduł">03 &rarr;</a></div></header>
+<div class="layout">
+<aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#aktywnosc-16-nazwij-kontrakt">Aktywność 1.6: Nazwij kontrakt</a></li><li class="h2"><a href="#aktywnosc-46-zaprojektuj-portfel">Aktywność 4.6: Zaprojektuj portfel</a></li><li class="h2"><a href="#aktywnosc-65-raport-bez-celu">Aktywność 6.5: Raport bez celu</a></li><li class="h2"><a href="#cwiczenie-1-granica-refaktoryzacji">Ćwiczenie 1: Granica refaktoryzacji</a></li><li class="h2"><a href="#cwiczenie-2-charakterystyka-i-refaktoryzacja-formatera">Ćwiczenie 2: Charakterystyka i refaktoryzacja formatera</a></li><li class="h3"><a href="#krok-1-widoczne-reguly-teoria-112">Krok 1: widoczne reguły (teoria 11.2)</a></li><li class="h3"><a href="#krok-3-macierz-przypadkow">Krok 3: macierz przypadków</a></li><li class="h3"><a href="#krok-4-kontrakt-a-zastane-zachowanie">Krok 4: kontrakt a zastane zachowanie</a></li><li class="h3"><a href="#kroki-5-6-sekwencja-transformacji-teoria-83">Kroki 5-6: sekwencja transformacji (teoria 8.3)</a></li><li class="h3"><a href="#krok-7-porownanie-implementacji">Krok 7: porównanie implementacji</a></li><li class="h3"><a href="#krok-8-przeglad-roznicy">Krok 8: przegląd różnicy</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji">Pytania do dyskusji</a></li><li class="h2"><a href="#cwiczenie-3-strategia-testow-obiekty-zastepcze-i-pokrycie">Ćwiczenie 3: Strategia testów, obiekty zastępcze i pokrycie</a></li><li class="h3"><a href="#czesc-a-role-obiektow-zastepczych-teoria-113">Część A: role obiektów zastępczych (teoria 11.3)</a></li><li class="h3"><a href="#czesc-b-raport-pokrycia">Część B: raport pokrycia</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow-1">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji-1">Pytania do dyskusji</a></li><li class="h2"><a href="#cwiczenie-4-wprowadzenie-szwu">Ćwiczenie 4: Wprowadzenie szwu</a></li><li class="h3"><a href="#kroki-1-2-analiza-teoria-114">Kroki 1-2: analiza (teoria 11.4)</a></li><li class="h3"><a href="#kroki-3-4-minimalny-szew">Kroki 3-4: minimalny szew</a></li><li class="h3"><a href="#kroki-5-6-jawne-zaleznosci">Kroki 5-6: jawne zależności</a></li><li class="h3"><a href="#krok-7-punkty-aktywacji">Krok 7: punkty aktywacji</a></li><li class="h3"><a href="#krok-8-test-rzeczywistego-adaptera">Krok 8: test rzeczywistego adaptera</a></li><li class="h3"><a href="#usuniecie-rozwiazania-przejsciowego">Usunięcie rozwiązania przejściowego</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow-2">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji-2">Pytania do dyskusji</a></li><li class="h2"><a href="#sprawdzenie-wiedzy-odpowiedzi">Sprawdzenie wiedzy: odpowiedzi</a></li></ul></details></nav></aside>
+<main>
+<h1>Moduł 2. Fundamenty refaktoryzacji - rozwiązania dla prowadzącego</h1>
+<p>Numeracja i nazwy odpowiadają plikowi zadań <code>src/<wbr>main/<wbr>resources/<wbr>prowadzenie/<wbr>zadania/<wbr>02-fundamenty-refaktoryzacji.md</code>. Kod referencyjny znajduje się w <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2</code> i <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2</code>; szczegółowy przewodnik po nim: <code>src/<wbr>main/<wbr>resources/<wbr>prowadzenie/<wbr>przyklady/<wbr>02-fundamenty-refaktoryzacji.md</code>.</p>
+<p>Myśl przewodnia do powtarzania przy każdym omówieniu: etykieta operacji nie rozstrzyga jej charakteru. Decydują cel oraz obserwacje, które mają pozostać niezmienione, i sposób, w jaki to zweryfikujemy.</p>
+<hr>
+<h2 id="aktywnosc-16-nazwij-kontrakt" tabindex="-1"><a class="header-anchor" href="#aktywnosc-16-nazwij-kontrakt"><span>Aktywność 1.6: Nazwij kontrakt</span></a></h2>
+<blockquote>
+<p>Rozwiązanie opracowane na podstawie kodu referencyjnego, nie pochodzi wprost z materiału teoretycznego.
+(Teoria nie zawiera odpowiedzi do tej aktywności; poniższe opracowano na podstawie sekcji 1.2, 1.3, 2.6 i 3.2.)</p>
+</blockquote>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Zmiana</th>
+<th>Konsument</th>
+<th>Możliwa obserwacja</th>
+<th>Weryfikacja</th>
+<th>Ocena</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. prywatne pole <code>List</code> na <code>Set</code></td>
+<td>metody publiczne zwracające lub przetwarzające elementy, serializacja pól (np. Jackson, serializacja Javy), <code>equals</code>/<code>hashCode</code></td>
+<td>usunięcie duplikatów, utrata kolejności (np. <code>HashSet</code>), inny format po serializacji, inna złożoność operacji</td>
+<td>testy z duplikatami i z kolejnością elementów na publicznej granicy, test serializacji</td>
+<td>refaktoryzacja tylko wtedy, gdy duplikaty są niemożliwe lub nieistotne, kolejność nie jest kontraktem, a pole nie jest serializowane; w przeciwnym razie zmiana zachowania</td>
+</tr>
+<tr>
+<td>2. zamiana dwóch zapisów do bazy</td>
+<td>baza (klucze obce, wyzwalacze, ograniczenia), mechanizmy CDC i audytu, inne transakcje</td>
+<td>kolejność efektów ubocznych (protokół), stan po częściowej awarii, naruszenie ograniczeń, zakleszczenia</td>
+<td>test integracyjny z rzeczywistą bazą, test zachowania transakcyjnego, test interakcji jeśli kolejność jest kontraktem</td>
+<td>zwykle nie jest czystą refaktoryzacją, dopóki nie wykaże się, że oba zapisy są w jednej transakcji i nic nie zależy od ich kolejności</td>
+</tr>
+<tr>
+<td>3. przeniesienie klasy używanej przez refleksję</td>
+<td>konfiguracja tekstowa, <code>Class.forName</code>, serializacja z nazwą typu, kontener DI, zewnętrzne pliki</td>
+<td>pełna nazwa klasy (pakiet + nazwa) jest częścią kontraktu; błąd pojawia się dopiero w runtime</td>
+<td>wyszukanie nazwy w konfiguracji i zasobach, test uruchamiający rzeczywisty mechanizm (np. start kontekstu, deserializacja zapisanych danych)</td>
+<td>IDE nie zobaczy wszystkich odwołań (2.6); refaktoryzacja tylko po aktualizacji wszystkich konsumentów i zgodności zapisanych danych</td>
+</tr>
+<tr>
+<td>4. szybszy algorytm</td>
+<td>wywołujący kod, użytkownicy, SLA</td>
+<td>wynik (stabilność sortowania, remisy, zaokrąglenia zmiennoprzecinkowe, przypadki brzegowe), czas i pamięć</td>
+<td>test różnicowy stary vs nowy na wielu danych, testy wartości granicznych, osobny pomiar wydajności</td>
+<td>zwykle optymalizacja (1.3); wynik funkcjonalny musi być identyczny, a zmiana właściwości pozafunkcjonalnej jest celem, więc trzeba ją nazwać</td>
+</tr>
+<tr>
+<td>5. prywatna nazwa bez refleksji i konfiguracji</td>
+<td>praktycznie brak (ewentualnie logi ze stosem wywołań)</td>
+<td>brak obserwacji na granicy publicznej</td>
+<td>automatyczna zmiana nazwy w IDE, kompilacja, istniejące testy</td>
+<td>refaktoryzacja</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Na co zwrócić uwagę w omówieniu:</strong></p>
+<ul>
+<li>Pozycje 1 i 5 wyglądają na &quot;wewnętrzne&quot;, ale tylko 5 jest bezpieczna bez dodatkowej analizy.</li>
+<li>Pozycja 3 to klasyczny przykład z 2.6: narzędzie nie zna całego kontraktu.</li>
+<li>Uczestnicy często klasyfikują od razu (&quot;to refaktoryzacja&quot;). Wymagaj najpierw kolumn konsument, obserwacja, weryfikacja.</li>
+</ul>
+<p><strong>Typowe błędy:</strong> uznanie zmiany kolejności zapisów za &quot;nieistotną wewnętrzną kolejność&quot;; pominięcie serializacji przy polu prywatnym; uznanie szybszego algorytmu za refaktoryzację bez nazwania zmiany wydajności.</p>
+<p><strong>Pytania do dyskusji:</strong> Kiedy kolejność dwóch zapisów staje się kontraktem? Co w Waszym systemie korzysta z nazw klas zapisanych tekstowo?</p>
+<hr>
+<h2 id="aktywnosc-46-zaprojektuj-portfel" tabindex="-1"><a class="header-anchor" href="#aktywnosc-46-zaprojektuj-portfel"><span>Aktywność 4.6: Zaprojektuj portfel</span></a></h2>
+<blockquote>
+<p>Rozwiązanie opracowane na podstawie kodu referencyjnego, nie pochodzi wprost z materiału teoretycznego.
+(Teoria nie zawiera odpowiedzi do tej aktywności; poniższe opracowano na podstawie sekcji 4.1-4.5 i 5.5.)</p>
+</blockquote>
+<p>Przykładowy minimalny portfel:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Wykrywane ryzyko</th>
+<th>Rzeczywiste zależności</th>
+<th>Oczekiwany czas</th>
+<th>Miejsce w procesie</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>testy reguły naliczania opłaty (przykłady i wartości tuż po obu stronach granicy)</td>
+<td>regresja wartości granicznej</td>
+<td>tylko logika domenowa, bez bazy i brokera</td>
+<td>milisekundy</td>
+<td>etap 1: po każdym kroku lokalnie</td>
+</tr>
+<tr>
+<td>wąski test integracyjny repozytorium z rzeczywistym PostgreSQL (np. kontener testowy)</td>
+<td>mapowanie <code>BigDecimal</code> (precyzja, skala, zaokrąglenie kolumny <code>numeric</code>)</td>
+<td>rzeczywista baza i rzeczywisty mechanizm mapowania</td>
+<td>sekundy</td>
+<td>etap 1-3: przy zmianie adaptera lokalnie, zawsze w CI</td>
+</tr>
+<tr>
+<td>test kontraktu lub serializacji komunikatu (zgodność ze schematem uzgodnionym z konsumentem)</td>
+<td>niezgodny schemat komunikatu</td>
+<td>rzeczywisty serializer i schemat; broker niepotrzebny</td>
+<td>milisekundy do sekund</td>
+<td>etap 1-3: razem z testami modułu i w CI</td>
+</tr>
+<tr>
+<td>opcjonalnie jeden test komponentowy lub systemowy ścieżki &quot;nalicz, zapisz, opublikuj&quot;</td>
+<td>poprawne połączenie elementów, konfiguracja, kolejność zapisu i publikacji (jeśli jest kontraktem)</td>
+<td>aplikacja, baza, broker lub jego wiarygodny odpowiednik</td>
+<td>kilka do kilkudziesięciu sekund</td>
+<td>etap 4: przed scaleniem lub w nocnym przebiegu</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Kluczowe tezy do omówienia:</strong></p>
+<ul>
+<li>Każda z trzech historycznych regresji ma test na najniższym poziomie, który nadal zachowuje mechanizm awarii (4.5).</li>
+<li>Mapowania <code>BigDecimal</code> nie sprawdzi mock ani repozytorium w pamięci (5.5). Potrzebna jest rzeczywista technologia.</li>
+<li>Schematu komunikatu nie sprawdzi test logiki; potrzebny jest test kontraktu.</li>
+<li>Szybki test adaptera może działać w pierwszym etapie razem z testami logiki - etykieta &quot;integracyjny&quot; nie powinna opóźniać informacji (4.4).</li>
+<li>Brak uniwersalnej proporcji 70/20/10 (4.1). Liczy się to, jakie ryzyko test wykrywa.</li>
+</ul>
+<p><strong>Typowe błędy:</strong> opis portfela samymi etykietami (&quot;unit, integracyjne, e2e&quot;); mockowanie bazy w teście, który ma wykryć błąd mapowania; test end-to-end jako jedyna ochrona schematu komunikatu.</p>
+<p><strong>Pytania do dyskusji:</strong> Który z tych testów jest najdroższy w utrzymaniu? Czy test systemowy jest tu w ogóle potrzebny, skoro trzy ryzyka są pokryte niżej?</p>
+<hr>
+<h2 id="aktywnosc-65-raport-bez-celu" tabindex="-1"><a class="header-anchor" href="#aktywnosc-65-raport-bez-celu"><span>Aktywność 6.5: Raport bez celu</span></a></h2>
+<blockquote>
+<p>Rozwiązanie opracowane na podstawie kodu referencyjnego, nie pochodzi wprost z materiału teoretycznego.
+(Odpowiedzi na pytania 1-3 pokrywają się z częścią omówienia Ćwiczenia 3 w teorii, sekcja 11.3; odpowiedź na pytanie 4 opracowano na podstawie sekcji 6.3-6.4.)</p>
+</blockquote>
+<ol>
+<li>
+<p><strong>Niewykonana gałąź:</strong> fałszywa strona warunku <code>if (premium)</code> w <code>DeliveryFee.fee</code>, czyli klient bez statusu premium. JaCoCo pokazuje wszystkie linie metody jako wykonane, ale na linii <code>if</code> sygnalizuje &quot;1 of 2 branches missed&quot;. Dodatkowo niepokryty jest prywatny konstruktor (w kodzie bajtowym to metoda), co nie stanowi ryzyka.</p>
+</li>
+<li>
+<p><strong>Test uruchamiający gałąź:</strong> wywołanie <code>DeliveryFee.fee(false)</code>.</p>
+</li>
+<li>
+<p><strong>Asercja wykrywająca zmianę <code>100</code> na <code>200</code>:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-meta">@Test</span>
+<span class="hljs-type">void</span> <span class="hljs-title function_">standardCustomerPaysDeliveryFee</span><span class="hljs-params">()</span> {
+    assertEquals(<span class="hljs-number">100</span>, DeliveryFee.fee(<span class="hljs-literal">false</span>));
+}
+</code></pre>
+<p>Test bez asercji albo sprawdzający tylko brak wyjątku podniesie pokrycie gałęzi, ale nie wykryje zmiany wartości.</p>
+</li>
+<li>
+<p><strong>Czy globalne pokrycie z innych klas pomoże?</strong> Nie. Żaden inny test nie wywołuje <code>DeliveryFee</code>, więc wzrost średniej dla całego projektu nie zmienia ochrony tej reguły. Ryzyko zmniejsza wyłącznie test wykonujący brakującą gałąź z asercją na wartość biznesową. Mierzenie całego systemu jedną średnią to jedno z nadużyć z 6.4.</p>
+</li>
+</ol>
+<p><strong>Kod referencyjny:</strong> <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>DeliveryFee.java</code>, <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>DeliveryFeeLineCoverageTest.java</code> (celowo bez testu dla <code>false</code>).</p>
+<p><strong>Typowe błędy:</strong> uznanie 100% pokrycia linii za pełną ochronę; propozycja testu <code>fee(false)</code> bez asercji; szukanie raportu przed uruchomieniem <code>verify</code> (raport powstaje w fazie <code>verify</code>, w <code>target/<wbr>site/<wbr>jacoco</code>).</p>
+<hr>
+<h2 id="cwiczenie-1-granica-refaktoryzacji" tabindex="-1"><a class="header-anchor" href="#cwiczenie-1-granica-refaktoryzacji"><span>Ćwiczenie 1: Granica refaktoryzacji</span></a></h2>
+<p>Odpowiedź wzorcowa (teoria 11.1):</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Pozycja</th>
+<th>Ocena</th>
+<th>Obserwowalne zachowanie i weryfikacja</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A. <code>calc</code> na <code>calculateTax</code> (prywatna)</td>
+<td>zwykle refaktoryzacja</td>
+<td>Należy sprawdzić odwołania tekstowe, refleksję i narzędzia. Przy braku takich konsumentów wystarczą automatyczna zmiana nazwy, kompilacja i testy zachowania.</td>
+</tr>
+<tr>
+<td>B. <code>double</code> na <code>BigDecimal</code> z powodu błędów zaokrągleń</td>
+<td>cel obejmuje zmianę zachowania</td>
+<td>Jeżeli wynik ma przestać zawierać błąd zaokrąglenia, nie jest to wyłącznie refaktoryzacja. Najpierw można strukturalnie wydzielić obliczenie, następnie osobno zmienić typ i oczekiwany wynik.</td>
+</tr>
+<tr>
+<td>C. publiczne DTO do innego pakietu</td>
+<td>zależy od kontraktu</td>
+<td>Dla publicznej biblioteki nazwa pakietu jest częścią nazwy typu i może naruszyć kompatybilność źródłową lub binarną. Potrzebna jest strategia migracji konsumentów.</td>
+</tr>
+<tr>
+<td>D. wydzielenie budowy komunikatu bez zmiany tekstu</td>
+<td>refaktoryzacja</td>
+<td>Kontraktem jest dokładna treść komunikatu, w tym format i białe znaki. Chronią go test serializacji albo test charakteryzujący tekst.</td>
+</tr>
+<tr>
+<td>E. pamięć podręczna kursu walut</td>
+<td>zwykle optymalizacja</td>
+<td>Wynik może pozostać ten sam, lecz zmieniają się świeżość danych, opóźnienie, zużycie pamięci i zachowanie przy awarii. Wymaga testów poprawności, wygaszania danych i pomiaru wydajności.</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Uzupełnienie do pytań 3-5 (konsument, dowód, podział):</strong></p>
+<ul>
+<li>A: konsument to kod w tej samej klasie; dowód: kompilacja i testy; podział niepotrzebny.</li>
+<li>B: konsumentem są raporty, księgowość, integracje odbierające kwoty; dowód przed: test charakteryzujący obecne (błędne) wyniki; po: nowy test wymagania z poprawnymi kwotami. Podział obowiązkowy: krok strukturalny (wydzielenie obliczenia pod ochroną testów), potem krok funkcjonalny (zmiana typu i oczekiwań, opisana jako zmiana zachowania).</li>
+<li>C: konsumenci to moduły i zewnętrzni klienci biblioteki, serializacja z nazwą typu; dowód: kompilacja wszystkich konsumentów, testy kompatybilności. Jeśli wszyscy konsumenci są w jednym repozytorium zespołu, może to być refaktoryzacja (1.3); dla opublikowanej biblioteki to migracja API (np. stary typ jako przestarzały, okres przejściowy).</li>
+<li>D: konsument to odbiorca komunikatu; dowód: test porównujący dokładny tekst przed i po.</li>
+<li>E: konsumenci to użytkownicy kursów oraz operacje (pamięć, monitoring); dowód: testy poprawności, testy wygaszania i unieważniania, pomiar wydajności, zachowanie przy awarii źródła.</li>
+</ul>
+<p><strong>Najważniejszy wniosek:</strong> etykieta operacji nie rozstrzyga jej charakteru. Decydują cel oraz obserwacje, które mają pozostać niezmienione.</p>
+<p><strong>Typowe błędy uczestników:</strong></p>
+<ul>
+<li>Ocena B jako refaktoryzacji (&quot;to tylko zmiana typu&quot;).</li>
+<li>Ocena C jako zawsze bezpiecznej, bo IDE przeniesie klasę.</li>
+<li>Ocena E jako refaktoryzacji, bo &quot;wynik ten sam&quot; - bez nazwania świeżości danych i zachowania przy awarii.</li>
+<li>Brak konkretnego mechanizmu weryfikacji (samo &quot;przetestujemy&quot;).</li>
+</ul>
+<p><strong>Pytania do dyskusji:</strong> Jak w praktyce rozdzielić B na dwa commity? Kiedy zmiana nazwy publicznej klasy jest refaktoryzacją, a kiedy migracją API?</p>
+<hr>
+<h2 id="cwiczenie-2-charakterystyka-i-refaktoryzacja-formatera" tabindex="-1"><a class="header-anchor" href="#cwiczenie-2-charakterystyka-i-refaktoryzacja-formatera"><span>Ćwiczenie 2: Charakterystyka i refaktoryzacja formatera</span></a></h2>
+<h3 id="krok-1-widoczne-reguly-teoria-112" tabindex="-1"><a class="header-anchor" href="#krok-1-widoczne-reguly-teoria-112"><span>Krok 1: widoczne reguły (teoria 11.2)</span></a></h3>
+<ul>
+<li>nagłówek <code>INVOICE</code>,</li>
+<li>klient zapisany wielkimi literami (<code>Locale.ROOT</code>) po usunięciu skrajnych spacji,</li>
+<li>tekst <code>UNKNOWN</code> dla klienta <code>null</code>,</li>
+<li>zachowanie kolejności pozycji wejściowych,</li>
+<li>wiersz pozycji w formacie <code>SKU x ilość = wartość</code>,</li>
+<li>mnożenie ceny jednostkowej przez liczbę sztuk,</li>
+<li>prezentacja wartości z dwoma miejscami i <code>HALF_UP</code>,</li>
+<li>suma częściowa liczona z wartości przed zaokrągleniem prezentacji,</li>
+<li>podatek 23 procent zaokrąglany do dwóch miejsc,</li>
+<li>suma całkowita z części niezaokrąglonej i podatku zaokrąglonego,</li>
+<li>końcowy znak nowego wiersza.</li>
+</ul>
+<h3 id="krok-3-macierz-przypadkow" tabindex="-1"><a class="header-anchor" href="#krok-3-macierz-przypadkow"><span>Krok 3: macierz przypadków</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Obserwacja</th>
+<th>Stan w <code>LegacyInvoiceFormatterCharacterizationTest</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>pusta lista pozycji</td>
+<td>zabezpieczona w <code>documentsCurrentFallbackForMissingCustomer</code></td>
+</tr>
+<tr>
+<td>klient <code>null</code></td>
+<td>zabezpieczona w tym samym teście (jeden test obejmuje oba przypadki)</td>
+</tr>
+<tr>
+<td>usuwanie spacji i wielkie litery</td>
+<td>zabezpieczona w <code>documentsCurrentFormattingAndRounding</code></td>
+</tr>
+<tr>
+<td>wiele pozycji, zaokrąglenie podatku</td>
+<td>zabezpieczona w <code>documentsCurrentFormattingAndRounding</code> (Tax 10.35 z 10.3454)</td>
+</tr>
+<tr>
+<td>cena wymagająca zaokrąglenia przy prezentacji wiersza</td>
+<td>brak, do dodania</td>
+</tr>
+<tr>
+<td>suma dokładnych wartości różna od sumy wartości prezentowanych</td>
+<td>brak, do dodania</td>
+</tr>
+</tbody>
+</table></div>
+<p>Według teorii: uzupełniający przypadek może zawierać dwie pozycje o cenie <code>0.005</code> i liczbie sztuk <code>1</code>. Każdy wiersz jest prezentowany jako <code>0.01</code>, natomiast suma częściowa liczona z wartości dokładnych wynosi <code>0.01</code>, a nie <code>0.02</code>. Taki przypadek precyzyjnie ujawnia kolejność zaokrągleń.</p>
+<p>Przykładowy test (oczekiwane wartości policzone dla zastanego kodu: subtotal 0.010, podatek 0.0023 zaokrąglony do 0.00, suma 0.01):</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-meta">@Test</span>
+<span class="hljs-type">void</span> <span class="hljs-title function_">documentsSubtotalCalculatedFromUnroundedLineValues</span><span class="hljs-params">()</span> {
+    <span class="hljs-type">List</span>&lt;InvoiceLine&gt; <span class="hljs-variable">lines</span> <span class="hljs-operator">=</span> List.of(
+            <span class="hljs-keyword">new</span> <span class="hljs-title class_">InvoiceLine</span>(<span class="hljs-string">&quot;A&quot;</span>, <span class="hljs-number">1</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;0.005&quot;</span>)),
+            <span class="hljs-keyword">new</span> <span class="hljs-title class_">InvoiceLine</span>(<span class="hljs-string">&quot;B&quot;</span>, <span class="hljs-number">1</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;0.005&quot;</span>)));
+
+    <span class="hljs-type">String</span> <span class="hljs-variable">result</span> <span class="hljs-operator">=</span> formatter.format(<span class="hljs-string">&quot;x&quot;</span>, lines);
+
+    assertEquals(String.join(<span class="hljs-string">&quot;\n&quot;</span>,
+            <span class="hljs-string">&quot;INVOICE&quot;</span>, <span class="hljs-string">&quot;Customer: X&quot;</span>,
+            <span class="hljs-string">&quot;A x 1 = 0.01&quot;</span>, <span class="hljs-string">&quot;B x 1 = 0.01&quot;</span>,
+            <span class="hljs-string">&quot;Subtotal: 0.01&quot;</span>, <span class="hljs-string">&quot;Tax: 0.00&quot;</span>, <span class="hljs-string">&quot;Total: 0.01&quot;</span>, <span class="hljs-string">&quot;&quot;</span>), result);
+}
+</code></pre>
+<blockquote>
+<p>Kod powyższego testu opracowano na podstawie kodu referencyjnego; teoria podaje jedynie dane przypadku.</p>
+</blockquote>
+<p>Przypadek &quot;cena wymagająca zaokrąglenia&quot; można pokryć np. pozycją <code>19.995 x 1</code> (prezentacja <code>20.00</code>). Uwaga z teorii: zmiana z <code>19.995</code> na prezentowane <code>20.00</code> w jednej pozycji nie oznacza, że do sumy częściowej należy dodać <code>20.00</code>. Zastany kod dodaje dokładną wartość pozycji przed jej prezentacją. Zmiana tej kolejności jest zmianą zachowania i wymaga osobnej decyzji.</p>
+<h3 id="krok-4-kontrakt-a-zastane-zachowanie" tabindex="-1"><a class="header-anchor" href="#krok-4-kontrakt-a-zastane-zachowanie"><span>Krok 4: kontrakt a zastane zachowanie</span></a></h3>
+<p>Nie wszystkie reguły muszą być poprawnym wymaganiem. Kolejność momentów zaokrągleń może być zastanym zachowaniem o istotnym wpływie finansowym i wymaga potwierdzenia domenowego przed zmianą. Podobnie <code>UNKNOWN</code> dla braku klienta: test go utrwala, ale nie nadaje mu statusu wymagania (8.4 opisuje, jak postąpić, gdy właściciel produktu zażąda wyjątku).</p>
+<h3 id="kroki-5-6-sekwencja-transformacji-teoria-83" tabindex="-1"><a class="header-anchor" href="#kroki-5-6-sekwencja-transformacji-teoria-83"><span>Kroki 5-6: sekwencja transformacji (teoria 8.3)</span></a></h3>
+<ol>
+<li>Uruchomić testy charakteryzujące i zapisać zieloną bazę.</li>
+<li>Wyodrębnić <code>displayedCustomer</code> i uruchomić testy.</li>
+<li>Wyodrębnić <code>lineTotal</code> i uruchomić testy.</li>
+<li>Wyodrębnić wspólną regułę <code>money</code> i uruchomić testy.</li>
+<li>Wyodrębnić <code>calculateSubtotal</code> i uruchomić testy.</li>
+<li>Wyodrębnić <code>appendLines</code> i uruchomić testy.</li>
+<li>Nazwać stawkę jako <code>TAX_RATE</code> i uruchomić testy.</li>
+<li>Uruchomić pełny zestaw testów i obejrzeć różnicę.</li>
+</ol>
+<p>Każdy krok ma jedną intencję. Gdy po wydzieleniu <code>money</code> zmieni się wynik, zakres poszukiwania przyczyny jest niewielki.</p>
+<p><strong>Kod referencyjny (stan końcowy):</strong> <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>InvoiceFormatter.java</code>. Zwróć uwagę uczestników, że <code>calculateSubtotal</code> sumuje <code>lineTotal(line)</code> (wartości dokładne), a <code>money</code> stosowane jest dopiero do prezentacji, podatku i sumy.</p>
+<h3 id="krok-7-porownanie-implementacji" tabindex="-1"><a class="header-anchor" href="#krok-7-porownanie-implementacji"><span>Krok 7: porównanie implementacji</span></a></h3>
+<p><strong>Kod referencyjny:</strong> <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>FormatterEquivalenceTest.java</code> - test parametryzowany porównujący <code>LegacyInvoiceFormatter</code> i <code>InvoiceFormatter</code> dla trzech zestawów danych (pusta lista, klient <code>null</code> z jedną pozycją, klient <code>vip</code> z pozycjami <code>0.10</code> i <code>19.995</code>).</p>
+<p>Stałe oczekiwania i test różnicowy się uzupełniają (teoria 11.2):</p>
+<ul>
+<li>stałe oczekiwanie jest niezależne od dalszego działania starej klasy,</li>
+<li>porównanie implementacji łatwo rozszerzyć o wiele zestawów danych,</li>
+<li>żaden mechanizm nie dowodzi równoważności dla wszystkich możliwych wejść,</li>
+<li>oba mogą utrwalić historyczny defekt, jeżeli oczekiwania nie zostaną przejrzane.</li>
+</ul>
+<p>Ograniczenia testu różnicowego (8.2): potwierdza zgodność tylko dla wykonanych danych; nie wykryje defektu obecnego w obu wersjach; stara implementacja nie jest niezależną specyfikacją; efekty uboczne mogą uniemożliwiać podwójne wykonanie; różnica wydajności wymaga osobnego pomiaru. Po usunięciu klasy legacy test różnicowy znika, dlatego stałe, przejrzane oczekiwania trzeba przenieść na nową klasę.</p>
+<p>Warto pokazać: dane z <code>FormatterEquivalenceTest</code> nie wykrywają mutacji &quot;sumuj wartości zaokrąglone&quot; (dla <code>0.30</code> i <code>39.990</code> obie sumy dają <code>40.29</code>). Wykrywa ją dopiero przypadek z dwiema pozycjami <code>0.005</code>.</p>
+<h3 id="krok-8-przeglad-roznicy" tabindex="-1"><a class="header-anchor" href="#krok-8-przeglad-roznicy"><span>Krok 8: przegląd różnicy</span></a></h3>
+<p>Przykłady zmian, których cel ćwiczenia nie wymagał i które należy wskazać lub wycofać: masowe przeformatowanie pliku, zmiana nazw niezwiązanych z celem, dodanie walidacji <code>null</code> dla <code>lines</code>, zmiana <code>HALF_UP</code>, &quot;poprawienie&quot; kolejności zaokrągleń, dodanie waluty, zmiana komunikatu <code>UNKNOWN</code>.</p>
+<h3 id="typowe-bledy-uczestnikow" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>Wszystkie wydzielenia w jednej edycji, testy uruchomione dopiero na końcu.</li>
+<li>Zamiana sumowania na sumę wartości zaokrąglonych &quot;bo tak prościej&quot; - zmiana zachowania finansowego.</li>
+<li>Aktualizacja oczekiwania w teście, gdy ten padł, bez zrozumienia przyczyny.</li>
+<li>Użycie <code>toUpperCase()</code> bez <code>Locale.ROOT</code> przy przepisywaniu normalizacji klienta.</li>
+<li>Zgubienie końcowego <code>\n</code> przy przebudowie <code>StringBuilder</code>.</li>
+<li>Traktowanie zielonego testu różnicowego jako dowodu równoważności dla wszystkich danych.</li>
+</ul>
+<h3 id="pytania-do-dyskusji" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>Który z testów zostawicie po usunięciu <code>LegacyInvoiceFormatter</code>?</li>
+<li>Co zrobicie, jeśli księgowość stwierdzi, że subtotal powinien być sumą wartości prezentowanych? (tryb funkcjonalny, 8.4)</li>
+<li>Które reguły potwierdzilibyście z domeną przed przemianowaniem testów z <code>documents...</code> na język wymagań?</li>
+</ul>
+<hr>
+<h2 id="cwiczenie-3-strategia-testow-obiekty-zastepcze-i-pokrycie" tabindex="-1"><a class="header-anchor" href="#cwiczenie-3-strategia-testow-obiekty-zastepcze-i-pokrycie"><span>Ćwiczenie 3: Strategia testów, obiekty zastępcze i pokrycie</span></a></h2>
+<h3 id="czesc-a-role-obiektow-zastepczych-teoria-113" tabindex="-1"><a class="header-anchor" href="#czesc-a-role-obiektow-zastepczych-teoria-113"><span>Część A: role obiektów zastępczych (teoria 11.3)</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Współpracownik</th>
+<th>Rola i rodzaj weryfikacji</th>
+<th>Może wykryć</th>
+<th>Nie może wykryć</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>catalogStub</code></td>
+<td>stub; wynik usługi i zapisany stan pośrednio potwierdzają użycie ceny</td>
+<td>pominięcie ceny albo błędne mnożenie jej przez liczbę sztuk</td>
+<td>błędne wyszukiwanie SKU w rzeczywistym katalogu</td>
+</tr>
+<tr>
+<td><code>paymentStub</code></td>
+<td>stub; wynik i stan repozytorium potwierdzają propagację identyfikatora autoryzacji</td>
+<td>zgubienie lub zmianę identyfikatora zwróconego przez bramkę</td>
+<td>błędny token, kwotę wywołania i integrację z operatorem płatności</td>
+</tr>
+<tr>
+<td><code>repositoryFake</code></td>
+<td>fake; test odczytuje stan przez pomocniczą metodę <code>find</code></td>
+<td>zapis niepoprawnego <code>OrderDraft</code> albo brak zapisu</td>
+<td>błędny SQL, mapowanie, ograniczenia i semantykę transakcji</td>
+</tr>
+<tr>
+<td><code>publisherSpy</code></td>
+<td>spy; test weryfikuje zarejestrowaną interakcję i jej dane</td>
+<td>brak zdarzenia, złą liczbę zdarzeń albo błędną treść</td>
+<td>serializację, dostarczenie i konfigurację rzeczywistego brokera</td>
+</tr>
+<tr>
+<td><code>paymentMock</code></td>
+<td>mock; test jawnie weryfikuje token, kwotę i liczbę wywołań</td>
+<td>niepoprawny protokół obciążenia, w tym wielokrotne wywołanie</td>
+<td>zachowanie produkcyjnej bramki i poprawność całego procesu rozliczenia</td>
+</tr>
+<tr>
+<td><code>publisherStub</code></td>
+<td>stub bez odpowiedzi; test nie weryfikuje publikacji</td>
+<td>umożliwia wykonanie ścieżki, ale sam nie wykrywa braku publikacji</td>
+<td>wszystkie defekty protokołu i integracji publikatora</td>
+</tr>
+</tbody>
+</table></div>
+<p>Nazwa <code>stub</code> jest właściwsza dla <code>publisherStub</code> niż <code>dummy</code>, ponieważ metoda <code>publish</code> rzeczywiście zostaje wywołana. W drugim teście <code>catalogStub</code> i <code>repositoryFake</code> pełnią te same role co w pierwszym, ale test nie sprawdza ich skutków.</p>
+<p><strong>Pytanie 2 (stan, wynik, interakcja):</strong> pierwszy test weryfikuje głównie wynik (<code>total</code>, <code>authorizationId</code>) i stan (<code>repositoryFake.find</code>), a interakcję tylko przez listę zdarzeń spy. Drugi test weryfikuje interakcję (protokół płatności). Weryfikacja interakcji jest tu uzasadniona, bo liczba obciążeń jest częścią kontraktu (płatność nie może zostać pobrana dwukrotnie, 3.2).</p>
+<p><strong>Pytanie 5 (kandydat do wspólnego testu kontraktu):</strong> <code>InMemoryOrderRepository</code>. Nie wykryje błędnego SQL, ograniczeń bazy, mapowania <code>BigDecimal</code>, izolacji transakcji ani zachowania generatora identyfikatorów. Produkcyjny adapter wymaga wąskiego testu integracyjnego. <code>find</code> jest metodą pomocniczą wyłącznie klasy <code>InMemoryOrderRepository</code>, a nie częścią <code>OrderRepository</code>, więc nie da się uruchomić identycznego testu odczytu przez sam publiczny interfejs. Wspólny kontrakt może opisywać wyłącznie obserwowalne elementy wspólne, np. semantykę zwracanego identyfikatora (unikalność kolejnych wartości). Sprawdzenie trwałego zapisu wymaga jawnego mechanizmu obserwacji właściwego dla środowiska testowego, np. zapytania kontrolnego do rzeczywistej bazy. Nie należy dodawać metody odczytu do interfejsu produkcyjnego wyłącznie po to, aby ujednolicić testy.</p>
+<p><strong>Kolejność zapisu i publikacji:</strong> jest warta sprawdzania tylko wtedy, gdy wynika z mechanizmu niezawodności, np. zdarzenie może zostać opublikowane dopiero po trwałym zapisie albo oba działania są koordynowane przez outbox. Sama obecna kolejność wywołań w kodzie nie uzasadnia kruchego testu interakcji.</p>
+<h3 id="czesc-b-raport-pokrycia" tabindex="-1"><a class="header-anchor" href="#czesc-b-raport-pokrycia"><span>Część B: raport pokrycia</span></a></h3>
+<ul>
+<li><strong>Linie a gałęzie:</strong> <code>DeliveryFeeLineCoverageTest</code> wywołuje tylko <code>fee(true)</code>. Wszystkie linie <code>fee</code> są wykonane (przypisanie <code>100</code>, warunek, przypisanie <code>0</code>, <code>return</code>), ale warunek <code>if (premium)</code> miał tylko wynik <code>true</code>. Pokrycie gałęzi pokazuje 1 z 2, pokrycie linii 100%.</li>
+<li><strong>Test brakującej gałęzi:</strong> wywołanie <code>DeliveryFee.fee(false)</code> z asercją oczekującą dokładnie <code>100</code> (kod testu jak w Aktywności 6.5). Kontrolna mutacja <code>100</code> na <code>200</code> musi spowodować porażkę.</li>
+<li><strong>Test zwiększający pokrycie bez ochrony:</strong> test bez asercji albo z asercją sprawdzającą tylko brak wyjątku (np. <code>assertDoesNotThrow(() -&gt; DeliveryFee.fee(false))</code>) podniesie pokrycie, lecz nie wykryje zmiany <code>100</code> na <code>200</code>. W projekcie podobny charakter ma <code>Module2ExamplesTest</code> (<code>assertDoesNotThrow</code> dla całego <code>main</code>): podnosi pokrycie wielu klas, nie chroniąc żadnej reguły.</li>
+<li><strong>Rozsądne użycie progu:</strong> próg może blokować znaczący spadek pokrycia zmienianego pakietu i kierować uwagę na nowe, nieprzetestowane gałęzie. Nadal potrzebny jest przegląd ryzyka, asercji i wyłączeń. Globalny procent nie powinien pozwalać, aby dobrze pokryty kod banalny ukrywał brak ochrony reguły krytycznej. Uzupełnieniem może być test mutacyjny, którego wynik też wymaga interpretacji (6.4).</li>
+</ul>
+<h3 id="typowe-bledy-uczestnikow-1" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow-1"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>Nazywanie każdego obiektu zastępczego &quot;mockiem&quot;.</li>
+<li>Klasyfikacja <code>publisherStub</code> jako dummy.</li>
+<li>Twierdzenie, że <code>repositoryFake</code> &quot;testuje repozytorium&quot;.</li>
+<li>Proponowanie dodania <code>find</code> do <code>OrderRepository</code> dla wygody testów.</li>
+<li>Uzasadnianie testu kolejności save/publish kolejnością linii w kodzie.</li>
+<li>Test <code>fee(false)</code> bez asercji albo z asercją <code>assertNotNull</code>.</li>
+</ul>
+<h3 id="pytania-do-dyskusji-1" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji-1"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>Który test przeżyje zmianę wewnętrznej kolejności obliczeń w <code>place</code>, a który nie?</li>
+<li>Czy w pierwszym teście wykrylibyśmy podwójne obciążenie karty? (nie, <code>paymentStub</code> nie liczy wywołań)</li>
+<li>Czego nie mierzy raport pokrycia? (siły asercji, zgodności z wymaganiem, reprezentatywności danych, kombinacji ścieżek, 6.3)</li>
+</ul>
+<hr>
+<h2 id="cwiczenie-4-wprowadzenie-szwu" tabindex="-1"><a class="header-anchor" href="#cwiczenie-4-wprowadzenie-szwu"><span>Ćwiczenie 4: Wprowadzenie szwu</span></a></h2>
+<h3 id="kroki-1-2-analiza-teoria-114" tabindex="-1"><a class="header-anchor" href="#kroki-1-2-analiza-teoria-114"><span>Kroki 1-2: analiza (teoria 11.4)</span></a></h3>
+<ul>
+<li><strong>Niedeterministyczne wejście:</strong> globalne źródło czasu <code>LocalDate.now(ZoneOffset.UTC)</code> uniemożliwia kontrolowanie pośredniego wejścia.</li>
+<li><strong>Efekt trudny do obserwacji:</strong> bezpośrednie użycie <code>System.out.printf</code> - efekt nie jest reprezentowany przez port.</li>
+<li><strong>Górna granica:</strong> <code>today + 7</code> włącznie (<code>isAfter</code> zwraca <code>false</code> dla dokładnie +7).</li>
+<li><strong>Brak dolnej granicy:</strong> wiadomość jest wysyłana również dla daty dzisiejszej i dat przeszłych.</li>
+</ul>
+<p>Istotne przypadki:</p>
+<ul>
+<li>data odnowienia dokładnie siedem dni po dzisiejszej dacie: wiadomość ma zostać wysłana,</li>
+<li>data odnowienia osiem dni po dzisiejszej dacie: wiadomość nie ma zostać wysłana,</li>
+<li>data odnowienia w przeszłości: wiadomość również zostaje wysłana, ponieważ zastana reguła nie ma dolnej granicy.</li>
+</ul>
+<p>Jeżeli wymaganie domenowe definiuje przedział od dnia dzisiejszego do siedmiu dni włącznie, dodanie warunku odrzucającego daty przeszłe będzie osobną zmianą funkcjonalną. Nie należy wprowadzać go po cichu podczas rozrywania zależności.</p>
+<h3 id="kroki-3-4-minimalny-szew" tabindex="-1"><a class="header-anchor" href="#kroki-3-4-minimalny-szew"><span>Kroki 3-4: minimalny szew</span></a></h3>
+<p><strong>Kod referencyjny:</strong> <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>SeamedReminderService.java</code> (klasa bez <code>final</code>, metody <code>protected currentDate()</code> i <code>protected sendMessage(email, renewalDate)</code>) oraz <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>SeamedReminderServiceTest.java</code> z podklasą <code>TestableReminderService</code>. Testy dla dziś = 2026-08-30: <code>sendsReminderForRenewalExactlySevenDaysAway</code> (2026-09-06, wysyłka), <code>doesNotSendReminderMoreThanSevenDaysBeforeRenewal</code> (2026-09-07, brak), <code>documentsCurrentBehaviorForPastRenewalDate</code> (2026-08-29, wysyłka).</p>
+<p>Technika: Subclass and Override Method (Feathers). Koszty: rozszerzenie powierzchni dziedziczenia tylko dla testów, sprzężenie testu z metodami chronionymi, zachęta do hierarchii bez znaczenia domenowego, brak jawnego portu. Zdjęcie <code>final</code> jest refaktoryzacją tylko dla typu wewnętrznego z konsumentami pod kontrolą.</p>
+<h3 id="kroki-5-6-jawne-zaleznosci" tabindex="-1"><a class="header-anchor" href="#kroki-5-6-jawne-zaleznosci"><span>Kroki 5-6: jawne zależności</span></a></h3>
+<p><strong>Kod referencyjny:</strong> <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>ReminderService.java</code> (konstruktor <code>ReminderService(Clock clock, ReminderGateway reminderGateway)</code>, interfejs <code>ReminderGateway</code>) oraz <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>ReminderServiceTest.java</code> (<code>Clock.fixed(Instant.parse(&quot;2026-08-30T10:00:00Z&quot;), ZoneOffset.UTC)</code> i spy <code>RecordingReminderGateway</code>). Techniki: Parameterize Constructor i Extract Interface.</p>
+<h3 id="krok-7-punkty-aktywacji" tabindex="-1"><a class="header-anchor" href="#krok-7-punkty-aktywacji"><span>Krok 7: punkty aktywacji</span></a></h3>
+<ul>
+<li>Szew przejściowy: <code>SeamedReminderService</code> tworzy minimalny szew przez <code>currentDate</code> i <code>sendMessage</code>. Punktem aktywacji jest utworzenie <code>TestableReminderService</code>, a dynamiczne wiązanie wybiera nadpisane metody.</li>
+<li>Projekt docelowy: <code>ReminderService</code> zastępuje dziedziczenie przekazanymi zależnościami. Punktem aktywacji jest wyrażenie <code>new ReminderService(...)</code>, a jego argumenty wybierają zachowanie. Test przekazuje <code>Clock.fixed</code> oraz <code>RecordingReminderGateway</code>. Produkcja przekaże zegar systemowy z jawną strefą (tu UTC, aby zachować zachowanie wersji legacy) i rzeczywisty adapter komunikacyjny.</li>
+</ul>
+<h3 id="krok-8-test-rzeczywistego-adaptera" tabindex="-1"><a class="header-anchor" href="#krok-8-test-rzeczywistego-adaptera"><span>Krok 8: test rzeczywistego adaptera</span></a></h3>
+<p>Test jednostkowy usługi nie potwierdzi, że adapter poprawnie serializuje komunikat, uwierzytelnia się, obsługuje odpowiedzi ani ponowienia. Te ryzyka należy sprawdzić wąskim testem integracyjnym z rzeczywistą technologią lub środowiskiem o zgodnym kontrakcie.</p>
+<h3 id="usuniecie-rozwiazania-przejsciowego" tabindex="-1"><a class="header-anchor" href="#usuniecie-rozwiazania-przejsciowego"><span>Usunięcie rozwiązania przejściowego</span></a></h3>
+<p>Rozwiązanie przejściowe można usunąć po przeniesieniu wywołań produkcyjnych i testów na <code>ReminderService</code>. Usunięcie powinno być osobnym, małym krokiem, po którym ponownie uruchamiany jest pełny zestaw testów. Pełna kolejność: teoria 9.6 (nazwij zachowanie, wybierz punkt uruchomienia i obserwacji, wprowadź najmniejszy szew, zabezpiecz testami, przenieś wybór do jawnego punktu aktywacji, zastąp w teście, dodaj test adaptera, usuń konstrukcję przejściową).</p>
+<h3 id="typowe-bledy-uczestnikow-2" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow-2"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>&quot;Poprawienie&quot; reguły przez dodanie dolnej granicy w trakcie wprowadzania szwu.</li>
+<li>Testy liczone względem <code>LocalDate.now()</code> (niedeterministyczne w okolicach północy i niezgodne ze strefą UTC).</li>
+<li>Przechwytywanie <code>System.out</code> zamiast wprowadzenia portu.</li>
+<li>Przekazanie w produkcji <code>Clock.systemDefaultZone()</code> zamiast zegara UTC - cicha zmiana zachowania.</li>
+<li>Interfejs <code>ReminderGateway</code> dodany, ale kod domenowy dalej tworzy konkretny adapter przez <code>new</code> (interfejs bez punktu aktywacji nie jest użytecznym szwem, 9.1).</li>
+<li>Pozostawienie <code>SeamedReminderService</code> bez decyzji o jego losie.</li>
+</ul>
+<h3 id="pytania-do-dyskusji-2" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji-2"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>Kiedy Subclass and Override Method może zostać na stałe?</li>
+<li>Jaki test wykryłby pomyłkę strefy czasowej w zegarze produkcyjnym?</li>
+<li>Które z problemów tej klasy to separacja, a które obserwacja? (9.2)</li>
+</ul>
+<hr>
+<h2 id="sprawdzenie-wiedzy-odpowiedzi" tabindex="-1"><a class="header-anchor" href="#sprawdzenie-wiedzy-odpowiedzi"><span>Sprawdzenie wiedzy: odpowiedzi</span></a></h2>
+<ol>
+<li><strong>Co odróżnia refaktoryzację od zmiany funkcjonalnej?</strong> Refaktoryzacja zmienia strukturę przy zachowaniu uzgodnionych obserwacji. Zmiana funkcjonalna celowo modyfikuje co najmniej jedną z nich.</li>
+<li><strong>Czy zachowanie obserwowalne ogranicza się do wartości zwracanej?</strong> Nie. Obejmuje także wyjątki, efekty, protokoły, formaty, API i istotne właściwości pozafunkcjonalne.</li>
+<li><strong>Dlaczego małe kroki ograniczają koszt diagnozy?</strong> Po porażce niewielka ostatnia transformacja staje się głównym podejrzanym i łatwo ją przeanalizować lub wycofać.</li>
+<li><strong>Co dokładnie oznacza zielony zestaw testów?</strong> Żaden wykonany test nie wykrył różnicy w sprawdzanych obserwacjach. Nie jest to dowód braku wszystkich regresji.</li>
+<li><strong>Dlaczego piramida testów nie narzuca uniwersalnych proporcji?</strong> Koszt i wartość testu zależą od architektury, technologii i ryzyka. Ważniejsze są właściwości testów niż arbitralna liczba.</li>
+<li><strong>Czym stub różni się od mocka?</strong> Stub dostarcza odpowiedzi potrzebne scenariuszowi. Mock zawiera oczekiwania dotyczące interakcji i wymaga ich weryfikacji.</li>
+<li><strong>Jakie ryzyko pozostaje po zastąpieniu bazy implementacją działającą w pamięci?</strong> Test nie sprawdza między innymi zapytań, mapowania, ograniczeń, transakcji i zachowania rzeczywistego silnika.</li>
+<li><strong>Co pokazuje pokrycie gałęzi, czego może nie pokazać pokrycie linii?</strong> Pokazuje, czy wykonano różne wyniki warunków. Wszystkie linie mogą zostać wykonane mimo pominięcia jednej strony decyzji (przykład: <code>DeliveryFee</code>).</li>
+<li><strong>Dlaczego test charakteryzujący nie dowodzi poprawności wymagania?</strong> Zapisuje obserwowany wynik, który może być historycznym defektem lub przypadkowym szczegółem.</li>
+<li><strong>Czym różni się seam od punktu aktywacji?</strong> Seam jest miejscem możliwej zmiany zachowania, a punkt aktywacji jest miejscem wyboru konkretnego wariantu.</li>
+<li><strong>Jakie dwie potrzeby realizuje rozrywanie zależności?</strong> Separację badanego kodu od trudnej zależności oraz obserwację niedostępnego efektu.</li>
+<li><strong>Kiedy szew przez dziedziczenie warto traktować jako przejściowy?</strong> Gdy dziedziczenie istnieje tylko dla testowalności, rozszerza niepożądaną powierzchnię klasy i nie opisuje sensownej relacji domenowej.</li>
+</ol>
+
+</main>
+</div>
+<script>if(matchMedia('(max-width:900px)').matches){var d=document.querySelector('.toc details');if(d)d.open=false}</script>
+</body>
+</html>

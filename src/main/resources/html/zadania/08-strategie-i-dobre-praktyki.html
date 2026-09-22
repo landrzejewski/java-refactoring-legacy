@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zadania: Moduł 8. Strategie i dobre praktyki - zadania dla uczestników</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1d1f23;--muted:#5f6670;--line:#e3e5e8;--card:#ffffff;--accent:#2457c5;--accent-bg:#eef3fd;
+--code-bg:#f4f5f7;--note-bg:#fff7e6;--note-line:#e6a700;--th:#f1f3f6;
+--k:#b3246b;--s:#1a7f37;--c:#6e7781;--n:#0550ae;--t:#8250df;--f:#6639ba;--a:#953800;
+--kind:#2457c5}
+@media (prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3036;--card:#1c1f23;--accent:#7aa7ff;--accent-bg:#1e2a40;
+--code-bg:#1f2328;--note-bg:#2b2412;--note-line:#c99400;--th:#23272d;
+--k:#ff7b9c;--s:#7ee2a0;--c:#8b949e;--n:#79c0ff;--t:#d2a8ff;--f:#d2a8ff;--a:#ffa657}}
+body.zadania{--kind:#1a7f37} body.rozwiazania{--kind:#b3246b} body.przyklady{--kind:#2457c5}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.topbar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 24px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);border-top:3px solid var(--kind)}
+.topbar a{color:var(--fg);text-decoration:none}
+.home{font-weight:600}
+.tabs{display:flex;gap:4px}
+.tab{padding:4px 12px;border-radius:999px;font-size:15px;color:var(--muted)!important}
+.tab:hover{background:var(--code-bg)}
+.tab.active{background:var(--accent-bg);color:var(--accent)!important;font-weight:600}
+.pager{margin-left:auto;display:flex;gap:14px;font-size:15px}
+.pager a{color:var(--muted)}.pager a:hover{color:var(--accent)}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:48px;max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+.layout.no-toc{grid-template-columns:minmax(0,1fr);max-width:1000px}
+aside{position:sticky;top:72px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px}
+.toc-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;font-weight:600}
+.toc ul{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.toc li a{display:block;padding:3px 12px;color:var(--muted);text-decoration:none;line-height:1.35}
+.toc li.h3 a{padding-left:24px;font-size:13px}
+.toc li a:hover{color:var(--accent)}
+main{min-width:0;max-width:860px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 1.2rem;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:2.6rem 0 .8rem;padding-top:.6rem;border-top:1px solid var(--line)}
+h3{font-size:1.18rem;margin:2rem 0 .6rem}
+h4{font-size:1rem;margin:1.5rem 0 .5rem}
+h1 a,h2 a,h3 a,h4 a{color:inherit;text-decoration:none}
+h2 a:hover::after,h3 a:hover::after{content:" #";color:var(--muted)}
+p,ul,ol{margin:.6rem 0 1rem}
+li{margin:.25rem 0}
+li>ul,li>ol{margin:.2rem 0}
+a{color:var(--accent)}
+strong{font-weight:650}
+code{font:0.88em/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre.code{position:relative;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:1rem 0 1.4rem}
+pre.code code{background:none;padding:0;font-size:14px;line-height:1.55}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:6px;right:10px;font:11px ui-monospace,Menlo,monospace;color:var(--muted);text-transform:uppercase}
+.table-wrap{overflow-x:auto;margin:1rem 0 1.4rem;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--th);font-weight:600}
+tr:last-child td{border-bottom:none}
+blockquote{margin:1rem 0 1.4rem;padding:10px 16px;background:var(--note-bg);border-left:4px solid var(--note-line);border-radius:0 8px 8px 0}
+blockquote p{margin:.3rem 0}
+hr{border:none;border-top:1px solid var(--line);margin:2rem 0}
+hr+h2{border-top:none;margin-top:1.4rem}
+main p code,main li code,main td code{overflow-wrap:break-word}
+.toc summary{cursor:pointer;list-style:none}.toc summary::-webkit-details-marker{display:none}
+.hljs-keyword,.hljs-selector-tag,.hljs-built_in,.hljs-literal{color:var(--k)}
+.hljs-string,.hljs-regexp,.hljs-addition{color:var(--s)}
+.hljs-comment,.hljs-quote,.hljs-meta{color:var(--c);font-style:italic}
+.hljs-number,.hljs-symbol{color:var(--n)}
+.hljs-type,.hljs-class .hljs-title,.hljs-title.class_{color:var(--t)}
+.hljs-title,.hljs-title.function_,.hljs-section{color:var(--f)}
+.hljs-attr,.hljs-attribute,.hljs-variable,.hljs-params,.hljs-tag{color:var(--a)}
+.hljs-deletion{color:var(--k)}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:16px;padding:20px 16px 60px}
+aside{position:static;max-height:none;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--card)}
+.toc-title{margin:0}.toc details[open] .toc-title{margin-bottom:8px}.toc summary::after{content:" ▾"}
+body{font-size:16px}.topbar{padding:8px 16px}.pager{margin-left:0}h1{font-size:1.6rem}}
+@media print{.topbar,aside{display:none}.layout{display:block;padding:0}main{max-width:none}
+pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#000;font-size:12pt}}
+</style>
+</head>
+<body class="zadania">
+<header class="topbar"><a class="home" href="../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab active" href="/08-strategie-i-dobre-praktyki.html">Zadania</a><a class="tab" href="../przyklady/08-strategie-i-dobre-praktyki.html">Przykłady</a><a class="tab" href="../rozwiazania/08-strategie-i-dobre-praktyki.html">Rozwiązania</a></div><div class="pager"><a href="07-zaawansowane-refaktoryzacje-warsztat-praktyczny.html" title="Poprzedni moduł">&larr; 07</a><span></span></div></header>
+<div class="layout">
+<aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#jak-pracowac">Jak pracować</a></li><li class="h2"><a href="#warsztat-1-plan-przyrostowej-wymiany-implementacji">Warsztat 1. Plan przyrostowej wymiany implementacji</a></li><li class="h3"><a href="#cel">Cel</a></li><li class="h3"><a href="#czas">Czas</a></li><li class="h3"><a href="#kontekst">Kontekst</a></li><li class="h3"><a href="#dane-wejsciowe">Dane wejściowe</a></li><li class="h3"><a href="#polecenia">Polecenia</a></li><li class="h3"><a href="#kryteria-akceptacji-oczekiwany-produkt">Kryteria akceptacji / oczekiwany produkt</a></li><li class="h2"><a href="#warsztat-2-seria-zmian-gotowych-do-przegladu">Warsztat 2. Seria zmian gotowych do przeglądu</a></li><li class="h3"><a href="#cel-1">Cel</a></li><li class="h3"><a href="#czas-1">Czas</a></li><li class="h3"><a href="#kontekst-1">Kontekst</a></li><li class="h3"><a href="#dane-wejsciowe-1">Dane wejściowe</a></li><li class="h3"><a href="#polecenia-1">Polecenia</a></li><li class="h3"><a href="#kryteria-akceptacji-oczekiwany-produkt-1">Kryteria akceptacji / oczekiwany produkt</a></li><li class="h2"><a href="#warsztat-3-wprowadzenie-bramek-do-projektu-legacy">Warsztat 3. Wprowadzenie bramek do projektu legacy</a></li><li class="h3"><a href="#cel-2">Cel</a></li><li class="h3"><a href="#czas-2">Czas</a></li><li class="h3"><a href="#kontekst-2">Kontekst</a></li><li class="h3"><a href="#dane-wejsciowe-2">Dane wejściowe</a></li><li class="h3"><a href="#polecenia-2">Polecenia</a></li><li class="h3"><a href="#kryteria-akceptacji-oczekiwany-produkt-2">Kryteria akceptacji / oczekiwany produkt</a></li><li class="h2"><a href="#aktywnosc-dodatkowa-a-zapis-decyzji-architektonicznej-adr">Aktywność dodatkowa A. Zapis decyzji architektonicznej (ADR)</a></li><li class="h3"><a href="#cel-3">Cel</a></li><li class="h3"><a href="#czas-3">Czas</a></li><li class="h3"><a href="#polecenia-3">Polecenia</a></li><li class="h3"><a href="#oczekiwany-produkt">Oczekiwany produkt</a></li><li class="h2"><a href="#aktywnosc-dodatkowa-b-decyzja-o-kolejnym-etapie-wdrozenia">Aktywność dodatkowa B. Decyzja o kolejnym etapie wdrożenia</a></li><li class="h3"><a href="#cel-4">Cel</a></li><li class="h3"><a href="#czas-4">Czas</a></li><li class="h3"><a href="#dane-wejsciowe-3">Dane wejściowe</a></li><li class="h3"><a href="#polecenia-4">Polecenia</a></li><li class="h3"><a href="#oczekiwany-produkt-1">Oczekiwany produkt</a></li></ul></details></nav></aside>
+<main>
+<h1>Moduł 8. Strategie i dobre praktyki - zadania dla uczestników</h1>
+<h2 id="jak-pracowac" tabindex="-1"><a class="header-anchor" href="#jak-pracowac"><span>Jak pracować</span></a></h2>
+<p>Ten moduł dotyczy mniej pojedynczych przekształceń kodu, a bardziej sposobu prowadzenia zmian w systemie legacy: planowania migracji, dzielenia pracy na zestawy zmian gotowe do przeglądu, dokumentowania decyzji, konfigurowania narzędzi i zarządzania ryzykiem wdrożenia.</p>
+<p>Zasady pracy:</p>
+<ul>
+<li>Pracujecie w parach lub zespołach 3-4 osobowych. Każdy warsztat kończy się krótką prezentacją produktu (5 minut na zespół).</li>
+<li>Produktem warsztatu jest przede wszystkim dokument roboczy (plan, opis serii zmian, konfiguracja), a tam, gdzie polecenie tego wymaga, także kod i testy.</li>
+<li>Zanim zaczniecie cokolwiek zmieniać, upewnijcie się, że projekt się kompiluje, a testy są zielone:
+<ul>
+<li>Java: <code>mvn -q compile</code> oraz <code>mvn test</code></li>
+<li>C#: <code>cd csharp &amp;&amp; dotnet build &amp;&amp; dotnet test</code></li>
+<li>TypeScript: <code>cd typescript &amp;&amp; npm ci &amp;&amp; npm run build &amp;&amp; npm test</code></li>
+</ul>
+</li>
+<li>Każdy krok w kodzie wykonujcie małymi porcjami: kompilacja, zawężone testy, przegląd diffu. Nie łączcie zmian strukturalnych ze zmianą zachowania.</li>
+<li>Jeżeli czegoś nie wiecie o zachowaniu kodu, zapiszcie to jako założenie albo pytanie. Nie zgadujcie po cichu.</li>
+<li>Czas podany przy warsztatach jest orientacyjny i może zostać zmieniony przez prowadzącego.</li>
+</ul>
+<p>Ścieżki w poleceniach dotyczą wersji Java. Odpowiedniki w C# znajdują się w <code>csharp/<wbr>src/<wbr>Training.Module8</code>, a w TypeScript w <code>typescript/<wbr>src/<wbr>module8</code> (te same nazwy klas i pakietów, zapisane zgodnie z konwencjami języka).</p>
+<hr>
+<h2 id="warsztat-1-plan-przyrostowej-wymiany-implementacji" tabindex="-1"><a class="header-anchor" href="#warsztat-1-plan-przyrostowej-wymiany-implementacji"><span>Warsztat 1. Plan przyrostowej wymiany implementacji</span></a></h2>
+<h3 id="cel" tabindex="-1"><a class="header-anchor" href="#cel"><span>Cel</span></a></h3>
+<p>Zaplanować migrację kalkulatora używanego przez krytyczną ścieżkę bez jednorazowego przełączenia.</p>
+<h3 id="czas" tabindex="-1"><a class="header-anchor" href="#czas"><span>Czas</span></a></h3>
+<p>Orientacyjnie 60-75 minut (40-50 minut pracy w zespołach, reszta na prezentacje i dyskusję).</p>
+<h3 id="kontekst" tabindex="-1"><a class="header-anchor" href="#kontekst"><span>Kontekst</span></a></h3>
+<p>Zespół utrzymuje system sprzedażowy. Na krytycznej ścieżce składania zamówienia wywoływany jest stary kalkulator ceny netto. Biznes chce zastąpić go nową implementacją (lepiej testowalną, z czytelnym modelem danych), ale:</p>
+<ul>
+<li>kalkulator jest wywoływany przy każdym zamówieniu, nie ma okna serwisowego,</li>
+<li>błędna cena oznacza realne straty finansowe albo reklamacje,</li>
+<li>zespół nie ma pewności, czy wszystkie reguły zaokrąglania są udokumentowane,</li>
+<li>stary kod nadal jest wywoływany bezpośrednio z kilku miejsc.</li>
+</ul>
+<h3 id="dane-wejsciowe" tabindex="-1"><a class="header-anchor" href="#dane-wejsciowe"><span>Dane wejściowe</span></a></h3>
+<ul>
+<li>Stara implementacja: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module8/<wbr>incremental/<wbr>LegacyPriceCalculator.java</code>
+<ul>
+<li>metoda <code>BigDecimal calculate(BigDecimal unitPrice, int quantity, BigDecimal discountPercent)</code>,</li>
+<li>rabat podawany jako wartość procentowa od <code>0</code> do <code>100</code>.</li>
+</ul>
+</li>
+<li>Przykładowe dane do analizy kontraktu (policzcie je ręcznie albo w teście charakteryzującym na starej klasie):</li>
+</ul>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>unitPrice</th>
+<th>quantity</th>
+<th>discountPercent</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>10.00</code></td>
+<td>3</td>
+<td><code>0</code></td>
+</tr>
+<tr>
+<td><code>10.00</code></td>
+<td>3</td>
+<td><code>100</code></td>
+</tr>
+<tr>
+<td><code>0.01</code></td>
+<td>1</td>
+<td><code>50</code></td>
+</tr>
+<tr>
+<td><code>19.995</code></td>
+<td>2</td>
+<td><code>12.555</code></td>
+</tr>
+<tr>
+<td><code>0.05</code></td>
+<td>3</td>
+<td><code>33.33</code></td>
+</tr>
+<tr>
+<td><code>-0.001</code></td>
+<td>1</td>
+<td><code>0</code></td>
+</tr>
+<tr>
+<td><code>10.00</code></td>
+<td>0</td>
+<td><code>0</code></td>
+</tr>
+<tr>
+<td><code>10.00</code></td>
+<td>1</td>
+<td><code>100.01</code></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="polecenia" tabindex="-1"><a class="header-anchor" href="#polecenia"><span>Polecenia</span></a></h3>
+<ol>
+<li>Przeczytajcie <code>LegacyPriceCalculator</code> i zapiszcie jego <strong>kontrakt funkcjonalny</strong>: walidację (kolejność, typy wyjątków, komunikaty), skale i tryb zaokrąglania, moment zaokrąglania rabatu, wynik dla danych z tabeli.</li>
+<li>Zapiszcie <strong>kontrakt operacyjny</strong>: czy obliczenie ma skutki uboczne, czy jest deterministyczne, jakie są oczekiwania co do opóźnienia, jak często jest wywoływane.</li>
+<li>Wskażcie <strong>najmniejszą abstrakcję</strong> potrzebną klientowi (nazwa interfejsu, sygnatura metody, typy wejścia i wyjścia). Uzasadnijcie, czym różni się od API starego kalkulatora (np. jednostka rabatu).</li>
+<li>Zaprojektujcie <strong>adapter</strong> umieszczający starą implementację za abstrakcją oraz <strong>wspólny test kontraktowy</strong>, który będzie uruchamiany dla każdej implementacji. Wypiszcie konkretne przypadki testowe, w tym przynajmniej jeden chroniący moment zaokrąglenia.</li>
+<li>Zdecydujcie, czy <strong>tryb shadow</strong> (równoległe liczenie starą i nową implementacją z porównaniem wyników) jest tu bezpieczny. Opiszcie: która implementacja jest autorytatywna, co się dzieje przy awarii kandydata, co przy awarii kanału raportowania, jakie są koszty wydajnościowe.</li>
+<li>Zdefiniujcie <strong>tryby pracy i etapy przełączenia</strong> oraz <strong>kohorty</strong> ruchu. Opiszcie, jak routing będzie deterministyczny i jak będzie obserwowany.</li>
+<li>Zapiszcie kryteria decyzji <strong><code>ADVANCE</code></strong>, <strong><code>HOLD</code></strong> i <strong><code>ROLLBACK</code></strong> dla każdego etapu (metryki, progi, minimalna próbka, czas obserwacji, właściciel decyzji).</li>
+<li>Zdefiniujcie <strong>warunki usunięcia starej ścieżki</strong> i każdego elementu przejściowego (adapter, router, flaga, telemetria).</li>
+<li>W planie oznaczcie każdy krok jako: refaktoryzacja, migracja albo zmiana zachowania.</li>
+<li>Opcjonalnie (dla szybszych zespołów): zaimplementujcie abstrakcję, adapter i test kontraktowy w nowym pakiecie roboczym (np. <code>pl.training.module8.workshop1</code>) i uruchomcie test dla adaptera.</li>
+</ol>
+<h3 id="kryteria-akceptacji-oczekiwany-produkt" tabindex="-1"><a class="header-anchor" href="#kryteria-akceptacji-oczekiwany-produkt"><span>Kryteria akceptacji / oczekiwany produkt</span></a></h3>
+<p>Produktem jest plan migracji (1-2 strony) oraz lista przypadków testu kontraktowego. Plan jest zaakceptowany, gdy:</p>
+<ul>
+<li>plan rozróżnia refaktoryzację od migracji i zmiany zachowania,</li>
+<li>kandydat nie powiela nieidempotentnych efektów,</li>
+<li>obie implementacje przechodzą wspólny test kontraktowy (w planie: ten sam zestaw przypadków jest uruchamiany dla obu),</li>
+<li>routing jest deterministyczny i obserwowalny,</li>
+<li>wycofanie uwzględnia kod, konfigurację i dane,</li>
+<li>każdy element przejściowy ma właściciela oraz kryterium usunięcia.</li>
+</ul>
+<hr>
+<h2 id="warsztat-2-seria-zmian-gotowych-do-przegladu" tabindex="-1"><a class="header-anchor" href="#warsztat-2-seria-zmian-gotowych-do-przegladu"><span>Warsztat 2. Seria zmian gotowych do przeglądu</span></a></h2>
+<h3 id="cel-1" tabindex="-1"><a class="header-anchor" href="#cel-1"><span>Cel</span></a></h3>
+<p>Podzielić szeroką zmianę legacy na samodzielne jednostki o czytelnej intencji.</p>
+<h3 id="czas-1" tabindex="-1"><a class="header-anchor" href="#czas-1"><span>Czas</span></a></h3>
+<p>Orientacyjnie 60-75 minut (część praktyczna w kodzie około 40 minut).</p>
+<h3 id="kontekst-1" tabindex="-1"><a class="header-anchor" href="#kontekst-1"><span>Kontekst</span></a></h3>
+<p>Zespół dostał zadanie biznesowe: raport z wydania ma dodatkowo pokazywać liczbę nieudanych wdrożeń w ostatnim wierszu (np. <code>Successful: 1/<wbr>2, Failed: 1/<wbr>2</code>). Osoba, która otworzyła klasę formatera, zauważyła jednocześnie nieczytelne nazwy zmiennych, wielokrotną konkatenację napisów i powielony format wiersza. Pierwsza wersja zmiany, przygotowana w pośpiechu, zawierała wszystko naraz w jednym commicie: zmianę nazw, przeformatowanie pliku, przebudowę pętli, nową regułę raportu i poprawione testy. Osoba przeglądająca odmówiła akceptacji, bo nie była w stanie ocenić, czy stare zachowanie zostało zachowane.</p>
+<p>Waszym zadaniem jest przygotować tę samą pracę ponownie, jako serię małych zestawów zmian.</p>
+<h3 id="dane-wejsciowe-1" tabindex="-1"><a class="header-anchor" href="#dane-wejsciowe-1"><span>Dane wejściowe</span></a></h3>
+<ul>
+<li>Klasa do zmiany: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module8/<wbr>boyscout/<wbr>before/<wbr>ReleaseSummaryFormatter.java</code></li>
+<li>Model danych wejściowych (nie jest przedmiotem zmiany): <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module8/<wbr>boyscout/<wbr>DeploymentResult.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module8/<wbr>boyscout/<wbr>DeploymentStatus.java</code></li>
+<li>Pracujcie na kopii klasy w nowym pakiecie roboczym (np. <code>pl.training.module8.workshop2</code>), tak aby oryginał pozostał punktem odniesienia do porównania.</li>
+<li>Każdy krok zapisujcie jako osobny commit na własnej gałęzi roboczej.</li>
+</ul>
+<h3 id="polecenia-1" tabindex="-1"><a class="header-anchor" href="#polecenia-1"><span>Polecenia</span></a></h3>
+<ol>
+<li><strong>Odkrycie zachowania.</strong> Zanim zmienicie strukturę, zapiszcie obecny kontrakt <code>format(...)</code>: postać wyniku, obsługę spacji w <code>releaseId</code>, kolejność walidacji, typy wyjątków i komunikaty (w tym dla <code>null</code> na liście wyników i dla kombinacji kilku błędnych argumentów).</li>
+<li>Przygotujcie <strong>testy charakteryzujące</strong> ten kontrakt. Dla każdego testu zdecydujcie, czy utrwala zachowanie zamierzone, czy przypadkowe, i zapiszcie tę decyzję.</li>
+<li><strong>Refaktoryzacja bez zmiany zachowania.</strong> Zaplanujcie i wykonajcie lokalne porządki (nazwy, wydzielenie walidacji i formatowania wiersza, sposób budowania napisu). Nie zmieniajcie sygnatury publicznej ani walidacji.</li>
+<li><strong>Zmiana zachowania.</strong> W osobnym zestawie zmian zaimplementujcie nową regułę ostatniego wiersza raportu wraz z testem opisującym nowe wymaganie.</li>
+<li>Jeśli chcecie przeformatować plik lub użyć automatycznej transformacji IDE, zróbcie to jako osobny krok mechaniczny, niezmieszany z ręcznymi poprawkami.</li>
+<li>Po <strong>każdym</strong> kroku: kompilacja, zawężone testy, pełne testy modułu, przegląd diffu. Zapiszcie, jakie polecenie uruchomiliście i jaki był wynik.</li>
+<li>Dla każdego zestawu zmian przygotujcie <strong>opis</strong> odpowiadający na pięć pytań: dlaczego, co zmienia i czego nie zmienia, jaki kontrakt ma pozostać niezmieniony, jakie dowody potwierdzają wynik, jak wdrożyć, obserwować i wycofać.</li>
+<li>Wskażcie <strong>kolejność czytania</strong> plików dla osoby przeglądającej.</li>
+<li><strong>Przegląd krzyżowy.</strong> Zamieńcie się seriami z innym zespołem. Napiszcie 3-5 komentarzy z przeglądu, oznaczając każdy jako <code>BLOCKER</code>, <code>SUGGESTION</code> albo <code>NIT</code>. Każdy komentarz ma zawierać obserwację, możliwy skutek, uzasadnienie i propozycję lub pytanie.</li>
+</ol>
+<h3 id="kryteria-akceptacji-oczekiwany-produkt-1" tabindex="-1"><a class="header-anchor" href="#kryteria-akceptacji-oczekiwany-produkt-1"><span>Kryteria akceptacji / oczekiwany produkt</span></a></h3>
+<p>Produktem jest seria commitów (lub opis serii, jeśli zabraknie czasu na kod), opisy zestawów zmian i komentarze z przeglądu krzyżowego. Praca jest zaakceptowana, gdy:</p>
+<ul>
+<li>każdy zestaw zmian ma jedną główną intencję,</li>
+<li>system działa po integracji każdego kroku,</li>
+<li>testy nie utrwalają bezkrytycznie przypadkowego zachowania,</li>
+<li>mechaniczne i ręczne zmiany są rozdzielone,</li>
+<li>opis pozwala odtworzyć sposób weryfikacji,</li>
+<li>komentarze z przeglądu rozróżniają blokadę od sugestii.</li>
+</ul>
+<hr>
+<h2 id="warsztat-3-wprowadzenie-bramek-do-projektu-legacy" tabindex="-1"><a class="header-anchor" href="#warsztat-3-wprowadzenie-bramek-do-projektu-legacy"><span>Warsztat 3. Wprowadzenie bramek do projektu legacy</span></a></h2>
+<h3 id="cel-2" tabindex="-1"><a class="header-anchor" href="#cel-2"><span>Cel</span></a></h3>
+<p>Zwiększyć jakość automatycznej informacji zwrotnej bez blokowania zespołu historycznymi naruszeniami.</p>
+<h3 id="czas-2" tabindex="-1"><a class="header-anchor" href="#czas-2"><span>Czas</span></a></h3>
+<p>Orientacyjnie 60 minut.</p>
+<h3 id="kontekst-2" tabindex="-1"><a class="header-anchor" href="#kontekst-2"><span>Kontekst</span></a></h3>
+<p>Projekt szkoleniowy jest budowany Mavenem z <code>maven.compiler.release</code> ustawionym na <code>25</code>. Poza domyślnymi ustawieniami kompilatora nie ma dziś żadnych bramek jakości: ostrzeżenia nie są zbierane, nie działa analiza statyczna, nikt nie wie, ile historycznych naruszeń zawiera kod. Zespół chce wprowadzić bramki tak, by nowe problemy nie trafiały do repozytorium, ale jednocześnie by jutro nikt nie został zablokowany przez problemy sprzed lat.</p>
+<h3 id="dane-wejsciowe-2" tabindex="-1"><a class="header-anchor" href="#dane-wejsciowe-2"><span>Dane wejściowe</span></a></h3>
+<ul>
+<li>Konfiguracja budowania: <code>pom.xml</code> (katalog główny repozytorium).</li>
+<li>Kod produkcyjny: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>**</code> (wszystkie moduły szkolenia traktujemy jak jeden system legacy).</li>
+<li>Narzędzie do eksperymentów z polityką ostrzeżeń: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module8/<wbr>tooling/<wbr>InMemoryJavaCompiler.java</code> wraz z <code>WarningPolicy</code>, <code>CompilationResult</code> i <code>CompilationDiagnostic</code> w tym samym pakiecie. Pozwala skompilować w pamięci pojedynczy plik źródłowy z polityką <code>ALLOW_WARNINGS</code> albo <code>TREAT_WARNINGS_AS_ERRORS</code>.</li>
+<li>Polecenia pomocnicze:
+<ul>
+<li>wersja JDK i Mavena: <code>java -version</code>, <code>mvn -v</code></li>
+<li>kompilacja wszystkich klas ze wszystkimi ostrzeżeniami, bez zmiany <code>pom.xml</code>, np.:
+<code>javac --release 25 -Xlint:all -d &lt;katalog-tymczasowy&gt; $(find src/<wbr>main/<wbr>java -name '*.java')</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="polecenia-2" tabindex="-1"><a class="header-anchor" href="#polecenia-2"><span>Polecenia</span></a></h3>
+<ol>
+<li><strong>Stan faktyczny środowiska.</strong> Sprawdźcie, jakim JDK uruchamiany jest Maven i jaki poziom języka jest ustawiony w <code>pom.xml</code>. Zapiszcie, czy to wystarcza, by zagwarantować kompilację na JDK 25 w CI.</li>
+<li><strong>Pomiar bez zmian w kodzie.</strong> Uruchomcie ostrzeżenia kompilatora (<code>-Xlint:all</code>) oraz wybrane narzędzie analizy statycznej (np. Checkstyle, PMD lub SpotBugs) bez modyfikowania kodu produkcyjnego. Zapiszcie liczbę i kategorie wyników.</li>
+<li><strong>Eksperyment z polityką.</strong> Za pomocą <code>InMemoryJavaCompiler</code> skompilujcie mały plik z surowym typem kolekcji (np. parametr <code>List</code> bez typu generycznego) z każdą z dwóch polityk. Zapiszcie, jakie diagnostyki (rodzaj i kod) zostały zwrócone i czy kompilacja zakończyła się sukcesem.</li>
+<li><strong>Klasyfikacja.</strong> Każdą kategorię wyników sklasyfikujcie według ryzyka (wysokie, średnie, niskie) i pewności (prawdziwy problem, wynik fałszywie dodatni, reguła niedopasowana do polityki projektu, ryzyko świadomie zaakceptowane).</li>
+<li><strong>Stan bazowy.</strong> Zaprojektujcie zapis stanu bazowego istniejących naruszeń (format, lokalizacja w repozytorium, kto może go zmieniać).</li>
+<li><strong>Bramka.</strong> Zaproponujcie konfigurację budowania (fragment <code>pom.xml</code> albo opis), która blokuje nowe naruszenia w nowym i dotykanym kodzie, nie blokując zmian z powodu naruszeń historycznych.</li>
+<li><strong>Tłumienie.</strong> Ustalcie format precyzyjnego tłumienia (jaka reguła, jaki zakres, uzasadnienie, właściciel, termin przeglądu). Pokażcie przykład jednego tłumienia.</li>
+<li><strong>Plan redukcji.</strong> Zaplanujcie stopniowe zmniejszanie stanu bazowego (kolejność kategorii, rytm, kto odpowiada).</li>
+<li>Zapiszcie, gdzie w CI będzie dostępny raport i kto jest jego właścicielem.</li>
+</ol>
+<h3 id="kryteria-akceptacji-oczekiwany-produkt-2" tabindex="-1"><a class="header-anchor" href="#kryteria-akceptacji-oczekiwany-produkt-2"><span>Kryteria akceptacji / oczekiwany produkt</span></a></h3>
+<p>Produktem jest krótki raport (pomiar, klasyfikacja, stan bazowy), propozycja konfiguracji bramki oraz plan redukcji. Praca jest zaakceptowana, gdy:</p>
+<ul>
+<li>użyte wersje narzędzi obsługują Javę 25,</li>
+<li>analiza otrzymuje kompletną ścieżkę klas,</li>
+<li>build nie generuje niezwiązanych automatycznych poprawek,</li>
+<li>wynik fałszywie dodatni jest odróżniony od zaakceptowanego ryzyka,</li>
+<li>nowe naruszenia nie powiększają stanu bazowego,</li>
+<li>raport jest dostępny w CI i ma właściciela.</li>
+</ul>
+<hr>
+<h2 id="aktywnosc-dodatkowa-a-zapis-decyzji-architektonicznej-adr" tabindex="-1"><a class="header-anchor" href="#aktywnosc-dodatkowa-a-zapis-decyzji-architektonicznej-adr"><span>Aktywność dodatkowa A. Zapis decyzji architektonicznej (ADR)</span></a></h2>
+<h3 id="cel-3" tabindex="-1"><a class="header-anchor" href="#cel-3"><span>Cel</span></a></h3>
+<p>Udokumentować jedną istotną decyzję z Warsztatu 1 w formie ADR.</p>
+<h3 id="czas-3" tabindex="-1"><a class="header-anchor" href="#czas-3"><span>Czas</span></a></h3>
+<p>Orientacyjnie 20 minut.</p>
+<h3 id="polecenia-3" tabindex="-1"><a class="header-anchor" href="#polecenia-3"><span>Polecenia</span></a></h3>
+<ol>
+<li>Wybierzcie jedną decyzję o trwałym wpływie na architekturę (np. wybór sposobu współistnienia starej i nowej implementacji).</li>
+<li>Zapiszcie ADR z polami: identyfikator w formacie <code>ADR-NNNN</code>, tytuł, status, kontekst, decyzja, co najmniej dwie rozważone opcje z uzasadnieniem, konsekwencje (pozytywne i negatywne, jeżeli występują), metoda weryfikacji.</li>
+<li>Zastanówcie się, co by się stało z tym dokumentem, gdyby za pół roku zespół zmienił kierunek.</li>
+</ol>
+<h3 id="oczekiwany-produkt" tabindex="-1"><a class="header-anchor" href="#oczekiwany-produkt"><span>Oczekiwany produkt</span></a></h3>
+<p>Dokument ADR w Markdown, gotowy do umieszczenia w repozytorium.</p>
+<hr>
+<h2 id="aktywnosc-dodatkowa-b-decyzja-o-kolejnym-etapie-wdrozenia" tabindex="-1"><a class="header-anchor" href="#aktywnosc-dodatkowa-b-decyzja-o-kolejnym-etapie-wdrozenia"><span>Aktywność dodatkowa B. Decyzja o kolejnym etapie wdrożenia</span></a></h2>
+<h3 id="cel-4" tabindex="-1"><a class="header-anchor" href="#cel-4"><span>Cel</span></a></h3>
+<p>Przećwiczyć podejmowanie decyzji <code>ADVANCE</code>, <code>HOLD</code> albo <code>ROLLBACK</code> na podstawie wcześniej ustalonych progów.</p>
+<h3 id="czas-4" tabindex="-1"><a class="header-anchor" href="#czas-4"><span>Czas</span></a></h3>
+<p>Orientacyjnie 15 minut.</p>
+<h3 id="dane-wejsciowe-3" tabindex="-1"><a class="header-anchor" href="#dane-wejsciowe-3"><span>Dane wejściowe</span></a></h3>
+<p>Progi uzgodnione przed wdrożeniem: minimalna próbka 100 żądań, maksymalny wskaźnik błędów 5%, maksymalne opóźnienie p95 równe 250 ms, dopuszczalna liczba rozbieżności odpowiedzi względem starej implementacji równa 0.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Etap</th>
+<th>Próbka</th>
+<th>Błędy</th>
+<th>Rozbieżności</th>
+<th>p95 [ms]</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>a</td>
+<td>200</td>
+<td>4</td>
+<td>0</td>
+<td>180.0</td>
+</tr>
+<tr>
+<td>b</td>
+<td>100</td>
+<td>5</td>
+<td>0</td>
+<td>250.0</td>
+</tr>
+<tr>
+<td>c</td>
+<td>99</td>
+<td>0</td>
+<td>0</td>
+<td>120.0</td>
+</tr>
+<tr>
+<td>d</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0.0</td>
+</tr>
+<tr>
+<td>e</td>
+<td>200</td>
+<td>0</td>
+<td>1</td>
+<td>120.0</td>
+</tr>
+<tr>
+<td>f</td>
+<td>100</td>
+<td>6</td>
+<td>0</td>
+<td>200.0</td>
+</tr>
+<tr>
+<td>g</td>
+<td>10</td>
+<td>0</td>
+<td>0</td>
+<td>251.0</td>
+</tr>
+<tr>
+<td>h</td>
+<td>10</td>
+<td>1</td>
+<td>0</td>
+<td>100.0</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="polecenia-4" tabindex="-1"><a class="header-anchor" href="#polecenia-4"><span>Polecenia</span></a></h3>
+<ol>
+<li>Dla każdego etapu podejmijcie decyzję i zapiszcie jednozdaniowe uzasadnienie.</li>
+<li>Zapiszcie regułę, w jakiej kolejności sprawdzacie warunki.</li>
+<li>Zastanówcie się, czy te progi byłyby właściwe dla innego systemu, np. rekomendacji produktów.</li>
+</ol>
+<h3 id="oczekiwany-produkt-1" tabindex="-1"><a class="header-anchor" href="#oczekiwany-produkt-1"><span>Oczekiwany produkt</span></a></h3>
+<p>Tabela decyzji z uzasadnieniami i zapisana reguła kolejności sprawdzania warunków.</p>
+
+</main>
+</div>
+<script>if(matchMedia('(max-width:900px)').matches){var d=document.querySelector('.toc details');if(d)d.open=false}</script>
+</body>
+</html>

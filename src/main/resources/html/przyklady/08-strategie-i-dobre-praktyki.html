@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Przykłady: Moduł 8. Strategie i dobre praktyki - przewodnik prowadzącego po przykładach</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1d1f23;--muted:#5f6670;--line:#e3e5e8;--card:#ffffff;--accent:#2457c5;--accent-bg:#eef3fd;
+--code-bg:#f4f5f7;--note-bg:#fff7e6;--note-line:#e6a700;--th:#f1f3f6;
+--k:#b3246b;--s:#1a7f37;--c:#6e7781;--n:#0550ae;--t:#8250df;--f:#6639ba;--a:#953800;
+--kind:#2457c5}
+@media (prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3036;--card:#1c1f23;--accent:#7aa7ff;--accent-bg:#1e2a40;
+--code-bg:#1f2328;--note-bg:#2b2412;--note-line:#c99400;--th:#23272d;
+--k:#ff7b9c;--s:#7ee2a0;--c:#8b949e;--n:#79c0ff;--t:#d2a8ff;--f:#d2a8ff;--a:#ffa657}}
+body.zadania{--kind:#1a7f37} body.rozwiazania{--kind:#b3246b} body.przyklady{--kind:#2457c5}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.topbar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 24px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);border-top:3px solid var(--kind)}
+.topbar a{color:var(--fg);text-decoration:none}
+.home{font-weight:600}
+.tabs{display:flex;gap:4px}
+.tab{padding:4px 12px;border-radius:999px;font-size:15px;color:var(--muted)!important}
+.tab:hover{background:var(--code-bg)}
+.tab.active{background:var(--accent-bg);color:var(--accent)!important;font-weight:600}
+.pager{margin-left:auto;display:flex;gap:14px;font-size:15px}
+.pager a{color:var(--muted)}.pager a:hover{color:var(--accent)}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:48px;max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+.layout.no-toc{grid-template-columns:minmax(0,1fr);max-width:1000px}
+aside{position:sticky;top:72px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px}
+.toc-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;font-weight:600}
+.toc ul{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.toc li a{display:block;padding:3px 12px;color:var(--muted);text-decoration:none;line-height:1.35}
+.toc li.h3 a{padding-left:24px;font-size:13px}
+.toc li a:hover{color:var(--accent)}
+main{min-width:0;max-width:860px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 1.2rem;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:2.6rem 0 .8rem;padding-top:.6rem;border-top:1px solid var(--line)}
+h3{font-size:1.18rem;margin:2rem 0 .6rem}
+h4{font-size:1rem;margin:1.5rem 0 .5rem}
+h1 a,h2 a,h3 a,h4 a{color:inherit;text-decoration:none}
+h2 a:hover::after,h3 a:hover::after{content:" #";color:var(--muted)}
+p,ul,ol{margin:.6rem 0 1rem}
+li{margin:.25rem 0}
+li>ul,li>ol{margin:.2rem 0}
+a{color:var(--accent)}
+strong{font-weight:650}
+code{font:0.88em/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre.code{position:relative;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:1rem 0 1.4rem}
+pre.code code{background:none;padding:0;font-size:14px;line-height:1.55}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:6px;right:10px;font:11px ui-monospace,Menlo,monospace;color:var(--muted);text-transform:uppercase}
+.table-wrap{overflow-x:auto;margin:1rem 0 1.4rem;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--th);font-weight:600}
+tr:last-child td{border-bottom:none}
+blockquote{margin:1rem 0 1.4rem;padding:10px 16px;background:var(--note-bg);border-left:4px solid var(--note-line);border-radius:0 8px 8px 0}
+blockquote p{margin:.3rem 0}
+hr{border:none;border-top:1px solid var(--line);margin:2rem 0}
+hr+h2{border-top:none;margin-top:1.4rem}
+main p code,main li code,main td code{overflow-wrap:break-word}
+.toc summary{cursor:pointer;list-style:none}.toc summary::-webkit-details-marker{display:none}
+.hljs-keyword,.hljs-selector-tag,.hljs-built_in,.hljs-literal{color:var(--k)}
+.hljs-string,.hljs-regexp,.hljs-addition{color:var(--s)}
+.hljs-comment,.hljs-quote,.hljs-meta{color:var(--c);font-style:italic}
+.hljs-number,.hljs-symbol{color:var(--n)}
+.hljs-type,.hljs-class .hljs-title,.hljs-title.class_{color:var(--t)}
+.hljs-title,.hljs-title.function_,.hljs-section{color:var(--f)}
+.hljs-attr,.hljs-attribute,.hljs-variable,.hljs-params,.hljs-tag{color:var(--a)}
+.hljs-deletion{color:var(--k)}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:16px;padding:20px 16px 60px}
+aside{position:static;max-height:none;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--card)}
+.toc-title{margin:0}.toc details[open] .toc-title{margin-bottom:8px}.toc summary::after{content:" ▾"}
+body{font-size:16px}.topbar{padding:8px 16px}.pager{margin-left:0}h1{font-size:1.6rem}}
+@media print{.topbar,aside{display:none}.layout{display:block;padding:0}main{max-width:none}
+pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#000;font-size:12pt}}
+</style>
+</head>
+<body class="przyklady">
+<header class="topbar"><a class="home" href="../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../zadania/08-strategie-i-dobre-praktyki.html">Zadania</a><a class="tab active" href="/08-strategie-i-dobre-praktyki.html">Przykłady</a><a class="tab" href="../rozwiazania/08-strategie-i-dobre-praktyki.html">Rozwiązania</a></div><div class="pager"><a href="07-zaawansowane-refaktoryzacje-warsztat-praktyczny.html" title="Poprzedni moduł">&larr; 07</a><span></span></div></header>
+<div class="layout">
+<aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#uruchamianie-przykladow-i-testow">Uruchamianie przykładów i testów</a></li><li class="h3"><a href="#java">Java</a></li><li class="h3"><a href="#c">C#</a></li><li class="h3"><a href="#typescript">TypeScript</a></li><li class="h2"><a href="#mapa-przykladow">Mapa przykładów</a></li><li class="h2"><a href="#1-incremental-branch-by-abstraction-i-rownolegla-weryfikacja">1. incremental - Branch by Abstraction i równoległa weryfikacja</a></li><li class="h3"><a href="#sekcja-teorii">Sekcja teorii</a></li><li class="h3"><a href="#co-ilustruje">Co ilustruje</a></li><li class="h3"><a href="#kluczowe-klasy">Kluczowe klasy</a></li><li class="h3"><a href="#na-co-zwrocic-uwage-uczestnikow">Na co zwrócić uwagę uczestników</a></li><li class="h3"><a href="#testy-chroniace-zachowanie">Testy chroniące zachowanie</a></li><li class="h3"><a href="#sugerowany-przebieg-demonstracji-15-20-minut">Sugerowany przebieg demonstracji (15-20 minut)</a></li><li class="h2"><a href="#2-boyscout-lokalna-poprawa-z-testem-rownowaznosci">2. boyscout - lokalna poprawa z testem równoważności</a></li><li class="h3"><a href="#sekcja-teorii-1">Sekcja teorii</a></li><li class="h3"><a href="#co-ilustruje-1">Co ilustruje</a></li><li class="h3"><a href="#kluczowe-klasy-1">Kluczowe klasy</a></li><li class="h3"><a href="#na-co-zwrocic-uwage-uczestnikow-1">Na co zwrócić uwagę uczestników</a></li><li class="h3"><a href="#testy-chroniace-zachowanie-1">Testy chroniące zachowanie</a></li><li class="h3"><a href="#sugerowany-przebieg-demonstracji-10-15-minut">Sugerowany przebieg demonstracji (10-15 minut)</a></li><li class="h2"><a href="#3-collaboration-jawna-polityka-gotowosci-do-przegladu">3. collaboration - jawna polityka gotowości do przeglądu</a></li><li class="h3"><a href="#sekcja-teorii-2">Sekcja teorii</a></li><li class="h3"><a href="#co-ilustruje-2">Co ilustruje</a></li><li class="h3"><a href="#kluczowe-klasy-2">Kluczowe klasy</a></li><li class="h3"><a href="#na-co-zwrocic-uwage-uczestnikow-2">Na co zwrócić uwagę uczestników</a></li><li class="h3"><a href="#testy-chroniace-zachowanie-2">Testy chroniące zachowanie</a></li><li class="h3"><a href="#sugerowany-przebieg-demonstracji-10-minut">Sugerowany przebieg demonstracji (10 minut)</a></li><li class="h2"><a href="#4-documentation-wykonywalny-model-adr">4. documentation - wykonywalny model ADR</a></li><li class="h3"><a href="#sekcja-teorii-3">Sekcja teorii</a></li><li class="h3"><a href="#co-ilustruje-3">Co ilustruje</a></li><li class="h3"><a href="#kluczowe-klasy-3">Kluczowe klasy</a></li><li class="h3"><a href="#na-co-zwrocic-uwage-uczestnikow-3">Na co zwrócić uwagę uczestników</a></li><li class="h3"><a href="#testy-chroniace-zachowanie-3">Testy chroniące zachowanie</a></li><li class="h3"><a href="#sugerowany-przebieg-demonstracji-10-minut-1">Sugerowany przebieg demonstracji (10 minut)</a></li><li class="h2"><a href="#5-tooling-bramka-kompilatora-w-pamieci">5. tooling - bramka kompilatora w pamięci</a></li><li class="h3"><a href="#sekcja-teorii-4">Sekcja teorii</a></li><li class="h3"><a href="#co-ilustruje-4">Co ilustruje</a></li><li class="h3"><a href="#kluczowe-klasy-4">Kluczowe klasy</a></li><li class="h3"><a href="#na-co-zwrocic-uwage-uczestnikow-4">Na co zwrócić uwagę uczestników</a></li><li class="h3"><a href="#testy-chroniace-zachowanie-4">Testy chroniące zachowanie</a></li><li class="h3"><a href="#sugerowany-przebieg-demonstracji-10-15-minut-1">Sugerowany przebieg demonstracji (10-15 minut)</a></li><li class="h2"><a href="#6-risk-jawna-polityka-wdrozenia-etapowego">6. risk - jawna polityka wdrożenia etapowego</a></li><li class="h3"><a href="#sekcja-teorii-5">Sekcja teorii</a></li><li class="h3"><a href="#co-ilustruje-5">Co ilustruje</a></li><li class="h3"><a href="#kluczowe-klasy-5">Kluczowe klasy</a></li><li class="h3"><a href="#na-co-zwrocic-uwage-uczestnikow-5">Na co zwrócić uwagę uczestników</a></li><li class="h3"><a href="#testy-chroniace-zachowanie-5">Testy chroniące zachowanie</a></li><li class="h3"><a href="#sugerowany-przebieg-demonstracji-10-minut-2">Sugerowany przebieg demonstracji (10 minut)</a></li><li class="h2"><a href="#module8examples-przeglad-calego-modulu">Module8Examples - przegląd całego modułu</a></li><li class="h2"><a href="#sugerowany-plan-modulu">Sugerowany plan modułu</a></li></ul></details></nav></aside>
+<main>
+<h1>Moduł 8. Strategie i dobre praktyki - przewodnik prowadzącego po przykładach</h1>
+<p>Materiał dla prowadzącego. Opisuje przykłady kodu z pakietu <code>pl.training.module8</code>, ich związek z teorią (<code>src/<wbr>main/<wbr>resources/<wbr>08-strategie-i-dobre-praktyki.md</code>) oraz sugerowany przebieg demonstracji.</p>
+<h2 id="uruchamianie-przykladow-i-testow" tabindex="-1"><a class="header-anchor" href="#uruchamianie-przykladow-i-testow"><span>Uruchamianie przykładów i testów</span></a></h2>
+<h3 id="java" tabindex="-1"><a class="header-anchor" href="#java"><span>Java</span></a></h3>
+<pre class="code" data-lang="bash"><code class="hljs">mvn -q compile &amp;&amp; java -<span class="hljs-built_in">cp</span> target/classes pl.training.module8.Module8Examples
+mvn <span class="hljs-built_in">test</span> -Dtest=<span class="hljs-string">&#x27;pl.training.module8.**&#x27;</span>
+</code></pre>
+<p>Albo z IDE: uruchom <code>Module8Examples.main</code> oraz testy z katalogu <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module8</code>.</p>
+<p>Oczekiwany wynik <code>Module8Examples</code> (chroniony przez <code>Module8ExamplesTest</code>):</p>
+<pre class="code" data-lang="text"><code class="hljs">Stopniowa migracja: 53.97/Agreement
+Boy Scout: Successful: 1/2
+Code review: ready=true
+Dokumentowanie: # ADR-0042: Use Branch by Abstraction
+Narzędzia: compiled=true
+Zarządzanie ryzykiem: ADVANCE
+</code></pre>
+<p>Uwaga: przykład <code>tooling</code> wymaga uruchomienia na JDK (nie JRE), bo korzysta z <code>ToolProvider.getSystemJavaCompiler()</code>. Opcja <code>--release 25</code> wymaga JDK w wersji co najmniej 25.</p>
+<h3 id="c" tabindex="-1"><a class="header-anchor" href="#c"><span>C#</span></a></h3>
+<pre class="code" data-lang="bash"><code class="hljs"><span class="hljs-built_in">cd</span> csharp &amp;&amp; dotnet run --project src/Training.Module8
+dotnet <span class="hljs-built_in">test</span>
+</code></pre>
+<p>Kod: <code>csharp/<wbr>src/<wbr>Training.Module8</code> (katalogi <code>Incremental</code>, <code>BoyScout</code>, <code>Collaboration</code>, <code>Documentation</code>, <code>Tooling</code>, <code>Risk</code>), testy: <code>csharp/<wbr>tests/<wbr>Training.Module8.Tests</code>. Odpowiednikiem kompilatora w pamięci jest <code>Tooling/<wbr>InMemoryCSharpCompiler.cs</code> (Roslyn). Wersje Boy Scout są w <code>BoyScout/<wbr>Before</code> i <code>BoyScout/<wbr>After</code>.</p>
+<h3 id="typescript" tabindex="-1"><a class="header-anchor" href="#typescript"><span>TypeScript</span></a></h3>
+<pre class="code" data-lang="bash"><code class="hljs"><span class="hljs-built_in">cd</span> typescript &amp;&amp; npm ci &amp;&amp; npm run build &amp;&amp; npm run module8
+npm <span class="hljs-built_in">test</span>
+</code></pre>
+<p>Kod: <code>typescript/<wbr>src/<wbr>module8</code> (te same pakiety, <code>boyscout/<wbr>before</code> i <code>boyscout/<wbr>after</code>), testy: <code>typescript/<wbr>test/<wbr>module8</code>. Odpowiednikiem kompilatora jest <code>tooling/<wbr>InMemoryTypeScriptCompiler.ts</code>.</p>
+<hr>
+<h2 id="mapa-przykladow" tabindex="-1"><a class="header-anchor" href="#mapa-przykladow"><span>Mapa przykładów</span></a></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Przykład (pakiet)</th>
+<th>Sekcja teorii</th>
+<th>Kluczowe pliki (<code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module8/<wbr>...</code>)</th>
+<th>Testy (<code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module8/<wbr>...</code>)</th>
+<th>Warsztat</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>incremental</code></td>
+<td>1. Stopniowa refaktoryzacja kontra przepisanie (1.3-1.6)</td>
+<td><code>incremental/<wbr>PricingEngine.java</code>, <code>LegacyPriceCalculator.java</code>, <code>LegacyPricingEngineAdapter.java</code>, <code>CandidatePricingEngine.java</code>, <code>MigratingPricingEngine.java</code>, <code>MigrationMode.java</code>, <code>VerificationEvent.java</code>, <code>VerificationReporter.java</code>, <code>PriceRequest.java</code>, <code>PriceQuote.java</code></td>
+<td><code>incremental/<wbr>PricingEngineContractTest</code>, <code>MigratingPricingEngineTest</code>, <code>PricingValueObjectsTest</code></td>
+<td>W1</td>
+</tr>
+<tr>
+<td><code>boyscout</code></td>
+<td>2. Zasada Boy Scout (2.2-2.3)</td>
+<td><code>boyscout/<wbr>before/<wbr>ReleaseSummaryFormatter.java</code>, <code>boyscout/<wbr>after/<wbr>ReleaseSummaryFormatter.java</code>, <code>DeploymentResult.java</code>, <code>DeploymentStatus.java</code></td>
+<td><code>boyscout/<wbr>BoyScoutEquivalenceTest</code></td>
+<td>W2</td>
+</tr>
+<tr>
+<td><code>collaboration</code></td>
+<td>3. Praca zespołowa (3.2-3.6)</td>
+<td><code>collaboration/<wbr>ExampleTeamReviewPolicy.java</code>, <code>ChangeSet.java</code>, <code>ChangeIntent.java</code>, <code>VerificationEvidence.java</code>, <code>EvidenceKind.java</code>, <code>ReviewReadiness.java</code>, <code>ReadinessProblem.java</code></td>
+<td><code>collaboration/<wbr>ExampleTeamReviewPolicyTest</code></td>
+<td>W2</td>
+</tr>
+<tr>
+<td><code>documentation</code></td>
+<td>4. Dokumentowanie zmian (4.3-4.4)</td>
+<td><code>documentation/<wbr>DecisionRecord.java</code>, <code>DecisionRecordMarkdownRenderer.java</code>, <code>DecisionId.java</code>, <code>DecisionStatus.java</code>, <code>DecisionOption.java</code>, <code>DecisionConsequence.java</code>, <code>ConsequenceKind.java</code></td>
+<td><code>documentation/<wbr>DecisionRecordTest</code>, <code>DecisionRecordMarkdownRendererTest</code></td>
+<td>aktywność A</td>
+</tr>
+<tr>
+<td><code>tooling</code></td>
+<td>5. Narzędzia (5.3, 5.6-5.7)</td>
+<td><code>tooling/<wbr>InMemoryJavaCompiler.java</code>, <code>WarningPolicy.java</code>, <code>CompilationResult.java</code>, <code>CompilationDiagnostic.java</code></td>
+<td><code>tooling/<wbr>InMemoryJavaCompilerTest</code></td>
+<td>W3</td>
+</tr>
+<tr>
+<td><code>risk</code></td>
+<td>6. Zarządzanie ryzykiem (6.3-6.4)</td>
+<td><code>risk/<wbr>RolloutPolicy.java</code>, <code>RolloutThresholds.java</code>, <code>RolloutSnapshot.java</code>, <code>RolloutDecision.java</code></td>
+<td><code>risk/<wbr>RolloutPolicyTest</code>, <code>RolloutSnapshotTest</code>, <code>RolloutThresholdsTest</code></td>
+<td>W1, aktywność B</td>
+</tr>
+<tr>
+<td>całość</td>
+<td>wszystkie sekcje</td>
+<td><code>Module8Examples.java</code></td>
+<td><code>Module8ExamplesTest</code></td>
+<td>-</td>
+</tr>
+</tbody>
+</table></div>
+<hr>
+<h2 id="1-incremental-branch-by-abstraction-i-rownolegla-weryfikacja" tabindex="-1"><a class="header-anchor" href="#1-incremental-branch-by-abstraction-i-rownolegla-weryfikacja"><span>1. <code>incremental</code> - Branch by Abstraction i równoległa weryfikacja</span></a></h2>
+<h3 id="sekcja-teorii" tabindex="-1"><a class="header-anchor" href="#sekcja-teorii"><span>Sekcja teorii</span></a></h3>
+<p>1.3 Branch by Abstraction i Strangler Fig, 1.4 Architektura przejściowa, 1.5 Przykład: równoległa weryfikacja kalkulatora, 1.6 Granice trybu shadow.</p>
+<h3 id="co-ilustruje" tabindex="-1"><a class="header-anchor" href="#co-ilustruje"><span>Co ilustruje</span></a></h3>
+<p>Pełną sekwencję Branch by Abstraction na czystym obliczeniu ceny: stara implementacja (<code>LegacyPriceCalculator</code>, rabat w procentach 0-100) zostaje schowana za małą abstrakcją <code>PricingEngine</code> przez adapter, obok powstaje implementacja kandydująca, a <code>MigratingPricingEngine</code> centralizuje wybór ścieżki w trzech jawnie nazwanych trybach: <code>LEGACY</code>, <code>VERIFY</code>, <code>CANDIDATE</code>.</p>
+<h3 id="kluczowe-klasy" tabindex="-1"><a class="header-anchor" href="#kluczowe-klasy"><span>Kluczowe klasy</span></a></h3>
+<ul>
+<li><code>incremental/<wbr>PricingEngine.java</code> - jedna metoda <code>quote(PriceRequest)</code>. Javadoc zapisuje warunek bezpieczeństwa trybu shadow: implementacje nie wykonują I/O i nie modyfikują zewnętrznego stanu.</li>
+<li><code>incremental/<wbr>PriceRequest.java</code>, <code>PriceQuote.java</code> - obiekty wartości. Walidacja <strong>przed</strong> zaokrągleniem (wartość <code>-0.001</code> nie staje się <code>0.00</code>), <code>HALF_EVEN</code>, skala 2 dla pieniędzy i 4 dla stopy rabatu.</li>
+<li><code>incremental/<wbr>LegacyPriceCalculator.java</code> - stary kod, rabat jako procent.</li>
+<li><code>incremental/<wbr>LegacyPricingEngineAdapter.java</code> - tłumaczy stopę (<code>0.10</code>) na procent (<code>10.00</code>) przez <code>movePointRight(2)</code>; kod domenowy nie zna jednostki legacy.</li>
+<li><code>incremental/<wbr>CandidatePricingEngine.java</code> - nowa implementacja; świadomie zaokrągla rabat przed odejmowaniem, tak jak legacy.</li>
+<li><code>incremental/<wbr>MigrationMode.java</code> - enum zamiast flagi boolean (trzy stany).</li>
+<li><code>incremental/<wbr>VerificationEvent.java</code> - zamknięta hierarchia (<code>sealed</code>): <code>Agreement</code>, <code>Divergence</code>, <code>CandidateFailure</code>.</li>
+<li><code>incremental/<wbr>VerificationReporter.java</code> - port raportowania, <code>ignoring()</code> jako wartość domyślna.</li>
+<li><code>incremental/<wbr>MigratingPricingEngine.java</code> - router migracji.</li>
+</ul>
+<p>Serce trybu <code>VERIFY</code> (<code>MigratingPricingEngine.verify</code>):</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">PriceQuote</span> <span class="hljs-variable">legacyQuote</span> <span class="hljs-operator">=</span> requireQuote(legacy.quote(request), <span class="hljs-string">&quot;legacy quote&quot;</span>);
+<span class="hljs-keyword">try</span> {
+    <span class="hljs-type">PriceQuote</span> <span class="hljs-variable">candidateQuote</span> <span class="hljs-operator">=</span> requireQuote(
+            candidate.quote(request), <span class="hljs-string">&quot;candidate quote&quot;</span>);
+    <span class="hljs-type">VerificationEvent</span> <span class="hljs-variable">event</span> <span class="hljs-operator">=</span> legacyQuote.equals(candidateQuote)
+            ? <span class="hljs-keyword">new</span> <span class="hljs-title class_">VerificationEvent</span>.Agreement(request, legacyQuote)
+            : <span class="hljs-keyword">new</span> <span class="hljs-title class_">VerificationEvent</span>.Divergence(request, legacyQuote, candidateQuote);
+    tryToReport(event);
+} <span class="hljs-keyword">catch</span> (RuntimeException failure) {
+    tryToReport(<span class="hljs-keyword">new</span> <span class="hljs-title class_">VerificationEvent</span>.CandidateFailure(request, legacyQuote,
+            failure.getClass().getName(),
+            Objects.toString(failure.getMessage(), <span class="hljs-string">&quot;&quot;</span>)));
+}
+<span class="hljs-keyword">return</span> legacyQuote;
+</code></pre>
+<h3 id="na-co-zwrocic-uwage-uczestnikow" tabindex="-1"><a class="header-anchor" href="#na-co-zwrocic-uwage-uczestnikow"><span>Na co zwrócić uwagę uczestników</span></a></h3>
+<ul>
+<li>Kroki &quot;abstrakcja + adapter + przekierowanie wywołań&quot; są refaktoryzacją (zachowują zachowanie). Budowa kandydata i przełączenie na niego to migracja.</li>
+<li>Legacy jest autorytatywne w <code>VERIFY</code>: najpierw liczone jest legacy; jeśli ono rzuci wyjątek, kandydat w ogóle nie jest wywoływany.</li>
+<li>Awaria kandydata (<code>RuntimeException</code>, także zwrócenie <code>null</code>) zamienia się w zdarzenie <code>CandidateFailure</code> i nie wpływa na odpowiedź.</li>
+<li>Awaria reportera jest połykana (<code>tryToReport</code>) - telemetria nie może zmienić wyniku, ale też nie ma gwarancji dostarczenia zdarzenia.</li>
+<li><code>Error</code> (błąd JVM, np. <code>AssertionError</code>) <strong>nie</strong> jest maskowany.</li>
+<li>Przykład jest synchroniczny: kandydat i reporter zwiększają latencję. Teoria (1.6) mówi wprost, że produkcyjny shadow wymaga izolacji, timeoutu, bulkheadu, limitu kopiowanego ruchu.</li>
+<li>Shadow jest bezpieczny dla czystego obliczenia. Nie wolno w ten sposób dublować płatności, wysyłki wiadomości, zapisów czy publikacji zdarzeń.</li>
+<li>Zgodność dwóch implementacji nie dowodzi poprawności, bo mogą dzielić ten sam błąd. Dlatego test kontraktowy ma <strong>niezależne</strong> oczekiwane wartości.</li>
+<li>Moment zaokrąglenia: przypadek <code>0.01 x 1</code> z rabatem <code>0.5</code> daje <code>0.01</code> (rabat <code>0.005</code> zaokrąglony do <code>0.00</code> przed odejmowaniem). Zaokrąglenie dopiero wyniku końcowego dałoby <code>0.00</code>.</li>
+<li>Antywzorce z 1.7: logika przełączania rozrzucona po kodzie domenowym, flaga bez właściciela i terminu, abstrakcja kopiująca całe API.</li>
+</ul>
+<h3 id="testy-chroniace-zachowanie" tabindex="-1"><a class="header-anchor" href="#testy-chroniace-zachowanie"><span>Testy chroniące zachowanie</span></a></h3>
+<ul>
+<li><code>PricingEngineContractTest</code> - sparametryzowany test kontraktowy uruchamiany dla <code>LegacyPricingEngineAdapter</code> i <code>CandidatePricingEngine</code>: przykłady kanoniczne (w tym połowa centa i <code>19.995 x 2</code> przy <code>0.12555</code>), determinizm i skala 2, odrzucenie <code>null</code> z komunikatem <code>request</code>.</li>
+<li><code>MigratingPricingEngineTest</code> - liczba wywołań w <code>LEGACY</code> i <code>CANDIDATE</code> (nieaktywna implementacja nie jest wołana), <code>Agreement</code> i <code>Divergence</code> w <code>VERIFY</code> z wynikiem legacy, wyjątek kandydata, <code>null</code> od kandydata jako <code>CandidateFailure</code> z typem <code>NullPointerException</code> i komunikatem <code>candidate quote</code>, awaria reportera, autorytatywna awaria legacy (kandydat nie wywołany, brak zdarzeń), niemaskowanie <code>AssertionError</code>, <code>null</code> request nie dociera do żadnej implementacji, walidacja konstruktora.</li>
+<li><code>PricingValueObjectsTest</code> - normalizacja <code>PriceRequest</code> (<code>12.345</code> -&gt; <code>12.34</code>, <code>0.12345</code> -&gt; <code>0.1234</code>), walidacja przed zaokrągleniem (<code>-0.001</code>, <code>-0.00001</code>, <code>1.00001</code>), normalizacja i walidacja <code>PriceQuote</code>.</li>
+</ul>
+<h3 id="sugerowany-przebieg-demonstracji-15-20-minut" tabindex="-1"><a class="header-anchor" href="#sugerowany-przebieg-demonstracji-15-20-minut"><span>Sugerowany przebieg demonstracji (15-20 minut)</span></a></h3>
+<ol>
+<li>Pokaż <code>LegacyPriceCalculator</code> i zapytaj: &quot;jaki jest kontrakt tej metody?&quot;. Zbierz odpowiedzi (jednostka rabatu, skale, moment zaokrąglenia, komunikaty wyjątków).</li>
+<li>Pokaż <code>PricingEngine</code> i adapter. Podkreśl, że to jeszcze refaktoryzacja.</li>
+<li>Pokaż <code>PricingEngineContractTest</code>. Uruchom go i zwróć uwagę, że IDE pokazuje dwa warianty każdego testu.</li>
+<li>Eksperyment na żywo: w <code>CandidatePricingEngine</code> usuń <code>.setScale(MONEY_SCALE, ROUNDING)</code> przy rabacie (zaokrąglenie tylko na końcu, w <code>PriceQuote</code>). Uruchom test kontraktowy: przypadek <code>0.01, 1, 0.5</code> powinien zawieść (oczekiwane <code>0.01</code>, kandydat zwraca <code>0.00</code>). Przywróć kod.</li>
+<li>Pokaż <code>MigratingPricingEngine</code> i trzy tryby. Uruchom <code>Module8Examples</code>: <code>53.97/<wbr>Agreement</code>.</li>
+<li>Zmień w <code>Module8Examples</code> tryb na <code>VERIFY</code> z kandydatem zwracającym inną cenę (np. lambda <code>request -&gt; new PriceQuote(BigDecimal.ONE)</code>) i pokaż <code>Divergence</code> przy niezmienionej odpowiedzi. Przywróć kod.</li>
+<li>Omów 1.6: co trzeba dodać, żeby to był produkcyjny shadow. Przejdź do Warsztatu 1.</li>
+</ol>
+<hr>
+<h2 id="2-boyscout-lokalna-poprawa-z-testem-rownowaznosci" tabindex="-1"><a class="header-anchor" href="#2-boyscout-lokalna-poprawa-z-testem-rownowaznosci"><span>2. <code>boyscout</code> - lokalna poprawa z testem równoważności</span></a></h2>
+<h3 id="sekcja-teorii-1" tabindex="-1"><a class="header-anchor" href="#sekcja-teorii-1"><span>Sekcja teorii</span></a></h3>
+<p>2.1 Heurystyka, nie mandat do dowolnych zmian, 2.2 Przykład lokalnej poprawy, 2.3 Bezpieczna sekwencja, 2.4 Typowe nadużycia.</p>
+<h3 id="co-ilustruje-1" tabindex="-1"><a class="header-anchor" href="#co-ilustruje-1"><span>Co ilustruje</span></a></h3>
+<p>Małą, lokalną refaktoryzację klasy formatera raportu wydania, wykonaną przy okazji bieżącej pracy, bez zmiany obserwowalnego zachowania, zweryfikowaną testem różnicowym (stara i nowa wersja obok siebie) oraz niezależnym oraklem.</p>
+<h3 id="kluczowe-klasy-1" tabindex="-1"><a class="header-anchor" href="#kluczowe-klasy-1"><span>Kluczowe klasy</span></a></h3>
+<ul>
+<li><code>boyscout/<wbr>DeploymentStatus.java</code>, <code>boyscout/<wbr>DeploymentResult.java</code> - wspólny model; normalizacja (<code>strip</code>) i walidacja raz, w konstruktorze rekordu.</li>
+<li><code>boyscout/<wbr>before/<wbr>ReleaseSummaryFormatter.java</code> - nazwy <code>s</code>, <code>n</code>, <code>r</code>, konkatenacja w pętli, powielony format wiersza.</li>
+<li><code>boyscout/<wbr>after/<wbr>ReleaseSummaryFormatter.java</code> - wydzielone <code>validate</code> i <code>formatResult</code>, nazwa <code>successfulDeployments</code>, <code>StringBuilder</code>.</li>
+</ul>
+<h3 id="na-co-zwrocic-uwage-uczestnikow-1" tabindex="-1"><a class="header-anchor" href="#na-co-zwrocic-uwage-uczestnikow-1"><span>Na co zwrócić uwagę uczestników</span></a></h3>
+<ul>
+<li>Poprawa <strong>nie</strong> dodaje nowej walidacji, nie zmienia sygnatury i zachowuje kolejność kontroli (<code>releaseId</code> null, <code>results</code> null, pusty <code>releaseId</code>, pusta lista, <code>null</code> element). Kusi, żeby &quot;przy okazji&quot; zaostrzyć kontrakt; to byłaby zmiana zachowania.</li>
+<li>Kombinacja <code>format(&quot; &quot;, null)</code> pokazuje, że kolejność walidacji jest częścią kontraktu: oba warianty muszą rzucić ten sam wyjątek (<code>NullPointerException</code> z komunikatem <code>results</code>, bo kontrole null są przed kontrolą pustego napisu).</li>
+<li>Test różnicowy sam w sobie nie wystarcza (dwie zgodne wersje mogą być jednocześnie błędne), dlatego jest też test z niezależnie zapisanym oczekiwanym tekstem.</li>
+<li>Boy Scout to heurystyka, nie mandat: zmiana publicznego API, aktualizacja zależności czy naprawa reguły biznesowej to nie jest &quot;drobne sprzątanie&quot;.</li>
+<li>Nie każda nazwa wymaga osobnego commitu, ale masowe formatowanie lub przeniesienia trzeba oddzielić.</li>
+</ul>
+<h3 id="testy-chroniace-zachowanie-1" tabindex="-1"><a class="header-anchor" href="#testy-chroniace-zachowanie-1"><span>Testy chroniące zachowanie</span></a></h3>
+<ul>
+<li><code>BoyScoutEquivalenceTest</code>:
+<ul>
+<li><code>localCleanupPreservesRepresentativeOutputs</code> - porównanie wyników <code>before</code> i <code>after</code> (pojedynczy sukces, pojedyncza porażka, mieszany wynik ze spacjami w <code>releaseId</code>),</li>
+<li><code>refactoredCodeProducesTheIndependentlySpecifiedSummary</code> - niezależny orakl tekstu raportu,</li>
+<li><code>localCleanupPreservesValidationFailuresAndTheirOrder</code> - ten sam typ i komunikat wyjątku dla sześciu błędnych wejść,</li>
+<li><code>bothVersionsExposeTheSameCallableContract</code> - obie wersje pasują do tego samego interfejsu funkcyjnego (zgodność sygnatury),</li>
+<li><code>sharedInputModelRejectsIncompleteResults</code> - walidacja <code>DeploymentResult</code>.</li>
+</ul>
+</li>
+</ul>
+<h3 id="sugerowany-przebieg-demonstracji-10-15-minut" tabindex="-1"><a class="header-anchor" href="#sugerowany-przebieg-demonstracji-10-15-minut"><span>Sugerowany przebieg demonstracji (10-15 minut)</span></a></h3>
+<ol>
+<li>Otwórz <code>before</code> i poproś uczestników o listę &quot;zapachów&quot;.</li>
+<li>Otwórz <code>after</code> obok (widok porównania w IDE). Pokaż, co się zmieniło, a co zostało celowo zachowane (walidacja, sygnatura).</li>
+<li>Uruchom <code>BoyScoutEquivalenceTest</code>.</li>
+<li>Eksperyment: w <code>after.validate</code> zamień kolejność kontroli (<code>isBlank</code> przed <code>requireNonNull(results)</code>). Test <code>localCleanupPreservesValidationFailuresAndTheirOrder</code> zawiedzie na przypadku <code>(&quot; &quot;, null)</code>. Przywróć.</li>
+<li>Eksperyment 2: w <code>after</code> dodaj walidację &quot;przy okazji&quot; (np. odrzucanie <code>releaseId</code> dłuższego niż 20 znaków) i zapytaj, czy to nadal Boy Scout. Wycofaj.</li>
+<li>Przejdź do sekcji 2.3 (bezpieczna sekwencja) i 2.4 (nadużycia), potem do Warsztatu 2 (bez pokazywania, jak dzielić serię).</li>
+</ol>
+<p>Uwaga: w Warsztacie 2 uczestnicy pracują na <code>before</code>. Przed warsztatem nie pokazuj <code>after</code> jako wzorca do skopiowania albo zaznacz, że ich zadanie jest szersze (seria zmian, zmiana zachowania, opis, przegląd).</p>
+<hr>
+<h2 id="3-collaboration-jawna-polityka-gotowosci-do-przegladu" tabindex="-1"><a class="header-anchor" href="#3-collaboration-jawna-polityka-gotowosci-do-przegladu"><span>3. <code>collaboration</code> - jawna polityka gotowości do przeglądu</span></a></h2>
+<h3 id="sekcja-teorii-2" tabindex="-1"><a class="header-anchor" href="#sekcja-teorii-2"><span>Sekcja teorii</span></a></h3>
+<p>3.2 Małe zestawy zmian, 3.3 Przygotowanie do przeglądu kodu, 3.5 Przykład polityki gotowości, 3.6 Czego nie należy łączyć.</p>
+<h3 id="co-ilustruje-2" tabindex="-1"><a class="header-anchor" href="#co-ilustruje-2"><span>Co ilustruje</span></a></h3>
+<p>Przykładową politykę zespołu zapisaną w kodzie: zestaw zmian jest gotowy do przeglądu, gdy ma dokładnie jedną główną intencję, co najmniej jeden dowód weryfikacji i niezależnie zielony build. Problemy są typowane (enum), a nie ukryte w komunikacie tekstowym.</p>
+<h3 id="kluczowe-klasy-2" tabindex="-1"><a class="header-anchor" href="#kluczowe-klasy-2"><span>Kluczowe klasy</span></a></h3>
+<ul>
+<li><code>collaboration/<wbr>ChangeIntent.java</code> - <code>CHARACTERIZATION_TESTS</code>, <code>REFACTORING</code>, <code>BEHAVIOR_CHANGE</code>, <code>ROLLOUT</code> (odpowiada przykładowej serii z 3.2).</li>
+<li><code>collaboration/<wbr>EvidenceKind.java</code>, <code>VerificationEvidence.java</code> - rodzaj dowodu i niepusta obserwacja.</li>
+<li><code>collaboration/<wbr>ChangeSet.java</code> - rekord z migawkami kolekcji (<code>Set.copyOf</code>, <code>List.copyOf</code>).</li>
+<li><code>collaboration/<wbr>ReadinessProblem.java</code>, <code>ReviewReadiness.java</code> - typowane problemy, <code>ready()</code> gdy lista pusta.</li>
+<li><code>collaboration/<wbr>ExampleTeamReviewPolicy.java</code> - sama reguła:</li>
+</ul>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">if</span> (changeSet.intents().isEmpty()) {
+    problems.add(ReadinessProblem.MISSING_INTENT);
+} <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (changeSet.intents().size() &gt; <span class="hljs-number">1</span>) {
+    problems.add(ReadinessProblem.MIXED_PRIMARY_INTENTS);
+}
+<span class="hljs-keyword">if</span> (changeSet.verificationEvidence().isEmpty()) {
+    problems.add(ReadinessProblem.MISSING_VERIFICATION_EVIDENCE);
+}
+<span class="hljs-keyword">if</span> (!changeSet.independentlyGreenBuild()) {
+    problems.add(ReadinessProblem.BUILD_NOT_INDEPENDENTLY_GREEN);
+}
+</code></pre>
+<h3 id="na-co-zwrocic-uwage-uczestnikow-2" tabindex="-1"><a class="header-anchor" href="#na-co-zwrocic-uwage-uczestnikow-2"><span>Na co zwrócić uwagę uczestników</span></a></h3>
+<ul>
+<li>Nazwa <code>ExampleTeamReviewPolicy</code> i Javadoc mówią wprost: to przykład lokalnej umowy, a nie uniwersalny algorytm oceny przeglądu.</li>
+<li>Wartością jest jawność: autor i osoba przeglądająca widzą te same powody zatrzymania zmiany.</li>
+<li>Rozróżnienie intencji (co zmiana robi) i dowodu (jak to sprawdzono).</li>
+<li>Migawki kolekcji: późniejsza zmiana danych autora nie zmienia ocenionego obiektu.</li>
+<li>Polityka nie ocenia jakości testów ani projektu; to wciąż zadanie człowieka (lista z 3.3).</li>
+<li>Etykiety <code>BLOCKER</code>, <code>SUGGESTION</code>, <code>NIT</code> (3.4) wymagają wspólnie ustalonego znaczenia i nie zastępują argumentu.</li>
+</ul>
+<h3 id="testy-chroniace-zachowanie-2" tabindex="-1"><a class="header-anchor" href="#testy-chroniace-zachowanie-2"><span>Testy chroniące zachowanie</span></a></h3>
+<ul>
+<li><code>ExampleTeamReviewPolicyTest</code>:
+<ul>
+<li><code>acceptsAFocusedChangeWithEvidenceAndAGreenBuild</code> - jedna intencja, dowód, zielony build,</li>
+<li><code>reportsMixedIntentMissingEvidenceAndNonGreenBuildInStableOrder</code> - trzy problemy w stabilnej kolejności,</li>
+<li><code>reportsAnUnspecifiedIntentAsATypedProblem</code> - <code>MISSING_INTENT</code>,</li>
+<li><code>snapshotsMutableInputCollections</code> - brak aliasów i niemodyfikowalne widoki.</li>
+</ul>
+</li>
+</ul>
+<h3 id="sugerowany-przebieg-demonstracji-10-minut" tabindex="-1"><a class="header-anchor" href="#sugerowany-przebieg-demonstracji-10-minut"><span>Sugerowany przebieg demonstracji (10 minut)</span></a></h3>
+<ol>
+<li>Zacznij od pytania: &quot;po czym poznajecie, że PR jest gotowy do przeglądu?&quot;. Zapisz odpowiedzi.</li>
+<li>Pokaż <code>ChangeIntent</code> i <code>ExampleTeamReviewPolicy</code>, porównaj z listą uczestników.</li>
+<li>Uruchom test <code>reportsMixedIntentMissingEvidenceAndNonGreenBuildInStableOrder</code> i omów tytuł zestawu zmian &quot;Move validator and change its rules&quot; jako antyprzykład z 3.6.</li>
+<li>Dyskusja: czego ta polityka nie sprawdza? (jakość orakli, zakres, plan wycofania, właściciele).</li>
+<li>Omów pięć pytań z 3.3 i kolejność czytania dla recenzenta. To wprowadzenie do Warsztatu 2.</li>
+</ol>
+<hr>
+<h2 id="4-documentation-wykonywalny-model-adr" tabindex="-1"><a class="header-anchor" href="#4-documentation-wykonywalny-model-adr"><span>4. <code>documentation</code> - wykonywalny model ADR</span></a></h2>
+<h3 id="sekcja-teorii-3" tabindex="-1"><a class="header-anchor" href="#sekcja-teorii-3"><span>Sekcja teorii</span></a></h3>
+<p>4.1 Dokumentacja według trwałości, 4.3 Architecture Decision Record, 4.4 Przykład wykonywalnego modelu decyzji, 4.5 Dokumentacja żywa i historyczna.</p>
+<h3 id="co-ilustruje-3" tabindex="-1"><a class="header-anchor" href="#co-ilustruje-3"><span>Co ilustruje</span></a></h3>
+<p>Model decyzji architektonicznej w lokalnym szablonie projektu (rdzeń ADR: tytuł, status, kontekst, decyzja, konsekwencje, rozszerzony o identyfikator, rozważone opcje i metodę weryfikacji) oraz deterministyczny renderer do Markdown.</p>
+<h3 id="kluczowe-klasy-3" tabindex="-1"><a class="header-anchor" href="#kluczowe-klasy-3"><span>Kluczowe klasy</span></a></h3>
+<ul>
+<li><code>documentation/<wbr>DecisionId.java</code> - lokalna konwencja <code>ADR-[0-9]{4}</code> (nie wymóg formatu ADR).</li>
+<li><code>documentation/<wbr>DecisionStatus.java</code> - <code>PROPOSED</code>, <code>ACCEPTED</code>, <code>REJECTED</code>, <code>DEPRECATED</code>, <code>SUPERSEDED</code>.</li>
+<li><code>documentation/<wbr>DecisionOption.java</code>, <code>DecisionConsequence.java</code>, <code>ConsequenceKind.java</code>.</li>
+<li><code>documentation/<wbr>DecisionRecord.java</code> - wymaga co najmniej jednej opcji i jednej konsekwencji, niepustych tekstów; kopie defensywne list.</li>
+<li><code>documentation/<wbr>DecisionRecordMarkdownRenderer.java</code> - stała kolejność sekcji, polskie etykiety statusów (<code>Zaakceptowana</code>, <code>Zastąpiona</code> itd.) i rodzajów konsekwencji.</li>
+</ul>
+<h3 id="na-co-zwrocic-uwage-uczestnikow-3" tabindex="-1"><a class="header-anchor" href="#na-co-zwrocic-uwage-uczestnikow-3"><span>Na co zwrócić uwagę uczestników</span></a></h3>
+<ul>
+<li>ADR jest dla decyzji o trwałym wpływie na architekturę, nie dla każdego Extract Method.</li>
+<li>Model wymaga przynajmniej jednej konsekwencji dowolnego rodzaju; w praktyce warto uczciwie opisać korzyści i koszty.</li>
+<li>Renderer gwarantuje formę, nie jakość decyzji. Wartość pochodzi z kontekstu, uczciwych alternatyw i weryfikacji.</li>
+<li>Przy zmianie kierunku stary ADR oznacza się jako zastąpiony (<code>SUPERSEDED</code>) i tworzy nowy; historia rozumowania zostaje.</li>
+<li>Tabela z 4.1: komentarz w kodzie opisuje &quot;dlaczego&quot; i stan obecny, nie historię edycji (&quot;przeniesiono tę metodę&quot;).</li>
+</ul>
+<h3 id="testy-chroniace-zachowanie-3" tabindex="-1"><a class="header-anchor" href="#testy-chroniace-zachowanie-3"><span>Testy chroniące zachowanie</span></a></h3>
+<ul>
+<li><code>DecisionRecordTest</code> - migawki list i niemodyfikowalne widoki; odrzucenie złego identyfikatora (<code>&quot;42&quot;</code>), pustego tytułu, pustej listy opcji, pustej listy konsekwencji, pustego uzasadnienia i opisu.</li>
+<li><code>DecisionRecordMarkdownRendererTest</code> - pełny oczekiwany dokument jako text block (kolejność sekcji, etykiety, końcowe nowe linie), determinizm (dwukrotne renderowanie), odrzucenie <code>null</code>.</li>
+</ul>
+<h3 id="sugerowany-przebieg-demonstracji-10-minut-1" tabindex="-1"><a class="header-anchor" href="#sugerowany-przebieg-demonstracji-10-minut-1"><span>Sugerowany przebieg demonstracji (10 minut)</span></a></h3>
+<ol>
+<li>Pokaż tabelę 4.1 i zapytaj, gdzie uczestnicy zapisują dziś decyzje.</li>
+<li>Pokaż <code>DecisionRecord</code> i test renderera; uruchom <code>Module8Examples</code> (linia <code>Dokumentowanie: # ADR-0042: Use Branch by Abstraction</code>).</li>
+<li>Pokaż w teście kompletny wynik Markdown jako wzór struktury.</li>
+<li>Eksperyment: spróbuj utworzyć <code>DecisionRecord</code> z pustą listą konsekwencji i pokaż wyjątek <code>consequences must not be empty</code>.</li>
+<li>Przejdź do aktywności A (ADR z decyzji z Warsztatu 1).</li>
+</ol>
+<hr>
+<h2 id="5-tooling-bramka-kompilatora-w-pamieci" tabindex="-1"><a class="header-anchor" href="#5-tooling-bramka-kompilatora-w-pamieci"><span>5. <code>tooling</code> - bramka kompilatora w pamięci</span></a></h2>
+<h3 id="sekcja-teorii-4" tabindex="-1"><a class="header-anchor" href="#sekcja-teorii-4"><span>Sekcja teorii</span></a></h3>
+<p>5.1 Różne narzędzia, różne dowody, 5.3 Kompilator Javy 25, 5.6 Przykład bramki kompilatora, 5.7 Minimalna bramka jakości.</p>
+<h3 id="co-ilustruje-4" tabindex="-1"><a class="header-anchor" href="#co-ilustruje-4"><span>Co ilustruje</span></a></h3>
+<p>Politykę ostrzeżeń jako jawny parametr (<code>WarningPolicy</code>): ten sam kod z surowym typem przechodzi przy <code>ALLOW_WARNINGS</code> (z ostrzeżeniem) i nie przechodzi przy <code>TREAT_WARNINGS_AS_ERRORS</code> (odpowiednik <code>-Werror</code>). Diagnostyka jest zapisywana strukturalnie (rodzaj, kod, pozycja), a nie jako lokalizowany komunikat.</p>
+<h3 id="kluczowe-klasy-4" tabindex="-1"><a class="header-anchor" href="#kluczowe-klasy-4"><span>Kluczowe klasy</span></a></h3>
+<ul>
+<li><code>tooling/<wbr>WarningPolicy.java</code> - <code>ALLOW_WARNINGS</code>, <code>TREAT_WARNINGS_AS_ERRORS</code>.</li>
+<li><code>tooling/<wbr>InMemoryJavaCompiler.java</code> - <code>javax.tools</code>, opcje <code>--release 25</code>, <code>-proc:none</code>, <code>-Xlint:rawtypes</code>, plus <code>-Werror</code> zależnie od polityki; źródło i kod bajtowy w pamięci (<code>MemoryFileManager</code>).</li>
+<li><code>tooling/<wbr>CompilationResult.java</code> - <code>successful</code>, lista diagnostyk, posortowane nazwy wygenerowanych klas, <code>hasDiagnostic(kind, code)</code>.</li>
+<li><code>tooling/<wbr>CompilationDiagnostic.java</code> - <code>Optional&lt;String&gt; code</code> (API dopuszcza brak kodu), pozycje <code>NOPOS</code> lub dodatnie.</li>
+</ul>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-variable">BASE_OPTIONS</span> <span class="hljs-operator">=</span> List.of(
+        <span class="hljs-string">&quot;--release&quot;</span>, <span class="hljs-string">&quot;25&quot;</span>,
+        <span class="hljs-string">&quot;-proc:none&quot;</span>,
+        <span class="hljs-string">&quot;-Xlint:rawtypes&quot;</span>);
+...
+<span class="hljs-keyword">if</span> (warningPolicy == WarningPolicy.TREAT_WARNINGS_AS_ERRORS) {
+    options.add(<span class="hljs-string">&quot;-Werror&quot;</span>);
+}
+</code></pre>
+<h3 id="na-co-zwrocic-uwage-uczestnikow-4" tabindex="-1"><a class="header-anchor" href="#na-co-zwrocic-uwage-uczestnikow-4"><span>Na co zwrócić uwagę uczestników</span></a></h3>
+<ul>
+<li><code>--release 25</code> ustala poziom języka i API, ale nie gwarantuje, że Maven działa na JDK 25. W CI kontroluje się faktyczny JDK (toolchains lub jawne środowisko). Warto pokazać <code>mvn -v</code> na maszynie prowadzącego.</li>
+<li><code>-Werror</code> to silna bramka dla nowego kodu, ale włączona nagle w dużym legacy zablokuje wszystkich. Stąd stan bazowy i ratchet (5.3, 5.4).</li>
+<li>Testy sprawdzają konkretne kody <code>javac</code> (<code>compiler.warn.raw.class.use</code>, <code>compiler.err.warnings.and.werror</code>), więc są świadomie związane z wersją kompilatora.</li>
+<li>Ten przykład nie zastępuje Mavena z pełną ścieżką klas, testów ani analizatorów (Checkstyle, PMD, SpotBugs pokrywają inne klasy problemów).</li>
+<li>Tabela 5.1: każde narzędzie daje inny dowód i ma inne granice. Zielony wynik jednego narzędzia to nie certyfikat.</li>
+<li>Refaktoryzacje IDE (5.2) nie widzą refleksji, konfiguracji, szablonów, konsumentów spoza repozytorium.</li>
+</ul>
+<h3 id="testy-chroniace-zachowanie-4" tabindex="-1"><a class="header-anchor" href="#testy-chroniace-zachowanie-4"><span>Testy chroniące zachowanie</span></a></h3>
+<ul>
+<li><code>InMemoryJavaCompilerTest</code>:
+<ul>
+<li><code>compilesTypedSourceAndKeepsGeneratedBytecodeInMemory</code> - czysty kod przechodzi nawet z <code>-Werror</code>, brak diagnostyk,</li>
+<li><code>reportsRawTypeByKindAndCompilerCodeWithoutRejectingSource</code> - surowy typ: sukces i ostrzeżenie <code>compiler.warn.raw.class.use</code>,</li>
+<li><code>rejectsTheSameRawTypeWhenWarningsAreErrors</code> - ten sam kod: porażka, ostrzeżenie oraz błąd <code>compiler.err.warnings.and.werror</code>,</li>
+<li><code>validatesCompilationRequest</code> - walidacja nazwy binarnej, źródła, polityki,</li>
+<li><code>diagnosticsCanRepresentAnAbsentImplementationSpecificCode</code> - brak kodu diagnostyki i walidacja pozycji.</li>
+</ul>
+</li>
+</ul>
+<h3 id="sugerowany-przebieg-demonstracji-10-15-minut-1" tabindex="-1"><a class="header-anchor" href="#sugerowany-przebieg-demonstracji-10-15-minut-1"><span>Sugerowany przebieg demonstracji (10-15 minut)</span></a></h3>
+<ol>
+<li><code>java -version</code>, <code>mvn -v</code>: jaki JDK faktycznie buduje projekt? Porównaj z <code>maven.compiler.release</code> w <code>pom.xml</code>.</li>
+<li>Pokaż <code>InMemoryJavaCompilerTest</code> i uruchom trzy pierwsze testy; pokaż różnicę w <code>successful</code> dla tego samego <code>RAW_SOURCE</code>.</li>
+<li>Na żywo: skompiluj wszystkie źródła z <code>-Xlint:all</code> bez zmiany <code>pom.xml</code>, np.
+<code>javac --release 25 -Xlint:all -d /<wbr>tmp/<wbr>lint $(find src/<wbr>main/<wbr>java -name '*.java')</code>
+i pokaż, że nawet &quot;czysty&quot; projekt szkoleniowy ma historyczne ostrzeżenia (kategoria <code>auxiliaryclass</code> w module 1). To dobry most do Warsztatu 3: &quot;co byście zrobili, gdyby jutro włączyć <code>-Werror</code>?&quot;.</li>
+<li>Omów 5.7 (kolejność bramek) i przejdź do Warsztatu 3.</li>
+</ol>
+<hr>
+<h2 id="6-risk-jawna-polityka-wdrozenia-etapowego" tabindex="-1"><a class="header-anchor" href="#6-risk-jawna-polityka-wdrozenia-etapowego"><span>6. <code>risk</code> - jawna polityka wdrożenia etapowego</span></a></h2>
+<h3 id="sekcja-teorii-5" tabindex="-1"><a class="header-anchor" href="#sekcja-teorii-5"><span>Sekcja teorii</span></a></h3>
+<p>6.1 Ryzyko jest właściwością zmiany i kontekstu, 6.2 Warstwy kontroli, 6.3 Kryteria przed wdrożeniem etapowym, 6.4 Przykład jawnej polityki wdrożenia etapowego.</p>
+<h3 id="co-ilustruje-5" tabindex="-1"><a class="header-anchor" href="#co-ilustruje-5"><span>Co ilustruje</span></a></h3>
+<p>Decyzję <code>ADVANCE</code> / <code>HOLD</code> / <code>ROLLBACK</code> na podstawie migawki metryk i progów ustalonych przed wdrożeniem. Dla dokładnego kontraktu odpowiedzi dopuszczalna liczba rozbieżności wynosi zero.</p>
+<h3 id="kluczowe-klasy-5" tabindex="-1"><a class="header-anchor" href="#kluczowe-klasy-5"><span>Kluczowe klasy</span></a></h3>
+<ul>
+<li><code>risk/<wbr>RolloutDecision.java</code> - trzy decyzje.</li>
+<li><code>risk/<wbr>RolloutThresholds.java</code> - minimalna próbka (&gt;= 1), maksymalny wskaźnik błędów (0..1), maksymalne p95; odrzuca <code>NaN</code> i nieskończoność.</li>
+<li><code>risk/<wbr>RolloutSnapshot.java</code> - liczniki w granicach próbki, p95 skończone i nieujemne, pusta próbka ma p95 równe 0 i <code>errorRate()</code> równe 0.</li>
+<li><code>risk/<wbr>RolloutPolicy.java</code>:</li>
+</ul>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">if</span> (snapshot.mismatchedResponses() &gt; <span class="hljs-number">0</span>
+        || snapshot.errorRate() &gt; thresholds.maximumErrorRate()
+        || snapshot.p95LatencyMillis() &gt; thresholds.maximumP95LatencyMillis()) {
+    <span class="hljs-keyword">return</span> RolloutDecision.ROLLBACK;
+}
+<span class="hljs-keyword">if</span> (snapshot.sampleSize() &lt; thresholds.minimumSampleSize()) {
+    <span class="hljs-keyword">return</span> RolloutDecision.HOLD;
+}
+<span class="hljs-keyword">return</span> RolloutDecision.ADVANCE;
+</code></pre>
+<h3 id="na-co-zwrocic-uwage-uczestnikow-5" tabindex="-1"><a class="header-anchor" href="#na-co-zwrocic-uwage-uczestnikow-5"><span>Na co zwrócić uwagę uczestników</span></a></h3>
+<ul>
+<li>Kontrole bezpieczeństwa są <strong>przed</strong> oceną wielkości próbki: mała próbka z potwierdzonym naruszeniem to nie &quot;zdrowa próbka czekająca na dane&quot;.</li>
+<li>Progi są włącznie (<code>&gt;</code> a nie <code>&gt;=</code>): 5% przy progu 5% i p95 równe 250 ms przy progu 250 ms dają <code>ADVANCE</code>.</li>
+<li><code>HOLD</code> to ani sukces, ani porażka, tylko brak danych do zwiększenia ekspozycji.</li>
+<li>Nie ma uniwersalnych progów. Zero rozbieżności ma sens dla obliczeń finansowych po ustalonej normalizacji; dla opóźnienia czy systemów probabilistycznych potrzebny jest uzgodniony przedział.</li>
+<li>Progów nie dopasowuje się po zobaczeniu wyników.</li>
+<li>Flaga nie cofnie danych zapisanych w nowym formacie: expand and contract (6.5), próba wycofania z danymi.</li>
+<li>Migracja kończy się po usunięciu kosztu legacy (6.6), nie po pierwszym sukcesie.</li>
+</ul>
+<h3 id="testy-chroniace-zachowanie-5" tabindex="-1"><a class="header-anchor" href="#testy-chroniace-zachowanie-5"><span>Testy chroniące zachowanie</span></a></h3>
+<ul>
+<li><code>RolloutPolicyTest</code> - <code>ADVANCE</code> przy spełnionych progach i na granicach włącznych, <code>HOLD</code> dla zbyt małej zdrowej próbki (w tym pustej), <code>ROLLBACK</code> po rozbieżności, po naruszeniu błędów lub latencji, pierwszeństwo <code>ROLLBACK</code> nad zbyt małą próbką, odrzucenie <code>null</code>.</li>
+<li><code>RolloutSnapshotTest</code> - wyliczenie <code>errorRate</code>, pusta próbka, liczniki na granicach, odrzucenie liczników ujemnych i większych niż próbka, <code>NaN</code>/nieskończoności/ujemnej latencji, niezerowego p95 dla pustej próbki.</li>
+<li><code>RolloutThresholdsTest</code> - granice włączne, odrzucenie niedodatniej próbki, złych wskaźników błędów i progów latencji.</li>
+</ul>
+<h3 id="sugerowany-przebieg-demonstracji-10-minut-2" tabindex="-1"><a class="header-anchor" href="#sugerowany-przebieg-demonstracji-10-minut-2"><span>Sugerowany przebieg demonstracji (10 minut)</span></a></h3>
+<ol>
+<li>Pokaż <code>RolloutPolicy</code> i zapytaj: &quot;dlaczego rollback jest sprawdzany przed próbką?&quot;.</li>
+<li>Uruchom <code>RolloutPolicyTest</code>; omów <code>safetyViolationsTakePriorityOverAnInsufficientSample</code>.</li>
+<li>Eksperyment: zamień kolejność dwóch <code>if</code> w <code>decide</code>. Test <code>safetyViolationsTakePriorityOverAnInsufficientSample</code> zawiedzie (dla próbki 10 wynik to <code>HOLD</code> zamiast <code>ROLLBACK</code>). Przywróć.</li>
+<li>Przeprowadź aktywność B (tabela etapów) bez pokazywania wyników testów.</li>
+<li>Omów 6.5 (dane i wycofanie) oraz 6.6 (zamknięcie migracji) jako uzupełnienie Warsztatu 1.</li>
+</ol>
+<hr>
+<h2 id="module8examples-przeglad-calego-modulu" tabindex="-1"><a class="header-anchor" href="#module8examples-przeglad-calego-modulu"><span><code>Module8Examples</code> - przegląd całego modułu</span></a></h2>
+<p>Plik <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module8/<wbr>Module8Examples.java</code> uruchamia po jednym deterministycznym przykładzie na temat (migracja w trybie <code>VERIFY</code>, Boy Scout, polityka przeglądu, ADR, kompilator, polityka wdrożenia). <code>Module8ExamplesTest</code> sprawdza dokładną listę wyników, niemodyfikowalność zwróconej listy oraz to, że <code>main</code> wypisuje każdy wynik w osobnej linii. Dobry punkt startowy na początku modułu (pokazanie &quot;mapy&quot;) i na końcu (podsumowanie).</p>
+<h2 id="sugerowany-plan-modulu" tabindex="-1"><a class="header-anchor" href="#sugerowany-plan-modulu"><span>Sugerowany plan modułu</span></a></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Blok</th>
+<th>Czas (orientacyjnie)</th>
+<th>Materiał</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Wprowadzenie: obserwowalne zachowanie, krótka pętla informacji zwrotnej</td>
+<td>10 min</td>
+<td>teoria, wstęp; <code>Module8Examples</code></td>
+</tr>
+<tr>
+<td>Sekcja 1 + demo <code>incremental</code></td>
+<td>30 min</td>
+<td>przykład 1</td>
+</tr>
+<tr>
+<td>Warsztat 1</td>
+<td>60-75 min</td>
+<td>zadania, W1</td>
+</tr>
+<tr>
+<td>Sekcja 6 + demo <code>risk</code> + aktywność B</td>
+<td>25 min</td>
+<td>przykład 6</td>
+</tr>
+<tr>
+<td>Sekcje 2-3 + demo <code>boyscout</code>, <code>collaboration</code></td>
+<td>25 min</td>
+<td>przykłady 2, 3</td>
+</tr>
+<tr>
+<td>Warsztat 2</td>
+<td>60-75 min</td>
+<td>zadania, W2</td>
+</tr>
+<tr>
+<td>Sekcja 4 + demo <code>documentation</code> + aktywność A</td>
+<td>30 min</td>
+<td>przykład 4</td>
+</tr>
+<tr>
+<td>Sekcja 5 + demo <code>tooling</code></td>
+<td>20 min</td>
+<td>przykład 5</td>
+</tr>
+<tr>
+<td>Warsztat 3</td>
+<td>60 min</td>
+<td>zadania, W3</td>
+</tr>
+<tr>
+<td>Podsumowanie, lista kontrolna</td>
+<td>10 min</td>
+<td>teoria, podsumowanie</td>
+</tr>
+</tbody>
+</table></div>
+
+</main>
+</div>
+<script>if(matchMedia('(max-width:900px)').matches){var d=document.querySelector('.toc details');if(d)d.open=false}</script>
+</body>
+</html>

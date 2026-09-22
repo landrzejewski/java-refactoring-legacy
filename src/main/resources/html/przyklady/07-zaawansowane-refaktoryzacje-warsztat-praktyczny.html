@@ -1,0 +1,604 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Przykłady: Moduł 7. Zaawansowane refaktoryzacje - przewodnik prowadzącego po przykładach</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1d1f23;--muted:#5f6670;--line:#e3e5e8;--card:#ffffff;--accent:#2457c5;--accent-bg:#eef3fd;
+--code-bg:#f4f5f7;--note-bg:#fff7e6;--note-line:#e6a700;--th:#f1f3f6;
+--k:#b3246b;--s:#1a7f37;--c:#6e7781;--n:#0550ae;--t:#8250df;--f:#6639ba;--a:#953800;
+--kind:#2457c5}
+@media (prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3036;--card:#1c1f23;--accent:#7aa7ff;--accent-bg:#1e2a40;
+--code-bg:#1f2328;--note-bg:#2b2412;--note-line:#c99400;--th:#23272d;
+--k:#ff7b9c;--s:#7ee2a0;--c:#8b949e;--n:#79c0ff;--t:#d2a8ff;--f:#d2a8ff;--a:#ffa657}}
+body.zadania{--kind:#1a7f37} body.rozwiazania{--kind:#b3246b} body.przyklady{--kind:#2457c5}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.topbar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 24px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);border-top:3px solid var(--kind)}
+.topbar a{color:var(--fg);text-decoration:none}
+.home{font-weight:600}
+.tabs{display:flex;gap:4px}
+.tab{padding:4px 12px;border-radius:999px;font-size:15px;color:var(--muted)!important}
+.tab:hover{background:var(--code-bg)}
+.tab.active{background:var(--accent-bg);color:var(--accent)!important;font-weight:600}
+.pager{margin-left:auto;display:flex;gap:14px;font-size:15px}
+.pager a{color:var(--muted)}.pager a:hover{color:var(--accent)}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:48px;max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+.layout.no-toc{grid-template-columns:minmax(0,1fr);max-width:1000px}
+aside{position:sticky;top:72px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px}
+.toc-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;font-weight:600}
+.toc ul{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.toc li a{display:block;padding:3px 12px;color:var(--muted);text-decoration:none;line-height:1.35}
+.toc li.h3 a{padding-left:24px;font-size:13px}
+.toc li a:hover{color:var(--accent)}
+main{min-width:0;max-width:860px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 1.2rem;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:2.6rem 0 .8rem;padding-top:.6rem;border-top:1px solid var(--line)}
+h3{font-size:1.18rem;margin:2rem 0 .6rem}
+h4{font-size:1rem;margin:1.5rem 0 .5rem}
+h1 a,h2 a,h3 a,h4 a{color:inherit;text-decoration:none}
+h2 a:hover::after,h3 a:hover::after{content:" #";color:var(--muted)}
+p,ul,ol{margin:.6rem 0 1rem}
+li{margin:.25rem 0}
+li>ul,li>ol{margin:.2rem 0}
+a{color:var(--accent)}
+strong{font-weight:650}
+code{font:0.88em/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre.code{position:relative;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:1rem 0 1.4rem}
+pre.code code{background:none;padding:0;font-size:14px;line-height:1.55}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:6px;right:10px;font:11px ui-monospace,Menlo,monospace;color:var(--muted);text-transform:uppercase}
+.table-wrap{overflow-x:auto;margin:1rem 0 1.4rem;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--th);font-weight:600}
+tr:last-child td{border-bottom:none}
+blockquote{margin:1rem 0 1.4rem;padding:10px 16px;background:var(--note-bg);border-left:4px solid var(--note-line);border-radius:0 8px 8px 0}
+blockquote p{margin:.3rem 0}
+hr{border:none;border-top:1px solid var(--line);margin:2rem 0}
+hr+h2{border-top:none;margin-top:1.4rem}
+main p code,main li code,main td code{overflow-wrap:break-word}
+.toc summary{cursor:pointer;list-style:none}.toc summary::-webkit-details-marker{display:none}
+.hljs-keyword,.hljs-selector-tag,.hljs-built_in,.hljs-literal{color:var(--k)}
+.hljs-string,.hljs-regexp,.hljs-addition{color:var(--s)}
+.hljs-comment,.hljs-quote,.hljs-meta{color:var(--c);font-style:italic}
+.hljs-number,.hljs-symbol{color:var(--n)}
+.hljs-type,.hljs-class .hljs-title,.hljs-title.class_{color:var(--t)}
+.hljs-title,.hljs-title.function_,.hljs-section{color:var(--f)}
+.hljs-attr,.hljs-attribute,.hljs-variable,.hljs-params,.hljs-tag{color:var(--a)}
+.hljs-deletion{color:var(--k)}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:16px;padding:20px 16px 60px}
+aside{position:static;max-height:none;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--card)}
+.toc-title{margin:0}.toc details[open] .toc-title{margin-bottom:8px}.toc summary::after{content:" ▾"}
+body{font-size:16px}.topbar{padding:8px 16px}.pager{margin-left:0}h1{font-size:1.6rem}}
+@media print{.topbar,aside{display:none}.layout{display:block;padding:0}main{max-width:none}
+pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#000;font-size:12pt}}
+</style>
+</head>
+<body class="przyklady">
+<header class="topbar"><a class="home" href="../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../zadania/07-zaawansowane-refaktoryzacje-warsztat-praktyczny.html">Zadania</a><a class="tab active" href="/07-zaawansowane-refaktoryzacje-warsztat-praktyczny.html">Przykłady</a><a class="tab" href="../rozwiazania/07-zaawansowane-refaktoryzacje-warsztat-praktyczny.html">Rozwiązania</a></div><div class="pager"><a href="06-refaktoryzacje-do-wzorcow-projektowych-warsztat-praktyczny.html" title="Poprzedni moduł">&larr; 06</a><a href="08-strategie-i-dobre-praktyki.html" title="Następny moduł">08 &rarr;</a></div></header>
+<div class="layout">
+<aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#uruchamianie-przykladow-i-testow">Uruchamianie przykładów i testów</a></li><li class="h3"><a href="#java">Java</a></li><li class="h3"><a href="#c">C#</a></li><li class="h3"><a href="#typescript">TypeScript</a></li><li class="h2"><a href="#mapa-przykladow">Mapa przykładów</a></li><li class="h2"><a href="#wspolny-wzorzec-testow">Wspólny wzorzec testów</a></li><li class="h2"><a href="#1-break-dependencies-breakdependencies">1. Break Dependencies (breakdependencies)</a></li><li class="h2"><a href="#2-extract-method-object-methodobject">2. Extract Method Object (methodobject)</a></li><li class="h2"><a href="#3-break-responsibilities-breakresponsibilities">3. Break Responsibilities (breakresponsibilities)</a></li><li class="h2"><a href="#4-remove-duplication-duplication">4. Remove Duplication (duplication)</a></li><li class="h2"><a href="#5-break-method-breakmethod">5. Break Method (breakmethod)</a></li><li class="h2"><a href="#6-introduce-parameter-object-parameterobject">6. Introduce Parameter Object (parameterobject)</a></li><li class="h2"><a href="#7-remove-arrowhead-antipattern-arrowhead">7. Remove Arrowhead Antipattern (arrowhead)</a></li><li class="h2"><a href="#8-introduce-design-by-contract-checks-contract">8. Introduce Design by Contract Checks (contract)</a></li><li class="h2"><a href="#9-remove-double-negative-doublenegative">9. Remove Double Negative (doublenegative)</a></li><li class="h2"><a href="#10-remove-god-classes-godclass">10. Remove God Classes (godclass)</a></li><li class="h2"><a href="#11-remove-boolean-method-parameters-booleanparameter">11. Remove Boolean Method Parameters (booleanparameter)</a></li><li class="h2"><a href="#12-remove-middle-man-middleman">12. Remove Middle Man (middleman)</a></li><li class="h2"><a href="#13-return-asap-returnasap">13. Return ASAP (returnasap)</a></li><li class="h2"><a href="#module7examples-i-module7examplestest">Module7Examples i Module7ExamplesTest</a></li><li class="h2"><a href="#proponowana-kolejnosc-pokazow-wedlug-harmonogramu">Proponowana kolejność pokazów według harmonogramu</a></li></ul></details></nav></aside>
+<main>
+<h1>Moduł 7. Zaawansowane refaktoryzacje - przewodnik prowadzącego po przykładach</h1>
+<p>Dokument opisuje kod przykładów modułu 7: gdzie leży, co ilustruje, na co zwrócić uwagę uczestników i jak go zademonstrować na żywo. Każdy przykład ma parę <code>before</code> (wersja wyjściowa, zwykle klasa <code>Legacy*</code>) i <code>after</code> (wersja po refaktoryzacji) oraz test równoważności, który porównuje obie wersje.</p>
+<p>Wszystkie ścieżki Java są względne wobec katalogu głównego repozytorium. Kod produkcyjny: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/</code>, testy: <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/</code>.</p>
+<h2 id="uruchamianie-przykladow-i-testow" tabindex="-1"><a class="header-anchor" href="#uruchamianie-przykladow-i-testow"><span>Uruchamianie przykładów i testów</span></a></h2>
+<h3 id="java" tabindex="-1"><a class="header-anchor" href="#java"><span>Java</span></a></h3>
+<pre class="code" data-lang="bash"><code class="hljs">mvn -q compile &amp;&amp; java -<span class="hljs-built_in">cp</span> target/classes pl.training.module7.Module7Examples
+mvn <span class="hljs-built_in">test</span> -Dtest=<span class="hljs-string">&#x27;pl.training.module7.**&#x27;</span>
+</code></pre>
+<p>Pojedynczy test, np. <code>mvn test -Dtest=GodClassEquivalenceTest</code>. Z IDE: uruchom <code>Module7Examples.main</code> albo cały pakiet testów <code>pl.training.module7</code>.</p>
+<p>Oczekiwany wynik <code>Module7Examples</code> (weryfikowany przez <code>Module7ExamplesTest</code>):</p>
+<pre class="code" data-lang="text"><code class="hljs">Break Dependencies: ALLOWED
+Extract Method Object: 45/MEDIUM
+Break Responsibilities: deployments=3;failures=1;avgLeadTimeMinutes=18
+Remove Duplication: image:42
+Break Method: 10|api|sha-api,20|worker|sha-worker
+Introduce Parameter Object: 165s
+Remove Arrowhead: ELIGIBLE
+Design by Contract: remaining=7
+Remove Double Negative: true
+Remove God Class: rel-42/1/1/1
+Remove Boolean Parameter: deployed:rel-42
+Remove Middle Man: dep-42 -&gt; RUNNING
+Return ASAP: api.jar
+</code></pre>
+<p><code>Module7Examples</code> pełni też rolę composition root: to tam składane są zależności wersji <code>after</code> (np. <code>new DeploymentWindowService(new StandardMaintenanceWindows())</code>). Warto to pokazać przy Break Dependencies i God Class.</p>
+<h3 id="c" tabindex="-1"><a class="header-anchor" href="#c"><span>C#</span></a></h3>
+<pre class="code" data-lang="bash"><code class="hljs"><span class="hljs-built_in">cd</span> csharp &amp;&amp; dotnet run --project src/Training.Module7
+<span class="hljs-built_in">cd</span> csharp &amp;&amp; dotnet <span class="hljs-built_in">test</span>
+</code></pre>
+<p>Kod: <code>csharp/<wbr>src/<wbr>Training.Module7/<wbr>&lt;Temat&gt;/<wbr>Before|After</code>, testy: <code>csharp/<wbr>tests/<wbr>Training.Module7.Tests/</code> (te same nazwy klas testowych co w Javie).</p>
+<h3 id="typescript" tabindex="-1"><a class="header-anchor" href="#typescript"><span>TypeScript</span></a></h3>
+<pre class="code" data-lang="bash"><code class="hljs"><span class="hljs-built_in">cd</span> typescript &amp;&amp; npm ci &amp;&amp; npm run build &amp;&amp; npm run module7
+<span class="hljs-built_in">cd</span> typescript &amp;&amp; npm <span class="hljs-built_in">test</span>
+</code></pre>
+<p>Kod: <code>typescript/<wbr>src/<wbr>module7/<wbr>&lt;temat&gt;/<wbr>before|after</code>, testy: <code>typescript/<wbr>test/<wbr>module7/<wbr>*.test.ts</code>.</p>
+<h2 id="mapa-przykladow" tabindex="-1"><a class="header-anchor" href="#mapa-przykladow"><span>Mapa przykładów</span></a></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Przykład (pakiet)</th>
+<th>Sekcja teorii</th>
+<th>Pliki before</th>
+<th>Pliki after</th>
+<th>Test</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>breakdependencies</code></td>
+<td>1. Break Dependencies</td>
+<td><code>LegacyDeploymentWindowService</code>, <code>StandardMaintenanceWindows</code></td>
+<td><code>MaintenanceWindows</code>, <code>DeploymentWindowService</code>, <code>StandardMaintenanceWindows</code></td>
+<td><code>BreakDependenciesEquivalenceTest</code></td>
+</tr>
+<tr>
+<td><code>methodobject</code></td>
+<td>2. Extract Method Object</td>
+<td><code>LegacyDeploymentRiskCalculator</code></td>
+<td><code>DeploymentRiskCalculator</code>, <code>DeploymentRiskCalculation</code></td>
+<td><code>ExtractMethodObjectEquivalenceTest</code></td>
+</tr>
+<tr>
+<td><code>breakresponsibilities</code></td>
+<td>3. Break Responsibilities</td>
+<td><code>LegacyDeploymentReport</code></td>
+<td><code>DeploymentMetricsCalculator</code>, <code>DeploymentReportFormatter</code>, <code>DeploymentReportService</code></td>
+<td><code>BreakResponsibilitiesEquivalenceTest</code></td>
+</tr>
+<tr>
+<td><code>duplication</code></td>
+<td>4. Remove Duplication</td>
+<td><code>LegacyArtifactPublisher</code></td>
+<td><code>ArtifactPublisher</code></td>
+<td><code>DuplicationEquivalenceTest</code></td>
+</tr>
+<tr>
+<td><code>breakmethod</code></td>
+<td>5. Break Method</td>
+<td><code>LegacyReleaseManifestBuilder</code></td>
+<td><code>ReleaseManifestBuilder</code></td>
+<td><code>BreakMethodEquivalenceTest</code></td>
+</tr>
+<tr>
+<td><code>parameterobject</code></td>
+<td>6. Introduce Parameter Object</td>
+<td><code>LegacyRolloutPlanner</code></td>
+<td><code>RolloutSpec</code>, <code>RolloutPlanner</code></td>
+<td><code>ParameterObjectEquivalenceTest</code></td>
+</tr>
+<tr>
+<td><code>arrowhead</code></td>
+<td>7. Remove Arrowhead Antipattern</td>
+<td><code>LegacyDeploymentEligibility</code></td>
+<td><code>DeploymentEligibility</code></td>
+<td><code>ArrowheadEquivalenceTest</code></td>
+</tr>
+<tr>
+<td><code>contract</code></td>
+<td>8. Introduce Design by Contract Checks</td>
+<td><code>LegacyDeploymentCapacity</code></td>
+<td><code>Contracts</code>, <code>DeploymentCapacity</code></td>
+<td><code>DesignByContractTest</code></td>
+</tr>
+<tr>
+<td><code>doublenegative</code></td>
+<td>9. Remove Double Negative</td>
+<td><code>LegacyReleaseReadiness</code>, <code>LegacyReleaseGate</code></td>
+<td><code>ReleaseReadiness</code>, <code>ReleaseGate</code></td>
+<td><code>DoubleNegativeEquivalenceTest</code></td>
+</tr>
+<tr>
+<td><code>godclass</code></td>
+<td>10. Remove God Classes</td>
+<td><code>LegacyReleaseManager</code></td>
+<td><code>ReleaseApplicationService</code>, <code>ReleaseValidator</code>, <code>ReleaseRepository</code>, <code>InMemoryReleaseRepository</code>, <code>AuditTrail</code>, <code>ReleaseNotifier</code></td>
+<td><code>GodClassEquivalenceTest</code></td>
+</tr>
+<tr>
+<td><code>booleanparameter</code></td>
+<td>11. Remove Boolean Method Parameters</td>
+<td><code>LegacyDeploymentExecutor</code></td>
+<td><code>DeploymentExecutor</code></td>
+<td><code>BooleanParameterEquivalenceTest</code></td>
+</tr>
+<tr>
+<td><code>middleman</code></td>
+<td>12. Remove Middle Man</td>
+<td><code>ReleaseService</code>, <code>ReleaseDashboard</code>, <code>DeploymentRegistry</code></td>
+<td><code>ReleaseDashboard</code>, <code>DeploymentRegistry</code></td>
+<td><code>MiddleManEquivalenceTest</code></td>
+</tr>
+<tr>
+<td><code>returnasap</code></td>
+<td>13. Return ASAP</td>
+<td><code>LegacyArtifactFinder</code></td>
+<td><code>ArtifactFinder</code></td>
+<td><code>ReturnAsapEquivalenceTest</code></td>
+</tr>
+<tr>
+<td>(wszystkie)</td>
+<td>cały moduł</td>
+<td>-</td>
+<td><code>Module7Examples</code></td>
+<td><code>Module7ExamplesTest</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Pliki <code>before</code> leżą w <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>&lt;pakiet&gt;/<wbr>before/</code>, pliki <code>after</code> w <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>&lt;pakiet&gt;/<wbr>after/</code>, testy w <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/</code>. Typy wspólne dla obu wersji (rekordy, enumy) leżą bezpośrednio w <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>&lt;pakiet&gt;/</code>.</p>
+<h2 id="wspolny-wzorzec-testow" tabindex="-1"><a class="header-anchor" href="#wspolny-wzorzec-testow"><span>Wspólny wzorzec testów</span></a></h2>
+<p>Prawie każdy test równoważności korzysta z tych samych technik. Warto je nazwać na początku modułu, bo uczestnicy użyją ich w warsztatach:</p>
+<ul>
+<li><strong>test różnicowy</strong>: ta sama dana wejściowa trafia do wersji <code>before</code> i <code>after</code>, asercja porównuje wyniki,</li>
+<li><strong><code>assertSameFailure</code></strong>: porównuje klasę i komunikat wyjątku obu wersji (nie tylko &quot;czy rzucono wyjątek&quot;),</li>
+<li><strong>wiele błędnych pól naraz</strong>: np. <code>new ManifestEntry(null, null, -1)</code> sprawdza, który błąd zostanie zgłoszony pierwszy, czyli kolejność walidacji,</li>
+<li><strong>ślad zdarzeń</strong>: <code>List&lt;String&gt; events</code> wypełniana przez <code>Consumer&lt;String&gt;</code> albo spy (<code>AtomicInteger</code>, <code>AtomicReference</code>) rejestruje liczbę, kolejność i argumenty wywołań,</li>
+<li><strong>pełna macierz lub tabela prawdy</strong>: pętle po <code>boolean[] {false, true}</code>.</li>
+</ul>
+<p>Przykład wzorca (z <code>BreakMethodEquivalenceTest</code>):</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">assertSameFailure</span><span class="hljs-params">(
+        Supplier&lt;String&gt; legacyCall,
+        Supplier&lt;String&gt; refactoredCall)</span> {
+    <span class="hljs-type">RuntimeException</span> <span class="hljs-variable">legacyFailure</span> <span class="hljs-operator">=</span> assertThrows(
+            RuntimeException.class, legacyCall::get);
+    <span class="hljs-type">RuntimeException</span> <span class="hljs-variable">refactoredFailure</span> <span class="hljs-operator">=</span> assertThrows(
+            RuntimeException.class, refactoredCall::get);
+    assertEquals(legacyFailure.getClass(), refactoredFailure.getClass());
+    assertEquals(legacyFailure.getMessage(), refactoredFailure.getMessage());
+}
+</code></pre>
+<hr>
+<h2 id="1-break-dependencies-breakdependencies" tabindex="-1"><a class="header-anchor" href="#1-break-dependencies-breakdependencies"><span>1. Break Dependencies (<code>breakdependencies</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 1. Break Dependencies (intencja seam: separation i sensing).</p>
+<p><strong>Co ilustruje:</strong> serwis sam tworzy kalendarz okien serwisowych w inicjalizatorze pola. Po zmianie zależność jest wstrzykiwana przez konstruktor jako najwęższy kontrakt <code>MaintenanceWindows</code> (interfejs funkcyjny z jedną metodą <code>allows</code>). Reguła biznesowa i walidacja nie zmieniają się, zmienia się tylko miejsce tworzenia zależności.</p>
+<p><strong>Pliki:</strong></p>
+<ul>
+<li>before: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>breakdependencies/<wbr>before/<wbr>LegacyDeploymentWindowService.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>breakdependencies/<wbr>before/<wbr>StandardMaintenanceWindows.java</code></li>
+<li>after: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>breakdependencies/<wbr>after/<wbr>MaintenanceWindows.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>breakdependencies/<wbr>after/<wbr>DeploymentWindowService.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>breakdependencies/<wbr>after/<wbr>StandardMaintenanceWindows.java</code></li>
+<li>wspólne: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>breakdependencies/<wbr>DeploymentDecision.java</code></li>
+</ul>
+<p>Kluczowa różnica:</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-comment">// before</span>
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">StandardMaintenanceWindows</span> <span class="hljs-variable">maintenanceWindows</span> <span class="hljs-operator">=</span>
+        <span class="hljs-keyword">new</span> <span class="hljs-title class_">StandardMaintenanceWindows</span>();
+
+<span class="hljs-comment">// after</span>
+<span class="hljs-type">public</span> <span class="hljs-title function_">DeploymentWindowService</span><span class="hljs-params">(MaintenanceWindows maintenanceWindows)</span> {
+    <span class="hljs-built_in">this</span>.maintenanceWindows = Objects.requireNonNull(
+            maintenanceWindows, <span class="hljs-string">&quot;maintenanceWindows&quot;</span>);
+}
+</code></pre>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li>Interfejs jest <code>@FunctionalInterface</code>, więc test podstawia lambdę jako fake albo spy. Teoria zaznacza, że interfejs <code>sealed</code> nie nadaje się na otwarty punkt podstawienia.</li>
+<li>Kontrakt zawiera tylko to, czego potrzebuje klient (jedna metoda). Nie kopiujemy całego API implementacji.</li>
+<li>Walidacja odbywa się przed wywołaniem zależności. Po zmianie niepoprawne żądanie nadal nie dociera do kalendarza (test <code>invalidRequestDoesNotReachInjectedDependency</code>).</li>
+<li>Konstruktor <code>after</code> dodaje <code>requireNonNull</code> dla zależności. To nowy kontrakt konstrukcji, a nie zmiana zachowania <code>schedule</code>.</li>
+<li>Wersja <code>after</code> nie ma konstruktora bezargumentowego, więc produkcyjne składanie przenosi się do composition root (<code>Module7Examples</code>). Alternatywą przejściową jest konstruktor domyślny delegujący do <code>this(new StandardMaintenanceWindows())</code>.</li>
+<li>Ryzyka z teorii: przeniesienie tworzenia może zmienić czas życia, współdzielenie, inicjalizację statyczną, blokady i granicę transakcji zależności.</li>
+</ul>
+<p><strong>Testy (<code>BreakDependenciesEquivalenceTest</code>):</strong></p>
+<ul>
+<li><code>standardDependencyPreservesDecisionsForEveryHour</code> - decyzje dla godzin 0-23 identyczne w obu wersjach,</li>
+<li><code>preservesMaintenanceWindowBoundaries</code> - granice okna 0, 5 (dozwolone), 6, 23 (poza oknem),</li>
+<li><code>injectedSeamControlsTheDecisionAndReceivesTheArgumentsOnce</code> - spy z lambdą: jedno wywołanie, poprawne argumenty, wynik sterowany przez test,</li>
+<li><code>preservesValidationFailuresAndTheirOrder</code> - typ i komunikat wyjątków, także <code>(&quot; &quot;, -1)</code> (pierwszy błąd wygrywa),</li>
+<li><code>invalidRequestDoesNotReachInjectedDependency</code> - zero wywołań zależności przy błędnych danych,</li>
+<li><code>rejectsMissingInjectedDependency</code> - <code>NullPointerException</code> z komunikatem <code>maintenanceWindows</code>.</li>
+</ul>
+<p><strong>Przebieg demonstracji:</strong></p>
+<ol>
+<li>Pokaż <code>LegacyDeploymentWindowService</code> i zapytaj: jak przetestować decyzję dla godziny 14 bez zmiany kalendarza?</li>
+<li>Wyodrębnij interfejs z jedną metodą, dodaj <code>implements</code> w implementacji produkcyjnej.</li>
+<li>Zmień typ pola na interfejs, dodaj konstruktor. Skompiluj, pokaż błąd kompilacji w miejscach tworzenia serwisu i przenieś składanie do <code>Module7Examples</code>.</li>
+<li>Uruchom <code>BreakDependenciesEquivalenceTest</code>, omów test ze spy.</li>
+</ol>
+<hr>
+<h2 id="2-extract-method-object-methodobject" tabindex="-1"><a class="header-anchor" href="#2-extract-method-object-methodobject"><span>2. Extract Method Object (<code>methodobject</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 2. Extract Method Object (Replace Function with Command).</p>
+<p><strong>Co ilustruje:</strong> obliczenie ryzyka z jedną mutowaną zmienną <code>score</code> i klasyfikacją poziomu zostaje przeniesione do obiektu <code>DeploymentRiskCalculation</code> tworzonego dla każdego wywołania. Zmienna lokalna staje się polem, kroki stają się prywatnymi metodami bez parametrów. Publiczna klasa <code>DeploymentRiskCalculator</code> zostaje fasadą.</p>
+<p><strong>Pliki:</strong></p>
+<ul>
+<li>before: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>methodobject/<wbr>before/<wbr>LegacyDeploymentRiskCalculator.java</code></li>
+<li>after: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>methodobject/<wbr>after/<wbr>DeploymentRiskCalculator.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>methodobject/<wbr>after/<wbr>DeploymentRiskCalculation.java</code></li>
+<li>wspólne: <code>DeploymentRiskInput.java</code>, <code>RiskAssessment.java</code>, <code>RiskLevel.java</code> w <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>methodobject/</code></li>
+</ul>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">RiskAssessment</span> <span class="hljs-title function_">calculate</span><span class="hljs-params">(DeploymentRiskInput input)</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">DeploymentRiskCalculation</span>(input).calculate();
+}
+</code></pre>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li>Nowy obiekt na każde wywołanie. Gdyby fasada trzymała jedną instancję w polu, <code>score</code> kumulowałby się między wywołaniami (test <code>facadeCreatesAnIndependentCalculationForEveryInvocation</code> wywołuje <code>low</code>, <code>high</code>, <code>low</code>).</li>
+<li><code>DeploymentRiskCalculation</code> jest klasą pakietową (brak <code>public</code>), a nie niestatyczną klasą wewnętrzną. Teoria: klasa wewnętrzna przechwytuje instancję zewnętrzną i ukrywa zależności.</li>
+<li>Rzutowanie <code>(long)</code> przed mnożeniem chroni przed przepełnieniem <code>int</code>. Dla <code>Integer.MAX_VALUE</code> wynik musi wynosić 100 (clamp). Usunięcie rzutowania zmieniłoby wynik.</li>
+<li>Kolejność: suma, redukcja za rollback, dopiero potem ograniczenie do 0-100. Przestawienie clamp przed redukcją zmienia wynik: dla <code>(120, 0, 0, true)</code> poprawnie wychodzi 100, a po przestawieniu 85; dla <code>(5, 0, 0, true)</code> wynik byłby ujemny i konstruktor <code>RiskAssessment</code> zgłosiłby wyjątek.</li>
+<li>Magiczne liczby wagi stały się stałymi, ale progi 30 i 70 zostały w <code>classify()</code>.</li>
+<li><code>requireNonNull(input, &quot;input&quot;)</code> przeniesiono do konstruktora obiektu metody. Komunikat pozostał ten sam (test <code>preservesMissingInputFailure</code>).</li>
+<li>Teoria: Method Object to rozwiązanie dla trudnego przepływu lokalnego stanu. Tutaj stan jest prosty, przykład ma charakter dydaktyczny. Warto o to zapytać uczestników.</li>
+</ul>
+<p><strong>Testy (<code>ExtractMethodObjectEquivalenceTest</code>):</strong></p>
+<ul>
+<li><code>preservesRiskAssessmentsAcrossRepresentativeInputs</code> - różnicowo dla reprezentatywnych wejść, w tym <code>Integer.MAX_VALUE</code>,</li>
+<li><code>preservesScoreClampingAndClassificationBoundaries</code> - granice 0, 29/30, 69/70, 100,</li>
+<li><code>preservesEachRiskWeightAndRollbackReduction</code> - wagi 20, 10 i redukcja 15,</li>
+<li><code>facadeCreatesAnIndependentCalculationForEveryInvocation</code> - brak wycieku stanu,</li>
+<li><code>preservesMissingInputFailure</code>, <code>sharedInputModelRejectsNegativeCounts</code>, <code>assessmentProtectsItsRangeAndRequiredLevel</code> - kontrakty wejścia i wyniku.</li>
+</ul>
+<p><strong>Przebieg demonstracji:</strong></p>
+<ol>
+<li>Pokaż wersję <code>before</code>, zaznacz zmienną <code>score</code> używaną przez wszystkie fragmenty i zapytaj, dlaczego zwykły Extract Method wymagałby przekazywania i zwracania <code>score</code>.</li>
+<li>Utwórz klasę, przenieś parametr do konstruktora, skopiuj ciało metody bez zmian (krok 3 sekwencji z teorii).</li>
+<li>Zastąp starą metodę delegacją, uruchom testy.</li>
+<li>Zamień <code>score</code> na pole i wydzielaj kroki po jednym, po każdym uruchamiając testy.</li>
+<li>Na koniec pokaż błąd: przenieś <code>new DeploymentRiskCalculation</code> do pola fasady i uruchom test niezależności wywołań.</li>
+</ol>
+<hr>
+<h2 id="3-break-responsibilities-breakresponsibilities" tabindex="-1"><a class="header-anchor" href="#3-break-responsibilities-breakresponsibilities"><span>3. Break Responsibilities (<code>breakresponsibilities</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 3. Break Responsibilities (odpowiedzialność jako powód zmiany).</p>
+<p><strong>Co ilustruje:</strong> metoda <code>generate</code> liczy metryki i formatuje raport. Po zmianie obliczenie trafia do <code>DeploymentMetricsCalculator</code> (zwraca rekord <code>DeploymentMetrics</code>), formatowanie do <code>DeploymentReportFormatter</code>, a <code>DeploymentReportService</code> składa oba kroki.</p>
+<p><strong>Pliki:</strong></p>
+<ul>
+<li>before: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>breakresponsibilities/<wbr>before/<wbr>LegacyDeploymentReport.java</code></li>
+<li>after: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>breakresponsibilities/<wbr>after/<wbr>DeploymentMetricsCalculator.java</code>, <code>.../<wbr>after/<wbr>DeploymentReportFormatter.java</code>, <code>.../<wbr>after/<wbr>DeploymentReportService.java</code></li>
+<li>wspólne: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>breakresponsibilities/<wbr>DeploymentSample.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>breakresponsibilities/<wbr>DeploymentMetrics.java</code></li>
+</ul>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li><code>DeploymentMetrics</code> to nowy model pośredni z niezmiennikami w kompaktowym konstruktorze (np. <code>failures</code> w zakresie 0..deployments, pusta lista ma średnią 0). Walidacja ta nie jest osiągalna z poprawnego obliczenia, ale stanowi kontrakt nowego typu.</li>
+<li><code>Math.addExact</code> przy sumowaniu czasu: przepełnienie daje <code>ArithmeticException</code> w obu wersjach (test przepełnienia).</li>
+<li>Średnia jest całkowitoliczbowa (<code>/</code> na <code>long</code>), dla 1 i 2 wynosi 1.</li>
+<li>Serwis nie przejmuje szczegółów obliczeń ani formatu. Kierunek zależności: serwis -&gt; kalkulator, serwis -&gt; formatter.</li>
+<li>Ryzyka z teorii: rozdzielenie operacji objętej jedną transakcją lub blokadą, wpływ ORM, serializacji i refleksji.</li>
+</ul>
+<p><strong>Testy (<code>BreakResponsibilitiesEquivalenceTest</code>):</strong></p>
+<ul>
+<li><code>preservesGeneratedReport</code>, <code>preservesEmptyReportAndIntegerAverage</code> - identyczny tekst,</li>
+<li><code>neitherImplementationMutatesTheInputList</code> - lista wejściowa bez zmian,</li>
+<li><code>preservesFailuresForMissingListAndElement</code>, <code>preservesOverflowFailureWhileAccumulatingLeadTime</code> - te same wyjątki,</li>
+<li><code>extractedComponentsHaveFocusedContracts</code> - kalkulator i formatter testowane osobno,</li>
+<li><code>domainValuesAndCollaboratorsRejectInvalidState</code> - niezmienniki rekordów i <code>requireNonNull</code> współpracowników.</li>
+</ul>
+<p><strong>Przebieg demonstracji:</strong> pokaż dwa powody zmiany (nowa metryka vs nowy format raportu), wydziel formatter jako pierwszy (koniec grafu wywołań), potem kalkulator, na końcu serwis składający. Po każdym kroku testy.</p>
+<hr>
+<h2 id="4-remove-duplication-duplication" tabindex="-1"><a class="header-anchor" href="#4-remove-duplication-duplication"><span>4. Remove Duplication (<code>duplication</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 4. Remove Duplication (duplikacja wiedzy, nie tekstu).</p>
+<p><strong>Co ilustruje:</strong> <code>publishSnapshot</code> i <code>publishRelease</code> powtarzają walidację, normalizację i składanie współrzędnych. Po zmianie wspólna reguła ma jednego właściciela (<code>publish</code> i <code>validateAndNormalize</code>), a publiczne metody nadal wyrażają dwa zamiary biznesowe. Różnica (sufiks <code>-SNAPSHOT</code> lub pusty) jest jawnym argumentem.</p>
+<p><strong>Pliki:</strong> before <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>duplication/<wbr>before/<wbr>LegacyArtifactPublisher.java</code>, after <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>duplication/<wbr>after/<wbr>ArtifactPublisher.java</code>.</p>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li><code>toLowerCase(Locale.ROOT)</code>: test uruchamia oba warianty z domyślnym <code>Locale</code> <code>tr-TR</code>. Bez <code>Locale.ROOT</code> wynik zależałby od domyślnego <code>Locale</code>: w <code>tr-TR</code> <code>&quot;IMAGE&quot;.toLowerCase()</code> daje <code>ımage</code> z tureckim bezkropkowym <code>ı</code>. To klasyczna pułapka przy &quot;porządkowaniu&quot; normalizacji.</li>
+<li>Kolejność walidacji (null, blank, buildNumber) musi być identyczna. Test używa <code>(null, 0)</code>, więc gdyby sprawdzano najpierw <code>buildNumber</code>, zmieniłby się pierwszy błąd.</li>
+<li>Teoria: abstrakcja wymagająca wielu flag to sygnał połączenia przypadkowo podobnych procesów. Tu różnica to jedna wartość, więc połączenie jest uzasadnione.</li>
+<li>Sekwencja z teorii: najpierw niezależnie scharakteryzować obie implementacje, potem ujednolicić strukturę bez współdzielenia, dopiero potem wydzielić wspólny fragment i przepinać ścieżki po jednej.</li>
+</ul>
+<p><strong>Testy (<code>DuplicationEquivalenceTest</code>):</strong> <code>preservesBothPublicationVariantsIndependentlyOfDefaultLocale</code> (wynik w <code>tr-TR</code>, <code>@ResourceLock(Resources.LOCALE)</code> przy zmianie globalnego <code>Locale</code>), <code>preservesValidationTypeMessageAndOrderForBothVariants</code>.</p>
+<p><strong>Przebieg demonstracji:</strong> najpierw uruchom test <code>Locale</code> na wersji <code>before</code>, potem przepnij <code>publishSnapshot</code> na wspólną metodę, uruchom testy, przepnij <code>publishRelease</code>. Dla efektu pokaż, co się stanie po usunięciu <code>Locale.ROOT</code>.</p>
+<hr>
+<h2 id="5-break-method-breakmethod" tabindex="-1"><a class="header-anchor" href="#5-break-method-breakmethod"><span>5. Break Method (<code>breakmethod</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 5. Break Method (seria małych ekstrakcji, jeden poziom abstrakcji, Split Phase).</p>
+<p><strong>Co ilustruje:</strong> <code>build</code> waliduje i kopiuje wpisy, sortuje je i renderuje. Po zmianie metoda publiczna czyta się jak opis procesu:</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">build</span><span class="hljs-params">(List&lt;ManifestEntry&gt; entries)</span> {
+    <span class="hljs-type">List</span>&lt;ManifestEntry&gt; <span class="hljs-variable">validatedEntries</span> <span class="hljs-operator">=</span> validateAndCopy(entries);
+    <span class="hljs-type">List</span>&lt;ManifestEntry&gt; <span class="hljs-variable">orderedEntries</span> <span class="hljs-operator">=</span> order(validatedEntries);
+    <span class="hljs-keyword">return</span> render(orderedEntries);
+}
+</code></pre>
+<p><strong>Pliki:</strong> before <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>breakmethod/<wbr>before/<wbr>LegacyReleaseManifestBuilder.java</code>, after <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>breakmethod/<wbr>after/<wbr>ReleaseManifestBuilder.java</code>, wspólny rekord <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>breakmethod/<wbr>ManifestEntry.java</code>.</p>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li>Lista wywołującego nie może być sortowana w miejscu. Wersja <code>before</code> sortuje własną kopię, <code>after</code> kopiuje w <code>validateAndCopy</code> i sortuje strumieniem.</li>
+<li><code>Stream.sorted</code> jest stabilny, podobnie jak <code>List.sort</code>. Przy równych kluczach (<code>deploymentOrder</code>, <code>artifact</code>) zachowana jest kolejność wejściowa (test <code>preservesInputOrderWhenAllSortKeysAreEqual</code>).</li>
+<li><code>.toList()</code> zwraca listę niemodyfikowalną. Tu nie wycieka na zewnątrz, więc nie zmienia kontraktu, ale warto o tym powiedzieć.</li>
+<li>Walidacja pozostaje w jednej pętli w tej samej kolejności pól. Rozbicie na osobne przebiegi (np. najpierw wszystkie <code>null</code>, potem wszystkie puste) zmieniłoby pierwszy zgłaszany błąd dla list z wieloma wadliwymi wpisami.</li>
+<li>Teoria: lokalne dane łatwo przechodzą między krokami, więc Method Object byłby tu zbędny. Porównaj z przykładem <code>methodobject</code>.</li>
+</ul>
+<p><strong>Testy (<code>BreakMethodEquivalenceTest</code>):</strong> <code>preservesOrderingRenderingAndTheCallersCollection</code> (wynik, pusta lista, lista wywołującego bez zmian), <code>preservesValidationTypeMessageAndEncounterOrder</code> (7 przypadków z wieloma błędnymi polami), <code>preservesInputOrderWhenAllSortKeysAreEqual</code> (stabilność).</p>
+<p><strong>Przebieg demonstracji:</strong> wydziel najpierw <code>render</code> (jedno wejście, jeden wynik), potem <code>order</code>, na końcu <code>validateAndCopy</code>. Po każdym kroku testy. Zapytaj: czy to już Split Phase? (Trzy fazy z osobnymi danymi pośrednimi.)</p>
+<hr>
+<h2 id="6-introduce-parameter-object-parameterobject" tabindex="-1"><a class="header-anchor" href="#6-introduce-parameter-object-parameterobject"><span>6. Introduce Parameter Object (<code>parameterobject</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 6. Introduce Parameter Object (data clump jako pojęcie, migracja API).</p>
+<p><strong>Co ilustruje:</strong> pięć parametrów (<code>service</code>, <code>region</code>, <code>instances</code>, <code>batchSize</code>, <code>pauseSeconds</code>) powtarzanych w <code>estimateSeconds</code>, <code>describe</code> i <code>validate</code> zostaje zastąpionych rekordem <code>RolloutSpec</code> z walidacją w kompaktowym konstruktorze.</p>
+<p><strong>Pliki:</strong> before <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>parameterobject/<wbr>before/<wbr>LegacyRolloutPlanner.java</code>, after <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>parameterobject/<wbr>after/<wbr>RolloutSpec.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>parameterobject/<wbr>after/<wbr>RolloutPlanner.java</code>.</p>
+<p><strong>Na co zwrócić uwagę (najważniejsza pułapka modułu):</strong></p>
+<ul>
+<li>Kod <code>after</code> to stan docelowy po świadomej zmianie momentu błędu: niepoprawny <code>RolloutSpec</code> jest odrzucany przy konstrukcji, a nie przy wywołaniu planera. To obserwowalna zmiana i nie jest czystą refaktoryzacją. Test nazywa ją wprost: <code>movesValidationFromEveryOperationToParameterObjectConstruction</code>.</li>
+<li>Stan przejściowy zachowujący zachowanie (według teorii): rekord bez walidacji, dotychczasowe kontrole nadal w planerze, stara sygnatura jako delegujące przeciążenie.</li>
+<li><code>Math.ceilDiv((long) instances, batchSize)</code> oraz <code>multiplyExact</code>, <code>addExact</code>: rzutowanie na <code>long</code> i dokładna arytmetyka. Dla <code>Integer.MAX_VALUE</code> instancji oczekiwany wynik to <code>32_212_254_720</code>.</li>
+<li>Zmiana sygnatury publicznej jest źródłowo poprawna po migracji, ale skompilowane pliki <code>.class</code> klientów oczekują starego deskryptora (błąd linkowania). Dla biblioteki potrzebne jest przeciążenie oznaczone <code>@Deprecated</code>.</li>
+<li>Komponenty publicznego rekordu są jego API (liczba, kolejność, typy).</li>
+<li><code>List.copyOf</code> (przywołane w teorii) nie gwarantuje nowej instancji i zmienia semantykę aliasowania. Tu nie występuje, ale warto wspomnieć przy rekordach z kolekcjami.</li>
+</ul>
+<p><strong>Testy (<code>ParameterObjectEquivalenceTest</code>):</strong> <code>preservesEstimationAndDescription</code> (165 s, identyczny opis), <code>usesOverflowSafeCeilingDivision</code>, <code>movesValidationFromEveryOperationToParameterObjectConstruction</code>, <code>preservesValidationTypeMessageAndOrder</code> (porównanie <code>legacy.describe(...)</code> z <code>new RolloutSpec(...)</code>), <code>rejectsNullParameterObjectAtTheNewApiBoundary</code> (komunikat <code>spec</code>).</p>
+<p><strong>Przebieg demonstracji:</strong> pokaż migrację w krokach z sekcji 6.4 teorii. Dodaj rekord bez walidacji, dodaj przeciążenie <code>estimateSeconds(RolloutSpec)</code>, niech stara metoda deleguje. Dopiero na końcu pokaż wersję <code>after</code> i zapytaj, gdzie zmienił się moment wyjątku.</p>
+<hr>
+<h2 id="7-remove-arrowhead-antipattern-arrowhead" tabindex="-1"><a class="header-anchor" href="#7-remove-arrowhead-antipattern-arrowhead"><span>7. Remove Arrowhead Antipattern (<code>arrowhead</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 7. Remove Arrowhead Antipattern (guard clauses, priorytet warunków).</p>
+<p><strong>Co ilustruje:</strong> pięć poziomów zagnieżdżonych <code>if</code> ze zmienną <code>result</code> zamienia się na sekwencję guard clauses z wczesnym <code>return</code>.</p>
+<p><strong>Pliki:</strong> before <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>arrowhead/<wbr>before/<wbr>LegacyDeploymentEligibility.java</code>, after <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>arrowhead/<wbr>after/<wbr>DeploymentEligibility.java</code>, wspólne <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>arrowhead/<wbr>DeploymentCandidate.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>arrowhead/<wbr>Eligibility.java</code>.</p>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li>Priorytet: kandydat bez akceptacji i z nieudanymi testami musi dać <code>NOT_APPROVED</code>, bo ten warunek sprawdzany jest pierwszy. Przestawienie guard clauses zmienia wynik.</li>
+<li>Warunek złożony <code>releaseId != null &amp;&amp; !releaseId.isBlank()</code> po odwróceniu staje się <code>releaseId == null || releaseId.isBlank()</code> (prawo de Morgana, short-circuit nadal chroni przed NPE).</li>
+<li>Sekwencja z teorii: odwracaj po jednym poziomie od zewnątrz, usuwaj odpowiadający <code>else</code>, uruchamiaj testy. Nie pomijaj logowania, mutacji ani zwalniania zasobów.</li>
+</ul>
+<p><strong>Testy (<code>ArrowheadEquivalenceTest</code>):</strong> <code>guardClausesPreserveTheCompleteDecisionMatrix</code> (8 kombinacji flag), <code>guardClausesPreserveValidationAndFailurePriority</code> (brak kandydata, <code>releaseId</code> równy <code>null</code> i złożony z białych znaków przy wszystkich flagach <code>false</code>, oraz kolejne poziomy priorytetu).</p>
+<p><strong>Przebieg demonstracji:</strong> najpierw zbuduj z uczestnikami macierz decyzji na tablicy, potem odwracaj poziomy po jednym. Na koniec celowo zamień kolejność <code>approved</code> i <code>testsPassed</code> i uruchom test.</p>
+<hr>
+<h2 id="8-introduce-design-by-contract-checks-contract" tabindex="-1"><a class="header-anchor" href="#8-introduce-design-by-contract-checks-contract"><span>8. Introduce Design by Contract Checks (<code>contract</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 8. Introduce Design by Contract Checks (precondition, postcondition, invariant; <code>assert</code> a publiczne API).</p>
+<p><strong>Co ilustruje:</strong> <code>LegacyDeploymentCapacity</code> przyjmuje dowolne wartości i może przejść w stan niespójny (ujemna pojemność, więcej wolnych slotów niż całość). Wersja <code>after</code> dodaje pole <code>totalSlots</code> i jawne kontrole przez <code>Contracts.require</code> (<code>IllegalArgumentException</code>), <code>Contracts.ensure</code> i <code>Contracts.invariant</code> (<code>IllegalStateException</code>).</p>
+<p><strong>Pliki:</strong> before <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>contract/<wbr>before/<wbr>LegacyDeploymentCapacity.java</code>, after <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>contract/<wbr>after/<wbr>Contracts.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>contract/<wbr>after/<wbr>DeploymentCapacity.java</code>.</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">void</span> <span class="hljs-title function_">reserve</span><span class="hljs-params">(<span class="hljs-type">int</span> slots)</span> {
+    Contracts.require(slots &gt; <span class="hljs-number">0</span>, <span class="hljs-string">&quot;slots must be positive&quot;</span>);
+    Contracts.require(slots &lt;= remaining, <span class="hljs-string">&quot;cannot reserve more slots than remain&quot;</span>);
+    <span class="hljs-type">int</span> <span class="hljs-variable">previousRemaining</span> <span class="hljs-operator">=</span> remaining;
+    <span class="hljs-type">int</span> <span class="hljs-variable">nextRemaining</span> <span class="hljs-operator">=</span> previousRemaining - slots;
+    checkInvariant(nextRemaining);
+    remaining = nextRemaining;
+    Contracts.ensure(remaining == previousRemaining - slots,
+            <span class="hljs-string">&quot;reserve must reduce remaining capacity by slots&quot;</span>);
+    checkInvariant();
+}
+</code></pre>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li>To nie jest czysta refaktoryzacja. Dodanie odrzucenia niepoprawnych danych zmienia zachowanie. Test celowo rozdziela równoważność dla poprawnych sekwencji od nowego kontraktu dla niepoprawnych.</li>
+<li>Preconditions przed pierwszą mutacją; nowy stan najpierw liczony i sprawdzany względem niezmiennika, dopiero potem przypisywany. Naruszenie precondition nie zmienia obiektu.</li>
+<li><code>assert</code> jest domyślnie wyłączony (flaga <code>-ea</code>) i zgłasza <code>AssertionError</code>, więc nie nadaje się do publicznych preconditions.</li>
+<li>W istniejącym systemie historyczny typ wyjątku może być ważniejszy niż &quot;podręcznikowy&quot;. Nie zmieniać go mechanicznie.</li>
+<li>Zasada LSP: podtyp nie wzmacnia preconditions ani nie osłabia postconditions.</li>
+</ul>
+<p><strong>Testy (<code>DesignByContractTest</code>):</strong> <code>explicitContractsPreserveEveryValidStateTransition</code> (różnicowo dla poprawnej sekwencji), <code>preconditionsRejectInvalidOperationsBeforeMutation</code> (komunikaty i niezmieniony <code>remaining</code>), <code>contractHelpersUseRuntimeExceptionsWithoutJavaAssertions</code>.</p>
+<p><strong>Przebieg demonstracji:</strong> pokaż, że <code>new LegacyDeploymentCapacity(5).reserve(6)</code> daje <code>remaining() == -1</code>. Sformułuj z grupą trzy rodzaje warunków, dodaj je po kolei, uruchamiaj oba testy osobno.</p>
+<hr>
+<h2 id="9-remove-double-negative-doublenegative" tabindex="-1"><a class="header-anchor" href="#9-remove-double-negative-doublenegative"><span>9. Remove Double Negative (<code>doublenegative</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 9. Remove Double Negative.</p>
+<p><strong>Co ilustruje:</strong> rekord z polami <code>notApproved</code>, <code>testsNotPassed</code>, <code>windowNotOpen</code> i warunek <code>!a &amp;&amp; !b &amp;&amp; !c</code> zastąpione rekordem z polami pozytywnymi i warunkiem <code>a &amp;&amp; b &amp;&amp; c</code>.</p>
+<p><strong>Pliki:</strong> before <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>doublenegative/<wbr>before/<wbr>LegacyReleaseReadiness.java</code>, <code>.../<wbr>before/<wbr>LegacyReleaseGate.java</code>; after <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>doublenegative/<wbr>after/<wbr>ReleaseReadiness.java</code>, <code>.../<wbr>after/<wbr>ReleaseGate.java</code>.</p>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li>Pozytywna nazwa musi być dokładnym dopełnieniem logicznym starej właściwości. Test mapuje <code>approved = !notApproved</code> itd.</li>
+<li><code>Boolean</code> z wartością <code>null</code> nie jest dwustanowy: <code>!disabled</code> może zgłosić NPE przy unboxingu, a <code>!Boolean.TRUE.equals(disabled)</code> traktuje <code>null</code> jak <code>false</code>. To różne kontrakty.</li>
+<li>Zmiana nazw komponentów rekordu to zmiana API. Jeśli nazwa jest polem JSON, kolumną lub kluczem konfiguracji, potrzebna jest migracja granicy systemu.</li>
+<li>Sekwencja z teorii: najpierw predykat pozytywny delegujący do negatywnego, migracja po jednym użyciu, potem odwrócenie implementacji.</li>
+</ul>
+<p><strong>Testy (<code>DoubleNegativeEquivalenceTest</code>):</strong> <code>positiveNamesPreserveAllEightTruthTableRows</code>, <code>bothGatesRejectMissingReadinessWithTheSameContract</code>.</p>
+<p><strong>Przebieg demonstracji:</strong> krótki (5 minut). Pokaż tabelę prawdy w teście i zapytaj o konsekwencje zmiany nazw dla serializacji.</p>
+<hr>
+<h2 id="10-remove-god-classes-godclass" tabindex="-1"><a class="header-anchor" href="#10-remove-god-classes-godclass"><span>10. Remove God Classes (<code>godclass</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 10. Remove God Classes (kampania małych ruchów).</p>
+<p><strong>Co ilustruje:</strong> <code>LegacyReleaseManager</code> łączy walidację, przechowywanie, audyt, powiadomienia i ślad zdarzeń (<code>events</code>). Wersja <code>after</code> to stan po wydzieleniu pionowego fragmentu: <code>ReleaseApplicationService</code> koordynuje, a <code>ReleaseValidator</code>, <code>ReleaseRepository</code> (+ <code>InMemoryReleaseRepository</code>), <code>AuditTrail</code> i <code>ReleaseNotifier</code> mają osobne kontrakty. Ślad zdarzeń jest zbierany przez wstrzykiwany <code>Consumer&lt;String&gt; eventSink</code>.</p>
+<p><strong>Pliki:</strong></p>
+<ul>
+<li>before: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>godclass/<wbr>before/<wbr>LegacyReleaseManager.java</code></li>
+<li>after: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>godclass/<wbr>after/<wbr>ReleaseApplicationService.java</code>, <code>ReleaseValidator.java</code>, <code>ReleaseRepository.java</code>, <code>InMemoryReleaseRepository.java</code>, <code>AuditTrail.java</code>, <code>ReleaseNotifier.java</code> (wszystkie w <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>godclass/<wbr>after/</code>)</li>
+<li>wspólne: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>godclass/<wbr>PublishedRelease.java</code></li>
+</ul>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li>Kolejność efektów <code>save</code>, <code>audit</code>, <code>notify</code> jest częścią kontraktu i jest sprawdzana przez wspólną listę <code>events</code>.</li>
+<li>Brak transakcji: awaria kroku zatrzymuje sekwencję, ale nie wycofuje wcześniejszych efektów. Teoria mówi, że to świadoma decyzja zapisana w testach. W produkcji atomowość mogłaby wymagać transakcji, transactional outbox, idempotentnych ponowień lub kompensacji, ale tej decyzji nie ukrywa się w ruchu klas.</li>
+<li>Walidacja w <code>ReleaseValidator</code> zachowuje kolejność pól i komunikaty (<code>releaseId</code>, <code>service</code>, <code>version</code>), a sprawdzenie duplikatu następuje po walidacji, jak w wersji <code>before</code>.</li>
+<li><code>InMemoryReleaseRepository.save</code> sprawdza duplikat ponownie. Ścieżka przez serwis nigdy do niego nie dochodzi (serwis sprawdza <code>existsById</code> wcześniej), ale repozytorium chroni własny niezmiennik. Dobry temat do dyskusji.</li>
+<li>Kolekcje udostępniane są jako <code>List.copyOf</code> w obu wersjach (test <code>exposedCollectionsAreDefensiveSnapshots</code>).</li>
+<li>Stan ma jednego właściciela: wydania należą do repozytorium, wpisy audytu do <code>AuditTrail</code>, powiadomienia do <code>ReleaseNotifier</code>. Zależności są jednokierunkowe (serwis -&gt; współpracownicy).</li>
+<li>Wersja <code>after</code> pokazuje stan końcowy kilku kroków kampanii. W praktyce (i w Warsztacie 3) pierwszy krok zostawia <code>LegacyReleaseManager</code> jako delegującą fasadę.</li>
+<li>Ryzyka z teorii: zmiana transakcji, kolejności efektów, blokad, tożsamości encji, lazy loading, serializacji, konfiguracji DI. Sieć małych klas o niskiej spójności nie jest automatycznie lepsza.</li>
+</ul>
+<p><strong>Testy (<code>GodClassEquivalenceTest</code>):</strong></p>
+<ul>
+<li><code>collaboratorsPreserveResultEffectsAndTheirOrder</code> - wynik, stan i ślad <code>save:rel-42</code>, <code>audit:rel-42</code>, <code>notify:rel-42</code> identyczne jak w <code>before</code>,</li>
+<li><code>validationAndDuplicateFailuresDoNotCreateFurtherEffects</code> - brak efektów przy błędzie walidacji i przy duplikacie,</li>
+<li><code>exposedCollectionsAreDefensiveSnapshots</code> - niemodyfikowalne kopie,</li>
+<li><code>repositoryFailureStopsLaterEffectsAndKeepsTheCompletedSave</code>, <code>auditFailureStopsNotificationAndKeepsEarlierEffects</code>, <code>notificationFailureKeepsAllEarlierEffects</code> - awaria każdego kroku przez <code>eventSink</code> rzucający wyjątek.</li>
+</ul>
+<p><strong>Przebieg demonstracji:</strong></p>
+<ol>
+<li>Narysuj mapę metod do pól (4 pola, 1 metoda z logiką, 4 akcesory).</li>
+<li>Wydziel <code>ReleaseNotifier</code> (koniec grafu wywołań) jako pierwszy krok, zostaw <code>LegacyReleaseManager.notifications()</code> jako delegację, zasil <code>eventSink</code> przez <code>events::add</code>.</li>
+<li>Pokaż test awarii z <code>eventSink</code> rzucającym wyjątek i omów brak wycofania.</li>
+<li>Pokaż wersję <code>after</code> jako docelowy stan kampanii i <code>Module7Examples</code> jako miejsce składania.</li>
+</ol>
+<hr>
+<h2 id="11-remove-boolean-method-parameters-booleanparameter" tabindex="-1"><a class="header-anchor" href="#11-remove-boolean-method-parameters-booleanparameter"><span>11. Remove Boolean Method Parameters (<code>booleanparameter</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 11. Remove Boolean Method Parameters.</p>
+<p><strong>Co ilustruje:</strong> <code>execute(String deploymentId, boolean dryRun)</code> zastąpione przez <code>preview(id)</code> i <code>deploy(id)</code>. Wspólna prywatna implementacja przyjmuje nazwany tryb <code>ExecutionMode</code> (prywatny enum z prefiksem wyniku).</p>
+<p><strong>Pliki:</strong> before <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>booleanparameter/<wbr>before/<wbr>LegacyDeploymentExecutor.java</code>, after <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>booleanparameter/<wbr>after/<wbr>DeploymentExecutor.java</code>.</p>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li>Nie każdy <code>boolean</code> jest flagą. Wartość z formularza albo komunikatu może być daną domenową.</li>
+<li>Celem nie jest zdublowanie algorytmu w dwóch metodach, tylko ujawnienie zamiaru w miejscu wywołania.</li>
+<li>Dla publicznej biblioteki stara metoda powinna czasowo pozostać jako delegująca (wersja <code>after</code> jej nie ma, bo pokazuje stan końcowy).</li>
+<li>Wiele flag daje wykładniczo wiele kombinacji. Wtedy zamiast mnożyć metody należy rozważyć obiekt polityki.</li>
+</ul>
+<p><strong>Testy (<code>BooleanParameterEquivalenceTest</code>):</strong> <code>namedOperationsPreserveBothLegacyBranches</code>, <code>validationIsIdenticalForBothNamedOperations</code> (null, pusty, blank), <code>publicApiContainsNoBooleanParameterAndExecutorHasNoMutableState</code> (refleksja po publicznych metodach).</p>
+<p><strong>Przebieg demonstracji:</strong> dodaj <code>preview</code> i <code>deploy</code> delegujące do <code>execute(id, true/<wbr>false)</code>, migruj klienta, na końcu zamień prywatną implementację na enum. Pokaż test oparty na refleksji jako &quot;strażnika&quot; API.</p>
+<hr>
+<h2 id="12-remove-middle-man-middleman" tabindex="-1"><a class="header-anchor" href="#12-remove-middle-man-middleman"><span>12. Remove Middle Man (<code>middleman</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 12. Remove Middle Man.</p>
+<p><strong>Co ilustruje:</strong> <code>ReleaseService</code> tylko przekazuje wywołania do <code>DeploymentRegistry</code>. Po zmianie <code>ReleaseDashboard</code> zależy bezpośrednio od rejestru, a <code>ReleaseService</code> znika. <code>DeploymentRegistry</code> jest identyczny w obu wersjach.</p>
+<p><strong>Pliki:</strong> before <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>middleman/<wbr>before/<wbr>ReleaseService.java</code>, <code>.../<wbr>before/<wbr>ReleaseDashboard.java</code>, <code>.../<wbr>before/<wbr>DeploymentRegistry.java</code>; after <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>middleman/<wbr>after/<wbr>ReleaseDashboard.java</code>, <code>.../<wbr>after/<wbr>DeploymentRegistry.java</code>; wspólny enum <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>middleman/<wbr>DeploymentStatus.java</code>.</p>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li>Przed usunięciem potwierdź, że pośrednik nie realizuje autoryzacji, transakcji, telemetrii, retry ani translacji błędów.</li>
+<li>Remove Middle Man jest odwrotnością Hide Delegate. Fasada modułu, adapter biblioteki zewnętrznej czy seam testowy mogą mieć wartość nawet przy jednej linii.</li>
+<li>Walidacja pozostaje na granicy rejestru, więc komunikaty są te same.</li>
+<li>Komunikat <code>requireNonNull</code> w konstruktorze dashboardu zmienia się z <code>releaseService must not be null</code> na <code>registry must not be null</code> (inny parametr, nowy kontrakt konstrukcji).</li>
+</ul>
+<p><strong>Testy (<code>MiddleManEquivalenceTest</code>):</strong> <code>directCollaborationPreservesLookupUpdatesOverwriteAndRendering</code> (UNKNOWN, aktualizacja, nadpisanie, render), <code>validationRemainsAtTheRegistryBoundary</code> (null, pusty, blank, <code>null</code> status nie zmienia stanu).</p>
+<p><strong>Przebieg demonstracji:</strong> krótki. Zapytaj grupę, jakie powody mogłyby uzasadnić pozostawienie <code>ReleaseService</code>, potem przepnij dashboard.</p>
+<hr>
+<h2 id="13-return-asap-returnasap" tabindex="-1"><a class="header-anchor" href="#13-return-asap-returnasap"><span>13. Return ASAP (<code>returnasap</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 13. Return ASAP.</p>
+<p><strong>Co ilustruje:</strong> pętla <code>while</code> ze zmienną wyniku i warunkiem <code>result == null</code> zastąpiona pętlą <code>for</code> z <code>return Optional.of(artifact)</code> w miejscu dopasowania.</p>
+<p><strong>Pliki:</strong> before <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>returnasap/<wbr>before/<wbr>LegacyArtifactFinder.java</code>, after <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>returnasap/<wbr>after/<wbr>ArtifactFinder.java</code>, wspólny rekord <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>returnasap/<wbr>Artifact.java</code>.</p>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li>Obie wersje zatrzymują się na pierwszym dopasowaniu i zwracają tę samą instancję (<code>assertSame</code>).</li>
+<li>Element <code>null</code> przed dopasowaniem zgłasza NPE, element <code>null</code> po dopasowaniu nie jest odczytywany.</li>
+<li>Wersja <code>after</code> celowo zachowuje dostęp indeksowy <code>size()</code> i <code>get(index)</code>. Zamiana na iterator lub strumień to osobny krok, bo niestandardowa, leniwa lub instrumentowana lista może ujawnić inną liczbę wywołań i inne wyjątki. Test sprawdza ślad <code>[&quot;size&quot;, &quot;get:0&quot;]</code>.</li>
+<li><code>return</code> w <code>try</code> nadal uruchamia <code>finally</code>, a nagłe zakończenie <code>finally</code> może zastąpić wynik lub wyjątek. Zasoby zabezpieczyć przed wprowadzeniem wczesnych zwrotów.</li>
+</ul>
+<p><strong>Testy (<code>ReturnAsapEquivalenceTest</code>):</strong> <code>earlyReturnPreservesEmptyMissingAndPresentResults</code>, <code>bothVersionsReturnTheFirstMatchingInstance</code>, <code>nullElementIsReadBeforeAMatchButNotAfterIt</code>, <code>inputValidationHasTheSameOrderAndMessages</code>, <code>earlyReturnPreservesIndexedListAccesses</code> (lista śledząca oparta o <code>AbstractList</code>).</p>
+<p><strong>Przebieg demonstracji:</strong> najpierw uruchom test ze śledzącą listą na obu wersjach i omów ślad: w wersji <code>before</code> po dopasowaniu warunek <code>result == null</code> jest fałszywy, więc <code>size()</code> nie jest wołane ponownie (short-circuit), a wersja <code>after</code> kończy się <code>return</code> przed kolejnym sprawdzeniem. Potem wprowadź wczesny zwrót na żywo w krokach z sekcji 13.4 teorii. Na koniec zapytaj, czy wolno od razu przejść na <code>for (Artifact a : artifacts)</code>. Uwaga dla prowadzącego: iterator <code>AbstractList</code> sam korzysta z <code>size()</code> i <code>get(index)</code>, więc dla tej konkretnej listy śledzącej test może nadal przejść. To dobry argument w dyskusji: przechodzący test nie dowodzi równoważności dla każdej implementacji <code>List</code> (lista leniwa, instrumentowana, <code>LinkedList</code> z liniowym <code>get</code>), dlatego zmiana sposobu iteracji jest osobnym, świadomym krokiem.</p>
+<hr>
+<h2 id="module7examples-i-module7examplestest" tabindex="-1"><a class="header-anchor" href="#module7examples-i-module7examplestest"><span><code>Module7Examples</code> i <code>Module7ExamplesTest</code></span></a></h2>
+<ul>
+<li>Plik: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>Module7Examples.java</code>, test: <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>Module7ExamplesTest.java</code>.</li>
+<li><code>runExamples()</code> uruchamia po jednym deterministycznym przykładzie wersji <code>after</code> dla każdego z 13 tematów i zwraca niemodyfikowalną listę.</li>
+<li>Testy: <code>runsOneDeterministicExampleForEveryTopic</code> (dokładna lista wyników), <code>returnedResultsCannotBeModified</code>, <code>mainPrintsEveryResultOnItsOwnLine</code> (przechwycenie <code>System.out</code>).</li>
+<li>Dobry punkt startowy zajęć: uruchom <code>main</code>, pokaż wynik, następnie przechodź do kolejnych pakietów zgodnie z harmonogramem.</li>
+</ul>
+<h2 id="proponowana-kolejnosc-pokazow-wedlug-harmonogramu" tabindex="-1"><a class="header-anchor" href="#proponowana-kolejnosc-pokazow-wedlug-harmonogramu"><span>Proponowana kolejność pokazów według harmonogramu</span></a></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Blok (czas)</th>
+<th>Przykłady</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>model zachowania i Break Dependencies (40 min)</td>
+<td>wspólny wzorzec testów, <code>breakdependencies</code></td>
+</tr>
+<tr>
+<td>Method Object, odpowiedzialności i duplikacja (60 min)</td>
+<td><code>methodobject</code>, <code>breakresponsibilities</code>, <code>duplication</code></td>
+</tr>
+<tr>
+<td>Break Method i Parameter Object (45 min)</td>
+<td><code>breakmethod</code>, <code>parameterobject</code></td>
+</tr>
+<tr>
+<td>Arrowhead, kontrakty i podwójne zaprzeczenia (60 min)</td>
+<td><code>arrowhead</code>, <code>contract</code>, <code>doublenegative</code></td>
+</tr>
+<tr>
+<td>God Class, flagi i Middle Man (55 min)</td>
+<td><code>godclass</code>, <code>booleanparameter</code>, <code>middleman</code></td>
+</tr>
+<tr>
+<td>Return ASAP i migracja API (25 min)</td>
+<td><code>returnasap</code>, powrót do migracji z <code>parameterobject</code> i <code>booleanparameter</code> (przeciążenia, pliki <code>.class</code>)</td>
+</tr>
+<tr>
+<td>ćwiczenia warsztatowe (60 min)</td>
+<td>Warsztaty 1-3 (plik zadań)</td>
+</tr>
+<tr>
+<td>przegląd rozwiązań i podsumowanie (15 min)</td>
+<td>lista kontrolna przeglądu (plik rozwiązań)</td>
+</tr>
+</tbody>
+</table></div>
+
+</main>
+</div>
+<script>if(matchMedia('(max-width:900px)').matches){var d=document.querySelector('.toc details');if(d)d.open=false}</script>
+</body>
+</html>

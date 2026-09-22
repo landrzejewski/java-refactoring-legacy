@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rozwiązania: Moduł 4. Podstawowe refaktoryzacje - warsztat praktyczny</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1d1f23;--muted:#5f6670;--line:#e3e5e8;--card:#ffffff;--accent:#2457c5;--accent-bg:#eef3fd;
+--code-bg:#f4f5f7;--note-bg:#fff7e6;--note-line:#e6a700;--th:#f1f3f6;
+--k:#b3246b;--s:#1a7f37;--c:#6e7781;--n:#0550ae;--t:#8250df;--f:#6639ba;--a:#953800;
+--kind:#2457c5}
+@media (prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3036;--card:#1c1f23;--accent:#7aa7ff;--accent-bg:#1e2a40;
+--code-bg:#1f2328;--note-bg:#2b2412;--note-line:#c99400;--th:#23272d;
+--k:#ff7b9c;--s:#7ee2a0;--c:#8b949e;--n:#79c0ff;--t:#d2a8ff;--f:#d2a8ff;--a:#ffa657}}
+body.zadania{--kind:#1a7f37} body.rozwiazania{--kind:#b3246b} body.przyklady{--kind:#2457c5}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.topbar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 24px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);border-top:3px solid var(--kind)}
+.topbar a{color:var(--fg);text-decoration:none}
+.home{font-weight:600}
+.tabs{display:flex;gap:4px}
+.tab{padding:4px 12px;border-radius:999px;font-size:15px;color:var(--muted)!important}
+.tab:hover{background:var(--code-bg)}
+.tab.active{background:var(--accent-bg);color:var(--accent)!important;font-weight:600}
+.pager{margin-left:auto;display:flex;gap:14px;font-size:15px}
+.pager a{color:var(--muted)}.pager a:hover{color:var(--accent)}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:48px;max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+.layout.no-toc{grid-template-columns:minmax(0,1fr);max-width:1000px}
+aside{position:sticky;top:72px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px}
+.toc-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;font-weight:600}
+.toc ul{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.toc li a{display:block;padding:3px 12px;color:var(--muted);text-decoration:none;line-height:1.35}
+.toc li.h3 a{padding-left:24px;font-size:13px}
+.toc li a:hover{color:var(--accent)}
+main{min-width:0;max-width:860px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 1.2rem;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:2.6rem 0 .8rem;padding-top:.6rem;border-top:1px solid var(--line)}
+h3{font-size:1.18rem;margin:2rem 0 .6rem}
+h4{font-size:1rem;margin:1.5rem 0 .5rem}
+h1 a,h2 a,h3 a,h4 a{color:inherit;text-decoration:none}
+h2 a:hover::after,h3 a:hover::after{content:" #";color:var(--muted)}
+p,ul,ol{margin:.6rem 0 1rem}
+li{margin:.25rem 0}
+li>ul,li>ol{margin:.2rem 0}
+a{color:var(--accent)}
+strong{font-weight:650}
+code{font:0.88em/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre.code{position:relative;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:1rem 0 1.4rem}
+pre.code code{background:none;padding:0;font-size:14px;line-height:1.55}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:6px;right:10px;font:11px ui-monospace,Menlo,monospace;color:var(--muted);text-transform:uppercase}
+.table-wrap{overflow-x:auto;margin:1rem 0 1.4rem;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--th);font-weight:600}
+tr:last-child td{border-bottom:none}
+blockquote{margin:1rem 0 1.4rem;padding:10px 16px;background:var(--note-bg);border-left:4px solid var(--note-line);border-radius:0 8px 8px 0}
+blockquote p{margin:.3rem 0}
+hr{border:none;border-top:1px solid var(--line);margin:2rem 0}
+hr+h2{border-top:none;margin-top:1.4rem}
+main p code,main li code,main td code{overflow-wrap:break-word}
+.toc summary{cursor:pointer;list-style:none}.toc summary::-webkit-details-marker{display:none}
+.hljs-keyword,.hljs-selector-tag,.hljs-built_in,.hljs-literal{color:var(--k)}
+.hljs-string,.hljs-regexp,.hljs-addition{color:var(--s)}
+.hljs-comment,.hljs-quote,.hljs-meta{color:var(--c);font-style:italic}
+.hljs-number,.hljs-symbol{color:var(--n)}
+.hljs-type,.hljs-class .hljs-title,.hljs-title.class_{color:var(--t)}
+.hljs-title,.hljs-title.function_,.hljs-section{color:var(--f)}
+.hljs-attr,.hljs-attribute,.hljs-variable,.hljs-params,.hljs-tag{color:var(--a)}
+.hljs-deletion{color:var(--k)}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:16px;padding:20px 16px 60px}
+aside{position:static;max-height:none;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--card)}
+.toc-title{margin:0}.toc details[open] .toc-title{margin-bottom:8px}.toc summary::after{content:" ▾"}
+body{font-size:16px}.topbar{padding:8px 16px}.pager{margin-left:0}h1{font-size:1.6rem}}
+@media print{.topbar,aside{display:none}.layout{display:block;padding:0}main{max-width:none}
+pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#000;font-size:12pt}}
+</style>
+</head>
+<body class="rozwiazania">
+<header class="topbar"><a class="home" href="../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../zadania/04-podstawowe-refaktoryzacje-warsztat-praktyczny.html">Zadania</a><a class="tab" href="../przyklady/04-podstawowe-refaktoryzacje-warsztat-praktyczny.html">Przykłady</a><a class="tab active" href="/04-podstawowe-refaktoryzacje-warsztat-praktyczny.html">Rozwiązania</a></div><div class="pager"><a href="03-zasady-dobrego-projektowania.html" title="Poprzedni moduł">&larr; 03</a><a href="05-refaktoryzacje-hierarchii-klas-warsztat-praktyczny.html" title="Następny moduł">05 &rarr;</a></div></header>
+<div class="layout">
+<aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#rozwiazania-i-wskazowki-dla-prowadzacego">Rozwiązania i wskazówki dla prowadzącego</a></li><li class="h2"><a href="#cwiczenie-1-lokalne-porzadkowanie-metody">Ćwiczenie 1: lokalne porządkowanie metody</a></li><li class="h3"><a href="#rozwiazanie-wzorcowe">Rozwiązanie wzorcowe</a></li><li class="h3"><a href="#wskazowki-do-omowienia-z-teorii">Wskazówki do omówienia (z teorii)</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji">Pytania do dyskusji</a></li><li class="h2"><a href="#cwiczenie-2-extract-i-inline-pod-presja-semantyki">Ćwiczenie 2: Extract i Inline pod presją semantyki</a></li><li class="h3"><a href="#rozwiazanie-wzorcowe-czesci-a-z-teorii-sekcja-142">Rozwiązanie wzorcowe części A (z teorii, sekcja 14.2)</a></li><li class="h3"><a href="#rozwiazanie-czesci-b">Rozwiązanie części B</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow-1">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji-1">Pytania do dyskusji</a></li><li class="h2"><a href="#cwiczenie-3-extract-class-oraz-przeniesienie-odpowiedzialnosci">Ćwiczenie 3: Extract Class oraz przeniesienie odpowiedzialności</a></li><li class="h3"><a href="#odpowiedzi-na-pytania-wstepne">Odpowiedzi na pytania wstępne</a></li><li class="h3"><a href="#rozwiazanie-wzorcowe-z-teorii-sekcje-124-i-143">Rozwiązanie wzorcowe (z teorii, sekcje 12.4 i 14.3)</a></li><li class="h3"><a href="#wskazowki-do-omowienia">Wskazówki do omówienia</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow-2">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji-2">Pytania do dyskusji</a></li><li class="h2"><a href="#cwiczenie-4-kontrola-mutowalnego-stanu">Ćwiczenie 4: kontrola mutowalnego stanu</a></li><li class="h3"><a href="#rozwiazanie-wzorcowe-z-teorii-sekcje-128-i-144">Rozwiązanie wzorcowe (z teorii, sekcje 12.8 i 14.4)</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow-3">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji-3">Pytania do dyskusji</a></li><li class="h2"><a href="#retrospektywa-po-kazdym-cwiczeniu">Retrospektywa po każdym ćwiczeniu</a></li><li class="h2"><a href="#sprawdzenie-wiedzy-odpowiedzi">Sprawdzenie wiedzy - odpowiedzi</a></li></ul></details></nav></aside>
+<main>
+<h1>Moduł 4. Podstawowe refaktoryzacje - warsztat praktyczny</h1>
+<h2 id="rozwiazania-i-wskazowki-dla-prowadzacego" tabindex="-1"><a class="header-anchor" href="#rozwiazania-i-wskazowki-dla-prowadzacego"><span>Rozwiązania i wskazówki dla prowadzącego</span></a></h2>
+<p>Numeracja i nazwy odpowiadają plikowi zadań. Kod referencyjny znajduje się w <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4</code>, testy w <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4</code>.</p>
+<hr>
+<h2 id="cwiczenie-1-lokalne-porzadkowanie-metody" tabindex="-1"><a class="header-anchor" href="#cwiczenie-1-lokalne-porzadkowanie-metody"><span>Ćwiczenie 1: lokalne porządkowanie metody</span></a></h2>
+<p><strong>Kod referencyjny (stan docelowy):</strong> <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>stage1/<wbr>RentalQuoteService.java</code>.</p>
+<p><strong>Test chroniący:</strong> <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>stage0/<wbr>RentalQuoteServiceCharacterizationTest.java</code> (uczestnicy mogą go skopiować i przestawić na swoją klasę) oraz <code>RentalQuoteStagesEquivalenceTest</code>.</p>
+<h3 id="rozwiazanie-wzorcowe" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-wzorcowe"><span>Rozwiązanie wzorcowe</span></a></h3>
+<p>Kroki 1-2 (czułość testu): zmiana <code>r.days() &gt;= 7</code> na <code>r.days() &gt; 7</code> lub na <code>&gt;= 8</code> powoduje porażkę <code>documentsDiscountBoundary</code> (7 dni przestaje dawać rabat 84.00) i <code>documentsCompleteGeneratorQuote</code> nie (8 dni nadal z rabatem). Wniosek: sama pełna oferta nie chroni granicy; potrzebne są oba boki progu.</p>
+<p>Zalecana kolejność transformacji (z teorii, sekcja 14.1):</p>
+<ol>
+<li><strong>Rename</strong> lokalnych symboli, ponieważ zmienia najmniejszy obszar i ułatwia czytanie następnych kroków: <code>r</code> -&gt; <code>request</code>, <code>a</code> -&gt; <code>baseRentalCost</code>, <code>d</code> -&gt; <code>discount</code>, <code>i</code> -&gt; <code>insuranceCost</code>, <code>f</code> -&gt; <code>deliveryCost</code>, <code>n</code> -&gt; <code>netAmount</code>, <code>v</code> -&gt; <code>vat</code>, <code>t</code> -&gt; <code>total</code>, pola <code>rates</code> -&gt; <code>dailyRates</code>, <code>disc</code> -&gt; <code>longRentalDiscountRate</code>.</li>
+<li><strong>Extract Constant oraz Replace Magic Numbers</strong>, ponieważ ujawniają reguły bez zmiany przepływu: <code>LONG_RENTAL_DAYS = 7</code>, <code>INSURANCE_DAILY_RATE = 8.00</code>, <code>DELIVERY_FEE = 25.00</code>, <code>VAT_RATE = 0.23</code>, <code>ZERO_MONEY = 0.00</code>.</li>
+<li><strong>Extract Variable</strong> dla czystych wartości używanych w jednym obliczeniu: <code>dailyRate</code>, <code>rentalDays</code>.</li>
+<li><strong>Extract Method</strong> dla kolejnych spójnych fragmentów: <code>calculateDiscount</code>, <code>calculateInsuranceCost</code>, <code>calculateDeliveryCost</code>.</li>
+<li><strong>Encapsulate Conditional</strong> dla progu rabatu: <code>qualifiesForLongRentalDiscount(request)</code>.</li>
+<li><strong>Extract Method</strong> dla budowy dokumentu: <code>buildDocument(...)</code> z <code>String.format(Locale.ROOT, ...)</code>.</li>
+<li><strong>Inline Variable</strong> dla zmiennej <code>q</code>, która jedynie poprzedzała <code>return</code>.</li>
+</ol>
+<p>Docelowa metoda publiczna:</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">createQuote</span><span class="hljs-params">(RentalRequest request)</span> {
+    <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">dailyRate</span> <span class="hljs-operator">=</span> dailyRates.get(request.equipmentType());
+    <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">rentalDays</span> <span class="hljs-operator">=</span> BigDecimal.valueOf(request.days());
+    <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">baseRentalCost</span> <span class="hljs-operator">=</span> money(dailyRate.multiply(rentalDays));
+    <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">discount</span> <span class="hljs-operator">=</span> calculateDiscount(request, baseRentalCost);
+    <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">insuranceCost</span> <span class="hljs-operator">=</span> calculateInsuranceCost(request);
+    <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">deliveryCost</span> <span class="hljs-operator">=</span> calculateDeliveryCost(request);
+    <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">netAmount</span> <span class="hljs-operator">=</span> money(baseRentalCost
+            .subtract(discount).add(insuranceCost).add(deliveryCost));
+    <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">vat</span> <span class="hljs-operator">=</span> money(netAmount.multiply(VAT_RATE));
+    <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">total</span> <span class="hljs-operator">=</span> money(netAmount.add(vat));
+    <span class="hljs-keyword">return</span> buildDocument(request, baseRentalCost, discount,
+            insuranceCost, deliveryCost, netAmount, vat, total);
+}
+</code></pre>
+<h3 id="wskazowki-do-omowienia-z-teorii" tabindex="-1"><a class="header-anchor" href="#wskazowki-do-omowienia-z-teorii"><span>Wskazówki do omówienia (z teorii)</span></a></h3>
+<ul>
+<li>Nie ma potrzeby wydzielania każdej operacji arytmetycznej. Nazwy <code>netAmount</code>, <code>vat</code> i <code>total</code> wystarczająco opisują kolejne kroki, a nadmiar jednoliniowych metod utrudniłby czytanie algorytmu.</li>
+<li>Stała <code>ZERO_MONEY</code> nie jest wyłącznie optymalizacją tworzenia obiektu. Informuje o przyjętej skali wartości zerowej w dokumencie.</li>
+<li>Stawki sprzętu pozostają na etapie 1 w mapie instancyjnej (podobnie jak stawka rabatu), ponieważ będą przenoszone wraz z odpowiedzialnością za wycenę w ćwiczeniu 3.</li>
+<li>Wydzielenie metod zwiększyło liczbę nazw, ale nie zmieniło kolejności obliczeń. Rabat nadal jest liczony wyłącznie od podstawowego kosztu, zaokrąglenie zachodzi w tych samych miejscach, a dokument ma identyczny format.</li>
+</ul>
+<h3 id="typowe-bledy-uczestnikow" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>Przeniesienie zaokrąglenia: na przykład jeden <code>money(...)</code> na końcu zamiast po każdym kroku lub zaokrąglenie rabatu dopiero w <code>netAmount</code>. Łapie to <code>documentsDiscountRounding</code> (rabat 59.99 dla 15 dni wiertnicy) i <code>documentsVatRounding</code>.</li>
+<li>Liczenie rabatu od sumy z dodatkami (&quot;przy okazji&quot; porządkowania).</li>
+<li><code>BigDecimal.ZERO</code> zamiast <code>0.00</code>: <code>toPlainString()</code> daje wtedy <code>0</code> zamiast <code>0.00</code>; test pełnego dokumentu i <code>distinguishesInsuranceFromDelivery</code> to wykryją.</li>
+<li>Zamiana konkatenacji na <code>&quot;&quot;&quot;...&quot;&quot;&quot;.formatted(...)</code> lub <code>String.format</code> bez <code>Locale.ROOT</code>. Test w domyślnym locale przejdzie, ale <code>LocaleIndependentFormattingTest</code> (locale <code>ar-EG</code>) wykaże różnicę w polu dni.</li>
+<li>Utrata końcowego <code>\n</code> lub zmiana wcięć w text block.</li>
+<li>Nazwy stałych opisujące wartość (<code>SEVEN</code>, <code>TWENTY_THREE_PERCENT</code>) zamiast roli.</li>
+<li>Wydzielenie <code>ONE</code>/<code>ZERO</code> dla oczywistych literałów, które nie niosą decyzji.</li>
+<li>Łączenie kilku transformacji w jeden krok bez uruchamiania testu po każdej.</li>
+<li>Zmiana sygnatury <code>createQuote</code> (na przykład rozbicie <code>RentalRequest</code> na prymitywy).</li>
+</ul>
+<h3 id="pytania-do-dyskusji" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>Który krok był najmniej ryzykowny, a który wymagał decyzji (na przykład czy <code>8.00</code> i <code>0.10</code> to stałe klasy, czy konfiguracja)?</li>
+<li>Czy <code>buildDocument</code> z ośmioma parametrami jest dobrym stanem końcowym? Jaki sygnał daje taka lista parametrów (sekcja 3.2)?</li>
+<li>Czy <code>qualifiesForLongRentalDiscount</code> powinna zostać zinlinowana, bo ma jedną linię?</li>
+<li>Czy próg 7 dni rabatu i ewentualny siedmiodniowy termin zwrotu powinny dzielić jedną stałą?</li>
+</ul>
+<hr>
+<h2 id="cwiczenie-2-extract-i-inline-pod-presja-semantyki" tabindex="-1"><a class="header-anchor" href="#cwiczenie-2-extract-i-inline-pod-presja-semantyki"><span>Ćwiczenie 2: Extract i Inline pod presją semantyki</span></a></h2>
+<p><strong>Kod referencyjny (część B):</strong> stan wyjściowy <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>stage2/<wbr>RentalQuoteService.java</code>, stan docelowy <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>stage3/<wbr>RentalQuoteService.java</code>. Test: <code>RentalQuoteStagesEquivalenceTest</code>.</p>
+<h3 id="rozwiazanie-wzorcowe-czesci-a-z-teorii-sekcja-142" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-wzorcowe-czesci-a-z-teorii-sekcja-142"><span>Rozwiązanie wzorcowe części A (z teorii, sekcja 14.2)</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Przypadek</th>
+<th>Ocena</th>
+<th>Uzasadnienie</th>
+<th>Test potrzebny przed operacją</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. Inline zmiennej z <code>clock.instant()</code> używanej dwa razy</td>
+<td>niebezpieczne</td>
+<td>jedno odczytanie czasu zmieniłoby się w dwa, które mogą zwrócić różne wartości</td>
+<td>test z kontrolowanym <code>Clock</code> zwracającym kolejne różne wartości; asercja, że obie obserwacje używają tej samej chwili</td>
+</tr>
+<tr>
+<td>2. Wcześniejsze obliczenie <code>account.isActive()</code></td>
+<td>niebezpieczne</td>
+<td>znika ochrona krótkiego spięcia i dla <code>null</code> pojawia się wyjątek</td>
+<td>test z <code>account == null</code> oczekujący braku wyjątku</td>
+</tr>
+<tr>
+<td>3. Argument z efektem ubocznym skopiowany do dwóch wywołań</td>
+<td>niebezpieczne</td>
+<td>zmienia liczbę i prawdopodobnie kolejność efektów</td>
+<td>test liczący zapisy audytowe (atrapa rejestrująca liczbę i kolejność wywołań)</td>
+</tr>
+<tr>
+<td>4. Lambda wydzielona do <code>var</code></td>
+<td>niepoprawne lub pozbawione wymaganego kontekstu</td>
+<td>lambda potrzebuje typu docelowego; jawny odpowiedni interfejs funkcyjny zachowuje ten kontekst</td>
+<td>kompilacja plus test sprawdzający, które przeciążenie zostało wybrane (efekt tego przeciążenia)</td>
+</tr>
+<tr>
+<td>5. Inline metody, którą może przesłonić podklasa</td>
+<td>zwykle niebezpieczne</td>
+<td>wywołanie podlega dynamicznej dyspozycji, a wklejona implementacja klasy bazowej nie</td>
+<td>test na instancji podklasy z przesłoniętą metodą</td>
+</tr>
+<tr>
+<td>6. Inline metody <code>synchronized</code></td>
+<td>niebezpieczne bez odtworzenia blokady</td>
+<td>dla metody instancyjnej nie zostanie automatycznie zachowany monitor odbiorcy, a dla statycznej monitor obiektu <code>Class</code> klasy deklarującej</td>
+<td>analiza współbieżności, ewentualnie test współbieżny; zastąpienie przez <code>synchronized (this)</code> lub <code>synchronized (Klasa.class)</code> na tym samym monitorze</td>
+</tr>
+<tr>
+<td>7. Inline prywatnego delegata etapu 2</td>
+<td>bezpieczne przy ustalonych założeniach</td>
+<td>delegat ma jedno wywołanie, brak adnotacji, proxy, przesłonięcia, blokady i odwołań tekstowych</td>
+<td>test równoważności etapów</td>
+</tr>
+<tr>
+<td>8. Wydzielenie VAT do stałej</td>
+<td>bezpieczne, jeśli oba literały oznaczają tę samą regułę</td>
+<td>należy centralizować wspólną wiedzę, nie jedynie równą reprezentację tekstową</td>
+<td>test ofert z VAT; przegląd, czy oba <code>0.23</code> to ta sama stawka</td>
+</tr>
+</tbody>
+</table></div>
+<p>Uwaga z teorii: narzędzie IDE może zapobiec części błędów typowania. Nie potwierdzi jednak, że dwa wywołania zegara, repozytorium albo loggera są semantycznie równoważne jednemu.</p>
+<blockquote>
+<p>Kolumna &quot;Test potrzebny przed operacją&quot; została opracowana na podstawie kodu referencyjnego i treści teorii, nie pochodzi wprost z tabeli rozwiązań.</p>
+</blockquote>
+<p>Uzupełnienia do omówienia:</p>
+<ul>
+<li>Przypadek 1: odwrotna operacja (Extract Variable z dwóch <code>clock.instant()</code> do jednego <code>now</code>) też nie jest neutralna semantycznie. Może być właściwą decyzją funkcjonalną, ale trzeba ustalić, czy kontrakt wymaga jednego snapshotu czasu (sekcja 4.2).</li>
+<li>Przypadek 4: po wydzieleniu z jawnym typem kompilacja może się udać z innym przeciążeniem niż wcześniej. Poprawna kompilacja nie gwarantuje zachowania (sekcja 6.2).</li>
+<li>Przypadek 6: poza blokadą traci się też relację widoczności pamięci (happens-before) związaną z monitorem.</li>
+</ul>
+<h3 id="rozwiazanie-czesci-b" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-czesci-b"><span>Rozwiązanie części B</span></a></h3>
+<p>Przed operacją sprawdzamy, że <code>calculatePrice</code> w etapie 2 jest prywatna, niesynchronizowana, bez adnotacji, ma jedno wywołanie i nie jest celem refleksji. Po Inline Method:</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">createQuote</span><span class="hljs-params">(RentalRequest request)</span> {
+    Objects.requireNonNull(request, <span class="hljs-string">&quot;request&quot;</span>);
+
+    <span class="hljs-type">PriceBreakdown</span> <span class="hljs-variable">price</span> <span class="hljs-operator">=</span> pricing.calculate(request);
+    <span class="hljs-keyword">return</span> buildDocument(request, price);
+}
+</code></pre>
+<p>To odpowiada dokładnie <code>stage3/<wbr>RentalQuoteService.java</code>. <code>RentalQuoteStagesEquivalenceTest</code> pozostaje zielony.</p>
+<h3 id="typowe-bledy-uczestnikow-1" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow-1"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>Ocena przypadku 7 jako &quot;zawsze bezpieczne, bo jedna linia&quot;, bez sprawdzenia warunków (proxy, adnotacje, refleksja, przesłonięcie).</li>
+<li>Mylenie monitora metody statycznej (<code>Class</code>) z monitorem instancji.</li>
+<li>Uznanie <code>var</code> za neutralne, bo &quot;to tylko skrót zapisu&quot;.</li>
+<li>Traktowanie dwóch równych literałów <code>0.23</code> jako jednego pojęcia bez sprawdzenia ich znaczenia.</li>
+<li>Przy części B: usunięcie także <code>buildDocument</code> &quot;dla spójności&quot; albo inline'owanie <code>qualifiesForLongRentalDiscount</code> w <code>RentalPricing</code>.</li>
+</ul>
+<h3 id="pytania-do-dyskusji-1" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji-1"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>Po co w ogóle wprowadzono delegat <code>calculatePrice</code>, skoro za chwilę go usuwamy? (Umożliwia osobne sprawdzenie przeniesienia i późniejszego Inline Method.)</li>
+<li>Kiedy delegat powinien pozostać na stałe? (Gdy chroni kontrakt: fasada kompatybilności, granica proxy/transakcji, publiczne API.)</li>
+<li>Jak Extract i Inline mogą być jednocześnie dobrą praktyką?</li>
+</ul>
+<hr>
+<h2 id="cwiczenie-3-extract-class-oraz-przeniesienie-odpowiedzialnosci" tabindex="-1"><a class="header-anchor" href="#cwiczenie-3-extract-class-oraz-przeniesienie-odpowiedzialnosci"><span>Ćwiczenie 3: Extract Class oraz przeniesienie odpowiedzialności</span></a></h2>
+<p><strong>Kod referencyjny:</strong> <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>pricing/<wbr>PriceBreakdown.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>pricing/<wbr>RentalPricing.java</code>, stan pośredni <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>stage2/<wbr>RentalQuoteService.java</code>, stan końcowy <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>stage3/<wbr>RentalQuoteService.java</code>.</p>
+<p><strong>Testy referencyjne:</strong> <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>pricing/<wbr>RentalPricingTest.java</code>, <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>pricing/<wbr>PriceBreakdownTest.java</code>, <code>RentalQuoteStagesEquivalenceTest</code>, <code>LocaleIndependentFormattingTest</code>.</p>
+<h3 id="odpowiedzi-na-pytania-wstepne" tabindex="-1"><a class="header-anchor" href="#odpowiedzi-na-pytania-wstepne"><span>Odpowiedzi na pytania wstępne</span></a></h3>
+<blockquote>
+<p>Odpowiedzi na pytania wstępne opracowane na podstawie kodu referencyjnego, nie pochodzą wprost z materiału teoretycznego.</p>
+</blockquote>
+<ul>
+<li><strong>Właściciel stawek:</strong> obiekt wyceny <code>RentalPricing</code>; domyślne wartości w <code>RentalPricing.standard()</code> jako jedyne źródło prawdy.</li>
+<li><strong>Czy konfiguracja jest wspólna dla wszystkich ofert:</strong> tak, stawki i rabat nie zależą od żądania; jeden obiekt wyceny obsługuje wiele wywołań <code>calculate</code>.</li>
+<li><strong>Cykl życia obiektu wyceny:</strong> niemutowalny obiekt tworzony raz (fabryka lub wstrzyknięcie przez konstruktor usługi), może być współdzielony, nie potrzebuje referencji zwrotnej do usługi dokumentu.</li>
+<li><strong>Monitor, przesłonięcie, dostęp pakietowy, adnotacje:</strong> przenoszone metody są prywatne (większość statyczna), klasa jest <code>final</code>, brak <code>synchronized</code> i adnotacji frameworka; nowy pakiet <code>pricing</code> wymaga publicznego <code>calculate</code> i publicznego typu wyniku.</li>
+<li><strong>Czy stary punkt wejścia musi pozostać:</strong> bezargumentowy konstruktor i <code>createQuote(RentalRequest)</code> zostają, bo są publicznym kontraktem etapów 0 i 1; ich usunięcie byłoby osobną zmianą API.</li>
+</ul>
+<h3 id="rozwiazanie-wzorcowe-z-teorii-sekcje-124-i-143" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-wzorcowe-z-teorii-sekcje-124-i-143"><span>Rozwiązanie wzorcowe (z teorii, sekcje 12.4 i 14.3)</span></a></h3>
+<p>Odpowiedzialności:</p>
+<ul>
+<li><code>RentalPricing</code>: obliczyć nazwany rozkład ceny dla poprawnego żądania i skonfigurowanych reguł.</li>
+<li><code>RentalQuoteService</code>: zbudować dokument oferty na podstawie żądania i wyniku wyceny.</li>
+</ul>
+<p>Co się przenosi:</p>
+<ul>
+<li>pola <code>dailyRates</code> oraz <code>longRentalDiscountRate</code> poruszają się razem z metodami, które je interpretują,</li>
+<li>stałe dodatków, VAT, progu rabatu i funkcja <code>money</code> należą do algorytmu wyceny,</li>
+<li>formatowanie, normalizacja nazwy klienta i etykiety dokumentu pozostają po stronie prezentacji.</li>
+</ul>
+<p><code>PriceBreakdown</code> zastępuje długą listę równoległych wartości jednym typem wyniku. Nie jest przypadkowym pojemnikiem: jego pola reprezentują spójny rezultat wyceny, a konstruktor kompaktowy chroni format kwot (brak <code>null</code>, brak wartości ujemnych, skala 2 z <code>RoundingMode.UNNECESSARY</code>).</p>
+<p>Sekwencja bezpiecznego przeniesienia:</p>
+<ol>
+<li>W klasie źródłowej wprowadź prywatny punkt <code>calculatePrice</code>, który nadal korzysta z istniejącej logiki.</li>
+<li>Utwórz nowy typ i przenieś do niego implementację razem z potrzebnymi danymi.</li>
+<li>Zastąp ciało metody źródłowej delegowaniem do nowego właściciela.</li>
+<li>Po każdym kroku usuń ze źródła tylko te dane, które nie mają już odczytów.</li>
+<li>Utrzymuj jedno źródło prawdy dla każdej stawki i reguły.</li>
+<li>Migruj kontrolowanych klientów, a przejściowy delegat usuń dopiero wtedy, gdy nie chroni kontraktu (to Inline Method z ćwiczenia 2).</li>
+</ol>
+<p>Przejściowy delegat w etapie 2 jest celowo wprowadzony podczas Move Method. Bezargumentowy konstruktor deleguje do standardowej konfiguracji i zachowuje dotychczasowy punkt konstrukcji, a przeciążenie umożliwia jawne wstrzyknięcie <code>RentalPricing</code>:</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">public</span> <span class="hljs-title function_">RentalQuoteService</span><span class="hljs-params">()</span> {
+    <span class="hljs-built_in">this</span>(RentalPricing.standard());
+}
+
+<span class="hljs-type">public</span> <span class="hljs-title function_">RentalQuoteService</span><span class="hljs-params">(RentalPricing pricing)</span> {
+    <span class="hljs-built_in">this</span>.pricing = Objects.requireNonNull(pricing);
+}
+</code></pre>
+<p>Stan końcowy odpowiada etapowi 3.</p>
+<p>Test jednostkowy nowego obiektu: minimum to odpowiednik <code>RentalPricingTest.calculatesApprovedPriceBreakdown</code> (generator, 8 dni, oba dodatki: 960.00 / 96.00 / 64.00 / 25.00 / 953.00 / 219.19 / 1172.19). Jeśli uczestnik dodał walidację konfiguracji, powinien mieć testy jak w <code>RentalPricingTest</code> (brakująca stawka, stawka zerowa, ujemna, zaokrąglana do zera, rabat poza <code>[0, 1]</code>, kopia defensywna mapy).</p>
+<h3 id="wskazowki-do-omowienia" tabindex="-1"><a class="header-anchor" href="#wskazowki-do-omowienia"><span>Wskazówki do omówienia</span></a></h3>
+<ul>
+<li>Konstruktor <code>RentalPricing</code> w kodzie referencyjnym dodaje walidację (kompletność stawek, dodatniość po normalizacji HALF_UP, zakres rabatu) i kopię defensywną. Dla poprawnych danych wynik jest ten sam. Zachowanie niepoprawnych konfiguracji nie było częścią publicznego kontraktu etapu 0, ale w systemie produkcyjnym dodanie takiej walidacji powinno być osobną, świadomą decyzją. Warto zapytać uczestników, czy ich wersja dodała walidację i czy to nazwali.</li>
+<li>Extract Class jest decyzją projektową; Move Field i Move Method są mechaniką.</li>
+<li>Zły wynik ekstrakcji (sekcja 8.4): dane przeniesione, ale usługa nadal liczy wszystko przez gettery <code>RentalPricing</code>; albo nowa klasa potrzebuje referencji zwrotnej do usługi.</li>
+</ul>
+<h3 id="typowe-bledy-uczestnikow-2" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow-2"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>Pozostawienie kopii stawek lub stałej VAT w <code>RentalQuoteService</code> (dwa źródła prawdy).</li>
+<li>Przeniesienie formatowania kwot (<code>toPlainString</code>, etykiety) do <code>RentalPricing</code>, czyli wiedzy o dokumencie do wyceny.</li>
+<li>Przeniesienie normalizacji nazwy klienta do wyceny.</li>
+<li>Usunięcie bezargumentowego konstruktora &quot;bo teraz wstrzykujemy&quot;.</li>
+<li><code>RentalPricing</code> tworzone wewnątrz <code>createQuote</code> przy każdym wywołaniu (niejawna zależność, inny cykl życia).</li>
+<li><code>PriceBreakdown</code> jako mutowalna klasa z setterami albo jako <code>Map&lt;String, BigDecimal&gt;</code>.</li>
+<li>Zaokrąglanie w konstruktorze <code>PriceBreakdown</code> (HALF_UP zamiast UNNECESSARY) ukrywające błąd w miejscu zaokrąglenia.</li>
+<li>Rozbicie kroku na jeden duży commit bez stanu pośredniego z delegatem.</li>
+</ul>
+<h3 id="pytania-do-dyskusji-2" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji-2"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>Czy <code>PriceBreakdown</code> powinien być publicznym typem API od razu, czy najpierw pakietowym (sekcja 8.2, krok 7)?</li>
+<li>Co zmieniłoby się, gdyby stawki trzeba było aktualizować bez wdrożenia? (Wtedy nie są stałymi, tylko konfiguracją, sekcja 4.3.)</li>
+<li>Jak testować, aby nie porównywać wyłącznie nowej implementacji ze starą?</li>
+</ul>
+<hr>
+<h2 id="cwiczenie-4-kontrola-mutowalnego-stanu" tabindex="-1"><a class="header-anchor" href="#cwiczenie-4-kontrola-mutowalnego-stanu"><span>Ćwiczenie 4: kontrola mutowalnego stanu</span></a></h2>
+<p><strong>Kod referencyjny:</strong> faza A <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>encapsulation/<wbr>AccessorBasedEquipmentCatalog.java</code>, faza B <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>encapsulation/<wbr>EquipmentCatalog.java</code>. Test: <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>encapsulation/<wbr>EquipmentCatalogTest.java</code>.</p>
+<h3 id="rozwiazanie-wzorcowe-z-teorii-sekcje-128-i-144" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-wzorcowe-z-teorii-sekcje-128-i-144"><span>Rozwiązanie wzorcowe (z teorii, sekcje 12.8 i 14.4)</span></a></h3>
+<p>Faza A i faza B nie powinny zostać połączone w jeden nieprzejrzysty commit.</p>
+<p><strong>Faza A.</strong> Prywatne pole może nadal wskazywać mapę klienta, a akcesor może nadal zwracać ten sam modyfikowalny obiekt. Takie rozwiązanie nie daje docelowej hermetyzacji, ale pozwala najpierw migrować składniową formę dostępu bez zmiany aliasowania.</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">private</span> String name;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;EquipmentType, BigDecimal&gt; dailyRates;
+
+<span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">name</span><span class="hljs-params">()</span> { <span class="hljs-keyword">return</span> name; }
+<span class="hljs-keyword">public</span> <span class="hljs-type">void</span> <span class="hljs-title function_">setName</span><span class="hljs-params">(String newName)</span> { name = newName; }
+<span class="hljs-keyword">public</span> <span class="hljs-type">Map</span>&lt;EquipmentType, BigDecimal&gt; <span class="hljs-title function_">dailyRates</span><span class="hljs-params">()</span> { <span class="hljs-keyword">return</span> dailyRates; }
+</code></pre>
+<p>Testy charakterystyki fazy A (jak <code>legacyCatalogSharesItsMutableMapWithTheCaller</code> i <code>accessorBasedCatalogPreservesAliasesDuringControlledMigration</code>): mutacja mapy źródłowej jest widoczna w katalogu, <code>assertSame(source, catalog.dailyRates())</code>, <code>setName(&quot; &quot;)</code> jest akceptowane.</p>
+<p>W zamkniętej aplikacji wdrażanej atomowo zachowanie całości pozostaje takie samo. Dla opublikowanej biblioteki usunięcie publicznego pola łamie zgodność źródłową i binarną oraz zmienia wynik refleksji.</p>
+<p><strong>Faza B.</strong> Przykład wybiera następujący kontrakt:</p>
+<ul>
+<li>konstruktor kopiuje wpisy do własnego <code>EnumMap</code>,</li>
+<li>wszystkie zmiany stawki przechodzą przez <code>changeDailyRate</code> (także w konstruktorze, więc walidacja jest w jednym miejscu),</li>
+<li>stawka jest normalizowana do dwóch miejsc metodą HALF_UP, a inwariant dodatniości jest sprawdzany po normalizacji,</li>
+<li>nazwa zmienia się tylko przez <code>renameTo</code> (niepusta, nie <code>null</code>),</li>
+<li><code>dailyRateFor(type)</code> rzuca <code>IllegalArgumentException</code> dla brakującej stawki,</li>
+<li><code>dailyRates()</code> zwraca niemodyfikowalną migawkę (<code>Map.copyOf</code>),</li>
+<li>późniejsze zmiany katalogu nie są widoczne w pobranej wcześniej migawce,</li>
+<li><code>BigDecimal</code> jest niemutowalny, więc płytka kopia wartości jest wystarczająca.</li>
+</ul>
+<p>Gdyby klient potrzebował obserwować późniejsze zmiany właściciela, właściwy byłby żywy niemodyfikowalny widok, na przykład oparty na <code>Collections.unmodifiableMap</code>. To inny kontrakt; nie należy wybierać go przypadkowo.</p>
+<p>Testy fazy B (jak w <code>EquipmentCatalogTest</code>): mutacja źródła po konstrukcji niewidoczna (<code>39.99</code> zostaje), migawka po <code>changeDailyRate</code> nadal pokazuje <code>39.99</code>, właściciel pokazuje <code>42.00</code>, <code>put</code> na migawce rzuca <code>UnsupportedOperationException</code>, <code>renameTo(&quot; &quot;)</code> rzuca <code>IllegalArgumentException</code>, <code>42.005</code> -&gt; <code>42.01</code>, <code>0.004</code> odrzucone.</p>
+<p>Ocena punktu 6 fazy B:</p>
+<ul>
+<li><code>null</code>: <code>EquipmentCatalog</code> odrzuca <code>null</code> nazwy, mapy, typu i stawki; <code>Map.copyOf</code> też odrzuca <code>null</code>. Jeżeli stary katalog dopuszczał <code>null</code>, to zmiana zachowania.</li>
+<li>Mutowalne elementy: niemodyfikowalna kolekcja blokuje zmianę członkostwa, nie wnętrza elementów. Tu elementy (<code>BigDecimal</code>, enum) są niemutowalne.</li>
+<li>Współbieżność: migawka nie czyni obiektu bezpiecznym wątkowo; <code>name</code> i <code>EnumMap</code> nie są synchronizowane. Potrzebny osobny kontrakt.</li>
+</ul>
+<h3 id="typowe-bledy-uczestnikow-3" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow-3"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>Dodanie walidacji w setterze już w fazie A i nazwanie tego refaktoryzacją.</li>
+<li>Zwracanie <code>Collections.unmodifiableMap(dailyRates)</code> w fazie A bez zauważenia, że to zmienia możliwość mutacji przez klienta (zmiana kontraktu).</li>
+<li>W fazie B przechowywanie mapy wejściowej bez kopii i zwracanie <code>unmodifiableMap</code>: klient nadal mutuje stan przez swoją referencję.</li>
+<li>Przekonanie, że <code>final</code> na polu mapy lub <code>Map.copyOf</code> daje głęboką niemutowalność.</li>
+<li>Walidacja stawki zduplikowana w konstruktorze i w <code>changeDailyRate</code> (dwa miejsca, które mogą się rozjechać).</li>
+<li>Sprawdzenie dodatniości przed normalizacją (0.004 przechodzi, a potem zapisuje się 0.00).</li>
+<li>Brak testu rozróżniającego migawkę od widoku (test tylko na <code>UnsupportedOperationException</code> nie wystarcza, bo oba rzucają ten wyjątek).</li>
+<li>Opieranie kontraktu na tożsamości wyniku <code>Map.copyOf</code>.</li>
+</ul>
+<h3 id="pytania-do-dyskusji-3" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji-3"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>Dlaczego <code>renameTo</code> jest lepszym kontraktem niż <code>setName</code>?</li>
+<li>Jak komunikować zmianę fazy B klientom biblioteki (wersja, deprecjacja, okres przejściowy)?</li>
+<li>Kiedy wybrać migawkę, kiedy żywy widok, a kiedy modyfikowalną kopię (tabela z sekcji 10.2)?</li>
+</ul>
+<hr>
+<h2 id="retrospektywa-po-kazdym-cwiczeniu" tabindex="-1"><a class="header-anchor" href="#retrospektywa-po-kazdym-cwiczeniu"><span>Retrospektywa po każdym ćwiczeniu</span></a></h2>
+<blockquote>
+<p>Rozwiązanie opracowane na podstawie kodu referencyjnego, nie pochodzi wprost z materiału teoretycznego.</p>
+</blockquote>
+<p>Oczekiwane odpowiedzi (do naprowadzania grupy):</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Ćwiczenie</th>
+<th>1. Chroniona właściwość</th>
+<th>2. Krok mechaniczny vs decyzja</th>
+<th>3. Najmniejszy wiarygodny test</th>
+<th>4. Punkt zatrzymania</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>pełny dokument bajt po bajcie, próg rabatu, miejsca zaokrągleń, niezależność od locale</td>
+<td>mechaniczne: Rename, Inline <code>q</code>; decyzje: które literały to jedno pojęcie, gdzie granica metod, czy stawki to stałe</td>
+<td><code>RentalQuoteServiceCharacterizationTest</code> (szczególnie granica 6/7 dni i przypadki zaokrągleń)</td>
+<td>brak jednoliterowych nazw i magicznych liczb, metody na jednym poziomie abstrakcji; nie wydzielamy każdej operacji arytmetycznej</td>
+</tr>
+<tr>
+<td>2</td>
+<td>liczba i kolejność ewaluacji, dynamiczna dyspozycja, monitor, typ docelowy</td>
+<td>mechaniczne: Inline <code>calculatePrice</code>; decyzje: czy delegat chroni kontrakt</td>
+<td><code>RentalQuoteStagesEquivalenceTest</code> dla części B; dla części A testy z atrapą zegara, audytu, podklasą</td>
+<td>usunięty jedyny zbędny delegat; <code>buildDocument</code> i <code>qualifiesForLongRentalDiscount</code> zostają</td>
+</tr>
+<tr>
+<td>3</td>
+<td>identyczne oferty na wszystkich etapach, publiczny punkt wejścia</td>
+<td>mechaniczne: Move Method/Field, delegowanie; decyzje: granica odpowiedzialności, typ wyniku, walidacja konfiguracji</td>
+<td><code>RentalPricingTest.calculatesApprovedPriceBreakdown</code> plus test równoważności</td>
+<td>jedno źródło prawdy, dokument nie zna wyceny, wycena nie zna formatu</td>
+</tr>
+<tr>
+<td>4</td>
+<td>faza A: aliasowanie i akceptowane wartości; faza B: nowy kontrakt własności</td>
+<td>faza A mechaniczna; faza B to decyzja projektowa i zmiana kontraktu</td>
+<td>testy aliasu (<code>assertSame</code>) w fazie A; test migawki po zmianie właściciela w fazie B</td>
+<td>faza A: pola prywatne i zmigrowani klienci; faza B: zatwierdzony i przetestowany kontrakt</td>
+</tr>
+</tbody>
+</table></div>
+<p>Myśl przewodnia z teorii (sekcja 1.4): seria refaktoryzacji powinna mieć konkretny cel i nie trzeba stosować wszystkich dostępnych technik.</p>
+<hr>
+<h2 id="sprawdzenie-wiedzy-odpowiedzi" tabindex="-1"><a class="header-anchor" href="#sprawdzenie-wiedzy-odpowiedzi"><span>Sprawdzenie wiedzy - odpowiedzi</span></a></h2>
+<ol>
+<li><strong>Co musi pozostać niezmienione podczas refaktoryzacji?</strong> Ustalony zakres obserwowalnego zachowania, obejmujący odpowiednie wyniki, wyjątki, efekty, kolejność, a czasem także zgodność API i właściwości operacyjne.</li>
+<li><strong>Dlaczego zielony test jednostkowy nie dowodzi kompatybilności publicznej biblioteki?</strong> Nie obejmuje automatycznie wcześniej skompilowanych klientów, refleksji, serializacji, konfiguracji, frameworków ani integracji.</li>
+<li><strong>Jakie trzy grupy zmiennych trzeba rozpoznać przed Extract Method?</strong> Wartości wejściowe fragmentu, wartości lokalne używane tylko wewnątrz oraz wartości zmieniane wewnątrz i potrzebne później.</li>
+<li><strong>Kiedy Extract Variable może zmienić zachowanie?</strong> Gdy zmienia liczbę, kolejność lub moment ewaluacji, przez co wpływa na wyjątek, stan, czas, I/O albo wybór przeciążenia.</li>
+<li><strong>Czym Replace Magic Numbers różni się od mechanicznego Extract Constant?</strong> Extract Constant tworzy nazwę dla wystąpienia. Replace Magic Numbers wymaga ustalenia, które wystąpienia reprezentują tę samą decyzję i powinny mieć wspólnego właściciela.</li>
+<li><strong>Dlaczego publiczna stała typu prostego lub <code>String</code> wymaga ostrożności przy zmianie wartości?</strong> Taka publiczna wartość, jeśli spełnia warunki stałego wyrażenia, może zostać wkompilowana do kodu klienta. Zmiana biblioteki bez rekompilacji klienta może pozostawić starą wartość.</li>
+<li><strong>Kiedy Inline Variable może zwiększyć liczbę efektów ubocznych?</strong> Gdy inicjalizator nie jest czysty, a podstawienie wykonuje go w wielu miejscach lub w innych gałęziach.</li>
+<li><strong>Dlaczego Inline Method metody, którą może przesłonić podklasa, może zmienić wynik?</strong> Wywołanie metody wybiera implementację dynamicznie, natomiast wklejenie ciała klasy bazowej może ominąć implementację podtypu.</li>
+<li><strong>Co może zostać utracone przy Inline Method metody <code>synchronized</code>?</strong> Automatyczne wejście w monitor odbiorcy dla metody instancyjnej albo w monitor obiektu <code>Class</code> klasy deklarującej dla metody statycznej, a wraz z nim synchronizacja i relacja widoczności pamięci.</li>
+<li><strong>Jakie kryterium jest ważniejsze przy Move Method niż liczba wywołań?</strong> Własność odpowiedzialności, danych i inwariantów, uwzględniająca cykl życia oraz granice kontraktu.</li>
+<li><strong>Jak bezpiecznie wykonać Move Field?</strong> Wprowadzić nowego właściciela, skierować odczyty i zapisy do jednego źródła prawdy, migrować klientów, a stare pole usunąć dopiero po zniknięciu wszystkich użyć.</li>
+<li><strong>Jaki sygnał uzasadnia Extract Class?</strong> Spójna grupa danych i zachowań ma odrębną odpowiedzialność, język oraz powód zmiany.</li>
+<li><strong>Dlaczego prywatne pole z publicznym setterem nie gwarantuje hermetyzacji?</strong> Setter nadal może zezwalać na dowolną zmianę i pozostawiać inwarianty klientom. Hermetyzacja polega na kontroli kontraktu, nie samym modyfikatorze dostępu.</li>
+<li><strong>Czym różni się niemodyfikowalny widok od niemodyfikowalnej migawki?</strong> Widok blokuje mutację przez klienta, ale pokazuje późniejsze zmiany właściciela. Migawka zachowuje stan z chwili utworzenia.</li>
+<li><strong>Czy <code>Map.copyOf</code> wykonuje kopię głęboką?</strong> Nie. Kopiuje strukturę kolekcji, a nie wnętrze obiektów będących kluczami lub wartościami.</li>
+<li><strong>Czy zwracanie niemodyfikowalnej mapy zapewnia bezpieczeństwo wątkowe obiektu?</strong> Nie. Nie definiuje synchronizacji pozostałych operacji ani bezpiecznej publikacji całego stanu.</li>
+<li><strong>Jak Extract Method może naruszyć krótkie spięcie?</strong> Przez wcześniejsze obliczenie prawego operandu lub niewybranej gałęzi, które wcześniej mogły nie zostać wykonane.</li>
+<li><strong>Dlaczego test nowej implementacji wyłącznie przez porównanie ze starą jest niewystarczający?</strong> Stara implementacja może zawierać ten sam błąd. Potrzebne są niezależne oczekiwania wynikające z zatwierdzonego kontraktu.</li>
+<li><strong>Kiedy Rename wymaga strategii migracji zamiast jednorazowej operacji IDE?</strong> Gdy nazwa należy do publicznego API albo występuje w refleksji, danych, konfiguracji, serializacji lub u niezależnie wdrażanych klientów.</li>
+<li><strong>Dlaczego Extract i Inline nie są sprzecznymi zaleceniami?</strong> Obie zmieniają poziom pośrednictwa. Extract nadaje nazwę i granicę, a Inline usuwa pośrednictwo, które nie przekazuje znaczenia. Wybór zależy od kontekstu.</li>
+</ol>
+
+</main>
+</div>
+<script>if(matchMedia('(max-width:900px)').matches){var d=document.querySelector('.toc details');if(d)d.open=false}</script>
+</body>
+</html>

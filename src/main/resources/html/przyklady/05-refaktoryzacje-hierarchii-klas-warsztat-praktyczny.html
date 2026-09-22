@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Przykłady: Moduł 5. Refaktoryzacje hierarchii klas - przewodnik prowadzącego po przykładach</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1d1f23;--muted:#5f6670;--line:#e3e5e8;--card:#ffffff;--accent:#2457c5;--accent-bg:#eef3fd;
+--code-bg:#f4f5f7;--note-bg:#fff7e6;--note-line:#e6a700;--th:#f1f3f6;
+--k:#b3246b;--s:#1a7f37;--c:#6e7781;--n:#0550ae;--t:#8250df;--f:#6639ba;--a:#953800;
+--kind:#2457c5}
+@media (prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3036;--card:#1c1f23;--accent:#7aa7ff;--accent-bg:#1e2a40;
+--code-bg:#1f2328;--note-bg:#2b2412;--note-line:#c99400;--th:#23272d;
+--k:#ff7b9c;--s:#7ee2a0;--c:#8b949e;--n:#79c0ff;--t:#d2a8ff;--f:#d2a8ff;--a:#ffa657}}
+body.zadania{--kind:#1a7f37} body.rozwiazania{--kind:#b3246b} body.przyklady{--kind:#2457c5}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.topbar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 24px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);border-top:3px solid var(--kind)}
+.topbar a{color:var(--fg);text-decoration:none}
+.home{font-weight:600}
+.tabs{display:flex;gap:4px}
+.tab{padding:4px 12px;border-radius:999px;font-size:15px;color:var(--muted)!important}
+.tab:hover{background:var(--code-bg)}
+.tab.active{background:var(--accent-bg);color:var(--accent)!important;font-weight:600}
+.pager{margin-left:auto;display:flex;gap:14px;font-size:15px}
+.pager a{color:var(--muted)}.pager a:hover{color:var(--accent)}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:48px;max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+.layout.no-toc{grid-template-columns:minmax(0,1fr);max-width:1000px}
+aside{position:sticky;top:72px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px}
+.toc-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;font-weight:600}
+.toc ul{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.toc li a{display:block;padding:3px 12px;color:var(--muted);text-decoration:none;line-height:1.35}
+.toc li.h3 a{padding-left:24px;font-size:13px}
+.toc li a:hover{color:var(--accent)}
+main{min-width:0;max-width:860px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 1.2rem;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:2.6rem 0 .8rem;padding-top:.6rem;border-top:1px solid var(--line)}
+h3{font-size:1.18rem;margin:2rem 0 .6rem}
+h4{font-size:1rem;margin:1.5rem 0 .5rem}
+h1 a,h2 a,h3 a,h4 a{color:inherit;text-decoration:none}
+h2 a:hover::after,h3 a:hover::after{content:" #";color:var(--muted)}
+p,ul,ol{margin:.6rem 0 1rem}
+li{margin:.25rem 0}
+li>ul,li>ol{margin:.2rem 0}
+a{color:var(--accent)}
+strong{font-weight:650}
+code{font:0.88em/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre.code{position:relative;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:1rem 0 1.4rem}
+pre.code code{background:none;padding:0;font-size:14px;line-height:1.55}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:6px;right:10px;font:11px ui-monospace,Menlo,monospace;color:var(--muted);text-transform:uppercase}
+.table-wrap{overflow-x:auto;margin:1rem 0 1.4rem;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--th);font-weight:600}
+tr:last-child td{border-bottom:none}
+blockquote{margin:1rem 0 1.4rem;padding:10px 16px;background:var(--note-bg);border-left:4px solid var(--note-line);border-radius:0 8px 8px 0}
+blockquote p{margin:.3rem 0}
+hr{border:none;border-top:1px solid var(--line);margin:2rem 0}
+hr+h2{border-top:none;margin-top:1.4rem}
+main p code,main li code,main td code{overflow-wrap:break-word}
+.toc summary{cursor:pointer;list-style:none}.toc summary::-webkit-details-marker{display:none}
+.hljs-keyword,.hljs-selector-tag,.hljs-built_in,.hljs-literal{color:var(--k)}
+.hljs-string,.hljs-regexp,.hljs-addition{color:var(--s)}
+.hljs-comment,.hljs-quote,.hljs-meta{color:var(--c);font-style:italic}
+.hljs-number,.hljs-symbol{color:var(--n)}
+.hljs-type,.hljs-class .hljs-title,.hljs-title.class_{color:var(--t)}
+.hljs-title,.hljs-title.function_,.hljs-section{color:var(--f)}
+.hljs-attr,.hljs-attribute,.hljs-variable,.hljs-params,.hljs-tag{color:var(--a)}
+.hljs-deletion{color:var(--k)}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:16px;padding:20px 16px 60px}
+aside{position:static;max-height:none;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--card)}
+.toc-title{margin:0}.toc details[open] .toc-title{margin-bottom:8px}.toc summary::after{content:" ▾"}
+body{font-size:16px}.topbar{padding:8px 16px}.pager{margin-left:0}h1{font-size:1.6rem}}
+@media print{.topbar,aside{display:none}.layout{display:block;padding:0}main{max-width:none}
+pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#000;font-size:12pt}}
+</style>
+</head>
+<body class="przyklady">
+<header class="topbar"><a class="home" href="../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../zadania/05-refaktoryzacje-hierarchii-klas-warsztat-praktyczny.html">Zadania</a><a class="tab active" href="/05-refaktoryzacje-hierarchii-klas-warsztat-praktyczny.html">Przykłady</a><a class="tab" href="../rozwiazania/05-refaktoryzacje-hierarchii-klas-warsztat-praktyczny.html">Rozwiązania</a></div><div class="pager"><a href="04-podstawowe-refaktoryzacje-warsztat-praktyczny.html" title="Poprzedni moduł">&larr; 04</a><a href="06-refaktoryzacje-do-wzorcow-projektowych-warsztat-praktyczny.html" title="Następny moduł">06 &rarr;</a></div></header>
+<div class="layout">
+<aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#1-uruchamianie-przykladow-i-testow">1. Uruchamianie przykładów i testów</a></li><li class="h3"><a href="#java-wersja-referencyjna">Java (wersja referencyjna)</a></li><li class="h3"><a href="#c">C#</a></li><li class="h3"><a href="#typescript">TypeScript</a></li><li class="h2"><a href="#2-struktura-modulu-w-skrocie">2. Struktura modułu w skrócie</a></li><li class="h2"><a href="#3-tabela-mapujaca">3. Tabela mapująca</a></li><li class="h2"><a href="#4-studium-przypadku-hierarchia-powiadomien">4. Studium przypadku: hierarchia powiadomień</a></li><li class="h3"><a href="#41-etap-0-niezalezne-klasy-i-duplikacja">4.1. Etap 0: niezależne klasy i duplikacja</a></li><li class="h3"><a href="#42-etap-1-extract-superclass-oraz-pull-up">4.2. Etap 1: Extract Superclass oraz Pull Up</a></li><li class="h3"><a href="#43-etap-2-push-down-cechy-sms">4.3. Etap 2: Push Down cechy SMS</a></li><li class="h3"><a href="#44-etap-3-extract-interface">4.4. Etap 3: Extract Interface</a></li><li class="h3"><a href="#45-test-rownowaznosci-wszystkich-etapow">4.5. Test równoważności wszystkich etapów</a></li><li class="h2"><a href="#5-extract-subclass-deliveryjob">5. Extract Subclass: DeliveryJob</a></li><li class="h2"><a href="#6-collapse-hierarchy-formatter">6. Collapse Hierarchy: formatter</a></li><li class="h2"><a href="#7-replace-inheritance-with-composition-recipientlist">7. Replace Inheritance with Composition: RecipientList</a></li><li class="h2"><a href="#8-program-demonstracyjny">8. Program demonstracyjny</a></li><li class="h2"><a href="#9-sugerowany-plan-zajec">9. Sugerowany plan zajęć</a></li></ul></details></nav></aside>
+<main>
+<h1>Moduł 5. Refaktoryzacje hierarchii klas - przewodnik prowadzącego po przykładach</h1>
+<h2 id="1-uruchamianie-przykladow-i-testow" tabindex="-1"><a class="header-anchor" href="#1-uruchamianie-przykladow-i-testow"><span>1. Uruchamianie przykładów i testów</span></a></h2>
+<h3 id="java-wersja-referencyjna" tabindex="-1"><a class="header-anchor" href="#java-wersja-referencyjna"><span>Java (wersja referencyjna)</span></a></h3>
+<pre class="code" data-lang="shell"><code class="hljs">mvn -q compile &amp;&amp; java -<span class="hljs-built_in">cp</span> target/classes pl.training.module5.Module5Examples
+mvn <span class="hljs-built_in">test</span> -Dtest=<span class="hljs-string">&#x27;pl.training.module5.**&#x27;</span>
+</code></pre>
+<p>Testy można też uruchamiać z IDE (pakiet <code>pl.training.module5</code> w <code>src/<wbr>test/<wbr>java</code>).</p>
+<p>Oczekiwany wynik programu demonstracyjnego:</p>
+<pre class="code" data-lang="text"><code class="hljs">Hierarchy stages equivalent: true
+Extract subclass equivalent: true
+Collapse hierarchy equivalent: true
+Composition client behavior equivalent: true
+Batch results: [mail-1|OPS|Ready|EMAIL|SENT, sms-1|OPS|Ready|SMS|SENT|RECEIPT]
+</code></pre>
+<p>Przy omawianiu deskryptorów i metod bridge (sekcja 2.7 teorii) można pokazać:</p>
+<pre class="code" data-lang="shell"><code class="hljs">javap -classpath target/classes -p -s -v pl.training.module5.stage3.EmailNotification
+</code></pre>
+<h3 id="c" tabindex="-1"><a class="header-anchor" href="#c"><span>C#</span></a></h3>
+<pre class="code" data-lang="shell"><code class="hljs"><span class="hljs-built_in">cd</span> csharp &amp;&amp; dotnet run --project src/Training.Module5
+dotnet <span class="hljs-built_in">test</span>
+</code></pre>
+<p>Kod: <code>csharp/<wbr>src/<wbr>Training.Module5</code> (katalogi <code>Stage0..Stage3</code>, <code>ExtractSubclass</code>, <code>Collapse</code>, <code>Composition</code>), testy: <code>csharp/<wbr>tests/<wbr>Training.Module5.Tests</code>. Interfejs roli nazywa się tam <code>IOutboundNotification</code>.</p>
+<h3 id="typescript" tabindex="-1"><a class="header-anchor" href="#typescript"><span>TypeScript</span></a></h3>
+<pre class="code" data-lang="shell"><code class="hljs"><span class="hljs-built_in">cd</span> typescript &amp;&amp; npm ci &amp;&amp; npm run build &amp;&amp; npm run module5
+npm <span class="hljs-built_in">test</span>
+</code></pre>
+<p>Kod: <code>typescript/<wbr>src/<wbr>module5</code>, testy: <code>typescript/<wbr>test/<wbr>module5</code> (np. <code>NotificationHierarchyEquivalence.test.ts</code>).</p>
+<h2 id="2-struktura-modulu-w-skrocie" tabindex="-1"><a class="header-anchor" href="#2-struktura-modulu-w-skrocie"><span>2. Struktura modułu w skrócie</span></a></h2>
+<p>Moduł ma jedno studium przypadku prowadzone przez cztery etapy (<code>stage0</code> do <code>stage3</code>, hierarchia powiadomień) oraz trzy niezależne przypadki przed/po (<code>extractsubclass</code>, <code>collapse</code>, <code>composition</code>). Wszystkie ścieżki poniżej są względne od katalogu repozytorium.</p>
+<p>Kluczowa myśl do powtarzania przez cały moduł: dziedziczenie deklaruje zastępowalność (kontrakt), a nie tylko współdzielenie kodu. Każda transformacja ma inny profil ryzyka dla zgodności źródłowej, binarnej, refleksyjnej, serializacyjnej i integracyjnej (tabela warstw w sekcji 1.3 i macierz w sekcji 10.1 teorii).</p>
+<h2 id="3-tabela-mapujaca" tabindex="-1"><a class="header-anchor" href="#3-tabela-mapujaca"><span>3. Tabela mapująca</span></a></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Przykład</th>
+<th>Sekcja teorii</th>
+<th>Pliki (main)</th>
+<th>Testy</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Etap 0: niezależne klasy</td>
+<td>11.2, 1.4, 1.5</td>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>stage0/<wbr>EmailNotification.java</code>, <code>.../<wbr>stage0/<wbr>SmsNotification.java</code></td>
+<td><code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>stage0/<wbr>NotificationCharacterizationTest.java</code></td>
+</tr>
+<tr>
+<td>Etap 1: Extract Superclass + Pull Up</td>
+<td>11.3, 3, 5</td>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>stage1/<wbr>Notification.java</code>, <code>EmailNotification.java</code>, <code>SmsNotification.java</code></td>
+<td><code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>NotificationHierarchyEquivalenceTest.java</code></td>
+</tr>
+<tr>
+<td>Etap 2: Push Down cechy SMS</td>
+<td>11.4, 4</td>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>stage2/<wbr>Notification.java</code>, <code>EmailNotification.java</code>, <code>SmsNotification.java</code></td>
+<td><code>NotificationHierarchyEquivalenceTest</code></td>
+</tr>
+<tr>
+<td>Etap 3: Extract Interface</td>
+<td>11.5, 7</td>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>stage3/<wbr>OutboundNotification.java</code>, <code>Notification.java</code>, <code>EmailNotification.java</code>, <code>SmsNotification.java</code>, <code>NotificationBatch.java</code></td>
+<td><code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>stage3/<wbr>OutboundNotificationContractTest.java</code>, <code>NotificationHierarchyEquivalenceTest</code></td>
+</tr>
+<tr>
+<td>Test równoważności etapów</td>
+<td>11.6, 10.6</td>
+<td>wszystkie <code>stage0..stage3</code></td>
+<td><code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>NotificationHierarchyEquivalenceTest.java</code></td>
+</tr>
+<tr>
+<td>Extract Subclass: <code>DeliveryJob</code></td>
+<td>12.1, 6</td>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>extractsubclass/<wbr>before/<wbr>DeliveryJob.java</code> -&gt; <code>.../<wbr>extractsubclass/<wbr>after/<wbr>DeliveryJob.java</code>, <code>.../<wbr>extractsubclass/<wbr>after/<wbr>ScheduledDeliveryJob.java</code></td>
+<td><code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>extractsubclass/<wbr>DeliveryJobEquivalenceTest.java</code></td>
+</tr>
+<tr>
+<td>Collapse Hierarchy: formatter</td>
+<td>12.2, 8</td>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>collapse/<wbr>before/<wbr>LegacyNotificationFormatter.java</code>, <code>.../<wbr>collapse/<wbr>before/<wbr>NotificationFormatter.java</code> -&gt; <code>.../<wbr>collapse/<wbr>after/<wbr>NotificationFormatter.java</code></td>
+<td><code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>collapse/<wbr>NotificationFormatterEquivalenceTest.java</code></td>
+</tr>
+<tr>
+<td>Replace Inheritance with Composition: <code>RecipientList</code></td>
+<td>12.3, 9</td>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>composition/<wbr>before/<wbr>RecipientList.java</code> -&gt; <code>.../<wbr>composition/<wbr>after/<wbr>RecipientList.java</code></td>
+<td><code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>composition/<wbr>RecipientListEquivalenceTest.java</code></td>
+</tr>
+<tr>
+<td>Program demonstracyjny</td>
+<td>12.4</td>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>Module5Examples.java</code></td>
+<td><code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>Module5ExamplesTest.java</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Powiązanie z ćwiczeniami: etap 0 -&gt; 1 to Ćwiczenie 1, etap 1 -&gt; 2 -&gt; 3 to Ćwiczenie 2, <code>extractsubclass</code> i <code>collapse</code> to Ćwiczenie 3, <code>composition</code> to Ćwiczenie 4. Pokazując przykłady przed ćwiczeniem, pokazuj tylko wersje wyjściowe; wersje docelowe odsłaniaj przy omówieniu.</p>
+<hr>
+<h2 id="4-studium-przypadku-hierarchia-powiadomien" tabindex="-1"><a class="header-anchor" href="#4-studium-przypadku-hierarchia-powiadomien"><span>4. Studium przypadku: hierarchia powiadomień</span></a></h2>
+<h3 id="41-etap-0-niezalezne-klasy-i-duplikacja" tabindex="-1"><a class="header-anchor" href="#41-etap-0-niezalezne-klasy-i-duplikacja"><span>4.1. Etap 0: niezależne klasy i duplikacja</span></a></h3>
+<p><strong>Sekcja teorii:</strong> 11.1 (kontrakt szkoleniowy), 11.2.</p>
+<p><strong>Co ilustruje:</strong> dwie finalne, niezależne klasy <code>EmailNotification</code> i <code>SmsNotification</code> z niemal identycznym kodem: te same pola <code>messageId</code>, <code>senderId</code>, <code>body</code>, <code>deliveryReceipt</code>, ta sama <code>normalized(...)</code>, różnica w kanale w <code>summary()</code> i w tym, że tylko SMS dokleja <code>|RECEIPT</code>. W e-mailu <code>appendReceipt</code> jest martwym kodem (<code>@SuppressWarnings(&quot;unused&quot;)</code>), a pole <code>deliveryReceipt</code> nie ma znaczenia.</p>
+<p><strong>Pliki:</strong> <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>stage0/<wbr>EmailNotification.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>stage0/<wbr>SmsNotification.java</code>.</p>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li>Duplikacja wskazuje kierunek, ale nie dowodzi poprawnej nadklasy (sekcja 1.2: „czy mają ten sam kod” to inne pytanie niż „czy są wariantami tego samego pojęcia”).</li>
+<li>Martwa metoda <code>appendReceipt</code> w e-mailu i pole bez znaczenia to sygnał, że nie wszystko, co jest skopiowane, należy do wspólnego kontraktu.</li>
+<li><code>toUpperCase(Locale.ROOT)</code>: normalizacja niezależna od locale (np. turecka litera i). To jest element kontraktu, nie detal.</li>
+<li>Walidacja: <code>null</code> daje <code>NullPointerException</code>, pusty lub biały tekst daje <code>IllegalArgumentException</code>. Typ wyjątku jest częścią kontraktu.</li>
+</ul>
+<p><strong>Testy:</strong> <code>NotificationCharacterizationTest</code>:</p>
+<ul>
+<li><code>capturesEmailBehavior</code> - trim, wielkie litery nadawcy, <code>summary()</code>, <code>dispatch(true/<wbr>false)</code> dla e-maila z flagą <code>true</code> (flaga nic nie zmienia),</li>
+<li><code>capturesSmsReceiptBehavior</code> - <code>|RECEIPT</code> tylko przy sukcesie i fladze <code>true</code>,</li>
+<li><code>capturesValidation</code> - <code>IllegalArgumentException</code> dla pustego <code>messageId</code>, <code>NullPointerException</code> dla <code>null</code> nadawcy.</li>
+</ul>
+<p>Test nie ocenia, czy zachowanie jest idealne. Tworzy punkt odniesienia, żeby oddzielić ruch struktury od późniejszych zmian funkcjonalnych.</p>
+<p><strong>Przebieg demonstracji:</strong></p>
+<ol>
+<li>Otwórz obie klasy obok siebie (widok diff w IDE). Zapytaj: „Co tu jest wspólne? Czy wszystko, co jest wspólne tekstowo, jest wspólne znaczeniowo?”.</li>
+<li>Wskaż <code>@SuppressWarnings(&quot;unused&quot;)</code> w e-mailu. Zapytaj: „Skąd się to wzięło i czy ta flaga ma sens dla e-maila?”.</li>
+<li>Uruchom <code>NotificationCharacterizationTest</code>. Zapytaj: „Czego ten test nie sprawdza?” (np. SMS bez flagi przy błędzie, e-mail z flagą <code>false</code>). To prowadzi do testu różnicowego z macierzą.</li>
+<li>Wróć do sekcji 1.4 teorii (mapa hierarchii): co byśmy sprawdzili w prawdziwym systemie poza <code>extends</code> (refleksja, serializacja, DI, ORM).</li>
+</ol>
+<h3 id="42-etap-1-extract-superclass-oraz-pull-up" tabindex="-1"><a class="header-anchor" href="#42-etap-1-extract-superclass-oraz-pull-up"><span>4.2. Etap 1: Extract Superclass oraz Pull Up</span></a></h3>
+<p><strong>Sekcja teorii:</strong> 11.3; techniki z sekcji 3 (Pull Up Method/Field) i 5 (Extract Superclass).</p>
+<p><strong>Co ilustruje:</strong> nowa abstrakcyjna klasa <code>Notification</code> (dostęp pakietowy) z prywatnymi polami, konstruktorem <code>protected</code>, finalnymi <code>messageId()</code> i <code>summary()</code>, chronioną finalną <code>dispatchResult(boolean)</code>, abstrakcyjnym <code>channel()</code> i abstrakcyjnym <code>dispatch(boolean)</code>. Na tym etapie do bazy trafiają też <code>deliveryReceipt</code> i <code>appendReceipt</code>, co jest celowo niedoskonałym stanem przejściowym.</p>
+<p><strong>Pliki:</strong> <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>stage1/<wbr>Notification.java</code>, <code>.../<wbr>stage1/<wbr>EmailNotification.java</code>, <code>.../<wbr>stage1/<wbr>SmsNotification.java</code>.</p>
+<p>Kluczowy fragment:</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">abstract</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Notification</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String messageId;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String senderId;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String body;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">boolean</span> deliveryReceipt;   <span class="hljs-comment">// cecha tylko SMS w bazie</span>
+
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-type">String</span> <span class="hljs-title function_">summary</span><span class="hljs-params">()</span> {
+        <span class="hljs-keyword">return</span> messageId + <span class="hljs-string">&quot;|&quot;</span> + senderId + <span class="hljs-string">&quot;|&quot;</span> + body + <span class="hljs-string">&quot;|&quot;</span> + channel();
+    }
+    <span class="hljs-keyword">protected</span> <span class="hljs-keyword">final</span> <span class="hljs-type">String</span> <span class="hljs-title function_">dispatchResult</span><span class="hljs-params">(<span class="hljs-type">boolean</span> successful)</span> {
+        <span class="hljs-keyword">return</span> summary() + (successful ? <span class="hljs-string">&quot;|SENT&quot;</span> : <span class="hljs-string">&quot;|FAILED&quot;</span>);
+    }
+    <span class="hljs-keyword">protected</span> <span class="hljs-keyword">final</span> <span class="hljs-type">String</span> <span class="hljs-title function_">appendReceipt</span><span class="hljs-params">(String result)</span> { ... }
+    <span class="hljs-keyword">protected</span> <span class="hljs-keyword">abstract</span> <span class="hljs-type">String</span> <span class="hljs-title function_">channel</span><span class="hljs-params">()</span>;
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> <span class="hljs-type">String</span> <span class="hljs-title function_">dispatch</span><span class="hljs-params">(<span class="hljs-type">boolean</span> successful)</span>;
+}
+</code></pre>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li>Pola pozostają <code>private</code> i są ustawiane przez <code>super(...)</code>; nie ma surowych pól <code>protected</code> (sekcja 3.4).</li>
+<li><code>channel()</code> jest jedynym punktem polimorficznym potrzebnym algorytmowi <code>summary()</code>. Nie jest wywoływane z konstruktora (sekcja 3.3: overridable wywołanie w konstruktorze działa na częściowo zainicjalizowanym obiekcie).</li>
+<li><code>final</code> na <code>summary()</code> dokumentuje wspólny algorytm. W publicznej bibliotece dodanie <code>final</code> do istniejącej metody łamie zewnętrzne override, tu jest bezpieczne, bo klasa bazowa jest pakietowa, a konkretne są <code>final</code>.</li>
+<li>Publiczne konstruktory czteroargumentowe zachowują sygnatury (sekcja 5.3).</li>
+<li><code>deliveryReceipt</code> w bazie: zachowanie jest zgodne, ale model jest zły. E-mail przyjmuje wartość bez znaczenia, baza opisuje cechę nieprawdziwą dla wszystkich wariantów.</li>
+</ul>
+<p><strong>Testy:</strong> <code>NotificationHierarchyEquivalenceTest</code> (opis w 4.5) obejmuje <code>stage1</code>.</p>
+<p><strong>Przebieg demonstracji:</strong></p>
+<ol>
+<li>Pokaż <code>stage1/<wbr>Notification.java</code>, potem obie podklasy. Zapytaj: „Ile linii zostało w podklasach i co one teraz wyrażają?”.</li>
+<li>Zapytaj: „Dlaczego <code>channel()</code> jest <code>protected abstract</code>, a <code>summary()</code> <code>public final</code>?”.</li>
+<li>Wskaż <code>deliveryReceipt</code> w bazie. Zapytaj: „Czy to jest prawda o każdej <code>Notification</code>?”. Zapowiedz etap 2.</li>
+<li>Zapytaj o scenariusz: co by się stało, gdyby konstruktor bazowy budował <code>summary</code> (a więc wołał <code>channel()</code>), a podklasa trzymała kanał w polu inicjalizowanym w swoim konstruktorze (sekcja 2.4: wartość <code>null</code>).</li>
+</ol>
+<h3 id="43-etap-2-push-down-cechy-sms" tabindex="-1"><a class="header-anchor" href="#43-etap-2-push-down-cechy-sms"><span>4.3. Etap 2: Push Down cechy SMS</span></a></h3>
+<p><strong>Sekcja teorii:</strong> 11.4; technika z sekcji 4 (Push Down Method/Field).</p>
+<p><strong>Co ilustruje:</strong> <code>deliveryReceipt</code> i <code>appendReceipt</code> (teraz prywatna) przeniesione do <code>SmsNotification</code>. Konstruktor bazowy ma trzy parametry. <code>EmailNotification</code> ma dwa konstruktory: przejściowy czteroargumentowy (parametr <code>ignoredDeliveryReceipt</code>) delegujący przez <code>this(...)</code> do docelowego trzyargumentowego.</p>
+<p><strong>Pliki:</strong> <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>stage2/<wbr>Notification.java</code>, <code>.../<wbr>stage2/<wbr>EmailNotification.java</code>, <code>.../<wbr>stage2/<wbr>SmsNotification.java</code>.</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">public</span> <span class="hljs-title function_">EmailNotification</span><span class="hljs-params">(String messageId, String senderId,
+        String body, <span class="hljs-type">boolean</span> ignoredDeliveryReceipt)</span> {
+    <span class="hljs-built_in">this</span>(messageId, senderId, body);
+}
+
+<span class="hljs-type">public</span> <span class="hljs-title function_">EmailNotification</span><span class="hljs-params">(String messageId, String senderId, String body)</span> {
+    <span class="hljs-built_in">super</span>(messageId, senderId, body);
+}
+</code></pre>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li>Kolejność: najpierw zachowanie (<code>appendReceipt</code>), potem stan. Dzięki temu baza przestaje zależeć od pola przed jego usunięciem.</li>
+<li>Push Down jest tu refaktoryzacją tylko dlatego, że granica kontraktu wyklucza zewnętrzne podklasy i obserwację układu pól (sekcja 11.1). W publicznej bibliotece usunięcie członka z bazy łamie stare binaria (sekcja 4.2, 4.4: przesuwanie nie jest symetryczne).</li>
+<li>Nazwa parametru <code>ignoredDeliveryReceipt</code> komunikuje, że wartość jest ignorowana zgodnie z zapisanym zachowaniem.</li>
+<li>Nie wolno zostawić pola w bazie i dodać drugiego w podklasie: powstałyby dwa niezależne sloty (sekcja 2.3).</li>
+</ul>
+<p><strong>Testy:</strong> <code>NotificationHierarchyEquivalenceTest</code>, w szczególności <code>allStagesPreserveEmailContractForEveryLegacyFlagAndStatus</code> (e-mail z obiema wartościami flagi).</p>
+<p><strong>Przebieg demonstracji:</strong></p>
+<ol>
+<li>Pokaż diff <code>stage1</code> vs <code>stage2</code> dla <code>Notification.java</code> i <code>SmsNotification.java</code>.</li>
+<li>Zapytaj: „Czy stary kod klienta <code>new EmailNotification(a, b, c, true)</code> nadal się kompiluje? A stary plik <code>.class</code>?”. (Tak, sygnatura została zachowana).</li>
+<li>Zapytaj: „Jak wycofalibyśmy czteroargumentowy konstruktor w publicznej bibliotece?” (<code>@Deprecated</code>, okres przejściowy, usunięcie w wydaniu łamiącym).</li>
+</ol>
+<h3 id="44-etap-3-extract-interface" tabindex="-1"><a class="header-anchor" href="#44-etap-3-extract-interface"><span>4.4. Etap 3: Extract Interface</span></a></h3>
+<p><strong>Sekcja teorii:</strong> 11.5; technika z sekcji 7.</p>
+<p><strong>Co ilustruje:</strong> interfejs roli <code>OutboundNotification</code> z jedną metodą <code>dispatch(boolean)</code> oznaczony <code>@FunctionalInterface</code>. <code>Notification implements OutboundNotification</code> (abstrakcyjne <code>dispatch</code> przestaje być deklarowane w bazie, pochodzi z interfejsu). Nowy klient <code>NotificationBatch</code> zależy wyłącznie od interfejsu.</p>
+<p><strong>Pliki:</strong> <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>stage3/<wbr>OutboundNotification.java</code>, <code>.../<wbr>stage3/<wbr>Notification.java</code>, <code>.../<wbr>stage3/<wbr>EmailNotification.java</code>, <code>.../<wbr>stage3/<wbr>SmsNotification.java</code>, <code>.../<wbr>stage3/<wbr>NotificationBatch.java</code>.</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-title function_">dispatchAll</span><span class="hljs-params">(
+        List&lt;? extends OutboundNotification&gt; notifications,
+        <span class="hljs-type">boolean</span> successful)</span> {
+    Objects.requireNonNull(notifications, <span class="hljs-string">&quot;notifications must not be null&quot;</span>);
+    <span class="hljs-type">var</span> <span class="hljs-variable">validatedNotifications</span> <span class="hljs-operator">=</span> notifications.stream()
+            .map(n -&gt; Objects.requireNonNull(n, <span class="hljs-string">&quot;notification must not be null&quot;</span>))
+            .toList();
+    <span class="hljs-keyword">return</span> validatedNotifications.stream()
+            .map(n -&gt; n.dispatch(successful))
+            .toList();
+}
+</code></pre>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li>Interfejs wynika z potrzeb klienta (tylko <code>dispatch</code>), nie z całego API klasy. Nie ma w nim <code>messageId()</code>, <code>summary()</code>, <code>channel()</code> ani niczego o potwierdzeniu.</li>
+<li><code>@FunctionalInterface</code> chroni rolę jako interfejs z jedną metodą abstrakcyjną; w teście pozwala użyć lambdy jako fałszywej implementacji.</li>
+<li><code>List&lt;? extends OutboundNotification&gt;</code> pozwala przekazać np. <code>List&lt;SmsNotification&gt;</code> (metoda tylko czyta).</li>
+<li>Dwa przejścia strumienia: najpierw walidacja całej kolekcji, potem wysyłka. Błędny późniejszy element nie powoduje częściowego efektu.</li>
+<li>Niemodyfikowalny wynik (<code>Stream.toList()</code>) to kontrakt nowej klasy, nie skutek Extract Interface.</li>
+<li>Pułapka binarna (sekcja 7.3): gdyby istniejąca publiczna metoda zmieniła typ parametru z klasy na interfejs, zmieniłby się deskryptor JVM. Tu <code>NotificationBatch</code> jest nowa, więc problem nie występuje.</li>
+</ul>
+<p><strong>Testy:</strong> <code>OutboundNotificationContractTest</code>:</p>
+<ul>
+<li><code>everyImplementationSatisfiesTheExtractedContract</code> - e-mail i SMS wywoływane przez <code>List&lt;OutboundNotification&gt;</code>,</li>
+<li><code>batchDependsOnlyOnTheClientRole</code> - wyniki dla <code>false</code> w kolejności wejścia oraz <code>UnsupportedOperationException</code> przy próbie modyfikacji wyniku,</li>
+<li><code>batchRejectsInvalidInputs</code> - <code>null</code> jako lista i jako element; recording fake (lambda z <code>AtomicInteger</code>) potwierdza zero wywołań <code>dispatch</code> przed wykryciem błędu.</li>
+</ul>
+<p><strong>Przebieg demonstracji:</strong></p>
+<ol>
+<li>Pokaż <code>OutboundNotification.java</code> (4 linie). Zapytaj: „Dlaczego tylko jedna metoda?”.</li>
+<li>Pokaż <code>NotificationBatch.java</code>. Zapytaj: „Po co dwa strumienie zamiast jednego?”. Następnie pokaż <code>batchRejectsInvalidInputs</code> jako dowód.</li>
+<li>Uruchom <code>javap -p -s</code> dla <code>stage3.EmailNotification</code> i pokaż deskryptor <code>dispatch:(Z)Ljava/<wbr>lang/<wbr>String;</code>. Zapytaj: „Co by się zmieniło w deskryptorze, gdyby parametr metody publicznej zmienił typ z klasy na interfejs?”.</li>
+</ol>
+<h3 id="45-test-rownowaznosci-wszystkich-etapow" tabindex="-1"><a class="header-anchor" href="#45-test-rownowaznosci-wszystkich-etapow"><span>4.5. Test równoważności wszystkich etapów</span></a></h3>
+<p><strong>Sekcja teorii:</strong> 11.6, 10.6.</p>
+<p><strong>Plik:</strong> <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>NotificationHierarchyEquivalenceTest.java</code>.</p>
+<p><strong>Co sprawdza:</strong></p>
+<ul>
+<li><code>allStagesPreserveEmailContractForEveryLegacyFlagAndStatus</code> - macierz 2x2 (flaga x status) dla e-maila we wszystkich czterech etapach, oczekiwanie niezależne: <code>msg-1|OPS|Deployment ready|EMAIL|SENT/<wbr>FAILED</code>,</li>
+<li><code>allStagesPreserveSmsContractForEveryReceiptAndStatus</code> - macierz 2x2 dla SMS, <code>|RECEIPT</code> tylko przy sukcesie i fladze,</li>
+<li><code>allStagesPreserveValidationTypes</code> - dokładny typ wyjątku (<code>IllegalArgumentException</code>, <code>NullPointerException</code>) we wszystkich etapach; porównanie <code>getClass()</code>, więc podklasa wyjątku też nie przejdzie.</li>
+</ul>
+<p><strong>Na co zwrócić uwagę:</strong> oczekiwanie jest wyliczane niezależnie, a nie przez <code>before.equals(after)</code>. Obie wersje mogłyby mieć ten sam błąd. Test sprawdza zachowanie, nie klasę runtime, pola ani refleksję, zgodnie z granicą kontraktu z 11.1.</p>
+<p><strong>Pytanie do grupy:</strong> „Której warstwy zgodności z tabeli 1.3 ten test nie dotyka?” (binarnej, refleksyjnej, serializacyjnej, integracyjnej).</p>
+<hr>
+<h2 id="5-extract-subclass-deliveryjob" tabindex="-1"><a class="header-anchor" href="#5-extract-subclass-deliveryjob"><span>5. Extract Subclass: <code>DeliveryJob</code></span></a></h2>
+<p><strong>Sekcja teorii:</strong> 12.1; technika z sekcji 6.</p>
+<p><strong>Co ilustruje:</strong> wariant zaplanowany reprezentowany przez <code>Optional&lt;Instant&gt;</code> zostaje wydzielony do <code>ScheduledDeliveryJob</code>. Fabryka <code>scheduled(...)</code> zwraca nowy typ runtime, ale typ deklarowany wyniku pozostaje <code>DeliveryJob</code>.</p>
+<p><strong>Pliki:</strong> przed: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>extractsubclass/<wbr>before/<wbr>DeliveryJob.java</code> (finalna klasa, prywatny konstruktor, fabryki <code>immediate()</code> i <code>scheduled(Instant)</code>). Po: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>extractsubclass/<wbr>after/<wbr>DeliveryJob.java</code> (nie-finalna, konstruktor pakietowy, <code>dispatchAt</code> zwraca <code>SENT</code>) i <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>extractsubclass/<wbr>after/<wbr>ScheduledDeliveryJob.java</code>.</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ScheduledDeliveryJob</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">DeliveryJob</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Instant scheduledAt;
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">dispatchAt</span><span class="hljs-params">(Instant now)</span> {
+        Objects.requireNonNull(now, <span class="hljs-string">&quot;now must not be null&quot;</span>);
+        <span class="hljs-keyword">if</span> (now.isBefore(scheduledAt)) {
+            <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;WAITING_UNTIL &quot;</span> + scheduledAt;
+        }
+        <span class="hljs-keyword">return</span> <span class="hljs-built_in">super</span>.dispatchAt(now);
+    }
+}
+</code></pre>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li>Klasa bazowa musiała przestać być <code>final</code>. Konstruktor pakietowy ogranicza, kto może tworzyć podklasy i instancje.</li>
+<li>Wersja przed już ma fabryki, więc krok „wprowadź fabryki” z procedury (6.2) jest tu spełniony od początku. Krytyczne jest zmienienie punktu tworzenia (<code>scheduled</code>) przed Push Down.</li>
+<li>Granica: <code>now == scheduledAt</code> daje <code>SENT</code> (warunek <code>isBefore</code>). Zamiana na <code>!isAfter</code> byłaby regresją.</li>
+<li>Zmienia się dokładna klasa runtime obiektu zaplanowanego: <code>getClass()</code>, <code>equals</code> oparte na <code>getClass()</code>, ORM, JSON z metadanymi typu, serializacja, <code>switch</code>/<code>instanceof</code>. To celowa zmiana (sekcja 6.3).</li>
+<li><code>super.dispatchAt(now)</code> świadomie używa zachowania bazowego po terminie (w tym walidacji <code>now</code>).</li>
+<li>Model działa, bo wariant jest stabilny. Przy planowaniu, wstrzymywaniu i wznawianiu lepszy byłby State lub osobna polityka.</li>
+</ul>
+<p><strong>Testy:</strong> <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>extractsubclass/<wbr>DeliveryJobEquivalenceTest.java</code>:</p>
+<ul>
+<li><code>immediateJobIsSentAtTheRequestedTime</code> - <code>SENT</code> dla zadania natychmiastowego w obu wersjach,</li>
+<li><code>scheduledJobPreservesItsObservableResult</code> - parametryzowany: sekundę przed terminem (<code>WAITING_UNTIL 2030-06-15T10:15:30Z</code>), dokładnie w terminie (<code>SENT</code>), sekundę po (<code>SENT</code>); porównuje obie wersje z niezależnym oczekiwaniem i ze sobą.</li>
+</ul>
+<p>Test celowo nie sprawdza klasy runtime.</p>
+<p><strong>Przebieg demonstracji:</strong></p>
+<ol>
+<li>Pokaż wersję <code>before</code>. Zapytaj: „Czy to <code>Optional</code> jest problemem? Kiedy pole opcjonalne jest w porządku?”.</li>
+<li>Poproś grupę o tabelę wyników (natychmiastowe, przed, w, po terminie), zanim otworzysz test.</li>
+<li>Pokaż <code>after/<wbr>DeliveryJob.java</code> i <code>after/<wbr>ScheduledDeliveryJob.java</code>.</li>
+<li>Zapytaj: „Co zobaczy kod, który robi <code>job.getClass() == DeliveryJob.class</code>?”, „Co zrobi ORM z dyskryminatorem?”.</li>
+<li>Uruchom <code>DeliveryJobEquivalenceTest</code>. Tymczasowo zmień <code>isBefore</code> na <code>!isAfter</code> w <code>ScheduledDeliveryJob</code> i pokaż, że test graniczny się czerwieni (potem cofnij).</li>
+</ol>
+<hr>
+<h2 id="6-collapse-hierarchy-formatter" tabindex="-1"><a class="header-anchor" href="#6-collapse-hierarchy-formatter"><span>6. Collapse Hierarchy: formatter</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 12.2; technika z sekcji 8.</p>
+<p><strong>Co ilustruje:</strong> <code>LegacyNotificationFormatter</code> (publiczna, nie-finalna) zawiera całe zachowanie, <code>NotificationFormatter</code> jest pustą finalną podklasą używaną przez klientów. Po scaleniu zostaje jedna finalna klasa <code>NotificationFormatter</code> z metodą <code>format</code>.</p>
+<p><strong>Pliki:</strong> przed: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>collapse/<wbr>before/<wbr>LegacyNotificationFormatter.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>collapse/<wbr>before/<wbr>NotificationFormatter.java</code>. Po: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>collapse/<wbr>after/<wbr>NotificationFormatter.java</code>.</p>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li>Zostaje nazwa, której używają kontrolowani klienci (<code>NotificationFormatter</code>), a nie ta, która ma kod.</li>
+<li>Scalenie jest zachowujące tylko dla klientów <code>NotificationFormatter</code>. Usunięcie publicznej <code>LegacyNotificationFormatter</code> łamie niezależnych klientów tej nazwy (błąd ładowania klasy, rzutowania, konfiguracja DI). W bibliotece: cienki typ zgodności <code>@Deprecated</code> i zaplanowane wydanie łamiące.</li>
+<li>Pusta klasa nie zawsze jest bezwartościowa: marker, punkt rozszerzenia, typ w protokole, cel DI (sekcja 8.1).</li>
+<li><code>final</code> na klasie wynikowej jest bezpieczne w zamkniętym przykładzie; w bibliotece pozwalającej na podklasy byłoby osobną zmianą łamiącą.</li>
+</ul>
+<p><strong>Testy:</strong> <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>collapse/<wbr>NotificationFormatterEquivalenceTest.java</code>:</p>
+<ul>
+<li><code>collapsedFormatterPreservesValidation</code> - <code>NullPointerException</code> dla <code>null</code> odbiorcy i <code>null</code> treści w obu wersjach,</li>
+<li><code>collapsedFormatterPreservesTheFormattedNotification</code> - dokładny tekst <code>To: ...\nMessage: ...</code> dla danych operacyjnych i dla polskich znaków (<code>zespół@example.pl</code>, <code>Zażółć gęślą jaźń</code>).</li>
+</ul>
+<p><strong>Przebieg demonstracji:</strong></p>
+<ol>
+<li>Pokaż obie klasy <code>before</code>. Zapytaj: „Którą klasę usuniemy i dlaczego nie tę pustą?”.</li>
+<li>Pokaż <code>after/<wbr>NotificationFormatter.java</code>.</li>
+<li>Zapytaj: „Co się stanie z klientem zewnętrznym, który ma w konfiguracji nazwę <code>LegacyNotificationFormatter</code>?”.</li>
+<li>Uruchom test.</li>
+</ol>
+<hr>
+<h2 id="7-replace-inheritance-with-composition-recipientlist" tabindex="-1"><a class="header-anchor" href="#7-replace-inheritance-with-composition-recipientlist"><span>7. Replace Inheritance with Composition: <code>RecipientList</code></span></a></h2>
+<p><strong>Sekcja teorii:</strong> 12.3; technika z sekcji 9.</p>
+<p><strong>Co ilustruje:</strong> <code>RecipientList extends ArrayList&lt;String&gt;</code> z metodą <code>snapshot()</code> zamieniona na <code>RecipientList implements Iterable&lt;String&gt;</code> z prywatnym delegatem <code>List&lt;String&gt;</code> i jawnymi metodami <code>add</code>, <code>remove(Object)</code>, <code>contains</code>, <code>size</code>, <code>iterator</code>, <code>snapshot</code>.</p>
+<p><strong>Pliki:</strong> przed: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>composition/<wbr>before/<wbr>RecipientList.java</code>. Po: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>composition/<wbr>after/<wbr>RecipientList.java</code>.</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">RecipientList</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Iterable</span>&lt;String&gt; {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-variable">recipients</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();
+
+    <span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">remove</span><span class="hljs-params">(Object recipient)</span> {
+        <span class="hljs-keyword">return</span> recipients.remove(recipient);
+    }
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-type">Iterator</span>&lt;String&gt; <span class="hljs-title function_">iterator</span><span class="hljs-params">()</span> {
+        <span class="hljs-keyword">return</span> Collections.unmodifiableList(recipients).iterator();
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-title function_">snapshot</span><span class="hljs-params">()</span> {
+        <span class="hljs-keyword">return</span> Collections.unmodifiableList(<span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;(recipients));
+    }
+}
+</code></pre>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li>Po zmianie obiekt nie jest <code>List</code> ani <code>ArrayList</code>: tracimy przypisywalność, <code>add(int, E)</code>, <code>set</code>, <code>clear</code>, <code>sort</code>, <code>replaceAll</code>, <code>remove(int)</code>, <code>equals</code>/<code>hashCode</code> kolekcji, serializowalność po <code>ArrayList</code>, dokładne charakterystyki spliteratora. To zmiana kontraktu, jeżeli była obserwowalna.</li>
+<li><code>Iterable</code> dodaje domyślne <code>forEach</code> i <code>spliterator</code>, więc też należą do publicznego kontraktu.</li>
+<li>Iterator wersji po zmianie blokuje <code>Iterator.remove()</code> (celowo); klient używający tej drogi musi przejść na <code>remove(Object)</code>.</li>
+<li><code>remove(Object)</code> vs <code>remove(int)</code>: gdyby wrapper ujawnił oba przeciążenia, literał liczbowy wybrałby usunięcie po indeksie (overloading jest statyczny, sekcja 2.2).</li>
+<li>Delegat jest tworzony w polu, więc każdy wrapper ma własny stan (brak przypadkowego współdzielenia).</li>
+<li><code>snapshot()</code> to płytka kopia w niemodyfikowalnym widoku; <code>String</code> jest niemutowalny, więc płytkość nie szkodzi.</li>
+<li>Pułapki delegowania z sekcji 9.4 (hooki na <code>this</code>, <code>super</code>, fluent <code>this</code>, callbacki, <code>synchronized</code>) tu nie występują, ale warto je wymienić.</li>
+</ul>
+<p><strong>Testy:</strong> <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>composition/<wbr>RecipientListEquivalenceTest.java</code> (jedna metoda <code>compositionPreservesTheIntendedRecipientListContract</code>) wykonuje tę samą sekwencję na obu wersjach: dodanie z duplikatem, rozmiar, <code>contains</code>, kolejność iteracji, <code>remove</code> pierwszego wystąpienia, porównanie niemodyfikowalnych migawek, izolacja migawki po późniejszym <code>add</code>, <code>UnsupportedOperationException</code> z <code>Iterator.remove()</code> w wersji po zmianie, <code>false</code> przy usuwaniu nieistniejącego elementu, niezależność stanu nowych instancji.</p>
+<p><strong>Przebieg demonstracji:</strong></p>
+<ol>
+<li>Pokaż wersję <code>before</code>. Poproś grupę, by w IDE wpisała <code>new RecipientList().</code> i przejrzała podpowiedzi. Zapytaj: „Które z tych operacji domena zatwierdziła?”.</li>
+<li>Pokaż wersję <code>after</code>. Zapytaj: „Czego już nie da się zrobić? Czy to jest zgodna zmiana API?”.</li>
+<li>Zapytaj o <code>remove(int)</code> vs <code>remove(Object)</code> na <code>List&lt;Integer&gt;</code>.</li>
+<li>Uruchom test. Zapytaj: „Czego ten test nie sprawdza?” (np. <code>equals</code>, serializacja, przypisywalność).</li>
+<li>Zapytaj o wariant publiczny: zachować dziedziczenie, zaimplementować pełny <code>List</code> z delegowaniem, albo nowy wąski typ i migracja z wydaniem łamiącym.</li>
+</ol>
+<hr>
+<h2 id="8-program-demonstracyjny" tabindex="-1"><a class="header-anchor" href="#8-program-demonstracyjny"><span>8. Program demonstracyjny</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 12.4.</p>
+<p><strong>Plik:</strong> <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>Module5Examples.java</code>; test dymny <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>Module5ExamplesTest.java</code> (sprawdza tylko, że <code>main</code> nie rzuca wyjątku).</p>
+<p>Program porównuje <code>stage0</code> z <code>stage3</code> dla SMS, wersje <code>before</code>/<code>after</code> dla <code>DeliveryJob</code> (sekundę przed terminem), formattera i <code>RecipientList</code> (migawki), a na końcu uruchamia <code>NotificationBatch</code> z e-mailem i SMS. Dobry na otwarcie modułu (pokazać, że wszystkie przykłady działają) i na zamknięcie (podsumowanie).</p>
+<p><strong>Uwaga dla prowadzącego:</strong> porównania w programie to pojedyncze przypadki, nie dowód równoważności. Warto to podkreślić i odesłać do testów różnicowych z macierzą scenariuszy.</p>
+<hr>
+<h2 id="9-sugerowany-plan-zajec" tabindex="-1"><a class="header-anchor" href="#9-sugerowany-plan-zajec"><span>9. Sugerowany plan zajęć</span></a></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Blok</th>
+<th>Treść</th>
+<th>Materiał</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Kontrakt hierarchii, warstwy zgodności, pętla bezpiecznej transformacji</td>
+<td>teoria 1, program demonstracyjny</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Semantyka dziedziczenia w Javie (dyspozycja, overloading, pola, konstruktory, monitory, <code>protected</code>, bridge, <code>sealed</code>)</td>
+<td>teoria 2, <code>javap</code> na <code>stage3</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td>Etap 0 i Ćwiczenie 1</td>
+<td>4.1, potem omówienie 4.2</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Ćwiczenie 2</td>
+<td>omówienie 4.3, 4.4, 4.5</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Ćwiczenie 3</td>
+<td>omówienie rozdziałów 5 i 6</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Ćwiczenie 4</td>
+<td>omówienie rozdziału 7</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Zgodność, serializacja, ORM/DI (teoria 10), retrospektywa, sprawdzenie wiedzy</td>
+<td>zadanie 5</td>
+</tr>
+</tbody>
+</table></div>
+
+</main>
+</div>
+<script>if(matchMedia('(max-width:900px)').matches){var d=document.querySelector('.toc details');if(d)d.open=false}</script>
+</body>
+</html>

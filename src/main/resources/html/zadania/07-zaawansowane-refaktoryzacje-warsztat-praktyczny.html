@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zadania: Moduł 7. Zaawansowane refaktoryzacje - warsztat praktyczny</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1d1f23;--muted:#5f6670;--line:#e3e5e8;--card:#ffffff;--accent:#2457c5;--accent-bg:#eef3fd;
+--code-bg:#f4f5f7;--note-bg:#fff7e6;--note-line:#e6a700;--th:#f1f3f6;
+--k:#b3246b;--s:#1a7f37;--c:#6e7781;--n:#0550ae;--t:#8250df;--f:#6639ba;--a:#953800;
+--kind:#2457c5}
+@media (prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3036;--card:#1c1f23;--accent:#7aa7ff;--accent-bg:#1e2a40;
+--code-bg:#1f2328;--note-bg:#2b2412;--note-line:#c99400;--th:#23272d;
+--k:#ff7b9c;--s:#7ee2a0;--c:#8b949e;--n:#79c0ff;--t:#d2a8ff;--f:#d2a8ff;--a:#ffa657}}
+body.zadania{--kind:#1a7f37} body.rozwiazania{--kind:#b3246b} body.przyklady{--kind:#2457c5}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.topbar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 24px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);border-top:3px solid var(--kind)}
+.topbar a{color:var(--fg);text-decoration:none}
+.home{font-weight:600}
+.tabs{display:flex;gap:4px}
+.tab{padding:4px 12px;border-radius:999px;font-size:15px;color:var(--muted)!important}
+.tab:hover{background:var(--code-bg)}
+.tab.active{background:var(--accent-bg);color:var(--accent)!important;font-weight:600}
+.pager{margin-left:auto;display:flex;gap:14px;font-size:15px}
+.pager a{color:var(--muted)}.pager a:hover{color:var(--accent)}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:48px;max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+.layout.no-toc{grid-template-columns:minmax(0,1fr);max-width:1000px}
+aside{position:sticky;top:72px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px}
+.toc-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;font-weight:600}
+.toc ul{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.toc li a{display:block;padding:3px 12px;color:var(--muted);text-decoration:none;line-height:1.35}
+.toc li.h3 a{padding-left:24px;font-size:13px}
+.toc li a:hover{color:var(--accent)}
+main{min-width:0;max-width:860px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 1.2rem;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:2.6rem 0 .8rem;padding-top:.6rem;border-top:1px solid var(--line)}
+h3{font-size:1.18rem;margin:2rem 0 .6rem}
+h4{font-size:1rem;margin:1.5rem 0 .5rem}
+h1 a,h2 a,h3 a,h4 a{color:inherit;text-decoration:none}
+h2 a:hover::after,h3 a:hover::after{content:" #";color:var(--muted)}
+p,ul,ol{margin:.6rem 0 1rem}
+li{margin:.25rem 0}
+li>ul,li>ol{margin:.2rem 0}
+a{color:var(--accent)}
+strong{font-weight:650}
+code{font:0.88em/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre.code{position:relative;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:1rem 0 1.4rem}
+pre.code code{background:none;padding:0;font-size:14px;line-height:1.55}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:6px;right:10px;font:11px ui-monospace,Menlo,monospace;color:var(--muted);text-transform:uppercase}
+.table-wrap{overflow-x:auto;margin:1rem 0 1.4rem;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--th);font-weight:600}
+tr:last-child td{border-bottom:none}
+blockquote{margin:1rem 0 1.4rem;padding:10px 16px;background:var(--note-bg);border-left:4px solid var(--note-line);border-radius:0 8px 8px 0}
+blockquote p{margin:.3rem 0}
+hr{border:none;border-top:1px solid var(--line);margin:2rem 0}
+hr+h2{border-top:none;margin-top:1.4rem}
+main p code,main li code,main td code{overflow-wrap:break-word}
+.toc summary{cursor:pointer;list-style:none}.toc summary::-webkit-details-marker{display:none}
+.hljs-keyword,.hljs-selector-tag,.hljs-built_in,.hljs-literal{color:var(--k)}
+.hljs-string,.hljs-regexp,.hljs-addition{color:var(--s)}
+.hljs-comment,.hljs-quote,.hljs-meta{color:var(--c);font-style:italic}
+.hljs-number,.hljs-symbol{color:var(--n)}
+.hljs-type,.hljs-class .hljs-title,.hljs-title.class_{color:var(--t)}
+.hljs-title,.hljs-title.function_,.hljs-section{color:var(--f)}
+.hljs-attr,.hljs-attribute,.hljs-variable,.hljs-params,.hljs-tag{color:var(--a)}
+.hljs-deletion{color:var(--k)}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:16px;padding:20px 16px 60px}
+aside{position:static;max-height:none;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--card)}
+.toc-title{margin:0}.toc details[open] .toc-title{margin-bottom:8px}.toc summary::after{content:" ▾"}
+body{font-size:16px}.topbar{padding:8px 16px}.pager{margin-left:0}h1{font-size:1.6rem}}
+@media print{.topbar,aside{display:none}.layout{display:block;padding:0}main{max-width:none}
+pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#000;font-size:12pt}}
+</style>
+</head>
+<body class="zadania">
+<header class="topbar"><a class="home" href="../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab active" href="/07-zaawansowane-refaktoryzacje-warsztat-praktyczny.html">Zadania</a><a class="tab" href="../przyklady/07-zaawansowane-refaktoryzacje-warsztat-praktyczny.html">Przykłady</a><a class="tab" href="../rozwiazania/07-zaawansowane-refaktoryzacje-warsztat-praktyczny.html">Rozwiązania</a></div><div class="pager"><a href="06-refaktoryzacje-do-wzorcow-projektowych-warsztat-praktyczny.html" title="Poprzedni moduł">&larr; 06</a><a href="08-strategie-i-dobre-praktyki.html" title="Następny moduł">08 &rarr;</a></div></header>
+<div class="layout">
+<aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#zadania-dla-uczestnikow">Zadania dla uczestników</a></li><li class="h2"><a href="#jak-pracowac">Jak pracować</a></li><li class="h3"><a href="#zasady-ogolne">Zasady ogólne</a></li><li class="h3"><a href="#przygotowanie-srodowiska">Przygotowanie środowiska</a></li><li class="h3"><a href="#harmonogram-modulu">Harmonogram modułu</a></li><li class="h2"><a href="#warsztat-1-utworzenie-seam-przed-zmiana-integracji">Warsztat 1. Utworzenie seam przed zmianą integracji</a></li><li class="h3"><a href="#cel">Cel</a></li><li class="h3"><a href="#czas">Czas</a></li><li class="h3"><a href="#kontekst">Kontekst</a></li><li class="h3"><a href="#kod-wejsciowy">Kod wejściowy</a></li><li class="h3"><a href="#nowa-regula-biznesowa-do-wprowadzenia-krok-5">Nowa reguła biznesowa do wprowadzenia (krok 5)</a></li><li class="h3"><a href="#polecenia">Polecenia</a></li><li class="h3"><a href="#kryteria-akceptacji">Kryteria akceptacji</a></li><li class="h2"><a href="#warsztat-2-dekompozycja-dlugiej-metody">Warsztat 2. Dekompozycja długiej metody</a></li><li class="h3"><a href="#cel-1">Cel</a></li><li class="h3"><a href="#czas-1">Czas</a></li><li class="h3"><a href="#kontekst-1">Kontekst</a></li><li class="h3"><a href="#kod-wejsciowy-1">Kod wejściowy</a></li><li class="h3"><a href="#polecenia-1">Polecenia</a></li><li class="h3"><a href="#kryteria-akceptacji-1">Kryteria akceptacji</a></li><li class="h2"><a href="#warsztat-3-stopniowe-rozbijanie-god-class">Warsztat 3. Stopniowe rozbijanie God Class</a></li><li class="h3"><a href="#cel-2">Cel</a></li><li class="h3"><a href="#czas-2">Czas</a></li><li class="h3"><a href="#kontekst-2">Kontekst</a></li><li class="h3"><a href="#kod-wejsciowy-2">Kod wejściowy</a></li><li class="h3"><a href="#polecenia-2">Polecenia</a></li><li class="h3"><a href="#kryteria-akceptacji-2">Kryteria akceptacji</a></li><li class="h2"><a href="#cwiczenia-uzupelniajace-opcjonalne">Ćwiczenia uzupełniające (opcjonalne)</a></li><li class="h3"><a href="#cwiczenie-a-break-responsibilities">Ćwiczenie A. Break Responsibilities</a></li><li class="h3"><a href="#cwiczenie-b-remove-duplication">Ćwiczenie B. Remove Duplication</a></li><li class="h3"><a href="#cwiczenie-c-introduce-parameter-object">Ćwiczenie C. Introduce Parameter Object</a></li><li class="h3"><a href="#cwiczenie-d-remove-arrowhead-antipattern">Ćwiczenie D. Remove Arrowhead Antipattern</a></li><li class="h3"><a href="#cwiczenie-e-introduce-design-by-contract-checks">Ćwiczenie E. Introduce Design by Contract Checks</a></li><li class="h3"><a href="#cwiczenie-f-remove-double-negative">Ćwiczenie F. Remove Double Negative</a></li><li class="h3"><a href="#cwiczenie-g-remove-boolean-method-parameters">Ćwiczenie G. Remove Boolean Method Parameters</a></li><li class="h3"><a href="#cwiczenie-h-remove-middle-man">Ćwiczenie H. Remove Middle Man</a></li><li class="h3"><a href="#cwiczenie-i-return-asap">Ćwiczenie I. Return ASAP</a></li><li class="h2"><a href="#oddanie-pracy">Oddanie pracy</a></li></ul></details></nav></aside>
+<main>
+<h1>Moduł 7. Zaawansowane refaktoryzacje - warsztat praktyczny</h1>
+<h2 id="zadania-dla-uczestnikow" tabindex="-1"><a class="header-anchor" href="#zadania-dla-uczestnikow"><span>Zadania dla uczestników</span></a></h2>
+<p>Ten zestaw zawiera trzy warsztaty główne oraz opcjonalne ćwiczenia uzupełniające do bloków tematycznych. Każde zadanie wskazuje kod wejściowy z repozytorium szkoleniowego. Pracujesz wyłącznie na wersjach wyjściowych (pakiety <code>before</code>, klasy <code>Legacy*</code>).</p>
+<h2 id="jak-pracowac" tabindex="-1"><a class="header-anchor" href="#jak-pracowac"><span>Jak pracować</span></a></h2>
+<h3 id="zasady-ogolne" tabindex="-1"><a class="header-anchor" href="#zasady-ogolne"><span>Zasady ogólne</span></a></h3>
+<ul>
+<li>Refaktoryzacja zachowuje obserwowalne zachowanie w przyjętej granicy. Zanim zmienisz strukturę, ustal, co jest częścią kontraktu: wartość zwracana i tożsamość obiektu, typ, komunikat i moment wyjątku, stan po sukcesie i po błędzie, liczba i kolejność wywołań współpracowników, kolejność sprawdzania warunków, aliasowanie mutowalnych obiektów, zgodność publicznego API.</li>
+<li>Pracuj w pętli: nazwij przeszkodę, zapisz przykłady (ścieżka poprawna, granice, awarie), wykonaj najmniejszy ruch, skompiluj, uruchom zawężone testy, powtórz.</li>
+<li>Każdą zmianę kontraktu (nowa walidacja, inny typ wyjątku, kopia defensywna) wykonuj jako osobny, nazwany krok i opisz ją w notatce do rozwiązania.</li>
+<li>Nie przeglądaj pakietów <code>after</code> ani plików testów równoważności przed zakończeniem pracy. Porównanie z wersją referencyjną nastąpi podczas przeglądu.</li>
+</ul>
+<h3 id="przygotowanie-srodowiska" tabindex="-1"><a class="header-anchor" href="#przygotowanie-srodowiska"><span>Przygotowanie środowiska</span></a></h3>
+<ol>
+<li>
+<p>Utwórz własną gałąź: <code>git switch -c warsztat-07-&lt;twoje-inicjały&gt;</code>.</p>
+</li>
+<li>
+<p>Nie modyfikuj oryginalnych klas <code>Legacy*</code>. Skopiuj klasę wejściową do nowego pakietu, np. <code>pl.training.module7.workshop.w1</code>, i refaktoryzuj kopię. Oryginał pozostaje wyrocznią w testach różnicowych (porównanie &quot;stara wersja vs nowa wersja&quot;).</p>
+</li>
+<li>
+<p>Własne testy umieszczaj w <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>workshop/</code>.</p>
+</li>
+<li>
+<p>Uruchamianie testów modułu (Java):</p>
+<pre class="code" data-lang="bash"><code class="hljs">mvn <span class="hljs-built_in">test</span> -Dtest=<span class="hljs-string">&#x27;pl.training.module7.**&#x27;</span>
+</code></pre>
+</li>
+<li>
+<p>Pracując w C# lub TypeScript, korzystaj z odpowiedników w <code>csharp/<wbr>src/<wbr>Training.Module7</code> (testy: <code>cd csharp &amp;&amp; dotnet test</code>) lub <code>typescript/<wbr>src/<wbr>module7</code> (testy: <code>cd typescript &amp;&amp; npm test</code>). Nazwy klas i pakietów są analogiczne.</p>
+</li>
+</ol>
+<h3 id="harmonogram-modulu" tabindex="-1"><a class="header-anchor" href="#harmonogram-modulu"><span>Harmonogram modułu</span></a></h3>
+<p>Sugerowany czas pracy synchronicznej: 360 minut.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Część</th>
+<th style="text-align:right">Czas</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>model zachowania i Break Dependencies</td>
+<td style="text-align:right">40 minut</td>
+</tr>
+<tr>
+<td>Method Object, odpowiedzialności i duplikacja</td>
+<td style="text-align:right">60 minut</td>
+</tr>
+<tr>
+<td>Break Method i Parameter Object</td>
+<td style="text-align:right">45 minut</td>
+</tr>
+<tr>
+<td>Arrowhead, kontrakty i podwójne zaprzeczenia</td>
+<td style="text-align:right">60 minut</td>
+</tr>
+<tr>
+<td>God Class, flagi i Middle Man</td>
+<td style="text-align:right">55 minut</td>
+</tr>
+<tr>
+<td>Return ASAP i migracja API</td>
+<td style="text-align:right">25 minut</td>
+</tr>
+<tr>
+<td>ćwiczenia warsztatowe (Warsztaty 1-3)</td>
+<td style="text-align:right">60 minut</td>
+</tr>
+<tr>
+<td>przegląd rozwiązań i podsumowanie</td>
+<td style="text-align:right">15 minut</td>
+</tr>
+</tbody>
+</table></div>
+<p>Na trzy warsztaty główne przypada łącznie 60 minut (orientacyjnie po 20 minut na warsztat, jeśli prowadzący nie ustali inaczej). Ćwiczenia uzupełniające wykonujesz w ramach bloków tematycznych, jeśli prowadzący je zleci.</p>
+<hr>
+<h2 id="warsztat-1-utworzenie-seam-przed-zmiana-integracji" tabindex="-1"><a class="header-anchor" href="#warsztat-1-utworzenie-seam-przed-zmiana-integracji"><span>Warsztat 1. Utworzenie seam przed zmianą integracji</span></a></h2>
+<h3 id="cel" tabindex="-1"><a class="header-anchor" href="#cel"><span>Cel</span></a></h3>
+<p>Przygotować usługę, która sama tworzy klienta zewnętrznego, do testowanej zmiany reguły biznesowej.</p>
+<h3 id="czas" tabindex="-1"><a class="header-anchor" href="#czas"><span>Czas</span></a></h3>
+<p>Orientacyjnie 20 minut (część bloku &quot;ćwiczenia warsztatowe&quot;).</p>
+<h3 id="kontekst" tabindex="-1"><a class="header-anchor" href="#kontekst"><span>Kontekst</span></a></h3>
+<p>Serwis planowania wdrożeń decyduje, czy usługa może zostać wdrożona o danej godzinie UTC. Decyzję deleguje do kalendarza okien serwisowych. Kalendarz jest tworzony wewnątrz serwisu. W tym ćwiczeniu traktuj <code>StandardMaintenanceWindows</code> jak klienta zewnętrznego systemu (w rzeczywistości mógłby łączyć się z usługą sieciową), którego nie chcesz uruchamiać w testach.</p>
+<h3 id="kod-wejsciowy" tabindex="-1"><a class="header-anchor" href="#kod-wejsciowy"><span>Kod wejściowy</span></a></h3>
+<ul>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>breakdependencies/<wbr>before/<wbr>LegacyDeploymentWindowService.java</code></li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>breakdependencies/<wbr>before/<wbr>StandardMaintenanceWindows.java</code></li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>breakdependencies/<wbr>DeploymentDecision.java</code></li>
+</ul>
+<h3 id="nowa-regula-biznesowa-do-wprowadzenia-krok-5" tabindex="-1"><a class="header-anchor" href="#nowa-regula-biznesowa-do-wprowadzenia-krok-5"><span>Nowa reguła biznesowa do wprowadzenia (krok 5)</span></a></h3>
+<p>Usługi znajdujące się na liście zamrożonych (na potrzeby ćwiczenia: <code>billing</code>) nie mogą być wdrażane o żadnej godzinie. Serwis zwraca dla nich <code>DeploymentDecision.OUTSIDE_MAINTENANCE_WINDOW</code>. Prowadzący może podać inną regułę.</p>
+<h3 id="polecenia" tabindex="-1"><a class="header-anchor" href="#polecenia"><span>Polecenia</span></a></h3>
+<ol>
+<li>Dodaj testy charakterystyki wyniku oraz kolejności wywołań istniejącej wersji: decyzje dla wszystkich godzin 0-23, granice okna, wszystkie ścieżki walidacji (typ i komunikat wyjątku, także dla kombinacji kilku błędnych argumentów).</li>
+<li>Zidentyfikuj najmniejszą operację, której serwis faktycznie potrzebuje od kalendarza.</li>
+<li>Wprowadź punkt podstawienia bez zmiany produkcyjnego składania (produkcja nadal ma używać dotychczasowej implementacji kalendarza).</li>
+<li>Dodaj obiekt typu spy rejestrujący argumenty i liczbę wywołań. Sprawdź nim, co serwis przekazuje do kalendarza i kiedy go nie wywołuje.</li>
+<li>Dopiero potem zaimplementuj nową regułę biznesową i pokryj ją testami.</li>
+<li>Zapisz w notatce, które kroki były refaktoryzacją, a który zmianą zachowania.</li>
+</ol>
+<h3 id="kryteria-akceptacji" tabindex="-1"><a class="header-anchor" href="#kryteria-akceptacji"><span>Kryteria akceptacji</span></a></h3>
+<ul>
+<li>produkcyjna implementacja jest nadal wybierana w głównym miejscu składania zależności, czyli composition root,</li>
+<li>test nie uruchamia infrastruktury,</li>
+<li>nowy kontrakt nie zawiera metod nieużywanych przez usługę,</li>
+<li>liczba i kolejność wywołań są jawnie sprawdzone,</li>
+<li>testy charakterystyki z kroku 1 przechodzą dla wersji po refaktoryzacji bez zmian w ich asercjach,</li>
+<li>nowa reguła biznesowa została dodana w osobnym kroku (osobny commit).</li>
+</ul>
+<hr>
+<h2 id="warsztat-2-dekompozycja-dlugiej-metody" tabindex="-1"><a class="header-anchor" href="#warsztat-2-dekompozycja-dlugiej-metody"><span>Warsztat 2. Dekompozycja długiej metody</span></a></h2>
+<h3 id="cel-1" tabindex="-1"><a class="header-anchor" href="#cel-1"><span>Cel</span></a></h3>
+<p>Wybrać między Extract Method, Split Phase i Extract Method Object na podstawie przepływu danych.</p>
+<h3 id="czas-1" tabindex="-1"><a class="header-anchor" href="#czas-1"><span>Czas</span></a></h3>
+<p>Orientacyjnie 20 minut. Część A jest obowiązkowa, część B wykonujesz, jeśli wystarczy czasu (albo zespoły dzielą się częściami).</p>
+<h3 id="kontekst-1" tabindex="-1"><a class="header-anchor" href="#kontekst-1"><span>Kontekst</span></a></h3>
+<p>Część A: budowniczy manifestu wydania waliduje wpisy, porządkuje je według kolejności wdrożenia i nazwy artefaktu, a następnie renderuje tekst manifestu. Wszystko dzieje się w jednej metodzie publicznej.</p>
+<p>Część B: kalkulator ryzyka wdrożenia sumuje punkty ryzyka, uwzględnia redukcję za przetestowany rollback, ogranicza wynik do zakresu i klasyfikuje poziom ryzyka. Obliczenie operuje na jednej mutowanej zmiennej roboczej.</p>
+<h3 id="kod-wejsciowy-1" tabindex="-1"><a class="header-anchor" href="#kod-wejsciowy-1"><span>Kod wejściowy</span></a></h3>
+<p>Część A:</p>
+<ul>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>breakmethod/<wbr>before/<wbr>LegacyReleaseManifestBuilder.java</code></li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>breakmethod/<wbr>ManifestEntry.java</code></li>
+</ul>
+<p>Część B:</p>
+<ul>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>methodobject/<wbr>before/<wbr>LegacyDeploymentRiskCalculator.java</code></li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>methodobject/<wbr>DeploymentRiskInput.java</code></li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>methodobject/<wbr>RiskAssessment.java</code></li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>methodobject/<wbr>RiskLevel.java</code></li>
+</ul>
+<h3 id="polecenia-1" tabindex="-1"><a class="header-anchor" href="#polecenia-1"><span>Polecenia</span></a></h3>
+<ol>
+<li>Narysuj (na kartce lub w komentarzu) wejścia, wyjścia i mutowane lokalne wartości kolejnych fragmentów metody.</li>
+<li>Dodaj testy różnicowe porównujące wersję wyjściową z Twoją kopią: wynik, typ i komunikat wyjątków, kolejność zgłaszania błędów przy wielu niepoprawnych polach, przypadki brzegowe (pusta lista, równe klucze sortowania, granice klasyfikacji, wartości skrajne typu <code>int</code>).</li>
+<li>Dodaj test sprawdzający, że lista przekazana przez wywołującego nie zostaje zmodyfikowana (część A).</li>
+<li>Wydziel najpierw krok z najmniejszą liczbą zależności.</li>
+<li>Utrzymaj metodę nadrzędną na jednym poziomie abstrakcji.</li>
+<li>Jeżeli listy argumentów zaczynają rosnąć, oceń Method Object. Uzasadnij na piśmie wybór techniki dla części A i dla części B.</li>
+<li>Porównaj wynik, wyjątki i brak modyfikacji wejściowych kolekcji.</li>
+</ol>
+<h3 id="kryteria-akceptacji-1" tabindex="-1"><a class="header-anchor" href="#kryteria-akceptacji-1"><span>Kryteria akceptacji</span></a></h3>
+<ul>
+<li>nazwy metod opisują intencję, nie mechanikę,</li>
+<li>kolejność kroków pozostaje jawna,</li>
+<li>obiekt metody, jeśli powstał, nie jest współdzielony między wywołaniami,</li>
+<li>refaktoryzacja nie dodaje nowej walidacji,</li>
+<li>testy różnicowe przechodzą dla wszystkich przygotowanych przypadków, w tym dla wartości skrajnych,</li>
+<li>lista wejściowa wywołującego ma po wywołaniu tę samą zawartość i kolejność,</li>
+<li>wybór techniki (Extract Method, Split Phase, Method Object) jest uzasadniony przepływem danych.</li>
+</ul>
+<hr>
+<h2 id="warsztat-3-stopniowe-rozbijanie-god-class" tabindex="-1"><a class="header-anchor" href="#warsztat-3-stopniowe-rozbijanie-god-class"><span>Warsztat 3. Stopniowe rozbijanie God Class</span></a></h2>
+<h3 id="cel-2" tabindex="-1"><a class="header-anchor" href="#cel-2"><span>Cel</span></a></h3>
+<p>Wydzielić jedną odpowiedzialność bez przepisywania centralnej klasy i bez zmiany kolejności efektów.</p>
+<h3 id="czas-2" tabindex="-1"><a class="header-anchor" href="#czas-2"><span>Czas</span></a></h3>
+<p>Orientacyjnie 20 minut.</p>
+<h3 id="kontekst-2" tabindex="-1"><a class="header-anchor" href="#kontekst-2"><span>Kontekst</span></a></h3>
+<p>Menedżer wydań waliduje dane, przechowuje opublikowane wydania, prowadzi dziennik audytu, wysyła powiadomienia i rejestruje ślad zdarzeń. Każda zmiana w dowolnym z tych obszarów przechodzi przez jedną klasę. Klienci korzystają z metod <code>publish</code>, <code>releases</code>, <code>auditEntries</code>, <code>notifications</code> i <code>events</code>, dlatego ich sygnatury muszą pozostać dostępne.</p>
+<h3 id="kod-wejsciowy-2" tabindex="-1"><a class="header-anchor" href="#kod-wejsciowy-2"><span>Kod wejściowy</span></a></h3>
+<ul>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>godclass/<wbr>before/<wbr>LegacyReleaseManager.java</code></li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>godclass/<wbr>PublishedRelease.java</code></li>
+</ul>
+<h3 id="polecenia-2" tabindex="-1"><a class="header-anchor" href="#polecenia-2"><span>Polecenia</span></a></h3>
+<ol>
+<li>Zbuduj mapę metod do pól i integracji (które metody czytają lub modyfikują które pola, jakie efekty zewnętrzne powstają i w jakiej kolejności).</li>
+<li>Wskaż jeden klaster o samodzielnym powodzie zmiany. Zapisz, dlaczego wybrałeś właśnie ten.</li>
+<li>Dodaj test śladu operacji dla sukcesu i awarii: kolejność efektów przy poprawnej publikacji, brak efektów przy błędzie walidacji, brak nowych efektów przy próbie ponownej publikacji tego samego identyfikatora.</li>
+<li>Wydziel najmniejszy pionowy fragment do nowej klasy.</li>
+<li>Pozostaw stare API jako delegujące.</li>
+<li>Oceń granicę transakcji i własność stanu. Opisz, co dzieje się ze stanem, jeśli wydzielony krok zgłosi wyjątek, i dodaj test tej sytuacji.</li>
+<li>Zaproponuj (bez implementacji) kolejne dwa kroki kampanii.</li>
+</ol>
+<h3 id="kryteria-akceptacji-2" tabindex="-1"><a class="header-anchor" href="#kryteria-akceptacji-2"><span>Kryteria akceptacji</span></a></h3>
+<ul>
+<li>stan ma jednego właściciela,</li>
+<li>nie powstał cykl zależności,</li>
+<li>walidacja zachowuje kolejność oraz komunikaty,</li>
+<li>po błędzie nie wykonują się późniejsze kroki, a wcześniejsze efekty odpowiadają scharakteryzowanemu kontraktowi,</li>
+<li>kolejne kroki kampanii można wdrażać niezależnie,</li>
+<li>publiczne metody klasy wyjściowej zwracają te same wartości co przed zmianą (w tym niemodyfikowalne kopie kolekcji).</li>
+</ul>
+<hr>
+<h2 id="cwiczenia-uzupelniajace-opcjonalne" tabindex="-1"><a class="header-anchor" href="#cwiczenia-uzupelniajace-opcjonalne"><span>Ćwiczenia uzupełniające (opcjonalne)</span></a></h2>
+<p>Ćwiczenia są krótkie (5-15 minut) i przeznaczone do wykonania w ramach bloków tematycznych harmonogramu. Dla każdego obowiązuje ta sama zasada: najpierw test różnicowy wersji wyjściowej, potem zmiana struktury na kopii, na końcu porównanie.</p>
+<h3 id="cwiczenie-a-break-responsibilities" tabindex="-1"><a class="header-anchor" href="#cwiczenie-a-break-responsibilities"><span>Ćwiczenie A. Break Responsibilities</span></a></h3>
+<ul>
+<li>Kod wejściowy: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>breakresponsibilities/<wbr>before/<wbr>LegacyDeploymentReport.java</code> (rekordy pomocnicze w <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>breakresponsibilities/</code>).</li>
+<li>Polecenie: rozdziel obliczanie metryk wdrożeń od formatowania raportu tekstowego. Zachowaj metodę <code>generate</code> jako punkt wejścia.</li>
+<li>Kryteria: identyczny tekst raportu (także dla pustej listy i średniej całkowitoliczbowej), identyczne wyjątki dla <code>null</code> listy, <code>null</code> elementu i przepełnienia sumy, brak modyfikacji listy wejściowej, każda nowa klasa ma jeden powód zmiany.</li>
+</ul>
+<h3 id="cwiczenie-b-remove-duplication" tabindex="-1"><a class="header-anchor" href="#cwiczenie-b-remove-duplication"><span>Ćwiczenie B. Remove Duplication</span></a></h3>
+<ul>
+<li>Kod wejściowy: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>duplication/<wbr>before/<wbr>LegacyArtifactPublisher.java</code>.</li>
+<li>Polecenie: usuń duplikację wiedzy między publikacją snapshotu i wydania, zachowując dwie publiczne metody.</li>
+<li>Kryteria: identyczne wyniki niezależnie od domyślnego <code>Locale</code> (sprawdź co najmniej <code>tr-TR</code>), identyczny typ, komunikat i kolejność wyjątków dla obu wariantów, różnica między wariantami pozostaje jawna w kodzie.</li>
+</ul>
+<h3 id="cwiczenie-c-introduce-parameter-object" tabindex="-1"><a class="header-anchor" href="#cwiczenie-c-introduce-parameter-object"><span>Ćwiczenie C. Introduce Parameter Object</span></a></h3>
+<ul>
+<li>Kod wejściowy: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>parameterobject/<wbr>before/<wbr>LegacyRolloutPlanner.java</code>.</li>
+<li>Polecenie: wprowadź obiekt parametru dla powtarzającej się grupy argumentów. Zaplanuj migrację publicznego API tak, aby stare i nowe sygnatury mogły czasowo współistnieć.</li>
+<li>Kryteria: identyczne wyniki <code>estimateSeconds</code> i <code>describe</code> (także dla <code>Integer.MAX_VALUE</code> instancji), jawnie opisany moment zgłaszania wyjątków walidacji przed i po zmianie, przeniesienie walidacji (jeśli nastąpiło) wykonane jako osobny krok.</li>
+</ul>
+<h3 id="cwiczenie-d-remove-arrowhead-antipattern" tabindex="-1"><a class="header-anchor" href="#cwiczenie-d-remove-arrowhead-antipattern"><span>Ćwiczenie D. Remove Arrowhead Antipattern</span></a></h3>
+<ul>
+<li>Kod wejściowy: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>arrowhead/<wbr>before/<wbr>LegacyDeploymentEligibility.java</code>.</li>
+<li>Polecenie: spłaszcz zagnieżdżone warunki.</li>
+<li>Kryteria: test obejmuje pełną macierz kombinacji flag oraz przypadki kilku jednocześnie niespełnionych warunków, priorytet wyników nie zmienia się, każdy krok zmienia jeden poziom zagnieżdżenia.</li>
+</ul>
+<h3 id="cwiczenie-e-introduce-design-by-contract-checks" tabindex="-1"><a class="header-anchor" href="#cwiczenie-e-introduce-design-by-contract-checks"><span>Ćwiczenie E. Introduce Design by Contract Checks</span></a></h3>
+<ul>
+<li>Kod wejściowy: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>contract/<wbr>before/<wbr>LegacyDeploymentCapacity.java</code>.</li>
+<li>Polecenie: sformułuj warunki wstępne, warunki końcowe i niezmiennik puli slotów wdrożeniowych, a następnie wprowadź jawne kontrole.</li>
+<li>Kryteria: poprawne sekwencje operacji dają te same wyniki co wersja wyjściowa, naruszenie warunku wstępnego nie zmienia stanu obiektu, kontrole nie opierają się na instrukcji <code>assert</code>, testy rozdzielają równoważność dla poprawnych danych od nowego kontraktu dla niepoprawnych danych.</li>
+</ul>
+<h3 id="cwiczenie-f-remove-double-negative" tabindex="-1"><a class="header-anchor" href="#cwiczenie-f-remove-double-negative"><span>Ćwiczenie F. Remove Double Negative</span></a></h3>
+<ul>
+<li>Kod wejściowy: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>doublenegative/<wbr>before/<wbr>LegacyReleaseReadiness.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>doublenegative/<wbr>before/<wbr>LegacyReleaseGate.java</code>.</li>
+<li>Polecenie: zastąp negatywne nazwy właściwości pozytywnymi. Zaplanuj migrację klientów.</li>
+<li>Kryteria: wszystkie 8 wierszy tabeli prawdy daje ten sam wynik, zachowany wyjątek dla <code>null</code>, opisany wpływ zmiany na ewentualne granice systemu (JSON, baza danych, konfiguracja).</li>
+</ul>
+<h3 id="cwiczenie-g-remove-boolean-method-parameters" tabindex="-1"><a class="header-anchor" href="#cwiczenie-g-remove-boolean-method-parameters"><span>Ćwiczenie G. Remove Boolean Method Parameters</span></a></h3>
+<ul>
+<li>Kod wejściowy: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>booleanparameter/<wbr>before/<wbr>LegacyDeploymentExecutor.java</code>.</li>
+<li>Polecenie: usuń parametr sterujący z publicznego API.</li>
+<li>Kryteria: obie gałęzie dają te same wyniki co wcześniej, walidacja identyczna dla obu wariantów, publiczne API nie zawiera parametru <code>boolean</code>, opisany plan okresu zgodności dla starej sygnatury.</li>
+</ul>
+<h3 id="cwiczenie-h-remove-middle-man" tabindex="-1"><a class="header-anchor" href="#cwiczenie-h-remove-middle-man"><span>Ćwiczenie H. Remove Middle Man</span></a></h3>
+<ul>
+<li>Kod wejściowy: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>middleman/<wbr>before/<wbr>ReleaseService.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>middleman/<wbr>before/<wbr>ReleaseDashboard.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>middleman/<wbr>before/<wbr>DeploymentRegistry.java</code>.</li>
+<li>Polecenie: oceń, czy pośrednik chroni wartościową granicę. Jeśli nie, migruj klienta do bezpośredniej współpracy.</li>
+<li>Kryteria: pisemna ocena (autoryzacja, transakcje, telemetria, retry, translacja błędów), identyczne renderowanie i walidacja, migracja jednego klienta naraz.</li>
+</ul>
+<h3 id="cwiczenie-i-return-asap" tabindex="-1"><a class="header-anchor" href="#cwiczenie-i-return-asap"><span>Ćwiczenie I. Return ASAP</span></a></h3>
+<ul>
+<li>Kod wejściowy: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>returnasap/<wbr>before/<wbr>LegacyArtifactFinder.java</code>.</li>
+<li>Polecenie: usuń zmienną wyniku i zmienną sterującą pętli, zwracając wynik w miejscu, w którym staje się ostateczny.</li>
+<li>Kryteria: zwracana jest ta sama instancja (pierwsze dopasowanie), zachowane zachowanie dla elementu <code>null</code> przed i po dopasowaniu, zachowany ślad dostępu do listy (liczba i kolejność wywołań <code>size()</code> i <code>get(index)</code>).</li>
+</ul>
+<hr>
+<h2 id="oddanie-pracy" tabindex="-1"><a class="header-anchor" href="#oddanie-pracy"><span>Oddanie pracy</span></a></h2>
+<p>Na przegląd przygotuj:</p>
+<ol>
+<li>link do gałęzi lub listę commitów (jeden commit = jeden krok),</li>
+<li>listę testów charakterystyki i różnicowych,</li>
+<li>krótką notatkę: co było refaktoryzacją, co zmianą kontraktu, jakie ryzyka pozostały i jakie są kolejne kroki.</li>
+</ol>
+
+</main>
+</div>
+<script>if(matchMedia('(max-width:900px)').matches){var d=document.querySelector('.toc details');if(d)d.open=false}</script>
+</body>
+</html>
