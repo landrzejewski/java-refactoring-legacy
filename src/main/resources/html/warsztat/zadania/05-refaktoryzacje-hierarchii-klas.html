@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zadania: Moduł 5. Refaktoryzacje hierarchii klas - warsztat CineLegacy: zadania</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1d1f23;--muted:#5f6670;--line:#e3e5e8;--card:#ffffff;--accent:#2457c5;--accent-bg:#eef3fd;
+--code-bg:#f4f5f7;--note-bg:#fff7e6;--note-line:#e6a700;--th:#f1f3f6;
+--k:#b3246b;--s:#1a7f37;--c:#6e7781;--n:#0550ae;--t:#8250df;--f:#6639ba;--a:#953800;
+--kind:#2457c5}
+@media (prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3036;--card:#1c1f23;--accent:#7aa7ff;--accent-bg:#1e2a40;
+--code-bg:#1f2328;--note-bg:#2b2412;--note-line:#c99400;--th:#23272d;
+--k:#ff7b9c;--s:#7ee2a0;--c:#8b949e;--n:#79c0ff;--t:#d2a8ff;--f:#d2a8ff;--a:#ffa657}}
+body.zadania{--kind:#1a7f37} body.warsztat{--kind:#c2570c} body.warsztat-zadania{--kind:#0f7b7b} body.rozwiazania{--kind:#b3246b} body.przyklady{--kind:#2457c5}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.topbar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 24px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);border-top:3px solid var(--kind)}
+.topbar a{color:var(--fg);text-decoration:none}
+.home{font-weight:600}
+.tabs{display:flex;gap:4px}
+.tab{padding:4px 12px;border-radius:999px;font-size:15px;color:var(--muted)!important}
+.tab:hover{background:var(--code-bg)}
+.tab.active{background:var(--accent-bg);color:var(--accent)!important;font-weight:600}
+.pager{margin-left:auto;display:flex;gap:14px;font-size:15px}
+.pager a{color:var(--muted)}.pager a:hover{color:var(--accent)}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:48px;max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+.layout.no-toc{grid-template-columns:minmax(0,1fr);max-width:1000px}
+aside{position:sticky;top:72px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px}
+.toc-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;font-weight:600}
+.toc ul{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.toc li a{display:block;padding:3px 12px;color:var(--muted);text-decoration:none;line-height:1.35}
+.toc li.h3 a{padding-left:24px;font-size:13px}
+.toc li a:hover{color:var(--accent)}
+main{min-width:0;max-width:860px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 1.2rem;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:2.6rem 0 .8rem;padding-top:.6rem;border-top:1px solid var(--line)}
+h3{font-size:1.18rem;margin:2rem 0 .6rem}
+h4{font-size:1rem;margin:1.5rem 0 .5rem}
+h1 a,h2 a,h3 a,h4 a{color:inherit;text-decoration:none}
+h2 a:hover::after,h3 a:hover::after{content:" #";color:var(--muted)}
+p,ul,ol{margin:.6rem 0 1rem}
+li{margin:.25rem 0}
+li>ul,li>ol{margin:.2rem 0}
+a{color:var(--accent)}
+strong{font-weight:650}
+code{font:0.88em/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre.code{position:relative;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:1rem 0 1.4rem}
+pre.code code{background:none;padding:0;font-size:14px;line-height:1.55}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:6px;right:10px;font:11px ui-monospace,Menlo,monospace;color:var(--muted);text-transform:uppercase}
+.table-wrap{overflow-x:auto;margin:1rem 0 1.4rem;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--th);font-weight:600}
+tr:last-child td{border-bottom:none}
+blockquote{margin:1rem 0 1.4rem;padding:10px 16px;background:var(--note-bg);border-left:4px solid var(--note-line);border-radius:0 8px 8px 0}
+blockquote p{margin:.3rem 0}
+hr{border:none;border-top:1px solid var(--line);margin:2rem 0}
+hr+h2{border-top:none;margin-top:1.4rem}
+main p code,main li code,main td code{overflow-wrap:break-word}
+.toc summary{cursor:pointer;list-style:none}.toc summary::-webkit-details-marker{display:none}
+.hljs-keyword,.hljs-selector-tag,.hljs-built_in,.hljs-literal{color:var(--k)}
+.hljs-string,.hljs-regexp,.hljs-addition{color:var(--s)}
+.hljs-comment,.hljs-quote,.hljs-meta{color:var(--c);font-style:italic}
+.hljs-number,.hljs-symbol{color:var(--n)}
+.hljs-type,.hljs-class .hljs-title,.hljs-title.class_{color:var(--t)}
+.hljs-title,.hljs-title.function_,.hljs-section{color:var(--f)}
+.hljs-attr,.hljs-attribute,.hljs-variable,.hljs-params,.hljs-tag{color:var(--a)}
+.hljs-deletion{color:var(--k)}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:16px;padding:20px 16px 60px}
+aside{position:static;max-height:none;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--card)}
+.toc-title{margin:0}.toc details[open] .toc-title{margin-bottom:8px}.toc summary::after{content:" ▾"}
+body{font-size:16px}.topbar{padding:8px 16px}.pager{margin-left:0}h1{font-size:1.6rem}}
+@media print{.topbar,aside{display:none}.layout{display:block;padding:0}main{max-width:none}
+pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#000;font-size:12pt}}
+</style>
+</head>
+<body class="warsztat-zadania">
+<header class="topbar"><a class="home" href="../../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../00-cinelegacy.html">Warsztat CineLegacy</a><a class="tab active" href="05-refaktoryzacje-hierarchii-klas.html">Zadania</a><a class="tab" href="../przewodnik/05-refaktoryzacje-hierarchii-klas.html">Przewodnik</a></div><div class="pager"><a href="04-podstawowe-refaktoryzacje.html" title="Poprzedni moduł">&larr; 04</a><a href="06-refaktoryzacje-do-wzorcow-projektowych.html" title="Następny moduł">06 &rarr;</a></div></header>
+<div class="layout">
+<aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#scena-s01-pull-up-method">Scena s01. Pull Up Method</a></li><li class="h2"><a href="#scena-s02-pull-up-field">Scena s02. Pull Up Field</a></li><li class="h2"><a href="#scena-s03-push-down-methodfield">Scena s03. Push Down Method/Field</a></li><li class="h2"><a href="#scena-s04-extract-superclass">Scena s04. Extract Superclass</a></li><li class="h2"><a href="#scena-s05-extract-subclass">Scena s05. Extract Subclass</a></li><li class="h2"><a href="#scena-s06-extract-interface-i-metody-domyslne">Scena s06. Extract Interface i metody domyślne</a></li><li class="h2"><a href="#scena-s07-collapse-hierarchy">Scena s07. Collapse Hierarchy</a></li><li class="h2"><a href="#scena-s08-replace-inheritance-with-composition">Scena s08. Replace Inheritance with Composition</a></li><li class="h2"><a href="#scena-s09-overriding-a-overloading">Scena s09. Overriding a overloading</a></li><li class="h2"><a href="#scena-s10-ukrywanie-pol-i-metod-static">Scena s10. Ukrywanie pól i metod static</a></li><li class="h2"><a href="#scena-s11-konstruktor-wolajacy-metode-nadpisywalna">Scena s11. Konstruktor wołający metodę nadpisywalną</a></li><li class="h2"><a href="#scena-s12-generyki-i-metody-bridge">Scena s12. Generyki i metody bridge</a></li><li class="h2"><a href="#scena-s13-hierarchie-sealed">Scena s13. Hierarchie sealed</a></li><li class="h2"><a href="#scena-s14-wspoldzielenie-implementacji-a-podtypowanie">Scena s14. Współdzielenie implementacji a podtypowanie</a></li><li class="h2"><a href="#scena-s15-zgodnosc-binarna-refleksja-i-adnotacje">Scena s15. Zgodność binarna, refleksja i adnotacje</a></li><li class="h2"><a href="#scena-s16-serializacja-i-proxy">Scena s16. Serializacja i proxy</a></li></ul></details></nav></aside>
+<main>
+<h1>Moduł 5. Refaktoryzacje hierarchii klas - warsztat CineLegacy: zadania</h1>
+<p>Każda scena to mały fragment systemu kina CineLegacy w pakiecie <code>pl.training.workshop.m5.sNN_.../<wbr>start</code>. Pracuj wyłącznie w <code>start</code>, małymi krokami, i po każdym ruchu uruchamiaj test sceny (<code>scripts/<wbr>warsztat.sh test m5/<wbr>sNN</code>). Test równoważności (<code>SNNEquivalenceTest</code>) ma być zielony przez cały czas. W scenach o pułapkach (s08-s11, s13) testy o nazwie <code>start...</code> dokumentują błąd w kodzie wyjściowym - gdy go usuniesz, te testy zrobią się czerwone i to jest oczekiwany efekt. Nie zaglądaj do katalogów <code>stepN</code> przed zakończeniem zadania; potem porównaj swoje rozwiązanie z ostatnim krokiem (<code>scripts/<wbr>warsztat.sh diff m5/<wbr>sNN 0 N</code>). Chcesz zacząć od nowa: <code>scripts/<wbr>warsztat.sh reset m5/<wbr>sNN</code>.</p>
+<p>Korzystaj z automatycznych refaktoryzacji IntelliJ IDEA (menu Refactor: Pull Members Up, Push Members Down, Extract Superclass, Extract Interface, Replace Inheritance with Delegation, Inline, Safe Delete), a ruchy ręczne rób tak, by po każdym dało się uruchomić test.</p>
+<h2 id="scena-s01-pull-up-method" tabindex="-1"><a class="header-anchor" href="#scena-s01-pull-up-method"><span>Scena s01. Pull Up Method</span></a></h2>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s01_pullupmethod.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s01</code>
+<strong>Zadanie:</strong></p>
+<ol>
+<li>Usuń trzy kopie metody <code>label()</code> z podklas <code>Ticket</code>, zostawiając jedną implementację.</li>
+<li>Klient <code>BoxOffice</code> ma wywoływać <code>label()</code> przez typ bazowy.</li>
+<li>Zdecyduj, czy wspólna metoda może być nadpisywana.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> IDE przeniesie w górę tylko metody o identycznych ciałach, a wspólna metoda potrzebuje czegoś, czego baza jeszcze nie zna.
+<strong>Gotowe, gdy:</strong> test zielony, <code>label()</code> jest zadeklarowane tylko w <code>Ticket</code>, a podklasy zawierają wyłącznie regułę ceny.</p>
+<h2 id="scena-s02-pull-up-field" tabindex="-1"><a class="header-anchor" href="#scena-s02-pull-up-field"><span>Scena s02. Pull Up Field</span></a></h2>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s02_pullupfield.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s02</code>
+<strong>Zadanie:</strong></p>
+<ol>
+<li>Przenieś informację o miejscu na sali do <code>Ticket</code> jako jedno pole.</li>
+<li>Pole w bazie ma być <code>private final</code>, ustawiane przez konstruktor bazy.</li>
+<li>Nie przenoś pól, które mają inne znaczenie.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> zanim połączysz pola, porównaj ich nazwę, typ, znaczenie, cykl życia i sposób inicjalizacji. Każda różnica to osobny krok przygotowawczy.
+<strong>Gotowe, gdy:</strong> test zielony, żadna podklasa nie deklaruje pola miejsca, nie ma settera, a normalizacja miejsca VIP działa jak wcześniej.</p>
+<h2 id="scena-s03-push-down-methodfield" tabindex="-1"><a class="header-anchor" href="#scena-s03-push-down-methodfield"><span>Scena s03. Push Down Method/Field</span></a></h2>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s03_pushdown.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s03</code>
+<strong>Zadanie:</strong></p>
+<ol>
+<li>Usuń z <code>Ticket</code> operację dopłaty VIP i związany z nią stan - ma zostać tylko tam, gdzie ma sens.</li>
+<li>Usuń override rzucający <code>UnsupportedOperationException</code>.</li>
+<li>Zapisz w komentarzu, co ta zmiana oznaczałaby dla skompilowanych klientów biblioteki.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> kolejność ma znaczenie: klienci, potem zachowanie korzystające z pola, na końcu pole.
+<strong>Gotowe, gdy:</strong> test zielony, <code>Ticket</code> nie ma <code>upgradeToVip()</code> ani pola VIP, <code>BoxOffice</code> nie używa <code>instanceof</code>.</p>
+<h2 id="scena-s04-extract-superclass" tabindex="-1"><a class="header-anchor" href="#scena-s04-extract-superclass"><span>Scena s04. Extract Superclass</span></a></h2>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s04_extractsuperclass.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s04</code>
+<strong>Zadanie:</strong></p>
+<ol>
+<li>Wydziel wspólną nadklasę dla seansu i wynajmu sali z nazwą opisującą pojęcie domenowe.</li>
+<li>Dołączaj klasy do hierarchii pojedynczo, z testem po każdej.</li>
+<li>Usuń trzy kopie warunku kolizji w <code>HallPlanner</code>.</li>
+<li>Zachowaj publiczne konstruktory, fabrykę <code>rental(...)</code> i sygnaturę <code>conflicts(...)</code>.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> zacznij od Refactor &gt; Extract Superclass na jednej klasie. Algorytm kolizji potrzebuje od podklas tylko nazwy do komunikatu.
+<strong>Gotowe, gdy:</strong> test zielony (w tym przypadek &quot;styk 20:00 to nie konflikt&quot;), nadklasa jest abstrakcyjna i ma prywatne pola, <code>HallPlanner</code> ma jedną pętlę.</p>
+<h2 id="scena-s05-extract-subclass" tabindex="-1"><a class="header-anchor" href="#scena-s05-extract-subclass"><span>Scena s05. Extract Subclass</span></a></h2>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s05_extractsubclass.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s05</code>
+<strong>Zadanie:</strong></p>
+<ol>
+<li>Wydziel podklasę dla premier i przenieś do niej stan i zachowanie, które dotyczą tylko premier.</li>
+<li>Usuń flagę <code>premiere</code> i wszystkie <code>if (premiere)</code>.</li>
+<li>Klient <code>Programme</code> nie może przekazywać <code>null</code> ani flagi.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> zacznij od punktów tworzenia obiektów - to one mają wybierać klasę runtime.
+<strong>Gotowe, gdy:</strong> test zielony, zwykły seans nie ma pola gościa, a fabryka premiery zwraca obiekt podklasy.</p>
+<h2 id="scena-s06-extract-interface-i-metody-domyslne" tabindex="-1"><a class="header-anchor" href="#scena-s06-extract-interface-i-metody-domyslne"><span>Scena s06. Extract Interface i metody domyślne</span></a></h2>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s06_extractinterface.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s06</code>
+<strong>Zadanie:</strong></p>
+<ol>
+<li>Wydziel interfejs roli, której potrzebuje koszyk - tylko z operacjami, których <code>Cart</code> używa.</li>
+<li><code>Cart</code> ma mieć jedną listę pozycji i jedno <code>add(...)</code>.</li>
+<li>Przenieś liczenie kwoty VAT pozycji do interfejsu, nie zmieniając <code>Ticket</code> ani <code>Snack</code>.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> w Extract Interface odznacz wszystko, czego koszyk nie woła. Nowa metoda interfejsu nie może łamać istniejących implementacji.
+<strong>Gotowe, gdy:</strong> test zielony, <code>Cart</code> nie importuje <code>Ticket</code> ani <code>Snack</code>, a nowa implementacja roli (np. okulary 3D za 3.00 z VAT 23%) działa bez zmian w koszyku.</p>
+<h2 id="scena-s07-collapse-hierarchy" tabindex="-1"><a class="header-anchor" href="#scena-s07-collapse-hierarchy"><span>Scena s07. Collapse Hierarchy</span></a></h2>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s07_collapsehierarchy.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s07</code>
+<strong>Zadanie:</strong></p>
+<ol>
+<li>Usuń zbędny poziom hierarchii sal, zachowując nazwę klasy używaną przez klientów.</li>
+<li>Wiedza o regule VIP w sali IMAX nie może zniknąć.</li>
+<li>Opisz w komentarzu, co trzeba by sprawdzić, zanim zrobi się to w bibliotece.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> najpierw pozbądź się metod, które tylko wołają <code>super</code>. Jedyna różnica między klasami to sposób tworzenia.
+<strong>Gotowe, gdy:</strong> test zielony, istnieje jedna finalna klasa <code>Hall</code>, sala IMAX ma VIP od przedostatniego rzędu.</p>
+<h2 id="scena-s08-replace-inheritance-with-composition" tabindex="-1"><a class="header-anchor" href="#scena-s08-replace-inheritance-with-composition"><span>Scena s08. Replace Inheritance with Composition</span></a></h2>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s08_composition.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s08</code>
+<strong>Zadanie:</strong></p>
+<ol>
+<li>Uruchom test i wyjaśnij, dlaczego <code>addAll</code> z dwoma miejscami daje 4 kliknięcia.</li>
+<li>Zastąp dziedziczenie po <code>LinkedHashSet</code> delegatem.</li>
+<li>Zadbaj, by żadna metoda nie wydawała delegata na zewnątrz.</li>
+<li>Wypisz operacje, które klienci świadomie tracą.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> Refactor &gt; Replace Inheritance with Delegation. Sprawdź, co zwraca wygenerowany getter.
+<strong>Gotowe, gdy:</strong> testy nie-<code>start</code> zielone, <code>addAll</code> liczy każde miejsce raz, <code>SeatSelection</code> nie jest <code>Set</code>, a lista miejsc zwracana klientowi jest niemodyfikowalna.</p>
+<h2 id="scena-s09-overriding-a-overloading" tabindex="-1"><a class="header-anchor" href="#scena-s09-overriding-a-overloading"><span>Scena s09. Overriding a overloading</span></a></h2>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s09_overloading.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s09</code>
+<strong>Zadanie:</strong></p>
+<ol>
+<li>Uruchom test i wyjaśnij, dlaczego student w <code>Checkout.total(List&lt;Ticket&gt;)</code> płaci pełną cenę, choć <code>PriceList</code> ma metodę dla <code>StudentTicket</code>.</li>
+<li>Popraw model tak, by zniżka zależała od klasy runtime biletu.</li>
+<li>Popraw porównywanie biletów tak, by <code>List.contains</code> działało.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> który z mechanizmów wybiera kompilator, a który JVM w czasie wykonania? Jak kompilator mógłby cię ostrzec przed drugim błędem?
+<strong>Gotowe, gdy:</strong> testy nie-<code>start</code> zielone, <code>PriceList</code> ma jedno <code>price(...)</code>, <code>equals</code> i <code>hashCode</code> są nadpisane z <code>@Override</code>.</p>
+<h2 id="scena-s10-ukrywanie-pol-i-metod-static" tabindex="-1"><a class="header-anchor" href="#scena-s10-ukrywanie-pol-i-metod-static"><span>Scena s10. Ukrywanie pól i metod static</span></a></h2>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s10_fieldhiding.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s10</code>
+<strong>Zadanie:</strong></p>
+<ol>
+<li>Wyjaśnij, dlaczego <code>new StudentTicket().label()</code> zwraca <code>&quot;BILET: NORMAL&quot;</code>.</li>
+<li>Usuń ukrywanie pola.</li>
+<li>Usuń ukrywanie metody statycznej.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> pola i metody <code>static</code> są wiązane według typu, w którym stoi odwołanie.
+<strong>Gotowe, gdy:</strong> testy nie-<code>start</code> zielone, <code>label()</code> studenta zwraca <code>&quot;BILET ULGOWY: STUDENT&quot;</code> niezależnie od typu referencji.</p>
+<h2 id="scena-s11-konstruktor-wolajacy-metode-nadpisywalna" tabindex="-1"><a class="header-anchor" href="#scena-s11-konstruktor-wolajacy-metode-nadpisywalna"><span>Scena s11. Konstruktor wołający metodę nadpisywalną</span></a></h2>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s11_constructorcall.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s11</code>
+<strong>Zadanie:</strong></p>
+<ol>
+<li>Znajdź przyczynę <code>&quot;null&quot;</code> w etykiecie biletu VIP i ostrzeżenie kompilatora, które ją zapowiada.</li>
+<li>Napraw błąd najpierw lokalnie w <code>VipTicket</code>, potem strukturalnie w <code>Ticket</code>.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> Java 25 pozwala na instrukcje przed <code>super(...)</code>. Czy to wystarczy dla następnej podklasy?
+<strong>Gotowe, gdy:</strong> testy nie-<code>start</code> zielone, konstruktor <code>Ticket</code> nie woła metod nadpisywalnych i nie ma ostrzeżenia <code>this-escape</code>.</p>
+<h2 id="scena-s12-generyki-i-metody-bridge" tabindex="-1"><a class="header-anchor" href="#scena-s12-generyki-i-metody-bridge"><span>Scena s12. Generyki i metody bridge</span></a></h2>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s12_bridgemethods.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s12</code>
+<strong>Zadanie:</strong></p>
+<ol>
+<li>Wydziel generyczny interfejs reguły cenowej <code>PriceRule&lt;T extends Ticket&gt;</code>.</li>
+<li>Gdy test zrobi się czerwony, znajdź przyczynę (<code>javap -p</code> na klasie reguły) i napraw rejestr.</li>
+<li>Usuń zależność rejestru od refleksji.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> co robi kompilator z <code>apply(T)</code> po erasure, gdy implementacja ma konkretne <code>T</code>?
+<strong>Gotowe, gdy:</strong> test zielony, <code>RuleRegistry</code> nie używa <code>java.lang.reflect</code>, a brak reguły kończy się czytelnym wyjątkiem.</p>
+<h2 id="scena-s13-hierarchie-sealed" tabindex="-1"><a class="header-anchor" href="#scena-s13-hierarchie-sealed"><span>Scena s13. Hierarchie sealed</span></a></h2>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s13_sealed.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s13</code>
+<strong>Zadanie:</strong></p>
+<ol>
+<li>Zamknij hierarchię biletów.</li>
+<li>Zastąp łańcuch <code>instanceof</code> wyczerpującym <code>switch</code> bez <code>default</code>.</li>
+<li>Dodaj bilet dziecięcy (40%) i pozwól kompilatorowi wskazać, co trzeba obsłużyć.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> po kroku 3 przeczytaj test <code>oldExhaustiveSwitchThrowsMatchExceptionForNewVariant</code> - co się dzieje ze skompilowanym wcześniej <code>switch</code>?
+<strong>Gotowe, gdy:</strong> testy nie-<code>start</code> zielone, bilet dziecięcy za 25.00 kosztuje 15.00, w <code>PriceCalculator</code> nie ma <code>default</code> ani <code>instanceof</code>.</p>
+<h2 id="scena-s14-wspoldzielenie-implementacji-a-podtypowanie" tabindex="-1"><a class="header-anchor" href="#scena-s14-wspoldzielenie-implementacji-a-podtypowanie"><span>Scena s14. Współdzielenie implementacji a podtypowanie</span></a></h2>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s14_reuse.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s14</code>
+<strong>Zadanie:</strong></p>
+<ol>
+<li>Wskaż, który kontrakt <code>LoyaltyAccount</code> łamie <code>CorporateAccount</code>.</li>
+<li>Wydziel współdzieloną logikę punktów do osobnej klasy.</li>
+<li>Zerwij dziedziczenie między kontami, a raportowi daj wspólną rolę.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> osobno odpowiedz na pytania &quot;czy mają ten sam kod?&quot; i &quot;czy są wariantami jednego pojęcia?&quot;.
+<strong>Gotowe, gdy:</strong> test zielony, <code>CorporateAccount</code> nie jest <code>LoyaltyAccount</code> i nie ma metody wymiany punktów, <code>LoyaltyReport</code> przyjmuje oba konta.</p>
+<h2 id="scena-s15-zgodnosc-binarna-refleksja-i-adnotacje" tabindex="-1"><a class="header-anchor" href="#scena-s15-zgodnosc-binarna-refleksja-i-adnotacje"><span>Scena s15. Zgodność binarna, refleksja i adnotacje</span></a></h2>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s15_compatibility.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s15</code>
+<strong>Zadanie:</strong></p>
+<ol>
+<li>Przenieś <code>price()</code> (z adnotacją <code>@Column</code>) do <code>Ticket</code>, nie psując eksportu CSV.</li>
+<li>Zmień <code>BoxOfficeApi.quote</code> tak, by przyjmowało każdy bilet.</li>
+<li>Zachowaj działanie wtyczek partnerów skompilowanych przeciw starej wersji API.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> przeczytaj <code>S15SolutionTest</code> - kompiluje wtyczkę przeciw jednej wersji i uruchamia z inną. Zastanów się, która zmiana jest zgodna źródłowo, a która binarnie.
+<strong>Gotowe, gdy:</strong> test zielony, eksport daje <code>Amator;cena=18.75</code>, stara sygnatura <code>quote(StudentTicket)</code> jest dostępna jako przestarzała i deleguje do nowej.</p>
+<h2 id="scena-s16-serializacja-i-proxy" tabindex="-1"><a class="header-anchor" href="#scena-s16-serializacja-i-proxy"><span>Scena s16. Serializacja i proxy</span></a></h2>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s16_serializationproxy.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s16</code>
+<strong>Zadanie:</strong></p>
+<ol>
+<li>Wydziel nadklasę <code>Ticket</code> z polami <code>title</code> i <code>seat</code> i sprawdź w teście, co się dzieje z danymi zapisanymi przez starą wersję.</li>
+<li>Uniezależnij postać serializowaną od hierarchii klas.</li>
+<li>Umożliw opakowanie <code>TicketPricing</code> dynamicznym proxy JDK (np. audyt wywołań), nie usuwając <code>final</code>.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> Effective Java, &quot;serialization proxy pattern&quot;. Czego wymaga <code>java.lang.reflect.Proxy</code>?
+<strong>Gotowe, gdy:</strong> test zielony, stare dane nie są czytane po cichu z utratą pól, strumień nie zawiera poziomu <code>Ticket</code>, a proxy audytowe zlicza wywołania <code>studentPrice</code>.</p>
+
+</main>
+</div>
+<script>if(matchMedia('(max-width:900px)').matches){var d=document.querySelector('.toc details');if(d)d.open=false}</script>
+</body>
+</html>

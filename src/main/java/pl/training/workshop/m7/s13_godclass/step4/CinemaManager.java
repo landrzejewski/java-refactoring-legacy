@@ -1,0 +1,209 @@
+package pl.training.workshop.m7.s13_godclass.step4;
+
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Supplier;
+
+/**
+ * Krok 4 (rozwiązanie): Extract Class ReportService - raport dzienny i rozliczenie z dystrybutorem
+ * przeniesione (Move Function) do usługi czytającej z BookingRepository. CinemaManager
+ * zostaje fasadą o niezmienionym publicznym API. Dalsze wycinki (zwroty, lojalność, repertuar)
+ * robimy wtedy, gdy przyniosą wartość dla planowanej zmiany - kampania, nie przepisanie.
+ * Krok 1: PricingService, krok 2: NotificationService, krok 3: BookingRepository.
+ */
+public class CinemaManager {
+    // format: 1 = 2D, 2 = 3D, 3 = IMAX
+    // status: 0 = NEW, 1 = PAID, 2 = USED, 3 = EXPIRED, 4 = CANCELLED
+    // typ biletu: N = normalny, S = student, E = senior, C = dziecko
+
+    /** Hak dla testów dodany "na chwilę" w 2019 roku. */
+    static Supplier<LocalDateTime> clock = LocalDateTime::now;
+
+    private final PricingService pricing = new PricingService();
+    private final NotificationService notifications = new NotificationService();
+    private final BookingRepository bookings = new BookingRepository();
+    private final ReportService reports = new ReportService(bookings);
+
+    public void addScreening(String id, String title, int format,
+            LocalDateTime start, int rows, int seatsPerRow, int vipFromRow) {
+        LegacyDb.SCREENINGS.put(id, new Object[] {title, format, start, rows,
+                seatsPerRow, vipFromRow, new HashSet<String>()});
+    }
+
+    public String book(String screeningId, String email, String phone,
+            String[] seats, String[] types, boolean web, boolean ownGlasses) {
+        Object[] s = LegacyDb.SCREENINGS.get(screeningId);
+        if (s != null) {
+            if (seats != null && seats.length > 0) {
+                if (types != null && types.length == seats.length) {
+                    @SuppressWarnings("unchecked")
+                    Set<String> taken = (Set<String>) s[6];
+                    for (String seat : seats) {
+                        if (taken.contains(seat)) {
+                            return "ERROR: seat taken " + seat;
+                        }
+                        int row = Integer.parseInt(seat.substring(1));
+                        char letter = seat.charAt(0);
+                        if (row > (Integer) s[3] || letter - 'A' >= (Integer) s[4]) {
+                            return "ERROR: no such seat " + seat;
+                        }
+                    }
+                    double sum = pricing.ticketsSum((Integer) s[1], (LocalDateTime) s[2], (Integer) s[5],
+                            seats, types, ownGlasses);
+                    double total = sum + pricing.bookingFee(web, seats.length);
+                    String id = bookings.nextId();
+                    for (String seat : seats) {
+                        taken.add(seat);
+                    }
+                    bookings.save(new Booking(id, screeningId, email, phone, seats, types, web,
+                            total, clock.get(), sum));
+                    notifications.bookingCreated(email, id, (String) s[0], seats, total);
+                    return id;
+                } else {
+                    return "ERROR: types do not match seats";
+                }
+            } else {
+                return "ERROR: no seats";
+            }
+        } else {
+            return "ERROR: no screening " + screeningId;
+        }
+    }
+
+    public String pay(String bookingId, String card) {
+        Booking b = bookings.find(bookingId);
+        if (b == null) {
+            return "ERROR: no booking";
+        }
+        int status = b.status();
+        if (status == 1) {
+            return "ERROR: already paid";
+        } else if (status == 2) {
+            return "ERROR: already used";
+        } else if (status == 3) {
+            return "ERROR: expired";
+        } else if (status == 4) {
+            return "ERROR: cancelled";
+        }
+        if (!LegacyPaymentGateway.charge(card, b.total())) {
+            notifications.paymentDeclined(b.email(), bookingId);
+            return "ERROR: payment declined";
+        }
+        b.markPaid(card);
+        String email = b.email();
+        int points = (int) (b.ticketsSum() / 10);
+        LegacyDb.LOYALTY.put(email, LegacyDb.LOYALTY.getOrDefault(email, 0) + points);
+        notifications.ticketsPaid(email, b.phone(), bookingId, b.total(), points);
+        return "OK";
+    }
+
+    public String cancel(String bookingId) {
+        Booking b = bookings.find(bookingId);
+        if (b == null) {
+            return "ERROR: no booking";
+        }
+        int status = b.status();
+        if (status == 2 || status == 3 || status == 4) {
+            return "ERROR: cannot cancel";
+        }
+        Object[] s = LegacyDb.SCREENINGS.get(b.screeningId());
+        @SuppressWarnings("unchecked")
+        Set<String> taken = (Set<String>) s[6];
+        for (String seat : b.seats()) {
+            taken.remove(seat);
+        }
+        b.status(4);
+        double refund = 0;
+        if (status == 1) {
+            LocalDateTime now = clock.get();
+            LocalDateTime start = (LocalDateTime) s[2];
+            double tickets = b.ticketsSum();
+            if (!now.isBefore(start)) {
+                refund = 0;
+            } else if (Duration.between(now, start).toHours() >= 24) {
+                refund = tickets;
+            } else {
+                refund = tickets * 0.5;
+            }
+            refund = refund - 3.00;
+            if (refund < 0) {
+                refund = 0;
+            }
+            refund = Math.round(refund * 100) / 100.0;
+            if (refund > 0) {
+                LegacyPaymentGateway.refund(b.card(), refund);
+            }
+            String email = b.email();
+            int points = (int) (tickets / 10);
+            LegacyDb.LOYALTY.put(email, Math.max(0, LegacyDb.LOYALTY.getOrDefault(email, 0) - points));
+        }
+        notifications.bookingCancelled(b.email(), bookingId, refund);
+        return "REFUND " + fmt(refund);
+    }
+
+    public void expireOld() {
+        LocalDateTime now = clock.get();
+        for (Booking b : bookings.all()) {
+            if (b.status() == 0
+                    && Duration.between(b.createdAt(), now).toMinutes() >= 15) {
+                b.status(3);
+                Object[] s = LegacyDb.SCREENINGS.get(b.screeningId());
+                @SuppressWarnings("unchecked")
+                Set<String> taken = (Set<String>) s[6];
+                for (String seat : b.seats()) {
+                    taken.remove(seat);
+                }
+                notifications.bookingExpired(b.email(), b.id());
+            }
+        }
+    }
+
+    public String use(String bookingId) {
+        Booking b = bookings.find(bookingId);
+        if (b == null) {
+            return "ERROR: no booking";
+        }
+        if (b.status() != 1) {
+            return "ERROR: not paid";
+        }
+        b.status(2);
+        return "OK";
+    }
+
+    public int loyaltyPoints(String email) {
+        return LegacyDb.LOYALTY.getOrDefault(email, 0);
+    }
+
+    public String dailyReport(LocalDate day) {
+        return reports.dailyReport(day);
+    }
+
+    public String settlement(String title, int week) {
+        return reports.settlement(title, week);
+    }
+
+    public List<String> freeSeats(String screeningId) {
+        Object[] s = LegacyDb.SCREENINGS.get(screeningId);
+        List<String> free = new ArrayList<>();
+        @SuppressWarnings("unchecked")
+        Set<String> taken = (Set<String>) s[6];
+        for (int r = 1; r <= (Integer) s[3]; r++) {
+            for (int c = 0; c < (Integer) s[4]; c++) {
+                String seat = "" + (char) ('A' + c) + r;
+                if (!taken.contains(seat)) {
+                    free.add(seat);
+                }
+            }
+        }
+        return free;
+    }
+
+    private static String fmt(double value) {
+        return Formats.amount(value);
+    }
+}

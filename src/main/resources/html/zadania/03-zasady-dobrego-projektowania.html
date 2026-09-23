@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zadania: Moduł 3. Zasady dobrego projektowania - zadania dla uczestników</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1d1f23;--muted:#5f6670;--line:#e3e5e8;--card:#ffffff;--accent:#2457c5;--accent-bg:#eef3fd;
+--code-bg:#f4f5f7;--note-bg:#fff7e6;--note-line:#e6a700;--th:#f1f3f6;
+--k:#b3246b;--s:#1a7f37;--c:#6e7781;--n:#0550ae;--t:#8250df;--f:#6639ba;--a:#953800;
+--kind:#2457c5}
+@media (prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3036;--card:#1c1f23;--accent:#7aa7ff;--accent-bg:#1e2a40;
+--code-bg:#1f2328;--note-bg:#2b2412;--note-line:#c99400;--th:#23272d;
+--k:#ff7b9c;--s:#7ee2a0;--c:#8b949e;--n:#79c0ff;--t:#d2a8ff;--f:#d2a8ff;--a:#ffa657}}
+body.zadania{--kind:#1a7f37} body.rozwiazania{--kind:#b3246b} body.przyklady{--kind:#2457c5}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.topbar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 24px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);border-top:3px solid var(--kind)}
+.topbar a{color:var(--fg);text-decoration:none}
+.home{font-weight:600}
+.tabs{display:flex;gap:4px}
+.tab{padding:4px 12px;border-radius:999px;font-size:15px;color:var(--muted)!important}
+.tab:hover{background:var(--code-bg)}
+.tab.active{background:var(--accent-bg);color:var(--accent)!important;font-weight:600}
+.pager{margin-left:auto;display:flex;gap:14px;font-size:15px}
+.pager a{color:var(--muted)}.pager a:hover{color:var(--accent)}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:48px;max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+.layout.no-toc{grid-template-columns:minmax(0,1fr);max-width:1000px}
+aside{position:sticky;top:72px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px}
+.toc-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;font-weight:600}
+.toc ul{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.toc li a{display:block;padding:3px 12px;color:var(--muted);text-decoration:none;line-height:1.35}
+.toc li.h3 a{padding-left:24px;font-size:13px}
+.toc li a:hover{color:var(--accent)}
+main{min-width:0;max-width:860px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 1.2rem;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:2.6rem 0 .8rem;padding-top:.6rem;border-top:1px solid var(--line)}
+h3{font-size:1.18rem;margin:2rem 0 .6rem}
+h4{font-size:1rem;margin:1.5rem 0 .5rem}
+h1 a,h2 a,h3 a,h4 a{color:inherit;text-decoration:none}
+h2 a:hover::after,h3 a:hover::after{content:" #";color:var(--muted)}
+p,ul,ol{margin:.6rem 0 1rem}
+li{margin:.25rem 0}
+li>ul,li>ol{margin:.2rem 0}
+a{color:var(--accent)}
+strong{font-weight:650}
+code{font:0.88em/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre.code{position:relative;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:1rem 0 1.4rem}
+pre.code code{background:none;padding:0;font-size:14px;line-height:1.55}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:6px;right:10px;font:11px ui-monospace,Menlo,monospace;color:var(--muted);text-transform:uppercase}
+.table-wrap{overflow-x:auto;margin:1rem 0 1.4rem;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--th);font-weight:600}
+tr:last-child td{border-bottom:none}
+blockquote{margin:1rem 0 1.4rem;padding:10px 16px;background:var(--note-bg);border-left:4px solid var(--note-line);border-radius:0 8px 8px 0}
+blockquote p{margin:.3rem 0}
+hr{border:none;border-top:1px solid var(--line);margin:2rem 0}
+hr+h2{border-top:none;margin-top:1.4rem}
+main p code,main li code,main td code{overflow-wrap:break-word}
+.toc summary{cursor:pointer;list-style:none}.toc summary::-webkit-details-marker{display:none}
+.hljs-keyword,.hljs-selector-tag,.hljs-built_in,.hljs-literal{color:var(--k)}
+.hljs-string,.hljs-regexp,.hljs-addition{color:var(--s)}
+.hljs-comment,.hljs-quote,.hljs-meta{color:var(--c);font-style:italic}
+.hljs-number,.hljs-symbol{color:var(--n)}
+.hljs-type,.hljs-class .hljs-title,.hljs-title.class_{color:var(--t)}
+.hljs-title,.hljs-title.function_,.hljs-section{color:var(--f)}
+.hljs-attr,.hljs-attribute,.hljs-variable,.hljs-params,.hljs-tag{color:var(--a)}
+.hljs-deletion{color:var(--k)}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:16px;padding:20px 16px 60px}
+aside{position:static;max-height:none;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--card)}
+.toc-title{margin:0}.toc details[open] .toc-title{margin-bottom:8px}.toc summary::after{content:" ▾"}
+body{font-size:16px}.topbar{padding:8px 16px}.pager{margin-left:0}h1{font-size:1.6rem}}
+@media print{.topbar,aside{display:none}.layout{display:block;padding:0}main{max-width:none}
+pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#000;font-size:12pt}}
+</style>
+</head>
+<body class="zadania">
+<header class="topbar"><a class="home" href="../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab active" href="/03-zasady-dobrego-projektowania.html">Zadania</a><a class="tab" href="../przyklady/03-zasady-dobrego-projektowania.html">Przykłady</a><a class="tab" href="../rozwiazania/03-zasady-dobrego-projektowania.html">Rozwiązania</a></div><div class="pager"><a href="02-fundamenty-refaktoryzacji.html" title="Poprzedni moduł">&larr; 02</a><a href="04-podstawowe-refaktoryzacje-warsztat-praktyczny.html" title="Następny moduł">04 &rarr;</a></div></header>
+<div class="layout">
+<aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#jak-pracowac">Jak pracować</a></li><li class="h3"><a href="#pliki-bedace-punktem-wyjscia">Pliki będące punktem wyjścia</a></li><li class="h3"><a href="#wersja-zastana-w-skrocie">Wersja zastana w skrócie</a></li><li class="h2"><a href="#cwiczenie-1-dry-kiss-i-yagni">Ćwiczenie 1: DRY, KISS i YAGNI</a></li><li class="h3"><a href="#cel">Cel</a></li><li class="h3"><a href="#kontekst">Kontekst</a></li><li class="h3"><a href="#sytuacje">Sytuacje</a></li><li class="h3"><a href="#polecenia">Polecenia</a></li><li class="h3"><a href="#kryteria-akceptacji">Kryteria akceptacji</a></li><li class="h3"><a href="#oczekiwany-produkt">Oczekiwany produkt</a></li><li class="h2"><a href="#cwiczenie-2-solid-jako-seria-bezpiecznych-zmian">Ćwiczenie 2: SOLID jako seria bezpiecznych zmian</a></li><li class="h3"><a href="#cel-1">Cel</a></li><li class="h3"><a href="#punkt-wyjscia">Punkt wyjścia</a></li><li class="h3"><a href="#polecenia-1">Polecenia</a></li><li class="h3"><a href="#macierz-kontraktu-lsp">Macierz kontraktu LSP</a></li><li class="h3"><a href="#kryteria-akceptacji-1">Kryteria akceptacji</a></li><li class="h3"><a href="#oczekiwany-produkt-1">Oczekiwany produkt</a></li><li class="h2"><a href="#cwiczenie-3-granica-i-regula-zaleznosci">Ćwiczenie 3: granica i reguła zależności</a></li><li class="h3"><a href="#cel-2">Cel</a></li><li class="h3"><a href="#punkt-wyjscia-1">Punkt wyjścia</a></li><li class="h3"><a href="#zadanie-a-klasyfikacja-zaleznosci">Zadanie A: klasyfikacja zależności</a></li><li class="h3"><a href="#zadanie-b-nowy-adapter">Zadanie B: nowy adapter</a></li><li class="h3"><a href="#zadanie-c-automatyczna-ochrona-granicy">Zadanie C: automatyczna ochrona granicy</a></li><li class="h3"><a href="#kryteria-akceptacji-2">Kryteria akceptacji</a></li><li class="h3"><a href="#oczekiwany-produkt-2">Oczekiwany produkt</a></li><li class="h2"><a href="#cwiczenie-4-wzorzec-jako-decyzja-odwracalna">Ćwiczenie 4: wzorzec jako decyzja odwracalna</a></li><li class="h3"><a href="#cel-3">Cel</a></li><li class="h3"><a href="#punkt-wyjscia-2">Punkt wyjścia</a></li><li class="h3"><a href="#scenariusz-1-dostawa-tego-samego-dnia">Scenariusz 1: dostawa tego samego dnia</a></li><li class="h3"><a href="#scenariusz-2-uproszczenie">Scenariusz 2: uproszczenie</a></li><li class="h3"><a href="#kryteria-akceptacji-3">Kryteria akceptacji</a></li><li class="h3"><a href="#oczekiwany-produkt-3">Oczekiwany produkt</a></li><li class="h2"><a href="#sprawdzenie-wiedzy">Sprawdzenie wiedzy</a></li></ul></details></nav></aside>
+<main>
+<h1>Moduł 3. Zasady dobrego projektowania - zadania dla uczestników</h1>
+<h2 id="jak-pracowac" tabindex="-1"><a class="header-anchor" href="#jak-pracowac"><span>Jak pracować</span></a></h2>
+<ul>
+<li>
+<p>Wszystkie zadania dotyczą jednego przykładu: wyceny dostawy w pakiecie <code>pl.training.module3</code> (Java), a jego odpowiedniki znajdziesz w <code>csharp/<wbr>src/<wbr>Training.Module3</code> oraz <code>typescript/<wbr>src/<wbr>module3</code>.</p>
+</li>
+<li>
+<p>Przed rozpoczęciem uruchom pełny build i upewnij się, że jest zielony:</p>
+<pre class="code" data-lang="shell"><code class="hljs">mvn clean verify
+</code></pre>
+</li>
+<li>
+<p>Po każdym małym kroku uruchom odpowiedni test, a przed zakończeniem ćwiczenia ponownie <code>mvn verify</code>. Testy samego modułu: <code>mvn test -Dtest='pl.training.module3.**'</code>.</p>
+</li>
+<li>
+<p>Nie zmieniaj jednocześnie zachowania biznesowego i struktury, chyba że zadanie wyraźnie tego wymaga.</p>
+</li>
+<li>
+<p>Każdą decyzję projektową uzasadniaj aktualnym wymaganiem, ryzykiem albo kierunkiem zmiany. Sama nazwa zasady (DRY, SOLID, Clean Architecture) nie jest uzasadnieniem.</p>
+</li>
+<li>
+<p>Zapisuj decyzje w formie krótkich notatek lub tabel. Będą potrzebne podczas omówienia.</p>
+</li>
+<li>
+<p>Ćwiczenia 1 i 2 pracują na wersji zastanej. Ćwiczenia 3 i 4 zakładają, że kod ma już podział na <code>domain</code>, <code>application</code>, <code>adapter</code> i composition root (wynik ćwiczenia 2 albo stan pakietu wskazany przez prowadzącego).</p>
+</li>
+</ul>
+<p>Materiał teoretyczny modułu nie zawiera osobnych „krótkich aktywności”. Zajęcia praktyczne składają się z czterech ćwiczeń warsztatowych oraz sprawdzenia wiedzy.</p>
+<h3 id="pliki-bedace-punktem-wyjscia" tabindex="-1"><a class="header-anchor" href="#pliki-bedace-punktem-wyjscia"><span>Pliki będące punktem wyjścia</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Plik</th>
+<th>Rola</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module3/<wbr>legacy/<wbr>LegacyDeliveryQuoteService.java</code></td>
+<td>zastany serwis wyceny dostawy</td>
+</tr>
+<tr>
+<td><code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module3/<wbr>legacy/<wbr>LegacyDeliveryQuoteServiceCharacterizationTest.java</code></td>
+<td>testy charakterystyki wersji zastanej</td>
+</tr>
+<tr>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module3/<wbr>domain/<wbr>Parcel.java</code></td>
+<td>model przesyłki (masa dodatnia)</td>
+</tr>
+<tr>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module3/<wbr>domain/<wbr>ShippingMethod.java</code></td>
+<td>metody dostawy <code>STANDARD</code>, <code>EXPRESS</code></td>
+</tr>
+<tr>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module3/<wbr>domain/<wbr>DeliveryQuote.java</code></td>
+<td>wynik wyceny i jego inwarianty</td>
+</tr>
+<tr>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module3/<wbr>Module3Examples.java</code></td>
+<td>program demonstracyjny (miejsce uruchomienia)</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="wersja-zastana-w-skrocie" tabindex="-1"><a class="header-anchor" href="#wersja-zastana-w-skrocie"><span>Wersja zastana w skrócie</span></a></h3>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">DeliveryQuote</span> <span class="hljs-title function_">createQuote</span><span class="hljs-params">(String customerEmail, ShippingMethod method, Parcel parcel)</span> {
+    <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">price</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">switch</span> (method) {
+        <span class="hljs-keyword">case</span> STANDARD -&gt; {
+            <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">base</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;10.00&quot;</span>)
+                    .add(parcel.weightKg().multiply(<span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;2.00&quot;</span>)));
+            <span class="hljs-keyword">yield</span> money(base.add(base.multiply(<span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;0.08&quot;</span>))));
+        }
+        <span class="hljs-keyword">case</span> EXPRESS -&gt; {
+            <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">base</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;20.00&quot;</span>)
+                    .add(parcel.weightKg().multiply(<span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;3.00&quot;</span>)));
+            <span class="hljs-keyword">yield</span> money(base.add(base.multiply(<span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;0.08&quot;</span>))));
+        }
+    };
+    <span class="hljs-type">DeliveryQuote</span> <span class="hljs-variable">quote</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">DeliveryQuote</span>(customerEmail, method, parcel, price);
+    storedQuotes.add(quote);
+    System.out.printf(<span class="hljs-string">&quot;Quote ready for %s: %s costs %s%n&quot;</span>, customerEmail, method, price);
+    <span class="hljs-keyword">return</span> quote;
+}
+</code></pre>
+<p><code>money(...)</code> zaokrągla do dwóch miejsc (<code>HALF_UP</code>). Serwis przechowuje oferty we własnej liście <code>storedQuotes</code> i udostępnia jej kopię.</p>
+<p>Znane zachowanie (test charakterystyki): przesyłka 3 kg kosztuje <code>17.28</code> dla <code>STANDARD</code> oraz <code>31.32</code> dla <code>EXPRESS</code>, a utworzona oferta trafia do listy zapisanych ofert.</p>
+<hr>
+<h2 id="cwiczenie-1-dry-kiss-i-yagni" tabindex="-1"><a class="header-anchor" href="#cwiczenie-1-dry-kiss-i-yagni"><span>Ćwiczenie 1: DRY, KISS i YAGNI</span></a></h2>
+<p><strong>Czas:</strong> 20 minut pracy i 10 minut omówienia.</p>
+<h3 id="cel" tabindex="-1"><a class="header-anchor" href="#cel"><span>Cel</span></a></h3>
+<p>Odróżnienie wspólnej wiedzy od podobnego tekstu oraz ocena kosztu abstrakcji.</p>
+<h3 id="kontekst" tabindex="-1"><a class="header-anchor" href="#kontekst"><span>Kontekst</span></a></h3>
+<p>DRY dotyczy wiedzy, a nie podobnych linii. KISS oznacza najmniej złożone rozwiązanie, które poprawnie realizuje aktualne wymagania. YAGNI każe odróżnić potrzebę aktualną od przewidywanej.</p>
+<h3 id="sytuacje" tabindex="-1"><a class="header-anchor" href="#sytuacje"><span>Sytuacje</span></a></h3>
+<ol>
+<li>W politykach STANDARD i EXPRESS występuje stawka opłaty paliwowej 8 procent oraz identyczne zaokrąglenie.</li>
+<li>W dwóch niezależnych kontekstach <code>MaximumParcelWeight</code> i <code>MaximumWarehouseLoad</code> wynosi dziś 1000 kg.</li>
+<li>Test polityki STANDARD i test polityki EXPRESS zawierają jawnie wartość oczekiwaną dla przesyłki 3 kg.</li>
+<li>Zespół proponuje refleksyjny system pluginów, ponieważ za rok mogą pojawić się taryfy definiowane przez partnerów.</li>
+<li>Produkt ma zatwierdzone wymaganie: za trzy tygodnie zostanie uruchomiona trzecia metoda dostawy z innym algorytmem.</li>
+<li>Cache wycen powiela dane obliczone przez serwis cenowy, aby spełnić zmierzony limit czasu odpowiedzi.</li>
+</ol>
+<h3 id="polecenia" tabindex="-1"><a class="header-anchor" href="#polecenia"><span>Polecenia</span></a></h3>
+<ol>
+<li>Dla każdej sytuacji zdecyduj: <strong>scalić teraz</strong>, <strong>pozostawić lokalnie</strong> albo <strong>zebrać więcej informacji</strong>.</li>
+<li>Dla każdej sytuacji zapisz w tabeli:
+<ul>
+<li>reprezentowaną wiedzę,</li>
+<li>właściciela i powód zmiany,</li>
+<li>aktualne wymaganie lub ryzyko,</li>
+<li>najprostsze poprawne rozwiązanie,</li>
+<li>koszt błędnej centralizacji albo błędnego pozostawienia duplikacji,</li>
+<li>sygnał, po którym decyzję trzeba ponownie ocenić.</li>
+</ul>
+</li>
+<li>Rozważ regułę opłaty paliwowej wydzieloną do osobnego typu domenowego <code>FuelSurcharge</code> (stawka od 0 do 1, metoda <code>addTo(baseAmount)</code> doliczająca opłatę i zaokrąglająca do dwóch miejsc). Odpowiedz, czy warto wydzielić dodatkowy interfejs <code>Surcharge</code>. Uzasadnienie musi odwoływać się do aktualnego wariantu lub granicy, nie do samej możliwości utworzenia interfejsu.</li>
+</ol>
+<p>Szablon tabeli:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Nr</th>
+<th>Decyzja</th>
+<th>Wiedza</th>
+<th>Właściciel i powód zmiany</th>
+<th>Wymaganie lub ryzyko</th>
+<th>Najprostsze poprawne rozwiązanie</th>
+<th>Koszt błędnej decyzji</th>
+<th>Sygnał ponownej oceny</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>2</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>3</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>4</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>5</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>6</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="kryteria-akceptacji" tabindex="-1"><a class="header-anchor" href="#kryteria-akceptacji"><span>Kryteria akceptacji</span></a></h3>
+<ul>
+<li>decyzja odwołuje się do wiedzy, a nie liczby podobnych linii,</li>
+<li>KISS jest oceniane po spełnieniu aktualnych wymagań,</li>
+<li>przyszłe wymaganie jest odróżnione od zatwierdzonego wymagania,</li>
+<li>kontrolowana duplikacja ma właściciela, strategię synchronizacji i test inwariantu,</li>
+<li>potrafisz wskazać koszt wybranej opcji.</li>
+</ul>
+<h3 id="oczekiwany-produkt" tabindex="-1"><a class="header-anchor" href="#oczekiwany-produkt"><span>Oczekiwany produkt</span></a></h3>
+<p>Wypełniona tabela sześciu sytuacji oraz 2-4 zdania decyzji w sprawie interfejsu <code>Surcharge</code>.</p>
+<hr>
+<h2 id="cwiczenie-2-solid-jako-seria-bezpiecznych-zmian" tabindex="-1"><a class="header-anchor" href="#cwiczenie-2-solid-jako-seria-bezpiecznych-zmian"><span>Ćwiczenie 2: SOLID jako seria bezpiecznych zmian</span></a></h2>
+<p><strong>Czas:</strong> 25 minut pracy i 10 minut omówienia.</p>
+<h3 id="cel-1" tabindex="-1"><a class="header-anchor" href="#cel-1"><span>Cel</span></a></h3>
+<p>Refaktoryzacja <code>LegacyDeliveryQuoteService</code> z zachowaniem cen oraz jawnego protokołu efektów.</p>
+<h3 id="punkt-wyjscia" tabindex="-1"><a class="header-anchor" href="#punkt-wyjscia"><span>Punkt wyjścia</span></a></h3>
+<ul>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module3/<wbr>legacy/<wbr>LegacyDeliveryQuoteService.java</code></li>
+<li><code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module3/<wbr>legacy/<wbr>LegacyDeliveryQuoteServiceCharacterizationTest.java</code></li>
+<li>modele <code>Parcel</code>, <code>ShippingMethod</code>, <code>DeliveryQuote</code> w <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module3/<wbr>domain/</code></li>
+</ul>
+<p>Pracuj na kopii klasy zastanej (np. w nowym pakiecie roboczym) albo na gałęzi, na której przywrócisz wersję <code>legacy</code>. Istniejące testy charakterystyki są punktem wyjścia, nie kompletną specyfikacją. Zwróć uwagę, że nie przechwytują treści wypisywanej na konsolę.</p>
+<h3 id="polecenia-1" tabindex="-1"><a class="header-anchor" href="#polecenia-1"><span>Polecenia</span></a></h3>
+<ol>
+<li>Wskaż aktorów zmiany dla wyceny, zapisu i powiadomień.</li>
+<li>Ustal z właścicielem procesu (w roli właściciela występuje prowadzący), czy po nieudanym zapisie wolno wysłać powiadomienie, i zapisz decyzję jako wymaganie. Zastana klasa nie ma punktu podmiany pozwalającego wiarygodnie zasymulować taką awarię.</li>
+<li>Wydziel regułę opłaty paliwowej bez łączenia niezależnych cenników.</li>
+<li>Wydziel kontrakt polityki cenowej i przenieś jeden wariant.</li>
+<li>Uruchom testy przed przeniesieniem drugiego wariantu.</li>
+<li>Dodaj test kontraktowy uruchamiany dla każdej polityki.</li>
+<li>Wydziel porty zapisu i powiadamiania z perspektywy przypadku użycia.</li>
+<li>Po utworzeniu punktu podmiany dopisz test chroniący uzgodnione zachowanie przy awarii zapisu.</li>
+<li>Przenieś konkretne efekty (zapis w pamięci, wypisanie na konsolę) do adapterów.</li>
+<li>Złóż rozwiązanie ręcznie poza przypadkiem użycia (composition root).</li>
+<li>Porównaj wynik programu przed i po zmianie.</li>
+</ol>
+<p>Po każdym kroku zanotuj, którą oś zmiany chroni konstrukcja oraz jaki koszt dodaje. Nie przypisuj jednej klasy do jednej zasady. Jedna decyzja może wspierać kilka właściwości projektu.</p>
+<p>Szablon dziennika kroków:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Krok</th>
+<th>Co zmieniono</th>
+<th>Chroniona oś zmiany</th>
+<th>Dodany koszt</th>
+<th>Testy uruchomione</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="macierz-kontraktu-lsp" tabindex="-1"><a class="header-anchor" href="#macierz-kontraktu-lsp"><span>Macierz kontraktu LSP</span></a></h3>
+<p>Uzupełnij tabelę dla kontraktu polityki cenowej (<code>DeliveryPricePolicy</code>):</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Element kontraktu</th>
+<th>Gwarancja typu bazowego</th>
+<th>Jak sprawdzić</th>
+<th>Przykład naruszenia</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>obsługiwana metoda</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>dane wejściowe</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>wynik</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>zaokrąglenie</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>deterministyczność</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>efekty uboczne</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>wyjątki</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="kryteria-akceptacji-1" tabindex="-1"><a class="header-anchor" href="#kryteria-akceptacji-1"><span>Kryteria akceptacji</span></a></h3>
+<ul>
+<li>ceny STANDARD i EXPRESS pozostają odpowiednio <code>17.28</code> oraz <code>31.32</code> dla 3 kg,</li>
+<li>przypadek użycia nie importuje adapterów,</li>
+<li>stawka opłaty paliwowej ma jedną reprezentację,</li>
+<li>każdy wariant przechodzi wspólny test kontraktowy,</li>
+<li>awaria zapisu nie prowadzi do powiadomienia (o ile taka jest uzgodniona decyzja właściciela procesu),</li>
+<li><code>mvn verify</code> kończy się powodzeniem.</li>
+</ul>
+<h3 id="oczekiwany-produkt-1" tabindex="-1"><a class="header-anchor" href="#oczekiwany-produkt-1"><span>Oczekiwany produkt</span></a></h3>
+<p>Zrefaktoryzowany kod z testami, dziennik kroków oraz uzupełniona macierz kontraktu LSP.</p>
+<hr>
+<h2 id="cwiczenie-3-granica-i-regula-zaleznosci" tabindex="-1"><a class="header-anchor" href="#cwiczenie-3-granica-i-regula-zaleznosci"><span>Ćwiczenie 3: granica i reguła zależności</span></a></h2>
+<p><strong>Czas:</strong> 25 minut pracy i 10 minut omówienia.</p>
+<h3 id="cel-2" tabindex="-1"><a class="header-anchor" href="#cel-2"><span>Cel</span></a></h3>
+<p>Odróżnienie przepływu sterowania od zależności źródłowych i zaprojektowanie minimalnej granicy inside/outside.</p>
+<h3 id="punkt-wyjscia-1" tabindex="-1"><a class="header-anchor" href="#punkt-wyjscia-1"><span>Punkt wyjścia</span></a></h3>
+<p>Kod podzielony na pakiety <code>pl.training.module3.domain</code>, <code>pl.training.module3.application</code> (przypadek użycia i porty <code>QuoteRepository</code>, <code>QuoteNotifier</code>), <code>pl.training.module3.adapter</code> oraz composition root <code>Module3Examples</code>. Port powiadomień ma postać:</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-meta">@FunctionalInterface</span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">QuoteNotifier</span> {
+    <span class="hljs-type">void</span> <span class="hljs-title function_">quoteCreated</span><span class="hljs-params">(DeliveryQuote quote)</span>;
+}
+</code></pre>
+<p>Przyjęty model dozwolonych zależności: domena zależy tylko od Java SE i własnych pojęć; aplikacja od domeny i własnych portów; adapter od portów aplikacji, domeny i użytej technologii; composition root od wszystkiego, co potrzebne do złożenia.</p>
+<h3 id="zadanie-a-klasyfikacja-zaleznosci" tabindex="-1"><a class="header-anchor" href="#zadanie-a-klasyfikacja-zaleznosci"><span>Zadanie A: klasyfikacja zależności</span></a></h3>
+<p>Oceń każdą zależność jako <strong>dozwoloną</strong>, <strong>podejrzaną</strong> albo <strong>niedozwoloną</strong> w przyjętym modelu. Uzasadnij odpowiedź:</p>
+<ol>
+<li><code>domain</code> importuje <code>java.math.BigDecimal</code>.</li>
+<li><code>application</code> importuje <code>adapter.InMemoryQuoteRepository</code>.</li>
+<li><code>adapter</code> implementuje <code>application.QuoteRepository</code>.</li>
+<li><code>domain</code> przyjmuje encję oznaczoną adnotacjami ORM.</li>
+<li><code>Module3Examples</code> tworzy adaptery i przypadek użycia.</li>
+<li><code>ConsoleQuoteNotifier</code> importuje <code>DeliveryQuote</code>.</li>
+<li><code>CreateDeliveryQuote</code> w czasie wykonania wywołuje obiekt adaptera przez <code>QuoteNotifier</code>.</li>
+<li>Port aplikacji zwraca wyjątek konkretnego sterownika JDBC.</li>
+</ol>
+<h3 id="zadanie-b-nowy-adapter" tabindex="-1"><a class="header-anchor" href="#zadanie-b-nowy-adapter"><span>Zadanie B: nowy adapter</span></a></h3>
+<p>Aktualne wymaganie: powiadomienie ma być zapisane w buforze w pamięci, aby test demonstracyjny mógł sprawdzić jego treść bez przechwytywania <code>System.out</code>.</p>
+<ol>
+<li>Dodaj <code>BufferingQuoteNotifier</code> w pakiecie <code>adapter</code>.</li>
+<li>Zaimplementuj istniejący <code>QuoteNotifier</code>, bez zmiany portu.</li>
+<li>Udostępnij niemodyfikowalny widok lub kopię zgromadzonych komunikatów.</li>
+<li>Dodaj test adaptera.</li>
+<li>Podmień adapter wyłącznie w composition root i potwierdź, że aplikacja oraz domena nie wymagają zmian.</li>
+</ol>
+<p>Nie dodawaj frameworka DI ani pliku konfiguracyjnego. Aktualne wymaganie tego nie potrzebuje.</p>
+<h3 id="zadanie-c-automatyczna-ochrona-granicy" tabindex="-1"><a class="header-anchor" href="#zadanie-c-automatyczna-ochrona-granicy"><span>Zadanie C: automatyczna ochrona granicy</span></a></h3>
+<p>Zaproponuj prostą kontrolę, która wykryje import z <code>pl.training.module3.adapter</code> w pakiecie <code>application</code> albo <code>domain</code>. Możesz użyć:</p>
+<ul>
+<li>reguły narzędzia do testów architektury,</li>
+<li>osobnych modułów Maven,</li>
+<li>JPMS,</li>
+<li>prostej kontroli statycznej w potoku CI.</li>
+</ul>
+<p>Porównaj siłę gwarancji, koszt utrzymania i jakość komunikatu o błędzie. Nie implementuj wszystkich wariantów.</p>
+<h3 id="kryteria-akceptacji-2" tabindex="-1"><a class="header-anchor" href="#kryteria-akceptacji-2"><span>Kryteria akceptacji</span></a></h3>
+<ul>
+<li>nowy adapter można wybrać bez edycji przypadku użycia,</li>
+<li>adapter zależy od portu, a nie odwrotnie,</li>
+<li>kontrola obejmuje co najmniej zakaz importu adapterów do wnętrza,</li>
+<li>potrafisz narysować osobno zależność źródłową i wywołanie w czasie wykonania,</li>
+<li>pełny build pozostaje zielony.</li>
+</ul>
+<h3 id="oczekiwany-produkt-2" tabindex="-1"><a class="header-anchor" href="#oczekiwany-produkt-2"><span>Oczekiwany produkt</span></a></h3>
+<p>Tabela klasyfikacji ośmiu zależności, nowy adapter z testem, zmieniony wyłącznie composition root, propozycja kontroli granicy z porównaniem wariantów oraz szkic dwóch diagramów (zależności źródłowe i przepływ sterowania).</p>
+<hr>
+<h2 id="cwiczenie-4-wzorzec-jako-decyzja-odwracalna" tabindex="-1"><a class="header-anchor" href="#cwiczenie-4-wzorzec-jako-decyzja-odwracalna"><span>Ćwiczenie 4: wzorzec jako decyzja odwracalna</span></a></h2>
+<p><strong>Czas:</strong> 20 minut pracy i 10 minut omówienia.</p>
+<h3 id="cel-3" tabindex="-1"><a class="header-anchor" href="#cel-3"><span>Cel</span></a></h3>
+<p>Dobór Strategy i Adapter do potwierdzonego problemu oraz rozpoznanie momentu, w którym wzorzec należy uprościć.</p>
+<h3 id="punkt-wyjscia-2" tabindex="-1"><a class="header-anchor" href="#punkt-wyjscia-2"><span>Punkt wyjścia</span></a></h3>
+<p>Kontrakt polityki cenowej:</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">DeliveryPricePolicy</span> {
+    <span class="hljs-comment">/** Returns the stable, non-null shipping method handled by this policy. */</span>
+    <span class="hljs-type">ShippingMethod</span> <span class="hljs-title function_">method</span><span class="hljs-params">()</span>;
+
+    <span class="hljs-comment">/** Returns a deterministic, non-negative amount with scale two for every
+     *  valid parcel, without changing the parcel or producing side effects. */</span>
+    <span class="hljs-type">BigDecimal</span> <span class="hljs-title function_">priceFor</span><span class="hljs-params">(Parcel parcel)</span>;
+}
+</code></pre>
+<p>Dwie implementacje (STANDARD, EXPRESS) są wybierane przez kalkulator według <code>ShippingMethod</code>. <code>DeliveryQuote</code> przechowuje cenę jako <code>BigDecimal</code> bez waluty.</p>
+<h3 id="scenariusz-1-dostawa-tego-samego-dnia" tabindex="-1"><a class="header-anchor" href="#scenariusz-1-dostawa-tego-samego-dnia"><span>Scenariusz 1: dostawa tego samego dnia</span></a></h3>
+<p>Pojawia się zatwierdzona metoda SAME_DAY. Cena pochodzi z zewnętrznego klienta przewoźnika, który:</p>
+<ul>
+<li>przyjmuje masę w gramach jako <code>long</code>,</li>
+<li>zwraca kwotę w najmniejszych jednostkach, ale wstępny opis nie podaje waluty ani wykładnika tych jednostek,</li>
+<li>sygnalizuje brak oferty własnym typem błędu,</li>
+<li>może wykonać operację sieciową.</li>
+</ul>
+<p>Zaprojektuj zmianę, odpowiadając:</p>
+<ol>
+<li>Czy SAME_DAY jest kolejną lokalną <code>DeliveryPricePolicy</code>, adapterem zewnętrznego klienta, czy współpracą obu ról?</li>
+<li>Gdzie następuje konwersja kilogramów na gramy i co zrobić z ułamkiem grama oraz przepełnieniem typu <code>long</code>?</li>
+<li>Jakiej informacji potrzeba do konwersji najmniejszych jednostek na <code>BigDecimal</code> i czy model wyniku musi zawierać walutę?</li>
+<li>Jaki błąd powinien przekroczyć granicę do aplikacji?</li>
+<li>Czy kontrakt <code>DeliveryPricePolicy</code> nadal może obiecywać brak efektów ubocznych?</li>
+<li>Gdzie ustawić timeout i politykę ponowień?</li>
+<li>Jak sprawdzić mapowanie bez wywoływania prawdziwej usługi w testach domenowych?</li>
+</ol>
+<p>Nie dopasowuj zewnętrznego klienta na siłę do kontraktu, którego obietnic nie potrafi spełnić.</p>
+<h3 id="scenariusz-2-uproszczenie" tabindex="-1"><a class="header-anchor" href="#scenariusz-2-uproszczenie"><span>Scenariusz 2: uproszczenie</span></a></h3>
+<p>Po roku produkt usuwa EXPRESS, a STANDARD zostaje jedyną stałą regułą. Nie ma planu dodawania innych wariantów.</p>
+<p>Oceń:</p>
+<ul>
+<li>czy <code>DeliveryPricePolicy</code> nadal chroni rzeczywistą zmienność,</li>
+<li>czy rejestr strategii ma wartość,</li>
+<li>czy prostszy <code>DeliveryPriceCalculator</code> może wchłonąć jedyną regułę,</li>
+<li>które testy kontraktowe należy zachować jako testy zachowania,</li>
+<li>ile miejsc zmieniłoby się przy ponownym dodaniu wariantu.</li>
+</ul>
+<p>Wykonaj uproszczenie tylko wtedy, gdy koszt bieżącej abstrakcji przewyższa koszt prawdopodobnej zmiany. Zielone testy powinny umożliwić refaktoryzację od wzorca.</p>
+<h3 id="kryteria-akceptacji-3" tabindex="-1"><a class="header-anchor" href="#kryteria-akceptacji-3"><span>Kryteria akceptacji</span></a></h3>
+<ul>
+<li>nazywasz problem rozwiązywany przez każdy wzorzec,</li>
+<li>kontrakt nie ukrywa operacji sieciowej jako czystego obliczenia,</li>
+<li>typy zewnętrznego klienta nie przechodzą do domeny,</li>
+<li>decyzja o zachowaniu lub usunięciu Strategy ma uzasadnienie kosztowe,</li>
+<li>rozwiązanie nie zawiera mechanizmu pluginów bez wymagania.</li>
+</ul>
+<h3 id="oczekiwany-produkt-3" tabindex="-1"><a class="header-anchor" href="#oczekiwany-produkt-3"><span>Oczekiwany produkt</span></a></h3>
+<p>Szkic projektu dla SAME_DAY (role, porty, miejsce konwersji i tłumaczenia błędów, odpowiedzi na 7 pytań) oraz uzasadniona decyzja dla scenariusza 2, opcjonalnie wykonana refaktoryzacja na zielonych testach.</p>
+<hr>
+<h2 id="sprawdzenie-wiedzy" tabindex="-1"><a class="header-anchor" href="#sprawdzenie-wiedzy"><span>Sprawdzenie wiedzy</span></a></h2>
+<ol>
+<li>Co jest przedmiotem DRY: tekst kodu czy wiedza?</li>
+<li>Kiedy dwie identyczne funkcje nie powinny zostać połączone?</li>
+<li>Dlaczego prostsze rozwiązanie nie zawsze ma mniej klas?</li>
+<li>Czy YAGNI zabrania pisania testów dla aktualnego zachowania?</li>
+<li>Jak SRP definiuje powód zmiany?</li>
+<li>Czy każdy <code>switch</code> narusza OCP?</li>
+<li>Jakie dwa rodzaje warunków kontraktu są kluczowe dla LSP?</li>
+<li>Dlaczego <code>@Autowired</code> nie dowodzi zastosowania DIP?</li>
+<li>Czy jednometodowy interfejs jest automatycznie zgodny z ISP?</li>
+<li>Co interfejs robi ze sprzężeniem?</li>
+<li>Czy przepływ sterowania z przypadku użycia do adaptera łamie regułę zależności?</li>
+<li>Gdzie powinien należeć port wyjściowy?</li>
+<li>Czy Clean Architecture wymaga dokładnie czterech warstw?</li>
+<li>Kiedy Strategy może być gorsza od <code>switch</code>?</li>
+<li>Dlaczego test kontraktowy nie dowodzi formalnie LSP?</li>
+<li>Kiedy należy rozważyć usunięcie wcześniej zastosowanego wzorca?</li>
+</ol>
+
+</main>
+</div>
+<script>if(matchMedia('(max-width:900px)').matches){var d=document.querySelector('.toc details');if(d)d.open=false}</script>
+</body>
+</html>

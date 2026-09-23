@@ -1,0 +1,918 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Przewodnik: Moduł 8. Strategie i dobre praktyki - warsztat CineLegacy: przewodnik prowadzącego</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1d1f23;--muted:#5f6670;--line:#e3e5e8;--card:#ffffff;--accent:#2457c5;--accent-bg:#eef3fd;
+--code-bg:#f4f5f7;--note-bg:#fff7e6;--note-line:#e6a700;--th:#f1f3f6;
+--k:#b3246b;--s:#1a7f37;--c:#6e7781;--n:#0550ae;--t:#8250df;--f:#6639ba;--a:#953800;
+--kind:#2457c5}
+@media (prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3036;--card:#1c1f23;--accent:#7aa7ff;--accent-bg:#1e2a40;
+--code-bg:#1f2328;--note-bg:#2b2412;--note-line:#c99400;--th:#23272d;
+--k:#ff7b9c;--s:#7ee2a0;--c:#8b949e;--n:#79c0ff;--t:#d2a8ff;--f:#d2a8ff;--a:#ffa657}}
+body.zadania{--kind:#1a7f37} body.warsztat{--kind:#c2570c} body.warsztat-zadania{--kind:#0f7b7b} body.rozwiazania{--kind:#b3246b} body.przyklady{--kind:#2457c5}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.topbar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 24px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);border-top:3px solid var(--kind)}
+.topbar a{color:var(--fg);text-decoration:none}
+.home{font-weight:600}
+.tabs{display:flex;gap:4px}
+.tab{padding:4px 12px;border-radius:999px;font-size:15px;color:var(--muted)!important}
+.tab:hover{background:var(--code-bg)}
+.tab.active{background:var(--accent-bg);color:var(--accent)!important;font-weight:600}
+.pager{margin-left:auto;display:flex;gap:14px;font-size:15px}
+.pager a{color:var(--muted)}.pager a:hover{color:var(--accent)}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:48px;max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+.layout.no-toc{grid-template-columns:minmax(0,1fr);max-width:1000px}
+aside{position:sticky;top:72px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px}
+.toc-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;font-weight:600}
+.toc ul{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.toc li a{display:block;padding:3px 12px;color:var(--muted);text-decoration:none;line-height:1.35}
+.toc li.h3 a{padding-left:24px;font-size:13px}
+.toc li a:hover{color:var(--accent)}
+main{min-width:0;max-width:860px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 1.2rem;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:2.6rem 0 .8rem;padding-top:.6rem;border-top:1px solid var(--line)}
+h3{font-size:1.18rem;margin:2rem 0 .6rem}
+h4{font-size:1rem;margin:1.5rem 0 .5rem}
+h1 a,h2 a,h3 a,h4 a{color:inherit;text-decoration:none}
+h2 a:hover::after,h3 a:hover::after{content:" #";color:var(--muted)}
+p,ul,ol{margin:.6rem 0 1rem}
+li{margin:.25rem 0}
+li>ul,li>ol{margin:.2rem 0}
+a{color:var(--accent)}
+strong{font-weight:650}
+code{font:0.88em/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre.code{position:relative;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:1rem 0 1.4rem}
+pre.code code{background:none;padding:0;font-size:14px;line-height:1.55}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:6px;right:10px;font:11px ui-monospace,Menlo,monospace;color:var(--muted);text-transform:uppercase}
+.table-wrap{overflow-x:auto;margin:1rem 0 1.4rem;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--th);font-weight:600}
+tr:last-child td{border-bottom:none}
+blockquote{margin:1rem 0 1.4rem;padding:10px 16px;background:var(--note-bg);border-left:4px solid var(--note-line);border-radius:0 8px 8px 0}
+blockquote p{margin:.3rem 0}
+hr{border:none;border-top:1px solid var(--line);margin:2rem 0}
+hr+h2{border-top:none;margin-top:1.4rem}
+main p code,main li code,main td code{overflow-wrap:break-word}
+.toc summary{cursor:pointer;list-style:none}.toc summary::-webkit-details-marker{display:none}
+.hljs-keyword,.hljs-selector-tag,.hljs-built_in,.hljs-literal{color:var(--k)}
+.hljs-string,.hljs-regexp,.hljs-addition{color:var(--s)}
+.hljs-comment,.hljs-quote,.hljs-meta{color:var(--c);font-style:italic}
+.hljs-number,.hljs-symbol{color:var(--n)}
+.hljs-type,.hljs-class .hljs-title,.hljs-title.class_{color:var(--t)}
+.hljs-title,.hljs-title.function_,.hljs-section{color:var(--f)}
+.hljs-attr,.hljs-attribute,.hljs-variable,.hljs-params,.hljs-tag{color:var(--a)}
+.hljs-deletion{color:var(--k)}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:16px;padding:20px 16px 60px}
+aside{position:static;max-height:none;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--card)}
+.toc-title{margin:0}.toc details[open] .toc-title{margin-bottom:8px}.toc summary::after{content:" ▾"}
+body{font-size:16px}.topbar{padding:8px 16px}.pager{margin-left:0}h1{font-size:1.6rem}}
+@media print{.topbar,aside{display:none}.layout{display:block;padding:0}main{max-width:none}
+pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#000;font-size:12pt}}
+</style>
+</head>
+<body class="warsztat">
+<header class="topbar"><a class="home" href="../../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../00-cinelegacy.html">Warsztat CineLegacy</a><a class="tab" href="../zadania/08-strategie-i-dobre-praktyki.html">Zadania</a><a class="tab active" href="08-strategie-i-dobre-praktyki.html">Przewodnik</a></div><div class="pager"><a href="07-zaawansowane-refaktoryzacje.html" title="Poprzedni moduł">&larr; 07</a></div></header>
+<div class="layout">
+<aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#jak-prowadzic-pokaz">Jak prowadzić pokaz</a></li><li class="h2"><a href="#mapa-scen">Mapa scen</a></li><li class="h2"><a href="#scena-s01-branch-by-abstraction-na-cenniku-z-cinemamanager">Scena s01. Branch by Abstraction na cenniku z CinemaManager</a></li><li class="h3"><a href="#co-widzimy">Co widzimy</a></li><li class="h3"><a href="#krok-1-extract-method-move-stary-cennik-w-osobnej-klasie">Krok 1: Extract Method + Move - stary cennik w osobnej klasie</a></li><li class="h3"><a href="#krok-2-abstrakcja-ticketpricing-stary-cennik-za-nia">Krok 2: abstrakcja TicketPricing, stary cennik za nią</a></li><li class="h3"><a href="#krok-3-nowa-implementacja-obok-i-przelacznik">Krok 3: nowa implementacja obok i przełącznik</a></li><li class="h3"><a href="#krok-4-usuniecie-starej-implementacji-i-przelacznika">Krok 4: usunięcie starej implementacji i przełącznika</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali">Pytanie do sali</a></li><li class="h2"><a href="#scena-s02-strangler-fig-fasada-ktora-przejmuje-sciezki">Scena s02. Strangler Fig - fasada, która przejmuje ścieżki</a></li><li class="h3"><a href="#co-widzimy-1">Co widzimy</a></li><li class="h3"><a href="#krok-1-fasada-11">Krok 1: fasada 1:1</a></li><li class="h3"><a href="#krok-2-przejecie-pierwszej-sciezki-rezerwacja">Krok 2: przejęcie pierwszej ścieżki - rezerwacja</a></li><li class="h3"><a href="#krok-3-przejecie-kolejnej-sciezki-raport">Krok 3: przejęcie kolejnej ścieżki - raport</a></li><li class="h3"><a href="#krok-4-usuniecie-legacy">Krok 4: usunięcie legacy</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-1">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-1">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-1">Pytanie do sali</a></li><li class="h2"><a href="#scena-s03-rownolegla-weryfikacja-shadow-kalkulatora-cen">Scena s03. Równoległa weryfikacja (shadow) kalkulatora cen</a></li><li class="h3"><a href="#co-widzimy-2">Co widzimy</a></li><li class="h3"><a href="#krok-1-dodanie-cienia">Krok 1: dodanie cienia</a></li><li class="h3"><a href="#krok-2-raport-rozbieznosci">Krok 2: raport rozbieżności</a></li><li class="h3"><a href="#krok-3-poprawka-znaleziona-przez-raport">Krok 3: poprawka znaleziona przez raport</a></li><li class="h3"><a href="#krok-4-przelaczenie">Krok 4: przełączenie</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-2">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-2">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-2">Pytanie do sali</a></li><li class="h2"><a href="#scena-s04-granice-trybu-shadow-efekty-uboczne">Scena s04. Granice trybu shadow - efekty uboczne</a></li><li class="h3"><a href="#co-widzimy-3">Co widzimy</a></li><li class="h3"><a href="#krok-1-port-efektow-parameterize-constructor">Krok 1: port efektów (Parameterize Constructor)</a></li><li class="h3"><a href="#krok-2-przechwycenie-efektow-w-cieniu">Krok 2: przechwycenie efektów w cieniu</a></li><li class="h3"><a href="#krok-3-separate-query-from-modifier-czysty-plan">Krok 3: Separate Query from Modifier - czysty plan</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-3">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-3">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-3">Pytanie do sali</a></li><li class="h2"><a href="#scena-s05-boy-scout-rule-mala-poprawa-i-jej-naduzycie">Scena s05. Boy Scout Rule - mała poprawa i jej nadużycie</a></li><li class="h3"><a href="#co-widzimy-4">Co widzimy</a></li><li class="h3"><a href="#krok-1-naduzycie-skoro-juz-tu-jestem">Krok 1: nadużycie - &quot;skoro już tu jestem&quot;</a></li><li class="h3"><a href="#krok-2-poprawna-mala-poprawa">Krok 2: poprawna, mała poprawa</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-4">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-4">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-4">Pytanie do sali</a></li><li class="h2"><a href="#scena-s06-seria-malych-zmian-gotowych-do-przegladu">Scena s06. Seria małych zmian gotowych do przeglądu</a></li><li class="h3"><a href="#co-widzimy-5">Co widzimy</a></li><li class="h3"><a href="#krok-1-commit-1-refaktoryzacja-extract-method">Krok 1: commit 1 - refaktoryzacja (Extract Method)</a></li><li class="h3"><a href="#krok-2-commit-2-refaktoryzacja-przygotowawcza-change-signature">Krok 2: commit 2 - refaktoryzacja przygotowawcza (Change Signature)</a></li><li class="h3"><a href="#krok-3-commit-3-zmiana-zachowania">Krok 3: commit 3 - zmiana zachowania</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-5">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-5">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-5">Pytanie do sali</a></li><li class="h2"><a href="#scena-s07-adr-i-wykonywalny-model-decyzji">Scena s07. ADR i wykonywalny model decyzji</a></li><li class="h3"><a href="#co-widzimy-6">Co widzimy</a></li><li class="h3"><a href="#krok-1-spelnienie-r1-wynik-zamiast-efektu">Krok 1: spełnienie R1 - wynik zamiast efektu</a></li><li class="h3"><a href="#krok-2-spelnienie-r2-money">Krok 2: spełnienie R2 - Money</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-6">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-6">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-6">Pytanie do sali</a></li><li class="h2"><a href="#scena-s08-bramka-kompilatora-xlintall-werror">Scena s08. Bramka kompilatora -Xlint:all -Werror</a></li><li class="h3"><a href="#co-widzimy-7">Co widzimy</a></li><li class="h3"><a href="#krok-1-typy-generyczne">Krok 1: typy generyczne</a></li><li class="h3"><a href="#krok-2-nowe-api-zamiast-przestarzalego">Krok 2: nowe API zamiast przestarzałego</a></li><li class="h3"><a href="#krok-3-switch-expression">Krok 3: switch expression</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-7">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-7">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-7">Pytanie do sali</a></li><li class="h2"><a href="#scena-s09-codemod-na-compiler-tree-api">Scena s09. Codemod na Compiler Tree API</a></li><li class="h3"><a href="#co-widzimy-8">Co widzimy</a></li><li class="h3"><a href="#krok-1-wyszukiwanie-przez-ast">Krok 1: wyszukiwanie przez AST</a></li><li class="h3"><a href="#krok-2-przepisanie-wedlug-pozycji-z-ast">Krok 2: przepisanie według pozycji z AST</a></li><li class="h3"><a href="#krok-3-dopasowanie-po-typach">Krok 3: dopasowanie po typach</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-8">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-8">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-8">Pytanie do sali</a></li><li class="h2"><a href="#scena-s10-minimalna-bramka-jakosci-jako-kod">Scena s10. Minimalna bramka jakości jako kod</a></li><li class="h3"><a href="#co-widzimy-9">Co widzimy</a></li><li class="h3"><a href="#krok-1-skan-zrodel-todo-i-systemout">Krok 1: skan źródeł - TODO i System.out</a></li><li class="h3"><a href="#krok-2-ostrzezenia-kompilatora">Krok 2: ostrzeżenia kompilatora</a></li><li class="h3"><a href="#krok-3-pokrycie-kluczowej-klasy-przyblizenie">Krok 3: pokrycie kluczowej klasy (przybliżenie)</a></li><li class="h3"><a href="#krok-4-testy-zielone">Krok 4: testy zielone</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-9">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-9">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-9">Pytanie do sali</a></li><li class="h2"><a href="#scena-s11-jawna-polityka-wdrozenia-etapowego">Scena s11. Jawna polityka wdrożenia etapowego</a></li><li class="h3"><a href="#co-widzimy-10">Co widzimy</a></li><li class="h3"><a href="#krok-1-polityka-jako-wartosc">Krok 1: polityka jako wartość</a></li><li class="h3"><a href="#krok-2-deterministyczny-podzial-klientow">Krok 2: deterministyczny podział klientów</a></li><li class="h3"><a href="#krok-3-wylacznik-awaryjny">Krok 3: wyłącznik awaryjny</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-10">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-10">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-10">Pytanie do sali</a></li><li class="h2"><a href="#scena-s12-expand-and-contract-format-danych-rezerwacji">Scena s12. Expand and contract - format danych rezerwacji</a></li><li class="h3"><a href="#co-widzimy-11">Co widzimy</a></li><li class="h3"><a href="#krok-1-expand-dual-write">Krok 1: expand + dual write</a></li><li class="h3"><a href="#krok-2-odczyt-nowego-formatu-z-fallbackiem">Krok 2: odczyt nowego formatu z fallbackiem</a></li><li class="h3"><a href="#krok-3-backfill">Krok 3: backfill</a></li><li class="h3"><a href="#krok-4-contract-usuniecie-starego-formatu">Krok 4: contract - usunięcie starego formatu</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-11">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-11">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-11">Pytanie do sali</a></li><li class="h2"><a href="#scena-s13-dokumentacja-zywa-kontra-historyczna">Scena s13. Dokumentacja żywa kontra historyczna</a></li><li class="h3"><a href="#co-widzimy-12">Co widzimy</a></li><li class="h3"><a href="#krok-1-dokument-generowany-z-kodu">Krok 1: dokument generowany z kodu</a></li><li class="h3"><a href="#krok-2-architektura-przejsciowa-w-dokumencie">Krok 2: architektura przejściowa w dokumencie</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-12">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-12">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-12">Pytanie do sali</a></li><li class="h2"><a href="#proponowana-kolejnosc-pokazu">Proponowana kolejność pokazu</a></li></ul></details></nav></aside>
+<main>
+<h1>Moduł 8. Strategie i dobre praktyki - warsztat CineLegacy: przewodnik prowadzącego</h1>
+<p>Trzynaście małych scen pokazuje strategie z modułu 8 na kodzie kina CineLegacy: przyrostową wymianę implementacji (Branch by Abstraction, Strangler Fig, shadow), Boy Scout Rule, serię zmian gotowych do przeglądu, ADR i dokumentację żywą, bramki kompilatora i jakości, codemod na AST, wdrożenie etapowe oraz migrację danych expand and contract. Każda scena to pakiet <code>start</code> (stan wyjściowy) i kompletne snapshoty <code>stepN</code> po każdym ruchu; test sceny uruchamiasz po każdym kroku.</p>
+<h2 id="jak-prowadzic-pokaz" tabindex="-1"><a class="header-anchor" href="#jak-prowadzic-pokaz"><span>Jak prowadzić pokaz</span></a></h2>
+<pre class="code" data-lang="bash"><code class="hljs">scripts/warsztat.sh list m8                 <span class="hljs-comment"># sceny i kroki modułu 8</span>
+scripts/warsztat.sh <span class="hljs-built_in">test</span> m8/s01             <span class="hljs-comment"># testy jednej sceny (albo całego modułu: m8)</span>
+scripts/warsztat.sh diff m8/s03 1 2         <span class="hljs-comment"># co zmienia krok 2 względem kroku 1 (0 = start)</span>
+scripts/warsztat.sh jump m8/s03 2           <span class="hljs-comment"># start = step2, gdy trzeba przeskoczyć krok</span>
+scripts/warsztat.sh reset m8/s03            <span class="hljs-comment"># przywraca start z repozytorium</span>
+</code></pre>
+<ul>
+<li>Zasada: <strong>jeden krok - jeden test - jedno zdanie komentarza</strong>. Zanim ruszysz kod, powiedz, jaki dowód da test po kroku.</li>
+<li>W tym module część testów to nie tylko równoważność (<code>SNNEquivalenceTest</code>), ale też dowody strategii (<code>SNNSolutionTest</code>): raport rozbieżności, dziennik efektów ubocznych, wynik bramki, lista naruszeń ADR. Testy, które <strong>dokumentują stan startowy</strong> (np. &quot;start wysyła dwa maile&quot;, &quot;start narusza ADR&quot;), zmienią kolor na czerwony, gdy wykonasz kroki na pakiecie <code>start</code> - to znak, że start jest już naprawiony. Po pokazie: <code>scripts/<wbr>warsztat.sh reset</code>.</li>
+<li>Sceny s07, s08, s10, s12 i s13 czytają pliki źródłowe sceny. Testy uruchamiaj z katalogu głównego repozytorium (tak działa <code>warsztat.sh</code> i <code>mvn test</code>).</li>
+<li>Sceny s08 i s10 celowo zawierają kod z ostrzeżeniami kompilatora (<code>start</code> i <code>sample/<wbr>dirty</code>) - to materiał dla bramek, nie niedoróbka.</li>
+</ul>
+<h2 id="mapa-scen" tabindex="-1"><a class="header-anchor" href="#mapa-scen"><span>Mapa scen</span></a></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Scena</th>
+<th>Temat ze slajdów</th>
+<th>Kroki</th>
+<th>Pakiet</th>
+<th>Czas</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>s01</td>
+<td>1.3 Branch by Abstraction</td>
+<td>4</td>
+<td><code>m8.s01_branchbyabstraction</code></td>
+<td>~15 min</td>
+</tr>
+<tr>
+<td>s02</td>
+<td>1.3-1.4 Strangler Fig, architektura przejściowa</td>
+<td>4</td>
+<td><code>m8.s02_stranglerfig</code></td>
+<td>~12 min</td>
+</tr>
+<tr>
+<td>s03</td>
+<td>1.5 Równoległa weryfikacja (shadow)</td>
+<td>4</td>
+<td><code>m8.s03_parallelrun</code></td>
+<td>~15 min</td>
+</tr>
+<tr>
+<td>s04</td>
+<td>1.6-1.7 Granice trybu shadow</td>
+<td>3</td>
+<td><code>m8.s04_shadowlimits</code></td>
+<td>~12 min</td>
+</tr>
+<tr>
+<td>s05</td>
+<td>2.1-2.4 Boy Scout Rule i nadużycia</td>
+<td>2</td>
+<td><code>m8.s05_boyscout</code></td>
+<td>~8 min</td>
+</tr>
+<tr>
+<td>s06</td>
+<td>3.2 Małe zestawy zmian - czego nie łączyć</td>
+<td>3</td>
+<td><code>m8.s06_reviewableseries</code></td>
+<td>~10 min</td>
+</tr>
+<tr>
+<td>s07</td>
+<td>4.3-4.4 ADR i wykonywalny model decyzji</td>
+<td>2</td>
+<td><code>m8.s07_adr</code></td>
+<td>~10 min</td>
+</tr>
+<tr>
+<td>s08</td>
+<td>5.2-5.3, 5.6 Bramka kompilatora</td>
+<td>3</td>
+<td><code>m8.s08_compilergate</code></td>
+<td>~10 min</td>
+</tr>
+<tr>
+<td>s09</td>
+<td>5.4-5.5 Automatyczna transformacja (codemod)</td>
+<td>3</td>
+<td><code>m8.s09_codemod</code></td>
+<td>~15 min</td>
+</tr>
+<tr>
+<td>s10</td>
+<td>5.6-5.7 Minimalna bramka jakości</td>
+<td>4</td>
+<td><code>m8.s10_qualitygate</code></td>
+<td>~12 min</td>
+</tr>
+<tr>
+<td>s11</td>
+<td>6.2-6.4 Jawna polityka wdrożenia etapowego</td>
+<td>3</td>
+<td><code>m8.s11_stagedrollout</code></td>
+<td>~10 min</td>
+</tr>
+<tr>
+<td>s12</td>
+<td>6.5-6.6 Dane, wycofanie, zamknięcie migracji</td>
+<td>4</td>
+<td><code>m8.s12_expandcontract</code></td>
+<td>~15 min</td>
+</tr>
+<tr>
+<td>s13</td>
+<td>4.1, 4.5 Dokumentacja żywa i historyczna</td>
+<td>2</td>
+<td><code>m8.s13_livingdocs</code></td>
+<td>~8 min</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="scena-s01-branch-by-abstraction-na-cenniku-z-cinemamanager" tabindex="-1"><a class="header-anchor" href="#scena-s01-branch-by-abstraction-na-cenniku-z-cinemamanager"><span>Scena s01. Branch by Abstraction na cenniku z CinemaManager</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 1.3-1.4 Branch by Abstraction, Strangler Fig, architektura przejściowa
+<strong>Pakiet:</strong> <code>pl.training.workshop.m8.s01_branchbyabstraction</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s01</code>
+<strong>Czas:</strong> ~15 min</p>
+<h3 id="co-widzimy" tabindex="-1"><a class="header-anchor" href="#co-widzimy"><span>Co widzimy</span></a></h3>
+<p><code>start.BookingService.confirm</code> to kopia cennika z <code>CinemaManager.book()</code>: <code>double</code>, kody formatu <code>1/<wbr>2/<wbr>3</code>, typy biletu <code>&quot;S&quot;/<wbr>&quot;E&quot;/<wbr>&quot;C&quot;</code> i formatowanie potwierdzenia w jednej metodzie. Chcemy wymienić cennik na nową implementację, ale nie ma szwu, a długa gałąź w Git na czas przepisywania to antywzorzec.</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">double</span> <span class="hljs-variable">sum</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;
+<span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; request.seats().size(); i++) {
+    <span class="hljs-type">double</span> <span class="hljs-variable">p</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;
+    <span class="hljs-type">int</span> <span class="hljs-variable">f</span> <span class="hljs-operator">=</span> s.format();
+    <span class="hljs-keyword">if</span> (f == <span class="hljs-number">1</span>) {
+        p = <span class="hljs-number">25.00</span>;
+    } ...
+}
+<span class="hljs-keyword">if</span> (request.seats().size() &gt;= <span class="hljs-number">10</span>) {
+    sum = sum - sum * <span class="hljs-number">0.10</span>;
+}
+</code></pre>
+<h3 id="krok-1-extract-method-move-stary-cennik-w-osobnej-klasie" tabindex="-1"><a class="header-anchor" href="#krok-1-extract-method-move-stary-cennik-w-osobnej-klasie"><span>Krok 1: Extract Method + Move - stary cennik w osobnej klasie</span></a></h3>
+<p><strong>W IDE:</strong> zaznacz blok od <code>Screening s = ...</code> do obliczenia <code>total</code>, ⌥⌘M, nazwa <code>total</code>, zwraca <code>double</code>. Następnie F6 (Move) do nowej klasy <code>LegacyTicketPricing</code>. W <code>BookingService</code> pole <code>pricing</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">double</span> <span class="hljs-variable">total</span> <span class="hljs-operator">=</span> pricing.total(request);
+<span class="hljs-keyword">return</span> request.screening().title() + <span class="hljs-string">&quot;: &quot;</span> + String.join(<span class="hljs-string">&quot;,&quot;</span>, request.seats())
+        + <span class="hljs-string">&quot; - do zaplaty &quot;</span> + String.format(Locale.ROOT, <span class="hljs-string">&quot;%.2f&quot;</span>, total);
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s01</code> - równoważność zielona dla wszystkich wariantów.
+<strong>Co powiedzieć:</strong> starego kodu nie poprawiamy, tylko go izolujemy. Brzydki, ale ma jedno wejście i jedno wyjście.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s01 0 1</code></p>
+<h3 id="krok-2-abstrakcja-ticketpricing-stary-cennik-za-nia" tabindex="-1"><a class="header-anchor" href="#krok-2-abstrakcja-ticketpricing-stary-cennik-za-nia"><span>Krok 2: abstrakcja TicketPricing, stary cennik za nią</span></a></h3>
+<p><strong>W IDE:</strong> na <code>LegacyTicketPricing</code> Refactor → Extract Interface, nazwa <code>TicketPricing</code>. Zmień typ zwracany kontraktu na <code>Money</code> (⌘F6) i w implementacji zamień <code>double</code> na <code>Money</code> dopiero na granicy (<code>new Money(BigDecimal.valueOf(total))</code>). <code>BookingService</code> dostaje konstruktor z <code>TicketPricing</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">TicketPricing</span> {
+    <span class="hljs-type">Money</span> <span class="hljs-title function_">total</span><span class="hljs-params">(BookingRequest request)</span>;
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> abstrakcję projektujemy pod przyszłość (Money), a stary kod dostaje adapter. Do tego momentu to czysta refaktoryzacja - można ją zintegrować z główną gałęzią od razu.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s01 1 2</code></p>
+<h3 id="krok-3-nowa-implementacja-obok-i-przelacznik" tabindex="-1"><a class="header-anchor" href="#krok-3-nowa-implementacja-obok-i-przelacznik"><span>Krok 3: nowa implementacja obok i przełącznik</span></a></h3>
+<p><strong>W IDE:</strong> nowa klasa <code>ModernTicketPricing implements TicketPricing</code> (Money, <code>switch</code> na formacie i typie, nazwane stałe). Enum <code>PricingMode { LEGACY, MODERN }</code> i konstruktor <code>BookingService(PricingMode)</code>; domyślnie <code>LEGACY</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">public</span> <span class="hljs-title function_">BookingService</span><span class="hljs-params">(PricingMode mode)</span> {
+    <span class="hljs-built_in">this</span>(<span class="hljs-keyword">switch</span> (mode) {
+        <span class="hljs-keyword">case</span> LEGACY -&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">LegacyTicketPricing</span>();
+        <span class="hljs-keyword">case</span> MODERN -&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">ModernTicketPricing</span>();
+    });
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; <code>S01SolutionTest.legacyAndModernPricingFulfilTheSameContract</code> porównuje obie implementacje na tych samych żądaniach.
+<strong>Co powiedzieć:</strong> wdrożenie nowego kodu nie zmienia zachowania - zmienia je dopiero konfiguracja. To już migracja, a nie refaktoryzacja, więc przełącznik ma mieć właściciela i termin usunięcia.
+<strong>Snapshot:</strong> <code>step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s01 2 3</code></p>
+<h3 id="krok-4-usuniecie-starej-implementacji-i-przelacznika" tabindex="-1"><a class="header-anchor" href="#krok-4-usuniecie-starej-implementacji-i-przelacznika"><span>Krok 4: usunięcie starej implementacji i przełącznika</span></a></h3>
+<p><strong>W IDE:</strong> Safe Delete (⌘⌦) na <code>LegacyTicketPricing</code> i <code>PricingMode</code>; <code>BookingService()</code> tworzy <code>ModernTicketPricing</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">public</span> <span class="hljs-title function_">BookingService</span><span class="hljs-params">()</span> {
+    <span class="hljs-built_in">this</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">ModernTicketPricing</span>());
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; <code>migrationIsClosedOnlyWhenTheOldPathIsGone</code> sprawdza, że klas już nie ma.
+<strong>Co powiedzieć:</strong> migracja kończy się po usunięciu starej ścieżki. Abstrakcja może zostać jako szew dla testów.
+<strong>Snapshot:</strong> <code>step4/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s01 3 4</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Cztery kroki, każdy z zielonym buildem i możliwy do zintegrowania osobno. Gałąź istnieje w kodzie (abstrakcja + przełącznik), a nie w systemie kontroli wersji. Test równoważności obejmuje obie gałęzie przełącznika w kroku 3.</p>
+<h3 id="pulapki" tabindex="-1"><a class="header-anchor" href="#pulapki"><span>Pułapki</span></a></h3>
+<ul>
+<li>Moment zaokrąglenia: legacy sumuje <code>double</code> i zaokrągla na końcu, nowy kod zaokrągla każdy procent. Dla kwot z &quot;połową grosza&quot; (np. 10% z 245.25) wyniki mogą się różnić - dopisz taki przypadek do testu kontraktu, zanim przełączysz.</li>
+<li>Abstrakcja skopiowana 1:1 ze starej sygnatury (<code>double total(...)</code>) utrwala stary model.</li>
+<li>Przełącznik bez terminu usunięcia staje się nowym legacy.</li>
+</ul>
+<h3 id="pytanie-do-sali" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali"><span>Pytanie do sali</span></a></h3>
+<p>Który z czterech kroków jest refaktoryzacją, a który migracją? Jakie dowody są potrzebne dla każdego z nich?</p>
+<h2 id="scena-s02-strangler-fig-fasada-ktora-przejmuje-sciezki" tabindex="-1"><a class="header-anchor" href="#scena-s02-strangler-fig-fasada-ktora-przejmuje-sciezki"><span>Scena s02. Strangler Fig - fasada, która przejmuje ścieżki</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 1.3-1.4 Branch by Abstraction, Strangler Fig, architektura przejściowa
+<strong>Pakiet:</strong> <code>pl.training.workshop.m8.s02_stranglerfig</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s02</code>
+<strong>Czas:</strong> ~12 min</p>
+<h3 id="co-widzimy-1" tabindex="-1"><a class="header-anchor" href="#co-widzimy-1"><span>Co widzimy</span></a></h3>
+<p><code>start.LegacyCinema</code> implementuje publiczne API <code>CinemaApi</code> (rezerwacja i raport) i jest wystawiony klientom wprost. Obie operacje korzystają ze wspólnej bazy <code>BookingLedger</code>. Nie da się przenieść jednej operacji bez drugiej.</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">LegacyCinema</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">CinemaApi</span> {
+    <span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">book</span><span class="hljs-params">(String email, String title, <span class="hljs-type">int</span> format, <span class="hljs-type">int</span> tickets, <span class="hljs-type">boolean</span> web)</span> { ... }
+    <span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">report</span><span class="hljs-params">()</span> { ... }
+}
+</code></pre>
+<h3 id="krok-1-fasada-11" tabindex="-1"><a class="header-anchor" href="#krok-1-fasada-11"><span>Krok 1: fasada 1:1</span></a></h3>
+<p><strong>W IDE:</strong> nowa klasa <code>CinemaFacade implements CinemaApi</code>; Refactor → Delegate (albo ręcznie ⌘N → Delegate Methods) do <code>LegacyCinema</code>. Metoda <code>routes()</code> opisuje, kto obsługuje którą operację.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">book</span><span class="hljs-params">(String email, String title, <span class="hljs-type">int</span> format, <span class="hljs-type">int</span> tickets, <span class="hljs-type">boolean</span> web)</span> {
+    <span class="hljs-keyword">return</span> legacy.book(email, title, format, tickets, web);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s02</code> - scenariusz klienta (rezerwacje + raport) daje identyczny zapis.
+<strong>Co powiedzieć:</strong> fasada nic nie zmienia, ale daje jedno miejsce przekierowania. Klienci od teraz rozmawiają z fasadą.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s02 0 1</code></p>
+<h3 id="krok-2-przejecie-pierwszej-sciezki-rezerwacja" tabindex="-1"><a class="header-anchor" href="#krok-2-przejecie-pierwszej-sciezki-rezerwacja"><span>Krok 2: przejęcie pierwszej ścieżki - rezerwacja</span></a></h3>
+<p><strong>W IDE:</strong> nowa klasa <code>BookingModule</code> (Money, nazwane reguły), w fasadzie <code>book</code> deleguje do niej; <code>routes()</code> zwraca <code>book=new</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">book</span><span class="hljs-params">(String email, String title, <span class="hljs-type">int</span> format, <span class="hljs-type">int</span> tickets, <span class="hljs-type">boolean</span> web)</span> {
+    <span class="hljs-keyword">return</span> bookings.book(email, title, format, tickets, web);
+}
+
+<span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">report</span><span class="hljs-params">()</span> {
+    <span class="hljs-keyword">return</span> legacy.report();
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; <code>legacyReportSeesBookingsTakenByTheNewModule</code> - raport legacy widzi rezerwacje nowego modułu, bo baza jest wspólna.
+<strong>Co powiedzieć:</strong> przez chwilę system jest hybrydą. To działa tylko dlatego, że obie strony piszą w tym samym formacie danych - zgodność danych to osobny kontrakt.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s02 1 2</code></p>
+<h3 id="krok-3-przejecie-kolejnej-sciezki-raport" tabindex="-1"><a class="header-anchor" href="#krok-3-przejecie-kolejnej-sciezki-raport"><span>Krok 3: przejęcie kolejnej ścieżki - raport</span></a></h3>
+<p><strong>W IDE:</strong> nowa klasa <code>ReportModule</code> z tym samym formatem wyjścia (sumy w Money); fasada kieruje <code>report</code> do niej. <code>LegacyCinema</code> zostaje w kodzie, ale bez ruchu.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">Map</span>&lt;String, String&gt; <span class="hljs-title function_">routes</span><span class="hljs-params">()</span> {
+    <span class="hljs-keyword">return</span> Map.of(<span class="hljs-string">&quot;book&quot;</span>, <span class="hljs-string">&quot;new&quot;</span>, <span class="hljs-string">&quot;report&quot;</span>, <span class="hljs-string">&quot;new&quot;</span>);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> stary kod zostaje na czas okna wycofania - powrót to jedna linia w fasadzie.
+<strong>Snapshot:</strong> <code>step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s02 2 3</code></p>
+<h3 id="krok-4-usuniecie-legacy" tabindex="-1"><a class="header-anchor" href="#krok-4-usuniecie-legacy"><span>Krok 4: usunięcie legacy</span></a></h3>
+<p><strong>W IDE:</strong> Safe Delete (⌘⌦) na <code>LegacyCinema</code> - IDE potwierdzi brak użyć.
+<strong>Po:</strong> fasada ma tylko <code>BookingModule</code> i <code>ReportModule</code>.
+<strong>Uruchom:</strong> test zielony; <code>legacyCinemaIsDeletedInTheLastStep</code>.
+<strong>Co powiedzieć:</strong> kryterium usunięcia było znane od kroku 1 (brak ruchu do legacy + zamknięte okno wycofania).
+<strong>Snapshot:</strong> <code>step4/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s02 3 4</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-1" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-1"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Strangler Fig działa na granicy systemu (publiczne API), Branch by Abstraction (s01) wewnątrz aplikacji. Test równoważności uruchamia ten sam scenariusz klienta na każdym etapie hybrydy.</p>
+<h3 id="pulapki-1" tabindex="-1"><a class="header-anchor" href="#pulapki-1"><span>Pułapki</span></a></h3>
+<ul>
+<li>Nowy moduł z innym formatem danych niż legacy - raport legacy przestaje się zgadzać w kroku 2.</li>
+<li>Fasada, która zaczyna mieć własną logikę biznesową.</li>
+<li>Brak <code>routes()</code> albo innego jawnego opisu routingu - po miesiącu nikt nie wie, co gdzie działa (patrz s13).</li>
+</ul>
+<h3 id="pytanie-do-sali-1" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-1"><span>Pytanie do sali</span></a></h3>
+<p>Którą operację przenieślibyście jako pierwszą w prawdziwym CinemaManager i dlaczego: najprostszą, najczęściej zmienianą czy najbardziej ryzykowną?</p>
+<h2 id="scena-s03-rownolegla-weryfikacja-shadow-kalkulatora-cen" tabindex="-1"><a class="header-anchor" href="#scena-s03-rownolegla-weryfikacja-shadow-kalkulatora-cen"><span>Scena s03. Równoległa weryfikacja (shadow) kalkulatora cen</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 1.5 Przykład: równoległa weryfikacja kalkulatora
+<strong>Pakiet:</strong> <code>pl.training.workshop.m8.s03_parallelrun</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s03</code>
+<strong>Czas:</strong> ~15 min</p>
+<h3 id="co-widzimy-2" tabindex="-1"><a class="header-anchor" href="#co-widzimy-2"><span>Co widzimy</span></a></h3>
+<p><code>start.PriceService</code> woła tylko <code>LegacyPriceCalculator</code> (double). Obok leży <code>CandidatePriceCalculator</code> (Money), napisany przez zespół, ale nigdy nieporównany z produkcją. Jedyne opcje: &quot;włączyć i zobaczyć&quot; albo wieczne testy ręczne.</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">Money</span> <span class="hljs-title function_">price</span><span class="hljs-params">(TicketQuery query)</span> {
+    <span class="hljs-keyword">return</span> legacy.price(query);
+}
+</code></pre>
+<h3 id="krok-1-dodanie-cienia" tabindex="-1"><a class="header-anchor" href="#krok-1-dodanie-cienia"><span>Krok 1: dodanie cienia</span></a></h3>
+<p><strong>W IDE:</strong> w <code>price</code> po wyliczeniu wyniku legacy wywołaj kandydata w <code>try/<wbr>catch</code> (Surround With ⌥⌘T) i licz niezgodności.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">Money</span> <span class="hljs-variable">result</span> <span class="hljs-operator">=</span> legacy.price(query);
+<span class="hljs-keyword">try</span> {
+    <span class="hljs-keyword">if</span> (!candidate.price(query).equals(result)) {
+        mismatches++;
+    }
+} <span class="hljs-keyword">catch</span> (RuntimeException candidateFailure) {
+    mismatches++;
+}
+<span class="hljs-keyword">return</span> result;
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; <code>step1ShadowSurvivesCandidateFailureButOnlyCountsMismatches</code> - wyjątek kandydata dla formatu 4DX nie przerywa sprzedaży.
+<strong>Co powiedzieć:</strong> klient zawsze dostaje wynik legacy. Ale licznik mówi tylko, ŻE coś się różni - nie wiemy co.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s03 0 1</code></p>
+<h3 id="krok-2-raport-rozbieznosci" tabindex="-1"><a class="header-anchor" href="#krok-2-raport-rozbieznosci"><span>Krok 2: raport rozbieżności</span></a></h3>
+<p><strong>W IDE:</strong> nowa klasa <code>VerificationReport</code> z <code>sealed interface Verification</code> i rekordami <code>Agreement</code>, <code>Divergence</code>, <code>CandidateFailure</code>. Extract Method <code>verify</code> w <code>PriceService</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">return</span> legacyPrice.equals(candidatePrice)
+        ? <span class="hljs-keyword">new</span> <span class="hljs-title class_">VerificationReport</span>.Agreement(query, legacyPrice)
+        : <span class="hljs-keyword">new</span> <span class="hljs-title class_">VerificationReport</span>.Divergence(query, legacyPrice, candidatePrice);
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; <code>step2ReportShowsWhatDivergedAndWhy</code> - raport pokazuje dwie rozbieżności (3D dziecko rano: 17.20 vs 19.20, 2D student rano: 13.75 vs 15.00) i awarię dla 4DX.
+<strong>Co powiedzieć:</strong> z raportu widać wzorzec: rozbieżności tylko rano i tylko przy zniżce procentowej. Kandydat odejmuje rabat poranny przed procentem.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s03 1 2</code></p>
+<h3 id="krok-3-poprawka-znaleziona-przez-raport" tabindex="-1"><a class="header-anchor" href="#krok-3-poprawka-znaleziona-przez-raport"><span>Krok 3: poprawka znaleziona przez raport</span></a></h3>
+<p><strong>W IDE:</strong> w <code>CandidatePriceCalculator</code> przenieś blok rabatu porannego (⇧⌘↓, Move Statement Down) za wyliczenie zniżki procentowej.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">Money</span> <span class="hljs-variable">price</span> <span class="hljs-operator">=</span> base.minus(base.percent(discountPercent(query.type())));
+<span class="hljs-keyword">if</span> (query.start().getHour() &lt; <span class="hljs-number">12</span>) {
+    price = price.minus(MORNING_DISCOUNT);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; w raporcie zostaje tylko awaria 4DX.
+<strong>Co powiedzieć:</strong> odrzucenie nieznanego formatu to świadoma decyzja (legacy wyceniało 4DX na 0.00!), a nie błąd. Zapisujemy ją jako zaakceptowaną różnicę.
+<strong>Snapshot:</strong> <code>step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s03 2 3</code></p>
+<h3 id="krok-4-przelaczenie" tabindex="-1"><a class="header-anchor" href="#krok-4-przelaczenie"><span>Krok 4: przełączenie</span></a></h3>
+<p><strong>W IDE:</strong> enum <code>MigrationMode { LEGACY, SHADOW, CANDIDATE }</code>, konstruktor <code>PriceService(MigrationMode, VerificationReport)</code>, <code>switch</code> w <code>price</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">return</span> <span class="hljs-keyword">switch</span> (mode) {
+    <span class="hljs-keyword">case</span> LEGACY -&gt; legacy.price(query);
+    <span class="hljs-keyword">case</span> SHADOW -&gt; shadow(query);
+    <span class="hljs-keyword">case</span> CANDIDATE -&gt; candidate.price(query);
+};
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; równoważność obejmuje wszystkie trzy tryby, <code>step4CandidateModeIsAuthoritativeAndRejectsUnknownFormat</code> pokazuje świadomą zmianę dla 4DX.
+<strong>Co powiedzieć:</strong> tryb zamiast flagi boolean, wybór w jednym miejscu. <code>LEGACY</code> to natychmiastowe wycofanie, dopóki nie usuniemy starego kodu.
+<strong>Snapshot:</strong> <code>step4/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s03 3 4</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-2" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-2"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Shadow daje dowód na prawdziwym ruchu, zanim nowa implementacja stanie się autorytatywna. Typowane zdarzenia raportu pozwalają podjąć decyzję bez parsowania logów.</p>
+<h3 id="pulapki-2" tabindex="-1"><a class="header-anchor" href="#pulapki-2"><span>Pułapki</span></a></h3>
+<ul>
+<li>Brak izolacji awarii kandydata - wyjątek w cieniu zatrzymuje sprzedaż.</li>
+<li>Zgodność obu implementacji nie dowodzi poprawności: obie mogą mieć ten sam błąd (np. wycena 4DX na 0.00 w legacy).</li>
+<li>Produkcyjny cień kosztuje: latencja, timeout, limit ruchu.</li>
+</ul>
+<h3 id="pytanie-do-sali-2" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-2"><span>Pytanie do sali</span></a></h3>
+<p>Ile dni ruchu i ile zgodnych porównań wystarczy, żeby przełączyć tryb na CANDIDATE? Kto o tym decyduje?</p>
+<h2 id="scena-s04-granice-trybu-shadow-efekty-uboczne" tabindex="-1"><a class="header-anchor" href="#scena-s04-granice-trybu-shadow-efekty-uboczne"><span>Scena s04. Granice trybu shadow - efekty uboczne</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 1.6-1.7 Granice trybu shadow i antywzorce migracji
+<strong>Pakiet:</strong> <code>pl.training.workshop.m8.s04_shadowlimits</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s04</code>
+<strong>Czas:</strong> ~12 min</p>
+<h3 id="co-widzimy-3" tabindex="-1"><a class="header-anchor" href="#co-widzimy-3"><span>Co widzimy</span></a></h3>
+<p><code>start.ShadowBooking</code> stosuje shadow &quot;jak dla kalkulatora&quot; do rezerwacji z efektami ubocznymi. <code>NewBookingFlow</code> sam obciąża kartę, zapisuje wiersz i wysyła mail. Test pokazuje: klient dostaje <strong>dwa maile i dwa obciążenia</strong>, a cień niczego nie zgłasza, bo porównuje tylko zwracany tekst.</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">String</span> <span class="hljs-variable">result</span> <span class="hljs-operator">=</span> legacy.book(request);
+<span class="hljs-keyword">try</span> {
+    <span class="hljs-type">String</span> <span class="hljs-variable">shadow</span> <span class="hljs-operator">=</span> candidate.book(request); <span class="hljs-comment">// też obciąża kartę i wysyła mail</span>
+</code></pre>
+<h3 id="krok-1-port-efektow-parameterize-constructor" tabindex="-1"><a class="header-anchor" href="#krok-1-port-efektow-parameterize-constructor"><span>Krok 1: port efektów (Parameterize Constructor)</span></a></h3>
+<p><strong>W IDE:</strong> Extract Interface na operacjach <code>Infrastructure</code> używanych przez nowy przepływ → <code>Effects</code>; adapter <code>RealEffects</code>. ⌘F6 na konstruktorze <code>NewBookingFlow</code>: parametr <code>Effects</code> zamiast <code>Infrastructure</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-built_in">this</span>.candidate = <span class="hljs-keyword">new</span> <span class="hljs-title class_">NewBookingFlow</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">RealEffects</span>(infra));
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; <code>step1PreparatoryRefactoringKeepsTheBugOnPurpose</code> - nadal dwa maile.
+<strong>Co powiedzieć:</strong> refaktoryzacja przygotowawcza zachowuje zachowanie, także błędne. Mamy szew, który w następnym kroku zmieni wszystko.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s04 0 1</code></p>
+<h3 id="krok-2-przechwycenie-efektow-w-cieniu" tabindex="-1"><a class="header-anchor" href="#krok-2-przechwycenie-efektow-w-cieniu"><span>Krok 2: przechwycenie efektów w cieniu</span></a></h3>
+<p><strong>W IDE:</strong> nowa klasa <code>RecordingEffects implements Effects</code> zapisuje zamiary w formacie dziennika. <code>ShadowBooking</code> przekazuje kandydatowi nagrywarkę i porównuje nagrane efekty z efektami, które faktycznie wykonało legacy.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">RecordingEffects</span> <span class="hljs-variable">recorder</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">RecordingEffects</span>();
+<span class="hljs-type">String</span> <span class="hljs-variable">shadow</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">NewBookingFlow</span>(recorder).book(request);
+compare(<span class="hljs-string">&quot;wynik&quot;</span>, List.of(result), List.of(shadow));
+compare(<span class="hljs-string">&quot;efekty&quot;</span>, legacyEffects, recorder.recorded());
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; <code>step2RecordsCandidateEffectsInsteadOfExecutingThem</code> - jeden mail, jedno obciążenie, a raport pokazuje rozbieżność w treści maila (kandydat pisze 50.00 zamiast 54.00).
+<strong>Co powiedzieć:</strong> porównanie efektów znalazło błąd, którego porównanie wyniku nie widziało.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s04 1 2</code></p>
+<h3 id="krok-3-separate-query-from-modifier-czysty-plan" tabindex="-1"><a class="header-anchor" href="#krok-3-separate-query-from-modifier-czysty-plan"><span>Krok 3: Separate Query from Modifier - czysty plan</span></a></h3>
+<p><strong>W IDE:</strong> z <code>NewBookingFlow.book</code> wydziel (⌥⌘M, potem Move F6) klasę <code>BookingPlanner</code> z metodą <code>plan</code>, która zwraca <code>BookingPlan(result, effects)</code>. <code>NewBookingFlow</code> wykonuje plan na porcie; <code>ShadowBooking</code> woła tylko <code>BookingPlanner</code>. <code>RecordingEffects</code> usuń (Safe Delete).
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">BookingPlan</span> <span class="hljs-variable">plan</span> <span class="hljs-operator">=</span> candidate.plan(request);
+compare(<span class="hljs-string">&quot;wynik&quot;</span>, List.of(result), List.of(plan.result()));
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; <code>step3ComparesAPurePlanAndNeverTouchesInfrastructure</code>.
+<strong>Co powiedzieć:</strong> typ gwarantuje bezpieczeństwo: <code>BookingPlanner</code> nie ma dostępu do portu efektów, więc w cieniu nie da się go użyć &quot;za mocno&quot;.
+<strong>Snapshot:</strong> <code>step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s04 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-3" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-3"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Podwójne wykonanie tylko dla czystych obliczeń. Efekty (płatność, mail, zapis, zdarzenia) w cieniu są danymi do porównania, a nie akcjami.</p>
+<h3 id="pulapki-3" tabindex="-1"><a class="header-anchor" href="#pulapki-3"><span>Pułapki</span></a></h3>
+<ul>
+<li>Nagrywarka podpięta tylko w części miejsc - jeden zapomniany efekt i klient dostaje drugi SMS.</li>
+<li>Efekty ukryte w obliczeniu: sekwencja numerów rezerwacji, cache, licznik - też są efektami.</li>
+<li>Zgodność odpowiedzi API to nie dowód zgodności danych i transakcji.</li>
+</ul>
+<h3 id="pytanie-do-sali-3" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-3"><span>Pytanie do sali</span></a></h3>
+<p>Jakie efekty uboczne ma wasz &quot;czysty&quot; kod, o których zwykle nie myślicie (logi audytowe, metryki, sekwencje)?</p>
+<h2 id="scena-s05-boy-scout-rule-mala-poprawa-i-jej-naduzycie" tabindex="-1"><a class="header-anchor" href="#scena-s05-boy-scout-rule-mala-poprawa-i-jej-naduzycie"><span>Scena s05. Boy Scout Rule - mała poprawa i jej nadużycie</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 2.1-2.4 Heurystyka, nie mandat; bezpieczna sekwencja i typowe nadużycia
+<strong>Pakiet:</strong> <code>pl.training.workshop.m8.s05_boyscout</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s05</code>
+<strong>Czas:</strong> ~8 min</p>
+<h3 id="co-widzimy-4" tabindex="-1"><a class="header-anchor" href="#co-widzimy-4"><span>Co widzimy</span></a></h3>
+<p><code>start.TicketPrinter.print</code> trzeba i tak otworzyć, bo w sprincie dochodzi linia &quot;Sala&quot;. Kod ma nazwy <code>s</code>, <code>d</code>, <code>x</code>, konkatenację w pętli i ręczne sklejanie listy miejsc. Kusi, żeby &quot;posprzątać wszystko&quot;.</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">String</span> <span class="hljs-variable">x</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;&quot;</span>;
+<span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; t.seats().size(); i++) {
+    <span class="hljs-keyword">if</span> (i &gt; <span class="hljs-number">0</span>) {
+        x = x + <span class="hljs-string">&quot;, &quot;</span>;
+    }
+    x = x + t.seats().get(i);
+}
+</code></pre>
+<h3 id="krok-1-naduzycie-skoro-juz-tu-jestem" tabindex="-1"><a class="header-anchor" href="#krok-1-naduzycie-skoro-juz-tu-jestem"><span>Krok 1: nadużycie - &quot;skoro już tu jestem&quot;</span></a></h3>
+<p><strong>W IDE:</strong> pokaż antyprzykład: <code>scripts/<wbr>warsztat.sh jump m8/<wbr>s05 1</code>. Obok dobrych ruchów przemycono sortowanie miejsc, e-mail małymi literami i pominięcie linii &quot;Tel&quot; bez telefonu.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-variable">sortedSeats</span> <span class="hljs-operator">=</span> ticket.seats().stream().sorted().toList();
+text.append(<span class="hljs-string">&quot;Klient: &quot;</span>).append(ticket.email().trim().toLowerCase(Locale.ROOT)).append(<span class="hljs-string">&#x27;\n&#x27;</span>);
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s05</code> - równoważność czerwona w trzech przypadkach (m.in. <code>A9, A10</code> staje się <code>A10, A9</code>). <code>S05SolutionTest.abusiveCleanupChangesBehaviourInThreeCases</code> dokumentuje, które.
+<strong>Co powiedzieć:</strong> każda z tych zmian może być dobrym pomysłem, ale to decyzje biznesowe, nie sprzątanie. Cofamy: <code>scripts/<wbr>warsztat.sh reset m8/<wbr>s05</code>.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s05 0 1</code></p>
+<h3 id="krok-2-poprawna-mala-poprawa" tabindex="-1"><a class="header-anchor" href="#krok-2-poprawna-mala-poprawa"><span>Krok 2: poprawna, mała poprawa</span></a></h3>
+<p><strong>W IDE:</strong> Rename (⇧F6) <code>t</code> → <code>ticket</code>; Replace loop with <code>String.join</code> (⌥⏎ na pętli albo ręcznie); <code>StringBuilder</code> zamiast konkatenacji; Extract Method (⌥⌘M) <code>phoneLine</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs">.append(<span class="hljs-string">&quot;Miejsca: &quot;</span>).append(String.join(<span class="hljs-string">&quot;, &quot;</span>, ticket.seats())).append(<span class="hljs-string">&#x27;\n&#x27;</span>)
+.append(<span class="hljs-string">&quot;Klient: &quot;</span>).append(ticket.email().trim()).append(<span class="hljs-string">&#x27;\n&#x27;</span>)
+.append(phoneLine(ticket)).append(<span class="hljs-string">&#x27;\n&#x27;</span>)
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> tylko dotykana metoda, bez zmiany kontraktu, diff do przejrzenia w minutę. Nowa linia &quot;Sala&quot; to osobny commit (patrz s06).
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s05 0 2</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-4" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-4"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Boy Scout Rule to heurystyka: mała, lokalna, weryfikowalna poprawa w kodzie bieżącej zmiany. Test różnicowy (start kontra krok) jest bezstronnym arbitrem, czy &quot;sprzątanie&quot; nie zmieniło zachowania.</p>
+<h3 id="pulapki-4" tabindex="-1"><a class="header-anchor" href="#pulapki-4"><span>Pułapki</span></a></h3>
+<ul>
+<li>Zmiana zachowania pod etykietą refaktoryzacji.</li>
+<li>Masowe formatowanie całego pliku razem z poprawką - recenzent nie znajdzie zmiany merytorycznej.</li>
+<li>&quot;Sprzątanie&quot; cudzego modułu bez uzgodnienia.</li>
+</ul>
+<h3 id="pytanie-do-sali-4" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-4"><span>Pytanie do sali</span></a></h3>
+<p>Posortowane miejsca są czytelniejsze. Jak wprowadzić tę zmianę uczciwie?</p>
+<h2 id="scena-s06-seria-malych-zmian-gotowych-do-przegladu" tabindex="-1"><a class="header-anchor" href="#scena-s06-seria-malych-zmian-gotowych-do-przegladu"><span>Scena s06. Seria małych zmian gotowych do przeglądu</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 3.2 Małe zestawy zmian - czego nie łączyć; 3.3-3.4 Przegląd kodu
+<strong>Pakiet:</strong> <code>pl.training.workshop.m8.s06_reviewableseries</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s06</code>
+<strong>Czas:</strong> ~10 min</p>
+<h3 id="co-widzimy-5" tabindex="-1"><a class="header-anchor" href="#co-widzimy-5"><span>Co widzimy</span></a></h3>
+<p><code>start.PriceList.price</code> ma dostać promocję &quot;Tani wtorek&quot;: bilet NORMAL -20% ceny bazowej we wtorek. Zniżki są wplecione w jedną metodę i zależą tylko od typu biletu, a nowa reguła potrzebuje daty. Pokusa: jeden commit &quot;porządki + tani wtorek&quot;.</p>
+<pre class="code" data-lang="java"><code class="hljs">BigDecimal d;
+<span class="hljs-keyword">if</span> (q.type().equals(<span class="hljs-string">&quot;STUDENT&quot;</span>)) {
+    d = p.multiply(<span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;0.25&quot;</span>));
+} <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ...
+</code></pre>
+<h3 id="krok-1-commit-1-refaktoryzacja-extract-method" tabindex="-1"><a class="header-anchor" href="#krok-1-commit-1-refaktoryzacja-extract-method"><span>Krok 1: commit 1 - refaktoryzacja (Extract Method)</span></a></h3>
+<p><strong>W IDE:</strong> ⌥⌘M na wyborze ceny bazowej → <code>basePrice(String format)</code>; ⌥⌘M na wyborze zniżki → <code>discountPercent(String type)</code> zwracające procent; Money zamiast BigDecimal.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">Money</span> <span class="hljs-variable">base</span> <span class="hljs-operator">=</span> basePrice(query.format());
+<span class="hljs-type">Money</span> <span class="hljs-variable">price</span> <span class="hljs-operator">=</span> base.minus(base.percent(discountPercent(query.type())));
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony - równoważność na przypadkach, w tym wtorkowych.
+<strong>Co powiedzieć:</strong> opis commita: &quot;refaktoryzacja, bez zmiany zachowania, dowód: S06EquivalenceTest&quot;. Recenzent sprawdza tylko mechanikę.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s06 0 1</code></p>
+<h3 id="krok-2-commit-2-refaktoryzacja-przygotowawcza-change-signature" tabindex="-1"><a class="header-anchor" href="#krok-2-commit-2-refaktoryzacja-przygotowawcza-change-signature"><span>Krok 2: commit 2 - refaktoryzacja przygotowawcza (Change Signature)</span></a></h3>
+<p><strong>W IDE:</strong> ⌘F6 na <code>discountPercent</code>: parametr <code>TicketQuery query</code> zamiast <code>String type</code>, w ciele <code>switch (query.type())</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">discountPercent</span><span class="hljs-params">(TicketQuery query)</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">switch</span> (query.type()) { ... };
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> &quot;make the change easy, then make the easy change&quot;. Ten commit nadal nie zmienia zachowania.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s06 1 2</code></p>
+<h3 id="krok-3-commit-3-zmiana-zachowania" tabindex="-1"><a class="header-anchor" href="#krok-3-commit-3-zmiana-zachowania"><span>Krok 3: commit 3 - zmiana zachowania</span></a></h3>
+<p><strong>W IDE:</strong> w gałęzi <code>default</code> warunek <code>isCheapTuesday(query) ? 20 : 0</code>, metoda pomocnicza, stała <code>CHEAP_TUESDAY_PERCENT</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">default</span> -&gt; isCheapTuesday(query) ? CHEAP_TUESDAY_PERCENT : <span class="hljs-number">0</span>;
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; <code>S06SolutionTest.cheapTuesdayGivesNormalTicketTwentyPercentOff</code> (2D wtorek 20.00) i <code>behaviourChangeIsLimitedToNormalTicketsOnTuesday</code> - na siatce 336 przypadków zmieniło się dokładnie 12, wszystkie NORMAL we wtorek.
+<strong>Co powiedzieć:</strong> diff to kilka linii. Test różnicowy commitu 2 kontra 3 mówi recenzentowi dokładnie, gdzie zmieniło się zachowanie.
+<strong>Snapshot:</strong> <code>step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s06 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-5" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-5"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Trzy zestawy zmian, każdy z jedną intencją i zielonym buildem. Refaktoryzacje dowodzi test równoważności, zmianę zachowania - test nowej reguły i test różnicowy ograniczający jej zasięg.</p>
+<h3 id="pulapki-5" tabindex="-1"><a class="header-anchor" href="#pulapki-5"><span>Pułapki</span></a></h3>
+<ul>
+<li>Łączenie refaktoryzacji ze zmianą zachowania: recenzent nie odróżni ruchu mechanicznego od nowej reguły.</li>
+<li>Łączenie formatowania z logiką, diffu automatycznego z ręcznym.</li>
+<li>Commit przygotowawczy, który &quot;przy okazji&quot; poprawia regułę.</li>
+</ul>
+<h3 id="pytanie-do-sali-5" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-5"><span>Pytanie do sali</span></a></h3>
+<p>Jak opisalibyście commit 3 według pięciu pytań ze slajdu 3.3 (dlaczego, co i czego nie, kontrakt, dowody, wdrożenie i wycofanie)?</p>
+<h2 id="scena-s07-adr-i-wykonywalny-model-decyzji" tabindex="-1"><a class="header-anchor" href="#scena-s07-adr-i-wykonywalny-model-decyzji"><span>Scena s07. ADR i wykonywalny model decyzji</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 4.3-4.4 Architecture Decision Record
+<strong>Pakiet:</strong> <code>pl.training.workshop.m8.s07_adr</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s07</code>
+<strong>Czas:</strong> ~10 min</p>
+<h3 id="co-widzimy-6" tabindex="-1"><a class="header-anchor" href="#co-widzimy-6"><span>Co widzimy</span></a></h3>
+<p>Obok kodu sceny leży <code>ADR-0007-cennik-jako-czysty-modul.md</code> (status: Zaakceptowana) z dwiema regułami: <strong>R1</strong> pakiet <code>pricing</code> nie zależy od <code>notification</code>, <strong>R2</strong> <code>pricing</code> nie używa <code>double</code>. <code>ArchitectureRules</code> to wykonywalny model tych reguł. W <code>start</code> cennik sam wysyła mail o rabacie grupowym i liczy w <code>double</code>:</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">import</span> pl.training.workshop.m8.s07_adr.start.notification.GroupMailer;
+...
+<span class="hljs-keyword">public</span> <span class="hljs-type">double</span> <span class="hljs-title function_">total</span><span class="hljs-params">(String organizer, <span class="hljs-type">int</span> tickets, <span class="hljs-type">double</span> unitPrice)</span> {
+    ...
+    mailer.groupDiscountGranted(organizer, tickets);
+</code></pre>
+<h3 id="krok-1-spelnienie-r1-wynik-zamiast-efektu" tabindex="-1"><a class="header-anchor" href="#krok-1-spelnienie-r1-wynik-zamiast-efektu"><span>Krok 1: spełnienie R1 - wynik zamiast efektu</span></a></h3>
+<p><strong>W IDE:</strong> nowy record <code>Quote(double total, boolean groupDiscount)</code> w <code>pricing</code>; ⌘F6 na <code>total</code> - bez <code>organizer</code>, zwraca <code>Quote</code>. Wywołanie <code>mailer</code> przenieś do <code>BookingService</code> (warstwa aplikacji). Usuń import <code>notification</code> z cennika.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">Quote</span> <span class="hljs-variable">quote</span> <span class="hljs-operator">=</span> pricing.total(tickets, unitPrice);
+<span class="hljs-keyword">if</span> (quote.groupDiscount()) {
+    mailer.groupDiscountGranted(organizer, tickets);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; <code>step1RemovesDependencyOnNotification</code> - zostało tylko naruszenie <code>ADR-0007/<wbr>R2</code>.
+<strong>Co powiedzieć:</strong> naruszenie w teście prowadzi wprost do identyfikatora decyzji i jej uzasadnienia.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s07 0 1</code></p>
+<h3 id="krok-2-spelnienie-r2-money" tabindex="-1"><a class="header-anchor" href="#krok-2-spelnienie-r2-money"><span>Krok 2: spełnienie R2 - Money</span></a></h3>
+<p><strong>W IDE:</strong> Type Migration (⇧⌘F6) <code>double</code> → <code>Money</code> w <code>Quote</code> i <code>TicketPricing</code>; nazwane stałe dla progu i procentu grupy; <code>BookingService</code> podaje <code>Money.of(&quot;25.00&quot;)</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">Quote</span> <span class="hljs-title function_">total</span><span class="hljs-params">(<span class="hljs-type">int</span> tickets, Money unitPrice)</span> {
+    <span class="hljs-type">Money</span> <span class="hljs-variable">sum</span> <span class="hljs-operator">=</span> unitPrice.times(tickets);
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; <code>step2CompliesWithTheDecision</code> - pusta lista naruszeń.
+<strong>Co powiedzieć:</strong> moduł jest zgodny z decyzją, a test pilnuje, żeby tak zostało.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s07 1 2</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-6" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-6"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>ADR opisuje kontekst, opcje i konsekwencje (historia), a <code>ArchitectureRules</code> sprawdza regułę w każdym buildzie. <code>adrDocumentsEveryExecutableRule</code> pilnuje, żeby każda reguła w kodzie miała opis w ADR.</p>
+<h3 id="pulapki-6" tabindex="-1"><a class="header-anchor" href="#pulapki-6"><span>Pułapki</span></a></h3>
+<ul>
+<li>ADR dla każdego Rename - dokumentuje się decyzje o trwałym wpływie.</li>
+<li>Edycja zaakceptowanego ADR zamiast nowego zapisu, który go zastępuje.</li>
+<li>Reguła tekstowa ma granice: pełna nazwa klasy bez importu albo refleksja ją ominą (opisane w &quot;Konsekwencjach&quot;).</li>
+</ul>
+<h3 id="pytanie-do-sali-6" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-6"><span>Pytanie do sali</span></a></h3>
+<p>Co zrobić, gdy zespół chce złamać R2 dla jednego przypadku (np. statystyk)? Wyjątek w teście czy nowy ADR?</p>
+<h2 id="scena-s08-bramka-kompilatora-xlintall-werror" tabindex="-1"><a class="header-anchor" href="#scena-s08-bramka-kompilatora-xlintall-werror"><span>Scena s08. Bramka kompilatora -Xlint:all -Werror</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 5.2-5.3 Refaktoryzacje IDE i kompilator Javy 25; 5.6 Bramka kompilatora
+<strong>Pakiet:</strong> <code>pl.training.workshop.m8.s08_compilergate</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s08</code>
+<strong>Czas:</strong> ~10 min</p>
+<h3 id="co-widzimy-7" tabindex="-1"><a class="header-anchor" href="#co-widzimy-7"><span>Co widzimy</span></a></h3>
+<p><code>CompilerGate</code> kompiluje wszystkie pliki wariantu przez <code>javax.tools</code> z <code>--release 25 -Xlint:all -Werror</code> i zwraca strukturalną diagnostykę (kategoria, plik, linia). Kod <code>start</code> nie przechodzi: <code>SeatMap</code> na surowych typach (rawtypes, unchecked), <code>OccupancyReport</code> woła przestarzałe <code>PriceTable.basePrice(int)</code> (deprecation) i celowo przelatuje z IMAX do 3D w <code>switch</code> (fallthrough).</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">Map</span> <span class="hljs-variable">seatsByRow</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">TreeMap</span>();
+...
+<span class="hljs-keyword">case</span> <span class="hljs-number">3</span>:
+    features = features + <span class="hljs-string">&quot;duzy ekran, &quot;</span>;
+<span class="hljs-keyword">case</span> <span class="hljs-number">2</span>:
+    features = features + <span class="hljs-string">&quot;dzwiek Dolby&quot;</span>;
+    <span class="hljs-keyword">break</span>;
+</code></pre>
+<h3 id="krok-1-typy-generyczne" tabindex="-1"><a class="header-anchor" href="#krok-1-typy-generyczne"><span>Krok 1: typy generyczne</span></a></h3>
+<p><strong>W IDE:</strong> na polu <code>seatsByRow</code> ⌥⏎ → Add type arguments; <code>computeIfAbsent</code> zamiast <code>get</code>/<code>put</code>; usuń rzutowania.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">Map</span>&lt;Integer, List&lt;String&gt;&gt; <span class="hljs-variable">seatsByRow</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">TreeMap</span>&lt;&gt;();
+...
+seatsByRow.computeIfAbsent(row, r -&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;()).add(seat);
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s08</code> - zostają kategorie <code>deprecation</code>, <code>fallthrough</code>.
+<strong>Co powiedzieć:</strong> jedna kategoria ostrzeżeń na krok - łatwy przegląd, łatwe wycofanie.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s08 0 1</code></p>
+<h3 id="krok-2-nowe-api-zamiast-przestarzalego" tabindex="-1"><a class="header-anchor" href="#krok-2-nowe-api-zamiast-przestarzalego"><span>Krok 2: nowe API zamiast przestarzałego</span></a></h3>
+<p><strong>W IDE:</strong> w <code>return</code> zamień argument <code>format</code> na istniejącą już zmienną <code>name</code> - wywołanie trafia do <code>PriceTable.basePrice(String)</code>. Ctrl+klik na metodzie potwierdza, że to nowe przeciążenie.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">return</span> name + <span class="hljs-string">&quot; [&quot;</span> + features + <span class="hljs-string">&quot;], cena &quot;</span> + PriceTable.basePrice(name)
+        + <span class="hljs-string">&quot; zl, zajete: &quot;</span> + map.takenPerRow();
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; zostaje tylko <code>[fallthrough] OccupancyReport.java:13</code>.
+<strong>Co powiedzieć:</strong> przestarzałą metodę usuniemy (Safe Delete) dopiero, gdy nikt jej nie woła - także poza repozytorium.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s08 1 2</code></p>
+<h3 id="krok-3-switch-expression" tabindex="-1"><a class="header-anchor" href="#krok-3-switch-expression"><span>Krok 3: switch expression</span></a></h3>
+<p><strong>W IDE:</strong> ⌥⏎ na <code>switch</code> → Replace with enhanced 'switch' statement, potem ręcznie zamień na wyrażenie; przelot zapisany wprost: <code>case 3 -&gt; &quot;duzy ekran, dzwiek Dolby&quot;</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">String</span> <span class="hljs-variable">features</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">switch</span> (format) {
+    <span class="hljs-keyword">case</span> <span class="hljs-number">3</span> -&gt; <span class="hljs-string">&quot;duzy ekran, dzwiek Dolby&quot;</span>;
+    <span class="hljs-keyword">case</span> <span class="hljs-number">2</span> -&gt; <span class="hljs-string">&quot;dzwiek Dolby&quot;</span>;
+    <span class="hljs-keyword">default</span> -&gt; <span class="hljs-string">&quot;standard&quot;</span>;
+};
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; <code>step3PassesTheGate</code> - zero ostrzeżeń, <code>-Werror</code> przechodzi.
+<strong>Co powiedzieć:</strong> intencja &quot;IMAX ma też Dolby&quot; jest teraz w kodzie, a nie w kolejności <code>case</code>.
+<strong>Snapshot:</strong> <code>step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s08 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-7" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-7"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Bramka zwraca strukturalne wyniki, więc test może wymagać &quot;zero ostrzeżeń&quot; albo &quot;nie więcej niż stan bazowy&quot;. Ciekawostka z implementacji: z <code>-Werror</code> javac przerywa po fazie z pierwszym ostrzeżeniem (fallthrough z analizy przepływu by się nie pokazał), więc pełną listę zbieramy drugim przebiegiem bez <code>-Werror</code>.</p>
+<h3 id="pulapki-7" tabindex="-1"><a class="header-anchor" href="#pulapki-7"><span>Pułapki</span></a></h3>
+<ul>
+<li>Nagłe włączenie <code>-Werror</code> w dużym legacy blokuje zespół - najpierw stan bazowy i &quot;brak nowych naruszeń&quot;.</li>
+<li><code>@SuppressWarnings(&quot;all&quot;)</code> na klasie zamiast wąskiego wyłączenia z uzasadnieniem.</li>
+<li><code>--release 25</code> nie kontroluje, którym JDK uruchamiany jest Maven w CI.</li>
+</ul>
+<h3 id="pytanie-do-sali-7" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-7"><span>Pytanie do sali</span></a></h3>
+<p>Jak wprowadzić tę bramkę w projekcie z 3000 ostrzeżeń, nie blokując nikogo od jutra?</p>
+<h2 id="scena-s09-codemod-na-compiler-tree-api" tabindex="-1"><a class="header-anchor" href="#scena-s09-codemod-na-compiler-tree-api"><span>Scena s09. Codemod na Compiler Tree API</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 5.4-5.5 Analiza statyczna, formatowanie i automatyzacja (receptury)
+<strong>Pakiet:</strong> <code>pl.training.workshop.m8.s09_codemod</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s09</code>
+<strong>Czas:</strong> ~15 min</p>
+<h3 id="co-widzimy-8" tabindex="-1"><a class="header-anchor" href="#co-widzimy-8"><span>Co widzimy</span></a></h3>
+<p><code>SampleProject</code> zawiera API kina z przestarzałym <code>book(..., boolean web, boolean ownGlasses)</code> i nowym <code>book(..., Channel, Glasses)</code>, łudząco podobne <code>HotelService.book(..., boolean, boolean)</code> oraz klienta <code>TicketDesk</code> z trzema wywołaniami: w jednej linii (11), rozbite na trzy linie (16-18) i hotelowe (22), plus komentarz ze starym przykładem (15). <code>start.BookCallCodemod</code> to &quot;grep i zamień&quot;:</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">Pattern</span> <span class="hljs-variable">OLD_CALL</span> <span class="hljs-operator">=</span>
+        Pattern.compile(<span class="hljs-string">&quot;\\bbook\\(.*,\\s*(true|false)\\s*,\\s*\\w+\\s*\\)&quot;</span>);
+</code></pre>
+<p>Test pokazuje: regex znajduje linie 11, 15, 22 - trafia w komentarz i hotel, a gubi wywołanie wielolinijkowe.</p>
+<h3 id="krok-1-wyszukiwanie-przez-ast" tabindex="-1"><a class="header-anchor" href="#krok-1-wyszukiwanie-przez-ast"><span>Krok 1: wyszukiwanie przez AST</span></a></h3>
+<p><strong>W IDE:</strong> ręcznie - <code>JavacTask.parse()</code> i <code>TreeScanner.visitMethodInvocation</code>; dopasowanie: <code>MemberSelectTree</code> o nazwie <code>book</code> z sześcioma argumentami; linia z <code>SourcePositions</code> i <code>LineMap</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">if</span> (looksLikeOldBook(call)) {
+    <span class="hljs-type">long</span> <span class="hljs-variable">start</span> <span class="hljs-operator">=</span> positions.getStartPosition(unit, call);
+    lines.add((<span class="hljs-type">int</span>) unit.getLineMap().getLineNumber(start));
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; <code>step1AstSearchFindsRealCallsIncludingMultilineOne</code> - linie 11, 16, 22.
+<strong>Co powiedzieć:</strong> parser widzi wywołania, nie tekst. Ale 22 to nadal hotel - sama składnia nie zna typów.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s09 0 1</code></p>
+<h3 id="krok-2-przepisanie-wedlug-pozycji-z-ast" tabindex="-1"><a class="header-anchor" href="#krok-2-przepisanie-wedlug-pozycji-z-ast"><span>Krok 2: przepisanie według pozycji z AST</span></a></h3>
+<p><strong>W IDE:</strong> <code>rewrite</code> podmienia dokładnie dwa ostatnie argumenty (literał → stała enum, wyrażenie → operator warunkowy) i dopisuje importy; edycje stosowane od końca pliku.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">if</span> (arg <span class="hljs-keyword">instanceof</span> LiteralTree literal &amp;&amp; literal.getValue() <span class="hljs-keyword">instanceof</span> Boolean value) {
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Edit</span>(start, end, value ? ifTrue : ifFalse);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; <code>step2SyntacticRewriteBreaksTheHotelCallAndIsNotIdempotent</code> - wywołanie hotelowe zostało &quot;zmigrowane&quot; i kod się nie kompiluje, a drugie uruchomienie psuje już zmigrowane wywołania.
+<strong>Co powiedzieć:</strong> automatyzacja zwiększa zasięg - także zasięg błędu receptury.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s09 1 2</code></p>
+<h3 id="krok-3-dopasowanie-po-typach" tabindex="-1"><a class="header-anchor" href="#krok-3-dopasowanie-po-typach"><span>Krok 3: dopasowanie po typach</span></a></h3>
+<p><strong>W IDE:</strong> analiza razem ze źródłami projektu (<code>task.analyze()</code>), <code>TreePathScanner</code> i <code>Trees.getElement</code>; migrujemy tylko wywołania rozwiązane do przestarzałej metody <code>cinema.BookingService.book</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">return</span> method.getSimpleName().contentEquals(<span class="hljs-string">&quot;book&quot;</span>)
+        &amp;&amp; elements.isDeprecated(method)
+        &amp;&amp; method.getEnclosingElement() <span class="hljs-keyword">instanceof</span> TypeElement owner
+        &amp;&amp; owner.getQualifiedName().contentEquals(OLD_API_OWNER);
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; wynik identyczny z oczekiwanym <code>MIGRATED</code>, kompiluje się bez ostrzeżeń (<code>-Xlint:all</code>), a drugie uruchomienie niczego nie zmienia.
+<strong>Co powiedzieć:</strong> receptura oparta na typach, test <code>before/<wbr>after</code> na próbce, test idempotencji. Tak działają narzędzia typu OpenRewrite.
+<strong>Snapshot:</strong> <code>step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s09 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-8" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-8"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Codemod ma trzy dowody: znajduje dokładnie właściwe miejsca, wynik się kompiluje bez użycia przestarzałego API, a ponowne uruchomienie jest bezpieczne. Diff z codemodu idzie do osobnego commita niż zmiany ręczne.</p>
+<h3 id="pulapki-8" tabindex="-1"><a class="header-anchor" href="#pulapki-8"><span>Pułapki</span></a></h3>
+<ul>
+<li>Regex na kodzie źródłowym: komentarze, stringi, wywołania wielolinijkowe, przeciążenia.</li>
+<li>Brak testu idempotencji - receptura uruchomiona drugi raz w CI psuje kod.</li>
+<li>Importy dopisane &quot;gdzieś&quot; - kolejność poprawi formatter, ale w osobnym commicie.</li>
+</ul>
+<h3 id="pytanie-do-sali-8" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-8"><span>Pytanie do sali</span></a></h3>
+<p>Kiedy codemod się opłaca, a kiedy szybciej jest poprawić 12 miejsc ręcznie z pomocą Change Signature w IDE?</p>
+<h2 id="scena-s10-minimalna-bramka-jakosci-jako-kod" tabindex="-1"><a class="header-anchor" href="#scena-s10-minimalna-bramka-jakosci-jako-kod"><span>Scena s10. Minimalna bramka jakości jako kod</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 5.6-5.7 Bramka kompilatora i minimalna bramka jakości
+<strong>Pakiet:</strong> <code>pl.training.workshop.m8.s10_qualitygate</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s10</code>
+<strong>Czas:</strong> ~12 min</p>
+<h3 id="co-widzimy-9" tabindex="-1"><a class="header-anchor" href="#co-widzimy-9"><span>Co widzimy</span></a></h3>
+<p><code>start.QualityGate</code> to lista kontrolna w Javadocu i metoda <code>evaluate</code>, która zawsze zwraca pustą listę - przepuszcza próbkę <code>sample/<wbr>dirty</code> (TODO, <code>System.out</code>, surowy typ, metody bez testu). Bramka działa na <code>GateInput</code>: katalog źródeł domeny, plik testu, kluczowa klasa i klasa testowa.</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-title function_">evaluate</span><span class="hljs-params">(GateInput input)</span> {
+    <span class="hljs-keyword">return</span> List.of();
+}
+</code></pre>
+<h3 id="krok-1-skan-zrodel-todo-i-systemout" tabindex="-1"><a class="header-anchor" href="#krok-1-skan-zrodel-todo-i-systemout"><span>Krok 1: skan źródeł - TODO i System.out</span></a></h3>
+<p><strong>W IDE:</strong> metoda <code>scanSources</code>: każda linia z <code>TODO</code>/<code>FIXME</code> albo <code>System.out</code>/<code>System.err</code> to wynik z plikiem i linią.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">if</span> (line.contains(<span class="hljs-string">&quot;TODO&quot;</span>) || line.contains(<span class="hljs-string">&quot;FIXME&quot;</span>)) {
+    findings.add(<span class="hljs-string">&quot;TODO &quot;</span> + where);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s10</code> - <code>TODO PriceTable.java:14</code>, <code>System.out PriceTable.java:23</code>.
+<strong>Co powiedzieć:</strong> tanie, deterministyczne, z pozycją - od tego zaczynamy.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s10 0 1</code></p>
+<h3 id="krok-2-ostrzezenia-kompilatora" tabindex="-1"><a class="header-anchor" href="#krok-2-ostrzezenia-kompilatora"><span>Krok 2: ostrzeżenia kompilatora</span></a></h3>
+<p><strong>W IDE:</strong> metoda <code>compileSources</code> (javax.tools, <code>-Xlint:all</code>), każda diagnostyka poza NOTE to wynik.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs">findings.add(<span class="hljs-string">&quot;kompilator &quot;</span> + Path.of(d.getSource().toUri()).getFileName() + <span class="hljs-string">&quot;:&quot;</span>
+        + d.getLineNumber() + <span class="hljs-string">&quot; &quot;</span> + d.getCode());
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; dochodzą dwa wyniki <code>compiler.warn.raw.class.use</code>.
+<strong>Co powiedzieć:</strong> to ta sama idea co w s08, tu jako jeden z kilku sygnałów bramki.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s10 1 2</code></p>
+<h3 id="krok-3-pokrycie-kluczowej-klasy-przyblizenie" tabindex="-1"><a class="header-anchor" href="#krok-3-pokrycie-kluczowej-klasy-przyblizenie"><span>Krok 3: pokrycie kluczowej klasy (przybliżenie)</span></a></h3>
+<p><strong>W IDE:</strong> metoda <code>checkCoverage</code>: każda publiczna metoda <code>PriceTable</code> musi być wywołana w <code>PriceTableTest</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">if</span> (!test.contains(<span class="hljs-string">&quot;.&quot;</span> + method.group(<span class="hljs-number">1</span>) + <span class="hljs-string">&quot;(&quot;</span>)) {
+    findings.add(<span class="hljs-string">&quot;pokrycie &quot;</span> + input.keyClass() + <span class="hljs-string">&quot;.&quot;</span> + method.group(<span class="hljs-number">1</span>) + <span class="hljs-string">&quot; bez testu&quot;</span>);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; <code>vipSurcharge</code> i <code>lookupCount</code> bez testu.
+<strong>Co powiedzieć:</strong> to nie zastępuje JaCoCo (<code>mvn verify</code> - plugin jest w pom.xml), ale łapie metodę, której żaden test nawet nie woła.
+<strong>Snapshot:</strong> <code>step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s10 2 3</code></p>
+<h3 id="krok-4-testy-zielone" tabindex="-1"><a class="header-anchor" href="#krok-4-testy-zielone"><span>Krok 4: testy zielone</span></a></h3>
+<p><strong>W IDE:</strong> metoda <code>runTests</code>: refleksja uruchamia metody z adnotacją o nazwie <code>Test</code> i zgłasza porażki.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">try</span> {
+    test.invoke(constructor.newInstance());
+} <span class="hljs-keyword">catch</span> (InvocationTargetException failure) {
+    findings.add(<span class="hljs-string">&quot;test &quot;</span> + type.getSimpleName() + <span class="hljs-string">&quot;.&quot;</span> + test.getName() + <span class="hljs-string">&quot; nie przechodzi: &quot;</span> ...);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; <code>step4AddsGreenTestsAndCatchesAFailingOne</code> - fikstura <code>sample/<wbr>broken</code> (celowo nie JUnit, żeby nie psuć buildu) daje wynik <code>test PriceTableTest.vipSurchargeStartsAtRowNine nie przechodzi: AssertionError</code>.
+<strong>Co powiedzieć:</strong> lista kontrolna jest w całości wykonywalna i ma ten sam wynik u każdego.
+<strong>Snapshot:</strong> <code>step4/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s10 3 4</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-9" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-9"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Bramka łączy kilka niezależnych sygnałów. <code>S10EquivalenceTest</code> pilnuje drugiej strony: czysta próbka przechodzi każdą wersję bramki (brak fałszywych alarmów).</p>
+<h3 id="pulapki-9" tabindex="-1"><a class="header-anchor" href="#pulapki-9"><span>Pułapki</span></a></h3>
+<ul>
+<li>Bramka, która nic nie sprawdza, a daje zielony znaczek.</li>
+<li>Przybliżenie pokrycia potraktowane jak pomiar.</li>
+<li>Bramka bez właściciela - każdy fałszywy alarm kończy się jej wyłączeniem.</li>
+</ul>
+<h3 id="pytanie-do-sali-9" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-9"><span>Pytanie do sali</span></a></h3>
+<p>Które z tych czterech sprawdzeń uruchomilibyście lokalnie przed commitem, a które tylko w CI?</p>
+<h2 id="scena-s11-jawna-polityka-wdrozenia-etapowego" tabindex="-1"><a class="header-anchor" href="#scena-s11-jawna-polityka-wdrozenia-etapowego"><span>Scena s11. Jawna polityka wdrożenia etapowego</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 6.2 Warstwy kontroli; 6.3-6.4 Kryteria i jawna polityka wdrożenia etapowego
+<strong>Pakiet:</strong> <code>pl.training.workshop.m8.s11_stagedrollout</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s11</code>
+<strong>Czas:</strong> ~10 min</p>
+<h3 id="co-widzimy-10" tabindex="-1"><a class="header-anchor" href="#co-widzimy-10"><span>Co widzimy</span></a></h3>
+<p><code>start.CheckoutRouter</code> wdraża nowy proces płatności &quot;na flagę&quot;: stała w kodzie (zmiana = nowe wydanie), testerzy wpisani w <code>if</code>, brak etapów i wyłącznika awaryjnego.</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">boolean</span> <span class="hljs-variable">NEW_CHECKOUT</span> <span class="hljs-operator">=</span> <span class="hljs-literal">false</span>;
+
+<span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">useNewCheckout</span><span class="hljs-params">(String email)</span> {
+    <span class="hljs-keyword">if</span> (NEW_CHECKOUT) {
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+    }
+    <span class="hljs-keyword">return</span> email.equals(<span class="hljs-string">&quot;anna@kino.pl&quot;</span>) || email.equals(<span class="hljs-string">&quot;jan@kino.pl&quot;</span>);
+}
+</code></pre>
+<h3 id="krok-1-polityka-jako-wartosc" tabindex="-1"><a class="header-anchor" href="#krok-1-polityka-jako-wartosc"><span>Krok 1: polityka jako wartość</span></a></h3>
+<p><strong>W IDE:</strong> Introduce Parameter Object dla flagi i listy testerów → record <code>RolloutPolicy(boolean enabled, Set&lt;String&gt; allowList)</code>, fabryka <code>current()</code> z dotychczasowymi wartościami; router dostaje politykę w konstruktorze.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">useNewCheckout</span><span class="hljs-params">(String email)</span> {
+    <span class="hljs-keyword">return</span> policy.allows(email);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s11</code> - równoważność dla dotychczasowych ustawień.
+<strong>Co powiedzieć:</strong> konfigurację da się podać z zewnątrz, przetestować i przejrzeć.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s11 0 1</code></p>
+<h3 id="krok-2-deterministyczny-podzial-klientow" tabindex="-1"><a class="header-anchor" href="#krok-2-deterministyczny-podzial-klientow"><span>Krok 2: deterministyczny podział klientów</span></a></h3>
+<p><strong>W IDE:</strong> ⌘F6 na rekordzie: <code>int percent</code> zamiast <code>boolean enabled</code> (0 = dawne <code>false</code>); metoda <code>bucket</code> - CRC32 znormalizowanego e-maila modulo 100.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">allows</span><span class="hljs-params">(String email)</span> {
+    <span class="hljs-keyword">return</span> allowList.contains(normalize(email)) || bucket(email) &lt; percent;
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; <code>sameCustomerAlwaysGetsTheSamePath</code>, <code>percentOfCustomersIsRoughlyRespected</code>, <code>increasingPercentNeverRemovesAnyone</code>.
+<strong>Co powiedzieć:</strong> stabilny skrót, nie <code>hashCode</code> obiektu i nie losowanie. Ten sam klient zawsze widzi tę samą ścieżkę, a zwiększenie procentu nikogo nie wyrzuca. Uwaga: normalizacja e-maila to świadoma zmiana - start porównywał dosłownie (<code>startComparesEmailLiterally</code>).
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s11 1 2</code></p>
+<h3 id="krok-3-wylacznik-awaryjny" tabindex="-1"><a class="header-anchor" href="#krok-3-wylacznik-awaryjny"><span>Krok 3: wyłącznik awaryjny</span></a></h3>
+<p><strong>W IDE:</strong> pole <code>killSwitch</code> w rekordzie, sprawdzane jako pierwsze w <code>allows</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">if</span> (killSwitch) {
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; <code>killSwitchOverridesPercentAndAllowList</code>.
+<strong>Co powiedzieć:</strong> kill switch ma pierwszeństwo nawet przed testerami - służy do natychmiastowego wycofania bez wydania.
+<strong>Snapshot:</strong> <code>step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s11 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-10" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-10"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Polityka wdrożenia to kod z testami: populacja, deterministyczny podział, wyjątki i wyłącznik. Decyzję o zwiększeniu procentu (ADVANCE / HOLD / ROLLBACK) podejmuje się na podstawie metryk - to temat przykładu <code>RolloutPolicy</code> z pakietu <code>pl.training.module8.risk</code>.</p>
+<h3 id="pulapki-10" tabindex="-1"><a class="header-anchor" href="#pulapki-10"><span>Pułapki</span></a></h3>
+<ul>
+<li>Losowanie przy każdym żądaniu - klient przeskakuje między ścieżkami.</li>
+<li><code>String.hashCode()</code> z ujemnym wynikiem i <code>%</code> - ujemne koszyki.</li>
+<li>Flaga bez właściciela i terminu usunięcia.</li>
+</ul>
+<h3 id="pytanie-do-sali-10" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-10"><span>Pytanie do sali</span></a></h3>
+<p>Kill switch wyłącza nowy proces płatności. Co z zamówieniami, które są w trakcie płatności w nowym procesie?</p>
+<h2 id="scena-s12-expand-and-contract-format-danych-rezerwacji" tabindex="-1"><a class="header-anchor" href="#scena-s12-expand-and-contract-format-danych-rezerwacji"><span>Scena s12. Expand and contract - format danych rezerwacji</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 6.5-6.6 Dane, wycofanie i zamknięcie migracji
+<strong>Pakiet:</strong> <code>pl.training.workshop.m8.s12_expandcontract</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s12</code>
+<strong>Czas:</strong> ~15 min</p>
+<h3 id="co-widzimy-11" tabindex="-1"><a class="header-anchor" href="#co-widzimy-11"><span>Co widzimy</span></a></h3>
+<p><code>BookingTable</code> ma starą kolumnę <code>csv</code> i nową, pustą kolumnę <code>payload</code> (migracja schematu &quot;expand&quot; już zrobiona). <code>start.BookingRepository</code> zna tylko csv: <code>B1;anna@kino.pl;A5,A10;84.00</code>. Zapisanie nowego formatu &quot;w miejscu&quot; do tej samej kolumny uniemożliwiłoby wycofanie wydania.</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">void</span> <span class="hljs-title function_">save</span><span class="hljs-params">(Booking booking)</span> {
+    table.put(booking.id(), <span class="hljs-keyword">new</span> <span class="hljs-title class_">BookingTable</span>.Row(CsvBookingFormat.write(booking), <span class="hljs-literal">null</span>));
+}
+</code></pre>
+<h3 id="krok-1-expand-dual-write" tabindex="-1"><a class="header-anchor" href="#krok-1-expand-dual-write"><span>Krok 1: expand + dual write</span></a></h3>
+<p><strong>W IDE:</strong> nowa klasa <code>BookingPayloadFormat</code> (wersjonowany format <code>v2|id=...|email=...</code>); <code>save</code> pisze obie kolumny, <code>find</code> nadal czyta csv.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs">table.put(booking.id(), <span class="hljs-keyword">new</span> <span class="hljs-title class_">BookingTable</span>.Row(CsvBookingFormat.write(booking),
+        BookingPayloadFormat.write(booking)));
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s12</code> - <code>step1DualWriteKeepsRollbackToTheOldVersionSafe</code>: repozytorium ze startu czyta dane zapisane przez krok 1.
+<strong>Co powiedzieć:</strong> wycofanie kodu jest bezpieczne, bo stary format wciąż powstaje.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s12 0 1</code></p>
+<h3 id="krok-2-odczyt-nowego-formatu-z-fallbackiem" tabindex="-1"><a class="header-anchor" href="#krok-2-odczyt-nowego-formatu-z-fallbackiem"><span>Krok 2: odczyt nowego formatu z fallbackiem</span></a></h3>
+<p><strong>W IDE:</strong> Extract Method <code>read(Row)</code>: payload, a gdy go brak - csv.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">return</span> row.payload() != <span class="hljs-literal">null</span>
+        ? BookingPayloadFormat.read(row.payload())
+        : CsvBookingFormat.read(row.csv());
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; <code>step2ReadsNewFormatAndFallsBackForOldRows</code>.
+<strong>Co powiedzieć:</strong> stare wiersze (sprzed kroku 1) nadal są czytelne. Zapis dalej podwójny.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s12 1 2</code></p>
+<h3 id="krok-3-backfill" tabindex="-1"><a class="header-anchor" href="#krok-3-backfill"><span>Krok 3: backfill</span></a></h3>
+<p><strong>W IDE:</strong> metoda <code>migrateAll</code> uzupełnia payload w wierszach, które go nie mają; zwraca licznik.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">if</span> (row.payload() == <span class="hljs-literal">null</span>) {
+    table.put(id, <span class="hljs-keyword">new</span> <span class="hljs-title class_">BookingTable</span>.Row(row.csv(),
+            BookingPayloadFormat.write(CsvBookingFormat.read(row.csv()))));
+    migrated++;
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; <code>step3BackfillIsIdempotentAndPreparesTheContract</code> - przed backfillem wersja po contract gubi stary wiersz, po backfillu go widzi; drugie uruchomienie migruje 0 wierszy.
+<strong>Co powiedzieć:</strong> kolejność ma znaczenie: backfill przed contract. Licznik to dowód w logu wdrożenia.
+<strong>Snapshot:</strong> <code>step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s12 2 3</code></p>
+<h3 id="krok-4-contract-usuniecie-starego-formatu" tabindex="-1"><a class="header-anchor" href="#krok-4-contract-usuniecie-starego-formatu"><span>Krok 4: contract - usunięcie starego formatu</span></a></h3>
+<p><strong>W IDE:</strong> Safe Delete (⌘⌦) na <code>CsvBookingFormat</code>; <code>save</code> pisze tylko payload (<code>Row.withPayload</code>), <code>find</code> czyta tylko payload; <code>migrateAll</code> znika razem z fallbackiem.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">Optional</span>&lt;Booking&gt; <span class="hljs-title function_">find</span><span class="hljs-params">(String id)</span> {
+    <span class="hljs-keyword">return</span> table.get(id).map(BookingTable.Row::payload).map(BookingPayloadFormat::read);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; <code>step4HasNoReferenceToTheOldFormat</code> (żaden plik kroku nie wspomina starego formatu) i <code>step4ClosesTheRollbackWindow</code> (stara wersja nie widzi nowych danych).
+<strong>Co powiedzieć:</strong> migracja kończy się po usunięciu kosztu legacy. Od tego momentu wycofanie kodu już nie wystarczy - dlatego contract robimy dopiero po zamknięciu okna wycofania. Usunięcie kolumny to kolejna, osobna migracja schematu.
+<strong>Snapshot:</strong> <code>step4/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s12 3 4</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-11" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-11"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Każdy krok jest wdrażalny i odwracalny do poprzedniego, aż do contract. Test &quot;brak referencji do starego kodu&quot; zamienia &quot;zamknięcie migracji&quot; z deklaracji w sprawdzalny warunek.</p>
+<h3 id="pulapki-11" tabindex="-1"><a class="header-anchor" href="#pulapki-11"><span>Pułapki</span></a></h3>
+<ul>
+<li>Contract przed backfillem - utrata starych wierszy.</li>
+<li>Dual write bez strategii rekoncyliacji (co, jeśli zapis jednej kolumny się nie uda?).</li>
+<li>Flaga &quot;czytaj nowy format&quot; przełączona bez sprawdzenia, że stara wersja nadal czyta dane.</li>
+</ul>
+<h3 id="pytanie-do-sali-11" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-11"><span>Pytanie do sali</span></a></h3>
+<p>Jak długo trzymać okno wycofania dla danych i kto decyduje o jego zamknięciu?</p>
+<h2 id="scena-s13-dokumentacja-zywa-kontra-historyczna" tabindex="-1"><a class="header-anchor" href="#scena-s13-dokumentacja-zywa-kontra-historyczna"><span>Scena s13. Dokumentacja żywa kontra historyczna</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 4.1 Dokumentacja według trwałości; 4.5 Dokumentacja żywa i historyczna
+<strong>Pakiet:</strong> <code>pl.training.workshop.m8.s13_livingdocs</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s13</code>
+<strong>Czas:</strong> ~8 min</p>
+<h3 id="co-widzimy-12" tabindex="-1"><a class="header-anchor" href="#co-widzimy-12"><span>Co widzimy</span></a></h3>
+<p><code>start.Routing.routes()</code> to routing fasady Strangler Fig jako kod - źródło prawdy. Obok leży ręcznie pisany <code>start/<wbr>ROUTING.md</code>, który twierdzi, że raport obsługuje legacy, i nie zna operacji <code>cancel</code>. Test <code>startDocumentationHasDriftedFromCode</code> wypisuje rozjazd: <code>report: dokument mowi legacy, kod mowi new</code> i <code>cancel: brak w dokumencie</code>.</p>
+<pre class="code" data-lang="text"><code class="hljs">| Operacja | Obsługuje |
+| --- | --- |
+| book | new |
+| report | legacy |
+</code></pre>
+<h3 id="krok-1-dokument-generowany-z-kodu" tabindex="-1"><a class="header-anchor" href="#krok-1-dokument-generowany-z-kodu"><span>Krok 1: dokument generowany z kodu</span></a></h3>
+<p><strong>W IDE:</strong> nowa klasa <code>RoutingDoc</code> z <code>render(routes)</code> i <code>main</code>, który zapisuje <code>ROUTING.md</code> obok kodu (ścieżka liczona z pakietu). Uruchom <code>main</code> (⌃⇧R) z katalogu repozytorium.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">for</span> (Routing.Route route : routes) {
+    md.append(<span class="hljs-string">&quot;| &quot;</span> + route.operation() + <span class="hljs-string">&quot; | &quot;</span> + route.target() + <span class="hljs-string">&quot; |&quot;</span>).append(<span class="hljs-string">&#x27;\n&#x27;</span>);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s13</code> - <code>step1DocumentIsGeneratedFromCode</code>: zapisany plik równa się wygenerowanemu.
+<strong>Co powiedzieć:</strong> dokument żywy nie może się rozjechać, bo test porównuje go z kodem przy każdym buildzie.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s13 0 1</code></p>
+<h3 id="krok-2-architektura-przejsciowa-w-dokumencie" tabindex="-1"><a class="header-anchor" href="#krok-2-architektura-przejsciowa-w-dokumencie"><span>Krok 2: architektura przejściowa w dokumencie</span></a></h3>
+<p><strong>W IDE:</strong> ⌘F6 na rekordzie <code>Route</code>: pola <code>owner</code> i <code>removeWhen</code>; nowe kolumny w <code>render</code>; ponownie uruchom <code>main</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">new</span> <span class="hljs-title class_">Route</span>(<span class="hljs-string">&quot;cancel&quot;</span>, <span class="hljs-string">&quot;legacy&quot;</span>, <span class="hljs-string">&quot;zespol Sprzedaz&quot;</span>,
+        <span class="hljs-string">&quot;CancelModule w trybie CANDIDATE przez 14 dni&quot;</span>));
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; <code>step2EveryTransitionalRouteHasOwnerAndRemovalCriterion</code>.
+<strong>Co powiedzieć:</strong> żywa dokumentacja operacyjna mówi, co działa dziś i kiedy to zniknie. Dlaczego tak zdecydowaliśmy - to ADR (historia, scena s07).
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m8/<wbr>s13 1 2</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-12" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-12"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Dokument żywy powstaje z kodu i jest sprawdzany testem, historyczny (ADR, zamknięty opis zestawu zmian) jest niezmienny. Mieszanie ról kończy się dokumentem, który opisuje nieistniejący system albo gubi historię.</p>
+<h3 id="pulapki-12" tabindex="-1"><a class="header-anchor" href="#pulapki-12"><span>Pułapki</span></a></h3>
+<ul>
+<li>Ręczna edycja wygenerowanego pliku.</li>
+<li>Generator bez testu zgodności - plik i tak się zestarzeje.</li>
+<li>Uzasadnienia decyzji wpisywane do dokumentu żywego (znikną przy następnej regeneracji).</li>
+</ul>
+<h3 id="pytanie-do-sali-12" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-12"><span>Pytanie do sali</span></a></h3>
+<p>Które dokumenty w waszym projekcie powinny być generowane z kodu, a które świadomie zamrożone?</p>
+<h2 id="proponowana-kolejnosc-pokazu" tabindex="-1"><a class="header-anchor" href="#proponowana-kolejnosc-pokazu"><span>Proponowana kolejność pokazu</span></a></h2>
+<p><strong>Ścieżka krótka (~75 min):</strong> s01 (Branch by Abstraction, 15) → s03 (shadow, 15) → s04 (granice shadow, 12) → s06 (seria zmian, 10) → s08 (bramka kompilatora, 10) → s12 (expand and contract, 15). Pokazuje pełny łuk: szew, weryfikacja, bezpieczeństwo efektów, przegląd, narzędzia i dane.</p>
+<p><strong>Ścieżka pełna (~150 min):</strong> s01 → s02 → s03 → s04 (strategie migracji) → s05 → s06 (Boy Scout i przegląd) → s07 → s13 (dokumentacja) → s08 → s09 → s10 (narzędzia i bramki) → s11 → s12 (ryzyko, wdrożenie i dane). Między blokami krótkie pytanie do sali ze scen.</p>
+
+</main>
+</div>
+<script>if(matchMedia('(max-width:900px)').matches){var d=document.querySelector('.toc details');if(d)d.open=false}</script>
+</body>
+</html>

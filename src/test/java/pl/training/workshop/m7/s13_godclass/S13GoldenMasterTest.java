@@ -1,0 +1,77 @@
+package pl.training.workshop.m7.s13_godclass;
+
+import java.util.stream.Stream;
+
+import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.TestFactory;
+
+import pl.training.workshop.support.Scene;
+
+/**
+ * Golden master kampanii Remove God Class: start (kopia legacy) i każdy krok muszą dać
+ * DOKŁADNIE ten sam wektor zachowania - wyniki, maile, SMS-y, operacje bramki, raporty.
+ * Oczekiwany tekst jest kopią src/test/resources/workshop/cinema-manager.approved.txt.
+ */
+final class S13GoldenMasterTest {
+    static final String APPROVED = """
+            book: B1 B2 B3 B4 B5
+            book taken: ERROR: seat taken A5
+            book no seat: ERROR: no such seat Z99
+            book mismatch: ERROR: types do not match seats
+            book no screening: ERROR: no screening S9
+            pay b1: OK
+            pay b1 again: ERROR: already paid
+            pay b2 declined: ERROR: payment declined
+            pay b2: OK
+            pay b4: OK
+            pay b3 expired: ERROR: expired
+            cancel b1 early: REFUND 105.00
+            cancel b2 late: REFUND 49.20
+            cancel b2 again: ERROR: cannot cancel
+            use b4: OK
+            use b5 unpaid: ERROR: not paid
+            points anna: 0
+            points szkola: 15
+            free S1: 120
+            RAPORT DZIENNY 2026-03-10
+            Amator: 10 bil., 153.00
+            Biletow: 10
+            Przychod z biletow: 153.00
+            Oplaty rezerwacyjne: 20.00
+            Netto (bez VAT 8%): 141.67
+            ROZLICZENIE Amator tydzien 1: przychod 153.00, dla dystrybutora 500.00
+            ROZLICZENIE Diuna tydzien 2: przychod 0.00, dla dystrybutora 500.00
+            MAIL to=anna@kino.pl subject=Rezerwacja B1 body=Film: Diuna, miejsca: A5,B5,C10, do zaplaty: 114.00
+            MAIL to=jan@kino.pl subject=Rezerwacja B2 body=Film: Kraina Lodu, miejsca: A1,B1,C1,D7, do zaplaty: 104.40
+            MAIL to=ola@kino.pl subject=Rezerwacja B3 body=Film: Kraina Lodu, miejsca: E2,F2, do zaplaty: 42.00
+            MAIL to=szkola@kino.pl subject=Rezerwacja B4 body=Film: Amator, miejsca: A1,B1,C1,D1,E1,F1,G1,H1,I1,J1, do zaplaty: 173.00
+            MAIL to=piotr@kino.pl subject=Rezerwacja B5 body=Film: Amator, miejsca: K9, do zaplaty: 35.00
+            MAIL to=anna@kino.pl subject=Bilety B1 body=Oplacono 114.00, punkty: +10
+            SMS to=600100200 text=CineLegacy: bilety B1 oplacone
+            MAIL to=jan@kino.pl subject=Platnosc odrzucona body=Rezerwacja B2
+            MAIL to=jan@kino.pl subject=Bilety B2 body=Oplacono 104.40, punkty: +10
+            MAIL to=szkola@kino.pl subject=Bilety B4 body=Oplacono 173.00, punkty: +15
+            MAIL to=ola@kino.pl subject=Rezerwacja wygasla body=B3
+            MAIL to=piotr@kino.pl subject=Rezerwacja wygasla body=B5
+            MAIL to=anna@kino.pl subject=Anulowano B1 body=Zwrot: 105.00
+            MAIL to=jan@kino.pl subject=Anulowano B2 body=Zwrot: 49.20
+            CHARGED 4111111111111111 114.00
+            DECLINED 4111111111110000 104.40
+            CHARGED 5555444433331111 104.40
+            CHARGED 4000123412341234 173.00
+            REFUND 4111111111111111 105.00
+            REFUND 5555444433331111 49.20
+            """;
+
+    @TestFactory
+    Stream<DynamicTest> everyStepOfTheCampaignKeepsTheApprovedBehaviour() {
+        return Scene.<String, String>variants()
+                .variant("start", day -> S13Script.run(new pl.training.workshop.m7.s13_godclass.start.Driver()))
+                .variant("step1", day -> S13Script.run(new pl.training.workshop.m7.s13_godclass.step1.Driver()))
+                .variant("step2", day -> S13Script.run(new pl.training.workshop.m7.s13_godclass.step2.Driver()))
+                .variant("step3", day -> S13Script.run(new pl.training.workshop.m7.s13_godclass.step3.Driver()))
+                .variant("step4", day -> S13Script.run(new pl.training.workshop.m7.s13_godclass.step4.Driver()))
+                .expect("jeden dzien kina (S13Script)", "2026-03-09/10", APPROVED)
+                .tests();
+    }
+}

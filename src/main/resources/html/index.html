@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Materiały dla prowadzącego</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1d1f23;--muted:#5f6670;--line:#e3e5e8;--card:#ffffff;--accent:#2457c5;--accent-bg:#eef3fd;
+--code-bg:#f4f5f7;--note-bg:#fff7e6;--note-line:#e6a700;--th:#f1f3f6;
+--k:#b3246b;--s:#1a7f37;--c:#6e7781;--n:#0550ae;--t:#8250df;--f:#6639ba;--a:#953800;
+--kind:#2457c5}
+@media (prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3036;--card:#1c1f23;--accent:#7aa7ff;--accent-bg:#1e2a40;
+--code-bg:#1f2328;--note-bg:#2b2412;--note-line:#c99400;--th:#23272d;
+--k:#ff7b9c;--s:#7ee2a0;--c:#8b949e;--n:#79c0ff;--t:#d2a8ff;--f:#d2a8ff;--a:#ffa657}}
+body.zadania{--kind:#1a7f37} body.rozwiazania{--kind:#b3246b} body.przyklady{--kind:#2457c5}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.topbar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 24px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);border-top:3px solid var(--kind)}
+.topbar a{color:var(--fg);text-decoration:none}
+.home{font-weight:600}
+.tabs{display:flex;gap:4px}
+.tab{padding:4px 12px;border-radius:999px;font-size:15px;color:var(--muted)!important}
+.tab:hover{background:var(--code-bg)}
+.tab.active{background:var(--accent-bg);color:var(--accent)!important;font-weight:600}
+.pager{margin-left:auto;display:flex;gap:14px;font-size:15px}
+.pager a{color:var(--muted)}.pager a:hover{color:var(--accent)}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:48px;max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+.layout.no-toc{grid-template-columns:minmax(0,1fr);max-width:1000px}
+aside{position:sticky;top:72px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px}
+.toc-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;font-weight:600}
+.toc ul{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.toc li a{display:block;padding:3px 12px;color:var(--muted);text-decoration:none;line-height:1.35}
+.toc li.h3 a{padding-left:24px;font-size:13px}
+.toc li a:hover{color:var(--accent)}
+main{min-width:0;max-width:860px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 1.2rem;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:2.6rem 0 .8rem;padding-top:.6rem;border-top:1px solid var(--line)}
+h3{font-size:1.18rem;margin:2rem 0 .6rem}
+h4{font-size:1rem;margin:1.5rem 0 .5rem}
+h1 a,h2 a,h3 a,h4 a{color:inherit;text-decoration:none}
+h2 a:hover::after,h3 a:hover::after{content:" #";color:var(--muted)}
+p,ul,ol{margin:.6rem 0 1rem}
+li{margin:.25rem 0}
+li>ul,li>ol{margin:.2rem 0}
+a{color:var(--accent)}
+strong{font-weight:650}
+code{font:0.88em/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre.code{position:relative;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:1rem 0 1.4rem}
+pre.code code{background:none;padding:0;font-size:14px;line-height:1.55}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:6px;right:10px;font:11px ui-monospace,Menlo,monospace;color:var(--muted);text-transform:uppercase}
+.table-wrap{overflow-x:auto;margin:1rem 0 1.4rem;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--th);font-weight:600}
+tr:last-child td{border-bottom:none}
+blockquote{margin:1rem 0 1.4rem;padding:10px 16px;background:var(--note-bg);border-left:4px solid var(--note-line);border-radius:0 8px 8px 0}
+blockquote p{margin:.3rem 0}
+hr{border:none;border-top:1px solid var(--line);margin:2rem 0}
+hr+h2{border-top:none;margin-top:1.4rem}
+main p code,main li code,main td code{overflow-wrap:break-word}
+.toc summary{cursor:pointer;list-style:none}.toc summary::-webkit-details-marker{display:none}
+.hljs-keyword,.hljs-selector-tag,.hljs-built_in,.hljs-literal{color:var(--k)}
+.hljs-string,.hljs-regexp,.hljs-addition{color:var(--s)}
+.hljs-comment,.hljs-quote,.hljs-meta{color:var(--c);font-style:italic}
+.hljs-number,.hljs-symbol{color:var(--n)}
+.hljs-type,.hljs-class .hljs-title,.hljs-title.class_{color:var(--t)}
+.hljs-title,.hljs-title.function_,.hljs-section{color:var(--f)}
+.hljs-attr,.hljs-attribute,.hljs-variable,.hljs-params,.hljs-tag{color:var(--a)}
+.hljs-deletion{color:var(--k)}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:16px;padding:20px 16px 60px}
+aside{position:static;max-height:none;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--card)}
+.toc-title{margin:0}.toc details[open] .toc-title{margin-bottom:8px}.toc summary::after{content:" ▾"}
+body{font-size:16px}.topbar{padding:8px 16px}.pager{margin-left:0}h1{font-size:1.6rem}}
+@media print{.topbar,aside{display:none}.layout{display:block;padding:0}main{max-width:none}
+pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#000;font-size:12pt}}
+</style>
+</head>
+<body class="index">
+<header class="topbar"><a class="home" href="index.html">Materiały prowadzącego</a></header>
+<div class="layout no-toc">
+
+<main>
+<h1>Materiały dla prowadzącego</h1>
+<p>Katalog zawiera materiały pomocnicze do prowadzenia zajęć, podzielone na trzy rodzaje:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Katalog</th>
+<th>Dla kogo</th>
+<th>Zawartość</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>slajdy/</code></td>
+<td>prowadzący, uczestnicy</td>
+<td>prezentacje Marp do części wykładowej każdego modułu (źródła w <code>md/<wbr>slides/</code>)</td>
+</tr>
+<tr>
+<td><code>zadania/</code></td>
+<td>uczestnicy (do rozdania)</td>
+<td>krótkie aktywności, ćwiczenia i warsztaty: cel, czas, dane wejściowe, polecenia, kryteria akceptacji, pytania sprawdzające - bez odpowiedzi</td>
+</tr>
+<tr>
+<td><code>przyklady/</code></td>
+<td>prowadzący</td>
+<td>przewodnik po kodzie projektu: co ilustruje każdy przykład, pliki przed/po, testy chroniące zachowanie, jak uruchomić i jak przeprowadzić demonstrację na żywo</td>
+</tr>
+<tr>
+<td><code>rozwiazania/</code></td>
+<td>prowadzący</td>
+<td>rozwiązania wzorcowe i wskazówki do omówienia, odniesienia do kodu referencyjnego, typowe błędy, pytania do dyskusji, odpowiedzi do pytań sprawdzających</td>
+</tr>
+</tbody>
+</table></div>
+<p>Rozwiązania oznaczone notą „Rozwiązanie opracowane na podstawie kodu referencyjnego” nie pochodzą wprost z materiału teoretycznego (dotyczy głównie modułów 07 i 08).</p>
+<p>Powiązane materiały: teoria w <code>src/<wbr>main/<wbr>resources/<wbr>0N-*.md</code>, slajdy w <code>html/<wbr>slajdy/</code> (źródła Marp w <code>md/<wbr>slides/</code>).</p>
+<h2 id="moduly" tabindex="-1"><a class="header-anchor" href="#moduly"><span>Moduły</span></a></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Moduł</th>
+<th>Slajdy</th>
+<th>Zadania</th>
+<th>Przykłady</th>
+<th>Rozwiązania</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. Wprowadzenie do pracy z kodem legacy</td>
+<td><a href="slajdy/01-wprowadzenie-do-pracy-z-kodem-legacy-slajdy.html">slajdy</a></td>
+<td><a href="zadania/01-wprowadzenie-do-pracy-z-kodem-legacy.html">zadania</a></td>
+<td><a href="przyklady/01-wprowadzenie-do-pracy-z-kodem-legacy.html">przykłady</a></td>
+<td><a href="rozwiazania/01-wprowadzenie-do-pracy-z-kodem-legacy.html">rozwiązania</a></td>
+</tr>
+<tr>
+<td>2. Fundamenty refaktoryzacji</td>
+<td><a href="slajdy/02-fundamenty-refaktoryzacji-slajdy.html">slajdy</a></td>
+<td><a href="zadania/02-fundamenty-refaktoryzacji.html">zadania</a></td>
+<td><a href="przyklady/02-fundamenty-refaktoryzacji.html">przykłady</a></td>
+<td><a href="rozwiazania/02-fundamenty-refaktoryzacji.html">rozwiązania</a></td>
+</tr>
+<tr>
+<td>3. Zasady dobrego projektowania</td>
+<td><a href="slajdy/03-zasady-dobrego-projektowania-slajdy.html">slajdy</a></td>
+<td><a href="zadania/03-zasady-dobrego-projektowania.html">zadania</a></td>
+<td><a href="przyklady/03-zasady-dobrego-projektowania.html">przykłady</a></td>
+<td><a href="rozwiazania/03-zasady-dobrego-projektowania.html">rozwiązania</a></td>
+</tr>
+<tr>
+<td>4. Podstawowe refaktoryzacje</td>
+<td><a href="slajdy/04-podstawowe-refaktoryzacje-warsztat-praktyczny-slajdy.html">slajdy</a></td>
+<td><a href="zadania/04-podstawowe-refaktoryzacje-warsztat-praktyczny.html">zadania</a></td>
+<td><a href="przyklady/04-podstawowe-refaktoryzacje-warsztat-praktyczny.html">przykłady</a></td>
+<td><a href="rozwiazania/04-podstawowe-refaktoryzacje-warsztat-praktyczny.html">rozwiązania</a></td>
+</tr>
+<tr>
+<td>5. Refaktoryzacje hierarchii klas</td>
+<td><a href="slajdy/05-refaktoryzacje-hierarchii-klas-warsztat-praktyczny-slajdy.html">slajdy</a></td>
+<td><a href="zadania/05-refaktoryzacje-hierarchii-klas-warsztat-praktyczny.html">zadania</a></td>
+<td><a href="przyklady/05-refaktoryzacje-hierarchii-klas-warsztat-praktyczny.html">przykłady</a></td>
+<td><a href="rozwiazania/05-refaktoryzacje-hierarchii-klas-warsztat-praktyczny.html">rozwiązania</a></td>
+</tr>
+<tr>
+<td>6. Refaktoryzacje do wzorców projektowych</td>
+<td><a href="slajdy/06-refaktoryzacje-do-wzorcow-projektowych-warsztat-praktyczny-slajdy.html">slajdy</a></td>
+<td><a href="zadania/06-refaktoryzacje-do-wzorcow-projektowych-warsztat-praktyczny.html">zadania</a></td>
+<td><a href="przyklady/06-refaktoryzacje-do-wzorcow-projektowych-warsztat-praktyczny.html">przykłady</a></td>
+<td><a href="rozwiazania/06-refaktoryzacje-do-wzorcow-projektowych-warsztat-praktyczny.html">rozwiązania</a></td>
+</tr>
+<tr>
+<td>7. Zaawansowane refaktoryzacje</td>
+<td><a href="slajdy/07-zaawansowane-refaktoryzacje-warsztat-praktyczny-slajdy.html">slajdy</a></td>
+<td><a href="zadania/07-zaawansowane-refaktoryzacje-warsztat-praktyczny.html">zadania</a></td>
+<td><a href="przyklady/07-zaawansowane-refaktoryzacje-warsztat-praktyczny.html">przykłady</a></td>
+<td><a href="rozwiazania/07-zaawansowane-refaktoryzacje-warsztat-praktyczny.html">rozwiązania</a></td>
+</tr>
+<tr>
+<td>8. Strategie i dobre praktyki</td>
+<td><a href="slajdy/08-strategie-i-dobre-praktyki-slajdy.html">slajdy</a></td>
+<td><a href="zadania/08-strategie-i-dobre-praktyki.html">zadania</a></td>
+<td><a href="przyklady/08-strategie-i-dobre-praktyki.html">przykłady</a></td>
+<td><a href="rozwiazania/08-strategie-i-dobre-praktyki.html">rozwiązania</a></td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="warsztat-cinelegacy" tabindex="-1"><a class="header-anchor" href="#warsztat-cinelegacy"><span>Warsztat CineLegacy (moduły 3-8)</span></a></h2>
+<p>Osobny pakiet praktyczny na nowym kodzie (system kina CineLegacy): kilkadziesiąt krótkich scen do pokazu na żywo, po jednej na temat ze slajdów. Każda scena ma kod wyjściowy (<code>start</code>), gotowe snapshoty kolejnych kroków (<code>stepN</code>) i testy równoważności. Pokaz prowadzi się narzędziem <code>scripts/<wbr>warsztat.sh</code> (<code>list</code>, <code>test</code>, <code>diff</code>, <code>jump</code>, <code>reset</code>).</p>
+<p>Start: <a href="warsztat/00-cinelegacy.html">Warsztat CineLegacy - wprowadzenie, reguły domeny, macierz pokrycia tematów</a>.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Moduł</th>
+<th>Przewodnik prowadzącego</th>
+<th>Zadania dla uczestników</th>
+<th>Pakiet</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3. Zasady dobrego projektowania</td>
+<td><a href="warsztat/przewodnik/03-zasady-dobrego-projektowania.html">przewodnik</a></td>
+<td><a href="warsztat/zadania/03-zasady-dobrego-projektowania.html">zadania</a></td>
+<td><code>pl.training.workshop.m3</code></td>
+</tr>
+<tr>
+<td>4. Podstawowe refaktoryzacje</td>
+<td><a href="warsztat/przewodnik/04-podstawowe-refaktoryzacje.html">przewodnik</a></td>
+<td><a href="warsztat/zadania/04-podstawowe-refaktoryzacje.html">zadania</a></td>
+<td><code>pl.training.workshop.m4</code></td>
+</tr>
+<tr>
+<td>5. Refaktoryzacje hierarchii klas</td>
+<td><a href="warsztat/przewodnik/05-refaktoryzacje-hierarchii-klas.html">przewodnik</a></td>
+<td><a href="warsztat/zadania/05-refaktoryzacje-hierarchii-klas.html">zadania</a></td>
+<td><code>pl.training.workshop.m5</code></td>
+</tr>
+<tr>
+<td>6. Refaktoryzacje do wzorców projektowych</td>
+<td><a href="warsztat/przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html">przewodnik</a></td>
+<td><a href="warsztat/zadania/06-refaktoryzacje-do-wzorcow-projektowych.html">zadania</a></td>
+<td><code>pl.training.workshop.m6</code></td>
+</tr>
+<tr>
+<td>7. Zaawansowane refaktoryzacje</td>
+<td><a href="warsztat/przewodnik/07-zaawansowane-refaktoryzacje.html">przewodnik</a></td>
+<td><a href="warsztat/zadania/07-zaawansowane-refaktoryzacje.html">zadania</a></td>
+<td><code>pl.training.workshop.m7</code></td>
+</tr>
+<tr>
+<td>8. Strategie i dobre praktyki</td>
+<td><a href="warsztat/przewodnik/08-strategie-i-dobre-praktyki.html">przewodnik</a></td>
+<td><a href="warsztat/zadania/08-strategie-i-dobre-praktyki.html">zadania</a></td>
+<td><code>pl.training.workshop.m8</code></td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="uruchamianie-przykladow" tabindex="-1"><a class="header-anchor" href="#uruchamianie-przykladow"><span>Uruchamianie przykładów</span></a></h2>
+<p>Kod przykładów jest dostępny w trzech językach o tej samej strukturze modułów.</p>
+<h3 id="java-glowny-projekt-java-25-maven" tabindex="-1"><a class="header-anchor" href="#java-glowny-projekt-java-25-maven"><span>Java (główny projekt, Java 25, Maven)</span></a></h3>
+<pre class="code" data-lang="bash"><code class="hljs">mvn -q compile
+java -<span class="hljs-built_in">cp</span> target/classes pl.training.module1.Module1Examples   <span class="hljs-comment"># dowolny moduł: moduleN.ModuleNExamples</span>
+mvn <span class="hljs-built_in">test</span>                                                      <span class="hljs-comment"># wszystkie testy</span>
+mvn <span class="hljs-built_in">test</span> -Dtest=<span class="hljs-string">&#x27;pl.training.module4.**&#x27;</span>                      <span class="hljs-comment"># testy jednego modułu</span>
+</code></pre>
+<p>Kod: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>moduleN</code>, testy: <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>moduleN</code>.</p>
+<h3 id="c-net-10" tabindex="-1"><a class="header-anchor" href="#c-net-10"><span>C# (.NET 10)</span></a></h3>
+<pre class="code" data-lang="bash"><code class="hljs"><span class="hljs-built_in">cd</span> csharp
+dotnet build
+dotnet <span class="hljs-built_in">test</span>
+dotnet run --project src/Training.Module1
+</code></pre>
+<h3 id="typescript-nodejs-22" tabindex="-1"><a class="header-anchor" href="#typescript-nodejs-22"><span>TypeScript (Node.js 22+)</span></a></h3>
+<pre class="code" data-lang="bash"><code class="hljs"><span class="hljs-built_in">cd</span> typescript
+npm ci
+npm run build
+npm <span class="hljs-built_in">test</span>
+npm run module1
+</code></pre>
+<h2 id="sugerowany-przebieg-modulu" tabindex="-1"><a class="header-anchor" href="#sugerowany-przebieg-modulu"><span>Sugerowany przebieg modułu</span></a></h2>
+<ol>
+<li>Teoria na podstawie slajdów (<code>slides/</code>).</li>
+<li>Demonstracja przykładów z kodu według <code>przyklady/</code> (najpierw wersja wyjściowa i test charakterystyki, potem kolejne kroki).</li>
+<li>Rozdanie <code>zadania/</code> i praca w parach lub małych grupach.</li>
+<li>Omówienie według <code>rozwiazania/</code>, z porównaniem prac uczestników z kodem referencyjnym.</li>
+<li>Pytania sprawdzające i lista kontrolna na zakończenie.</li>
+</ol>
+
+</main>
+</div>
+<script>if(matchMedia('(max-width:900px)').matches){var d=document.querySelector('.toc details');if(d)d.open=false}</script>
+</body>
+</html>

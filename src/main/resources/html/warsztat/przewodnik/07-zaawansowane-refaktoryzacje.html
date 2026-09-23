@@ -1,0 +1,1113 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Przewodnik: Moduł 7. Zaawansowane refaktoryzacje - warsztat CineLegacy: przewodnik prowadzącego</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1d1f23;--muted:#5f6670;--line:#e3e5e8;--card:#ffffff;--accent:#2457c5;--accent-bg:#eef3fd;
+--code-bg:#f4f5f7;--note-bg:#fff7e6;--note-line:#e6a700;--th:#f1f3f6;
+--k:#b3246b;--s:#1a7f37;--c:#6e7781;--n:#0550ae;--t:#8250df;--f:#6639ba;--a:#953800;
+--kind:#2457c5}
+@media (prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3036;--card:#1c1f23;--accent:#7aa7ff;--accent-bg:#1e2a40;
+--code-bg:#1f2328;--note-bg:#2b2412;--note-line:#c99400;--th:#23272d;
+--k:#ff7b9c;--s:#7ee2a0;--c:#8b949e;--n:#79c0ff;--t:#d2a8ff;--f:#d2a8ff;--a:#ffa657}}
+body.zadania{--kind:#1a7f37} body.warsztat{--kind:#c2570c} body.warsztat-zadania{--kind:#0f7b7b} body.rozwiazania{--kind:#b3246b} body.przyklady{--kind:#2457c5}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.topbar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 24px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);border-top:3px solid var(--kind)}
+.topbar a{color:var(--fg);text-decoration:none}
+.home{font-weight:600}
+.tabs{display:flex;gap:4px}
+.tab{padding:4px 12px;border-radius:999px;font-size:15px;color:var(--muted)!important}
+.tab:hover{background:var(--code-bg)}
+.tab.active{background:var(--accent-bg);color:var(--accent)!important;font-weight:600}
+.pager{margin-left:auto;display:flex;gap:14px;font-size:15px}
+.pager a{color:var(--muted)}.pager a:hover{color:var(--accent)}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:48px;max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+.layout.no-toc{grid-template-columns:minmax(0,1fr);max-width:1000px}
+aside{position:sticky;top:72px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px}
+.toc-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;font-weight:600}
+.toc ul{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.toc li a{display:block;padding:3px 12px;color:var(--muted);text-decoration:none;line-height:1.35}
+.toc li.h3 a{padding-left:24px;font-size:13px}
+.toc li a:hover{color:var(--accent)}
+main{min-width:0;max-width:860px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 1.2rem;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:2.6rem 0 .8rem;padding-top:.6rem;border-top:1px solid var(--line)}
+h3{font-size:1.18rem;margin:2rem 0 .6rem}
+h4{font-size:1rem;margin:1.5rem 0 .5rem}
+h1 a,h2 a,h3 a,h4 a{color:inherit;text-decoration:none}
+h2 a:hover::after,h3 a:hover::after{content:" #";color:var(--muted)}
+p,ul,ol{margin:.6rem 0 1rem}
+li{margin:.25rem 0}
+li>ul,li>ol{margin:.2rem 0}
+a{color:var(--accent)}
+strong{font-weight:650}
+code{font:0.88em/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre.code{position:relative;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:1rem 0 1.4rem}
+pre.code code{background:none;padding:0;font-size:14px;line-height:1.55}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:6px;right:10px;font:11px ui-monospace,Menlo,monospace;color:var(--muted);text-transform:uppercase}
+.table-wrap{overflow-x:auto;margin:1rem 0 1.4rem;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--th);font-weight:600}
+tr:last-child td{border-bottom:none}
+blockquote{margin:1rem 0 1.4rem;padding:10px 16px;background:var(--note-bg);border-left:4px solid var(--note-line);border-radius:0 8px 8px 0}
+blockquote p{margin:.3rem 0}
+hr{border:none;border-top:1px solid var(--line);margin:2rem 0}
+hr+h2{border-top:none;margin-top:1.4rem}
+main p code,main li code,main td code{overflow-wrap:break-word}
+.toc summary{cursor:pointer;list-style:none}.toc summary::-webkit-details-marker{display:none}
+.hljs-keyword,.hljs-selector-tag,.hljs-built_in,.hljs-literal{color:var(--k)}
+.hljs-string,.hljs-regexp,.hljs-addition{color:var(--s)}
+.hljs-comment,.hljs-quote,.hljs-meta{color:var(--c);font-style:italic}
+.hljs-number,.hljs-symbol{color:var(--n)}
+.hljs-type,.hljs-class .hljs-title,.hljs-title.class_{color:var(--t)}
+.hljs-title,.hljs-title.function_,.hljs-section{color:var(--f)}
+.hljs-attr,.hljs-attribute,.hljs-variable,.hljs-params,.hljs-tag{color:var(--a)}
+.hljs-deletion{color:var(--k)}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:16px;padding:20px 16px 60px}
+aside{position:static;max-height:none;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--card)}
+.toc-title{margin:0}.toc details[open] .toc-title{margin-bottom:8px}.toc summary::after{content:" ▾"}
+body{font-size:16px}.topbar{padding:8px 16px}.pager{margin-left:0}h1{font-size:1.6rem}}
+@media print{.topbar,aside{display:none}.layout{display:block;padding:0}main{max-width:none}
+pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#000;font-size:12pt}}
+</style>
+</head>
+<body class="warsztat">
+<header class="topbar"><a class="home" href="../../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../00-cinelegacy.html">Warsztat CineLegacy</a><a class="tab" href="../zadania/07-zaawansowane-refaktoryzacje.html">Zadania</a><a class="tab active" href="07-zaawansowane-refaktoryzacje.html">Przewodnik</a></div><div class="pager"><a href="06-refaktoryzacje-do-wzorcow-projektowych.html" title="Poprzedni moduł">&larr; 06</a><a href="08-strategie-i-dobre-praktyki.html" title="Następny moduł">08 &rarr;</a></div></header>
+<div class="layout">
+<aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#jak-prowadzic-pokaz">Jak prowadzić pokaz</a></li><li class="h2"><a href="#mapa-scen">Mapa scen</a></li><li class="h2"><a href="#scena-s01-break-dependencies-seam-dla-zadania-przypomnien">Scena s01. Break Dependencies - seam dla zadania przypomnień</a></li><li class="h3"><a href="#co-widzimy">Co widzimy</a></li><li class="h3"><a href="#krok-1-extract-interface-parameterize-constructor">Krok 1: Extract Interface + Parameterize Constructor</a></li><li class="h3"><a href="#krok-2-clock-jako-zaleznosc">Krok 2: Clock jako zależność</a></li><li class="h3"><a href="#krok-3-subclass-and-override-method-i-pierwszy-test">Krok 3: Subclass and Override Method i pierwszy test</a></li><li class="h3"><a href="#krok-4-seam-z-dziedziczenia-na-interfejs-funkcyjny">Krok 4: seam z dziedziczenia na interfejs funkcyjny</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali">Pytanie do sali</a></li><li class="h2"><a href="#scena-s02-extract-method-object-wycena-zamowienia-grupowego">Scena s02. Extract Method Object - wycena zamówienia grupowego</a></li><li class="h3"><a href="#co-widzimy-1">Co widzimy</a></li><li class="h3"><a href="#krok-1-extract-method-object-kopia-bez-upraszczania">Krok 1: Extract Method Object - kopia bez upraszczania</a></li><li class="h3"><a href="#krok-2-zmienne-lokalne-jako-pola">Krok 2: zmienne lokalne jako pola</a></li><li class="h3"><a href="#krok-3-extract-method-wewnatrz-obiektu">Krok 3: Extract Method wewnątrz obiektu</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-1">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-1">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-1">Pytanie do sali</a></li><li class="h2"><a href="#scena-s03-break-responsibilities-walidacja-wycena-powiadomienie">Scena s03. Break Responsibilities - walidacja, wycena, powiadomienie</a></li><li class="h3"><a href="#co-widzimy-2">Co widzimy</a></li><li class="h3"><a href="#krok-1-extract-class-walidacja">Krok 1: Extract Class - walidacja</a></li><li class="h3"><a href="#krok-2-extract-class-wycena-z-wynikiem-jako-rekord">Krok 2: Extract Class - wycena z wynikiem jako rekord</a></li><li class="h3"><a href="#krok-3-extract-class-powiadomienie-bookingdesk-jako-orkiestrator">Krok 3: Extract Class - powiadomienie, BookingDesk jako orkiestrator</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-2">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-2">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-2">Pytanie do sali</a></li><li class="h2"><a href="#scena-s04-remove-duplication-rabat-grupowy-w-kasie-i-w-sklepie">Scena s04. Remove Duplication - rabat grupowy w kasie i w sklepie</a></li><li class="h3"><a href="#co-widzimy-3">Co widzimy</a></li><li class="h3"><a href="#krok-1-ujednolicenie-zapisu-bez-zmiany-zachowania">Krok 1: ujednolicenie zapisu (bez zmiany zachowania)</a></li><li class="h3"><a href="#krok-2-decyzja-half_up-takze-w-sklepie-zmiana-kontraktu">Krok 2: decyzja - HALF_UP także w sklepie (zmiana kontraktu)</a></li><li class="h3"><a href="#krok-3-wydzielenie-reguly">Krok 3: wydzielenie reguły</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-3">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-3">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-3">Pytanie do sali</a></li><li class="h2"><a href="#scena-s05-break-method-repertuar-dnia">Scena s05. Break Method - repertuar dnia</a></li><li class="h3"><a href="#co-widzimy-4">Co widzimy</a></li><li class="h3"><a href="#krok-1-extract-method-fragment-z-jednym-wejsciem-i-jednym-wynikiem">Krok 1: Extract Method - fragment z jednym wejściem i jednym wynikiem</a></li><li class="h3"><a href="#krok-2-extract-method-porzadkowanie">Krok 2: Extract Method - porządkowanie</a></li><li class="h3"><a href="#krok-3-extract-method-renderowanie-i-inline-variable">Krok 3: Extract Method - renderowanie i Inline Variable</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-4">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-4">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-4">Pytanie do sali</a></li><li class="h2"><a href="#scena-s06-introduce-parameter-object-termin-seansu">Scena s06. Introduce Parameter Object - termin seansu</a></li><li class="h3"><a href="#co-widzimy-5">Co widzimy</a></li><li class="h3"><a href="#krok-1-introduce-parameter-object-stan-przejsciowy-bez-walidacji">Krok 1: Introduce Parameter Object (stan przejściowy, bez walidacji)</a></li><li class="h3"><a href="#krok-2-move-method-typ-przyciaga-zachowanie">Krok 2: Move Method - typ przyciąga zachowanie</a></li><li class="h3"><a href="#krok-3-walidacja-w-konstruktorze-rekordu-zmiana-kontraktu">Krok 3: walidacja w konstruktorze rekordu (zmiana kontraktu)</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-5">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-5">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-5">Pytanie do sali</a></li><li class="h2"><a href="#scena-s07-remove-arrowhead-antipattern-bramka-rezerwacji">Scena s07. Remove Arrowhead Antipattern - bramka rezerwacji</a></li><li class="h3"><a href="#co-widzimy-6">Co widzimy</a></li><li class="h3"><a href="#krok-1-extract-method-oddziel-decyzje-od-efektu">Krok 1: Extract Method - oddziel decyzję od efektu</a></li><li class="h3"><a href="#krok-2-odwroc-najbardziej-zewnetrzny-warunek">Krok 2: odwróć najbardziej zewnętrzny warunek</a></li><li class="h3"><a href="#krok-3-splaszcz-pozostale-poziomy">Krok 3: spłaszcz pozostałe poziomy</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-6">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-6">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-6">Pytanie do sali</a></li><li class="h2"><a href="#scena-s08-introduce-design-by-contract-checks-pula-miejsc">Scena s08. Introduce Design by Contract Checks - pula miejsc</a></li><li class="h3"><a href="#co-widzimy-7">Co widzimy</a></li><li class="h3"><a href="#krok-1-warunki-wstepne-to-nie-jest-refaktoryzacja">Krok 1: warunki wstępne (to nie jest refaktoryzacja)</a></li><li class="h3"><a href="#krok-2-warunki-koncowe-i-niezmiennik">Krok 2: warunki końcowe i niezmiennik</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-7">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-7">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-7">Pytanie do sali</a></li><li class="h2"><a href="#scena-s09-remove-double-negative-wstep-do-strefy-vip">Scena s09. Remove Double Negative - wstęp do strefy VIP</a></li><li class="h3"><a href="#co-widzimy-8">Co widzimy</a></li><li class="h3"><a href="#krok-1-pozytywne-predykaty-delegujace">Krok 1: pozytywne predykaty delegujące</a></li><li class="h3"><a href="#krok-2-migracja-uzyc-po-jednym">Krok 2: migracja użyć po jednym</a></li><li class="h3"><a href="#krok-3-odwrocenie-delegacji">Krok 3: odwrócenie delegacji</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-8">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-8">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-8">Pytanie do sali</a></li><li class="h2"><a href="#scena-s10-remove-boolean-method-parameters-migracja-api">Scena s10. Remove Boolean Method Parameters - migracja API</a></li><li class="h3"><a href="#co-widzimy-9">Co widzimy</a></li><li class="h3"><a href="#krok-1-jawne-metody-dla-kanalu-stara-metoda-deprecated">Krok 1: jawne metody dla kanału, stara metoda @Deprecated</a></li><li class="h3"><a href="#krok-2-druga-flaga-jako-typ">Krok 2: druga flaga jako typ</a></li><li class="h3"><a href="#krok-3-migracja-klientow">Krok 3: migracja klientów</a></li><li class="h3"><a href="#krok-4-safe-delete-starej-metody">Krok 4: Safe Delete starej metody</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-9">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-9">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-9">Pytanie do sali</a></li><li class="h2"><a href="#scena-s11-remove-middle-man-fasada-kina">Scena s11. Remove Middle Man - fasada kina</a></li><li class="h3"><a href="#co-widzimy-10">Co widzimy</a></li><li class="h3"><a href="#krok-1-posrednik-staje-sie-czystym-forwarderem">Krok 1: pośrednik staje się czystym forwarderem</a></li><li class="h3"><a href="#krok-2-pierwszy-klient-rozmawia-z-katalogiem">Krok 2: pierwszy klient rozmawia z katalogiem</a></li><li class="h3"><a href="#krok-3-ostatni-klient-i-safe-delete-fasady">Krok 3: ostatni klient i Safe Delete fasady</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-10">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-10">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-10">Pytanie do sali</a></li><li class="h2"><a href="#scena-s12-return-asap-wyszukiwanie-wolnego-miejsca">Scena s12. Return ASAP - wyszukiwanie wolnego miejsca</a></li><li class="h3"><a href="#co-widzimy-11">Co widzimy</a></li><li class="h3"><a href="#krok-1-guard-clauses">Krok 1: guard clauses</a></li><li class="h3"><a href="#krok-2-return-asap-w-petli">Krok 2: Return ASAP w pętli</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-11">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-11">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-11">Pytanie do sali</a></li><li class="h2"><a href="#scena-s13-remove-god-class-kampania-na-kopii-cinemamanager">Scena s13. Remove God Class - kampania na kopii CinemaManager</a></li><li class="h3"><a href="#co-widzimy-12">Co widzimy</a></li><li class="h3"><a href="#krok-1-wycinek-cennik-pricingservice">Krok 1: wycinek &quot;cennik&quot; - PricingService</a></li><li class="h3"><a href="#krok-2-wycinek-powiadomienia-notificationservice">Krok 2: wycinek &quot;powiadomienia&quot; - NotificationService</a></li><li class="h3"><a href="#krok-3-wycinek-rezerwacje-booking-i-bookingrepository-zamiast-object">Krok 3: wycinek &quot;rezerwacje&quot; - Booking i BookingRepository zamiast Object[]</a></li><li class="h3"><a href="#krok-4-wycinek-raporty-reportservice">Krok 4: wycinek &quot;raporty&quot; - ReportService</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-12">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-12">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-12">Pytanie do sali</a></li><li class="h2"><a href="#scena-s14-refaktoryzacja-a-zmiana-kontraktu-zwrot-na-bigdecimal">Scena s14. Refaktoryzacja a zmiana kontraktu - zwrot na BigDecimal</a></li><li class="h3"><a href="#co-widzimy-13">Co widzimy</a></li><li class="h3"><a href="#krok-1-czysta-refaktoryzacja">Krok 1: czysta refaktoryzacja</a></li><li class="h3"><a href="#krok-2-przy-okazji-double-na-bigdecimal">Krok 2: &quot;przy okazji&quot; double na BigDecimal</a></li><li class="h3"><a href="#krok-3-swiadoma-decyzja">Krok 3: świadoma decyzja</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-13">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-13">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-13">Pytanie do sali</a></li><li class="h2"><a href="#scena-s15-wektor-obserwowalnego-zachowania-platnosc-za-bilety">Scena s15. Wektor obserwowalnego zachowania - płatność za bilety</a></li><li class="h3"><a href="#co-widzimy-14">Co widzimy</a></li><li class="h3"><a href="#krok-1-seam-dla-maili-regresja-staje-sie-widoczna">Krok 1: seam dla maili - regresja staje się widoczna</a></li><li class="h3"><a href="#krok-2-naprawa-regresji-pod-ochrona-testu">Krok 2: naprawa regresji pod ochroną testu</a></li><li class="h3"><a href="#krok-3-seam-dla-platnosci-i-pelny-wektor">Krok 3: seam dla płatności i pełny wektor</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-14">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-14">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-14">Pytanie do sali</a></li><li class="h2"><a href="#proponowana-kolejnosc-pokazu">Proponowana kolejność pokazu</a></li></ul></details></nav></aside>
+<main>
+<h1>Moduł 7. Zaawansowane refaktoryzacje - warsztat CineLegacy: przewodnik prowadzącego</h1>
+<p>Piętnaście scen w domenie kina pokazuje na żywo wszystkie trzynaście refaktoryzacji z modułu 7 oraz dwa tematy przekrojowe: granicę między refaktoryzacją a zmianą kontraktu i wektor obserwowalnego zachowania. Każda scena ma kod wyjściowy (<code>start</code>), kompletne snapshoty po każdym kroku (<code>stepN</code>) i test, który po każdym ruchu w IDE ma być zielony. Tam, gdzie krok świadomie zmienia zachowanie (s04, s06, s08, s14, s15), test ma osobne oczekiwania dla wariantów i pokazuje różnicę wprost.</p>
+<p>Sceny nie powtarzają przykładów z domeny wdrożeń (<code>pl.training.module7</code>) ani Warsztatów 1-3 z zadań modułu 7. Tamte ćwiczenia uczestnicy robią sami, a sceny poniżej służą do pokazu. Scena s13 pracuje na <strong>kopii</strong> starego <code>CinemaManager</code>, więc oryginał w <code>pl.training.workshop.legacy</code> i jego golden master pozostają nietknięte.</p>
+<h2 id="jak-prowadzic-pokaz" tabindex="-1"><a class="header-anchor" href="#jak-prowadzic-pokaz"><span>Jak prowadzić pokaz</span></a></h2>
+<pre class="code" data-lang="bash"><code class="hljs">scripts/warsztat.sh list m7            <span class="hljs-comment"># sceny modułu i ich kroki</span>
+scripts/warsztat.sh <span class="hljs-built_in">test</span> m7/s02        <span class="hljs-comment"># testy jednej sceny</span>
+scripts/warsztat.sh <span class="hljs-built_in">test</span> m7            <span class="hljs-comment"># wszystkie sceny modułu (286 testów)</span>
+scripts/warsztat.sh diff m7/s13 2 3    <span class="hljs-comment"># co zmienia krok 3 względem kroku 2 (0 = start)</span>
+scripts/warsztat.sh jump m7/s13 2      <span class="hljs-comment"># skopiuj step2 do start, gdy brakuje czasu</span>
+scripts/warsztat.sh reset m7/s13       <span class="hljs-comment"># przywróć start po pokazie</span>
+</code></pre>
+<ul>
+<li>Zasada: <strong>jeden krok - jeden test - jedno zdanie komentarza.</strong> Ruch w IDE, ⌃R na teście sceny, zdanie z sekcji &quot;Co powiedzieć&quot;.</li>
+<li>Pracujesz zawsze w pakiecie <code>start</code>. Snapshoty <code>stepN</code> służą do <code>diff</code> albo do przeskoku (<code>jump</code>), gdy coś się rozjedzie.</li>
+<li>Zanim zaczniesz, pokaż slajd &quot;Wektor obserwowalnego zachowania&quot; i wracaj do niego przy każdej scenie: <em>co tu obserwujemy - wynik, wyjątek, stan, efekty, kolejność?</em> Testy scen celowo obserwują więcej niż sam wynik (audyt w s07, licznik w s12, lista wejściowa w s05, skrzynka nadawcza w s03).</li>
+<li>W s01 start <strong>nie ma testów</strong> i to jest puenta: testy pojawiają się dopiero wtedy, gdy kod ma seam.</li>
+<li>W s10 kompilator zgłasza 4 ostrzeżenia <code>[deprecation]</code> (kroki 1 i 2). To celowe: lista ostrzeżeń jest listą klientów do migracji. Zniknie w kroku 3.</li>
+<li>Kroki, które zmieniają kontrakt (s04 krok 2, s06 krok 3, s08 kroki 1-2, s14 kroki 2-3, s15 krok 2), zapowiadaj na głos: &quot;to jest osobny commit, nie refaktoryzacja&quot;.</li>
+</ul>
+<h2 id="mapa-scen" tabindex="-1"><a class="header-anchor" href="#mapa-scen"><span>Mapa scen</span></a></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Scena</th>
+<th>Temat ze slajdów</th>
+<th>Kroki</th>
+<th>Pakiet</th>
+<th>Czas</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>s01</td>
+<td>1. Break Dependencies - intencja, ryzyka, przed i po</td>
+<td>4</td>
+<td><code>m7.s01_breakdependencies</code></td>
+<td>~20 min</td>
+</tr>
+<tr>
+<td>s02</td>
+<td>2. Extract Method Object - przed, po, sekwencja i ryzyka</td>
+<td>3</td>
+<td><code>m7.s02_methodobject</code></td>
+<td>~15 min</td>
+</tr>
+<tr>
+<td>s03</td>
+<td>3. Break Responsibilities - intencja, ryzyka, po zmianie</td>
+<td>3</td>
+<td><code>m7.s03_breakresponsibilities</code></td>
+<td>~12 min</td>
+</tr>
+<tr>
+<td>s04</td>
+<td>4. Remove Duplication - duplikacja wiedzy, po zmianie</td>
+<td>3</td>
+<td><code>m7.s04_removeduplication</code></td>
+<td>~12 min</td>
+</tr>
+<tr>
+<td>s05</td>
+<td>5. Break Method - intencja i bezpieczna sekwencja</td>
+<td>3</td>
+<td><code>m7.s05_breakmethod</code></td>
+<td>~10 min</td>
+</tr>
+<tr>
+<td>s06</td>
+<td>6. Introduce Parameter Object - data clump, walidacja, migracja</td>
+<td>3</td>
+<td><code>m7.s06_parameterobject</code></td>
+<td>~12 min</td>
+</tr>
+<tr>
+<td>s07</td>
+<td>7. Remove Arrowhead Antipattern</td>
+<td>3</td>
+<td><code>m7.s07_arrowhead</code></td>
+<td>~10 min</td>
+</tr>
+<tr>
+<td>s08</td>
+<td>8. Introduce Design by Contract Checks</td>
+<td>2</td>
+<td><code>m7.s08_designbycontract</code></td>
+<td>~10 min</td>
+</tr>
+<tr>
+<td>s09</td>
+<td>9. Remove Double Negative</td>
+<td>3</td>
+<td><code>m7.s09_doublenegative</code></td>
+<td>~8 min</td>
+</tr>
+<tr>
+<td>s10</td>
+<td>11. Remove Boolean Method Parameters; Zgodność binarna</td>
+<td>4</td>
+<td><code>m7.s10_booleanparameter</code></td>
+<td>~12 min</td>
+</tr>
+<tr>
+<td>s11</td>
+<td>12. Remove Middle Man</td>
+<td>3</td>
+<td><code>m7.s11_middleman</code></td>
+<td>~8 min</td>
+</tr>
+<tr>
+<td>s12</td>
+<td>13. Return ASAP</td>
+<td>2</td>
+<td><code>m7.s12_returnasap</code></td>
+<td>~8 min</td>
+</tr>
+<tr>
+<td>s13</td>
+<td>10. Remove God Classes - kampania, wydzielony fragment i ryzyka</td>
+<td>4</td>
+<td><code>m7.s13_godclass</code></td>
+<td>~30 min</td>
+</tr>
+<tr>
+<td>s14</td>
+<td>Refaktoryzacja a zmiana kontraktu; Pętla pracy (pkt 5)</td>
+<td>3</td>
+<td><code>m7.s14_contractchange</code></td>
+<td>~10 min</td>
+</tr>
+<tr>
+<td>s15</td>
+<td>Wektor obserwowalnego zachowania</td>
+<td>3</td>
+<td><code>m7.s15_behaviourvector</code></td>
+<td>~12 min</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="scena-s01-break-dependencies-seam-dla-zadania-przypomnien" tabindex="-1"><a class="header-anchor" href="#scena-s01-break-dependencies-seam-dla-zadania-przypomnien"><span>Scena s01. Break Dependencies - seam dla zadania przypomnień</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 1. Break Dependencies - intencja i ryzyka; Break Dependencies - przed i po; Java 25 w tym module (interfejs funkcyjny jako seam)
+<strong>Pakiet:</strong> <code>pl.training.workshop.m7.s01_breakdependencies</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s01</code>
+<strong>Czas:</strong> ~20 min</p>
+<h3 id="co-widzimy" tabindex="-1"><a class="header-anchor" href="#co-widzimy"><span>Co widzimy</span></a></h3>
+<p><code>ShowtimeReminderJob.run</code> wysyła przypomnienia na 2 godziny przed seansem. Wszystkie zależności są zaszyte w środku: produkcyjna baza tworzona przez <code>new</code>, bieżący czas i statyczny mailer. Konstruktor <code>LegacyDatabase</code> rzuca wyjątek poza serwerownią, a <code>ReminderMailer.send</code> - poza produkcją. <strong>Tej klasy nie da się uruchomić w teście</strong> - test sceny dla <code>start</code> tylko to dokumentuje.</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">int</span> <span class="hljs-title function_">run</span><span class="hljs-params">()</span> {
+    <span class="hljs-type">LegacyDatabase</span> <span class="hljs-variable">database</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">LegacyDatabase</span>();
+    <span class="hljs-type">LocalDateTime</span> <span class="hljs-variable">now</span> <span class="hljs-operator">=</span> LocalDateTime.now();
+    ...
+            ReminderMailer.send(booking.email(), <span class="hljs-string">&quot;Przypomnienie: &quot;</span> + booking.title(), ...);
+            database.markReminded(booking.id());
+</code></pre>
+<p>Sekwencja ze slajdu: charakterystyka, najwęższy kontrakt, dotychczasowa implementacja przez kontrakt, test z fake/spy. Charakterystyki nie da się napisać przed pierwszym ruchem, więc pierwsze ruchy muszą być mechaniczne i wspierane przez IDE.</p>
+<h3 id="krok-1-extract-interface-parameterize-constructor" tabindex="-1"><a class="header-anchor" href="#krok-1-extract-interface-parameterize-constructor"><span>Krok 1: Extract Interface + Parameterize Constructor</span></a></h3>
+<p><strong>W IDE:</strong> na <code>LegacyDatabase</code> Refactor → Extract Interface, nazwa <code>BookingStore</code>, zaznacz <code>paidBookings</code> i <code>markReminded</code>. Potem w <code>ShowtimeReminderJob</code> ręcznie: pole <code>Supplier&lt;BookingStore&gt; stores</code>, konstruktor z parametrem i konstruktor bezargumentowy <code>this(LegacyDatabase::new)</code>. W <code>run()</code> zamień <code>new LegacyDatabase()</code> na <code>stores.get()</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">public</span> <span class="hljs-title function_">ShowtimeReminderJob</span><span class="hljs-params">()</span> {
+    <span class="hljs-built_in">this</span>(LegacyDatabase::<span class="hljs-keyword">new</span>);
+}
+
+<span class="hljs-keyword">public</span> <span class="hljs-type">int</span> <span class="hljs-title function_">run</span><span class="hljs-params">()</span> {
+    <span class="hljs-type">BookingStore</span> <span class="hljs-variable">database</span> <span class="hljs-operator">=</span> stores.get();
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s01</code> - testy <code>step1...</code> zielone: z fałszywą bazą zadanie działa, gdy nic nie jest do wysłania.
+<strong>Co powiedzieć:</strong> przekazujemy fabrykę, a nie gotową bazę, bo stary kod otwierał połączenie przy każdym <code>run()</code>. Gdybyśmy zrobili <code>this(new LegacyDatabase())</code>, wyjątek poleciałby już w konstruktorze - zmienilibyśmy czas życia zależności i moment błędu.
+<strong>Snapshot:</strong> <code>step1/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s01 0 1</code></p>
+<h3 id="krok-2-clock-jako-zaleznosc" tabindex="-1"><a class="header-anchor" href="#krok-2-clock-jako-zaleznosc"><span>Krok 2: Clock jako zależność</span></a></h3>
+<p><strong>W IDE:</strong> ręcznie (Extract Parameter ⌥⌘P dodałby parametr do <code>run()</code>, a potrzebujemy zależności konstruktora): pole <code>Clock clock</code>, drugi parametr konstruktora, w domyślnym konstruktorze <code>Clock.systemDefaultZone()</code>, w <code>run()</code> <code>LocalDateTime.now(clock)</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">LocalDateTime</span> <span class="hljs-variable">now</span> <span class="hljs-operator">=</span> LocalDateTime.now(clock);
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony. Test <code>step2...</code> pokazuje dwie rzeczy: przypadki bez wysyłki działają przy stałym zegarze, a przypadek &quot;do wysłania&quot; wciąż kończy się wyjątkiem SMTP.
+<strong>Co powiedzieć:</strong> czas był ukrytym wejściem. Zegar czytamy w tym samym miejscu co wcześniej (po utworzeniu bazy), więc kolejność się nie zmienia. Następna przeszkoda jest widoczna w teście - statyczny mailer.
+<strong>Snapshot:</strong> <code>step2/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s01 1 2</code></p>
+<h3 id="krok-3-subclass-and-override-method-i-pierwszy-test" tabindex="-1"><a class="header-anchor" href="#krok-3-subclass-and-override-method-i-pierwszy-test"><span>Krok 3: Subclass and Override Method i pierwszy test</span></a></h3>
+<p><strong>W IDE:</strong> zaznacz wywołanie <code>ReminderMailer.send(...)</code>, ⌥⌘M, nazwa <code>sendReminder</code>, widoczność <code>protected</code>. Usuń <code>final</code> z klasy. W teście podklasa anonimowa nadpisuje <code>sendReminder</code> i zapisuje wiadomości do listy - to jest <strong>pierwszy prawdziwy test</strong> tej klasy.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">protected</span> <span class="hljs-type">void</span> <span class="hljs-title function_">sendReminder</span><span class="hljs-params">(String to, String subject, String body)</span> {
+    ReminderMailer.send(to, subject, body);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony: 3 przypadki z granicą 120/121 minut, już przypomniane i już rozpoczęte.
+<strong>Co powiedzieć:</strong> to najtańszy seam, gdy nie możemy jeszcze zmienić konstruktora - ale ma cenę: klasa przestała być <code>final</code>, a test zależy od szczegółu implementacji (nazwy metody chronionej).
+<strong>Snapshot:</strong> <code>step3/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s01 2 3</code></p>
+<h3 id="krok-4-seam-z-dziedziczenia-na-interfejs-funkcyjny" tabindex="-1"><a class="header-anchor" href="#krok-4-seam-z-dziedziczenia-na-interfejs-funkcyjny"><span>Krok 4: seam z dziedziczenia na interfejs funkcyjny</span></a></h3>
+<p><strong>W IDE:</strong> utwórz <code>@FunctionalInterface ReminderSender</code>, dodaj trzeci parametr konstruktora, w domyślnym <code>ReminderMailer::send</code>. Inline Method (⌥⌘N) na <code>sendReminder</code>, przywróć <code>final</code>. W teście podklasę zastępuje lambda.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">public</span> <span class="hljs-title function_">ShowtimeReminderJob</span><span class="hljs-params">()</span> {
+    <span class="hljs-built_in">this</span>(LegacyDatabase::<span class="hljs-keyword">new</span>, Clock.systemDefaultZone(), ReminderMailer::send);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony - te same 3 przypadki dla <code>step3</code> (podklasa) i <code>step4</code> (lambda).
+<strong>Co powiedzieć:</strong> pod ochroną testu z kroku 3 wymieniliśmy seam na najwęższy możliwy. Produkcja w domyślnym konstruktorze składa dokładnie te same implementacje co wcześniej - zmieniło się <strong>miejsce tworzenia zależności</strong>, nie reguła.
+<strong>Snapshot:</strong> <code>step4/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s01 3 4</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>step4/<wbr>ShowtimeReminderJob</code>: trzy zależności w konstruktorze, każda o najwęższym kontrakcie potrzebnym klientowi (<code>BookingStore</code> z dwiema metodami, <code>Clock</code>, <code>ReminderSender</code> z jedną). Reguła przypomnień nie zmieniła się ani o znak. Dopiero teraz można bezpiecznie dodać nową regułę biznesową (np. przypomnienie SMS), bo test widzi i czas, i wysyłki.</p>
+<h3 id="pulapki" tabindex="-1"><a class="header-anchor" href="#pulapki"><span>Pułapki</span></a></h3>
+<ul>
+<li><code>this(new LegacyDatabase())</code> w domyślnym konstruktorze: zmiana czasu życia i momentu wyjątku (test <code>step1KeepsConnectionLifetimeOfProductionConstructor</code>).</li>
+<li>Interfejs &quot;na zapas&quot; z wszystkimi metodami <code>LegacyDatabase</code> zamiast dwóch potrzebnych.</li>
+<li><code>sealed</code> na interfejsie seamu - test nie podstawi wtedy własnej implementacji.</li>
+<li>Zostawienie Subclass and Override na stałe: klasa otwarta do dziedziczenia tylko dla testu.</li>
+</ul>
+<h3 id="pytanie-do-sali" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali"><span>Pytanie do sali</span></a></h3>
+<p>Kiedy Subclass and Override jest lepszym pierwszym ruchem niż Parameterize Constructor?</p>
+<h2 id="scena-s02-extract-method-object-wycena-zamowienia-grupowego" tabindex="-1"><a class="header-anchor" href="#scena-s02-extract-method-object-wycena-zamowienia-grupowego"><span>Scena s02. Extract Method Object - wycena zamówienia grupowego</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 2. Extract Method Object - przed; Extract Method Object - po, sekwencja i ryzyka
+<strong>Pakiet:</strong> <code>pl.training.workshop.m7.s02_methodobject</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s02</code>
+<strong>Czas:</strong> ~15 min</p>
+<h3 id="co-widzimy-1" tabindex="-1"><a class="header-anchor" href="#co-widzimy-1"><span>Co widzimy</span></a></h3>
+<p><code>GroupPricing.quote</code> liczy cenę zamówienia (także grupowego): cena formatu, zniżki, poranek, okulary 3D, VIP, rabat 10% od 10 biletów, opłaty online i punkty. Osiem zmiennych lokalnych karmi się nawzajem. Pętla ma dwa wyjścia (<code>tickets</code>, <code>count</code>) i trzy wejścia robocze.</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">Money</span> <span class="hljs-variable">tickets</span> <span class="hljs-operator">=</span> Money.ZERO;
+<span class="hljs-type">int</span> <span class="hljs-variable">count</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;
+<span class="hljs-keyword">for</span> (String type : order.ticketTypes()) {
+    ...
+    <span class="hljs-type">Money</span> <span class="hljs-variable">price</span> <span class="hljs-operator">=</span> base.minus(base.percent(discount));
+    <span class="hljs-keyword">if</span> (morning) { price = price.minus(Money.of(<span class="hljs-string">&quot;5.00&quot;</span>)); }
+    <span class="hljs-keyword">if</span> (glasses) { price = price.plus(Money.of(<span class="hljs-string">&quot;3.00&quot;</span>)); }
+    tickets = tickets.plus(price);
+    count++;
+}
+</code></pre>
+<p>Spróbuj ⌥⌘M na pętli: IntelliJ odmówi (wiele wartości wyjściowych). To jest moment na Method Object.</p>
+<h3 id="krok-1-extract-method-object-kopia-bez-upraszczania" tabindex="-1"><a class="header-anchor" href="#krok-1-extract-method-object-kopia-bez-upraszczania"><span>Krok 1: Extract Method Object - kopia bez upraszczania</span></a></h3>
+<p><strong>W IDE:</strong> utwórz klasę <code>GroupQuoteCalculation</code> z polem <code>order</code> i metodą <code>calculate()</code>. Skopiuj ciało <code>quote</code> <strong>dosłownie</strong>. W <code>GroupPricing.quote</code> zostaw jedną linię delegacji. (IntelliJ ma też Refactor → Replace Method with Method Object, ale tworzy klasę wewnętrzną - patrz Pułapki.)
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">Quote</span> <span class="hljs-title function_">quote</span><span class="hljs-params">(GroupOrder order)</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">GroupQuoteCalculation</span>(order).calculate();
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s02</code> - 24 testy zielone.
+<strong>Co powiedzieć:</strong> skopiuj, deleguj, porównaj - dopiero potem sprzątaj. Obiekt metody powstaje na każde wywołanie, więc nie ma współdzielonego stanu między wycenami.
+<strong>Snapshot:</strong> <code>step1/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s02 0 1</code></p>
+<h3 id="krok-2-zmienne-lokalne-jako-pola" tabindex="-1"><a class="header-anchor" href="#krok-2-zmienne-lokalne-jako-pola"><span>Krok 2: zmienne lokalne jako pola</span></a></h3>
+<p><strong>W IDE:</strong> na każdej zmiennej roboczej (<code>base</code>, <code>morning</code>, <code>glasses</code>, <code>tickets</code>, <code>count</code>) Refactor This (⌃T) → Convert Local to Field (albo ⌥⌘F), inicjalizacja w miejscu deklaracji w metodzie.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">private</span> Money base;
+<span class="hljs-keyword">private</span> <span class="hljs-type">boolean</span> morning;
+<span class="hljs-keyword">private</span> <span class="hljs-type">boolean</span> glasses;
+<span class="hljs-keyword">private</span> <span class="hljs-type">Money</span> <span class="hljs-variable">tickets</span> <span class="hljs-operator">=</span> Money.ZERO;
+<span class="hljs-keyword">private</span> <span class="hljs-type">int</span> count;
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> teraz każdy blok może zostać metodą bez parametrów i bez wielu wyjść - stan niosą pola. To działa tylko dlatego, że obiekt żyje jedno wywołanie.
+<strong>Snapshot:</strong> <code>step2/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s02 1 2</code></p>
+<h3 id="krok-3-extract-method-wewnatrz-obiektu" tabindex="-1"><a class="header-anchor" href="#krok-3-extract-method-wewnatrz-obiektu"><span>Krok 3: Extract Method wewnątrz obiektu</span></a></h3>
+<p><strong>W IDE:</strong> kolejno ⌥⌘M: <code>readConditions</code>, <code>addTickets</code> (a w niej <code>ticketPrice</code> i statyczne <code>discountPercent</code>), <code>addVipSeats</code>, <code>applyGroupDiscount</code>, <code>bookingFees</code>, <code>loyaltyPoints</code>. Inline Variable (⌥⌘N) dla <code>total</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">Quote</span> <span class="hljs-title function_">calculate</span><span class="hljs-params">()</span> {
+    readConditions();
+    addTickets();
+    addVipSeats();
+    applyGroupDiscount();
+    <span class="hljs-type">Money</span> <span class="hljs-variable">fees</span> <span class="hljs-operator">=</span> bookingFees();
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Quote</span>(tickets, fees, tickets.plus(fees), loyaltyPoints());
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony - w tym przypadek z rabatem 23.125 zaokrąglonym do 23.13.
+<strong>Co powiedzieć:</strong> kolejność wywołań jest kontraktem: rabat grupowy liczony po dodaniu VIP, punkty po rabacie. Metody z efektem na polach czytają się jak kroki algorytmu.
+<strong>Snapshot:</strong> <code>step3/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s02 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-1" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-1"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>step3/<wbr>GroupQuoteCalculation</code>: jedno wykonanie wyceny jako obiekt, sześć nazwanych kroków. Publiczne API <code>GroupPricing</code> i kontrakt <code>Quote</code> bez zmian. Porównaj ze sceną s05: tam dane łatwo przechodzą między etapami, więc Method Object byłby zbędny.</p>
+<h3 id="pulapki-1" tabindex="-1"><a class="header-anchor" href="#pulapki-1"><span>Pułapki</span></a></h3>
+<ul>
+<li>Obiekt metody jako pole usługi (<code>private final GroupQuoteCalculation calc</code>) - pola przeżyją wywołanie i wyceny zaczną się mieszać.</li>
+<li>Upraszczanie w trakcie kopiowania (np. <code>count</code> zastąpione <code>ticketTypes().size()</code> przed testem).</li>
+<li>Niestatyczna klasa wewnętrzna ukrywa referencję do obiektu zewnętrznego.</li>
+<li>Zmiana momentu odczytu danych (np. <code>order.start()</code> czytane w konstruktorze zamiast w <code>calculate()</code>).</li>
+</ul>
+<h3 id="pytanie-do-sali-1" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-1"><span>Pytanie do sali</span></a></h3>
+<p>Po co w ogóle Method Object, skoro można zwrócić record <code>(tickets, count)</code> z wydzielonej pętli?</p>
+<h2 id="scena-s03-break-responsibilities-walidacja-wycena-powiadomienie" tabindex="-1"><a class="header-anchor" href="#scena-s03-break-responsibilities-walidacja-wycena-powiadomienie"><span>Scena s03. Break Responsibilities - walidacja, wycena, powiadomienie</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 3. Break Responsibilities - intencja i ryzyka; Break Responsibilities - po zmianie
+<strong>Pakiet:</strong> <code>pl.training.workshop.m7.s03_breakresponsibilities</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s03</code>
+<strong>Czas:</strong> ~12 min</p>
+<h3 id="co-widzimy-2" tabindex="-1"><a class="header-anchor" href="#co-widzimy-2"><span>Co widzimy</span></a></h3>
+<p><code>BookingDesk.book</code> waliduje prośbę, wycenia miejsca i wysyła powiadomienie do <code>Outbox</code>. Trzy powody zmiany: reguły walidacji (obsługa klienta), cennik (finanse), treść wiadomości (marketing). Komentarze <code>/<wbr>/<wbr> walidacja</code>, <code>/<wbr>/<wbr> wycena</code>, <code>/<wbr>/<wbr> powiadomienie</code> wyznaczają klastry. Test obserwuje wynik i zawartość skrzynki nadawczej.</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">BigDecimal</span> <span class="hljs-variable">total</span> <span class="hljs-operator">=</span> BigDecimal.ZERO;
+<span class="hljs-type">int</span> <span class="hljs-variable">vipSeats</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;
+<span class="hljs-keyword">for</span> (String seat : request.seats()) { ... }
+<span class="hljs-comment">// powiadomienie</span>
+<span class="hljs-type">String</span> <span class="hljs-variable">text</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;Rezerwacja &quot;</span> + request.seats().size() + <span class="hljs-string">&quot; miejsc&quot;</span>;
+<span class="hljs-keyword">if</span> (vipSeats &gt; <span class="hljs-number">0</span>) { ... }
+</code></pre>
+<h3 id="krok-1-extract-class-walidacja" tabindex="-1"><a class="header-anchor" href="#krok-1-extract-class-walidacja"><span>Krok 1: Extract Class - walidacja</span></a></h3>
+<p><strong>W IDE:</strong> zaznacz blok walidacji, ⌥⌘M <code>firstError</code> zwracająca <code>Optional&lt;String&gt;</code> (ręcznie zamień <code>return &quot;...&quot;</code> na <code>return Optional.of(&quot;...&quot;)</code>), potem F6 (Move) do nowej klasy <code>BookingValidator</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">Optional</span>&lt;String&gt; <span class="hljs-variable">error</span> <span class="hljs-operator">=</span> validator.firstError(request);
+<span class="hljs-keyword">if</span> (error.isPresent()) {
+    <span class="hljs-keyword">return</span> error.get();
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s03</code> - 20 testów zielonych (w tym priorytet: zły e-mail przed brakiem miejsc).
+<strong>Co powiedzieć:</strong> kolejność kontroli jest częścią kontraktu - pierwszy błąd wygrywa.
+<strong>Snapshot:</strong> <code>step1/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s03 0 1</code></p>
+<h3 id="krok-2-extract-class-wycena-z-wynikiem-jako-rekord" tabindex="-1"><a class="header-anchor" href="#krok-2-extract-class-wycena-z-wynikiem-jako-rekord"><span>Krok 2: Extract Class - wycena z wynikiem jako rekord</span></a></h3>
+<p><strong>W IDE:</strong> utwórz rekord <code>Pricing(total, vipSeats)</code>, wydziel blok wyceny do <code>TicketPricer.price</code>. Dwa wyjścia pętli wracają jako jeden obiekt z nazwą z domeny.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">Pricing</span> <span class="hljs-variable">pricing</span> <span class="hljs-operator">=</span> pricer.price(request);
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> <code>vipSeats</code> potrzebuje powiadomienie, a liczy cennik - rekord jawnie opisuje ten przepływ zamiast ukrytej zmiennej lokalnej.
+<strong>Snapshot:</strong> <code>step2/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s03 1 2</code></p>
+<h3 id="krok-3-extract-class-powiadomienie-bookingdesk-jako-orkiestrator" tabindex="-1"><a class="header-anchor" href="#krok-3-extract-class-powiadomienie-bookingdesk-jako-orkiestrator"><span>Krok 3: Extract Class - powiadomienie, BookingDesk jako orkiestrator</span></a></h3>
+<p><strong>W IDE:</strong> wydziel blok powiadomienia do <code>BookingNotifier.bookingConfirmed(request, pricing)</code>. <code>Outbox</code> przechodzi do notifiera. Dodaj konstruktor pakietowy przyjmujący trzech współpracowników, publiczny zostaje <code>BookingDesk(Outbox)</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">book</span><span class="hljs-params">(BookingRequest request)</span> {
+    <span class="hljs-type">Optional</span>&lt;String&gt; <span class="hljs-variable">error</span> <span class="hljs-operator">=</span> validator.firstError(request);
+    <span class="hljs-keyword">if</span> (error.isPresent()) {
+        <span class="hljs-keyword">return</span> error.get();
+    }
+    <span class="hljs-type">Pricing</span> <span class="hljs-variable">pricing</span> <span class="hljs-operator">=</span> pricer.price(request);
+    notifier.bookingConfirmed(request, pricing);
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;OK &quot;</span> + pricing.total();
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> klasa składa kroki, ale nie zna ich szczegółów. Stan (<code>Outbox</code>) ma jednego właściciela.
+<strong>Snapshot:</strong> <code>step3/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s03 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-2" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-2"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>step3/<wbr>BookingDesk</code> z trzema współpracownikami. Publiczne API bez zmian, więc klienci niczego nie zauważają. Kierunek zależności jest czytelny: orkiestrator zna usługi, usługi nie znają orkiestratora.</p>
+<h3 id="pulapki-2" tabindex="-1"><a class="header-anchor" href="#pulapki-2"><span>Pułapki</span></a></h3>
+<ul>
+<li>Podział według liczby linii, a nie powodu zmiany.</li>
+<li>Dwie kopie stanu (np. <code>Outbox</code> w <code>BookingDesk</code> i w <code>BookingNotifier</code>).</li>
+<li>Przeniesienie powiadomienia przed wycenę &quot;bo tak ładniej&quot; - zmiana kolejności efektów.</li>
+<li>W prawdziwym systemie: rozdzielenie transakcji (zapis i wysyłka w innych granicach).</li>
+</ul>
+<h3 id="pytanie-do-sali-2" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-2"><span>Pytanie do sali</span></a></h3>
+<p>Czy <code>TicketPricer</code> powinien dostać <code>BookingRequest</code>, czy tylko format i listę miejsc?</p>
+<h2 id="scena-s04-remove-duplication-rabat-grupowy-w-kasie-i-w-sklepie" tabindex="-1"><a class="header-anchor" href="#scena-s04-remove-duplication-rabat-grupowy-w-kasie-i-w-sklepie"><span>Scena s04. Remove Duplication - rabat grupowy w kasie i w sklepie</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 4. Remove Duplication - duplikacja wiedzy; Remove Duplication - po zmianie
+<strong>Pakiet:</strong> <code>pl.training.workshop.m7.s04_removeduplication</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s04</code>
+<strong>Czas:</strong> ~12 min</p>
+<h3 id="co-widzimy-3" tabindex="-1"><a class="header-anchor" href="#co-widzimy-3"><span>Co widzimy</span></a></h3>
+<p>Reguła &quot;10+ biletów = -10%&quot; żyje w dwóch miejscach, zapisana inaczej: <code>BoxOffice</code> (pętla, <code>&gt; 9</code>, <code>multiply(0.10)</code>, HALF_UP) i <code>WebShop</code> (stream, <code>&gt;= 10</code>, <code>x * 10 /<wbr> 100</code>, <strong>HALF_EVEN</strong>). Tekstowo niepodobne, ale to ta sama wiedza. Czy różnica w zaokrągleniu to decyzja, czy przypadek?</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-comment">// BoxOffice</span>
+<span class="hljs-type">BigDecimal</span> <span class="hljs-variable">discount</span> <span class="hljs-operator">=</span> sum.multiply(<span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;0.10&quot;</span>)).setScale(<span class="hljs-number">2</span>, RoundingMode.HALF_UP);
+<span class="hljs-comment">// WebShop</span>
+tickets = tickets.subtract(tickets.multiply(BigDecimal.TEN)
+        .divide(<span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;100&quot;</span>), <span class="hljs-number">2</span>, RoundingMode.HALF_EVEN));
+</code></pre>
+<p>Test <code>S04RoundingDecisionTest</code> pokazuje przypadek brzegowy: 3 x student 2D (18.75) + 7 x normalny = 231.25, rabat 23.125. Kasa odejmuje 23.13, sklep 23.12.</p>
+<h3 id="krok-1-ujednolicenie-zapisu-bez-zmiany-zachowania" tabindex="-1"><a class="header-anchor" href="#krok-1-ujednolicenie-zapisu-bez-zmiany-zachowania"><span>Krok 1: ujednolicenie zapisu (bez zmiany zachowania)</span></a></h3>
+<p><strong>W IDE:</strong> w obu klasach Extract Constant (⌥⌘C) <code>GROUP_SIZE</code> i <code>GROUP_DISCOUNT</code>, Rename (⇧F6) <code>sum</code> na <code>tickets</code>, warunek <code>&gt; 9</code> na <code>&gt;= GROUP_SIZE</code>, w <code>WebShop</code> stream na pętlę i <code>x * 10 /<wbr> 100</code> na <code>multiply(GROUP_DISCOUNT).setScale(2, HALF_EVEN)</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">if</span> (ticketPrices.size() &gt;= GROUP_SIZE) {
+    <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">discount</span> <span class="hljs-operator">=</span> tickets.multiply(GROUP_DISCOUNT).setScale(<span class="hljs-number">2</span>, RoundingMode.HALF_EVEN);
+    tickets = tickets.subtract(discount);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s04</code> - wszystko zielone, sklep nadal daje 228.13 w przypadku brzegowym.
+<strong>Co powiedzieć:</strong> po ujednoliceniu obie wersje różnią się jedną linią. Różnica przestała być ukryta w formie zapisu i można o niej rozmawiać z biznesem.
+<strong>Snapshot:</strong> <code>step1/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s04 0 1</code></p>
+<h3 id="krok-2-decyzja-half_up-takze-w-sklepie-zmiana-kontraktu" tabindex="-1"><a class="header-anchor" href="#krok-2-decyzja-half_up-takze-w-sklepie-zmiana-kontraktu"><span>Krok 2: decyzja - HALF_UP także w sklepie (zmiana kontraktu)</span></a></h3>
+<p><strong>W IDE:</strong> ręcznie <code>HALF_EVEN</code> na <code>HALF_UP</code> w <code>WebShop</code>. Osobny commit z opisem decyzji.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">BigDecimal</span> <span class="hljs-variable">discount</span> <span class="hljs-operator">=</span> tickets.multiply(GROUP_DISCOUNT).setScale(<span class="hljs-number">2</span>, RoundingMode.HALF_UP);
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony: <code>step2DeliberatelyAlignsWebWithBoxOffice</code> oczekuje 228.12, zwykłe koszyki bez zmian.
+<strong>Co powiedzieć:</strong> to NIE jest refaktoryzacja - klient sklepu w przypadku brzegowym zapłaci grosz mniej. Robimy to świadomie, osobno i z testem, który mówi to wprost.
+<strong>Snapshot:</strong> <code>step2/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s04 1 2</code></p>
+<h3 id="krok-3-wydzielenie-reguly" tabindex="-1"><a class="header-anchor" href="#krok-3-wydzielenie-reguly"><span>Krok 3: wydzielenie reguły</span></a></h3>
+<p><strong>W IDE:</strong> w <code>BoxOffice</code> ⌥⌘M na pętli i rabacie, nazwa <code>ticketsTotal</code>, statyczna. F6 do nowej klasy <code>GroupDiscount</code>. W <code>WebShop</code> zastąp identyczny fragment wywołaniem (IntelliJ po ekstrakcji sam proponuje zastąpienie duplikatów w tej samej klasie - tu robimy to ręcznie).
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-comment">// WebShop</span>
+<span class="hljs-type">BigDecimal</span> <span class="hljs-variable">fees</span> <span class="hljs-operator">=</span> FEE.multiply(BigDecimal.valueOf(ticketPrices.size()));
+<span class="hljs-keyword">return</span> GroupDiscount.ticketsTotal(ticketPrices).add(fees).setScale(<span class="hljs-number">2</span>, RoundingMode.HALF_UP);
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> wspólna reguła ma jednego właściciela, a różnica (opłata online) zostaje jawna w <code>WebShop</code>. Przełączaj po jednej ścieżce: najpierw kasa, test, potem sklep.
+<strong>Snapshot:</strong> <code>step3/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s04 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-3" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-3"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>step3/<wbr>GroupDiscount</code>: reguła 10+/-10%/HALF_UP w jednym miejscu. Sekwencja ze slajdu zachowana: scharakteryzuj obie wersje osobno, porównaj brzegi, ujednolić, zdecyduj o różnicy, wydziel, przełącz po jednej ścieżce.</p>
+<h3 id="pulapki-3" tabindex="-1"><a class="header-anchor" href="#pulapki-3"><span>Pułapki</span></a></h3>
+<ul>
+<li>Wydzielenie wspólnej metody z parametrem <code>RoundingMode mode</code> &quot;żeby nic nie zmieniać&quot; - flaga utrwala przypadkową różnicę.</li>
+<li>Sklejanie podobnego tekstu, który jest inną wiedzą (np. opłata online wygląda jak rabat, ale ma innego właściciela).</li>
+<li>Test tylko na &quot;ładnych&quot; kwotach (250.00) - różnica w zaokrągleniu przechodzi niezauważona.</li>
+</ul>
+<h3 id="pytanie-do-sali-3" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-3"><span>Pytanie do sali</span></a></h3>
+<p>Kto w Waszej firmie może zdecydować, że HALF_EVEN w sklepie był błędem, a nie wymaganiem?</p>
+<h2 id="scena-s05-break-method-repertuar-dnia" tabindex="-1"><a class="header-anchor" href="#scena-s05-break-method-repertuar-dnia"><span>Scena s05. Break Method - repertuar dnia</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 5. Break Method - intencja; Break Method - bezpieczna sekwencja
+<strong>Pakiet:</strong> <code>pl.training.workshop.m7.s05_breakmethod</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s05</code>
+<strong>Czas:</strong> ~10 min</p>
+<h3 id="co-widzimy-4" tabindex="-1"><a class="header-anchor" href="#co-widzimy-4"><span>Co widzimy</span></a></h3>
+<p><code>RepertoireBuilder.build</code> miesza trzy poziomy abstrakcji: kontrolę wejścia (null w liście), porządkowanie (odwołane seanse, sortowanie po godzinie i tytule) i renderowanie tekstu. Test obserwuje tekst albo wyjątek (typ i komunikat) oraz to, czy lista klienta pozostała nietknięta.</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">List</span>&lt;Screening&gt; <span class="hljs-variable">active</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();
+<span class="hljs-keyword">for</span> (Screening screening : copy) { <span class="hljs-keyword">if</span> (!screening.cancelled()) { active.add(screening); } }
+active.sort(Comparator.comparing(Screening::start).thenComparing(Screening::title));
+<span class="hljs-type">StringBuilder</span> <span class="hljs-variable">text</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>(<span class="hljs-string">&quot;REPERTUAR\n&quot;</span>);
+</code></pre>
+<h3 id="krok-1-extract-method-fragment-z-jednym-wejsciem-i-jednym-wynikiem" tabindex="-1"><a class="header-anchor" href="#krok-1-extract-method-fragment-z-jednym-wejsciem-i-jednym-wynikiem"><span>Krok 1: Extract Method - fragment z jednym wejściem i jednym wynikiem</span></a></h3>
+<p><strong>W IDE:</strong> zaznacz pierwszą pętlę (kopia z kontrolą null), ⌥⌘M, nazwa <code>validateAndCopy</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">List</span>&lt;Screening&gt; <span class="hljs-variable">copy</span> <span class="hljs-operator">=</span> validateAndCopy(screenings);
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s05</code> - 12 testów zielonych, w tym wyjątek dla <code>null</code>.
+<strong>Co powiedzieć:</strong> zaczynamy od fragmentu z najmniejszą liczbą zależności i przenosimy go dosłownie. Nazwa przychodzi po teście.
+<strong>Snapshot:</strong> <code>step1/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s05 0 1</code></p>
+<h3 id="krok-2-extract-method-porzadkowanie" tabindex="-1"><a class="header-anchor" href="#krok-2-extract-method-porzadkowanie"><span>Krok 2: Extract Method - porządkowanie</span></a></h3>
+<p><strong>W IDE:</strong> zaznacz filtr i sortowanie, ⌥⌘M, nazwa <code>order</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">List</span>&lt;Screening&gt; <span class="hljs-variable">active</span> <span class="hljs-operator">=</span> order(copy);
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony - &quot;wejście bez zmian: true&quot;.
+<strong>Co powiedzieć:</strong> sortujemy kopię. Gdyby ktoś &quot;uprościł&quot; to do <code>screenings.sort(...)</code>, lista klienta zostałaby przestawiona - test to wykryje.
+<strong>Snapshot:</strong> <code>step2/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s05 1 2</code></p>
+<h3 id="krok-3-extract-method-renderowanie-i-inline-variable" tabindex="-1"><a class="header-anchor" href="#krok-3-extract-method-renderowanie-i-inline-variable"><span>Krok 3: Extract Method - renderowanie i Inline Variable</span></a></h3>
+<p><strong>W IDE:</strong> zaznacz budowę tekstu, ⌥⌘M <code>render</code>. Rename (⇧F6) zmiennych na <code>validated</code> i <code>ordered</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">build</span><span class="hljs-params">(List&lt;Screening&gt; screenings)</span> {
+    <span class="hljs-type">List</span>&lt;Screening&gt; <span class="hljs-variable">validated</span> <span class="hljs-operator">=</span> validateAndCopy(screenings);
+    <span class="hljs-type">List</span>&lt;Screening&gt; <span class="hljs-variable">ordered</span> <span class="hljs-operator">=</span> order(validated);
+    <span class="hljs-keyword">return</span> render(ordered);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> metoda opisuje algorytm na jednym poziomie abstrakcji. Dane łatwo przechodzą między krokami (lista, lista, tekst), więc Method Object ze sceny s02 byłby tu przerostem formy.
+<strong>Snapshot:</strong> <code>step3/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s05 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-4" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-4"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>step3/<wbr>RepertoireBuilder</code>: trzy etapy, każdy z jednym wejściem i jednym wyjściem. Gdyby etapy miały osobne modele danych (np. wiersz raportu zamiast <code>Screening</code>), następnym ruchem byłby Split Phase.</p>
+<h3 id="pulapki-4" tabindex="-1"><a class="header-anchor" href="#pulapki-4"><span>Pułapki</span></a></h3>
+<ul>
+<li>Ekstrakcja pętli z <code>return</code>/<code>break</code>/<code>continue</code> w środku bez sprawdzenia, dokąd skacze sterowanie.</li>
+<li>Zastąpienie <code>validateAndCopy</code> przez <code>List.copyOf(screenings)</code> - dla <code>null</code> rzuca NPE zamiast <code>IllegalArgumentException</code> (inny typ i komunikat wyjątku).</li>
+<li>Sortowanie listy wejściowej zamiast kopii (aliasowanie).</li>
+</ul>
+<h3 id="pytanie-do-sali-4" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-4"><span>Pytanie do sali</span></a></h3>
+<p>Kiedy <code>order</code> i <code>render</code> zasługują na osobne klasy, a kiedy wystarczą prywatne metody?</p>
+<h2 id="scena-s06-introduce-parameter-object-termin-seansu" tabindex="-1"><a class="header-anchor" href="#scena-s06-introduce-parameter-object-termin-seansu"><span>Scena s06. Introduce Parameter Object - termin seansu</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 6. Introduce Parameter Object - data clump jako pojęcie; Parameter Object - walidacja, migracja i ryzyka
+<strong>Pakiet:</strong> <code>pl.training.workshop.m7.s06_parameterobject</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s06</code>
+<strong>Czas:</strong> ~12 min</p>
+<h3 id="co-widzimy-5" tabindex="-1"><a class="header-anchor" href="#co-widzimy-5"><span>Co widzimy</span></a></h3>
+<p><code>ScreeningPlanner</code> ma dwie metody z tą samą czwórką parametrów: <code>screeningId, date, hall, format</code>. To pojęcie &quot;termin seansu w sali&quot;, którego nikt nie nazwał. Walidacja sali i formatu siedzi tylko w <code>ticketPrice</code>, a <code>describe</code> przyjmuje wszystko.</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">describe</span><span class="hljs-params">(String screeningId, LocalDate date, <span class="hljs-type">int</span> hall, String format)</span>
+<span class="hljs-keyword">public</span> <span class="hljs-type">BigDecimal</span> <span class="hljs-title function_">ticketPrice</span><span class="hljs-params">(String screeningId, LocalDate date, <span class="hljs-type">int</span> hall, String format)</span>
+</code></pre>
+<h3 id="krok-1-introduce-parameter-object-stan-przejsciowy-bez-walidacji" tabindex="-1"><a class="header-anchor" href="#krok-1-introduce-parameter-object-stan-przejsciowy-bez-walidacji"><span>Krok 1: Introduce Parameter Object (stan przejściowy, bez walidacji)</span></a></h3>
+<p><strong>W IDE:</strong> na <code>describe</code> Refactor → Introduce Parameter Object, rekord <code>ScreeningSlot</code>, zaznacz &quot;keep method as delegate&quot; (zostaw starą sygnaturę). Powtórz dla <code>ticketPrice</code>, wskazując istniejący rekord. Dodaj <code>@Deprecated</code> na starych sygnaturach.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">record</span> <span class="hljs-title class_">ScreeningSlot</span><span class="hljs-params">(String screeningId, LocalDate date, <span class="hljs-type">int</span> hall, String format)</span> {
+}
+
+<span class="hljs-meta">@Deprecated</span>
+<span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">describe</span><span class="hljs-params">(String screeningId, LocalDate date, <span class="hljs-type">int</span> hall, String format)</span> {
+    <span class="hljs-keyword">return</span> describe(<span class="hljs-keyword">new</span> <span class="hljs-title class_">ScreeningSlot</span>(screeningId, date, hall, format));
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s06</code> - nowe API i stare sygnatury dają te same wyniki.
+<strong>Co powiedzieć:</strong> rekord bez walidacji to celowy stan przejściowy - kontrole zostają tam, gdzie były. Stare sygnatury pozwalają migrować wywołania po jednym.
+<strong>Snapshot:</strong> <code>step1/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s06 0 1</code></p>
+<h3 id="krok-2-move-method-typ-przyciaga-zachowanie" tabindex="-1"><a class="header-anchor" href="#krok-2-move-method-typ-przyciaga-zachowanie"><span>Krok 2: Move Method - typ przyciąga zachowanie</span></a></h3>
+<p><strong>W IDE:</strong> w <code>describe(ScreeningSlot)</code> F6 (Move) do <code>ScreeningSlot</code>, nazwa <code>label()</code>. <code>describe</code> deleguje.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">label</span><span class="hljs-params">()</span> {
+    <span class="hljs-keyword">return</span> screeningId + <span class="hljs-string">&quot; &quot;</span> + date + <span class="hljs-string">&quot; sala &quot;</span> + hall + <span class="hljs-string">&quot; (&quot;</span> + format + <span class="hljs-string">&quot;)&quot;</span>;
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> po nazwaniu pojęcia pojawia się miejsce na zachowanie, które do niego należy.
+<strong>Snapshot:</strong> <code>step2/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s06 1 2</code></p>
+<h3 id="krok-3-walidacja-w-konstruktorze-rekordu-zmiana-kontraktu" tabindex="-1"><a class="header-anchor" href="#krok-3-walidacja-w-konstruktorze-rekordu-zmiana-kontraktu"><span>Krok 3: walidacja w konstruktorze rekordu (zmiana kontraktu)</span></a></h3>
+<p><strong>W IDE:</strong> przenieś kontrolę sali i formatu z <code>ticketPrice</code> do kanonicznego konstruktora kompaktowego <code>ScreeningSlot</code>. W <code>ticketPrice</code> gałąź <code>default -&gt; throw</code> staje się zbędna.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> ScreeningSlot {
+    <span class="hljs-keyword">if</span> (hall &lt; <span class="hljs-number">1</span> || hall &gt; <span class="hljs-number">8</span>) {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;nie ma sali &quot;</span> + hall + <span class="hljs-string">&quot; (&quot;</span> + screeningId + <span class="hljs-string">&quot;)&quot;</span>);
+    }
+    <span class="hljs-keyword">if</span> (!FORMATS.contains(format)) { ... }
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony. <code>S06ValidationMomentTest</code> pokazuje różnicę: do kroku 2 <code>describe</code> dla sali 12 zwraca tekst, a <code>ticketPrice</code> rzuca. W kroku 3 wyjątek leci już przy <code>new ScreeningSlot(...)</code>.
+<strong>Co powiedzieć:</strong> ten sam komunikat, inny moment. Klient, który logował opis przed wyceną, przestanie dostawać log. To zmiana kontraktu - osobny krok i osobny commit.
+<strong>Snapshot:</strong> <code>step3/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s06 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-5" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-5"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>step3/<wbr>ScreeningSlot</code> jest poprawny z definicji, planner nie musi niczego sprawdzać. Stare sygnatury zostają do końca migracji klientów, potem Safe Delete (⌘⌦).</p>
+<h3 id="pulapki-5" tabindex="-1"><a class="header-anchor" href="#pulapki-5"><span>Pułapki</span></a></h3>
+<ul>
+<li>Walidacja w rekordzie w tym samym kroku co wprowadzenie rekordu - nie wiadomo, który ruch zmienił zachowanie.</li>
+<li>Worek <code>Parameters</code> z flagami zamiast pojęcia z domeny.</li>
+<li>Rekord jest tylko płytko niemutowalny: komponent <code>List</code> bez kopii defensywnej. <code>List.copyOf</code> zmienia semantykę aliasowania i odrzuca <code>null</code>.</li>
+<li>Komponenty publicznego rekordu to API - zmiana nazwy komponentu łamie klientów i serializację.</li>
+</ul>
+<h3 id="pytanie-do-sali-5" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-5"><span>Pytanie do sali</span></a></h3>
+<p>Czy <code>date</code> naprawdę należy do tego pojęcia, skoro <code>ticketPrice</code> jej nie używa?</p>
+<h2 id="scena-s07-remove-arrowhead-antipattern-bramka-rezerwacji" tabindex="-1"><a class="header-anchor" href="#scena-s07-remove-arrowhead-antipattern-bramka-rezerwacji"><span>Scena s07. Remove Arrowhead Antipattern - bramka rezerwacji</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 7. Remove Arrowhead Antipattern; Remove Arrowhead - po zmianie
+<strong>Pakiet:</strong> <code>pl.training.workshop.m7.s07_arrowhead</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s07</code>
+<strong>Czas:</strong> ~10 min</p>
+<h3 id="co-widzimy-6" tabindex="-1"><a class="header-anchor" href="#co-widzimy-6"><span>Co widzimy</span></a></h3>
+<p><code>BookingGate.book</code> ma pięć poziomów zagnieżdżenia, a główna ścieżka (<code>BOOKED</code>) siedzi na samym dnie. Wynik zbiera zmienna <code>result</code>. Na końcu metoda zapisuje wpis do audytu - <strong>dla każdej ścieżki</strong>.</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">if</span> (attempt.screeningFound()) {
+    <span class="hljs-keyword">if</span> (attempt.salesOpen()) {
+        <span class="hljs-keyword">if</span> (!attempt.customerBlocked()) {
+            <span class="hljs-keyword">if</span> (attempt.requestedSeats() &gt; <span class="hljs-number">0</span>) {
+                <span class="hljs-keyword">if</span> (attempt.requestedSeats() &lt;= attempt.freeSeats()) {
+...
+audit.add(attempt.email() + <span class="hljs-string">&quot; -&gt; &quot;</span> + result);
+<span class="hljs-keyword">return</span> result;
+</code></pre>
+<p>Test to macierz gałęzi z kombinacjami sprawdzającymi priorytet (np. brak seansu i jednocześnie zamknięta sprzedaż) plus zawartość audytu.</p>
+<h3 id="krok-1-extract-method-oddziel-decyzje-od-efektu" tabindex="-1"><a class="header-anchor" href="#krok-1-extract-method-oddziel-decyzje-od-efektu"><span>Krok 1: Extract Method - oddziel decyzję od efektu</span></a></h3>
+<p><strong>W IDE:</strong> zaznacz cały grot (od <code>String result;</code> do końca <code>if</code>), ⌥⌘M, nazwa <code>decide</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">book</span><span class="hljs-params">(BookingAttempt attempt)</span> {
+    <span class="hljs-type">String</span> <span class="hljs-variable">result</span> <span class="hljs-operator">=</span> decide(attempt);
+    audit.add(attempt.email() + <span class="hljs-string">&quot; -&gt; &quot;</span> + result);
+    <span class="hljs-keyword">return</span> result;
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s07</code> - 28 testów zielonych.
+<strong>Co powiedzieć:</strong> najpierw chronimy efekt uboczny. Gdybyśmy wstawili guard clauses od razu w <code>book</code>, każde wczesne <code>return</code> ominęłoby audyt - test pokazałby puste listy.
+<strong>Snapshot:</strong> <code>step1/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s07 0 1</code></p>
+<h3 id="krok-2-odwroc-najbardziej-zewnetrzny-warunek" tabindex="-1"><a class="header-anchor" href="#krok-2-odwroc-najbardziej-zewnetrzny-warunek"><span>Krok 2: odwróć najbardziej zewnętrzny warunek</span></a></h3>
+<p><strong>W IDE:</strong> kursor na <code>if (attempt.screeningFound())</code>, ⌥⏎ → Invert 'if' condition, potem usuń <code>else</code> (⌥⏎ → Remove redundant 'else' albo ręcznie) i zamień przypisanie na <code>return &quot;NO_SCREENING&quot;</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">if</span> (!attempt.screeningFound()) {
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;NO_SCREENING&quot;</span>;
+}
+String result;
+<span class="hljs-keyword">if</span> (attempt.salesOpen()) { ...
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> jeden poziom naraz, test po każdym. Kolejność warunków się nie zmienia - to ona definiuje priorytet błędów.
+<strong>Snapshot:</strong> <code>step2/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s07 1 2</code></p>
+<h3 id="krok-3-splaszcz-pozostale-poziomy" tabindex="-1"><a class="header-anchor" href="#krok-3-splaszcz-pozostale-poziomy"><span>Krok 3: spłaszcz pozostałe poziomy</span></a></h3>
+<p><strong>W IDE:</strong> powtórz ruch z kroku 2 dla każdego kolejnego poziomu. Na końcu zmienna <code>result</code> znika (Inline ⌥⌘N).
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">if</span> (!attempt.screeningFound()) { <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;NO_SCREENING&quot;</span>; }
+<span class="hljs-keyword">if</span> (!attempt.salesOpen()) { <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;SALES_CLOSED&quot;</span>; }
+<span class="hljs-keyword">if</span> (attempt.customerBlocked()) { <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;CUSTOMER_BLOCKED&quot;</span>; }
+<span class="hljs-keyword">if</span> (attempt.requestedSeats() &lt;= <span class="hljs-number">0</span>) { <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;NO_SEATS_REQUESTED&quot;</span>; }
+<span class="hljs-keyword">if</span> (attempt.requestedSeats() &gt; attempt.freeSeats()) { <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;SOLD_OUT&quot;</span>; }
+<span class="hljs-keyword">return</span> <span class="hljs-string">&quot;BOOKED&quot;</span>;
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> zaprzeczenie <code>requestedSeats() &lt;= freeSeats()</code> to <code>&gt;</code>, nie <code>&gt;=</code> - przypadek &quot;dokładnie tyle wolnych&quot; w teście tego pilnuje.
+<strong>Snapshot:</strong> <code>step3/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s07 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-6" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-6"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>step3/<wbr>BookingGate</code>: czysta funkcja decyzji z guard clauses i jedno miejsce efektu ubocznego. Priorytet warunków identyczny jak w start.</p>
+<h3 id="pulapki-6" tabindex="-1"><a class="header-anchor" href="#pulapki-6"><span>Pułapki</span></a></h3>
+<ul>
+<li>Guard clause w metodzie z efektem na końcu (audyt, log, zwolnienie zasobu) - wczesny <code>return</code> go omija. Zasoby: try-with-resources albo <code>finally</code>.</li>
+<li>Przestawienie warunków &quot;od najczęstszego&quot; - zmienia priorytet błędów.</li>
+<li>Błędne zaprzeczenie przy odwracaniu (<code>&lt;=</code> na <code>&gt;=</code>).</li>
+</ul>
+<h3 id="pytanie-do-sali-6" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-6"><span>Pytanie do sali</span></a></h3>
+<p>Gdyby <code>customerBlocked()</code> robił zapytanie do bazy, czy wolno przenieść go na początek?</p>
+<h2 id="scena-s08-introduce-design-by-contract-checks-pula-miejsc" tabindex="-1"><a class="header-anchor" href="#scena-s08-introduce-design-by-contract-checks-pula-miejsc"><span>Scena s08. Introduce Design by Contract Checks - pula miejsc</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 8. Introduce Design by Contract Checks; Design by Contract - jawne kontrole
+<strong>Pakiet:</strong> <code>pl.training.workshop.m7.s08_designbycontract</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s08</code>
+<strong>Czas:</strong> ~10 min</p>
+<h3 id="co-widzimy-7" tabindex="-1"><a class="header-anchor" href="#co-widzimy-7"><span>Co widzimy</span></a></h3>
+<p><code>SeatPool</code> pilnuje liczby wolnych miejsc seansu. Nie ma żadnych kontraktów: <code>reserve(-2)</code> po cichu dodaje dwa miejsca, a <code>release(15)</code> po rezerwacji 10 daje 105 wolnych w sali na 100. Test <code>startSilentlyCorruptsStateForInvalidInput</code> dokumentuje te niemożliwe stany.</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">reserve</span><span class="hljs-params">(<span class="hljs-type">int</span> seats)</span> {
+    <span class="hljs-keyword">if</span> (seats &gt; remaining) {
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+    }
+    remaining = remaining - seats;
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+}
+</code></pre>
+<p>Uwaga: <code>false</code> przy braku miejsc to <strong>poprawna, udokumentowana odpowiedź</strong>, nie naruszenie kontraktu.</p>
+<h3 id="krok-1-warunki-wstepne-to-nie-jest-refaktoryzacja" tabindex="-1"><a class="header-anchor" href="#krok-1-warunki-wstepne-to-nie-jest-refaktoryzacja"><span>Krok 1: warunki wstępne (to nie jest refaktoryzacja)</span></a></h3>
+<p><strong>W IDE:</strong> utwórz klasę <code>Contracts</code> z <code>require</code> (IllegalArgumentException) i <code>ensure</code> (IllegalStateException). Na początku <code>reserve</code>, <code>release</code> i konstruktora dodaj <code>Contracts.require(...)</code> - <strong>przed pierwszą mutacją</strong>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">void</span> <span class="hljs-title function_">release</span><span class="hljs-params">(<span class="hljs-type">int</span> seats)</span> {
+    Contracts.require(seats &gt; <span class="hljs-number">0</span>, <span class="hljs-string">&quot;seats must be positive&quot;</span>);
+    Contracts.require(seats &lt;= capacity - remaining, <span class="hljs-string">&quot;cannot release more seats than reserved&quot;</span>);
+    remaining = remaining + seats;
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s08</code> - poprawne użycia bez zmian, niepoprawne rzucają wyjątek i nie zmieniają stanu (&quot;zostalo 100&quot;, &quot;zostalo 90&quot;).
+<strong>Co powiedzieć:</strong> dla niepoprawnych wejść zachowanie się zmieniło - dlatego test ma dla nich osobne oczekiwania. Nie zamieniamy <code>false</code> na wyjątek: to zmieniłoby kontrakt także dla poprawnych klientów.
+<strong>Snapshot:</strong> <code>step1/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s08 0 1</code></p>
+<h3 id="krok-2-warunki-koncowe-i-niezmiennik" tabindex="-1"><a class="header-anchor" href="#krok-2-warunki-koncowe-i-niezmiennik"><span>Krok 2: warunki końcowe i niezmiennik</span></a></h3>
+<p><strong>W IDE:</strong> ręcznie: zapamiętaj <code>previous</code>, policz <code>next</code>, <code>checkInvariant(next)</code> przed przypisaniem, po przypisaniu <code>Contracts.ensure(...)</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">int</span> <span class="hljs-variable">previous</span> <span class="hljs-operator">=</span> remaining;
+<span class="hljs-type">int</span> <span class="hljs-variable">next</span> <span class="hljs-operator">=</span> previous - seats;
+checkInvariant(next);
+remaining = next;
+Contracts.ensure(remaining == previous - seats, <span class="hljs-string">&quot;reserve must reduce remaining by seats&quot;</span>);
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony - dla poprawnych wejść nic się nie zmienia.
+<strong>Co powiedzieć:</strong> przy obecnym kodzie te kontrole nie mogą się nie udać. Chronią przyszłe zmiany: ktoś dopisze rabat &quot;2 za 1&quot; i niezmiennik złapie błąd, zanim stan się zepsuje.
+<strong>Snapshot:</strong> <code>step2/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s08 1 2</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-7" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-7"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>step2/<wbr>SeatPool</code>: <code>require</code> przed mutacją, niezmiennik sprawdzany dla kandydata przed przypisaniem, <code>ensure</code> po operacji. Jawne kontrole zamiast <code>assert</code>.</p>
+<h3 id="pulapki-7" tabindex="-1"><a class="header-anchor" href="#pulapki-7"><span>Pułapki</span></a></h3>
+<ul>
+<li><code>assert seats &gt; 0</code> - domyślnie wyłączony (bez <code>-ea</code> nic nie sprawdza), a Maven Surefire włącza go w testach. Test zielony, produkcja bez ochrony.</li>
+<li>Kontrola po mutacji - wyjątek leci, ale stan już jest zepsuty.</li>
+<li>Zamiana historycznego <code>IllegalArgumentException</code> na własny wyjątek &quot;przy okazji&quot; - klienci mogą go łapać.</li>
+<li>Podklasa wzmacniająca warunek wstępny (np. &quot;maks. 6 miejsc naraz&quot;) łamie LSP.</li>
+</ul>
+<h3 id="pytanie-do-sali-7" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-7"><span>Pytanie do sali</span></a></h3>
+<p>Czy &quot;nie więcej miejsc, niż zostało&quot; to warunek wstępny, czy zwykła odpowiedź <code>false</code>? Kto o tym decyduje?</p>
+<h2 id="scena-s09-remove-double-negative-wstep-do-strefy-vip" tabindex="-1"><a class="header-anchor" href="#scena-s09-remove-double-negative-wstep-do-strefy-vip"><span>Scena s09. Remove Double Negative - wstęp do strefy VIP</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 9. Remove Double Negative
+<strong>Pakiet:</strong> <code>pl.training.workshop.m7.s09_doublenegative</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s09</code>
+<strong>Czas:</strong> ~8 min</p>
+<h3 id="co-widzimy-8" tabindex="-1"><a class="header-anchor" href="#co-widzimy-8"><span>Co widzimy</span></a></h3>
+<p><code>LoungeAccess</code> decyduje, czy klient wejdzie do strefy VIP. <code>Customer</code> ma komponent <code>notVip</code>, a <code>Voucher</code> predykat <code>isNotExpired</code>. Każdy warunek trzeba odwracać w głowie.</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">if</span> (!customer.notVip()) {
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+}
+...
+<span class="hljs-keyword">if</span> (!voucher.isNotExpired(today)) {
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+}
+</code></pre>
+<h3 id="krok-1-pozytywne-predykaty-delegujace" tabindex="-1"><a class="header-anchor" href="#krok-1-pozytywne-predykaty-delegujace"><span>Krok 1: pozytywne predykaty delegujące</span></a></h3>
+<p><strong>W IDE:</strong> w <code>Customer</code> dodaj <code>vip()</code> zwracające <code>!notVip</code>, w <code>Voucher</code> <code>isExpired(today)</code> zwracające <code>!isNotExpired(today)</code>. <code>LoungeAccess</code> bez zmian.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">isExpired</span><span class="hljs-params">(LocalDate today)</span> {
+    <span class="hljs-keyword">return</span> !isNotExpired(today);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s09</code> - 20 testów zielonych.
+<strong>Co powiedzieć:</strong> pozytywna nazwa musi być dokładnym dopełnieniem starej. Voucher ważny &quot;do dziś włącznie&quot; - test ma przypadek granicy.
+<strong>Snapshot:</strong> <code>step1/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s09 0 1</code></p>
+<h3 id="krok-2-migracja-uzyc-po-jednym" tabindex="-1"><a class="header-anchor" href="#krok-2-migracja-uzyc-po-jednym"><span>Krok 2: migracja użyć po jednym</span></a></h3>
+<p><strong>W IDE:</strong> w <code>LoungeAccess</code> zamień <code>!customer.notVip()</code> na <code>customer.vip()</code> (w obu metodach) i <code>!voucher.isNotExpired(today)</code> na <code>voucher.isExpired(today)</code>. Test po każdej zamianie.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">if</span> (customer.vip()) {
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> mechaniczna zamiana <code>!negatyw()</code> na <code>pozytyw()</code> - bez wymyślania logiki od nowa.
+<strong>Snapshot:</strong> <code>step2/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s09 1 2</code></p>
+<h3 id="krok-3-odwrocenie-delegacji" tabindex="-1"><a class="header-anchor" href="#krok-3-odwrocenie-delegacji"><span>Krok 3: odwrócenie delegacji</span></a></h3>
+<p><strong>W IDE:</strong> w <code>Voucher</code> Inline (⌥⌘N) <code>isNotExpired</code> do <code>isExpired</code> i uprość <code>!!</code>. W <code>Customer</code> Rename (⇧F6) komponentu <code>notVip</code> na <code>vip</code> wymaga odwrócenia wartości u wszystkich, którzy tworzą rekord - zrób to ręcznie i usuń metodę <code>vip()</code> (teraz akcesor).
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">record</span> <span class="hljs-title class_">Customer</span><span class="hljs-params">(String email, <span class="hljs-type">boolean</span> vip)</span> {
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony. Zwróć uwagę na adapter w teście: dla <code>step3</code> tworzy <code>new Customer(email, !notVip)</code>.
+<strong>Co powiedzieć:</strong> to jest migracja granicy. Gdyby rekord trafiał do JSON-a albo bazy, pole <code>notVip</code> w danych trzeba by migrować osobno.
+<strong>Snapshot:</strong> <code>step3/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s09 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-8" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-8"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>step3</code>: <code>customer.vip()</code> i <code>voucher.isExpired(today)</code>. Sekwencja ze slajdu: predykat pozytywny delegujący, migracja po jednym użyciu, odwrócenie delegacji.</p>
+<h3 id="pulapki-8" tabindex="-1"><a class="header-anchor" href="#pulapki-8"><span>Pułapki</span></a></h3>
+<ul>
+<li><code>Boolean</code> z <code>null</code> nie jest dwustanowy: <code>!notVip</code> rzuca NPE, <code>!Boolean.TRUE.equals(notVip)</code> nie. Pozytywna wersja musi zachować, co znaczy <code>null</code>.</li>
+<li>Rename komponentu rekordu przez ⇧F6 bez odwrócenia wartości - kompiluje się, a znaczenie jest odwrotne.</li>
+<li>&quot;Dopełnienie&quot; z przesuniętą granicą (<code>isBefore</code> zamiast <code>!isAfter</code>).</li>
+</ul>
+<h3 id="pytanie-do-sali-8" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-8"><span>Pytanie do sali</span></a></h3>
+<p>Gdzie w Waszym kodzie negatywna nazwa żyje w kolumnie bazy albo w pliku konfiguracyjnym?</p>
+<h2 id="scena-s10-remove-boolean-method-parameters-migracja-api" tabindex="-1"><a class="header-anchor" href="#scena-s10-remove-boolean-method-parameters-migracja-api"><span>Scena s10. Remove Boolean Method Parameters - migracja API</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 11. Remove Boolean Method Parameters; Java 25 w tym module (zgodność binarna)
+<strong>Pakiet:</strong> <code>pl.training.workshop.m7.s10_booleanparameter</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s10</code>
+<strong>Czas:</strong> ~12 min</p>
+<h3 id="co-widzimy-9" tabindex="-1"><a class="header-anchor" href="#co-widzimy-9"><span>Co widzimy</span></a></h3>
+<p><code>TicketService.book(title, format, seats, online, ownGlasses)</code> ma dwie flagi. Klienci: <code>MobileApp</code> woła <code>book(..., true, false)</code>, <code>BoxOfficeTerminal</code> woła <code>book(..., false, customerHasGlasses)</code>. Z miejsca wywołania nie widać, co znaczy <code>true</code>.</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">return</span> tickets.book(title, format, seats, <span class="hljs-literal">true</span>, <span class="hljs-literal">false</span>);
+</code></pre>
+<p><code>customerHasGlasses</code> w terminalu to dana z formularza, a nie flaga sterująca. Nie każdy <code>boolean</code> jest zapachem.</p>
+<h3 id="krok-1-jawne-metody-dla-kanalu-stara-metoda-deprecated" tabindex="-1"><a class="header-anchor" href="#krok-1-jawne-metody-dla-kanalu-stara-metoda-deprecated"><span>Krok 1: jawne metody dla kanału, stara metoda @Deprecated</span></a></h3>
+<p><strong>W IDE:</strong> dodaj <code>bookOnline(...)</code> i <code>bookAtBoxOffice(...)</code>, prywatne <code>book(..., Channel, ...)</code> z wewnętrznym enumem. Stara publiczna metoda dostaje <code>@Deprecated</code> i deleguje.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-meta">@Deprecated</span>
+<span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">book</span><span class="hljs-params">(String title, String format, <span class="hljs-type">int</span> seats, <span class="hljs-type">boolean</span> online, <span class="hljs-type">boolean</span> ownGlasses)</span> {
+    <span class="hljs-keyword">return</span> online
+            ? bookOnline(title, format, seats, ownGlasses)
+            : bookAtBoxOffice(title, format, seats, ownGlasses);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s10</code> - 31 testów zielonych. Kompilator zgłasza ostrzeżenia <code>[deprecation]</code> w obu klientach.
+<strong>Co powiedzieć:</strong> ostrzeżenia kompilatora to lista klientów do migracji. Stara metoda zostaje, bo stary <code>.class</code> innego modułu oczekuje tej sygnatury (zgodność binarna).
+<strong>Snapshot:</strong> <code>step1/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s10 0 1</code></p>
+<h3 id="krok-2-druga-flaga-jako-typ" tabindex="-1"><a class="header-anchor" href="#krok-2-druga-flaga-jako-typ"><span>Krok 2: druga flaga jako typ</span></a></h3>
+<p><strong>W IDE:</strong> utwórz <code>enum Glasses { OWN, RENTED }</code>. Na <code>bookOnline</code> Change Signature (⌘F6): typ parametru <code>boolean</code> na <code>Glasses</code>. To samo dla <code>bookAtBoxOffice</code>. Stara metoda tłumaczy <code>boolean</code> na <code>Glasses</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">bookOnline</span><span class="hljs-params">(String title, String format, <span class="hljs-type">int</span> seats, Glasses glasses)</span>
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> nie robimy czterech metod na każdą kombinację (<code>bookOnlineWithOwnGlasses</code>...). Kanał jest metodą, okulary są wartością. Przy trzech i więcej flagach - obiekt polityki i przegląd odpowiedzialności.
+<strong>Snapshot:</strong> <code>step2/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s10 1 2</code></p>
+<h3 id="krok-3-migracja-klientow" tabindex="-1"><a class="header-anchor" href="#krok-3-migracja-klientow"><span>Krok 3: migracja klientów</span></a></h3>
+<p><strong>W IDE:</strong> w <code>MobileApp</code> zamień wywołanie na <code>bookOnline(title, format, seats, Glasses.RENTED)</code>. Test. W <code>BoxOfficeTerminal</code> - <code>bookAtBoxOffice(...)</code> z tłumaczeniem <code>customerHasGlasses</code> na <code>Glasses</code>. Test.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">return</span> tickets.bookOnline(title, format, seats, Glasses.RENTED);
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony, ostrzeżeń <code>[deprecation]</code> już nie ma.
+<strong>Co powiedzieć:</strong> jeden klient naraz, test po każdym. Wywołanie czyta się bez zaglądania do sygnatury.
+<strong>Snapshot:</strong> <code>step3/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s10 2 3</code></p>
+<h3 id="krok-4-safe-delete-starej-metody" tabindex="-1"><a class="header-anchor" href="#krok-4-safe-delete-starej-metody"><span>Krok 4: Safe Delete starej metody</span></a></h3>
+<p><strong>W IDE:</strong> na starym <code>book(...)</code> Safe Delete (⌘⌦) - IntelliJ potwierdza brak użyć w kodzie produkcyjnym.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">bookOnline</span><span class="hljs-params">(String title, String format, <span class="hljs-type">int</span> seats, Glasses glasses)</span> { ... }
+<span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">bookAtBoxOffice</span><span class="hljs-params">(String title, String format, <span class="hljs-type">int</span> seats, Glasses glasses)</span> { ... }
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony (testy starego API obejmują tylko start..step3).
+<strong>Co powiedzieć:</strong> koniec okresu przejściowego to decyzja z jawnym kryterium (&quot;wszyscy klienci zmigrowani, wydanie X&quot;). W bibliotece publicznej to zmiana łamiąca zgodność binarną.
+<strong>Snapshot:</strong> <code>step4/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s10 3 4</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-9" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-9"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>step4/<wbr>TicketService</code>: dwie jawne metody i enum. Migracja wg slajdu: jawne metody, klienci pojedynczo, stara metoda delegująca do końca migracji, usunięcie.</p>
+<h3 id="pulapki-9" tabindex="-1"><a class="header-anchor" href="#pulapki-9"><span>Pułapki</span></a></h3>
+<ul>
+<li>Usunięcie starej metody w tym samym commicie co dodanie nowych.</li>
+<li>Zamiana każdego <code>boolean</code> na enum, także danych z formularza.</li>
+<li>Metoda na każdą kombinację flag zamiast przeglądu odpowiedzialności.</li>
+</ul>
+<h3 id="pytanie-do-sali-9" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-9"><span>Pytanie do sali</span></a></h3>
+<p>Jak długo trzymać <code>@Deprecated</code> w module używanym przez inne zespoły? Kto mierzy, czy ktoś go jeszcze woła?</p>
+<h2 id="scena-s11-remove-middle-man-fasada-kina" tabindex="-1"><a class="header-anchor" href="#scena-s11-remove-middle-man-fasada-kina"><span>Scena s11. Remove Middle Man - fasada kina</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 12. Remove Middle Man
+<strong>Pakiet:</strong> <code>pl.training.workshop.m7.s11_middleman</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s11</code>
+<strong>Czas:</strong> ~8 min</p>
+<h3 id="co-widzimy-10" tabindex="-1"><a class="header-anchor" href="#co-widzimy-10"><span>Co widzimy</span></a></h3>
+<p><code>CinemaFacade</code> deleguje 1:1 do <code>ScreeningCatalog</code> - prawie. <code>freeSeats</code> po cichu tłumaczy <code>NoSuchElementException</code> na 0, więc <code>SeatBadge</code> pokazuje &quot;WYPRZEDANE&quot; dla nieznanego seansu. Dwóch klientów: <code>SeatBadge</code> i <code>DailyBoard</code>.</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">int</span> <span class="hljs-title function_">freeSeats</span><span class="hljs-params">(String id)</span> {
+    <span class="hljs-keyword">try</span> {
+        <span class="hljs-keyword">return</span> catalog.freeSeats(id);
+    } <span class="hljs-keyword">catch</span> (NoSuchElementException e) {
+        <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+    }
+}
+</code></pre>
+<h3 id="krok-1-posrednik-staje-sie-czystym-forwarderem" tabindex="-1"><a class="header-anchor" href="#krok-1-posrednik-staje-sie-czystym-forwarderem"><span>Krok 1: pośrednik staje się czystym forwarderem</span></a></h3>
+<p><strong>W IDE:</strong> przenieś <code>try/<wbr>catch</code> do prywatnej metody <code>freeSeats</code> w <code>SeatBadge</code> (jedyny klient, który polega na tłumaczeniu). W fasadzie zostaje zwykłe delegowanie.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-comment">// SeatBadge</span>
+<span class="hljs-keyword">private</span> <span class="hljs-type">int</span> <span class="hljs-title function_">freeSeats</span><span class="hljs-params">(String id)</span> {
+    <span class="hljs-keyword">try</span> {
+        <span class="hljs-keyword">return</span> cinema.freeSeats(id);
+    } <span class="hljs-keyword">catch</span> (NoSuchElementException e) {
+        <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+    }
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s11</code> - przypadek &quot;nieznany seans wygląda jak wyprzedany&quot; nadal zielony.
+<strong>Co powiedzieć:</strong> najpierw sprawdź, co pośrednik naprawdę robi: autoryzacja, transakcja, telemetria, retry, translacja błędów. Tu była translacja - przenosimy ją do klienta, zanim usuniemy pośrednika.
+<strong>Snapshot:</strong> <code>step1/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s11 0 1</code></p>
+<h3 id="krok-2-pierwszy-klient-rozmawia-z-katalogiem" tabindex="-1"><a class="header-anchor" href="#krok-2-pierwszy-klient-rozmawia-z-katalogiem"><span>Krok 2: pierwszy klient rozmawia z katalogiem</span></a></h3>
+<p><strong>W IDE:</strong> w <code>SeatBadge</code> Change Signature (⌘F6) konstruktora: <code>CinemaFacade</code> na <code>ScreeningCatalog</code>, pole przez ⇧F6 na <code>catalog</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">public</span> <span class="hljs-title function_">SeatBadge</span><span class="hljs-params">(ScreeningCatalog catalog)</span> {
+    <span class="hljs-built_in">this</span>.catalog = Objects.requireNonNull(catalog, <span class="hljs-string">&quot;catalog&quot;</span>);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> jeden klient naraz. <code>DailyBoard</code> wciąż używa fasady i działa.
+<strong>Snapshot:</strong> <code>step2/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s11 1 2</code></p>
+<h3 id="krok-3-ostatni-klient-i-safe-delete-fasady" tabindex="-1"><a class="header-anchor" href="#krok-3-ostatni-klient-i-safe-delete-fasady"><span>Krok 3: ostatni klient i Safe Delete fasady</span></a></h3>
+<p><strong>W IDE:</strong> ten sam ruch w <code>DailyBoard</code> (<code>cinema.screenings()</code> na <code>catalog.all()</code>), potem Safe Delete (⌘⌦) na <code>CinemaFacade</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">return</span> catalog.all().stream()
+        .map(screening -&gt; screening.id() + <span class="hljs-string">&quot; &quot;</span> + screening.title() + <span class="hljs-string">&quot; &quot;</span> + screening.format())
+        .collect(Collectors.joining(<span class="hljs-string">&quot;\n&quot;</span>));
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> odwrotny ruch to Hide Delegate. Fasada modułu albo seam testowy mogą być wartościowe - usuwamy pośrednika, który nic nie wnosi.
+<strong>Snapshot:</strong> <code>step3/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s11 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-10" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-10"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>step3</code>: dwaj klienci zależą od <code>ScreeningCatalog</code>, zachowanie dla nieznanego seansu zachowane w jedynym miejscu, które go potrzebuje. Test <code>catalogItselfRejectsUnknownScreening</code> pokazuje, dlaczego krok 1 był konieczny.</p>
+<h3 id="pulapki-10" tabindex="-1"><a class="header-anchor" href="#pulapki-10"><span>Pułapki</span></a></h3>
+<ul>
+<li>Inline wszystkich metod fasady naraz (IntelliJ: Refactor → Remove Middleman) bez sprawdzenia, że któraś tłumaczy błędy.</li>
+<li>Usunięcie fasady, która jest granicą modułu (klienci z innych pakietów zaczną zależeć od szczegółów).</li>
+<li>Utrwalenie dziwnego zachowania (&quot;nieznany = wyprzedany&quot;) bez notatki - to kandydat na osobną decyzję.</li>
+</ul>
+<h3 id="pytanie-do-sali-10" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-10"><span>Pytanie do sali</span></a></h3>
+<p>Czy &quot;nieznany seans = WYPRZEDANE&quot; to błąd? Kiedy wolno go poprawić?</p>
+<h2 id="scena-s12-return-asap-wyszukiwanie-wolnego-miejsca" tabindex="-1"><a class="header-anchor" href="#scena-s12-return-asap-wyszukiwanie-wolnego-miejsca"><span>Scena s12. Return ASAP - wyszukiwanie wolnego miejsca</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 13. Return ASAP
+<strong>Pakiet:</strong> <code>pl.training.workshop.m7.s12_returnasap</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s12</code>
+<strong>Czas:</strong> ~8 min</p>
+<h3 id="co-widzimy-11" tabindex="-1"><a class="header-anchor" href="#co-widzimy-11"><span>Co widzimy</span></a></h3>
+<p><code>SeatFinder</code> ma dwie metody w stylu &quot;jeden punkt wyjścia&quot;: <code>seatClass</code> z zagnieżdżonymi <code>if</code> i zmienną <code>result</code>, oraz <code>firstFree</code> z pętlą <code>while (!found &amp;&amp; index &lt; size)</code>. Licznik <code>inspected</code> (metryka dla działu IT) jest efektem ubocznym, który musi przetrwać zmianę.</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">while</span> (!found &amp;&amp; index &lt; seats.size()) {
+    <span class="hljs-type">Seat</span> <span class="hljs-variable">seat</span> <span class="hljs-operator">=</span> seats.get(index);
+    inspected++;
+    <span class="hljs-keyword">if</span> (seat.row() &gt;= minRow &amp;&amp; !seat.taken()) {
+        result = seat.label();
+        found = <span class="hljs-literal">true</span>;
+    }
+    index++;
+}
+</code></pre>
+<h3 id="krok-1-guard-clauses" tabindex="-1"><a class="header-anchor" href="#krok-1-guard-clauses"><span>Krok 1: guard clauses</span></a></h3>
+<p><strong>W IDE:</strong> w <code>seatClass</code> odwróć zewnętrzne <code>if</code> (⌥⏎ → Invert 'if' condition), zamień przypisania <code>result = ...</code> na <code>return ...</code>, na końcu Inline (⌥⌘N) <code>result</code>. W <code>firstFree</code> guard <code>if (seats == null) return Optional.empty();</code> zamiast otaczającego <code>if</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">if</span> (seat == <span class="hljs-literal">null</span>) { <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;BRAK&quot;</span>; }
+<span class="hljs-keyword">if</span> (seat.taken()) { <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;ZAJETE&quot;</span>; }
+<span class="hljs-keyword">if</span> (seat.row() &gt;= vipFromRow) { <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;VIP&quot;</span>; }
+<span class="hljs-keyword">return</span> <span class="hljs-string">&quot;STANDARD&quot;</span>;
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s12</code> - 12 testów zielonych.
+<strong>Co powiedzieć:</strong> kolejność sprawdzeń zachowana: miejsce zajęte w rzędzie VIP to nadal &quot;ZAJETE&quot;.
+<strong>Snapshot:</strong> <code>step1/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s12 0 1</code></p>
+<h3 id="krok-2-return-asap-w-petli" tabindex="-1"><a class="header-anchor" href="#krok-2-return-asap-w-petli"><span>Krok 2: Return ASAP w pętli</span></a></h3>
+<p><strong>W IDE:</strong> zamień <code>result = seat.label(); found = true;</code> na <code>return Optional.of(seat.label());</code>, usuń <code>found</code> i <code>result</code>, ręcznie zamień <code>while</code> na <code>for</code> z licznikiem <code>index</code>. Ostatnia linia <code>return Optional.empty();</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">index</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; index &lt; seats.size(); index++) {
+    <span class="hljs-type">Seat</span> <span class="hljs-variable">seat</span> <span class="hljs-operator">=</span> seats.get(index);
+    inspected++;
+    <span class="hljs-keyword">if</span> (seat.row() &gt;= minRow &amp;&amp; !seat.taken()) {
+        <span class="hljs-keyword">return</span> Optional.of(seat.label());
+    }
+}
+<span class="hljs-keyword">return</span> Optional.empty();
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony - &quot;sprawdzono=3&quot; dla pierwszego wolnego VIP.
+<strong>Co powiedzieć:</strong> zwracamy tam, gdzie wynik jest ostateczny, ale <strong>po</strong> <code>inspected++</code>. Gdyby <code>return</code> trafił przed inkrementację, licznik różniłby się o jeden i test by to złapał.
+<strong>Snapshot:</strong> <code>step2/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s12 1 2</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-11" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-11"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>step2/<wbr>SeatFinder</code>: bez flag i zmiennych wyniku, <code>size()</code>/<code>get(index)</code> zachowane (iterator zmieniłby sposób dostępu do listy, np. dla listy leniwej albo z licznikiem wywołań).</p>
+<h3 id="pulapki-11" tabindex="-1"><a class="header-anchor" href="#pulapki-11"><span>Pułapki</span></a></h3>
+<ul>
+<li><code>return</code> w <code>try</code> uruchamia <code>finally</code>, a nagłe zakończenie <code>finally</code> może zastąpić wynik.</li>
+<li>Wczesny <code>return</code> przed wymaganą mutacją (licznik, log, zwolnienie blokady).</li>
+<li>&quot;Przy okazji&quot; zamiana na stream z <code>findFirst</code> - inny sposób iteracji i inne zachowanie dla <code>null</code> w liście.</li>
+</ul>
+<h3 id="pytanie-do-sali-11" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-11"><span>Pytanie do sali</span></a></h3>
+<p>Czy reguła &quot;jeden return na metodę&quot; ma jeszcze sens w Javie z try-with-resources?</p>
+<h2 id="scena-s13-remove-god-class-kampania-na-kopii-cinemamanager" tabindex="-1"><a class="header-anchor" href="#scena-s13-remove-god-class-kampania-na-kopii-cinemamanager"><span>Scena s13. Remove God Class - kampania na kopii CinemaManager</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 10. Remove God Classes - kampania, nie pojedynczy ruch; Remove God Classes - wydzielony fragment i ryzyka; Warsztat 3 (kontekst)
+<strong>Pakiet:</strong> <code>pl.training.workshop.m7.s13_godclass</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s13</code>
+<strong>Czas:</strong> ~30 min</p>
+<h3 id="co-widzimy-12" tabindex="-1"><a class="header-anchor" href="#co-widzimy-12"><span>Co widzimy</span></a></h3>
+<p><code>start/<wbr>CinemaManager</code> to kopia legacy (razem z <code>LegacyDb</code>, <code>LegacyMailer</code>, <code>LegacyPaymentGateway</code>) - 300 linii, dane w <code>Object[]</code> z magicznymi indeksami, cennik, płatności, zwroty, lojalność, powiadomienia, raporty i rozliczenia w jednej klasie. Zanim cokolwiek ruszysz, pokaż mapę: metody, pola <code>LegacyDb</code>, efekty (mail, SMS, bramka).</p>
+<pre class="code" data-lang="java"><code class="hljs">LegacyDb.BOOKINGS.put(id, <span class="hljs-keyword">new</span> <span class="hljs-title class_">Object</span>[] {screeningId, email, phone,
+        seats, types, web, total, <span class="hljs-number">0</span>, clock.get(), <span class="hljs-literal">null</span>, sum});
+...
+<span class="hljs-type">int</span> <span class="hljs-variable">points</span> <span class="hljs-operator">=</span> (<span class="hljs-type">int</span>) (((Double) b[<span class="hljs-number">10</span>]) / <span class="hljs-number">10</span>);
+</code></pre>
+<p>Ochrona: <code>S13GoldenMasterTest</code> puszcza ten sam scenariusz &quot;jednego dnia kina&quot; co golden master legacy (<code>S13Script</code>) i porównuje <strong>pełny wektor</strong>: wyniki wywołań, maile, SMS-y, operacje bramki, raport dzienny i rozliczenia. Oczekiwany tekst to kopia <code>cinema-manager.approved.txt</code>. Każdy wariant ma adapter <code>Driver</code> w pakiecie testowym (dostęp do haka <code>clock</code>).</p>
+<h3 id="krok-1-wycinek-cennik-pricingservice" tabindex="-1"><a class="header-anchor" href="#krok-1-wycinek-cennik-pricingservice"><span>Krok 1: wycinek &quot;cennik&quot; - PricingService</span></a></h3>
+<p><strong>W IDE:</strong> w <code>book</code> zaznacz pętlę cen i rabat grupowy razem z zaokrągleniem, ⌥⌘M <code>ticketsSum</code>. Zamień parametr <code>Object[] s</code> na trzy wartości (Change Signature ⌘F6: <code>format</code>, <code>start</code>, <code>vipFromRow</code>). Wydziel <code>bookingFee</code>. Move (F6) obu metod do nowej klasy <code>PricingService</code>, pole w <code>CinemaManager</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">double</span> <span class="hljs-variable">sum</span> <span class="hljs-operator">=</span> pricing.ticketsSum((Integer) s[<span class="hljs-number">1</span>], (LocalDateTime) s[<span class="hljs-number">2</span>], (Integer) s[<span class="hljs-number">5</span>],
+        seats, types, ownGlasses);
+<span class="hljs-type">double</span> <span class="hljs-variable">total</span> <span class="hljs-operator">=</span> sum + pricing.bookingFee(web, seats.length);
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s13</code> - golden master zielony dla start i step1.
+<strong>Co powiedzieć:</strong> cennik ma jednego właściciela i nie zna układu <code>Object[]</code>. Arytmetyka <code>double</code> przeniesiona dosłownie - naprawa typu pieniędzy to osobna decyzja (scena s14).
+<strong>Snapshot:</strong> <code>step1/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s13 0 1</code></p>
+<h3 id="krok-2-wycinek-powiadomienia-notificationservice" tabindex="-1"><a class="header-anchor" href="#krok-2-wycinek-powiadomienia-notificationservice"><span>Krok 2: wycinek &quot;powiadomienia&quot; - NotificationService</span></a></h3>
+<p><strong>W IDE:</strong> każde wywołanie <code>LegacyMailer.send/<wbr>sms</code> wydziel (⌥⌘M) do metody o nazwie zdarzenia: <code>bookingCreated</code>, <code>paymentDeclined</code>, <code>ticketsPaid</code> (mail i SMS razem), <code>bookingExpired</code>, <code>bookingCancelled</code>. Move (F6) do <code>NotificationService</code>. <code>fmt</code> przenieś do <code>Formats.amount</code>, w <code>CinemaManager</code> zostaw delegację.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs">notifications.ticketsPaid(email, (String) b[<span class="hljs-number">2</span>], bookingId, (Double) b[<span class="hljs-number">6</span>], points);
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> <code>CinemaManager</code> decyduje KIEDY powiadomić, <code>NotificationService</code> - CO i JAK. Kolejność efektów (mail przed SMS, powiadomienie po zapisie rezerwacji) jest częścią wektora - golden master pilnuje jej co do linii.
+<strong>Snapshot:</strong> <code>step2/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s13 1 2</code></p>
+<h3 id="krok-3-wycinek-rezerwacje-booking-i-bookingrepository-zamiast-object" tabindex="-1"><a class="header-anchor" href="#krok-3-wycinek-rezerwacje-booking-i-bookingrepository-zamiast-object"><span>Krok 3: wycinek &quot;rezerwacje&quot; - Booking i BookingRepository zamiast Object[]</span></a></h3>
+<p><strong>W IDE:</strong> utwórz klasę <code>Booking</code> z nazwanymi polami (status zostaje kodem <code>int</code>), <code>BookingRepository</code> z <code>nextId</code>, <code>save</code>, <code>find</code>, <code>all</code>. Zmień typ mapy <code>LegacyDb.BOOKINGS</code> na <code>Map&lt;String, Booking&gt;</code> i napraw błędy kompilacji jeden po drugim: <code>b[7]</code> na <code>b.status()</code>, <code>b[10]</code> na <code>b.ticketsSum()</code>...
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">Booking</span> <span class="hljs-variable">b</span> <span class="hljs-operator">=</span> bookings.find(bookingId);
+...
+b.markPaid(card);
+<span class="hljs-type">int</span> <span class="hljs-variable">points</span> <span class="hljs-operator">=</span> (<span class="hljs-type">int</span>) (b.ticketsSum() / <span class="hljs-number">10</span>);
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> kompilator prowadzi tę migrację - każdy magiczny indeks staje się błędem do naprawy. Magazyn zostaje globalny (<code>LegacyDb</code>), więc współdzielenie stanu między instancjami się nie zmienia. Przeniesienie mapy do instancji repozytorium zmieniłoby semantykę - to osobny krok.
+<strong>Snapshot:</strong> <code>step3/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s13 2 3</code></p>
+<h3 id="krok-4-wycinek-raporty-reportservice" tabindex="-1"><a class="header-anchor" href="#krok-4-wycinek-raporty-reportservice"><span>Krok 4: wycinek &quot;raporty&quot; - ReportService</span></a></h3>
+<p><strong>W IDE:</strong> na <code>dailyReport</code> i <code>settlement</code> Move (F6) do nowej klasy <code>ReportService</code> z zależnością <code>BookingRepository</code>. W <code>CinemaManager</code> zostają metody delegujące (stare API).
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">dailyReport</span><span class="hljs-params">(LocalDate day)</span> {
+    <span class="hljs-keyword">return</span> reports.dailyReport(day);
+}
+
+<span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">settlement</span><span class="hljs-params">(String title, <span class="hljs-type">int</span> week)</span> {
+    <span class="hljs-keyword">return</span> reports.settlement(title, week);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> raporty czytają rezerwacje przez repozytorium, więc zmiana magazynu nie dotknie raportów. Kampanię kontynuujemy (zwroty, lojalność, repertuar), dopóki przynosi wartość dla planowanych zmian - nie przepisujemy wszystkiego.
+<strong>Snapshot:</strong> <code>step4/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s13 3 4</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-12" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-12"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>step4</code>: <code>CinemaManager</code> jest fasadą o niezmienionym publicznym API, cztery wydzielone klasy mają po jednym powodzie zmiany, a dane rezerwacji mają nazwany typ i jednego właściciela dostępu. Cztery kroki, cztery commity, po każdym identyczny wektor zachowania.</p>
+<h3 id="pulapki-12" tabindex="-1"><a class="header-anchor" href="#pulapki-12"><span>Pułapki</span></a></h3>
+<ul>
+<li>&quot;Przepiszmy to od nowa&quot; zamiast pionowych wycinków - brak punktu, w którym system jest zielony.</li>
+<li>Zmiana kolejności efektów przy wydzielaniu (np. SMS przed mailem, mail przed zapisem rezerwacji) - golden master pokazuje różnicę w jednej linii.</li>
+<li>Poprawianie błędów &quot;przy okazji&quot; (np. <code>double</code> na <code>BigDecimal</code>) w kroku strukturalnym.</li>
+<li>Przeniesienie stanu do instancji usługi: zmiana współdzielenia i czasu życia.</li>
+<li>Transakcje: przykład nie zapewnia atomowości - wyjątek w <code>NotificationService</code> po zapisie rezerwacji zostawia rezerwację bez maila. To było tak samo przed zmianą, ale po wydzieleniu łatwiej to przeoczyć. Atomowość (transakcja, outbox, kompensacja) to osobna decyzja.</li>
+</ul>
+<h3 id="pytanie-do-sali-12" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-12"><span>Pytanie do sali</span></a></h3>
+<p>Który wycinek zrobilibyście jako następny, jeśli za tydzień dochodzi nowa zasada zwrotów?</p>
+<h2 id="scena-s14-refaktoryzacja-a-zmiana-kontraktu-zwrot-na-bigdecimal" tabindex="-1"><a class="header-anchor" href="#scena-s14-refaktoryzacja-a-zmiana-kontraktu-zwrot-na-bigdecimal"><span>Scena s14. Refaktoryzacja a zmiana kontraktu - zwrot na BigDecimal</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> Refaktoryzacja a zmiana kontraktu; Pętla pracy (zmiany kontraktu w osobnych krokach)
+<strong>Pakiet:</strong> <code>pl.training.workshop.m7.s14_contractchange</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s14</code>
+<strong>Czas:</strong> ~10 min</p>
+<h3 id="co-widzimy-13" tabindex="-1"><a class="header-anchor" href="#co-widzimy-13"><span>Co widzimy</span></a></h3>
+<p><code>RefundCalculator.refund</code> liczy zwrot na <code>double</code> - dokładnie jak w legacy: 100%, 50% albo 0%, minus 3.00, nie poniżej zera, zaokrąglenie <code>Math.round(x * 100) /<wbr> 100.0</code>, format <code>%.2f</code>. Kontraktem jest także <strong>format</strong>: zawsze dwa miejsca po przecinku.</p>
+<pre class="code" data-lang="java"><code class="hljs">refund = refund - <span class="hljs-number">3.00</span>;
+<span class="hljs-keyword">if</span> (refund &lt; <span class="hljs-number">0</span>) {
+    refund = <span class="hljs-number">0</span>;
+}
+refund = Math.round(refund * <span class="hljs-number">100</span>) / <span class="hljs-number">100.0</span>;
+<span class="hljs-keyword">return</span> String.format(Locale.ROOT, <span class="hljs-string">&quot;%.2f&quot;</span>, refund);
+</code></pre>
+<h3 id="krok-1-czysta-refaktoryzacja" tabindex="-1"><a class="header-anchor" href="#krok-1-czysta-refaktoryzacja"><span>Krok 1: czysta refaktoryzacja</span></a></h3>
+<p><strong>W IDE:</strong> zaznacz łańcuch <code>if/<wbr>else</code> wyboru udziału, ⌥⌘M, nazwa <code>share</code>, zwraca <code>double</code> (0, 1.0, 0.5). W <code>refund</code> jedno wyrażenie <code>ticketsPaid * share(minutes) - 3.00</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">double</span> <span class="hljs-variable">refund</span> <span class="hljs-operator">=</span> ticketsPaid * share(minutesBeforeStart) - <span class="hljs-number">3.00</span>;
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s14</code> - wszystko zielone, łącznie z przypadkami brzegowymi (29.17 i 0.00).
+<strong>Co powiedzieć:</strong> <code>x * 1.0 == x</code> w <code>double</code> - arytmetyka jest identyczna co do bitu. To jest refaktoryzacja.
+<strong>Snapshot:</strong> <code>step1/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s14 0 1</code></p>
+<h3 id="krok-2-przy-okazji-double-na-bigdecimal" tabindex="-1"><a class="header-anchor" href="#krok-2-przy-okazji-double-na-bigdecimal"><span>Krok 2: &quot;przy okazji&quot; double na BigDecimal</span></a></h3>
+<p><strong>W IDE:</strong> pokaż naiwny ruch: <code>share</code> zwraca <code>BigDecimal</code>, liczymy <code>BigDecimal.valueOf(ticketsPaid).multiply(...).subtract(FEE).setScale(2, HALF_UP).max(BigDecimal.ZERO)</code>, zwracamy <code>toPlainString()</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">BigDecimal</span> <span class="hljs-variable">refund</span> <span class="hljs-operator">=</span> BigDecimal.valueOf(ticketsPaid)
+        .multiply(share(minutesBeforeStart))
+        .subtract(FEE)
+        .setScale(<span class="hljs-number">2</span>, RoundingMode.HALF_UP)
+        .max(BigDecimal.ZERO);
+<span class="hljs-keyword">return</span> refund.toPlainString();
+</code></pre>
+<p><strong>Uruchom:</strong> test zwykłych zwrotów zielony, ale <code>byTheWayStepChangedTwoThingsAtOnce</code> dokumentuje dwie zmiany: 64.35 zapłacone, anulowanie 2 h przed seansem daje 29.18 zamiast 29.17, a zwrot po starcie to &quot;0&quot; zamiast &quot;0.00&quot;.
+<strong>Co powiedzieć:</strong> krok wyglądał na porządki, a zmienił dwa elementy kontraktu. Pierwszy (grosz) można uzasadnić regułą domeny, drugi (format) to czysta regresja - paragon i mail pokażą &quot;Zwrot: 0&quot;.
+<strong>Snapshot:</strong> <code>step2/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s14 1 2</code></p>
+<h3 id="krok-3-swiadoma-decyzja" tabindex="-1"><a class="header-anchor" href="#krok-3-swiadoma-decyzja"><span>Krok 3: świadoma decyzja</span></a></h3>
+<p><strong>W IDE:</strong> przestaw <code>max</code> przed <code>setScale(2, HALF_UP)</code> - format &quot;0.00&quot; wraca. Różnicę groszową zatwierdzamy jako zmianę kontraktu: Javadoc z decyzją, nowe oczekiwanie w teście, osobny commit.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">BigDecimal</span> <span class="hljs-variable">refund</span> <span class="hljs-operator">=</span> BigDecimal.valueOf(ticketsPaid)
+        .multiply(share(minutesBeforeStart))
+        .subtract(FEE)
+        .max(BigDecimal.ZERO)
+        .setScale(<span class="hljs-number">2</span>, RoundingMode.HALF_UP);
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony: <code>deliberateStepChangesOnlyTheApprovedRounding</code>.
+<strong>Co powiedzieć:</strong> kryterium refaktoryzacji to &quot;klient nie dostrzega żadnej <strong>nieuzgodnionej</strong> różnicy&quot;. Różnicę w groszach uzgodniliśmy, różnicy w formacie nie.
+<strong>Snapshot:</strong> <code>step3/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s14 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-13" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-13"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>step3/<wbr>RefundCalculator</code>: <code>BigDecimal</code> i HALF_UP zgodnie z regułą domeny, format bez zmian. Historia commitów: refaktoryzacja (krok 1), zmiana typu i reguły zaokrąglenia jako jawna zmiana kontraktu (krok 3). Krok 2 nie powinien trafić do repozytorium.</p>
+<h3 id="pulapki-13" tabindex="-1"><a class="header-anchor" href="#pulapki-13"><span>Pułapki</span></a></h3>
+<ul>
+<li>Test tylko na &quot;okrągłych&quot; kwotach - <code>double</code> i <code>BigDecimal</code> dają ten sam wynik i zmiana przechodzi niezauważona.</li>
+<li><code>new BigDecimal(double)</code> zamiast <code>BigDecimal.valueOf(double)</code> - binarne rozwinięcie (64.349999...) i inny wynik zaokrąglenia.</li>
+<li><code>BigDecimal.equals</code> porównuje skalę (&quot;0&quot; różni się od &quot;0.00&quot;), <code>compareTo</code> nie.</li>
+<li>Zmiana typu wyjątku, kolejności efektów albo formatu &quot;bo i tak ruszamy ten kod&quot;.</li>
+</ul>
+<h3 id="pytanie-do-sali-13" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-13"><span>Pytanie do sali</span></a></h3>
+<p>Kto zatwierdza zmianę kontraktu o 1 grosz: programista, księgowość czy klient API?</p>
+<h2 id="scena-s15-wektor-obserwowalnego-zachowania-platnosc-za-bilety" tabindex="-1"><a class="header-anchor" href="#scena-s15-wektor-obserwowalnego-zachowania-platnosc-za-bilety"><span>Scena s15. Wektor obserwowalnego zachowania - płatność za bilety</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> Wektor obserwowalnego zachowania; Lista kontrolna przeglądu (zachowanie)
+<strong>Pakiet:</strong> <code>pl.training.workshop.m7.s15_behaviourvector</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s15</code>
+<strong>Czas:</strong> ~12 min</p>
+<h3 id="co-widzimy-14" tabindex="-1"><a class="header-anchor" href="#co-widzimy-14"><span>Co widzimy</span></a></h3>
+<p><code>TicketCheckout.pay</code> to kod <strong>po</strong> &quot;porządkach&quot; kolegi (Consolidate Duplicate Conditional Fragments): mail potwierdzający wysunięto za <code>if</code>, więc dostaje go także klient z odrzuconą kartą. Mailer i terminal są statyczne - z testu widać tylko wynik. <code>S15ResultOnlyTest</code> jest zielony dla każdego wariantu. Regresja przeszła.</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">if</span> (charged) {
+    booking.markPaid();
+} <span class="hljs-keyword">else</span> {
+    CinemaMailer.send(booking.email(), <span class="hljs-string">&quot;Platnosc odrzucona &quot;</span> + booking.id());
+}
+CinemaMailer.send(booking.email(), <span class="hljs-string">&quot;Bilety &quot;</span> + booking.id() + <span class="hljs-string">&quot; oplacone: &quot;</span> + booking.amount());
+<span class="hljs-keyword">return</span> charged ? <span class="hljs-string">&quot;OK&quot;</span> : <span class="hljs-string">&quot;DECLINED&quot;</span>;
+</code></pre>
+<p>Pokaż tabelę ze slajdu: wynik, wyjątki, stan, współpracownicy, czas, granice. Które z nich ten test widzi?</p>
+<h3 id="krok-1-seam-dla-maili-regresja-staje-sie-widoczna" tabindex="-1"><a class="header-anchor" href="#krok-1-seam-dla-maili-regresja-staje-sie-widoczna"><span>Krok 1: seam dla maili - regresja staje się widoczna</span></a></h3>
+<p><strong>W IDE:</strong> utwórz <code>@FunctionalInterface Mailer</code>, Parameterize Constructor, domyślny konstruktor <code>this(CinemaMailer::send)</code>, zamień statyczne wywołania na <code>mailer.send(...)</code>. Logika bez zmian.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">public</span> <span class="hljs-title function_">TicketCheckout</span><span class="hljs-params">()</span> {
+    <span class="hljs-built_in">this</span>(CinemaMailer::send);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s15</code> - zielony. <code>step1SeesTheRegressionThatResultOnlyTestMissed</code> dokumentuje, że po odrzuceniu karty idą dwa maile: &quot;Platnosc odrzucona&quot; i &quot;Bilety B1 oplacone&quot;.
+<strong>Co powiedzieć:</strong> kod się nie zmienił, zmieniło się to, co widzimy. Test z samym wynikiem nie mógł tego wykryć.
+<strong>Snapshot:</strong> <code>step1/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s15 0 1</code></p>
+<h3 id="krok-2-naprawa-regresji-pod-ochrona-testu" tabindex="-1"><a class="header-anchor" href="#krok-2-naprawa-regresji-pod-ochrona-testu"><span>Krok 2: naprawa regresji pod ochroną testu</span></a></h3>
+<p><strong>W IDE:</strong> przenieś wysyłkę potwierdzenia do gałęzi sukcesu, zamień <code>charged ? &quot;OK&quot; : &quot;DECLINED&quot;</code> na dwa <code>return</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">if</span> (CardTerminal.charge(card, booking.amount())) {
+    booking.markPaid();
+    mailer.send(booking.email(), <span class="hljs-string">&quot;Bilety &quot;</span> + booking.id() + <span class="hljs-string">&quot; oplacone: &quot;</span> + booking.amount());
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;OK&quot;</span>;
+}
+mailer.send(booking.email(), <span class="hljs-string">&quot;Platnosc odrzucona &quot;</span> + booking.id());
+<span class="hljs-keyword">return</span> <span class="hljs-string">&quot;DECLINED&quot;</span>;
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony: <code>fromStep2MailsAreCorrect</code>.
+<strong>Co powiedzieć:</strong> to naprawa błędu, nie refaktoryzacja - przywracamy kontrakt sprzed &quot;porządków&quot;. Wynik metody się nie zmienia, zmienia się efekt uboczny.
+<strong>Snapshot:</strong> <code>step2/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s15 1 2</code></p>
+<h3 id="krok-3-seam-dla-platnosci-i-pelny-wektor" tabindex="-1"><a class="header-anchor" href="#krok-3-seam-dla-platnosci-i-pelny-wektor"><span>Krok 3: seam dla płatności i pełny wektor</span></a></h3>
+<p><strong>W IDE:</strong> utwórz <code>@FunctionalInterface PaymentGateway</code>, drugi parametr konstruktora, domyślnie <code>CardTerminal::charge</code>. W teście oba fałszywe obiekty zapisują do <strong>jednego</strong> dziennika zdarzeń.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">public</span> <span class="hljs-title function_">TicketCheckout</span><span class="hljs-params">()</span> {
+    <span class="hljs-built_in">this</span>(CinemaMailer::send, CardTerminal::charge);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony: <code>step3ObservesTheFullVector</code> sprawdza wynik albo wyjątek (typ i komunikat), obciążenia i maile w jednej kolejności oraz status rezerwacji po operacji.
+<strong>Co powiedzieć:</strong> jeden dziennik dla wszystkich współpracowników pokazuje kolejność: najpierw obciążenie, potem mail. Stan po błędzie (<code>NEW</code> po odrzuceniu) i brak efektów przy wyjątku też są częścią kontraktu.
+<strong>Snapshot:</strong> <code>step3/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m7/<wbr>s15 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-14" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-14"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>step3/<wbr>TicketCheckout</code> z dwoma seamami i test, który obserwuje pięć wymiarów wektora: wynik, wyjątek, efekty, kolejność efektów i stan. Granica kontraktu jest świadomą decyzją, a nie skutkiem zbyt słabego testu.</p>
+<h3 id="pulapki-14" tabindex="-1"><a class="header-anchor" href="#pulapki-14"><span>Pułapki</span></a></h3>
+<ul>
+<li>Test &quot;zielony, bo nic nie sprawdza&quot; - pokrycie linii 100%, a efekty uboczne niewidoczne.</li>
+<li>Osobne listy dla maili i obciążeń - kolejność między współpracownikami ginie.</li>
+<li>Sprawdzanie komunikatu wyjątku bez sprawdzenia, że nie było efektów przed wyjątkiem.</li>
+<li>Logi: jeśli ktoś je parsuje (alerty, audyt), też należą do wektora - wtedy potrzebny kolejny seam.</li>
+</ul>
+<h3 id="pytanie-do-sali-14" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-14"><span>Pytanie do sali</span></a></h3>
+<p>Które elementy wektora sprawdzają testy w Waszym najważniejszym module? Czego nie widzą?</p>
+<h2 id="proponowana-kolejnosc-pokazu" tabindex="-1"><a class="header-anchor" href="#proponowana-kolejnosc-pokazu"><span>Proponowana kolejność pokazu</span></a></h2>
+<p><strong>Ścieżka krótka (~85 min):</strong> model bezpieczeństwa i najczęstsze ruchy.</p>
+<ol>
+<li>s15 Wektor obserwowalnego zachowania, kroki 1 i 3 (~10 min) - ustawia język na cały moduł</li>
+<li>s01 Break Dependencies, kroki 1, 3 i 4 (~15 min)</li>
+<li>s02 Extract Method Object (~12 min)</li>
+<li>s07 Remove Arrowhead, krok 1 i 3 z naiwnym ruchem na żywo (~8 min)</li>
+<li>s06 Introduce Parameter Object, kroki 1 i 3 (~8 min)</li>
+<li>s14 Refaktoryzacja a zmiana kontraktu (~10 min)</li>
+<li>s13 Remove God Class, kroki 1 i 3 (~20 min)</li>
+</ol>
+<p><strong>Ścieżka pełna (~200 min):</strong> kolejność slajdów modułu.</p>
+<ol>
+<li>Model bezpieczeństwa: s15, s14 (~22 min)</li>
+<li>Zależności i struktura: s01, s02, s03, s04, s05 (~69 min)</li>
+<li>Sygnatury i warunki: s06, s07, s08, s09 (~40 min)</li>
+<li>Klasy i API: s13, s10, s11, s12 (~58 min)</li>
+</ol>
+<p>Po s05 i po s09 zrób przerwę na pytania. Sceny s03, s05, s09, s11 i s12 dobrze nadają się na samodzielną pracę uczestników, jeśli brakuje czasu na pokaz (patrz plik zadań modułu 7).</p>
+
+</main>
+</div>
+<script>if(matchMedia('(max-width:900px)').matches){var d=document.querySelector('.toc details');if(d)d.open=false}</script>
+</body>
+</html>

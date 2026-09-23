@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zadania: Moduł 8. Strategie i dobre praktyki - warsztat CineLegacy: zadania</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1d1f23;--muted:#5f6670;--line:#e3e5e8;--card:#ffffff;--accent:#2457c5;--accent-bg:#eef3fd;
+--code-bg:#f4f5f7;--note-bg:#fff7e6;--note-line:#e6a700;--th:#f1f3f6;
+--k:#b3246b;--s:#1a7f37;--c:#6e7781;--n:#0550ae;--t:#8250df;--f:#6639ba;--a:#953800;
+--kind:#2457c5}
+@media (prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3036;--card:#1c1f23;--accent:#7aa7ff;--accent-bg:#1e2a40;
+--code-bg:#1f2328;--note-bg:#2b2412;--note-line:#c99400;--th:#23272d;
+--k:#ff7b9c;--s:#7ee2a0;--c:#8b949e;--n:#79c0ff;--t:#d2a8ff;--f:#d2a8ff;--a:#ffa657}}
+body.zadania{--kind:#1a7f37} body.warsztat{--kind:#c2570c} body.warsztat-zadania{--kind:#0f7b7b} body.rozwiazania{--kind:#b3246b} body.przyklady{--kind:#2457c5}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.topbar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 24px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);border-top:3px solid var(--kind)}
+.topbar a{color:var(--fg);text-decoration:none}
+.home{font-weight:600}
+.tabs{display:flex;gap:4px}
+.tab{padding:4px 12px;border-radius:999px;font-size:15px;color:var(--muted)!important}
+.tab:hover{background:var(--code-bg)}
+.tab.active{background:var(--accent-bg);color:var(--accent)!important;font-weight:600}
+.pager{margin-left:auto;display:flex;gap:14px;font-size:15px}
+.pager a{color:var(--muted)}.pager a:hover{color:var(--accent)}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:48px;max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+.layout.no-toc{grid-template-columns:minmax(0,1fr);max-width:1000px}
+aside{position:sticky;top:72px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px}
+.toc-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;font-weight:600}
+.toc ul{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.toc li a{display:block;padding:3px 12px;color:var(--muted);text-decoration:none;line-height:1.35}
+.toc li.h3 a{padding-left:24px;font-size:13px}
+.toc li a:hover{color:var(--accent)}
+main{min-width:0;max-width:860px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 1.2rem;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:2.6rem 0 .8rem;padding-top:.6rem;border-top:1px solid var(--line)}
+h3{font-size:1.18rem;margin:2rem 0 .6rem}
+h4{font-size:1rem;margin:1.5rem 0 .5rem}
+h1 a,h2 a,h3 a,h4 a{color:inherit;text-decoration:none}
+h2 a:hover::after,h3 a:hover::after{content:" #";color:var(--muted)}
+p,ul,ol{margin:.6rem 0 1rem}
+li{margin:.25rem 0}
+li>ul,li>ol{margin:.2rem 0}
+a{color:var(--accent)}
+strong{font-weight:650}
+code{font:0.88em/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre.code{position:relative;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:1rem 0 1.4rem}
+pre.code code{background:none;padding:0;font-size:14px;line-height:1.55}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:6px;right:10px;font:11px ui-monospace,Menlo,monospace;color:var(--muted);text-transform:uppercase}
+.table-wrap{overflow-x:auto;margin:1rem 0 1.4rem;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--th);font-weight:600}
+tr:last-child td{border-bottom:none}
+blockquote{margin:1rem 0 1.4rem;padding:10px 16px;background:var(--note-bg);border-left:4px solid var(--note-line);border-radius:0 8px 8px 0}
+blockquote p{margin:.3rem 0}
+hr{border:none;border-top:1px solid var(--line);margin:2rem 0}
+hr+h2{border-top:none;margin-top:1.4rem}
+main p code,main li code,main td code{overflow-wrap:break-word}
+.toc summary{cursor:pointer;list-style:none}.toc summary::-webkit-details-marker{display:none}
+.hljs-keyword,.hljs-selector-tag,.hljs-built_in,.hljs-literal{color:var(--k)}
+.hljs-string,.hljs-regexp,.hljs-addition{color:var(--s)}
+.hljs-comment,.hljs-quote,.hljs-meta{color:var(--c);font-style:italic}
+.hljs-number,.hljs-symbol{color:var(--n)}
+.hljs-type,.hljs-class .hljs-title,.hljs-title.class_{color:var(--t)}
+.hljs-title,.hljs-title.function_,.hljs-section{color:var(--f)}
+.hljs-attr,.hljs-attribute,.hljs-variable,.hljs-params,.hljs-tag{color:var(--a)}
+.hljs-deletion{color:var(--k)}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:16px;padding:20px 16px 60px}
+aside{position:static;max-height:none;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--card)}
+.toc-title{margin:0}.toc details[open] .toc-title{margin-bottom:8px}.toc summary::after{content:" ▾"}
+body{font-size:16px}.topbar{padding:8px 16px}.pager{margin-left:0}h1{font-size:1.6rem}}
+@media print{.topbar,aside{display:none}.layout{display:block;padding:0}main{max-width:none}
+pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#000;font-size:12pt}}
+</style>
+</head>
+<body class="warsztat-zadania">
+<header class="topbar"><a class="home" href="../../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../00-cinelegacy.html">Warsztat CineLegacy</a><a class="tab active" href="08-strategie-i-dobre-praktyki.html">Zadania</a><a class="tab" href="../przewodnik/08-strategie-i-dobre-praktyki.html">Przewodnik</a></div><div class="pager"><a href="07-zaawansowane-refaktoryzacje.html" title="Poprzedni moduł">&larr; 07</a></div></header>
+<div class="layout">
+<aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#scena-s01-branch-by-abstraction-na-cenniku-z-cinemamanager">Scena s01. Branch by Abstraction na cenniku z CinemaManager</a></li><li class="h2"><a href="#scena-s02-strangler-fig-fasada-ktora-przejmuje-sciezki">Scena s02. Strangler Fig - fasada, która przejmuje ścieżki</a></li><li class="h2"><a href="#scena-s03-rownolegla-weryfikacja-shadow-kalkulatora-cen">Scena s03. Równoległa weryfikacja (shadow) kalkulatora cen</a></li><li class="h2"><a href="#scena-s04-granice-trybu-shadow-efekty-uboczne">Scena s04. Granice trybu shadow - efekty uboczne</a></li><li class="h2"><a href="#scena-s05-boy-scout-rule-mala-poprawa-i-jej-naduzycie">Scena s05. Boy Scout Rule - mała poprawa i jej nadużycie</a></li><li class="h2"><a href="#scena-s06-seria-malych-zmian-gotowych-do-przegladu">Scena s06. Seria małych zmian gotowych do przeglądu</a></li><li class="h2"><a href="#scena-s07-adr-i-wykonywalny-model-decyzji">Scena s07. ADR i wykonywalny model decyzji</a></li><li class="h2"><a href="#scena-s08-bramka-kompilatora-xlintall-werror">Scena s08. Bramka kompilatora -Xlint:all -Werror</a></li><li class="h2"><a href="#scena-s09-codemod-na-compiler-tree-api">Scena s09. Codemod na Compiler Tree API</a></li><li class="h2"><a href="#scena-s10-minimalna-bramka-jakosci-jako-kod">Scena s10. Minimalna bramka jakości jako kod</a></li><li class="h2"><a href="#scena-s11-jawna-polityka-wdrozenia-etapowego">Scena s11. Jawna polityka wdrożenia etapowego</a></li><li class="h2"><a href="#scena-s12-expand-and-contract-format-danych-rezerwacji">Scena s12. Expand and contract - format danych rezerwacji</a></li><li class="h2"><a href="#scena-s13-dokumentacja-zywa-kontra-historyczna">Scena s13. Dokumentacja żywa kontra historyczna</a></li></ul></details></nav></aside>
+<main>
+<h1>Moduł 8. Strategie i dobre praktyki - warsztat CineLegacy: zadania</h1>
+<p>Każda scena ma pakiet <code>start</code> - na nim pracujesz. Po każdym ruchu uruchom test sceny (<code>scripts/<wbr>warsztat.sh test m8/<wbr>sNN</code>) i nie zaglądaj do katalogów <code>stepN</code> przed końcem zadania. Część testów opisuje stan startowy (np. &quot;start wysyła dwa maile&quot;, &quot;start narusza ADR&quot;) - gdy naprawisz <code>start</code>, zmienią kolor na czerwony, a to znaczy, że zadanie jest zrobione. Testy uruchamiaj z katalogu głównego repozytorium. Powrót do stanu wyjściowego: <code>scripts/<wbr>warsztat.sh reset m8/<wbr>sNN</code>.</p>
+<h2 id="scena-s01-branch-by-abstraction-na-cenniku-z-cinemamanager" tabindex="-1"><a class="header-anchor" href="#scena-s01-branch-by-abstraction-na-cenniku-z-cinemamanager"><span>Scena s01. Branch by Abstraction na cenniku z CinemaManager</span></a></h2>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s01_branchbyabstraction.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s01</code>
+<strong>Zadanie:</strong></p>
+<ol>
+<li>Wydziel wyliczenie ceny z <code>BookingService.confirm</code> do osobnej klasy starego cennika, bez poprawiania go.</li>
+<li>Wprowadź abstrakcję <code>TicketPricing</code> zwracającą <code>Money</code> i schowaj za nią stary cennik.</li>
+<li>Dopisz nową implementację obok starej i przełącznik wybierający implementację (domyślnie stara).</li>
+<li>Usuń starą implementację i przełącznik.
+<strong>Podpowiedź:</strong> po krokach 1 i 2 nic nie powinno się zmienić - to jeszcze refaktoryzacja. Konwersja <code>double</code> na <code>Money</code> tylko na granicy starego kodu.
+<strong>Gotowe, gdy:</strong> test równoważności jest zielony po każdym kroku (w kroku 3 dla obu ustawień przełącznika), a na końcu w pakiecie nie ma ani starego cennika, ani przełącznika.</li>
+</ol>
+<h2 id="scena-s02-strangler-fig-fasada-ktora-przejmuje-sciezki" tabindex="-1"><a class="header-anchor" href="#scena-s02-strangler-fig-fasada-ktora-przejmuje-sciezki"><span>Scena s02. Strangler Fig - fasada, która przejmuje ścieżki</span></a></h2>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s02_stranglerfig.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s02</code>
+<strong>Zadanie:</strong></p>
+<ol>
+<li>Postaw przed <code>LegacyCinema</code> fasadę implementującą <code>CinemaApi</code>, która deleguje wszystko 1:1.</li>
+<li>Przenieś rezerwację do nowego modułu, a raport zostaw w legacy.</li>
+<li>Przenieś raport do nowego modułu.</li>
+<li>Usuń <code>LegacyCinema</code>.
+<strong>Podpowiedź:</strong> nowy moduł rezerwacji musi pisać do <code>BookingLedger</code> w tym samym formacie co legacy, inaczej raport legacy się rozjedzie. Dodaj do fasady metodę opisującą, kto obsługuje którą operację.
+<strong>Gotowe, gdy:</strong> scenariusz klienta w teście równoważności daje ten sam wynik na każdym etapie, a na końcu nie ma już klasy <code>LegacyCinema</code>.</li>
+</ol>
+<h2 id="scena-s03-rownolegla-weryfikacja-shadow-kalkulatora-cen" tabindex="-1"><a class="header-anchor" href="#scena-s03-rownolegla-weryfikacja-shadow-kalkulatora-cen"><span>Scena s03. Równoległa weryfikacja (shadow) kalkulatora cen</span></a></h2>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s03_parallelrun.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s03</code>
+<strong>Zadanie:</strong></p>
+<ol>
+<li>Uruchamiaj kandydata w cieniu starego kalkulatora - klient zawsze dostaje wynik legacy, a wyjątek kandydata nie może przerwać sprzedaży.</li>
+<li>Zbieraj wynik porównania w raporcie, który odróżnia zgodność, rozbieżność i awarię kandydata.</li>
+<li>Na podstawie raportu popraw kandydata.</li>
+<li>Wprowadź jawny tryb migracji (legacy, cień, kandydat) i przełącz na kandydata.
+<strong>Podpowiedź:</strong> przepuść przez usługę kilka zapytań rano i wieczorem, z różnymi typami biletów, oraz jedno z formatem 4DX. Wzorzec rozbieżności podpowie, gdzie jest błąd.
+<strong>Gotowe, gdy:</strong> klient dostaje tę samą cenę w każdym trybie, raport nie zawiera rozbieżności, a różnica dla 4DX jest świadomą, opisaną decyzją.</li>
+</ol>
+<h2 id="scena-s04-granice-trybu-shadow-efekty-uboczne" tabindex="-1"><a class="header-anchor" href="#scena-s04-granice-trybu-shadow-efekty-uboczne"><span>Scena s04. Granice trybu shadow - efekty uboczne</span></a></h2>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s04_shadowlimits.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s04</code>
+<strong>Zadanie:</strong></p>
+<ol>
+<li>Uruchom test i sprawdź w dzienniku <code>Infrastructure</code>, co dostaje klient po jednej rezerwacji w trybie shadow.</li>
+<li>Spraw, żeby nowa ścieżka wykonywała efekty uboczne przez port, a nie bezpośrednio.</li>
+<li>W cieniu nie wykonuj efektów kandydata, tylko porównaj je z efektami, które wykonało legacy.</li>
+<li>Oddziel czyste obliczenie nowej ścieżki od wykonania efektów tak, żeby cień w ogóle nie miał dostępu do efektów.
+<strong>Podpowiedź:</strong> efekt uboczny, który jest daną (opisem &quot;co zrobić&quot;), można porównać, zalogować albo wykonać.
+<strong>Gotowe, gdy:</strong> po rezerwacji w dzienniku są tylko efekty legacy (jeden mail, jedno obciążenie, jeden zapis), a cień zgłasza rozbieżność w treści maila kandydata.</li>
+</ol>
+<h2 id="scena-s05-boy-scout-rule-mala-poprawa-i-jej-naduzycie" tabindex="-1"><a class="header-anchor" href="#scena-s05-boy-scout-rule-mala-poprawa-i-jej-naduzycie"><span>Scena s05. Boy Scout Rule - mała poprawa i jej nadużycie</span></a></h2>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s05_boyscout.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s05</code>
+<strong>Zadanie:</strong></p>
+<ol>
+<li>Popraw czytelność <code>TicketPrinter.print</code>: nazwy, sklejanie listy miejsc, powtórzenia.</li>
+<li>Nie zmieniaj niczego, co widzi klient: kolejności miejsc, wielkości liter, linii z telefonem, formatu kwoty.</li>
+<li>Zapisz osobno pomysły, które zmieniłyby zachowanie - to zadania na inny commit.
+<strong>Podpowiedź:</strong> jeśli test równoważności zrobi się czerwony, twoje &quot;sprzątanie&quot; zmieniło zachowanie. Sprawdź przypadek z miejscami A9 i A10.
+<strong>Gotowe, gdy:</strong> test równoważności jest zielony, diff dotyczy tylko jednej metody i da się go przejrzeć w minutę.</li>
+</ol>
+<h2 id="scena-s06-seria-malych-zmian-gotowych-do-przegladu" tabindex="-1"><a class="header-anchor" href="#scena-s06-seria-malych-zmian-gotowych-do-przegladu"><span>Scena s06. Seria małych zmian gotowych do przeglądu</span></a></h2>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s06_reviewableseries.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s06</code>
+<strong>Zadanie:</strong></p>
+<ol>
+<li>Dodaj regułę &quot;Tani wtorek&quot;: bilet NORMAL -20% ceny bazowej we wtorek.</li>
+<li>Podziel pracę na co najmniej trzy kroki (commity): refaktoryzacje bez zmiany zachowania osobno, nowa reguła osobno.</li>
+<li>Do każdego kroku napisz jednozdaniowy opis: intencja i dowód.
+<strong>Podpowiedź:</strong> najpierw spraw, żeby wybór zniżki miał dostęp do daty seansu - bez zmiany zachowania. Potem nowa reguła to kilka linii.
+<strong>Gotowe, gdy:</strong> po krokach refaktoryzacyjnych test równoważności jest zielony, a po ostatnim 2D NORMAL we wtorek wieczorem kosztuje 20.00 i zmieniły się wyłącznie bilety NORMAL we wtorek.</li>
+</ol>
+<h2 id="scena-s07-adr-i-wykonywalny-model-decyzji" tabindex="-1"><a class="header-anchor" href="#scena-s07-adr-i-wykonywalny-model-decyzji"><span>Scena s07. ADR i wykonywalny model decyzji</span></a></h2>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s07_adr.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s07</code>
+<strong>Zadanie:</strong></p>
+<ol>
+<li>Przeczytaj <code>ADR-0007-cennik-jako-czysty-modul.md</code> i sprawdź w teście, które reguły narusza <code>start</code>.</li>
+<li>Usuń zależność pakietu <code>pricing</code> od <code>notification</code> bez zmiany wysyłanych maili.</li>
+<li>Zamień kwoty w pakiecie <code>pricing</code> na <code>Money</code>.
+<strong>Podpowiedź:</strong> cennik nie musi wysyłać maila - wystarczy, że powie, czy rabat grupowy został przyznany.
+<strong>Gotowe, gdy:</strong> <code>ArchitectureRules.violations</code> dla <code>start</code> zwraca pustą listę, a odpowiedzi i maile są takie same jak przed zmianą.</li>
+</ol>
+<h2 id="scena-s08-bramka-kompilatora-xlintall-werror" tabindex="-1"><a class="header-anchor" href="#scena-s08-bramka-kompilatora-xlintall-werror"><span>Scena s08. Bramka kompilatora -Xlint:all -Werror</span></a></h2>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s08_compilergate.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s08</code>
+<strong>Zadanie:</strong></p>
+<ol>
+<li>Sprawdź, jakie kategorie ostrzeżeń zgłasza <code>CompilerGate</code> dla <code>start</code>.</li>
+<li>Usuwaj je po jednej kategorii na krok, uruchamiając test po każdym kroku.</li>
+<li>Zachowaj zachowanie raportu, w tym to, że IMAX ma też dźwięk Dolby.
+<strong>Podpowiedź:</strong> nie używaj <code>@SuppressWarnings</code> - każde ostrzeżenie da się tu usunąć zmianą kodu.
+<strong>Gotowe, gdy:</strong> <code>CompilerGate.check</code> dla <code>start</code> zwraca zero ostrzeżeń i <code>passed() == true</code>, a test równoważności raportu jest zielony.</li>
+</ol>
+<h2 id="scena-s09-codemod-na-compiler-tree-api" tabindex="-1"><a class="header-anchor" href="#scena-s09-codemod-na-compiler-tree-api"><span>Scena s09. Codemod na Compiler Tree API</span></a></h2>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s09_codemod.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s09</code>
+<strong>Zadanie:</strong></p>
+<ol>
+<li>Zastąp wyszukiwanie wyrażeniem regularnym wyszukiwaniem po drzewie składni (<code>JavacTask</code>, <code>TreeScanner</code>).</li>
+<li>Przepisuj tylko dwa ostatnie argumenty wywołania według pozycji z drzewa i dopisz brakujące importy.</li>
+<li>Migruj wyłącznie wywołania przestarzałej metody <code>cinema.BookingService.book</code> - użyj informacji o typach.
+<strong>Podpowiedź:</strong> <code>SampleProject.TICKET_DESK</code> ma wywołanie w komentarzu, wywołanie rozbite na trzy linie i podobne wywołanie w <code>HotelService</code>. Sprawdź też, co się stanie po drugim uruchomieniu codemodu.
+<strong>Gotowe, gdy:</strong> codemod znajduje linie 11 i 16, wynik kompiluje się bez ostrzeżeń razem z <code>SampleProject.API</code>, a drugie uruchomienie niczego nie zmienia.</li>
+</ol>
+<h2 id="scena-s10-minimalna-bramka-jakosci-jako-kod" tabindex="-1"><a class="header-anchor" href="#scena-s10-minimalna-bramka-jakosci-jako-kod"><span>Scena s10. Minimalna bramka jakości jako kod</span></a></h2>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s10_qualitygate.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s10</code>
+<strong>Zadanie:</strong></p>
+<ol>
+<li>Zamień listę kontrolną z Javadocu <code>QualityGate</code> na wykonywalne sprawdzenia, po jednym na krok.</li>
+<li>Każdy wynik ma wskazywać plik i linię albo metodę.</li>
+<li>Czysta próbka (<code>sample/<wbr>clean</code>) musi przejść bramkę bez żadnego wyniku.
+<strong>Podpowiedź:</strong> zacznij od najtańszego sprawdzenia (skan tekstu źródeł), kompilator i uruchamianie testów zostaw na koniec.
+<strong>Gotowe, gdy:</strong> bramka zgłasza wszystkie problemy próbki <code>sample/<wbr>dirty</code>, zatrzymuje przypadek z nieprzechodzącym testem (<code>sample/<wbr>broken</code>) i przepuszcza <code>sample/<wbr>clean</code>.</li>
+</ol>
+<h2 id="scena-s11-jawna-polityka-wdrozenia-etapowego" tabindex="-1"><a class="header-anchor" href="#scena-s11-jawna-polityka-wdrozenia-etapowego"><span>Scena s11. Jawna polityka wdrożenia etapowego</span></a></h2>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s11_stagedrollout.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s11</code>
+<strong>Zadanie:</strong></p>
+<ol>
+<li>Zamień stałą i listę testerów na jawny obiekt polityki przekazywany do routera.</li>
+<li>Dodaj wdrożenie procentowe z deterministycznym przydziałem klienta.</li>
+<li>Dodaj wyłącznik awaryjny.</li>
+<li>Dopisz testy polityki: stabilność, zwiększanie procentu, wyjątki, wyłącznik.
+<strong>Podpowiedź:</strong> przydział ma być taki sam po restarcie i na każdej maszynie - nie losuj i nie polegaj na <code>hashCode</code> obiektu.
+<strong>Gotowe, gdy:</strong> z dotychczasowymi ustawieniami router kieruje klientów tak samo jak <code>start</code>, a polityka przechodzi twoje testy.</li>
+</ol>
+<h2 id="scena-s12-expand-and-contract-format-danych-rezerwacji" tabindex="-1"><a class="header-anchor" href="#scena-s12-expand-and-contract-format-danych-rezerwacji"><span>Scena s12. Expand and contract - format danych rezerwacji</span></a></h2>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s12_expandcontract.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s12</code>
+<strong>Zadanie:</strong></p>
+<ol>
+<li>Wprowadź nowy, wersjonowany format rezerwacji w kolumnie <code>payload</code> tak, żeby wycofanie do starej wersji było bezpieczne.</li>
+<li>Czytaj nowy format, ale nie gub wierszy zapisanych wcześniej.</li>
+<li>Uzupełnij nowy format w starych wierszach.</li>
+<li>Usuń stary format z repozytorium.
+<strong>Podpowiedź:</strong> po każdym kroku zadaj pytanie: czy repozytorium w wersji <code>start</code> przeczyta dane zapisane przez nową wersję?
+<strong>Gotowe, gdy:</strong> rezerwacja zapisana i odczytana wraca bez zmian, stare wiersze są czytelne po migracji, a w końcowej wersji nie ma żadnego odwołania do starego formatu.</li>
+</ol>
+<h2 id="scena-s13-dokumentacja-zywa-kontra-historyczna" tabindex="-1"><a class="header-anchor" href="#scena-s13-dokumentacja-zywa-kontra-historyczna"><span>Scena s13. Dokumentacja żywa kontra historyczna</span></a></h2>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s13_livingdocs.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s13</code>
+<strong>Zadanie:</strong></p>
+<ol>
+<li>Sprawdź, czym <code>start/<wbr>ROUTING.md</code> różni się od <code>Routing.routes()</code>.</li>
+<li>Spraw, żeby dokument powstawał z kodu, i dopisz test, który wykryje jego ręczną edycję albo zestarzenie.</li>
+<li>Dodaj do dokumentu właściciela i kryterium usunięcia każdej trasy do legacy.
+<strong>Podpowiedź:</strong> ścieżkę dokumentu wylicz z pakietu klasy - wtedy generator zadziała też po skopiowaniu sceny.
+<strong>Gotowe, gdy:</strong> zapisany <code>ROUTING.md</code> jest identyczny z wygenerowanym, a każda trasa do legacy ma właściciela i kryterium usunięcia.</li>
+</ol>
+
+</main>
+</div>
+<script>if(matchMedia('(max-width:900px)').matches){var d=document.querySelector('.toc details');if(d)d.open=false}</script>
+</body>
+</html>

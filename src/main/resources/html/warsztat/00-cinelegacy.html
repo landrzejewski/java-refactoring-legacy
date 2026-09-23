@@ -1,0 +1,885 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Warsztat CineLegacy - praktyczne sceny do modułów 3-8</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1d1f23;--muted:#5f6670;--line:#e3e5e8;--card:#ffffff;--accent:#2457c5;--accent-bg:#eef3fd;
+--code-bg:#f4f5f7;--note-bg:#fff7e6;--note-line:#e6a700;--th:#f1f3f6;
+--k:#b3246b;--s:#1a7f37;--c:#6e7781;--n:#0550ae;--t:#8250df;--f:#6639ba;--a:#953800;
+--kind:#2457c5}
+@media (prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3036;--card:#1c1f23;--accent:#7aa7ff;--accent-bg:#1e2a40;
+--code-bg:#1f2328;--note-bg:#2b2412;--note-line:#c99400;--th:#23272d;
+--k:#ff7b9c;--s:#7ee2a0;--c:#8b949e;--n:#79c0ff;--t:#d2a8ff;--f:#d2a8ff;--a:#ffa657}}
+body.zadania{--kind:#1a7f37} body.warsztat{--kind:#c2570c} body.warsztat-zadania{--kind:#0f7b7b} body.rozwiazania{--kind:#b3246b} body.przyklady{--kind:#2457c5}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.topbar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 24px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);border-top:3px solid var(--kind)}
+.topbar a{color:var(--fg);text-decoration:none}
+.home{font-weight:600}
+.tabs{display:flex;gap:4px}
+.tab{padding:4px 12px;border-radius:999px;font-size:15px;color:var(--muted)!important}
+.tab:hover{background:var(--code-bg)}
+.tab.active{background:var(--accent-bg);color:var(--accent)!important;font-weight:600}
+.pager{margin-left:auto;display:flex;gap:14px;font-size:15px}
+.pager a{color:var(--muted)}.pager a:hover{color:var(--accent)}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:48px;max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+.layout.no-toc{grid-template-columns:minmax(0,1fr);max-width:1000px}
+aside{position:sticky;top:72px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px}
+.toc-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;font-weight:600}
+.toc ul{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.toc li a{display:block;padding:3px 12px;color:var(--muted);text-decoration:none;line-height:1.35}
+.toc li.h3 a{padding-left:24px;font-size:13px}
+.toc li a:hover{color:var(--accent)}
+main{min-width:0;max-width:860px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 1.2rem;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:2.6rem 0 .8rem;padding-top:.6rem;border-top:1px solid var(--line)}
+h3{font-size:1.18rem;margin:2rem 0 .6rem}
+h4{font-size:1rem;margin:1.5rem 0 .5rem}
+h1 a,h2 a,h3 a,h4 a{color:inherit;text-decoration:none}
+h2 a:hover::after,h3 a:hover::after{content:" #";color:var(--muted)}
+p,ul,ol{margin:.6rem 0 1rem}
+li{margin:.25rem 0}
+li>ul,li>ol{margin:.2rem 0}
+a{color:var(--accent)}
+strong{font-weight:650}
+code{font:0.88em/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre.code{position:relative;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:1rem 0 1.4rem}
+pre.code code{background:none;padding:0;font-size:14px;line-height:1.55}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:6px;right:10px;font:11px ui-monospace,Menlo,monospace;color:var(--muted);text-transform:uppercase}
+.table-wrap{overflow-x:auto;margin:1rem 0 1.4rem;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--th);font-weight:600}
+tr:last-child td{border-bottom:none}
+blockquote{margin:1rem 0 1.4rem;padding:10px 16px;background:var(--note-bg);border-left:4px solid var(--note-line);border-radius:0 8px 8px 0}
+blockquote p{margin:.3rem 0}
+hr{border:none;border-top:1px solid var(--line);margin:2rem 0}
+hr+h2{border-top:none;margin-top:1.4rem}
+main p code,main li code,main td code{overflow-wrap:break-word}
+.toc summary{cursor:pointer;list-style:none}.toc summary::-webkit-details-marker{display:none}
+.hljs-keyword,.hljs-selector-tag,.hljs-built_in,.hljs-literal{color:var(--k)}
+.hljs-string,.hljs-regexp,.hljs-addition{color:var(--s)}
+.hljs-comment,.hljs-quote,.hljs-meta{color:var(--c);font-style:italic}
+.hljs-number,.hljs-symbol{color:var(--n)}
+.hljs-type,.hljs-class .hljs-title,.hljs-title.class_{color:var(--t)}
+.hljs-title,.hljs-title.function_,.hljs-section{color:var(--f)}
+.hljs-attr,.hljs-attribute,.hljs-variable,.hljs-params,.hljs-tag{color:var(--a)}
+.hljs-deletion{color:var(--k)}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:16px;padding:20px 16px 60px}
+aside{position:static;max-height:none;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--card)}
+.toc-title{margin:0}.toc details[open] .toc-title{margin-bottom:8px}.toc summary::after{content:" ▾"}
+body{font-size:16px}.topbar{padding:8px 16px}.pager{margin-left:0}h1{font-size:1.6rem}}
+@media print{.topbar,aside{display:none}.layout{display:block;padding:0}main{max-width:none}
+pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#000;font-size:12pt}}
+</style>
+</head>
+<body class="warsztat">
+<header class="topbar"><a class="home" href="../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab active" href="00-cinelegacy.html">Warsztat CineLegacy</a><a class="tab" href="zadania/03-zasady-dobrego-projektowania.html">Zadania</a><a class="tab" href="przewodnik/03-zasady-dobrego-projektowania.html">Przewodnik</a></div></header>
+<div class="layout">
+<aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#jak-zbudowana-jest-scena">Jak zbudowana jest scena</a></li><li class="h2"><a href="#narzedzie-prowadzacego-scriptswarsztatsh">Narzędzie prowadzącego: scripts/warsztat.sh</a></li><li class="h2"><a href="#reguly-biznesowe-cinelegacy">Reguły biznesowe CineLegacy</a></li><li class="h2"><a href="#stary-system-i-golden-master">Stary system i golden master</a></li><li class="h2"><a href="#materialy">Materiały</a></li><li class="h2"><a href="#macierz-pokrycia-tematow">Macierz pokrycia tematów</a></li><li class="h3"><a href="#modul-3-zasady-dobrego-projektowania">Moduł 3. Zasady dobrego projektowania</a></li><li class="h3"><a href="#modul-4-podstawowe-refaktoryzacje">Moduł 4. Podstawowe refaktoryzacje</a></li><li class="h3"><a href="#modul-5-refaktoryzacje-hierarchii-klas">Moduł 5. Refaktoryzacje hierarchii klas</a></li><li class="h3"><a href="#modul-6-refaktoryzacje-do-wzorcow-projektowych">Moduł 6. Refaktoryzacje do wzorców projektowych</a></li><li class="h3"><a href="#modul-7-zaawansowane-refaktoryzacje">Moduł 7. Zaawansowane refaktoryzacje</a></li><li class="h3"><a href="#modul-8-strategie-i-dobre-praktyki">Moduł 8. Strategie i dobre praktyki</a></li></ul></details></nav></aside>
+<main>
+<h1>Warsztat CineLegacy - praktyczne sceny do modułów 3-8</h1>
+<p>CineLegacy to wymyślony, stary system kina. Obsługuje seanse, sale, miejsca, bilety, zniżki, rezerwacje, płatności, powiadomienia, raporty i rozliczenia z dystrybutorem. Na jego kodzie pokazujemy na żywo techniki z modułów 3-8. Każdy temat ze slajdów ma swoją krótką <strong>scenę</strong>: kod wyjściowy, kolejne kroki, gotowe snapshoty i testy.</p>
+<p>Ten pakiet nie powtarza ćwiczeń z zakładek &quot;Zadania&quot; i &quot;Przykłady&quot; poszczególnych modułów. Uzupełnia je o jak najwięcej małych, uruchamialnych demonstracji na nowym kodzie.</p>
+<h2 id="jak-zbudowana-jest-scena" tabindex="-1"><a class="header-anchor" href="#jak-zbudowana-jest-scena"><span>Jak zbudowana jest scena</span></a></h2>
+<pre class="code" data-lang="text"><code class="hljs">src/main/java/pl/training/workshop/
+    shared/Money.java               wspólny typ wartości (nie refaktoryzujemy go)
+    legacy/                         stary system: CinemaManager (God Class), LegacyDb, LegacyMailer, LegacyPaymentGateway
+    m6/s08_state/
+        Booking*.java               stabilne typy kontraktu sceny (opcjonalnie)
+        start/                      kod wyjściowy - na nim pracujemy na żywo
+        step1/ step2/ ...           gotowe snapshoty po każdym kroku przewodnika
+src/test/java/pl/training/workshop/
+    legacy/CinemaManagerGoldenMasterTest
+    m6/s08_state/S08EquivalenceTest, S08SolutionTest ...
+</code></pre>
+<ul>
+<li><code>start</code> zawiera zapach albo pułapkę. Prowadzący otwiera go w IntelliJ i wykonuje ruchy opisane w przewodniku.</li>
+<li><code>stepN</code> to kompletny stan kodu po kroku N. Klasy mają te same nazwy co w <code>start</code>, różni się tylko pakiet. Ostatni krok jest rozwiązaniem wzorcowym.</li>
+<li>Test równoważności sceny uruchamia <strong>te same przypadki</strong> na <code>start</code> i na każdym kroku. Jeśli po ruchu na żywo test jest zielony, zachowanie się nie zmieniło.</li>
+<li>Sceny, w których zmiana zachowania jest tematem (np. Design by Contract, zmiana kontraktu, nowa reguła biznesowa), mają osobne oczekiwania dla wariantów. Przewodnik mówi to wprost.</li>
+</ul>
+<h2 id="narzedzie-prowadzacego-scriptswarsztatsh" tabindex="-1"><a class="header-anchor" href="#narzedzie-prowadzacego-scriptswarsztatsh"><span>Narzędzie prowadzącego: <code>scripts/<wbr>warsztat.sh</code></span></a></h2>
+<pre class="code" data-lang="bash"><code class="hljs">scripts/warsztat.sh list            <span class="hljs-comment"># wszystkie sceny i ich kroki</span>
+scripts/warsztat.sh list m6         <span class="hljs-comment"># sceny jednego modułu</span>
+scripts/warsztat.sh <span class="hljs-built_in">test</span> m6/s08     <span class="hljs-comment"># testy jednej sceny (mvn)</span>
+scripts/warsztat.sh <span class="hljs-built_in">test</span> m6         <span class="hljs-comment"># testy całego modułu</span>
+scripts/warsztat.sh diff m6/s08 1 2 <span class="hljs-comment"># co dokładnie zmienia krok 2 (0 = start)</span>
+scripts/warsztat.sh jump m6/s08 2   <span class="hljs-comment"># skopiuj step2 do start - przeskok, gdy brakuje czasu</span>
+scripts/warsztat.sh reset m6/s08    <span class="hljs-comment"># przywróć start z repozytorium po pokazie</span>
+scripts/warsztat.sh html            <span class="hljs-comment"># wygeneruj strony HTML z md/warsztat (Node.js)</span>
+</code></pre>
+<blockquote>
+<p><code>reset</code> przywraca <code>start</code> z gita, więc pliki warsztatu muszą być w repozytorium (co najmniej <code>git add</code>). Przed zajęciami: <code>mvn -q test</code> (wszystko zielone) i <code>git status</code> (czysty <code>start</code>).</p>
+</blockquote>
+<p>Pętla pokazu dla każdego kroku:</p>
+<ol>
+<li>Pokaż zapach w <code>start</code> (sekcja &quot;Co widzimy&quot; w przewodniku).</li>
+<li>Wykonaj ruch w IDE, najlepiej automatyczną refaktoryzacją ze skrótem z przewodnika.</li>
+<li><code>scripts/<wbr>warsztat.sh test mM/<wbr>sNN</code>, czyli zielony test.</li>
+<li>Jedno zdanie komentarza (&quot;Co powiedzieć&quot;).</li>
+<li>Jeśli coś się rozjedzie: <code>jump</code> do gotowego kroku i kontynuujesz.</li>
+</ol>
+<p>W IntelliJ wygodnie jest uruchamiać test sceny z gutter (ikona przy klasie <code>SNNEquivalenceTest</code>) i ustawić go jako ostatnią konfigurację (⌃R).</p>
+<h2 id="reguly-biznesowe-cinelegacy" tabindex="-1"><a class="header-anchor" href="#reguly-biznesowe-cinelegacy"><span>Reguły biznesowe CineLegacy</span></a></h2>
+<p>Wszystkie sceny korzystają z tych samych reguł i liczb, więc wyniki w różnych modułach są spójne.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Reguła</th>
+<th>Wartość</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cena bazowa formatu</td>
+<td>2D = 25.00, 3D = 32.00, IMAX = 40.00</td>
+</tr>
+<tr>
+<td>Zniżka wg typu biletu</td>
+<td>normalny 0%, student 25%, senior 30%, dziecko 40%</td>
+</tr>
+<tr>
+<td>Seans poranny (start przed 12:00)</td>
+<td>-5.00 od ceny biletu po zniżce</td>
+</tr>
+<tr>
+<td>Miejsce VIP (rząd od progu sali, zwykle 10+)</td>
+<td>+10.00</td>
+</tr>
+<tr>
+<td>Okulary 3D (seans 3D, klient bez własnych)</td>
+<td>+3.00</td>
+</tr>
+<tr>
+<td>Opłata rezerwacyjna online</td>
+<td>2.00 za bilet, nie podlega zwrotowi</td>
+</tr>
+<tr>
+<td>Grupa 10+ biletów</td>
+<td>-10% sumy biletów (przed opłatami)</td>
+</tr>
+<tr>
+<td>Program lojalnościowy</td>
+<td>1 punkt za każde pełne 10.00 za bilety, 100 pkt = darmowy bilet 2D</td>
+</tr>
+<tr>
+<td>Statusy rezerwacji</td>
+<td>NEW → PAID → USED, NEW → EXPIRED (15 min), NEW/PAID → CANCELLED</td>
+</tr>
+<tr>
+<td>Zwrot</td>
+<td>24h+ przed seansem 100%, mniej 50%, po starcie 0; potrącenie 3.00</td>
+</tr>
+<tr>
+<td>Rozliczenie z dystrybutorem</td>
+<td>tydzień 1: 50%, tydzień 2: 40%, dalej 35%; minimum 500.00</td>
+</tr>
+<tr>
+<td>VAT</td>
+<td>bilety 8%, bar 23%</td>
+</tr>
+</tbody>
+</table></div>
+<p>Filmy w przykładach: &quot;Diuna&quot; (IMAX, wieczór), &quot;Kraina Lodu&quot; (3D, rano), &quot;Amator&quot; (2D).</p>
+<h2 id="stary-system-i-golden-master" tabindex="-1"><a class="header-anchor" href="#stary-system-i-golden-master"><span>Stary system i golden master</span></a></h2>
+<p><code>legacy/<wbr>CinemaManager</code> to &quot;serce&quot; starego systemu. Ma kody <code>int</code> i <code>String</code>, tablice <code>Object[]</code> jako rekordy, statyczną &quot;bazę&quot;, maile wysyłane z logiki biznesowej, <code>double</code> na pieniądze i zagnieżdżone warunki. Z niego wycięto większość scen. Ten sam kod jest też materiałem kampanii God Class (moduł 7) oraz Branch by Abstraction i Strangler Fig (moduł 8).</p>
+<p><code>CinemaManagerGoldenMasterTest</code> odtwarza &quot;jeden dzień kina&quot; i porównuje pełny wektor zachowania z plikiem <code>src/<wbr>test/<wbr>resources/<wbr>workshop/<wbr>cinema-manager.approved.txt</code>. Wektor obejmuje wyniki wywołań, maile, SMS-y, obciążenia i zwroty na bramce płatności, raport dzienny i rozliczenia. Warto go pokazać na początku modułu 3 jako punkt odniesienia dla całego warsztatu.</p>
+<pre class="code" data-lang="bash"><code class="hljs">mvn -q <span class="hljs-built_in">test</span> -Dtest=CinemaManagerGoldenMasterTest
+</code></pre>
+<h2 id="materialy" tabindex="-1"><a class="header-anchor" href="#materialy"><span>Materiały</span></a></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Moduł</th>
+<th>Przewodnik prowadzącego</th>
+<th>Zadania dla uczestników</th>
+<th>Pakiet</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3. Zasady dobrego projektowania</td>
+<td><a href="przewodnik/03-zasady-dobrego-projektowania.html">przewodnik</a></td>
+<td><a href="zadania/03-zasady-dobrego-projektowania.html">zadania</a></td>
+<td><code>workshop.m3</code></td>
+</tr>
+<tr>
+<td>4. Podstawowe refaktoryzacje</td>
+<td><a href="przewodnik/04-podstawowe-refaktoryzacje.html">przewodnik</a></td>
+<td><a href="zadania/04-podstawowe-refaktoryzacje.html">zadania</a></td>
+<td><code>workshop.m4</code></td>
+</tr>
+<tr>
+<td>5. Refaktoryzacje hierarchii klas</td>
+<td><a href="przewodnik/05-refaktoryzacje-hierarchii-klas.html">przewodnik</a></td>
+<td><a href="zadania/05-refaktoryzacje-hierarchii-klas.html">zadania</a></td>
+<td><code>workshop.m5</code></td>
+</tr>
+<tr>
+<td>6. Refaktoryzacje do wzorców projektowych</td>
+<td><a href="przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html">przewodnik</a></td>
+<td><a href="zadania/06-refaktoryzacje-do-wzorcow-projektowych.html">zadania</a></td>
+<td><code>workshop.m6</code></td>
+</tr>
+<tr>
+<td>7. Zaawansowane refaktoryzacje</td>
+<td><a href="przewodnik/07-zaawansowane-refaktoryzacje.html">przewodnik</a></td>
+<td><a href="zadania/07-zaawansowane-refaktoryzacje.html">zadania</a></td>
+<td><code>workshop.m7</code></td>
+</tr>
+<tr>
+<td>8. Strategie i dobre praktyki</td>
+<td><a href="przewodnik/08-strategie-i-dobre-praktyki.html">przewodnik</a></td>
+<td><a href="zadania/08-strategie-i-dobre-praktyki.html">zadania</a></td>
+<td><code>workshop.m8</code></td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="macierz-pokrycia-tematow" tabindex="-1"><a class="header-anchor" href="#macierz-pokrycia-tematow"><span>Macierz pokrycia tematów</span></a></h2>
+<p>Każda scena odsyła do sekcji slajdów swojego modułu. Tematy, które są wyłącznie dyskusyjne (np. kryteria decyzji, jakość w kontekście), omawiamy w przewodnikach przy pytaniach do sali.</p>
+<h3 id="modul-3-zasady-dobrego-projektowania" tabindex="-1"><a class="header-anchor" href="#modul-3-zasady-dobrego-projektowania"><span>Moduł 3. Zasady dobrego projektowania</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Scena</th>
+<th>Tytuł</th>
+<th>Temat ze slajdów</th>
+<th>Kroki</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="przewodnik/03-zasady-dobrego-projektowania.html#scena-s01-dry-jedna-wiedza-dwie-reprezentacje">m3/s01</a></td>
+<td>DRY - jedna wiedza, dwie reprezentacje</td>
+<td>2.1 DRY dotyczy wiedzy; 2.8 Napięcia między zasadami (nazwanie potwierdzonej reguły)</td>
+<td>4</td>
+</tr>
+<tr>
+<td><a href="przewodnik/03-zasady-dobrego-projektowania.html#scena-s02-podobienstwo-to-nie-duplikacja">m3/s02</a></td>
+<td>Podobieństwo to nie duplikacja</td>
+<td>2.2 Podobieństwo nie wystarcza; 2.3 Tymczasowe powtórzenie kodu bywa bezpiecznym etapem</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/03-zasady-dobrego-projektowania.html#scena-s03-falszywa-abstrakcja-z-flagami">m3/s03</a></td>
+<td>Fałszywa abstrakcja z flagami</td>
+<td>2.3 Fałszywa abstrakcja: zabezpiecz testami, przenieś kod z powrotem, wydziel tylko potwierdzoną wiedzę</td>
+<td>2</td>
+</tr>
+<tr>
+<td><a href="przewodnik/03-zasady-dobrego-projektowania.html#scena-s04-dry-w-testach-i-niezalezna-wyrocznia">m3/s04</a></td>
+<td>DRY w testach i niezależna wyrocznia</td>
+<td>2.3 DRY w testach: wspólne fabryki danych tak, liczenie oczekiwanej wartości algorytmem produkcyjnym nie</td>
+<td>2</td>
+</tr>
+<tr>
+<td><a href="przewodnik/03-zasady-dobrego-projektowania.html#scena-s05-kiss-zlozonosc-wprowadzona-kontra-istotna">m3/s05</a></td>
+<td>KISS - złożoność wprowadzona kontra istotna</td>
+<td>2.4-2.5 KISS: prostota po poprawności; ukryty przepływ przez refleksję</td>
+<td>2</td>
+</tr>
+<tr>
+<td><a href="przewodnik/03-zasady-dobrego-projektowania.html#scena-s06-yagni-silnik-regul-dla-dwoch-regul">m3/s06</a></td>
+<td>YAGNI - silnik reguł dla dwóch reguł</td>
+<td>2.6-2.7 YAGNI i czego nie zabrania; 2.8 Napięcia (ogólny silnik hipotetycznych taryf); 2.9 Filtr decyzyjny</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/03-zasady-dobrego-projektowania.html#scena-s07-srp-raport-dla-dwoch-aktorow">m3/s07</a></td>
+<td>SRP - raport dla dwóch aktorów</td>
+<td>3.2 SRP: jeden aktor zmiany; 3.7 Błędne uproszczenia SOLID (&quot;klasa robi jedną rzecz&quot;)</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/03-zasady-dobrego-projektowania.html#scena-s08-ocp-na-wybranej-osi-formaty-seansu">m3/s08</a></td>
+<td>OCP na wybranej osi - formaty seansu</td>
+<td>3.3 OCP: zamknięcie dla wybranej osi; nie każdy <code>switch</code> narusza OCP</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/03-zasady-dobrego-projektowania.html#scena-s09-lsp-i-test-kontraktowy">m3/s09</a></td>
+<td>LSP i test kontraktowy</td>
+<td>3.4 LSP: substytucja behawioralna; <code>UnsupportedOperationException</code> nie zawsze łamie LSP - ocena zaczyna się od kontraktu</td>
+<td>2</td>
+</tr>
+<tr>
+<td><a href="przewodnik/03-zasady-dobrego-projektowania.html#scena-s10-isp-z-perspektywy-klienta">m3/s10</a></td>
+<td>ISP z perspektywy klienta</td>
+<td>3.5 ISP: interfejs według ról klientów; 4.2 Interfejs nie usuwa sprzężenia</td>
+<td>2</td>
+</tr>
+<tr>
+<td><a href="przewodnik/03-zasady-dobrego-projektowania.html#scena-s11-dip-kierunek-zaleznosci-kontra-przeplyw-sterowania">m3/s11</a></td>
+<td>DIP - kierunek zależności kontra przepływ sterowania</td>
+<td>3.6 DIP i DIP to nie dependency injection; 5.1-5.2 Reguła zależności a przepływ sterowania</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/03-zasady-dobrego-projektowania.html#scena-s12-clean-architecture-use-case-dane-na-granicy-composition-root">m3/s12</a></td>
+<td>Clean Architecture - use case, dane na granicy, composition root</td>
+<td>5.3 Elementy praktyczne; 5.4 Dane na granicy i composition root; 5.5-5.6 Kręgi to nie szablon; 7.8 Protokół efektów</td>
+<td>4</td>
+</tr>
+<tr>
+<td><a href="przewodnik/03-zasady-dobrego-projektowania.html#scena-s13-automatyczna-ochrona-granicy-i-diagnostyka-spojnosci">m3/s13</a></td>
+<td>Automatyczna ochrona granicy i diagnostyka spójności</td>
+<td>4.4 Diagnostyka spójności i sprzężenia; 4.1-4.3 Spójność, sprzężenie, koszt wydzielenia; lista kontrolna &quot;reguła sprawdzana automatycznie&quot;</td>
+<td>2</td>
+</tr>
+<tr>
+<td><a href="przewodnik/03-zasady-dobrego-projektowania.html#scena-s14-wzorzec-jako-decyzja-odwracalna">m3/s14</a></td>
+<td>Wzorzec jako decyzja odwracalna</td>
+<td>6.1-6.2 Wzorzec i refaktoryzacja w jego kierunku; 6.3 Strategy i Adapter; 6.4 Wzorzec można usunąć</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/03-zasady-dobrego-projektowania.html#scena-s15-inwarianty-w-modelu-domeny">m3/s15</a></td>
+<td>Inwarianty w modelu domeny</td>
+<td>7.4 Model domeny i DRY (obiekty pilnują inwariantów); 4.3 Dobry moduł ukrywa decyzję</td>
+<td>2</td>
+</tr>
+<tr>
+<td><a href="przewodnik/03-zasady-dobrego-projektowania.html#scena-s16-sprzezenie-protokolu-ukryta-kolejnosc-wywolan">m3/s16</a></td>
+<td>Sprzężenie protokołu - ukryta kolejność wywołań</td>
+<td>4.4 &quot;Czy wywołania wymagają ukrytej kolejności?&quot; - sprzężenie protokołu lub czasu</td>
+<td>2</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="modul-4-podstawowe-refaktoryzacje" tabindex="-1"><a class="header-anchor" href="#modul-4-podstawowe-refaktoryzacje"><span>Moduł 4. Podstawowe refaktoryzacje</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Scena</th>
+<th>Tytuł</th>
+<th>Temat ze slajdów</th>
+<th>Kroki</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="przewodnik/04-podstawowe-refaktoryzacje.html#scena-s00-test-charakterystyki-przed-pierwsza-zmiana">m4/s00</a></td>
+<td>Test charakterystyki przed pierwszą zmianą</td>
+<td>Test charakterystyki przed pierwszą zmianą; Test równoważności etapów; Co ma pozostać niezmienione</td>
+<td>2</td>
+</tr>
+<tr>
+<td><a href="przewodnik/04-podstawowe-refaktoryzacje.html#scena-s01-rename-nazwy-ktore-zyja-poza-java">m4/s01</a></td>
+<td>Rename - nazwy, które żyją poza Javą</td>
+<td>Rename - cel i mechanika; Co ma pozostać niezmienione (refleksja, konfiguracja)</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/04-podstawowe-refaktoryzacje.html#scena-s02-extract-variable-dla-zlozonego-wyrazenia-ceny">m4/s02</a></td>
+<td>Extract Variable dla złożonego wyrażenia ceny</td>
+<td>Extract Variable i moment ewaluacji</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/04-podstawowe-refaktoryzacje.html#scena-s03-stale-z-nazwa-zamiast-magicznych-liczb">m4/s03</a></td>
+<td>Stałe z nazwą zamiast magicznych liczb</td>
+<td>Extract Constant i <code>final</code>; Replace Magic Numbers with Named Constants</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/04-podstawowe-refaktoryzacje.html#scena-s04-extract-method-przeplyw-danych-i-wiele-wyjsc">m4/s04</a></td>
+<td>Extract Method - przepływ danych i wiele wyjść</td>
+<td>Extract Method - cel i sygnały; Extract Method - analiza przepływu danych; Extract Method - mechanika i trudne przypadki</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/04-podstawowe-refaktoryzacje.html#scena-s05-inline-variable-liczba-i-moment-ewaluacji">m4/s05</a></td>
+<td>Inline Variable - liczba i moment ewaluacji</td>
+<td>Inline Variable i typ docelowy; Extract Variable i moment ewaluacji</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/04-podstawowe-refaktoryzacje.html#scena-s06-inline-method-i-nadpisanie-w-podklasie">m4/s06</a></td>
+<td>Inline Method i nadpisanie w podklasie</td>
+<td>Inline Method i jego ryzyka</td>
+<td>2</td>
+</tr>
+<tr>
+<td><a href="przewodnik/04-podstawowe-refaktoryzacje.html#scena-s07-move-method-feature-envy-i-pulapka-przeciazenia">m4/s07</a></td>
+<td>Move Method - Feature Envy i pułapka przeciążenia</td>
+<td>Move Method i Move Field - wybór właściciela; Move Method krok po kroku i ryzyka</td>
+<td>2</td>
+</tr>
+<tr>
+<td><a href="przewodnik/04-podstawowe-refaktoryzacje.html#scena-s08-move-field-prog-vip-nalezy-do-sali">m4/s08</a></td>
+<td>Move Field - próg VIP należy do sali</td>
+<td>Move Field krok po kroku i ryzyka; Move Method i Move Field - wybór właściciela</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/04-podstawowe-refaktoryzacje.html#scena-s09-extract-class-klient-platnosc-i-klasa-worek">m4/s09</a></td>
+<td>Extract Class - klient, płatność i klasa-worek</td>
+<td>Extract Class - cel, mechanika i zły wynik</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/04-podstawowe-refaktoryzacje.html#scena-s10-encapsulate-field-status-ktory-kazdy-moze-nadpisac">m4/s10</a></td>
+<td>Encapsulate Field - status, który każdy może nadpisać</td>
+<td>Encapsulate Field</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/04-podstawowe-refaktoryzacje.html#scena-s11-encapsulate-collection-trzy-kontrakty-listy-miejsc">m4/s11</a></td>
+<td>Encapsulate Collection - trzy kontrakty listy miejsc</td>
+<td>Encapsulate Collection; Trzy różne kontrakty kolekcji</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/04-podstawowe-refaktoryzacje.html#scena-s12-encapsulate-conditional-czy-przysluguje-zwrot">m4/s12</a></td>
+<td>Encapsulate Conditional - czy przysługuje zwrot</td>
+<td>Encapsulate Conditional</td>
+<td>3</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="modul-5-refaktoryzacje-hierarchii-klas" tabindex="-1"><a class="header-anchor" href="#modul-5-refaktoryzacje-hierarchii-klas"><span>Moduł 5. Refaktoryzacje hierarchii klas</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Scena</th>
+<th>Tytuł</th>
+<th>Temat ze slajdów</th>
+<th>Kroki</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="przewodnik/05-refaktoryzacje-hierarchii-klas.html#scena-s01-pull-up-method-najpierw-ujednolicic-ciala">m5/s01</a></td>
+<td>Pull Up Method - najpierw ujednolicić ciała</td>
+<td>3.1-3.3. Pull Up Method</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/05-refaktoryzacje-hierarchii-klas.html#scena-s02-pull-up-field-to-samo-znaczenie-typ-i-cykl-zycia">m5/s02</a></td>
+<td>Pull Up Field - to samo znaczenie, typ i cykl życia</td>
+<td>3.4-3.6. Pull Up Field i ryzyka Pull Up</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/05-refaktoryzacje-hierarchii-klas.html#scena-s03-push-down-methodfield-i-asymetria-przesuniec">m5/s03</a></td>
+<td>Push Down Method/Field i asymetria przesunięć</td>
+<td>4.1-4.4. Push Down Method, Push Down Field i asymetria przesunięć</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/05-refaktoryzacje-hierarchii-klas.html#scena-s04-extract-superclass-seans-i-wynajem-sali">m5/s04</a></td>
+<td>Extract Superclass - seans i wynajem sali</td>
+<td>5. Extract Superclass</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/05-refaktoryzacje-hierarchii-klas.html#scena-s05-extract-subclass-premiera-z-gosciem">m5/s05</a></td>
+<td>Extract Subclass - premiera z gościem</td>
+<td>6. Extract Subclass</td>
+<td>4</td>
+</tr>
+<tr>
+<td><a href="przewodnik/05-refaktoryzacje-hierarchii-klas.html#scena-s06-extract-interface-rola-koszyka-i-metoda-domyslna">m5/s06</a></td>
+<td>Extract Interface - rola koszyka i metoda domyślna</td>
+<td>7.1-7.3. Extract Interface; 7.4. Metody domyślne</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/05-refaktoryzacje-hierarchii-klas.html#scena-s07-collapse-hierarchy-sala-imax">m5/s07</a></td>
+<td>Collapse Hierarchy - sala IMAX</td>
+<td>8. Collapse Hierarchy</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/05-refaktoryzacje-hierarchii-klas.html#scena-s08-replace-inheritance-with-composition-licznik-klikniec">m5/s08</a></td>
+<td>Replace Inheritance with Composition - licznik kliknięć</td>
+<td>9.1-9.4. Replace Inheritance with Composition, procedura i pułapki delegowania</td>
+<td>2</td>
+</tr>
+<tr>
+<td><a href="przewodnik/05-refaktoryzacje-hierarchii-klas.html#scena-s09-overriding-a-overloading-pulapka-po-extract-superclass">m5/s09</a></td>
+<td>Overriding a overloading - pułapka po Extract Superclass</td>
+<td>2.1. Overriding i dynamiczna dyspozycja; 2.2-2.3. Overloading - wybór statyczny</td>
+<td>2</td>
+</tr>
+<tr>
+<td><a href="przewodnik/05-refaktoryzacje-hierarchii-klas.html#scena-s10-ukrywanie-pol-i-metod-static">m5/s10</a></td>
+<td>Ukrywanie pól i metod static</td>
+<td>2.3. Pola nie są polimorficzne; 2.1. <code>static</code> jest ukrywana</td>
+<td>2</td>
+</tr>
+<tr>
+<td><a href="przewodnik/05-refaktoryzacje-hierarchii-klas.html#scena-s11-konstruktor-wolajacy-metode-nadpisywalna">m5/s11</a></td>
+<td>Konstruktor wołający metodę nadpisywalną</td>
+<td>2.4. Konstruktory i inicjalizacja; 3.1-3.3 (nie wołaj override z konstruktora, żeby umożliwić Pull Up)</td>
+<td>2</td>
+</tr>
+<tr>
+<td><a href="przewodnik/05-refaktoryzacje-hierarchii-klas.html#scena-s12-generyki-i-metody-bridge">m5/s12</a></td>
+<td>Generyki i metody bridge</td>
+<td>2.5-2.8. Sygnatury po erasure i metody bridge; 10.2-10.3. Refleksja</td>
+<td>2</td>
+</tr>
+<tr>
+<td><a href="przewodnik/05-refaktoryzacje-hierarchii-klas.html#scena-s13-hierarchie-sealed-i-wyczerpujacy-switch">m5/s13</a></td>
+<td>Hierarchie sealed i wyczerpujący switch</td>
+<td>2.5-2.8. <code>sealed</code>, <code>permits</code>, <code>MatchException</code></td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/05-refaktoryzacje-hierarchii-klas.html#scena-s14-wspoldzielenie-implementacji-a-podtypowanie">m5/s14</a></td>
+<td>Współdzielenie implementacji a podtypowanie</td>
+<td>1.1-1.2. Hierarchia jest częścią zachowania; 9.1. Replace Inheritance with Composition - kiedy?</td>
+<td>2</td>
+</tr>
+<tr>
+<td><a href="przewodnik/05-refaktoryzacje-hierarchii-klas.html#scena-s15-zgodnosc-binarna-refleksja-i-adnotacje">m5/s15</a></td>
+<td>Zgodność binarna, refleksja i adnotacje</td>
+<td>1.3. Warstwy zgodności; 10.2-10.3. Zgodność binarna, refleksja i adnotacje</td>
+<td>4</td>
+</tr>
+<tr>
+<td><a href="przewodnik/05-refaktoryzacje-hierarchii-klas.html#scena-s16-serializacja-i-proxy-hierarchia-jako-format-danych">m5/s16</a></td>
+<td>Serializacja i proxy - hierarchia jako format danych</td>
+<td>10.4-10.6. Serializacja, ORM i DI</td>
+<td>3</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="modul-6-refaktoryzacje-do-wzorcow-projektowych" tabindex="-1"><a class="header-anchor" href="#modul-6-refaktoryzacje-do-wzorcow-projektowych"><span>Moduł 6. Refaktoryzacje do wzorców projektowych</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Scena</th>
+<th>Tytuł</th>
+<th>Temat ze slajdów</th>
+<th>Kroki</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s01-replace-conditional-logic-with-strategy-polityka-znizek">m6/s01</a></td>
+<td>Replace Conditional Logic with Strategy - polityka zniżek</td>
+<td>Strategy - przed i po; Strategy - intencja, sekwencja, ryzyka; Istotne mechanizmy Javy 25</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s02-replace-conditional-with-polymorphism-rodzaj-seansu">m6/s02</a></td>
+<td>Replace Conditional with Polymorphism - rodzaj seansu</td>
+<td>Polimorfizm - przed i po; Polimorfizm - kiedy i pułapki</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s03-replace-type-code-with-class-format-jako-typ">m6/s03</a></td>
+<td>Replace Type Code with Class - format jako typ</td>
+<td>Replace Type Code with Class; Type Code - decyzje i granica trwałości</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s04-encapsulate-classes-with-factory-bilety">m6/s04</a></td>
+<td>Encapsulate Classes with Factory - bilety</td>
+<td>Factory - publiczna granica tworzenia; Factory - intencja, procedura, pułapki</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s05-extract-factory-class-tworzenie-rezerwacji">m6/s05</a></td>
+<td>Extract Factory Class - tworzenie rezerwacji</td>
+<td>Factory - intencja, procedura, pułapki (Extract Factory Class)</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s06-encapsulate-composite-with-builder-repertuar-dnia">m6/s06</a></td>
+<td>Encapsulate Composite with Builder - repertuar dnia</td>
+<td>Encapsulate Composite with Builder</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s07-move-embellishment-to-decorator-dodatki-do-biletu">m6/s07</a></td>
+<td>Move Embellishment to Decorator - dodatki do biletu</td>
+<td>Move Embellishment to Decorator; Decorator - wyjątki, migracja, przezroczystość</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s08-replace-state-altering-conditionals-with-state-status-rezerwacji">m6/s08</a></td>
+<td>Replace State-Altering Conditionals with State - status rezerwacji</td>
+<td>Replace State-Altering Conditionals with State; State - kontekst delegujący</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s09-replace-hard-coded-notifications-with-observer-po-oplaceniu">m6/s09</a></td>
+<td>Replace Hard-coded Notifications with Observer - po opłaceniu</td>
+<td>Replace Hard-coded Notifications with Observer; Observer - kontrakt i migracja</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s10-replace-implicit-tree-with-composite-zestawy-baru">m6/s10</a></td>
+<td>Replace Implicit Tree with Composite - zestawy baru</td>
+<td>Replace Implicit Tree with Composite; Implicit Tree - mapper, procedura, ryzyka</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s11-transparent-vs-safe-composite-add-na-lisciu">m6/s11</a></td>
+<td>Transparent vs Safe Composite - add() na liściu</td>
+<td>Replace One/Many Distinctions with Composite (Safe i Transparent Composite)</td>
+<td>2</td>
+</tr>
+<tr>
+<td><a href="przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s12-replace-onemany-distinctions-with-composite-zwroty">m6/s12</a></td>
+<td>Replace One/Many Distinctions with Composite - zwroty</td>
+<td>Replace One/Many Distinctions with Composite</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s13-extract-composite-kontenery-programu">m6/s13</a></td>
+<td>Extract Composite - kontenery programu</td>
+<td>Extract Composite</td>
+<td>2</td>
+</tr>
+<tr>
+<td><a href="przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s14-unify-interfaces-with-adapter-dwie-bramki-platnosci">m6/s14</a></td>
+<td>Unify Interfaces with Adapter - dwie bramki płatności</td>
+<td>Unify Interfaces with Adapter; Adapter - co naprawdę trzeba przetłumaczyć</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s15-replace-conditional-dispatcher-with-command-konsola-kasjera">m6/s15</a></td>
+<td>Replace Conditional Dispatcher with Command - konsola kasjera</td>
+<td>Replace Conditional Dispatcher with Command; Command - sekwencja i ograniczenia</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s16-form-template-method-raporty-csv-i-html">m6/s16</a></td>
+<td>Form Template Method - raporty CSV i HTML</td>
+<td>Apply Template Method; Template Method - sekwencja i ryzyka</td>
+<td>2</td>
+</tr>
+<tr>
+<td><a href="przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s17-limit-instantiation-with-singleton-cennik">m6/s17</a></td>
+<td>Limit Instantiation with Singleton - cennik</td>
+<td>Limit Instantiation with Singleton</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s18-move-accumulation-to-collecting-parameter-ostrzezenia-walidacji">m6/s18</a></td>
+<td>Move Accumulation to Collecting Parameter - ostrzeżenia walidacji</td>
+<td>Collecting Parameter</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s19-visitor-i-macierz-zmian-pozycje-zamowienia">m6/s19</a></td>
+<td>Visitor i macierz zmian - pozycje zamówienia</td>
+<td>Visitor i macierz zmian</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s20-mapa-decyzji-jedna-tabela-dwie-struktury-docelowe">m6/s20</a></td>
+<td>Mapa decyzji - jedna tabela, dwie struktury docelowe</td>
+<td>Najpierw rodzaj zmienności; Mapa decyzji (1/2 i 2/2); Lista kontrolna</td>
+<td>3</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="modul-7-zaawansowane-refaktoryzacje" tabindex="-1"><a class="header-anchor" href="#modul-7-zaawansowane-refaktoryzacje"><span>Moduł 7. Zaawansowane refaktoryzacje</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Scena</th>
+<th>Tytuł</th>
+<th>Temat ze slajdów</th>
+<th>Kroki</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="przewodnik/07-zaawansowane-refaktoryzacje.html#scena-s01-break-dependencies-seam-dla-zadania-przypomnien">m7/s01</a></td>
+<td>Break Dependencies - seam dla zadania przypomnień</td>
+<td>1. Break Dependencies - intencja i ryzyka; Break Dependencies - przed i po; Java 25 w tym module (interfejs funkcyjny jako seam)</td>
+<td>4</td>
+</tr>
+<tr>
+<td><a href="przewodnik/07-zaawansowane-refaktoryzacje.html#scena-s02-extract-method-object-wycena-zamowienia-grupowego">m7/s02</a></td>
+<td>Extract Method Object - wycena zamówienia grupowego</td>
+<td>2. Extract Method Object - przed; Extract Method Object - po, sekwencja i ryzyka</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/07-zaawansowane-refaktoryzacje.html#scena-s03-break-responsibilities-walidacja-wycena-powiadomienie">m7/s03</a></td>
+<td>Break Responsibilities - walidacja, wycena, powiadomienie</td>
+<td>3. Break Responsibilities - intencja i ryzyka; Break Responsibilities - po zmianie</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/07-zaawansowane-refaktoryzacje.html#scena-s04-remove-duplication-rabat-grupowy-w-kasie-i-w-sklepie">m7/s04</a></td>
+<td>Remove Duplication - rabat grupowy w kasie i w sklepie</td>
+<td>4. Remove Duplication - duplikacja wiedzy; Remove Duplication - po zmianie</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/07-zaawansowane-refaktoryzacje.html#scena-s05-break-method-repertuar-dnia">m7/s05</a></td>
+<td>Break Method - repertuar dnia</td>
+<td>5. Break Method - intencja; Break Method - bezpieczna sekwencja</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/07-zaawansowane-refaktoryzacje.html#scena-s06-introduce-parameter-object-termin-seansu">m7/s06</a></td>
+<td>Introduce Parameter Object - termin seansu</td>
+<td>6. Introduce Parameter Object - data clump jako pojęcie; Parameter Object - walidacja, migracja i ryzyka</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/07-zaawansowane-refaktoryzacje.html#scena-s07-remove-arrowhead-antipattern-bramka-rezerwacji">m7/s07</a></td>
+<td>Remove Arrowhead Antipattern - bramka rezerwacji</td>
+<td>7. Remove Arrowhead Antipattern; Remove Arrowhead - po zmianie</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/07-zaawansowane-refaktoryzacje.html#scena-s08-introduce-design-by-contract-checks-pula-miejsc">m7/s08</a></td>
+<td>Introduce Design by Contract Checks - pula miejsc</td>
+<td>8. Introduce Design by Contract Checks; Design by Contract - jawne kontrole</td>
+<td>2</td>
+</tr>
+<tr>
+<td><a href="przewodnik/07-zaawansowane-refaktoryzacje.html#scena-s09-remove-double-negative-wstep-do-strefy-vip">m7/s09</a></td>
+<td>Remove Double Negative - wstęp do strefy VIP</td>
+<td>9. Remove Double Negative</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/07-zaawansowane-refaktoryzacje.html#scena-s10-remove-boolean-method-parameters-migracja-api">m7/s10</a></td>
+<td>Remove Boolean Method Parameters - migracja API</td>
+<td>11. Remove Boolean Method Parameters; Java 25 w tym module (zgodność binarna)</td>
+<td>4</td>
+</tr>
+<tr>
+<td><a href="przewodnik/07-zaawansowane-refaktoryzacje.html#scena-s11-remove-middle-man-fasada-kina">m7/s11</a></td>
+<td>Remove Middle Man - fasada kina</td>
+<td>12. Remove Middle Man</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/07-zaawansowane-refaktoryzacje.html#scena-s12-return-asap-wyszukiwanie-wolnego-miejsca">m7/s12</a></td>
+<td>Return ASAP - wyszukiwanie wolnego miejsca</td>
+<td>13. Return ASAP</td>
+<td>2</td>
+</tr>
+<tr>
+<td><a href="przewodnik/07-zaawansowane-refaktoryzacje.html#scena-s13-remove-god-class-kampania-na-kopii-cinemamanager">m7/s13</a></td>
+<td>Remove God Class - kampania na kopii CinemaManager</td>
+<td>10. Remove God Classes - kampania, nie pojedynczy ruch; Remove God Classes - wydzielony fragment i ryzyka; Warsztat 3 (kontekst)</td>
+<td>4</td>
+</tr>
+<tr>
+<td><a href="przewodnik/07-zaawansowane-refaktoryzacje.html#scena-s14-refaktoryzacja-a-zmiana-kontraktu-zwrot-na-bigdecimal">m7/s14</a></td>
+<td>Refaktoryzacja a zmiana kontraktu - zwrot na BigDecimal</td>
+<td>Refaktoryzacja a zmiana kontraktu; Pętla pracy (zmiany kontraktu w osobnych krokach)</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/07-zaawansowane-refaktoryzacje.html#scena-s15-wektor-obserwowalnego-zachowania-platnosc-za-bilety">m7/s15</a></td>
+<td>Wektor obserwowalnego zachowania - płatność za bilety</td>
+<td>Wektor obserwowalnego zachowania; Lista kontrolna przeglądu (zachowanie)</td>
+<td>3</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="modul-8-strategie-i-dobre-praktyki" tabindex="-1"><a class="header-anchor" href="#modul-8-strategie-i-dobre-praktyki"><span>Moduł 8. Strategie i dobre praktyki</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Scena</th>
+<th>Tytuł</th>
+<th>Temat ze slajdów</th>
+<th>Kroki</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="przewodnik/08-strategie-i-dobre-praktyki.html#scena-s01-branch-by-abstraction-na-cenniku-z-cinemamanager">m8/s01</a></td>
+<td>Branch by Abstraction na cenniku z CinemaManager</td>
+<td>1.3-1.4 Branch by Abstraction, Strangler Fig, architektura przejściowa</td>
+<td>4</td>
+</tr>
+<tr>
+<td><a href="przewodnik/08-strategie-i-dobre-praktyki.html#scena-s02-strangler-fig-fasada-ktora-przejmuje-sciezki">m8/s02</a></td>
+<td>Strangler Fig - fasada, która przejmuje ścieżki</td>
+<td>1.3-1.4 Branch by Abstraction, Strangler Fig, architektura przejściowa</td>
+<td>4</td>
+</tr>
+<tr>
+<td><a href="przewodnik/08-strategie-i-dobre-praktyki.html#scena-s03-rownolegla-weryfikacja-shadow-kalkulatora-cen">m8/s03</a></td>
+<td>Równoległa weryfikacja (shadow) kalkulatora cen</td>
+<td>1.5 Przykład: równoległa weryfikacja kalkulatora</td>
+<td>4</td>
+</tr>
+<tr>
+<td><a href="przewodnik/08-strategie-i-dobre-praktyki.html#scena-s04-granice-trybu-shadow-efekty-uboczne">m8/s04</a></td>
+<td>Granice trybu shadow - efekty uboczne</td>
+<td>1.6-1.7 Granice trybu shadow i antywzorce migracji</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/08-strategie-i-dobre-praktyki.html#scena-s05-boy-scout-rule-mala-poprawa-i-jej-naduzycie">m8/s05</a></td>
+<td>Boy Scout Rule - mała poprawa i jej nadużycie</td>
+<td>2.1-2.4 Heurystyka, nie mandat; bezpieczna sekwencja i typowe nadużycia</td>
+<td>2</td>
+</tr>
+<tr>
+<td><a href="przewodnik/08-strategie-i-dobre-praktyki.html#scena-s06-seria-malych-zmian-gotowych-do-przegladu">m8/s06</a></td>
+<td>Seria małych zmian gotowych do przeglądu</td>
+<td>3.2 Małe zestawy zmian - czego nie łączyć; 3.3-3.4 Przegląd kodu</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/08-strategie-i-dobre-praktyki.html#scena-s07-adr-i-wykonywalny-model-decyzji">m8/s07</a></td>
+<td>ADR i wykonywalny model decyzji</td>
+<td>4.3-4.4 Architecture Decision Record</td>
+<td>2</td>
+</tr>
+<tr>
+<td><a href="przewodnik/08-strategie-i-dobre-praktyki.html#scena-s08-bramka-kompilatora-xlintall-werror">m8/s08</a></td>
+<td>Bramka kompilatora -Xlint:all -Werror</td>
+<td>5.2-5.3 Refaktoryzacje IDE i kompilator Javy 25; 5.6 Bramka kompilatora</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/08-strategie-i-dobre-praktyki.html#scena-s09-codemod-na-compiler-tree-api">m8/s09</a></td>
+<td>Codemod na Compiler Tree API</td>
+<td>5.4-5.5 Analiza statyczna, formatowanie i automatyzacja (receptury)</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/08-strategie-i-dobre-praktyki.html#scena-s10-minimalna-bramka-jakosci-jako-kod">m8/s10</a></td>
+<td>Minimalna bramka jakości jako kod</td>
+<td>5.6-5.7 Bramka kompilatora i minimalna bramka jakości</td>
+<td>4</td>
+</tr>
+<tr>
+<td><a href="przewodnik/08-strategie-i-dobre-praktyki.html#scena-s11-jawna-polityka-wdrozenia-etapowego">m8/s11</a></td>
+<td>Jawna polityka wdrożenia etapowego</td>
+<td>6.2 Warstwy kontroli; 6.3-6.4 Kryteria i jawna polityka wdrożenia etapowego</td>
+<td>3</td>
+</tr>
+<tr>
+<td><a href="przewodnik/08-strategie-i-dobre-praktyki.html#scena-s12-expand-and-contract-format-danych-rezerwacji">m8/s12</a></td>
+<td>Expand and contract - format danych rezerwacji</td>
+<td>6.5-6.6 Dane, wycofanie i zamknięcie migracji</td>
+<td>4</td>
+</tr>
+<tr>
+<td><a href="przewodnik/08-strategie-i-dobre-praktyki.html#scena-s13-dokumentacja-zywa-kontra-historyczna">m8/s13</a></td>
+<td>Dokumentacja żywa kontra historyczna</td>
+<td>4.1 Dokumentacja według trwałości; 4.5 Dokumentacja żywa i historyczna</td>
+<td>2</td>
+</tr>
+</tbody>
+</table></div>
+
+</main>
+</div>
+<script>if(matchMedia('(max-width:900px)').matches){var d=document.querySelector('.toc details');if(d)d.open=false}</script>
+</body>
+</html>

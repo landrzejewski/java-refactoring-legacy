@@ -1,0 +1,660 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rozwiązania: Moduł 3. Zasady dobrego projektowania - rozwiązania dla prowadzącego</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1d1f23;--muted:#5f6670;--line:#e3e5e8;--card:#ffffff;--accent:#2457c5;--accent-bg:#eef3fd;
+--code-bg:#f4f5f7;--note-bg:#fff7e6;--note-line:#e6a700;--th:#f1f3f6;
+--k:#b3246b;--s:#1a7f37;--c:#6e7781;--n:#0550ae;--t:#8250df;--f:#6639ba;--a:#953800;
+--kind:#2457c5}
+@media (prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3036;--card:#1c1f23;--accent:#7aa7ff;--accent-bg:#1e2a40;
+--code-bg:#1f2328;--note-bg:#2b2412;--note-line:#c99400;--th:#23272d;
+--k:#ff7b9c;--s:#7ee2a0;--c:#8b949e;--n:#79c0ff;--t:#d2a8ff;--f:#d2a8ff;--a:#ffa657}}
+body.zadania{--kind:#1a7f37} body.rozwiazania{--kind:#b3246b} body.przyklady{--kind:#2457c5}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.topbar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 24px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);border-top:3px solid var(--kind)}
+.topbar a{color:var(--fg);text-decoration:none}
+.home{font-weight:600}
+.tabs{display:flex;gap:4px}
+.tab{padding:4px 12px;border-radius:999px;font-size:15px;color:var(--muted)!important}
+.tab:hover{background:var(--code-bg)}
+.tab.active{background:var(--accent-bg);color:var(--accent)!important;font-weight:600}
+.pager{margin-left:auto;display:flex;gap:14px;font-size:15px}
+.pager a{color:var(--muted)}.pager a:hover{color:var(--accent)}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:48px;max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+.layout.no-toc{grid-template-columns:minmax(0,1fr);max-width:1000px}
+aside{position:sticky;top:72px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px}
+.toc-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;font-weight:600}
+.toc ul{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.toc li a{display:block;padding:3px 12px;color:var(--muted);text-decoration:none;line-height:1.35}
+.toc li.h3 a{padding-left:24px;font-size:13px}
+.toc li a:hover{color:var(--accent)}
+main{min-width:0;max-width:860px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 1.2rem;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:2.6rem 0 .8rem;padding-top:.6rem;border-top:1px solid var(--line)}
+h3{font-size:1.18rem;margin:2rem 0 .6rem}
+h4{font-size:1rem;margin:1.5rem 0 .5rem}
+h1 a,h2 a,h3 a,h4 a{color:inherit;text-decoration:none}
+h2 a:hover::after,h3 a:hover::after{content:" #";color:var(--muted)}
+p,ul,ol{margin:.6rem 0 1rem}
+li{margin:.25rem 0}
+li>ul,li>ol{margin:.2rem 0}
+a{color:var(--accent)}
+strong{font-weight:650}
+code{font:0.88em/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre.code{position:relative;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:1rem 0 1.4rem}
+pre.code code{background:none;padding:0;font-size:14px;line-height:1.55}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:6px;right:10px;font:11px ui-monospace,Menlo,monospace;color:var(--muted);text-transform:uppercase}
+.table-wrap{overflow-x:auto;margin:1rem 0 1.4rem;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--th);font-weight:600}
+tr:last-child td{border-bottom:none}
+blockquote{margin:1rem 0 1.4rem;padding:10px 16px;background:var(--note-bg);border-left:4px solid var(--note-line);border-radius:0 8px 8px 0}
+blockquote p{margin:.3rem 0}
+hr{border:none;border-top:1px solid var(--line);margin:2rem 0}
+hr+h2{border-top:none;margin-top:1.4rem}
+main p code,main li code,main td code{overflow-wrap:break-word}
+.toc summary{cursor:pointer;list-style:none}.toc summary::-webkit-details-marker{display:none}
+.hljs-keyword,.hljs-selector-tag,.hljs-built_in,.hljs-literal{color:var(--k)}
+.hljs-string,.hljs-regexp,.hljs-addition{color:var(--s)}
+.hljs-comment,.hljs-quote,.hljs-meta{color:var(--c);font-style:italic}
+.hljs-number,.hljs-symbol{color:var(--n)}
+.hljs-type,.hljs-class .hljs-title,.hljs-title.class_{color:var(--t)}
+.hljs-title,.hljs-title.function_,.hljs-section{color:var(--f)}
+.hljs-attr,.hljs-attribute,.hljs-variable,.hljs-params,.hljs-tag{color:var(--a)}
+.hljs-deletion{color:var(--k)}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:16px;padding:20px 16px 60px}
+aside{position:static;max-height:none;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--card)}
+.toc-title{margin:0}.toc details[open] .toc-title{margin-bottom:8px}.toc summary::after{content:" ▾"}
+body{font-size:16px}.topbar{padding:8px 16px}.pager{margin-left:0}h1{font-size:1.6rem}}
+@media print{.topbar,aside{display:none}.layout{display:block;padding:0}main{max-width:none}
+pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#000;font-size:12pt}}
+</style>
+</head>
+<body class="rozwiazania">
+<header class="topbar"><a class="home" href="../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../zadania/03-zasady-dobrego-projektowania.html">Zadania</a><a class="tab" href="../przyklady/03-zasady-dobrego-projektowania.html">Przykłady</a><a class="tab active" href="/03-zasady-dobrego-projektowania.html">Rozwiązania</a></div><div class="pager"><a href="02-fundamenty-refaktoryzacji.html" title="Poprzedni moduł">&larr; 02</a><a href="04-podstawowe-refaktoryzacje-warsztat-praktyczny.html" title="Następny moduł">04 &rarr;</a></div></header>
+<div class="layout">
+<aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#cwiczenie-1-dry-kiss-i-yagni">Ćwiczenie 1: DRY, KISS i YAGNI</a></li><li class="h3"><a href="#rozwiazanie-wzorcowe-z-teorii-sekcja-91">Rozwiązanie wzorcowe (z teorii, sekcja 9.1)</a></li><li class="h3"><a href="#uzupelnienie-pozostalych-kolumn-tabeli">Uzupełnienie pozostałych kolumn tabeli</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji">Pytania do dyskusji</a></li><li class="h2"><a href="#cwiczenie-2-solid-jako-seria-bezpiecznych-zmian">Ćwiczenie 2: SOLID jako seria bezpiecznych zmian</a></li><li class="h3"><a href="#aktorzy-zmiany-z-teorii-sekcja-92">Aktorzy zmiany (z teorii, sekcja 9.2)</a></li><li class="h3"><a href="#macierz-kontraktu-lsp-z-teorii-sekcja-92">Macierz kontraktu LSP (z teorii, sekcja 9.2)</a></li><li class="h3"><a href="#przebieg-krokow-odniesiony-do-kodu-referencyjnego">Przebieg kroków odniesiony do kodu referencyjnego</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow-1">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji-1">Pytania do dyskusji</a></li><li class="h2"><a href="#cwiczenie-3-granica-i-regula-zaleznosci">Ćwiczenie 3: granica i reguła zależności</a></li><li class="h3"><a href="#zadanie-a-klasyfikacja-zaleznosci-z-teorii-sekcja-93">Zadanie A: klasyfikacja zależności (z teorii, sekcja 9.3)</a></li><li class="h3"><a href="#zadanie-b-nowy-adapter">Zadanie B: nowy adapter</a></li><li class="h3"><a href="#zadanie-c-automatyczna-ochrona-granicy">Zadanie C: automatyczna ochrona granicy</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow-2">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji-2">Pytania do dyskusji</a></li><li class="h2"><a href="#cwiczenie-4-wzorzec-jako-decyzja-odwracalna">Ćwiczenie 4: wzorzec jako decyzja odwracalna</a></li><li class="h3"><a href="#scenariusz-1-dostawa-tego-samego-dnia-z-teorii-sekcja-94">Scenariusz 1: dostawa tego samego dnia (z teorii, sekcja 9.4)</a></li><li class="h3"><a href="#scenariusz-2-uproszczenie-z-teorii-sekcja-94">Scenariusz 2: uproszczenie (z teorii, sekcja 9.4)</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow-3">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji-3">Pytania do dyskusji</a></li><li class="h2"><a href="#sprawdzenie-wiedzy-odpowiedzi-z-teorii-sekcja-10">Sprawdzenie wiedzy: odpowiedzi (z teorii, sekcja 10)</a></li><li class="h2"><a href="#listy-kontrolne-do-zamkniecia-modulu">Listy kontrolne do zamknięcia modułu</a></li></ul></details></nav></aside>
+<main>
+<h1>Moduł 3. Zasady dobrego projektowania - rozwiązania dla prowadzącego</h1>
+<p>Numeracja i nazwy odpowiadają plikowi zadań (<code>src/<wbr>main/<wbr>resources/<wbr>prowadzenie/<wbr>zadania/<wbr>03-zasady-dobrego-projektowania.md</code>). Materiał teoretyczny nie zawiera osobnych „krótkich aktywności”, dlatego plik obejmuje cztery ćwiczenia i sprawdzenie wiedzy.</p>
+<p>Kod referencyjny (stan „po”) znajduje się w <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module3/</code> w pakietach <code>domain</code>, <code>application</code>, <code>adapter</code> oraz w <code>Module3Examples.java</code>. Wersja „przed” to <code>legacy/<wbr>LegacyDeliveryQuoteService.java</code>.</p>
+<hr>
+<h2 id="cwiczenie-1-dry-kiss-i-yagni" tabindex="-1"><a class="header-anchor" href="#cwiczenie-1-dry-kiss-i-yagni"><span>Ćwiczenie 1: DRY, KISS i YAGNI</span></a></h2>
+<h3 id="rozwiazanie-wzorcowe-z-teorii-sekcja-91" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-wzorcowe-z-teorii-sekcja-91"><span>Rozwiązanie wzorcowe (z teorii, sekcja 9.1)</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Sytuacja</th>
+<th>Zalecana decyzja</th>
+<th>Uzasadnienie</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. wspólna opłata paliwowa</td>
+<td>scalić teraz</td>
+<td>to jedna reguła stosowana do dwóch istniejących wariantów; zmiana stawki musi być spójna</td>
+</tr>
+<tr>
+<td>2. dwa limity po 1000 kg</td>
+<td>pozostawić lokalnie</td>
+<td>podobna wartość nie dowodzi wspólnej wiedzy; limity mają inne znaczenie i mogą mieć innych właścicieli</td>
+</tr>
+<tr>
+<td>3. oczekiwane ceny w testach</td>
+<td>pozostawić jawnie</td>
+<td>test nie powinien wyliczać oczekiwanego wyniku algorytmem produkcyjnym; niezależność wyroczni ma większą wartość</td>
+</tr>
+<tr>
+<td>4. hipotetyczny system pluginów</td>
+<td>nie budować</td>
+<td>brak aktualnej potrzeby, a koszt obejmuje odkrywanie, bezpieczeństwo, wersjonowanie i diagnostykę</td>
+</tr>
+<tr>
+<td>5. zatwierdzony trzeci wariant</td>
+<td>przygotować najwęższe rozszerzenie</td>
+<td>potrzeba jest aktualna i znana; nadal nie uzasadnia mechanizmu pluginów, jeśli wariant jest kompilowany razem z aplikacją</td>
+</tr>
+<tr>
+<td>6. cache dla zmierzonego limitu</td>
+<td>dopuścić kontrolowaną duplikację</td>
+<td>wydajność jest aktualnym wymaganiem; trzeba określić źródło prawdy, ważność, unieważnianie i zachowanie po błędzie</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Interfejs <code>Surcharge</code>:</strong> obecnie niepotrzebny. <code>FuelSurcharge</code> jest jedną stabilną regułą domenową, a żadna granica techniczna ani drugi wariant nie wymaga podmiany. Interfejs można dodać później, gdy pojawi się rzeczywisty kontrakt wielu zachowań. Utworzenie go wyłącznie dla mockowania zwiększyłoby liczbę pojęć bez nowej semantyki.</p>
+<h3 id="uzupelnienie-pozostalych-kolumn-tabeli" tabindex="-1"><a class="header-anchor" href="#uzupelnienie-pozostalych-kolumn-tabeli"><span>Uzupełnienie pozostałych kolumn tabeli</span></a></h3>
+<blockquote>
+<p>Rozwiązanie opracowane na podstawie kodu referencyjnego, nie pochodzi wprost z materiału teoretycznego.</p>
+</blockquote>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Nr</th>
+<th>Wiedza</th>
+<th>Właściciel i powód zmiany</th>
+<th>Koszt błędnej decyzji</th>
+<th>Sygnał ponownej oceny</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>stawka opłaty paliwowej i sposób jej doliczenia z zaokrągleniem <code>HALF_UP</code></td>
+<td>właściciel polityki cenowej; zmiana cen paliwa</td>
+<td>pozostawienie: przy zmianie stawki jedna gałąź zostanie pominięta i ceny się rozjadą</td>
+<td>biznes wprowadza różne stawki dla różnych metod dostawy (wtedy wiedza przestaje być wspólna)</td>
+</tr>
+<tr>
+<td>2</td>
+<td>dwa różne limity: maksymalna masa przesyłki i maksymalne obciążenie magazynu</td>
+<td>inni właściciele (oferta przewozowa vs. operacje magazynowe)</td>
+<td>centralizacja: zmiana jednego limitu niepostrzeżenie zmienia drugi, fałszywa zależność i wymuszona koordynacja</td>
+<td>oba limity okazują się wynikać z jednej reguły (np. przepisu), co potwierdzi właściciel</td>
+</tr>
+<tr>
+<td>3</td>
+<td>oczekiwany wynik scenariusza testowego (wyrocznia)</td>
+<td>autor testu; zmiana wymagania cenowego</td>
+<td>centralizacja (wyliczanie oczekiwań kodem produkcyjnym): ten sam defekt po obu stronach asercji</td>
+<td>przygotowanie danych staje się nieczytelne; wtedy wspólne fabryki danych, ale nadal jawne wartości oczekiwane</td>
+</tr>
+<tr>
+<td>4</td>
+<td>przewidywana możliwość definiowania taryf przez partnerów</td>
+<td>brak aktualnego właściciela wymagania</td>
+<td>budowa teraz: koszt implementacji, testów, bezpieczeństwa, wersjonowania; prawdopodobna przebudowa, gdy prawdziwe wymaganie okaże się inne</td>
+<td>zatwierdzone wymaganie od produktu z opisem, kto i jak definiuje taryfy</td>
+</tr>
+<tr>
+<td>5</td>
+<td>nowy algorytm ceny trzeciej metody dostawy</td>
+<td>właściciel polityki cenowej, termin 3 tygodnie</td>
+<td>pozostawienie bez przygotowania: kolejna gałąź w centralnym rozgałęzieniu; nadmiar: mechanizm pluginów bez potrzeby</td>
+<td>nowy wariant nie spełnia kontraktu istniejących polityk (np. wycena sieciowa, patrz ćwiczenie 4)</td>
+</tr>
+<tr>
+<td>6</td>
+<td>wynik wyceny, którego źródłem prawdy jest serwis cenowy</td>
+<td>właściciel wydajności i właściciel serwisu cenowego</td>
+<td>brak cache: niespełniony zmierzony limit czasu; cache bez reguł: nieaktualne ceny</td>
+<td>zmiana limitu, zmiana częstotliwości aktualizacji cen, incydent ze starą ceną; test inwariantu synchronizacji</td>
+</tr>
+</tbody>
+</table></div>
+<p>Najprostsze poprawne rozwiązanie dla sytuacji 1 w projekcie: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module3/<wbr>domain/<wbr>FuelSurcharge.java</code> wstrzykiwany do obu polityk. Dla sytuacji 3: <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module3/<wbr>domain/<wbr>DeliveryPriceCalculatorTest.java</code> z jawnymi <code>17.28</code> i <code>31.32</code>.</p>
+<h3 id="typowe-bledy-uczestnikow" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>Scalanie sytuacji 2 „bo to ta sama liczba”.</li>
+<li>Budowanie wspólnego helpera w testach, który liczy cenę tak samo jak produkcja.</li>
+<li>Traktowanie sytuacji 5 jako uzasadnienia pluginów albo rejestru ładowanego refleksją.</li>
+<li>Uznanie cache za „naruszenie DRY” bez rozróżnienia kontrolowanej duplikacji.</li>
+<li>Wydzielenie <code>basePrice(base, rate, weight)</code> wspólnego dla STANDARD i EXPRESS (fałszywa abstrakcja, 7.3).</li>
+<li>Uzasadnianie interfejsu <code>Surcharge</code> łatwością mockowania.</li>
+</ul>
+<h3 id="pytania-do-dyskusji" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>Po czym poznać, że dwie reprezentacje to ta sama wiedza? Kogo o to zapytać?</li>
+<li>Czy reguła trzech pomogłaby w sytuacji 1? (Nie: dwie reprezentacje potwierdzonej reguły mogą wymagać natychmiastowej centralizacji.)</li>
+<li>Jak rozdzielić istniejącą fałszywą abstrakcję? (Testy, przeniesienie kodu z powrotem do kontekstów, usunięcie zbędnych gałęzi, dopiero potem wydzielenie potwierdzonej wspólnej wiedzy, sekcja 2.2.)</li>
+</ul>
+<hr>
+<h2 id="cwiczenie-2-solid-jako-seria-bezpiecznych-zmian" tabindex="-1"><a class="header-anchor" href="#cwiczenie-2-solid-jako-seria-bezpiecznych-zmian"><span>Ćwiczenie 2: SOLID jako seria bezpiecznych zmian</span></a></h2>
+<h3 id="aktorzy-zmiany-z-teorii-sekcja-92" tabindex="-1"><a class="header-anchor" href="#aktorzy-zmiany-z-teorii-sekcja-92"><span>Aktorzy zmiany (z teorii, sekcja 9.2)</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Obszar</th>
+<th>Aktor zmiany</th>
+<th>Właściwa odpowiedzialność</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>cennik i opłata paliwowa</td>
+<td>właściciel polityki cenowej</td>
+<td>domena</td>
+</tr>
+<tr>
+<td>zapis wyceny</td>
+<td>właściciel danych i operacji</td>
+<td>adapter realizujący port aplikacji</td>
+</tr>
+<tr>
+<td>treść i kanał komunikatu</td>
+<td>właściciel komunikacji z klientem</td>
+<td>adapter powiadomień</td>
+</tr>
+<tr>
+<td>kolejność utworzenia, zapisu i powiadomienia</td>
+<td>właściciel procesu aplikacyjnego</td>
+<td>przypadek użycia</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="macierz-kontraktu-lsp-z-teorii-sekcja-92" tabindex="-1"><a class="header-anchor" href="#macierz-kontraktu-lsp-z-teorii-sekcja-92"><span>Macierz kontraktu LSP (z teorii, sekcja 9.2)</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Element kontraktu</th>
+<th>Gwarancja typu bazowego</th>
+<th>Jak sprawdzić</th>
+<th>Przykład naruszenia</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>obsługiwana metoda</td>
+<td><code>method()</code> zwraca stabilną, niepustą wartość zgodną z daną polityką</td>
+<td>wspólny test odczytujący metodę co najmniej dwa razy</td>
+<td>polityka EXPRESS rejestruje się jako STANDARD albo zmienia wartość w czasie</td>
+</tr>
+<tr>
+<td>dane wejściowe</td>
+<td>każda prawidłowa <code>Parcel</code> jest akceptowana</td>
+<td>przypadki graniczne oraz testy generatywne, jeśli ryzyko je uzasadnia</td>
+<td>EXPRESS odrzuca paczki powyżej 10 kg bez takiego ograniczenia w kontrakcie</td>
+</tr>
+<tr>
+<td>wynik</td>
+<td>cena jest nieujemna</td>
+<td>wspólny test kontraktowy</td>
+<td>wartość <code>-1.00</code> sygnalizująca brak ceny</td>
+</tr>
+<tr>
+<td>zaokrąglenie</td>
+<td>wynik ma skalę dwa</td>
+<td>asercja na <code>scale()</code> i wartościach granicznych</td>
+<td>zwrot <code>17.280</code> albo niejawnie inna reguła zaokrąglenia</td>
+</tr>
+<tr>
+<td>deterministyczność</td>
+<td>te same dane dają ten sam wynik</td>
+<td>dwa wywołania oraz właściwe testy własności</td>
+<td>wynik zależny od bieżącego czasu bez jawnego wejścia</td>
+</tr>
+<tr>
+<td>efekty uboczne</td>
+<td>obliczenie nie zmienia wejścia i nie wysyła komunikatów</td>
+<td>obserwacja stanu oraz test podwójnego wywołania</td>
+<td>zapis do bazy wewnątrz <code>priceFor</code></td>
+</tr>
+<tr>
+<td>wyjątki</td>
+<td>prawidłowa przesyłka nie powoduje błędu implementacyjnego</td>
+<td>testy wszystkich implementacji i przypadków brzegowych</td>
+<td><code>UnsupportedOperationException</code> dla legalnej masy</td>
+</tr>
+</tbody>
+</table></div>
+<p>Test kontraktowy jest uzupełnieniem dokumentacji, nie kompletnym formalnym dowodem. Konkretne ceny nadal wymagają testów poszczególnych polityk. Test przypadku użycia powinien chronić decyzję, że nie powiadamiamy po nieudanym zapisie. Jeśli właściciel procesu wybierze inną semantykę, należy zmienić test oraz implementację świadomie.</p>
+<p><strong>Decyzja do kroku 2 (prowadzący jako właściciel procesu):</strong> kod referencyjny przyjmuje, że po nieudanym zapisie <strong>nie</strong> wolno wysłać powiadomienia. Tę odpowiedź należy podać uczestnikom, gdy o nią zapytają.</p>
+<h3 id="przebieg-krokow-odniesiony-do-kodu-referencyjnego" tabindex="-1"><a class="header-anchor" href="#przebieg-krokow-odniesiony-do-kodu-referencyjnego"><span>Przebieg kroków odniesiony do kodu referencyjnego</span></a></h3>
+<blockquote>
+<p>Rozwiązanie opracowane na podstawie kodu referencyjnego, nie pochodzi wprost z materiału teoretycznego.</p>
+</blockquote>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Krok</th>
+<th>Wynik w projekcie</th>
+<th>Chroniona oś zmiany</th>
+<th>Dodany koszt</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. aktorzy</td>
+<td>tabela powyżej</td>
+<td>rozpoznanie osi: cennik, zapis, komunikacja, proces</td>
+<td>brak</td>
+</tr>
+<tr>
+<td>2. decyzja o awarii zapisu</td>
+<td>wymaganie „brak powiadomienia po błędzie zapisu”</td>
+<td>protokół efektów ubocznych</td>
+<td>konieczność testu po utworzeniu punktu podmiany</td>
+</tr>
+<tr>
+<td>3. opłata paliwowa</td>
+<td><code>domain/<wbr>FuelSurcharge.java</code></td>
+<td>zmiana stawki w jednym miejscu (DRY)</td>
+<td>nowy typ domenowy, walidacja stawki <code>0..1</code></td>
+</tr>
+<tr>
+<td>4. kontrakt i pierwszy wariant</td>
+<td><code>domain/<wbr>DeliveryPricePolicy.java</code>, <code>domain/<wbr>StandardDeliveryPricePolicy.java</code></td>
+<td>niezależne cenniki (SRP, OCP)</td>
+<td>kontrakt do utrzymania</td>
+</tr>
+<tr>
+<td>5. testy po pierwszym wariancie</td>
+<td><code>legacy/<wbr>LegacyDeliveryQuoteServiceCharacterizationTest</code> i test nowej polityki zielone</td>
+<td>bezpieczeństwo małego kroku</td>
+<td>czas uruchomienia</td>
+</tr>
+<tr>
+<td>6. drugi wariant i test kontraktowy</td>
+<td><code>domain/<wbr>ExpressDeliveryPricePolicy.java</code>, <code>domain/<wbr>DeliveryPriceCalculator.java</code>, test <code>domain/<wbr>DeliveryPricePolicyContractTest.java</code></td>
+<td>substytucja polityk (LSP)</td>
+<td>lista implementacji w teście do utrzymania, rejestracja w kalkulatorze</td>
+</tr>
+<tr>
+<td>7. porty</td>
+<td><code>application/<wbr>QuoteRepository.java</code>, <code>application/<wbr>QuoteNotifier.java</code></td>
+<td>przypadek użycia zna tylko potrzebne role (ISP, DIP)</td>
+<td>dwa kontrakty</td>
+</tr>
+<tr>
+<td>8. test awarii</td>
+<td><code>CreateDeliveryQuoteTest.doesNotNotifyWhenSavingFails</code></td>
+<td>uzgodniony protokół</td>
+<td>test do utrzymania</td>
+</tr>
+<tr>
+<td>9. adaptery</td>
+<td><code>adapter/<wbr>InMemoryQuoteRepository.java</code>, <code>adapter/<wbr>ConsoleQuoteNotifier.java</code></td>
+<td>wymiana mechanizmu zapisu i kanału bez edycji przypadku użycia</td>
+<td>klasy adapterów, w realnym systemie testy integracyjne</td>
+</tr>
+<tr>
+<td>10. składanie</td>
+<td><code>Module3Examples.java</code> (ręczny composition root)</td>
+<td>wybór konkretów w jednym miejscu (KISS, YAGNI: bez kontenera)</td>
+<td>ręczna aktualizacja konfiguracji</td>
+</tr>
+<tr>
+<td>11. porównanie</td>
+<td>wyjście programu: dwie identyczne linie <code>Quote ready ... 17.28</code>, <code>Legacy and refactored prices equal: true</code>, <code>Stored quotes: 1</code></td>
+<td>dowód zachowania cen i komunikatu</td>
+<td>brak</td>
+</tr>
+</tbody>
+</table></div>
+<p>Rdzeń przypadku użycia po zmianie (<code>application/<wbr>CreateDeliveryQuote.java</code>):</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">DeliveryQuote</span> <span class="hljs-variable">quote</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">DeliveryQuote</span>(
+        command.customerEmail(),
+        command.method(),
+        command.parcel(),
+        priceCalculator.priceFor(command.method(), command.parcel()));
+
+repository.save(quote);
+notifier.quoteCreated(quote);
+<span class="hljs-keyword">return</span> quote;
+</code></pre>
+<p>Kryteria akceptacji są spełnione przez kod referencyjny: ceny <code>17.28</code> / <code>31.32</code> (<code>DeliveryPriceCalculatorTest</code>), brak importów <code>adapter</code> w <code>application</code>, jedna reprezentacja <code>0.08</code> (wstrzykiwana w composition root), wspólny test kontraktowy, <code>doesNotNotifyWhenSavingFails</code>.</p>
+<h3 id="typowe-bledy-uczestnikow-1" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow-1"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>Wydzielanie wszystkiego naraz, bez uruchamiania testów po pierwszym wariancie.</li>
+<li>Scalanie cenników STANDARD i EXPRESS w jedną sparametryzowaną metodę.</li>
+<li>Umieszczenie stawki <code>0.08</code> jako stałej w każdej polityce (dwie reprezentacje wiedzy nadal istnieją).</li>
+<li>Port nazwany technologią (<code>JdbcQuoteRepository</code> jako interfejs) albo ogólny <code>CrudRepository</code> w aplikacji.</li>
+<li>Tworzenie interfejsu dla <code>DeliveryPriceCalculator</code> „bo DIP” (w referencji świadomie go nie ma, 7.5).</li>
+<li>Utrata formatu komunikatu przy przenoszeniu do adaptera (test charakterystyki tego nie wykryje; wykryje porównanie wyjścia w kroku 11).</li>
+<li>Pominięcie decyzji z kroku 2 i traktowanie kolejności <code>save</code>/<code>quoteCreated</code> jako oczywistej.</li>
+<li>Przypisywanie klas do pojedynczych liter SOLID zamiast opisu osi zmiany i kosztu.</li>
+<li><code>DeliveryQuote</code> z <code>RoundingMode.UNNECESSARY</code>: polityka zwracająca więcej niż dwa miejsca po przecinku kończy się <code>ArithmeticException</code>, a nie zaokrągleniem.</li>
+</ul>
+<h3 id="pytania-do-dyskusji-1" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji-1"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>Która zmiana była refaktoryzacją, a która nową decyzją zachowania (awaria zapisu)?</li>
+<li>Czy przy jednej metodzie dostawy Strategy byłaby uzasadniona?</li>
+<li>Co w teście kontraktowym nie jest sprawdzane (niezmienność wejścia, brak efektów ubocznych, wszystkie masy)?</li>
+<li>Czy brak polityki powinien być wykrywany w konstruktorze kalkulatora czy przy żądaniu?</li>
+</ul>
+<hr>
+<h2 id="cwiczenie-3-granica-i-regula-zaleznosci" tabindex="-1"><a class="header-anchor" href="#cwiczenie-3-granica-i-regula-zaleznosci"><span>Ćwiczenie 3: granica i reguła zależności</span></a></h2>
+<h3 id="zadanie-a-klasyfikacja-zaleznosci-z-teorii-sekcja-93" tabindex="-1"><a class="header-anchor" href="#zadanie-a-klasyfikacja-zaleznosci-z-teorii-sekcja-93"><span>Zadanie A: klasyfikacja zależności (z teorii, sekcja 9.3)</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Zależność</th>
+<th>Ocena</th>
+<th>Uzasadnienie</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. domena do <code>BigDecimal</code></td>
+<td>dozwolona</td>
+<td>jest to typ Java SE przydatny do jawnego modelowania wartości dziesiętnych; nie jest szczegółem adaptera</td>
+</tr>
+<tr>
+<td>2. aplikacja do <code>InMemoryQuoteRepository</code></td>
+<td>niedozwolona</td>
+<td>wnętrze zależałoby od konkretnego mechanizmu zapisu</td>
+</tr>
+<tr>
+<td>3. adapter do <code>QuoteRepository</code></td>
+<td>dozwolona</td>
+<td>zewnętrzny szczegół implementuje port należący do wnętrza</td>
+</tr>
+<tr>
+<td>4. domena do encji ORM</td>
+<td>niedozwolona w przyjętym modelu</td>
+<td>typ frameworka przenosi decyzję trwałości do polityki domenowej</td>
+</tr>
+<tr>
+<td>5. composition root do wszystkich konkretów</td>
+<td>dozwolona</td>
+<td>właśnie tam podejmowana jest zewnętrzna decyzja o składaniu</td>
+</tr>
+<tr>
+<td>6. notifier do <code>DeliveryQuote</code></td>
+<td>dozwolona</td>
+<td>adapter realizuje port posługujący się modelem kontraktu; w większym systemie można mapować na osobny model granicy</td>
+</tr>
+<tr>
+<td>7. wywołanie adaptera przez port</td>
+<td>dozwolone</td>
+<td>przepływ sterowania na zewnątrz nie odwraca zależności źródłowej</td>
+</tr>
+<tr>
+<td>8. wyjątek JDBC w porcie</td>
+<td>niedozwolony</td>
+<td>szczegół dostawcy przecieka do kontraktu aplikacji; adapter powinien przetłumaczyć błąd na semantykę granicy</td>
+</tr>
+</tbody>
+</table></div>
+<p>Diagram oczekiwany od uczestników (z 7.11 i 5.2):</p>
+<pre class="code" data-lang="text"><code class="hljs">Zależności źródłowe:              Przepływ sterowania (runtime):
+Module3Examples -&gt; adapter        Module3Examples
+Module3Examples -&gt; application      -&gt; CreateDeliveryQuote.execute
+adapter -&gt; application (porty)          -&gt; DeliveryPriceCalculator -&gt; polityka
+adapter -&gt; domain                        -&gt; QuoteRepository (InMemoryQuoteRepository)
+application -&gt; domain                    -&gt; QuoteNotifier (ConsoleQuoteNotifier)
+</code></pre>
+<h3 id="zadanie-b-nowy-adapter" tabindex="-1"><a class="header-anchor" href="#zadanie-b-nowy-adapter"><span>Zadanie B: nowy adapter</span></a></h3>
+<blockquote>
+<p>Rozwiązanie opracowane na podstawie kodu referencyjnego, nie pochodzi wprost z materiału teoretycznego.</p>
+</blockquote>
+<p>Kod referencyjny nie zawiera <code>BufferingQuoteNotifier</code>. Przykładowa implementacja zgodna ze wzorcem <code>InMemoryQuoteRepository</code> i formatem <code>ConsoleQuoteNotifier</code>:</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">package</span> pl.training.module3.adapter;
+
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">BufferingQuoteNotifier</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">QuoteNotifier</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-variable">messages</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-type">void</span> <span class="hljs-title function_">quoteCreated</span><span class="hljs-params">(DeliveryQuote quote)</span> {
+        Objects.requireNonNull(quote);
+        messages.add(<span class="hljs-string">&quot;Quote ready for %s: %s costs %s&quot;</span>.formatted(
+                quote.customerEmail(), quote.method(), quote.price()));
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-title function_">messages</span><span class="hljs-params">()</span> {
+        <span class="hljs-keyword">return</span> List.copyOf(messages);
+    }
+}
+</code></pre>
+<p>Test adaptera (analogiczny do <code>InMemoryQuoteRepositoryTest</code>): utwórz <code>DeliveryQuote(&quot;developer@example.com&quot;, STANDARD, new Parcel(new BigDecimal(&quot;3.00&quot;)), new BigDecimal(&quot;17.28&quot;))</code>, wywołaj <code>quoteCreated</code>, sprawdź <code>assertEquals(List.of(&quot;Quote ready for developer@example.com: STANDARD costs 17.28&quot;), notifier.messages())</code>. Warto dodać sprawdzenie, że modyfikacja zwróconej listy rzuca <code>UnsupportedOperationException</code> albo nie wpływa na bufor.</p>
+<p>Zmiana w composition root (<code>Module3Examples.java</code>), jedyne edytowane miejsce poza nowymi plikami:</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">BufferingQuoteNotifier</span> <span class="hljs-variable">notifier</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BufferingQuoteNotifier</span>();
+<span class="hljs-type">CreateDeliveryQuote</span> <span class="hljs-variable">useCase</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">CreateDeliveryQuote</span>(calculator, repository, notifier);
+</code></pre>
+<p>Weryfikacja: <code>git diff --stat</code> nie pokazuje zmian w <code>application/</code> ani <code>domain/</code>; <code>mvn verify</code> zielony.</p>
+<p>Punkty do omówienia:</p>
+<ul>
+<li><strong>Zmiana obserwowalnego wyjścia programu:</strong> po podmianie druga linia <code>Quote ready ...</code> znika ze standardowego wyjścia. <code>Module3ExamplesTest</code> tego nie wykryje (tylko <code>assertDoesNotThrow</code>). Należy to nazwać świadomą zmianą zachowania programu demonstracyjnego, albo wypisać zawartość bufora, albo podmieniać adapter tylko w teście demonstracyjnym.</li>
+<li><strong>Format komunikatu w dwóch adapterach:</strong> czy to ta sama wiedza (DRY)? Jeśli właściciel komunikacji wymaga identycznej treści w obu kanałach, można wydzielić formatter w pakiecie <code>adapter</code>; jeśli bufor służy tylko testom, lokalna kopia jest akceptowalna. Nie wolno przenosić formatowania do aplikacji ani domeny.</li>
+<li>Brak frameworka DI i pliku konfiguracyjnego: ręczna podmiana jest pełnoprawna (5.6).</li>
+<li>Bufor nie jest bezpieczny wątkowo, tak samo jak <code>InMemoryQuoteRepository</code>; w demonstracji to akceptowalne.</li>
+</ul>
+<h3 id="zadanie-c-automatyczna-ochrona-granicy" tabindex="-1"><a class="header-anchor" href="#zadanie-c-automatyczna-ochrona-granicy"><span>Zadanie C: automatyczna ochrona granicy</span></a></h3>
+<p>Porównanie wariantów (z teorii, sekcja 9.3): najprostsza kontrola tekstowa importów jest tania, ale słabo rozumie język i może generować wyniki fałszywe. Test architektoniczny daje czytelne reguły na poziomie typów. Osobne moduły Maven lub JPMS dostarczają silniejszej granicy kompilacji i widoczności, lecz zwiększają koszt budowania oraz konfiguracji. Należy dobrać siłę mechanizmu do znaczenia granicy.</p>
+<blockquote>
+<p>Rozwiązanie opracowane na podstawie kodu referencyjnego, nie pochodzi wprost z materiału teoretycznego.</p>
+</blockquote>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Wariant</th>
+<th>Siła gwarancji</th>
+<th>Koszt utrzymania</th>
+<th>Komunikat o błędzie</th>
+<th>Uwagi dla tego projektu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>kontrola statyczna w CI (<code>grep</code> importów)</td>
+<td>najsłabsza: nie widzi pełnych nazw w kodzie, importów z <code>*</code>, refleksji; możliwe fałszywe alarmy w komentarzach</td>
+<td>bardzo niski</td>
+<td>surowy wynik narzędzia, zwykle ścieżka i linia</td>
+<td>można uruchomić od razu</td>
+</tr>
+<tr>
+<td>test JUnit skanujący pliki źródłowe</td>
+<td>jak wyżej, ale w <code>mvn verify</code></td>
+<td>niski, bez nowych zależności</td>
+<td>własny, czytelny komunikat asercji</td>
+<td>pasuje do obecnego <code>pom.xml</code> (tylko JUnit)</td>
+</tr>
+<tr>
+<td>narzędzie do testów architektury (np. ArchUnit)</td>
+<td>reguły na poziomie typów w bytecode</td>
+<td>średni: nowa zależność testowa</td>
+<td>bardzo czytelny, wskazuje klasę i zależność</td>
+<td>w <code>pom.xml</code> brak takiej zależności; trzeba ją dodać</td>
+</tr>
+<tr>
+<td>osobne moduły Maven</td>
+<td>kompilator odrzuca import</td>
+<td>wysoki: restrukturyzacja projektu, build wielomodułowy</td>
+<td>błąd kompilacji „package does not exist”</td>
+<td>wymaga rozbicia jednego modułu Maven (7.11)</td>
+</tr>
+<tr>
+<td>JPMS</td>
+<td>silna granica widoczności pakietów</td>
+<td>średni do wysokiego: <code>module-info.java</code>, eksporty</td>
+<td>błąd kompilacji o widoczności</td>
+<td>w jednym module JPMS nie oddzieli pakietów tego samego modułu; potrzebne i tak osobne moduły</td>
+</tr>
+</tbody>
+</table></div>
+<p>Przykładowy test bez nowych zależności (szkic do pokazania):</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-meta">@Test</span>
+<span class="hljs-type">void</span> <span class="hljs-title function_">innerPackagesDoNotImportAdapters</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> IOException {
+    <span class="hljs-keyword">for</span> (String pkg : List.of(<span class="hljs-string">&quot;application&quot;</span>, <span class="hljs-string">&quot;domain&quot;</span>)) {
+        <span class="hljs-type">Path</span> <span class="hljs-variable">dir</span> <span class="hljs-operator">=</span> Path.of(<span class="hljs-string">&quot;src/main/java/pl/training/module3&quot;</span>, pkg);
+        <span class="hljs-keyword">try</span> (<span class="hljs-type">Stream</span>&lt;Path&gt; <span class="hljs-variable">files</span> <span class="hljs-operator">=</span> Files.walk(dir)) {
+            files.filter(p -&gt; p.toString().endsWith(<span class="hljs-string">&quot;.java&quot;</span>)).forEach(p -&gt;
+                assertFalse(read(p).contains(<span class="hljs-string">&quot;import pl.training.module3.adapter&quot;</span>),
+                        () -&gt; p + <span class="hljs-string">&quot; imports adapter&quot;</span>));
+        }
+    }
+}
+</code></pre>
+<p>(<code>read</code> to pomocnicze <code>Files.readString</code> z obsługą <code>IOException</code>.) Test nie wykryje użycia w pełni kwalifikowanej nazwy bez importu; to przykład słabości kontroli tekstowej.</p>
+<h3 id="typowe-bledy-uczestnikow-2" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow-2"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>Mylenie przepływu sterowania z zależnością źródłową (ocena punktu 7 jako „niedozwolone”).</li>
+<li>Uznanie <code>BigDecimal</code> w domenie za zależność od szczegółu technicznego.</li>
+<li>Zmiana portu <code>QuoteNotifier</code> (np. dodanie <code>messages()</code>) zamiast umieszczenia odczytu w adapterze.</li>
+<li>Podmiana adaptera w <code>CreateDeliveryQuote</code> zamiast w composition root.</li>
+<li>Dodawanie kontenera DI lub pliku konfiguracyjnego.</li>
+<li>Zwracanie wewnętrznej, modyfikowalnej listy z adaptera.</li>
+</ul>
+<h3 id="pytania-do-dyskusji-2" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji-2"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>Czy <code>ConsoleQuoteNotifier</code> powinien mieć osobny model komunikatu zamiast <code>DeliveryQuote</code>? Kiedy to się opłaca (5.5)?</li>
+<li>Jaka siła kontroli granicy jest adekwatna dla tego projektu, a jaka dla systemu z wieloma zespołami?</li>
+<li>Czy wyjście programu demonstracyjnego jest kontraktem?</li>
+</ul>
+<hr>
+<h2 id="cwiczenie-4-wzorzec-jako-decyzja-odwracalna" tabindex="-1"><a class="header-anchor" href="#cwiczenie-4-wzorzec-jako-decyzja-odwracalna"><span>Ćwiczenie 4: wzorzec jako decyzja odwracalna</span></a></h2>
+<h3 id="scenariusz-1-dostawa-tego-samego-dnia-z-teorii-sekcja-94" tabindex="-1"><a class="header-anchor" href="#scenariusz-1-dostawa-tego-samego-dnia-z-teorii-sekcja-94"><span>Scenariusz 1: dostawa tego samego dnia (z teorii, sekcja 9.4)</span></a></h3>
+<p>SAME_DAY nie powinien automatycznie implementować <code>DeliveryPricePolicy</code>. Aktualny kontrakt obiecuje deterministyczne obliczenie bez efektów ubocznych, podczas gdy klient sieciowy może być niedostępny, zmieniać odpowiedź i powodować opóźnienia. Udawanie zgodności naruszyłoby LSP oraz ukryło istotną właściwość operacyjną.</p>
+<p>Odpowiedzi na pytania:</p>
+<ol>
+<li><strong>Rola:</strong> współpraca ról, ale nie jako trzecia <code>DeliveryPricePolicy</code>. Przypadek użycia definiuje port wyceny zewnętrznej o jawnej semantyce błędu i dostępności; adapter przewoźnika go implementuje (wzorzec Adapter). Decyzja, czy wykonać lokalne obliczenie, czy zdalne zapytanie, może należeć do przypadku użycia poziom wyżej. Nazwanie wszystkiego <code>Strategy</code> nie usuwa różnicy semantycznej.</li>
+<li><strong>Konwersja kg na g:</strong> w adapterze przewoźnika. Jeżeli kontrakt wymaga dokładności do jednego grama, <code>weightKg.movePointRight(3).longValueExact()</code> odrzuca zarówno ułamek grama, jak i przepełnienie. Zaokrąglenie wolno zastosować wyłącznie po uzgodnieniu kierunku i momentu zaokrąglania jako reguły biznesowej.</li>
+<li><strong>Najmniejsze jednostki:</strong> kwota nie jest kompletna bez waluty i liczby jej miejsc dziesiętnych. Po ustaleniu wykładnika można użyć <code>BigDecimal.valueOf(minorUnits, fractionDigits)</code>. Obecny <code>DeliveryQuote</code> nie przechowuje waluty, więc system musi wymagać jednej skonfigurowanej waluty albo rozszerzyć model o wartość pieniężną z kwotą i kodem waluty. Adapter musi odrzucić niespodziewaną walutę.</li>
+<li><strong>Błąd na granicy:</strong> adapter tłumaczy typ błędu dostawcy na błąd należący do kontraktu portu. Klasy SDK nie trafiają do wnętrza.</li>
+<li><strong>Brak efektów ubocznych:</strong> nie, dla wyceny sieciowej kontrakt <code>DeliveryPricePolicy</code> nie może tego obiecywać. Dlatego potrzebny jest osobny port, a nie trzeci wariant tej samej strategii.</li>
+<li><strong>Timeout i ponowienia:</strong> timeout w konfiguracji klienta w adapterze. Ponowienia wymagają analizy idempotencji, budżetu czasu i charakteru błędów.</li>
+<li><strong>Testy:</strong> test adaptera uruchamia się wobec kontrolowanego serwera zastępczego lub środowiska testowego dostawcy. Test przypadku użycia korzysta z implementacji portu zwracającej ustalone wyniki (jak lambdy w <code>CreateDeliveryQuoteTest</code>). Domena i przypadek użycia nie importują typów SDK przewoźnika.</li>
+</ol>
+<p>Dodatkowo do omówienia: <code>ShippingMethod</code> jest enumem, więc SAME_DAY wymaga jego zmiany; <code>DeliveryPriceCalculator</code> zgłosi <code>IllegalArgumentException</code> dla metody bez lokalnej polityki, więc ścieżka zdalna musi zostać rozgałęziona przed kalkulatorem (w przypadku użycia), a nie ukryta w nim.</p>
+<h3 id="scenariusz-2-uproszczenie-z-teorii-sekcja-94" tabindex="-1"><a class="header-anchor" href="#scenariusz-2-uproszczenie-z-teorii-sekcja-94"><span>Scenariusz 2: uproszczenie (z teorii, sekcja 9.4)</span></a></h3>
+<p>Po usunięciu EXPRESS można uprościć projekt do jednej klasy kalkulatora, jeśli rejestr i interfejs nie chronią już realnej granicy. Warto zachować testy ceny, zaokrąglenia i inwariantów. Koszt ponownego wydzielenia strategii jest zwykle mały przy istniejących testach. Nie należy jednak usuwać portów zapisu i powiadamiania tylko dlatego, że zniknęła zmienność cennika. Te granice chronią inne decyzje.</p>
+<blockquote>
+<p>Rozwiązanie opracowane na podstawie kodu referencyjnego, nie pochodzi wprost z materiału teoretycznego.</p>
+</blockquote>
+<p>Odniesienie do plików:</p>
+<ul>
+<li>do usunięcia lub wchłonięcia: <code>domain/<wbr>DeliveryPricePolicy.java</code>, <code>domain/<wbr>ExpressDeliveryPricePolicy.java</code>, rejestr <code>EnumMap</code> w <code>domain/<wbr>DeliveryPriceCalculator.java</code>; reguła STANDARD (<code>10.00 + masa x 2.00</code>, opłata przez <code>FuelSurcharge</code>) może trafić do kalkulatora,</li>
+<li>do zachowania: <code>FuelSurcharge</code> (nadal jedna reguła), porty <code>application/<wbr>QuoteRepository.java</code>, <code>application/<wbr>QuoteNotifier.java</code>, adaptery, composition root,</li>
+<li>testy: z <code>DeliveryPricePolicyContractTest</code> zachować jako testy zachowania sprawdzenia skali 2, nieujemności i deterministyczności kalkulatora; z <code>DeliveryPriceCalculatorTest</code> zachować przypadek STANDARD <code>17.28</code>; testy <code>rejectsDuplicatePolicyForOneShippingMethod</code> i <code>reportsMissingPolicy</code> tracą sens razem z rejestrem,</li>
+<li><code>ShippingMethod.EXPRESS</code> znika z enuma; testy charakterystyki legacy (<code>documentsExpressDeliveryPrice</code>) i gałąź <code>legacy</code> trzeba potraktować osobno (gałąź demonstracyjna),</li>
+<li>ponowne dodanie wariantu dotknęłoby: enuma, kalkulatora (ponowne wydzielenie kontraktu), composition root i testów; przy zielonych testach to kilka małych kroków.</li>
+</ul>
+<h3 id="typowe-bledy-uczestnikow-3" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow-3"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>Implementacja SAME_DAY jako trzeciej <code>DeliveryPricePolicy</code> z wywołaniem sieciowym w <code>priceFor</code>.</li>
+<li>Przekazanie typów SDK przewoźnika lub jego wyjątków do domeny albo aplikacji.</li>
+<li>Ciche zaokrąglanie gramów lub założenie waluty bez uzgodnienia.</li>
+<li>Umieszczenie timeoutu i ponowień w przypadku użycia lub domenie.</li>
+<li>W scenariuszu 2: usunięcie także portów i adapterów „przy okazji” albo pozostawienie Strategy „na przyszłość” bez uzasadnienia kosztowego.</li>
+<li>Proponowanie mechanizmu pluginów dla przyszłych przewoźników.</li>
+</ul>
+<h3 id="pytania-do-dyskusji-3" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji-3"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>Jaki problem rozwiązuje Strategy, a jaki Adapter w tym scenariuszu?</li>
+<li>Po jakim sygnale uznamy, że wzorzec stał się nadmiarowy (6.5)?</li>
+<li>Czy refaktoryzacja od wzorca jest „cofaniem się”? (Nie, jest równie poprawna jak refaktoryzacja do wzorca.)</li>
+</ul>
+<hr>
+<h2 id="sprawdzenie-wiedzy-odpowiedzi-z-teorii-sekcja-10" tabindex="-1"><a class="header-anchor" href="#sprawdzenie-wiedzy-odpowiedzi-z-teorii-sekcja-10"><span>Sprawdzenie wiedzy: odpowiedzi (z teorii, sekcja 10)</span></a></h2>
+<ol>
+<li>Wiedza i decyzje systemu. Podobny tekst może reprezentować różną wiedzę.</li>
+<li>Gdy mają inne znaczenie, innych właścicieli lub niezależne powody zmian.</li>
+<li>Kilka spójnych, nazwanych elementów może zmniejszyć złożoność poznawczą i promień zmian mimo większej liczby plików.</li>
+<li>Nie. Testy aktualnego zachowania wspierają bezpieczną zmianę i pozwalają odkładać spekulacyjne decyzje.</li>
+<li>Jako odpowiedzialność wobec aktora lub spójnej grupy aktorów żądających określonej zmiany.</li>
+<li>Nie. Dla małego, celowo zamkniętego zbioru wariantów <code>switch</code> może być najprostszym poprawnym modelem.</li>
+<li>Podtyp nie wzmacnia warunków wstępnych i nie osłabia warunków końcowych. Musi również zachować istotne inwarianty oraz efekty kontraktu.</li>
+<li>Wstrzyknięcie zależności opisuje sposób dostarczenia obiektu. DIP dotyczy kierunku zależności źródłowej i własności abstrakcji.</li>
+<li>Nie. Interfejs jest zgodny z ISP, gdy odpowiada spójnej roli klienta, niezależnie od liczby metod.</li>
+<li>Nie usuwa go. Zmienia zależność od konkretu na zależność od kontraktu i przenosi wybór implementacji.</li>
+<li>Nie. Adapter może być wywołany w czasie wykonania, podczas gdy źródłowo zależy od portu zdefiniowanego wewnątrz.</li>
+<li>Po stronie klienta, który formułuje potrzebę, zwykle w aplikacji lub domenie zależnie od znaczenia operacji.</li>
+<li>Nie. Liczy się właściwe rozdzielenie polityki i szczegółu oraz kierunek zależności, a nie nazwy katalogów.</li>
+<li>Gdy warianty są nieliczne, zamknięte, lokalne i zmieniają się razem, a mechanizm wyboru dodaje więcej kosztu niż chronionej zmienności.</li>
+<li>Wykonuje skończony zestaw przypadków i obserwacji, a kontrakt może obejmować większą przestrzeń stanów i właściwości.</li>
+<li>Gdy problem lub warianty zniknęły, a koszt abstrakcji przewyższa korzyść z chronionej zmienności.</li>
+</ol>
+<h2 id="listy-kontrolne-do-zamkniecia-modulu" tabindex="-1"><a class="header-anchor" href="#listy-kontrolne-do-zamkniecia-modulu"><span>Listy kontrolne do zamknięcia modułu</span></a></h2>
+<p>Na zakończenie warto przejść z grupą listy kontrolne z sekcji 11 teorii (przed wydzieleniem abstrakcji, przed zastosowaniem SOLID, przed ustanowieniem granicy, przed zastosowaniem wzorca, przed zakończeniem refaktoryzacji) i poprosić uczestników o wskazanie, które punkty ich rozwiązania z ćwiczeń 2 i 3 spełniają, a których nie.</p>
+
+</main>
+</div>
+<script>if(matchMedia('(max-width:900px)').matches){var d=document.querySelector('.toc details');if(d)d.open=false}</script>
+</body>
+</html>

@@ -1,0 +1,717 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rozwiązania: Moduł 7. Zaawansowane refaktoryzacje - rozwiązania dla prowadzącego</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1d1f23;--muted:#5f6670;--line:#e3e5e8;--card:#ffffff;--accent:#2457c5;--accent-bg:#eef3fd;
+--code-bg:#f4f5f7;--note-bg:#fff7e6;--note-line:#e6a700;--th:#f1f3f6;
+--k:#b3246b;--s:#1a7f37;--c:#6e7781;--n:#0550ae;--t:#8250df;--f:#6639ba;--a:#953800;
+--kind:#2457c5}
+@media (prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3036;--card:#1c1f23;--accent:#7aa7ff;--accent-bg:#1e2a40;
+--code-bg:#1f2328;--note-bg:#2b2412;--note-line:#c99400;--th:#23272d;
+--k:#ff7b9c;--s:#7ee2a0;--c:#8b949e;--n:#79c0ff;--t:#d2a8ff;--f:#d2a8ff;--a:#ffa657}}
+body.zadania{--kind:#1a7f37} body.rozwiazania{--kind:#b3246b} body.przyklady{--kind:#2457c5}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.topbar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 24px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);border-top:3px solid var(--kind)}
+.topbar a{color:var(--fg);text-decoration:none}
+.home{font-weight:600}
+.tabs{display:flex;gap:4px}
+.tab{padding:4px 12px;border-radius:999px;font-size:15px;color:var(--muted)!important}
+.tab:hover{background:var(--code-bg)}
+.tab.active{background:var(--accent-bg);color:var(--accent)!important;font-weight:600}
+.pager{margin-left:auto;display:flex;gap:14px;font-size:15px}
+.pager a{color:var(--muted)}.pager a:hover{color:var(--accent)}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:48px;max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+.layout.no-toc{grid-template-columns:minmax(0,1fr);max-width:1000px}
+aside{position:sticky;top:72px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px}
+.toc-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;font-weight:600}
+.toc ul{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.toc li a{display:block;padding:3px 12px;color:var(--muted);text-decoration:none;line-height:1.35}
+.toc li.h3 a{padding-left:24px;font-size:13px}
+.toc li a:hover{color:var(--accent)}
+main{min-width:0;max-width:860px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 1.2rem;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:2.6rem 0 .8rem;padding-top:.6rem;border-top:1px solid var(--line)}
+h3{font-size:1.18rem;margin:2rem 0 .6rem}
+h4{font-size:1rem;margin:1.5rem 0 .5rem}
+h1 a,h2 a,h3 a,h4 a{color:inherit;text-decoration:none}
+h2 a:hover::after,h3 a:hover::after{content:" #";color:var(--muted)}
+p,ul,ol{margin:.6rem 0 1rem}
+li{margin:.25rem 0}
+li>ul,li>ol{margin:.2rem 0}
+a{color:var(--accent)}
+strong{font-weight:650}
+code{font:0.88em/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre.code{position:relative;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:1rem 0 1.4rem}
+pre.code code{background:none;padding:0;font-size:14px;line-height:1.55}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:6px;right:10px;font:11px ui-monospace,Menlo,monospace;color:var(--muted);text-transform:uppercase}
+.table-wrap{overflow-x:auto;margin:1rem 0 1.4rem;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--th);font-weight:600}
+tr:last-child td{border-bottom:none}
+blockquote{margin:1rem 0 1.4rem;padding:10px 16px;background:var(--note-bg);border-left:4px solid var(--note-line);border-radius:0 8px 8px 0}
+blockquote p{margin:.3rem 0}
+hr{border:none;border-top:1px solid var(--line);margin:2rem 0}
+hr+h2{border-top:none;margin-top:1.4rem}
+main p code,main li code,main td code{overflow-wrap:break-word}
+.toc summary{cursor:pointer;list-style:none}.toc summary::-webkit-details-marker{display:none}
+.hljs-keyword,.hljs-selector-tag,.hljs-built_in,.hljs-literal{color:var(--k)}
+.hljs-string,.hljs-regexp,.hljs-addition{color:var(--s)}
+.hljs-comment,.hljs-quote,.hljs-meta{color:var(--c);font-style:italic}
+.hljs-number,.hljs-symbol{color:var(--n)}
+.hljs-type,.hljs-class .hljs-title,.hljs-title.class_{color:var(--t)}
+.hljs-title,.hljs-title.function_,.hljs-section{color:var(--f)}
+.hljs-attr,.hljs-attribute,.hljs-variable,.hljs-params,.hljs-tag{color:var(--a)}
+.hljs-deletion{color:var(--k)}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:16px;padding:20px 16px 60px}
+aside{position:static;max-height:none;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--card)}
+.toc-title{margin:0}.toc details[open] .toc-title{margin-bottom:8px}.toc summary::after{content:" ▾"}
+body{font-size:16px}.topbar{padding:8px 16px}.pager{margin-left:0}h1{font-size:1.6rem}}
+@media print{.topbar,aside{display:none}.layout{display:block;padding:0}main{max-width:none}
+pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#000;font-size:12pt}}
+</style>
+</head>
+<body class="rozwiazania">
+<header class="topbar"><a class="home" href="../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../zadania/07-zaawansowane-refaktoryzacje-warsztat-praktyczny.html">Zadania</a><a class="tab" href="../przyklady/07-zaawansowane-refaktoryzacje-warsztat-praktyczny.html">Przykłady</a><a class="tab active" href="/07-zaawansowane-refaktoryzacje-warsztat-praktyczny.html">Rozwiązania</a></div><div class="pager"><a href="06-refaktoryzacje-do-wzorcow-projektowych-warsztat-praktyczny.html" title="Poprzedni moduł">&larr; 06</a><a href="08-strategie-i-dobre-praktyki.html" title="Następny moduł">08 &rarr;</a></div></header>
+<div class="layout">
+<aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#warsztat-1-utworzenie-seam-przed-zmiana-integracji">Warsztat 1. Utworzenie seam przed zmianą integracji</a></li><li class="h3"><a href="#kod-wejsciowy-i-referencyjny">Kod wejściowy i referencyjny</a></li><li class="h3"><a href="#sekwencja-krokow">Sekwencja kroków</a></li><li class="h3"><a href="#jak-spelnic-kryteria-akceptacji">Jak spełnić kryteria akceptacji</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji">Pytania do dyskusji</a></li><li class="h2"><a href="#warsztat-2-dekompozycja-dlugiej-metody">Warsztat 2. Dekompozycja długiej metody</a></li><li class="h3"><a href="#kod-wejsciowy-i-referencyjny-1">Kod wejściowy i referencyjny</a></li><li class="h3"><a href="#czesc-a-przeplyw-danych-i-wybor-techniki">Część A: przepływ danych i wybór techniki</a></li><li class="h3"><a href="#czesc-a-sekwencja-krokow">Część A: sekwencja kroków</a></li><li class="h3"><a href="#czesc-b-przeplyw-danych-i-wybor-techniki">Część B: przepływ danych i wybór techniki</a></li><li class="h3"><a href="#czesc-b-sekwencja-krokow-wedlug-sekcji-24-teorii">Część B: sekwencja kroków (według sekcji 2.4 teorii)</a></li><li class="h3"><a href="#jak-spelnic-kryteria-akceptacji-1">Jak spełnić kryteria akceptacji</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow-1">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji-1">Pytania do dyskusji</a></li><li class="h2"><a href="#warsztat-3-stopniowe-rozbijanie-god-class">Warsztat 3. Stopniowe rozbijanie God Class</a></li><li class="h3"><a href="#kod-wejsciowy-i-referencyjny-2">Kod wejściowy i referencyjny</a></li><li class="h3"><a href="#mapa-metod-do-pol-i-integracji">Mapa metod do pól i integracji</a></li><li class="h3"><a href="#wybor-klastra">Wybór klastra</a></li><li class="h3"><a href="#sekwencja-krokow-1">Sekwencja kroków</a></li><li class="h3"><a href="#jak-spelnic-kryteria-akceptacji-2">Jak spełnić kryteria akceptacji</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow-2">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji-2">Pytania do dyskusji</a></li><li class="h2"><a href="#cwiczenia-uzupelniajace-a-i">Ćwiczenia uzupełniające A-I</a></li><li class="h3"><a href="#a-break-responsibilities">A. Break Responsibilities</a></li><li class="h3"><a href="#b-remove-duplication">B. Remove Duplication</a></li><li class="h3"><a href="#c-introduce-parameter-object">C. Introduce Parameter Object</a></li><li class="h3"><a href="#d-remove-arrowhead-antipattern">D. Remove Arrowhead Antipattern</a></li><li class="h3"><a href="#e-introduce-design-by-contract-checks">E. Introduce Design by Contract Checks</a></li><li class="h3"><a href="#f-remove-double-negative">F. Remove Double Negative</a></li><li class="h3"><a href="#g-remove-boolean-method-parameters">G. Remove Boolean Method Parameters</a></li><li class="h3"><a href="#h-remove-middle-man">H. Remove Middle Man</a></li><li class="h3"><a href="#i-return-asap">I. Return ASAP</a></li><li class="h2"><a href="#lista-kontrolna-przegladu-narzedzie-oceny">Lista kontrolna przeglądu (narzędzie oceny)</a></li><li class="h3"><a href="#zachowanie">Zachowanie</a></li><li class="h3"><a href="#projekt">Projekt</a></li><li class="h3"><a href="#migracja">Migracja</a></li><li class="h3"><a href="#sugerowana-skala-oceny-propozycja-prowadzacego">Sugerowana skala oceny (propozycja prowadzącego)</a></li><li class="h2"><a href="#podsumowanie-do-zamkniecia-modulu-5-minut">Podsumowanie do zamknięcia modułu (5 minut)</a></li></ul></details></nav></aside>
+<main>
+<h1>Moduł 7. Zaawansowane refaktoryzacje - rozwiązania dla prowadzącego</h1>
+<p>Dokument zawiera rozwiązania wzorcowe Warsztatów 1-3 i ćwiczeń uzupełniających A-I z pliku zadań, typowe błędy uczestników, pytania do dyskusji oraz listę kontrolną przeglądu jako narzędzie oceny.</p>
+<p>Materiał teoretyczny modułu nie zawiera rozwiązań warsztatów. Poniższe rozwiązania opierają się na kodzie referencyjnym (pakiety <code>after</code> i testy równoważności w <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/</code>) oraz na sekwencjach bezpiecznych kroków i ryzykach opisanych w teorii.</p>
+<p>Przypomnienie organizacyjne: na trzy warsztaty przypada 60 minut, na przegląd i podsumowanie 15 minut. W przeglądzie warto wybrać po jednym rozwiązaniu na warsztat i przejść je z listą kontrolną z końca tego dokumentu.</p>
+<hr>
+<h2 id="warsztat-1-utworzenie-seam-przed-zmiana-integracji" tabindex="-1"><a class="header-anchor" href="#warsztat-1-utworzenie-seam-przed-zmiana-integracji"><span>Warsztat 1. Utworzenie seam przed zmianą integracji</span></a></h2>
+<blockquote>
+<p>Rozwiązanie opracowane na podstawie kodu referencyjnego, nie pochodzi wprost z materiału teoretycznego.</p>
+</blockquote>
+<h3 id="kod-wejsciowy-i-referencyjny" tabindex="-1"><a class="header-anchor" href="#kod-wejsciowy-i-referencyjny"><span>Kod wejściowy i referencyjny</span></a></h3>
+<ul>
+<li>wejście: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>breakdependencies/<wbr>before/<wbr>LegacyDeploymentWindowService.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>breakdependencies/<wbr>before/<wbr>StandardMaintenanceWindows.java</code></li>
+<li>referencja: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>breakdependencies/<wbr>after/<wbr>MaintenanceWindows.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>breakdependencies/<wbr>after/<wbr>DeploymentWindowService.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>breakdependencies/<wbr>after/<wbr>StandardMaintenanceWindows.java</code></li>
+<li>composition root w referencji: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>Module7Examples.java</code></li>
+<li>testy referencyjne: <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>BreakDependenciesEquivalenceTest.java</code></li>
+</ul>
+<p>Reguła &quot;zamrożonych usług&quot; jest propozycją z pliku zadań i nie występuje w kodzie referencyjnym. Poniższy wariant jej implementacji jest przykładowy.</p>
+<h3 id="sekwencja-krokow" tabindex="-1"><a class="header-anchor" href="#sekwencja-krokow"><span>Sekwencja kroków</span></a></h3>
+<ol>
+<li>
+<p><strong>Charakterystyka (commit 1).</strong> Testy na kopii i na <code>LegacyDeploymentWindowService</code> jako wyroczni:</p>
+<ul>
+<li>pętla po godzinach 0-23 porównująca decyzje obu wersji,</li>
+<li>granice okna: 0 i 5 dają <code>ALLOWED</code>, 6 i 23 dają <code>OUTSIDE_MAINTENANCE_WINDOW</code>,</li>
+<li>wyjątki: <code>(null, 2)</code> daje <code>NullPointerException(&quot;service&quot;)</code>, <code>(&quot;   &quot;, 2)</code> daje <code>IllegalArgumentException(&quot;service must not be blank&quot;)</code>, <code>(&quot;payments&quot;, -1)</code> i <code>(&quot;payments&quot;, 24)</code> dają <code>IllegalArgumentException(&quot;hourUtc must be between 0 and 23&quot;)</code>, <code>(&quot; &quot;, -1)</code> daje błąd usługi (pierwszy sprawdzany warunek wygrywa).</li>
+</ul>
+</li>
+<li>
+<p><strong>Najmniejsza operacja.</strong> Serwis używa wyłącznie <code>allows(String service, int hourUtc)</code>. To jedyna metoda nowego kontraktu.</p>
+</li>
+<li>
+<p><strong>Seam (commit 2).</strong> Wydziel interfejs funkcyjny <code>MaintenanceWindows</code> z jedną metodą. <code>StandardMaintenanceWindows implements MaintenanceWindows</code>. Pole serwisu zmienia typ na interfejs i jest ustawiane w konstruktorze z <code>Objects.requireNonNull(maintenanceWindows, &quot;maintenanceWindows&quot;)</code>. Algorytm <code>schedule</code> i <code>validate</code> pozostają bez zmian.</p>
+</li>
+<li>
+<p><strong>Produkcyjne składanie.</strong> Dwie akceptowalne drogi:</p>
+<ul>
+<li>jak w referencji: brak konstruktora bezargumentowego, a produkcyjna implementacja jest przekazywana w composition root (<code>new DeploymentWindowService(new StandardMaintenanceWindows())</code> w <code>Module7Examples</code>),</li>
+<li>wariant przejściowy dla wielu klientów: konstruktor domyślny <code>this(new StandardMaintenanceWindows())</code>, usuwany po migracji wywołań.
+Po tym kroku uruchom test różnicowy dla godzin 0-23, aby potwierdzić równoważność produkcyjnego składania.</li>
+</ul>
+</li>
+<li>
+<p><strong>Spy (commit 3).</strong> Test z lambdą rejestrującą wywołania:</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-variable">calls</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();
+<span class="hljs-type">var</span> <span class="hljs-variable">service</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">DeploymentWindowService</span>((svc, hour) -&gt; {
+    calls.add(<span class="hljs-string">&quot;allows:&quot;</span> + svc + <span class="hljs-string">&quot;:&quot;</span> + hour);
+    <span class="hljs-keyword">return</span> svc.equals(<span class="hljs-string">&quot;emergency&quot;</span>) &amp;&amp; hour == <span class="hljs-number">14</span>;
+});
+
+assertEquals(DeploymentDecision.ALLOWED, service.schedule(<span class="hljs-string">&quot;emergency&quot;</span>, <span class="hljs-number">14</span>));
+assertEquals(List.of(<span class="hljs-string">&quot;allows:emergency:14&quot;</span>), calls);
+</code></pre>
+<p>Drugi test: dla każdego niepoprawnego wejścia lista wywołań pozostaje pusta (odpowiednik <code>invalidRequestDoesNotReachInjectedDependency</code>).</p>
+</li>
+<li>
+<p><strong>Nowa reguła (commit 4, zmiana zachowania).</strong> Przykład: po walidacji, a przed zapytaniem kalendarza, serwis sprawdza listę zamrożonych usług i dla <code>billing</code> zwraca <code>OUTSIDE_MAINTENANCE_WINDOW</code> bez wywołania zależności. Testy: <code>billing</code> o godzinie 2 daje <code>OUTSIDE_MAINTENANCE_WINDOW</code>, lista wywołań spy jest pusta; <code>payments</code> o godzinie 2 nadal woła kalendarz dokładnie raz. Jeżeli lista zamrożonych usług ma być konfigurowalna, jest to drugi, osobny seam (np. parametr konstruktora typu <code>Set&lt;String&gt;</code> lub <code>Predicate&lt;String&gt;</code>).</p>
+</li>
+</ol>
+<h3 id="jak-spelnic-kryteria-akceptacji" tabindex="-1"><a class="header-anchor" href="#jak-spelnic-kryteria-akceptacji"><span>Jak spełnić kryteria akceptacji</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Kryterium</th>
+<th>Jak sprawdzić</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>produkcyjna implementacja wybierana w composition root</td>
+<td>jedyne <code>new StandardMaintenanceWindows()</code> w kodzie produkcyjnym jest w miejscu składania (lub w przejściowym konstruktorze domyślnym z planem usunięcia)</td>
+</tr>
+<tr>
+<td>test nie uruchamia infrastruktury</td>
+<td>testy reguły i interakcji używają lambdy, nie <code>StandardMaintenanceWindows</code></td>
+</tr>
+<tr>
+<td>kontrakt bez nieużywanych metod</td>
+<td>interfejs ma dokładnie jedną metodę <code>allows</code>, najlepiej z <code>@FunctionalInterface</code></td>
+</tr>
+<tr>
+<td>liczba i kolejność wywołań sprawdzone</td>
+<td>asercja na całej liście wywołań (<code>assertEquals(List.of(...), calls)</code>), nie tylko <code>calls.size() &gt; 0</code></td>
+</tr>
+<tr>
+<td>testy charakterystyki bez zmian asercji</td>
+<td>commit 1 i commit 3 nie modyfikują wcześniejszych asercji</td>
+</tr>
+<tr>
+<td>reguła w osobnym kroku</td>
+<td>osobny commit po zielonych testach refaktoryzacji</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="typowe-bledy-uczestnikow" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>Interfejs kopiuje całe API implementacji albo dodaje &quot;na zapas&quot; metody (np. <code>nextWindow</code>, <code>listWindows</code>).</li>
+<li>Interfejs <code>sealed</code> z jedną implementacją. Zamyka zbiór implementacji i uniemożliwia lambdę w teście (teoria: <code>sealed</code> nie jest interfejsem funkcyjnym).</li>
+<li>Tworzenie <code>StandardMaintenanceWindows</code> przeniesione do statycznej fabryki lub singletona, co zmienia czas życia i współdzielenie zależności bez decyzji.</li>
+<li>Walidacja przeniesiona za wywołanie zależności albo do implementacji kalendarza: zmienia się moment błędu, a spy odnotowuje wywołania dla niepoprawnych danych.</li>
+<li>Nowa reguła dodana w tym samym commicie co seam, bez oddzielnych testów.</li>
+<li>Weryfikacja spy tylko przez <code>calls &gt; 0</code> zamiast dokładnej liczby i argumentów.</li>
+<li>Mockowanie przez framework z <code>verify(...)</code> bez sprawdzenia braku innych interakcji (odpowiednik &quot;liczby&quot; wywołań).</li>
+</ul>
+<h3 id="pytania-do-dyskusji" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>Kiedy wystarczy parametr metody lub <code>Clock</code>, a kiedy potrzebna jest zależność konstruktora?</li>
+<li>Co zmienia przeniesienie <code>new</code> do composition root, jeśli implementacja trzyma połączenie, cache albo blokadę?</li>
+<li>Czy <code>requireNonNull</code> w nowym konstruktorze to refaktoryzacja, czy nowy kontrakt?</li>
+<li>Jak przeprowadzić migrację, jeśli serwis tworzy kilkadziesiąt klas w różnych modułach?</li>
+</ul>
+<hr>
+<h2 id="warsztat-2-dekompozycja-dlugiej-metody" tabindex="-1"><a class="header-anchor" href="#warsztat-2-dekompozycja-dlugiej-metody"><span>Warsztat 2. Dekompozycja długiej metody</span></a></h2>
+<blockquote>
+<p>Rozwiązanie opracowane na podstawie kodu referencyjnego, nie pochodzi wprost z materiału teoretycznego.</p>
+</blockquote>
+<h3 id="kod-wejsciowy-i-referencyjny-1" tabindex="-1"><a class="header-anchor" href="#kod-wejsciowy-i-referencyjny-1"><span>Kod wejściowy i referencyjny</span></a></h3>
+<ul>
+<li>część A, wejście: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>breakmethod/<wbr>before/<wbr>LegacyReleaseManifestBuilder.java</code></li>
+<li>część A, referencja: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>breakmethod/<wbr>after/<wbr>ReleaseManifestBuilder.java</code>, test <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>BreakMethodEquivalenceTest.java</code></li>
+<li>część B, wejście: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>methodobject/<wbr>before/<wbr>LegacyDeploymentRiskCalculator.java</code></li>
+<li>część B, referencja: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>methodobject/<wbr>after/<wbr>DeploymentRiskCalculator.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>methodobject/<wbr>after/<wbr>DeploymentRiskCalculation.java</code>, test <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>ExtractMethodObjectEquivalenceTest.java</code></li>
+</ul>
+<h3 id="czesc-a-przeplyw-danych-i-wybor-techniki" tabindex="-1"><a class="header-anchor" href="#czesc-a-przeplyw-danych-i-wybor-techniki"><span>Część A: przepływ danych i wybór techniki</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Fragment</th>
+<th>Wejście</th>
+<th>Wyjście</th>
+<th>Mutowany stan lokalny</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>walidacja i kopia</td>
+<td><code>entries</code></td>
+<td>nowa lista <code>validatedEntries</code></td>
+<td>budowana kopia</td>
+</tr>
+<tr>
+<td>sortowanie</td>
+<td><code>validatedEntries</code></td>
+<td>lista uporządkowana</td>
+<td>sortowana kopia</td>
+</tr>
+<tr>
+<td>renderowanie</td>
+<td>lista uporządkowana</td>
+<td><code>String</code></td>
+<td><code>StringJoiner</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Każdy fragment ma jedno wejście i jeden wynik, a stan lokalny nie przecina granic kroków. Wniosek: wystarczy Extract Method, a trzy kolejne fazy z osobnymi danymi pośrednimi to w praktyce Split Phase. Method Object byłby zbędny (zgodnie z komentarzem w teorii do przykładu).</p>
+<h3 id="czesc-a-sekwencja-krokow" tabindex="-1"><a class="header-anchor" href="#czesc-a-sekwencja-krokow"><span>Część A: sekwencja kroków</span></a></h3>
+<ol>
+<li>Testy różnicowe (odpowiedniki <code>BreakMethodEquivalenceTest</code>):
+<ul>
+<li>wynik dla listy nieposortowanej, np. wpisy <code>web/<wbr>20</code>, <code>worker/<wbr>10</code>, <code>api/<wbr>10</code> dają <code>10|api|sha-api\n10|worker|sha-worker\n20|web|sha-web</code>,</li>
+<li>pusta lista daje pusty tekst,</li>
+<li>równe klucze sortowania zachowują kolejność wejściową (stabilność),</li>
+<li>lista wywołującego po <code>build</code> jest równa migawce sprzed wywołania,</li>
+<li>wyjątki z wieloma błędnymi polami naraz: <code>null</code> lista, lista z <code>null</code>, <code>ManifestEntry(null, null, -1)</code>, <code>(&quot; &quot;, null, -1)</code>, <code>(&quot;api&quot;, null, -1)</code>, <code>(&quot;api&quot;, &quot; &quot;, -1)</code>, <code>(&quot;api&quot;, &quot;sha&quot;, -1)</code>.</li>
+</ul>
+</li>
+<li>Wydziel <code>render(List&lt;ManifestEntry&gt;)</code>: przenieś pętlę z <code>StringJoiner</code> dosłownie. Testy.</li>
+<li>Wydziel <code>order(List&lt;ManifestEntry&gt;)</code>. Dopuszczalne jest zarówno sortowanie kopii przez <code>List.sort</code>, jak i <code>stream().sorted(...).toList()</code> z referencji (oba są stabilne). Testy.</li>
+<li>Wydziel <code>validateAndCopy(List&lt;ManifestEntry&gt;)</code> razem z <code>requireNonNull(entries, &quot;entries&quot;)</code>, zachowując jedną pętlę i kolejność sprawdzeń pól. Testy.</li>
+<li>Metoda publiczna zawiera trzy wywołania na jednym poziomie abstrakcji.</li>
+</ol>
+<h3 id="czesc-b-przeplyw-danych-i-wybor-techniki" tabindex="-1"><a class="header-anchor" href="#czesc-b-przeplyw-danych-i-wybor-techniki"><span>Część B: przepływ danych i wybór techniki</span></a></h3>
+<p>Wszystkie fragmenty czytają i modyfikują tę samą zmienną <code>score</code>, a klasyfikacja zależy od jej końcowej wartości. Zwykły Extract Method wymagałby przekazywania i zwracania <code>score</code> w każdym kroku. To sygnał do Method Object: <code>score</code> staje się polem obiektu tworzonego dla jednego obliczenia.</p>
+<p>Uczestnik może też obronić wariant z Extract Method zwracającym nową wartość (<code>long addCriticalServicesRisk(long score)</code>), bo stan jest jedną liczbą. Ocenia się uzasadnienie, nie wybór sam w sobie.</p>
+<h3 id="czesc-b-sekwencja-krokow-wedlug-sekcji-24-teorii" tabindex="-1"><a class="header-anchor" href="#czesc-b-sekwencja-krokow-wedlug-sekcji-24-teorii"><span>Część B: sekwencja kroków (według sekcji 2.4 teorii)</span></a></h3>
+<ol>
+<li>Testy różnicowe: wejścia <code>(0,0,0,false)</code>, <code>(5,0,0,true)</code> daje 0/LOW, <code>(29,0,0,false)</code>, <code>(30,...)</code>, <code>(69,...)</code>, <code>(70,...)</code>, <code>(50,0,0,true)</code> daje 35/MEDIUM, wagi <code>(0,1,0,false)</code> daje 20, <code>(0,0,1,false)</code> daje 10, <code>Integer.MAX_VALUE</code> we wszystkich licznikach daje 100/HIGH, <code>calculate(null)</code> z komunikatem <code>input</code>.</li>
+<li>Utwórz klasę <code>DeploymentRiskCalculation</code> (pakietową, nie wewnętrzną) z konstruktorem przyjmującym <code>DeploymentRiskInput</code>.</li>
+<li>Skopiuj ciało metody do <code>calculate()</code> bez upraszczania.</li>
+<li>Stara metoda: <code>return new DeploymentRiskCalculation(input).calculate();</code>. Testy.</li>
+<li>Zamień <code>score</code> na pole.</li>
+<li>Wydzielaj kroki: <code>addChangedFilesRisk</code>, <code>addCriticalServicesRisk</code>, <code>addFailedChecksRisk</code>, <code>applyRollbackReduction</code>, <code>limitScore</code>, <code>classify</code>. Testy po każdym.</li>
+<li>Opcjonalnie stałe dla wag 20, 10 i 15.</li>
+</ol>
+<h3 id="jak-spelnic-kryteria-akceptacji-1" tabindex="-1"><a class="header-anchor" href="#jak-spelnic-kryteria-akceptacji-1"><span>Jak spełnić kryteria akceptacji</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Kryterium</th>
+<th>Jak sprawdzić</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>nazwy opisują intencję</td>
+<td><code>order</code>, <code>render</code>, <code>applyRollbackReduction</code>, a nie <code>loop1</code>, <code>sortList</code>, <code>subtract15</code></td>
+</tr>
+<tr>
+<td>kolejność kroków jawna</td>
+<td>metoda nadrzędna to sekwencja wywołań w kolejności obliczeń; w B <code>limitScore</code> po <code>applyRollbackReduction</code></td>
+</tr>
+<tr>
+<td>obiekt metody nie jest współdzielony</td>
+<td><code>new</code> wewnątrz metody fasady; test <code>low</code>, <code>high</code>, <code>low</code> daje 10, 80, 10</td>
+</tr>
+<tr>
+<td>brak nowej walidacji</td>
+<td>brak nowych <code>require...</code>/<code>if throw</code>; <code>requireNonNull(input, &quot;input&quot;)</code> tylko przeniesiony, z tym samym komunikatem</td>
+</tr>
+<tr>
+<td>testy różnicowe i wartości skrajne</td>
+<td>przypadek <code>Integer.MAX_VALUE</code> i granice 29/30, 69/70 zielone</td>
+</tr>
+<tr>
+<td>lista wejściowa bez zmian</td>
+<td>test z migawką <code>List.copyOf(entries)</code></td>
+</tr>
+<tr>
+<td>uzasadnienie techniki</td>
+<td>pisemna notatka odwołująca się do tabeli przepływu danych</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="typowe-bledy-uczestnikow-1" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow-1"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>Sortowanie listy wejściowej w miejscu (<code>entries.sort(...)</code>) po &quot;uproszczeniu&quot; kopii. Test migawki to wykrywa. Przy <code>List.of(...)</code> na wejściu kończy się <code>UnsupportedOperationException</code>.</li>
+<li>Rozbicie walidacji na kilka przebiegów lub strumień z <code>filter</code>, co zmienia pierwszy zgłaszany błąd przy wielu wadliwych wpisach.</li>
+<li>Dodanie &quot;przy okazji&quot; nowej walidacji, np. odrzucanie duplikatów artefaktów albo <code>requireNonNull</code> na <code>ManifestEntry</code> w innym miejscu.</li>
+<li>Zamiana <code>Comparator.comparingInt(...).thenComparing(...)</code> na własny komparator bez drugiego klucza.</li>
+<li>W części B: usunięcie rzutowania <code>(long)</code> przed mnożeniem (przepełnienie <code>int</code> dla <code>Integer.MAX_VALUE</code>), przestawienie <code>limitScore</code> przed redukcją za rollback (dla <code>(120,0,0,true)</code> wynik 85 zamiast 100), zmiana <code>&lt;</code> na <code>&lt;=</code> w progach.</li>
+<li>Obiekt metody przechowywany w polu fasady lub jako singleton: stan <code>score</code> kumuluje się między wywołaniami.</li>
+<li>Niestatyczna klasa wewnętrzna jako obiekt metody (ukryta referencja do klasy zewnętrznej).</li>
+</ul>
+<h3 id="pytania-do-dyskusji-1" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji-1"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>Dlaczego dla manifestu Method Object byłby nadmiarowy, a dla ryzyka nie?</li>
+<li>Czy <code>stream().sorted().toList()</code> zmienia kontrakt metody? (Wynik prywatny, niemodyfikowalny, stabilny.)</li>
+<li>Kiedy Split Phase wymaga nowego typu danych pośrednich?</li>
+<li>Jak obsłużyć <code>return</code>, <code>break</code> i <code>continue</code> wewnątrz fragmentu przeznaczonego do ekstrakcji?</li>
+</ul>
+<hr>
+<h2 id="warsztat-3-stopniowe-rozbijanie-god-class" tabindex="-1"><a class="header-anchor" href="#warsztat-3-stopniowe-rozbijanie-god-class"><span>Warsztat 3. Stopniowe rozbijanie God Class</span></a></h2>
+<blockquote>
+<p>Rozwiązanie opracowane na podstawie kodu referencyjnego, nie pochodzi wprost z materiału teoretycznego.</p>
+</blockquote>
+<h3 id="kod-wejsciowy-i-referencyjny-2" tabindex="-1"><a class="header-anchor" href="#kod-wejsciowy-i-referencyjny-2"><span>Kod wejściowy i referencyjny</span></a></h3>
+<ul>
+<li>wejście: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>godclass/<wbr>before/<wbr>LegacyReleaseManager.java</code></li>
+<li>referencja (stan docelowy kampanii): <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>godclass/<wbr>after/<wbr>ReleaseApplicationService.java</code>, <code>ReleaseValidator.java</code>, <code>ReleaseRepository.java</code>, <code>InMemoryReleaseRepository.java</code>, <code>AuditTrail.java</code>, <code>ReleaseNotifier.java</code> w <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>godclass/<wbr>after/</code></li>
+<li>testy referencyjne: <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>GodClassEquivalenceTest.java</code></li>
+</ul>
+<p>Referencja pokazuje stan po kilku krokach kampanii (wszystkie odpowiedzialności wydzielone, stara klasa zastąpiona serwisem). Warsztat wymaga jednego kroku, w którym klasa wyjściowa zostaje jako delegująca fasada. Poniżej wzorcowy pierwszy krok: wydzielenie powiadomień do <code>ReleaseNotifier</code>.</p>
+<h3 id="mapa-metod-do-pol-i-integracji" tabindex="-1"><a class="header-anchor" href="#mapa-metod-do-pol-i-integracji"><span>Mapa metod do pól i integracji</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Metoda</th>
+<th><code>releases</code></th>
+<th><code>auditEntries</code></th>
+<th><code>notifications</code></th>
+<th><code>events</code></th>
+<th>Uwagi</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>publish</code></td>
+<td>czyta, zapisuje</td>
+<td>zapisuje</td>
+<td>zapisuje</td>
+<td>zapisuje</td>
+<td>walidacja 3 pól, duplikat, potem save, audit, notify</td>
+</tr>
+<tr>
+<td><code>releases()</code></td>
+<td>czyta</td>
+<td></td>
+<td></td>
+<td></td>
+<td><code>List.copyOf</code></td>
+</tr>
+<tr>
+<td><code>auditEntries()</code></td>
+<td></td>
+<td>czyta</td>
+<td></td>
+<td></td>
+<td><code>List.copyOf</code></td>
+</tr>
+<tr>
+<td><code>notifications()</code></td>
+<td></td>
+<td></td>
+<td>czyta</td>
+<td></td>
+<td><code>List.copyOf</code></td>
+</tr>
+<tr>
+<td><code>events()</code></td>
+<td></td>
+<td></td>
+<td></td>
+<td>czyta</td>
+<td><code>List.copyOf</code></td>
+</tr>
+<tr>
+<td><code>requireText</code></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>statyczna walidacja</td>
+</tr>
+</tbody>
+</table></div>
+<p>Ślad efektów udanej publikacji: <code>save:rel-42</code>, <code>audit:rel-42</code>, <code>notify:rel-42</code>. W każdym kroku wpis do własnej kolekcji poprzedza wpis do <code>events</code>.</p>
+<h3 id="wybor-klastra" tabindex="-1"><a class="header-anchor" href="#wybor-klastra"><span>Wybór klastra</span></a></h3>
+<p>Powiadomienia (<code>notifications</code> + fragment <code>publish</code> + akcesor) mają samodzielny powód zmiany (kanał i format powiadomień), leżą na końcu grafu wywołań i nie są czytane przez inne kroki. Równie dobrym wyborem jest audyt. Repozytorium jest trudniejsze na pierwszy krok, bo czyta je sprawdzenie duplikatu.</p>
+<h3 id="sekwencja-krokow-1" tabindex="-1"><a class="header-anchor" href="#sekwencja-krokow-1"><span>Sekwencja kroków</span></a></h3>
+<ol>
+<li>
+<p><strong>Testy śladu (commit 1)</strong> na kopii klasy, z oryginałem jako wyrocznią:</p>
+<ul>
+<li>sukces: wynik <code>PublishedRelease</code>, <code>releases()</code>, <code>auditEntries()</code>, <code>notifications()</code> i <code>events()</code> równe wersji wyjściowej,</li>
+<li>walidacja: <code>(&quot; &quot;, &quot;payments&quot;, &quot;2.1.0&quot;)</code> daje <code>IllegalArgumentException(&quot;releaseId must not be blank&quot;)</code>, wszystkie kolekcje puste; analogicznie dla <code>service</code> i <code>version</code>, także z kilkoma błędnymi polami naraz (pierwszy błąd: <code>releaseId</code>),</li>
+<li>duplikat: po udanej publikacji <code>rel-42</code> ponowna publikacja daje <code>IllegalStateException(&quot;release already published: rel-42&quot;)</code>, ślad i kolekcje bez zmian,</li>
+<li>kopie defensywne: <code>clear()</code> na zwróconych listach zgłasza <code>UnsupportedOperationException</code>.</li>
+</ul>
+</li>
+<li>
+<p><strong>Nowa klasa (commit 2).</strong> <code>ReleaseNotifier</code> jak w referencji: własna lista <code>notifications</code>, <code>Consumer&lt;String&gt; eventSink</code>, metoda <code>notifyPublished(PublishedRelease)</code> najpierw dodaje wpis <code>release-published:&lt;id&gt;</code>, potem wywołuje <code>eventSink.accept(&quot;notify:&lt;id&gt;&quot;)</code>, akcesor zwraca <code>List.copyOf</code>.</p>
+</li>
+<li>
+<p><strong>Delegacja w klasie wyjściowej (commit 3).</strong> Pole <code>notifications</code> znika z menedżera, a stare API deleguje:</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-variable">events</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> ReleaseNotifier notifier;
+
+<span class="hljs-type">public</span> <span class="hljs-title function_">ReleaseManager</span><span class="hljs-params">()</span> {
+    <span class="hljs-built_in">this</span>(ReleaseNotifier::<span class="hljs-keyword">new</span>);
+}
+
+ReleaseManager(Function&lt;Consumer&lt;String&gt;, ReleaseNotifier&gt; notifierFactory) {
+    <span class="hljs-built_in">this</span>.notifier = notifierFactory.apply(events::add);
+}
+
+<span class="hljs-keyword">public</span> <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-title function_">notifications</span><span class="hljs-params">()</span> {
+    <span class="hljs-keyword">return</span> notifier.notifications();
+}
+</code></pre>
+<p>W <code>publish</code> dwie linie powiadomienia zastępuje <code>notifier.notifyPublished(release);</code>. Walidacja, sprawdzenie duplikatu, zapis i audyt pozostają bez zmian i w tej samej kolejności.</p>
+</li>
+<li>
+<p><strong>Test awarii (commit 4).</strong> Pakietowy konstruktor pozwala podstawić powiadamiacz, którego ujście rzuca wyjątek po zarejestrowaniu zdarzenia:</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">var</span> <span class="hljs-variable">manager</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ReleaseManager</span>(sink -&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">ReleaseNotifier</span>(event -&gt; {
+    sink.accept(event);
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(<span class="hljs-string">&quot;notification event failure&quot;</span>);
+}));
+</code></pre>
+<p>Oczekiwane (zgodnie z <code>notificationFailureKeepsAllEarlierEffects</code>): wyjątek propaguje się, <code>events()</code> zawiera <code>save</code>, <code>audit</code>, <code>notify</code>, wydanie jest zapisane, wpis audytu istnieje. Nic nie jest wycofywane.</p>
+</li>
+<li>
+<p><strong>Ocena transakcji i własności stanu (notatka).</strong> Wersja wyjściowa nie miała transakcji ani kompensacji, więc wydzielenie jej nie wprowadza i nie usuwa. Awaria kroku zatrzymuje późniejsze kroki i zostawia wcześniejsze efekty. Jeśli biznes wymaga atomowości, to osobna decyzja (transakcja, transactional outbox, idempotentne ponowienia, kompensacja), a nie część ruchu klas.</p>
+</li>
+<li>
+<p><strong>Kolejne kroki kampanii (propozycja).</strong> Wydzielenie <code>AuditTrail</code> tym samym wzorcem; wydzielenie <code>ReleaseValidator</code>; wydzielenie repozytorium z interfejsem <code>ReleaseRepository</code>; na końcu <code>ReleaseApplicationService</code> jako koordynator i migracja klientów z fasady. Każdy krok jest samodzielnie wdrażalny, bo publiczne API fasady się nie zmienia.</p>
+</li>
+</ol>
+<h3 id="jak-spelnic-kryteria-akceptacji-2" tabindex="-1"><a class="header-anchor" href="#jak-spelnic-kryteria-akceptacji-2"><span>Jak spełnić kryteria akceptacji</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Kryterium</th>
+<th>Jak sprawdzić</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>stan ma jednego właściciela</td>
+<td>lista powiadomień istnieje tylko w <code>ReleaseNotifier</code>; menedżer nie trzyma kopii, <code>notifications()</code> deleguje</td>
+</tr>
+<tr>
+<td>brak cyklu zależności</td>
+<td><code>ReleaseNotifier</code> nie zna menedżera; komunikacja zwrotna tylko przez <code>Consumer&lt;String&gt;</code></td>
+</tr>
+<tr>
+<td>walidacja zachowuje kolejność i komunikaty</td>
+<td>testy z kroku 1 z wieloma błędnymi polami zielone bez zmian asercji</td>
+</tr>
+<tr>
+<td>po błędzie brak późniejszych kroków, wcześniejsze efekty zgodne z kontraktem</td>
+<td>test awarii z kroku 4 oraz test duplikatu (brak nowych zdarzeń)</td>
+</tr>
+<tr>
+<td>kroki kampanii niezależnie wdrażalne</td>
+<td>publiczne sygnatury fasady bez zmian; każdy krok ma własne testy i osobny commit</td>
+</tr>
+<tr>
+<td>te same wartości publicznych metod</td>
+<td>testy różnicowe akcesorów i <code>clear()</code> rzucające <code>UnsupportedOperationException</code></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="typowe-bledy-uczestnikow-2" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow-2"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>Przepisanie całej klasy od razu na docelowy serwis z czterema współpracownikami (&quot;big bang&quot;) bez fasady.</li>
+<li>Dwie kopie stanu: menedżer nadal trzyma <code>notifications</code>, a <code>ReleaseNotifier</code> ma własną listę. Rozjazd przy awarii lub przyszłej zmianie.</li>
+<li>Przestawienie kolejności <code>save</code>, <code>audit</code>, <code>notify</code> albo zapis do <code>events</code> przed wpisem do własnej kolekcji kroku (inny stan po awarii).</li>
+<li>Wstrzyknięcie do <code>ReleaseNotifier</code> referencji do menedżera, aby dopisywał zdarzenia (cykl zależności).</li>
+<li>Zmiana akcesora na zwracanie mutowalnej listy (utrata kopii defensywnej) albo <code>Collections.unmodifiableList</code> (widok zamiast migawki, inna semantyka aliasowania).</li>
+<li>Dodanie <code>try/<wbr>catch</code> z wycofaniem wcześniejszych efektów bez decyzji biznesowej (zmiana zachowania ukryta w refaktoryzacji).</li>
+<li>Wydzielenie klas dla każdej linii kodu, co daje sieć małych klas o niskiej spójności.</li>
+</ul>
+<h3 id="pytania-do-dyskusji-2" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji-2"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>Dlaczego <code>InMemoryReleaseRepository.save</code> w referencji ponownie sprawdza duplikat, skoro serwis robi to wcześniej? Czy to zmienia kontrakt?</li>
+<li>Czy lista <code>events</code> współdzielona przez <code>Consumer</code> narusza zasadę jednego właściciela stanu?</li>
+<li>Jak zmieni się analiza, jeśli <code>save</code> jest w transakcji bazy danych, a <code>notify</code> wysyła wiadomość do brokera?</li>
+<li>Kiedy przestać rozbijać klasę? (Teoria: tylko tak długo, jak przynosi to wartość dla planowanych zmian.)</li>
+</ul>
+<hr>
+<h2 id="cwiczenia-uzupelniajace-a-i" tabindex="-1"><a class="header-anchor" href="#cwiczenia-uzupelniajace-a-i"><span>Ćwiczenia uzupełniające A-I</span></a></h2>
+<blockquote>
+<p>Rozwiązania opracowane na podstawie kodu referencyjnego, nie pochodzą wprost z materiału teoretycznego.</p>
+</blockquote>
+<h3 id="a-break-responsibilities" tabindex="-1"><a class="header-anchor" href="#a-break-responsibilities"><span>A. Break Responsibilities</span></a></h3>
+<ul>
+<li>Referencja: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>breakresponsibilities/<wbr>after/<wbr>DeploymentMetricsCalculator.java</code>, <code>DeploymentReportFormatter.java</code>, <code>DeploymentReportService.java</code>; rekord <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>breakresponsibilities/<wbr>DeploymentMetrics.java</code>; test <code>BreakResponsibilitiesEquivalenceTest</code>.</li>
+<li>Kroki: testy różnicowe (raport, pusta lista, średnia całkowita, <code>null</code> lista i element, przepełnienie <code>Math.addExact</code>, brak mutacji wejścia), wydzielenie formattera, wydzielenie kalkulatora zwracającego <code>DeploymentMetrics</code>, serwis składający oba kroki, stara klasa jako fasada do czasu migracji.</li>
+<li>Błędy: zamiana <code>Math.addExact</code> na <code>+</code> (utrata <code>ArithmeticException</code>), średnia jako <code>double</code>, formatter liczący coś samodzielnie.</li>
+</ul>
+<h3 id="b-remove-duplication" tabindex="-1"><a class="header-anchor" href="#b-remove-duplication"><span>B. Remove Duplication</span></a></h3>
+<ul>
+<li>Referencja: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>duplication/<wbr>after/<wbr>ArtifactPublisher.java</code>; test <code>DuplicationEquivalenceTest</code>.</li>
+<li>Kroki: osobne testy obu metod (także w <code>tr-TR</code>), ujednolicenie struktury, wydzielenie <code>validateAndNormalize</code>, przepięcie <code>publishSnapshot</code>, testy, przepięcie <code>publishRelease</code>, testy. Różnica jako jawny argument <code>qualifier</code>.</li>
+<li>Błędy: usunięcie <code>Locale.ROOT</code>, połączenie w jedną metodę publiczną z parametrem <code>boolean snapshot</code> (zamiana duplikacji na flagę), zmiana kolejności walidacji.</li>
+</ul>
+<h3 id="c-introduce-parameter-object" tabindex="-1"><a class="header-anchor" href="#c-introduce-parameter-object"><span>C. Introduce Parameter Object</span></a></h3>
+<ul>
+<li>Referencja: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>parameterobject/<wbr>after/<wbr>RolloutSpec.java</code>, <code>RolloutPlanner.java</code>; test <code>ParameterObjectEquivalenceTest</code>.</li>
+<li>Kroki (sekcja 6.4 teorii): rekord przechowujący dokładnie dotychczasowe wartości bez walidacji, nowe przeciążenia przyjmujące rekord, stare sygnatury delegujące (ewentualnie <code>@Deprecated</code>), migracja wywołań, dopiero w osobnym kroku przeniesienie walidacji do konstruktora rekordu (zmiana momentu błędu, test <code>movesValidationFromEveryOperationToParameterObjectConstruction</code>), usunięcie starych sygnatur po okresie zgodności.</li>
+<li>Oczekiwane wyniki: <code>estimateSeconds</code> dla <code>(10, 3, 15)</code> daje 165, dla <code>Integer.MAX_VALUE</code> i <code>batchSize</code> 2 daje <code>32_212_254_720</code>.</li>
+<li>Błędy: przeniesienie walidacji w tym samym kroku co grupowanie, usunięcie starej sygnatury bez okresu zgodności (klienci w plikach <code>.class</code>), nazwa typu <code>RolloutParameters</code> jako worek ustawień.</li>
+</ul>
+<h3 id="d-remove-arrowhead-antipattern" tabindex="-1"><a class="header-anchor" href="#d-remove-arrowhead-antipattern"><span>D. Remove Arrowhead Antipattern</span></a></h3>
+<ul>
+<li>Referencja: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>arrowhead/<wbr>after/<wbr>DeploymentEligibility.java</code>; test <code>ArrowheadEquivalenceTest</code>.</li>
+<li>Kroki: macierz 8 kombinacji flag plus przypadki <code>null</code> kandydata i niepoprawnego <code>releaseId</code>, odwracanie po jednym poziomie od zewnątrz, usuwanie <code>else</code>, testy po każdym poziomie.</li>
+<li>Błędy: zmiana priorytetu warunków, błędne zastosowanie de Morgana (<code>&amp;&amp;</code> zamiast <code>||</code> w odwróconym warunku <code>releaseId</code>).</li>
+</ul>
+<h3 id="e-introduce-design-by-contract-checks" tabindex="-1"><a class="header-anchor" href="#e-introduce-design-by-contract-checks"><span>E. Introduce Design by Contract Checks</span></a></h3>
+<ul>
+<li>Referencja: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>contract/<wbr>after/<wbr>Contracts.java</code>, <code>DeploymentCapacity.java</code>; test <code>DesignByContractTest</code>.</li>
+<li>Kontrakt: precondition <code>totalSlots &gt;= 0</code>, <code>slots &gt; 0</code>, <code>slots &lt;= remaining</code> (reserve), <code>slots &lt;= totalSlots - remaining</code> (release); postcondition zmiany <code>remaining</code> o <code>slots</code>; invariant <code>0 &lt;= remaining &lt;= totalSlots</code>.</li>
+<li>Kroki: test równoważności poprawnych sekwencji, nowe pole <code>totalSlots</code>, preconditions przed mutacją, wyliczenie i sprawdzenie następnego stanu przed przypisaniem, postcondition po przypisaniu. Osobny test nowego kontraktu (komunikaty, brak mutacji po błędzie).</li>
+<li>Błędy: użycie <code>assert</code>, sprawdzanie niezmiennika dopiero po przypisaniu (obiekt zostaje w złym stanie), przedstawianie zmiany jako czystej refaktoryzacji.</li>
+</ul>
+<h3 id="f-remove-double-negative" tabindex="-1"><a class="header-anchor" href="#f-remove-double-negative"><span>F. Remove Double Negative</span></a></h3>
+<ul>
+<li>Referencja: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>doublenegative/<wbr>after/<wbr>ReleaseReadiness.java</code>, <code>ReleaseGate.java</code>; test <code>DoubleNegativeEquivalenceTest</code>.</li>
+<li>Kroki (sekcja 9.4 teorii): predykaty pozytywne delegujące do negatywnych, migracja użyć, odwrócenie implementacji, negatywne akcesory jako delegujące do czasu migracji klientów, usunięcie.</li>
+<li>Błędy: pozytywna nazwa niebędąca dokładnym dopełnieniem, pominięcie wpływu na JSON, kolumny i klucze konfiguracji.</li>
+</ul>
+<h3 id="g-remove-boolean-method-parameters" tabindex="-1"><a class="header-anchor" href="#g-remove-boolean-method-parameters"><span>G. Remove Boolean Method Parameters</span></a></h3>
+<ul>
+<li>Referencja: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>booleanparameter/<wbr>after/<wbr>DeploymentExecutor.java</code>; test <code>BooleanParameterEquivalenceTest</code>.</li>
+<li>Kroki (sekcja 11.4 teorii): <code>preview</code> i <code>deploy</code> delegujące do <code>execute(id, true/<wbr>false)</code>, migracja klientów, stara metoda czasowo delegująca (dla biblioteki), prywatna implementacja z nazwanym trybem (enum), usunięcie starej sygnatury.</li>
+<li>Błędy: skopiowanie algorytmu do dwóch metod, walidacja tylko w jednej z nich, usunięcie starej metody bez okresu zgodności.</li>
+</ul>
+<h3 id="h-remove-middle-man" tabindex="-1"><a class="header-anchor" href="#h-remove-middle-man"><span>H. Remove Middle Man</span></a></h3>
+<ul>
+<li>Referencja: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>middleman/<wbr>after/<wbr>ReleaseDashboard.java</code>, <code>DeploymentRegistry.java</code>; test <code>MiddleManEquivalenceTest</code>.</li>
+<li>Ocena: <code>ReleaseService</code> nie realizuje autoryzacji, transakcji, telemetrii, retry ani translacji błędów, więc może zostać usunięty. Kroki: dashboard przyjmuje <code>DeploymentRegistry</code>, migracja po jednym kliencie, <code>ReleaseService</code> jako forwarder w okresie zgodności, usunięcie po potwierdzeniu braku wywołań.</li>
+<li>Błędy: usunięcie pośrednika, który jest fasadą modułu lub adapterem; brak odnotowania nowego komunikatu <code>requireNonNull</code> w konstruktorze dashboardu.</li>
+</ul>
+<h3 id="i-return-asap" tabindex="-1"><a class="header-anchor" href="#i-return-asap"><span>I. Return ASAP</span></a></h3>
+<ul>
+<li>Referencja: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module7/<wbr>returnasap/<wbr>after/<wbr>ArtifactFinder.java</code>; test <code>ReturnAsapEquivalenceTest</code>.</li>
+<li>Kroki: testy (pusta lista, brak dopasowania, pierwsze dopasowanie przez <code>assertSame</code>, <code>null</code> przed i po dopasowaniu, ślad <code>size</code>/<code>get</code>), <code>return Optional.of(artifact)</code> w miejscu dopasowania, usunięcie zmiennej <code>result</code>, zamiana <code>while</code> na <code>for</code> z indeksem, <code>return Optional.empty()</code> na końcu.</li>
+<li>Błędy: zamiana na strumień lub iterator w tym samym kroku, zwracanie ostatniego zamiast pierwszego dopasowania, <code>Optional.ofNullable</code> pozostawione bez potrzeby (drobne), pominięcie testu elementu <code>null</code> po dopasowaniu.</li>
+</ul>
+<hr>
+<h2 id="lista-kontrolna-przegladu-narzedzie-oceny" tabindex="-1"><a class="header-anchor" href="#lista-kontrolna-przegladu-narzedzie-oceny"><span>Lista kontrolna przeglądu (narzędzie oceny)</span></a></h2>
+<p>Lista pochodzi z materiału teoretycznego modułu. Podczas przeglądu zaznacz dla każdego rozwiązania: T (tak), N (nie), n/d (nie dotyczy). Każde &quot;N&quot; wymaga komentarza i wskazania brakującego testu lub kroku.</p>
+<h3 id="zachowanie" tabindex="-1"><a class="header-anchor" href="#zachowanie"><span>Zachowanie</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Pytanie</th>
+<th>W1</th>
+<th>W2</th>
+<th>W3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Czy testy obejmują wszystkie gałęzie i priorytet nakładających się warunków?</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Czy zachowano typ, komunikat i moment wyjątków należących do kontraktu?</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Czy stan po nieudanej operacji jest identyczny?</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Czy liczba, kolejność i argumenty efektów ubocznych są chronione?</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Czy wcześniejszy <code>return</code> nie omija zwalniania zasobów ani wymaganej mutacji?</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="projekt" tabindex="-1"><a class="header-anchor" href="#projekt"><span>Projekt</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Pytanie</th>
+<th>W1</th>
+<th>W2</th>
+<th>W3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Czy nowy seam opisuje potrzebę klienta, a nie całe API dostawcy?</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Czy Parameter Object reprezentuje pojęcie, a nie worek ustawień?</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Czy usunięto duplikację wiedzy, a nie przypadkowe podobieństwo?</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Czy po ekstrakcji istnieje jeden właściciel każdego stanu?</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Czy pośrednik rzeczywiście nie chronił wartościowej granicy?</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="migracja" tabindex="-1"><a class="header-anchor" href="#migracja"><span>Migracja</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Pytanie</th>
+<th>W1</th>
+<th>W2</th>
+<th>W3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Czy nowe i stare API mogą czasowo współistnieć?</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Czy istnieją klienci dostarczani jako już skompilowane pliki <code>.class</code>?</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Czy zmiana rekordu, serializacji albo trwałych nazw wymaga migracji danych?</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Czy zaostrzenie kontraktu jest oddzielone od ruchu strukturalnego?</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Czy usunięcie elementów przejściowych ma jawne kryterium zakończenia?</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="sugerowana-skala-oceny-propozycja-prowadzacego" tabindex="-1"><a class="header-anchor" href="#sugerowana-skala-oceny-propozycja-prowadzacego"><span>Sugerowana skala oceny (propozycja prowadzącego)</span></a></h3>
+<ul>
+<li><strong>Zaliczone wzorcowo</strong>: wszystkie kryteria akceptacji warsztatu spełnione, brak &quot;N&quot; w części Zachowanie, zmiany kontraktu w osobnych commitach z opisem.</li>
+<li><strong>Zaliczone</strong>: kryteria akceptacji spełnione, pojedyncze &quot;N&quot; w częściach Projekt lub Migracja z trafnym komentarzem uczestnika.</li>
+<li><strong>Do poprawy</strong>: jakiekolwiek &quot;N&quot; w części Zachowanie albo zmiana kontraktu ukryta w kroku opisanym jako refaktoryzacja.</li>
+</ul>
+<h2 id="podsumowanie-do-zamkniecia-modulu-5-minut" tabindex="-1"><a class="header-anchor" href="#podsumowanie-do-zamkniecia-modulu-5-minut"><span>Podsumowanie do zamknięcia modułu (5 minut)</span></a></h2>
+<p>Najważniejsze rozróżnienia z teorii, do przypomnienia po przeglądzie:</p>
+<ul>
+<li>seam umożliwia zmianę zależności, ale nie wymaga interfejsu dla każdej klasy,</li>
+<li>Extract Method jest pierwszym wyborem, a Method Object rozwiązaniem dla trudnego przepływu lokalnego stanu,</li>
+<li>duplikacja i duża klasa są diagnozami wymagającymi analizy wiedzy oraz powodów zmiany,</li>
+<li>guard clauses i wcześniejsze zwroty są bezpieczne tylko przy zachowaniu kolejności oraz efektów,</li>
+<li>publiczne kontrakty wymagają jawnych kontroli niezależnych od <code>assert</code>,</li>
+<li>flaga, pośrednik i negatywna nazwa powinny być usuwane na podstawie semantyki, nie mechanicznej reguły,</li>
+<li>zgodność strukturalna, źródłowa, binarna i behawioralna są różnymi własnościami.</li>
+</ul>
+
+</main>
+</div>
+<script>if(matchMedia('(max-width:900px)').matches){var d=document.querySelector('.toc details');if(d)d.open=false}</script>
+</body>
+</html>
