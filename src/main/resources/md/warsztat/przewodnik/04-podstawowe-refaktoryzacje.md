@@ -44,6 +44,14 @@ scripts/warsztat.sh reset m4/s05       # przywróć start po pokazie
 **Pakiet:** `pl.training.workshop.m4.s00_characterization` · **Test:** `scripts/warsztat.sh test m4/s00`
 **Czas:** ~15 min
 
+### W skrócie
+
+**Co robimy:** `BookingConfirmation.confirm` drukuje potwierdzenie bez żadnego testu, a w wydruku jest bieżący czas i kwoty zależne od `Locale`. Najpierw zapisujemy w teście pełny dokument, potem robimy szew na zegar i dopiero wtedy pierwszą ekstrakcję.
+
+**Zasada:** Test charakterystyki zapisuje, co kod faktycznie robi, a nie co powinien robić - razem z dziwnymi regułami. Stosujemy go przed pierwszą zmianą kodu bez testów, a ten sam zestaw oczekiwań uruchamiamy na każdym etapie jako test równoważności. Nie mylić z testem, który liczy oczekiwania tym samym algorytmem co kod.
+
+**Efekt:** Mamy deterministyczny test całego dokumentu, wstrzykiwany `Clock` i wydzieloną metodę `ticketPrice`, a stary konstruktor dalej działa. Znaleziska (rabat od 11 biletów, kwoty zależne od `Locale`) zostają zapisane, ale niepoprawione, bo to osobne decyzje.
+
 ### Co widzimy
 
 `BookingConfirmation.confirm` drukuje potwierdzenie rezerwacji. Nie ma żadnego testu, a dokument czytają klienci i infolinia. Zanim cokolwiek zmienimy, zapisujemy, co kod **robi**. Na drodze stoją dwie rzeczy: bieżący czas w ostatniej linii i `String.format` bez `Locale`.
@@ -120,6 +128,14 @@ Znaleźliście w charakterystyce ewidentny błąd (rabat od 11 biletów). Kto de
 **Temat ze slajdów:** Rename - cel i mechanika; Co ma pozostać niezmienione (refleksja, konfiguracja)
 **Pakiet:** `pl.training.workshop.m4.s01_rename` · **Test:** `scripts/warsztat.sh test m4/s01`
 **Czas:** ~12 min
+
+### W skrócie
+
+**Co robimy:** W `SalesReport` nazwy `calc2`, `s`, `m`, `t` nic nie mówią, ale nazwa metody żyje w konfiguracji, a nazwy komponentów rekordu trafiają refleksją do nagłówka CSV. Zmieniamy nazwy od najbezpieczniejszych lokalnych do tych, które są kontraktem zewnętrznym.
+
+**Zasada:** Rename nadaje nazwę opisującą rolę w kontekście, a nie typ ani implementację. Dla zmiennych lokalnych IDE robi to bezpiecznie, ale nazwa użyta w konfiguracji, refleksji, JSON czy ORM jest częścią API i wymaga strategii migracji. IDE nie widzi takich użyć, więc nie mylić operacji ⇧F6 z bezpieczną zmianą kontraktu.
+
+**Efekt:** Kod czyta się po nazwach ról, a oba kontrakty zostają nietknięte: stara nazwa `calc2` jako przestarzały delegat, nagłówek CSV jako jawna stała. Koszt to delegat, którego nie wolno usunąć, dopóki ktoś nie zmieni konfiguracji na serwerach.
 
 ### Co widzimy
 
@@ -214,6 +230,14 @@ Jak w waszym systemie sprawdzić, czy nazwa klasy albo metody nie jest użyta w 
 **Pakiet:** `pl.training.workshop.m4.s02_extractvariable` · **Test:** `scripts/warsztat.sh test m4/s02`
 **Czas:** ~8 min
 
+### W skrócie
+
+**Co robimy:** Cena biletu w `TicketPrice` to jedno długie wyrażenie z pięcioma ternary, którego nie da się przeczytać bez liczenia w głowie. Rozbijamy je na zmienne z nazwami z cennika: najpierw kwoty bazowe, potem warunki, na końcu dopłaty.
+
+**Zasada:** Extract Variable nazywa znaczenie fragmentu wyrażenia, a nie jego składnię. Może jednak zmienić moment ewaluacji, więc trzeba uważać na wyrażenia z efektem, odczytem czasu albo wyjątkiem. Krótkie spięcie `&&` jest zachowaniem - nie wolno wydzielić prawej strony przed osłoną `!= null`.
+
+**Efekt:** Ostatnia linia czyta się jak paragon, a kolejność działań i miejsce zaokrąglenia są takie same jak w `start`. Liczby nadal są literałami, co zostawiamy na następną scenę.
+
 ### Co widzimy
 
 Cała cena biletu to jedno wyrażenie z pięcioma ternary. Żeby odpowiedzieć na pytanie "skąd 32.00?", trzeba policzyć je w głowie. Uwaga na `row`: to `Integer`, a `null` oznacza wolną widownię.
@@ -300,6 +324,14 @@ Kiedy jedna zmienna `now = clock.instant()` zamiast dwóch wywołań zegara jest
 **Pakiet:** `pl.training.workshop.m4.s03_magicnumbers` · **Test:** `scripts/warsztat.sh test m4/s03`
 **Czas:** ~10 min
 
+### W skrócie
+
+**Co robimy:** `OrderPricer.summary` jest pełen liczb bez nazw, a cztery dziesiątki oznaczają cztery różne decyzje biznesowe. Zamieniamy każdą liczbę na prywatną stałą z nazwą roli, osobno dla każdej reguły.
+
+**Zasada:** Replace Magic Numbers usuwa ukrytą decyzję, a Extract Constant to mechanika tej zmiany. Nazwa opisuje rolę (`GROUP_MIN_TICKETS`), nie wartość (`TEN`), a dwa identyczne literały nie zawsze są tą samą wiedzą. Stała nie jest miejscem na konfigurację zmienianą bez wdrożenia, a `final` blokuje tylko przypisanie, nie zawartość.
+
+**Efekt:** W metodzie nie ma żadnej liczby bez nazwy, a zmiana progu grupy nie przesunie już rzędu VIP. Czternaście stałych pokazuje przy okazji, że cennik to osobna odpowiedzialność, którą jeszcze trzeba będzie przenieść.
+
 ### Co widzimy
 
 `OrderPricer.summary` liczy bilety, opłatę online i punkty lojalnościowe. Liczby: 25.00, 32.00, 40.00, 0.25, 0.30, 0.40, 5.00, 12, 10, 10.00, 10, 0.90, 2.00 i `BigDecimal.TEN`. Cztery "dziesiątki" oznaczają cztery różne decyzje biznesowe.
@@ -385,6 +417,14 @@ Które z tych stałych w prawdziwym kinie powinny być konfiguracją, a nie kode
 **Pakiet:** `pl.training.workshop.m4.s04_extractmethod` · **Test:** `scripts/warsztat.sh test m4/s04`
 **Czas:** ~15 min
 
+### W skrócie
+
+**Co robimy:** `TicketSummary.describe` liczy cenę, sumę i liczbę miejsc VIP, a potem składa dokument, i to wszystko w jednej metodzie z komentarzami zamiast nazw. Wydzielamy bloki do metod, a pętlę z dwoma wyjściami najpierw rozdzielamy przez Split Loop.
+
+**Zasada:** Extract Method przenosi spójny fragment do metody, gdy nazwa wyrazi intencję lepiej niż szczegóły, a sama długość nie jest powodem. Kluczowa jest analiza przepływu danych: co wchodzi jako parametr, co wychodzi jako wynik. Gdy fragment ma kilka wyjść, dzielimy go albo tworzymy obiekt wyniku, a nie zwracamy tablicy czy mutowalnego holdera.
+
+**Efekt:** Metoda publiczna czyta się jak spis treści, a obliczenia są oddzielone od renderowania, bez zmiany sygnatury ani formatu. Kosztem są dwa przejścia po liście rzędów, pomijalne wobec czytelności.
+
 ### Co widzimy
 
 `TicketSummary.describe` liczy cenę bazową, sumę i liczbę miejsc VIP, a na końcu składa dokument. Komentarze `// cena bazowa`, `// suma i liczba miejsc VIP`, `// dokument` to naturalne granice metod. Pętla ma jednak **dwa wyjścia**: `subtotal` i `vipSeats`.
@@ -465,6 +505,14 @@ Kiedy zamiast Split Loop lepiej zwrócić record z dwoma polami?
 **Temat ze slajdów:** Inline Variable i typ docelowy; Extract Variable i moment ewaluacji
 **Pakiet:** `pl.training.workshop.m4.s05_inlinevariable` · **Test:** `scripts/warsztat.sh test m4/s05`
 **Czas:** ~12 min
+
+### W skrócie
+
+**Co robimy:** `TicketIssuer.issue` ma sześć zmiennych lokalnych, które wyglądają na zbędne, ale trzy z nich chronią pojedynczy efekt uboczny, pojedynczy odczyt zegara i wybór przeciążenia. Wklejamy tylko bezpieczne zmienne, a przy `price` najpierw usuwamy niejednoznaczność nazwą przeciążenia.
+
+**Zasada:** Inline Variable usuwa zmienną, której nazwa nic nie wnosi, ale zmienia liczbę i moment ewaluacji inicjalizatora. Wyrażenie z efektem ubocznym albo odczytem czasu po wklejeniu wykona się tyle razy, ile jest użyć. Jawny typ zmiennej jest też typem docelowym, który wybiera przeciążenie - to nie jest ozdoba.
+
+**Efekt:** Znikają `label`, `holdUntil` i `price`, a `number`, `issuedAt` i `code` zostają celowo i warto je opisać. Wynik jest identyczny, co potwierdza test z tykającym zegarem.
 
 ### Co widzimy
 
@@ -549,6 +597,14 @@ Jak w teście wykryć, że kod czyta zegar dwa razy, skoro `Clock.fixed` zawsze 
 **Pakiet:** `pl.training.workshop.m4.s06_inlinemethod` · **Test:** `scripts/warsztat.sh test m4/s06`
 **Czas:** ~8 min
 
+### W skrócie
+
+**Co robimy:** `TicketPricing` ma trzy małe metody: dwa prywatne pośredniki i chroniony hak `bookingFee()`, nadpisany w wersji internetowej. Wklejamy pośredniki, ale hak zostaje, bo wklejenie jego ciała zabiłoby nadpisanie.
+
+**Zasada:** Inline Method usuwa pośrednictwo, które nie dodaje znaczenia, a najbezpieczniejszy jest prywatny, niepolimorficzny delegat z jednym wywołaniem. Wklejenie ciała metody nadpisywanej usuwa dynamiczną dyspozycję, a przy `synchronized` albo proxy znika blokada lub transakcja. Liczba linii nie przesądza - metoda z nazwą z domeny zostaje.
+
+**Efekt:** `total` wprost pokazuje "cena + opłata", a kasa i internet liczą tak jak wcześniej. Hak `bookingFee()` zostaje, bo zachowanie podklasy jest częścią kontraktu klasy bazowej.
+
 ### Co widzimy
 
 `TicketPricing` ma trzy małe metody, które "wyglądają na trywialne": dwa prywatne pośredniki (`base`, `addFee`) i chroniony hak `bookingFee()`, nadpisany w `OnlineTicketPricing` (+2.00).
@@ -615,6 +671,14 @@ Jak test klasy bazowej ma "wiedzieć" o podklasach, które jeszcze nie istnieją
 **Temat ze slajdów:** Move Method i Move Field - wybór właściciela; Move Method krok po kroku i ryzyka
 **Pakiet:** `pl.training.workshop.m4.s07_movemethod` · **Test:** `scripts/warsztat.sh test m4/s07`
 **Czas:** ~10 min
+
+### W skrócie
+
+**Co robimy:** `BookingPrinter` ma dwie metody, które używają wyłącznie danych `Screening`. Przenosimy je do seansu i zmieniamy im nazwy, ale typ parametru `Integer` zostaje bez zmian.
+
+**Zasada:** Move Method przenosi zachowanie do klasy, która ma jego dane i odpowiedzialność. Feature Envy to sygnał do analizy, a nie nakaz, bo metoda koordynująca kilka obiektów może zostać na miejscu. Przeniesienie zmienia kontekst typów, więc zmiana typu parametru przy okazji (`Integer` na `int`) może po cichu wybrać inne przeciążenie, tu `remove(int index)` zamiast `remove(Object)`.
+
+**Efekt:** `Screening` ma `headline` i `freeSeatsWithout`, a `BookingPrinter` tylko składa wydruk, który jest identyczny. Parametr `Integer` wygląda na niekonsekwencję, więc jego powód zapisujemy w Javadoc.
 
 ### Co widzimy
 
@@ -694,6 +758,14 @@ public List<Integer> freeSeatsWithout(Integer seat) {
 **Temat ze slajdów:** Move Field krok po kroku i ryzyka; Move Method i Move Field - wybór właściciela
 **Pakiet:** `pl.training.workshop.m4.s08_movefield` · **Test:** `scripts/warsztat.sh test m4/s08`
 **Czas:** ~10 min
+
+### W skrócie
+
+**Co robimy:** Próg VIP `vipFromRow` siedzi w seansie, choć jest cechą sali, więc dwa seanse w tej samej sali mogą się różnić. Przenosimy pole do `Hall` przez getter, a potem zamieniamy odczyty surowego progu na pytanie o regułę.
+
+**Zasada:** Move Field przenosi stan do właściciela, a zaczyna się od Self-Encapsulate Field, żeby mieć jedno miejsce odczytu. Najpierw migrujemy odczyty, potem zapisy, bez okresu z dwiema zapisywalnymi kopiami (dual write). Find Usages nie pokaże użyć przez refleksję, ORM ani serializację.
+
+**Efekt:** Próg VIP ma jednego właściciela i jedną regułę `Hall.isVip`, a wycena miejsca się nie zmienia. Kosztem jest zmieniony konstruktor `Screening`, a w systemie z bazą danych także osobna migracja danych.
 
 ### Co widzimy
 
@@ -790,6 +862,14 @@ Jak przeprowadzić ten Move Field, gdy `vipFromRow` jest kolumną w tabeli `scre
 **Temat ze slajdów:** Extract Class - cel, mechanika i zły wynik
 **Pakiet:** `pl.training.workshop.m4.s09_extractclass` · **Test:** `scripts/warsztat.sh test m4/s09`
 **Czas:** ~15 min
+
+### W skrócie
+
+**Co robimy:** `Booking` ma siedem pól i trzy powody zmiany: dane klienta, płatność i samą rezerwację. Wydzielamy `Customer` i `Payment`, przy czym pierwszy krok celowo daje zły wynik, który potem naprawiamy przeniesieniem zachowania.
+
+**Zasada:** Extract Class wydziela spójne pola i operacje z odrębnym powodem zmiany, a Move Field i Move Method to tylko mechanika tej decyzji. Zły wynik to klasa-worek: dane przeniesione, a logika dalej w źródle przez gettery. Nowa klasa nie powinna trzymać referencji zwrotnej do źródła, bo powstaje cykl.
+
+**Efekt:** `Booking` ma cztery pola i składa rezerwację z dwóch klas z własnym zachowaniem, a jego publiczne API działa jak wcześniej jako fasada. Delegaty `pay`, `isPaid` i `contact` zostają w `Booking`, dopóki klienci nie zechcą wołać nowych klas wprost.
 
 ### Co widzimy
 
@@ -892,6 +972,14 @@ Po czym na przeglądzie kodu rozpoznać, że wydzielona klasa jest workiem, a ni
 **Pakiet:** `pl.training.workshop.m4.s10_encapsulatefield` · **Test:** `scripts/warsztat.sh test m4/s10`
 **Czas:** ~10 min
 
+### W skrócie
+
+**Co robimy:** Publiczne pole `Reservation.status` pozwala każdemu wpisać dowolny status, także gościa na anulowaną rezerwację. Najpierw ukrywamy pole i zastępujemy setter operacjami domenowymi, a na końcu osobnym krokiem dodajemy pilnowanie przejść.
+
+**Zasada:** Encapsulate Field daje dostęp do stanu tylko przez operacje właściciela, więc można kontrolować zmiany i pilnować niezmiennika. Migracja idzie przez trywialne akcesory, migrację klientów i zwężenie widoczności. Walidacja to już zmiana zachowania, więc dodajemy ją osobno, nie razem z getterem i setterem.
+
+**Efekt:** Po kroku 2 pole jest prywatne, nie ma settera, a zachowanie jest identyczne. Krok 3 świadomie zmienia zachowanie: niedozwolone przejścia rzucają `IllegalStateException` zamiast być cicho ignorowane, więc to osobny commit z decyzją biznesu.
+
 ### Co widzimy
 
 `Reservation.status` to publiczne pole. Reguły przejść (NEW -> PAID -> USED, NEW -> EXPIRED, NEW/PAID -> CANCELLED) pilnuje kasa, a `guestEntry` po prostu przypisuje `"USED"`, także na rezerwację anulowaną.
@@ -990,6 +1078,14 @@ Kto w waszej organizacji decyduje, że "gość na anulowaną rezerwację" to bł
 **Pakiet:** `pl.training.workshop.m4.s11_encapsulatecollection` · **Test:** `scripts/warsztat.sh test m4/s11`
 **Czas:** ~12 min
 
+### W skrócie
+
+**Co robimy:** `Booking.seats` to publiczna, mutowalna lista i każdy może zmienić miejsca z pominięciem właściciela. Przenosimy dodawanie i usuwanie do `Booking`, a potem zmieniamy getter na niemodyfikowalny widok i wreszcie na migawkę.
+
+**Zasada:** Encapsulate Collection oddaje właścicielowi kontrolę nad członkostwem: odczyt przez kontrakt, zmiana przez `add`/`remove` lub polecenia. Widok (`Collections.unmodifiableList`) i migawka (`List.copyOf`) to dwa różne kontrakty, bo tylko widok pokazuje późniejsze zmiany. Niemodyfikowalność nie chroni wnętrza elementów i nie daje bezpieczeństwa wątkowego.
+
+**Efekt:** Kasa działa tak samo na każdym etapie, ale kroki 2 i 3 świadomie zmieniają kontrakt gettera: klient nie może już modyfikować listy, a po kroku 3 nie widzi późniejszych zmian. Wybór między widokiem a migawką zależy od tego, czego potrzebują klienci.
+
 ### Co widzimy
 
 `Booking.seats` to publiczna, mutowalna lista. `final` blokuje tylko przypisanie, więc każdy może dodać, usunąć albo wyczyścić miejsca z pominięciem właściciela.
@@ -1082,6 +1178,14 @@ Który kontrakt wybierzecie dla listy miejsc, którą czyta ekran sali w kasie, 
 **Temat ze slajdów:** Encapsulate Conditional
 **Pakiet:** `pl.training.workshop.m4.s12_encapsulateconditional` · **Test:** `scripts/warsztat.sh test m4/s12`
 **Czas:** ~8 min
+
+### W skrócie
+
+**Co robimy:** Warunek zwrotu w `RefundCalculator.refund` pyta o status, czas i prefiks promocji zamiast o regułę z regulaminu. Zamykamy kolejne fragmenty w predykaty z nazwami domenowymi, od najmniejszego do warunku gałęzi.
+
+**Zasada:** Encapsulate Conditional zamienia pytanie o implementację na pytanie o znaczenie, czyli wydziela predykat z nazwą z domeny. Krótkie spięcie jest zachowaniem, więc osłona `null` idzie razem z testem, a kolejność warunków się nie zmienia. Nazwa `is`/`has` nie gwarantuje, że predykat jest czysty.
+
+**Efekt:** `refund` czyta się jak regulamin (`isRefundable`, `cancelledAtLeast24hBefore`), a granica "dokładnie 24 h" jest opisana testem. Wyrażeń celowo nie upraszczamy, bo prosta zamiana `!isAfter` na `isBefore` zgubiłaby ten przypadek.
 
 ### Co widzimy
 

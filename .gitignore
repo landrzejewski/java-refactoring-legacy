@@ -39,3 +39,4 @@ build/
 .DS_Store
 ### Node (generator HTML warsztatu) ###
 node_modules/
+.warsztat-state

@@ -52,6 +52,14 @@ Liczby domeny (ceny formatów, zniżki, VIP, okulary, opłata online, punkty loj
 **Pakiet:** `pl.training.workshop.m6.s01_strategy` · **Test:** `scripts/warsztat.sh test m6/s01`
 **Czas:** ~12 min
 
+### W skrócie
+
+**Co robimy:** `TicketPricer` wybiera zniżkę łańcuchem `if` po nazwie programu kina, wymieszanym z walidacją ceny. Wprowadzamy interfejs `DiscountPolicy` najpierw jako strategię przejściową, przenosimy każdy program do osobnej klasy, a wybór programu trafia do `DiscountPrograms` i konstruktora.
+
+**Zasada:** Strategy zamyka wymienne warianty tego samego obliczenia za wspólnym interfejsem, gdy wariant wybiera się niezależnie od klasy obiektu. Wspólna walidacja zostaje w kontekście, a strategie są bezstanowe. Samo `if` nie uzasadnia wzorca - przy prostym, stabilnym warunku interfejs pogarsza czytelność.
+
+**Efekt:** Nowy program zniżek to nowa strategia (nawet lambda) i jeden wpis w `switch`, bez zmiany `TicketPricer`. Zachowanie świadomie się zmienia: wybór w konstruktorze zamraża decyzję, więc nieznany program zgłasza się teraz przed ujemną ceną.
+
 ### Co widzimy
 
 `TicketPricer.price(base, ticketType, program)` wybiera algorytm zniżki łańcuchem `if` po nazwie programu skonfigurowanego w kinie (STANDARD, STUDENT_WEEK, PREMIERE). W tej samej metodzie jest walidacja ceny i programu. Algorytm jest wybierany niezależnie od klasy obiektu - to klasyczny kandydat na Strategy.
@@ -138,6 +146,14 @@ Czy przy dwóch programach i jednym `if` Strategy nadal byłaby uzasadniona? Co 
 **Pakiet:** `pl.training.workshop.m6.s02_polymorphism` · **Test:** `scripts/warsztat.sh test m6/s02`
 **Czas:** ~12 min
 
+### W skrócie
+
+**Co robimy:** `Screening` ma pole `kind` i ten sam `switch` w trzech metodach, a pole `value` znaczy raz minuty filmu, raz liczbę filmów. Wydzielamy podtyp dla każdego rodzaju seansu po kolei, aż zostaje zamknięta hierarchia rekordów z nazwanymi danymi.
+
+**Zasada:** Replace Conditional with Polymorphism przenosi zachowanie zależne od rodzaju do podtypów, gdy selektor opisuje trwały rodzaj obiektu. Jeśli rodzaj zmienia się w czasie życia obiektu, to State, a jeśli algorytm wybiera klient - Strategy. Zaczynamy od znalezienia wszystkich miejsc tworzenia i deserializacji.
+
+**Efekt:** Switche w zachowaniu znikają, zostaje jeden w `fromRow`, gdzie należy wiedza o konstrukcji, a dane mają jednoznaczne nazwy. Kosztem zamkniętej hierarchii `sealed` jest to, że nowy rodzaj psuje kompilację każdego wyczerpującego `switch`, także poza modułem.
+
 ### Co widzimy
 
 `Screening` ma pole `kind` (REGULAR, PREMIERE, MARATHON) i ten sam `switch` w trzech metodach: `label()`, `durationMinutes()`, `price()`. Pole `value` znaczy raz "minuty filmu", raz "liczba filmów". Rodzaj seansu jest **trwałą cechą obiektu** - nie zmienia się w czasie życia, więc to nie State, a klient go nie wybiera, więc to nie Strategy.
@@ -215,6 +231,14 @@ Seans może zmienić się z "premiery" w "zwykły" po tygodniu. Czy to nadal pol
 **Pakiet:** `pl.training.workshop.m6.s03_typecode` · **Test:** `scripts/warsztat.sh test m6/s03`
 **Czas:** ~12 min
 
+### W skrócie
+
+**Co robimy:** Format seansu jest surowym `int` z CSV, a wiedza o kodach jest rozsiana po trzech metodach. Zamieniamy liczbę na enum `Format` tuż po odczycie, przenosimy do niego etykietę, cenę i okulary, a tłumaczenie kodu trwałego zamykamy w mapperze `FormatCodes`.
+
+**Zasada:** Replace Type Code with Class zastępuje prymitywny kod typem, który przejmuje walidację, normalizację i operacje pojęcia - co nie oznacza automatycznie hierarchii podklas. Enum wystarcza dla małego, zamkniętego zestawu, klasa jest lepsza przy aliasach i kodach zewnętrznych. Na granicy trwałości zostaje stabilny kod, nigdy `ordinal()` ani `toString()`.
+
+**Efekt:** Poza mapperem żaden kod nie operuje na liczbach 1, 2, 3, a zapis CSV jest bez zmian. Zmiana formatu trwałego (np. na kody tekstowe) dotknie tylko mappera, ale to osobna decyzja, nie część tej refaktoryzacji.
+
 ### Co widzimy
 
 Format seansu jest surowym `int` (1=2D, 2=3D, 3=IMAX) czytanym z CSV `Diuna;3`. Wiedza o kodzie jest w trzech metodach, a `needsGlasses` w ogóle nie waliduje kodu. Plik CSV musi nadal przechowywać `int` - to jest **granica trwałości**.
@@ -291,6 +315,14 @@ Kiedy wybralibyście klasę zamiast enuma dla formatu? Co w domenie kina mogłob
 **Pakiet:** `pl.training.workshop.m6.s04_encapsulatefactory` · **Test:** `scripts/warsztat.sh test m6/s04`
 **Czas:** ~10 min
 
+### W skrócie
+
+**Co robimy:** `BoxOffice` tworzy `StandardTicket` i `VipTicket` przez `new` i sam zna regułę VIP (rząd 10+). Przekierowujemy tworzenie do metod fabryki `Tickets`, przenosimy tam regułę wyboru biletu, a na końcu odbieramy klasom konkretnym `public`.
+
+**Zasada:** Encapsulate Classes with Factory ukrywa klasy konkretne za publiczną granicą tworzenia, gdy klient potrzebuje tylko wspólnego interfejsu. Tworzenie przekierowujemy pojedynczo, a widoczność ograniczamy dopiero na końcu. Nie mylić z Extract Factory Class, która wydziela tworzenie z klasy o innej odpowiedzialności.
+
+**Efekt:** Publiczne zostają tylko `Ticket` i `Tickets`, więc nowy rodzaj biletu nie zmienia żadnego klienta. Ryzykiem zostają miejsca tworzenia, których kompilator nie widzi (refleksja, DI, deserializacja), a w bibliotece publicznej potrzebny byłby etap `@Deprecated`.
+
 ### Co widzimy
 
 `BoxOffice` (inny pakiet niż bilety) tworzy `StandardTicket` i `VipTicket` przez `new` w dwóch miejscach i zna regułę VIP (rząd 10+). Klasy biletów są publiczne, choć klient potrzebuje tylko interfejsu `Ticket`.
@@ -361,6 +393,14 @@ Co się zmienia, jeśli klasy biletów są używane przez framework ORM?
 **Temat ze slajdów:** Factory - intencja, procedura, pułapki (Extract Factory Class)
 **Pakiet:** `pl.training.workshop.m6.s05_extractfactory` · **Test:** `scripts/warsztat.sh test m6/s05`
 **Czas:** ~10 min
+
+### W skrócie
+
+**Co robimy:** `ReservationService` pilnuje zajętości miejsc, ale też buduje rezerwacje (numer, opłata online, termin ważności), i to w dwóch kopiach. Wyciągamy tworzenie do metody, potem do klasy `ReservationFactory`, a na końcu przekazujemy fabrykę do serwisu przez konstruktor.
+
+**Zasada:** Extract Factory Class wydziela wiedzę o tworzeniu obiektów z klasy, która ma inną główną odpowiedzialność. Fabryka to zwykła zależność wstrzykiwana konstruktorem, a nie globalny rejestr ani zestaw metod statycznych. Kolejność efektów przy tworzeniu (tu: numer pobierany przed walidacją kanału) jest częścią kontraktu.
+
+**Efekt:** Fabryka wie, jak powstaje rezerwacja, serwis wie, kiedy wolno ją utworzyć, i każdą da się testować osobno. "Spalanie" numeru przy błędnym kanale zostaje celowo - jego naprawa byłaby zmianą zachowania.
 
 ### Co widzimy
 
@@ -442,6 +482,14 @@ Czy numeracja rezerwacji powinna należeć do fabryki, czy do repozytorium? Co p
 **Temat ze slajdów:** Encapsulate Composite with Builder
 **Pakiet:** `pl.training.workshop.m6.s06_builder` · **Test:** `scripts/warsztat.sh test m6/s06`
 **Czas:** ~12 min
+
+### W skrócie
+
+**Co robimy:** `WeekendPlanner` składa drzewo dzień - sala - seans ręcznie z `new` i `add`, a węzły są mutowalne. Wprowadzamy `ScheduleBuilder`: najpierw z bieżącą salą, potem z niemutowalnymi rekordami i jednorazowym `build()`, na końcu z zagnieżdżoną lambdą dla każdej sali.
+
+**Zasada:** Encapsulate Composite with Builder ukrywa budowę drzewa za API, które mówi "co" zbudować, a nie "jak". Jest uzasadniony, gdy budowa jest wieloetapowa i ma własne niezmienniki (kolejność, pusta grupa, unikalność nazw). Builder jest jednorazowy, a lambda gałęzi wykonuje się synchronicznie dokładnie raz.
+
+**Efekt:** Wcięcia kodu planera odpowiadają poziomom repertuaru, a gotowego drzewa nie da się zmodyfikować. Unikalność nazw sal to świadomie dodany nowy niezmiennik - start pozwalał na duplikaty, więc dla błędnych danych zachowanie się zmienia.
 
 ### Co widzimy
 
@@ -525,6 +573,14 @@ Czy pusta sala w repertuarze to poprawny stan, czy błąd? Kto powinien o tym zd
 **Pakiet:** `pl.training.workshop.m6.s07_decorator` · **Test:** `scripts/warsztat.sh test m6/s07`
 **Czas:** ~12 min
 
+### W skrócie
+
+**Co robimy:** `Ticket` ma flagi `vip`, `glasses`, `insurance` i te same `if` w `price()` i `description()`. Wydzielamy interfejs `PricedTicket` i przenosimy każdy dodatek do dekoratora, zaczynając od ubezpieczenia, a łańcuch składamy w `TicketAssembler`.
+
+**Zasada:** Move Embellishment to Decorator przenosi opcjonalny dodatek wokół rdzenia do obiektu, który ma ten sam kontrakt i deleguje do środka. Kolejność owijania jest zachowaniem, więc składa się ją w jednym miejscu. Dekorator nie jest przezroczysty dla `instanceof`, `getClass`, tożsamości i `equals`.
+
+**Efekt:** Rdzeń biletu nie ma flag, a nowy dodatek to nowa klasa i linia w assemblerze. Kosztem jest utrata pytania o typ: kto chce wiedzieć, czy bilet jest VIP, potrzebuje osobnego API zamiast `instanceof VipSeat`.
+
 ### Co widzimy
 
 `Ticket` ma flagi `vip`, `glasses`, `insurance` i te same `if` w `price()` i `description()`. Większość biletów nie ma żadnego dodatku, a każdy nowy dodatek to kolejne pole. Opis ma ustaloną kolejność: VIP, okulary, ubezpieczenie.
@@ -601,6 +657,14 @@ Kasa chce wydrukować "Miejsce VIP" na bilecie. Jak to zrobić, nie używając `
 **Temat ze slajdów:** Replace State-Altering Conditionals with State; State - kontekst delegujący
 **Pakiet:** `pl.training.workshop.m6.s08_state` · **Test:** `scripts/warsztat.sh test m6/s08`
 **Czas:** ~15 min
+
+### W skrócie
+
+**Co robimy:** `Reservation` w każdej operacji sprawdza i zmienia pole `status`, więc reguły przejść są rozsiane po metodach. Zaczynamy od tabeli przejść w teście, zastępujemy pole obiektem stanu i przenosimy `pay`, `use`, `expire`, `cancel` do stanów po jednej akcji.
+
+**Zasada:** State pasuje, gdy zachowanie operacji zależy od bieżącego stanu obiektu i zmienia się razem z przejściami. Kontekst deleguje do obiektu stanu, a niedozwolone przejście domyślnie rzuca wyjątek - pusta metoda po cichu zmieniłaby zachowanie. Od Strategy różni się tym, że stan zmienia się w czasie życia obiektu, zwykle na skutek jego własnych operacji.
+
+**Efekt:** Tabelę przejść da się przeczytać z kodu stanów, a `Reservation` tylko deleguje i przechowuje dane. Kolejność "obciążenie - zmiana stanu - efekt" zostaje jak w start, więc awaria bramki nadal zostawia rezerwację w stanie NEW.
 
 ### Co widzimy
 
@@ -693,6 +757,14 @@ Czym różni się State od Strategy, skoro oba to "obiekt, któremu delegujemy"?
 **Pakiet:** `pl.training.workshop.m6.s09_observer` · **Test:** `scripts/warsztat.sh test m6/s09`
 **Czas:** ~15 min
 
+### W skrócie
+
+**Co robimy:** `PaymentService.confirm` po zapisaniu opłaty na sztywno wysyła mail, SMS i nalicza punkty lojalnościowe. Wprowadzamy zdarzenie `ReservationPaid`, zamieniamy trzech odbiorców na implementacje `PaymentListener`, a subskrypcje przenosimy do korzenia kompozycji `PaymentServices`.
+
+**Zasada:** Observer odwraca zależność: publikujący zna tylko interfejs odbiorcy, a odbiorcy są do niego rejestrowani z zewnątrz. Kontrakt musi być jawny - synchroniczność, kolejność, polityka błędów (tu fail-fast) i wyrejestrowanie. Dodanie nowych odbiorców to rozszerzenie zachowania, a nie część refaktoryzacji.
+
+**Efekt:** Serwis nie importuje `Mailer`, `SmsGateway` ani `LoyaltyProgram`, a odbiorcy są wołani w kolejności subskrypcji jak w start. Zostaje ta sama semantyka błędów: awaria SMS przerywa naliczanie punktów, a jej zmiana byłaby osobną decyzją.
+
 ### Co widzimy
 
 Serwis powstaje w korzeniu kompozycji `PaymentServices.standard(mailer, sms, loyalty)`. `PaymentService.confirm` zapisuje opłatę, a potem na sztywno wysyła mail, SMS i nalicza punkty lojalnościowe (1 pkt za pełne 10.00). Semantyka do zachowania: **kolejność** mail - SMS - punkty i **fail-fast**: wyjątek w SMS przerywa, punkty nie są naliczone, ale opłata jest już zapisana.
@@ -772,6 +844,14 @@ Czy błąd wysyłki SMS powinien przerywać naliczanie punktów? Kto o tym decyd
 **Pakiet:** `pl.training.workshop.m6.s10_implicittree` · **Test:** `scripts/warsztat.sh test m6/s10`
 **Czas:** ~15 min
 
+### W skrócie
+
+**Co robimy:** Zestaw combo to zagnieżdżona lista, w której pierwszy element jest nazwą, a `BarMenu` powtarza `instanceof` i rzutowania. Budujemy obok jawny Composite (`Product`, `Combo`) z mapperem ze starego formatu, a potem przenosimy na niego `price` i `render` po jednej operacji.
+
+**Zasada:** Replace Implicit Tree with Composite zamienia drzewo ukryte w konwencji danych na jawne typy liścia i węzła. Mapper tłumaczy stary format i zgłasza błąd dla danych, których nie da się wiernie odwzorować. Stara i nowa reprezentacja żyją obok siebie, a test różnicowy potwierdza zgodność, ale nie zastępuje niezależnych oczekiwań.
+
+**Efekt:** `BarMenu` nie ma `instanceof` ani rzutowań, a komunikaty błędów zostają jak w start. Format trwały (zagnieżdżone listy) się nie zmienia - jego zmiana to osobna decyzja z osobnym testem.
+
 ### Co widzimy
 
 Zestaw combo to zagnieżdżona lista: pierwszy element to nazwa, kolejne to `"nazwa=cena"` albo podlisty. `BarMenu.price` i `BarMenu.render` powtarzają `instanceof` i rzutowania, a `render` dla każdego węzła liczy cenę od nowa.
@@ -850,6 +930,14 @@ Co zrobić, gdy mapper natrafi na dane, których nie da się wiernie odwzorować
 **Pakiet:** `pl.training.workshop.m6.s11_safecomposite` · **Test:** `scripts/warsztat.sh test m6/s11`
 **Czas:** ~8 min
 
+### W skrócie
+
+**Co robimy:** W Transparent Composite `add()` jest we wspólnym `MenuComponent`, więc wywołanie go na produkcie kompiluje się i wybucha dopiero w runtime. Przesuwamy `add` i `children` w dół do `Combo` (Safe Composite), a potem pokazujemy niemutowalne drzewo z rekordów bez `add`.
+
+**Zasada:** Transparent Composite trzyma zarządzanie dziećmi we wspólnym interfejsie, więc liść musi rzucić wyjątek albo nic nie robić. Safe Composite trzyma je tylko w węźle, dzięki czemu błąd przenosi się do kompilacji, ale klient musi wiedzieć, czy ma w ręku węzeł. Gdy drzewo powstaje raz, dylemat znika, bo `add` nie jest potrzebne nigdzie.
+
+**Efekt:** Dodanie dziecka do produktu przestaje się kompilować, a `MenuComponent` nie ma już `add` ani `children`. Kosztem jest dokładniejsze typowanie zmiennych w katalogu - rzutowanie `(Combo)` w kliencie oznaczałoby powrót do problemu.
+
 ### Co widzimy
 
 Transparent Composite: `add()` i `children()` są we wspólnym `MenuComponent`, liść `Product` dziedziczy `add()`, które rzuca `UnsupportedOperationException`. Klient typuje wszystko jako `MenuComponent` i nic go nie chroni przed `nachos.add(sos)`.
@@ -908,6 +996,14 @@ Kiedy Transparent Composite jest lepszym wyborem mimo ryzyka błędu w runtime?
 **Temat ze slajdów:** Replace One/Many Distinctions with Composite
 **Pakiet:** `pl.training.workshop.m6.s12_onemany` · **Test:** `scripts/warsztat.sh test m6/s12`
 **Czas:** ~10 min
+
+### W skrócie
+
+**Co robimy:** `RefundService` ma osobne `refund` i `refundAll` z regułą zwrotu zapisaną dwa razy, a `CancellationDesk` sam wybiera między nimi. Najpierw usuwamy duplikację reguły, potem wprowadzamy wspólny kontrakt `Refundable` z liściem i grupą, a stare metody usuwamy po etapie `@Deprecated`.
+
+**Zasada:** Replace One/Many Distinctions with Composite zastępuje dwie ścieżki API - dla jednego elementu i dla wielu - jednym kontraktem, w którym grupa też jest elementem. Nie wolno przy tym zmienić kolejności przetwarzania, wyniku dla pustej grupy ani liczby efektów naliczanych raz na wywołanie.
+
+**Efekt:** Jest jedna metoda `refund(Refundable)`, reguła biletu żyje w liściu, suma w węźle, a klient nie ma już `if`. Potrącenie 3.00 zostaje w serwisie i nadal jest naliczane raz na zwrot, a nie raz na bilet.
 
 ### Co widzimy
 
@@ -985,6 +1081,14 @@ Co, jeśli biznes chce potrącenia za każdą rezerwację, a jedna grupa obejmuj
 **Pakiet:** `pl.training.workshop.m6.s13_extractcomposite` · **Test:** `scripts/warsztat.sh test m6/s13`
 **Czas:** ~8 min
 
+### W skrócie
+
+**Co robimy:** `Marathon` i `ShortsBlock` powielają obsługę dzieci - listę, `add`, kopię `children()`, sumę minut i opis. Wydzielamy nadklasę `CompositeProgramItem` i podciągamy do niej to, co naprawdę wspólne, a regułę czasu zostawiamy w podklasach.
+
+**Zasada:** Extract Composite wydziela wspólną nadklasę dla kilku kontenerów, które powielają zarządzanie dziećmi. Podobne pętle mogą znaczyć co innego, więc przed podciągnięciem porównujemy kontrakty, a nie tekst. Nowe reguły, np. wykrywanie cykli, to osobna zmiana zachowania.
+
+**Efekt:** Lista dzieci, `add` i szkielet opisu są w jednym miejscu, a podklasy mają po kilkanaście linii. `minutes()` zostaje w podklasach, bo tylko maraton dolicza przerwy - podciągnięcie go do bazy zmieniłoby wynik.
+
 ### Co widzimy
 
 `Marathon` i `ShortsBlock` powielają obsługę dzieci: lista, `add` z kontrolą `null`, `children()` jako kopia, suma minut, opis. Różnią się tylko regułą czasu: maraton dodaje 15 minut przerwy między pozycjami.
@@ -1042,6 +1146,14 @@ Trzeci kontener "blok z przerwą na reklamy co drugi film" - czy nadal pasuje do
 **Temat ze slajdów:** Unify Interfaces with Adapter; Adapter - co naprawdę trzeba przetłumaczyć
 **Pakiet:** `pl.training.workshop.m6.s14_adapter` · **Test:** `scripts/warsztat.sh test m6/s14`
 **Czas:** ~12 min
+
+### W skrócie
+
+**Co robimy:** `CheckoutService.pay` mówi dwoma językami: dla starej bramki składa XML w groszach, dla nowej woła REST w złotych i łapie wyjątek odmowy. Wydzielamy obie gałęzie do metod o jednej sygnaturze, przenosimy je do adapterów interfejsu `PaymentGateway`, a serwis wybiera bramkę z mapy.
+
+**Zasada:** Unify Interfaces with Adapter tłumaczy obcy interfejs na preferowany kontrakt klienta, tak żeby klient zależał tylko od niego. Adapter tłumaczy nazwy, jednostki, format i sposób zgłaszania błędów, ale nie udaje, że semantyka jest identyczna. Jeśli wystarczy Rename Method, adapter jest zbędny.
+
+**Efekt:** Logika serwisu zna tylko `PaymentGateway` i da się ją testować fake'iem, a trzeci dostawca to nowy adapter i wpis w mapie. Stary konstruktor zostaje jako jedyne miejsce znające biblioteki bramek - docelowo do przeniesienia do korzenia kompozycji.
 
 ### Co widzimy
 
@@ -1122,6 +1234,14 @@ Stara bramka zwraca `status='ERROR'` przy błędnym XML. Jak to zamapować - na 
 **Temat ze slajdów:** Replace Conditional Dispatcher with Command; Command - sekwencja i ograniczenia
 **Pakiet:** `pl.training.workshop.m6.s15_command` · **Test:** `scripts/warsztat.sh test m6/s15`
 **Czas:** ~12 min
+
+### W skrócie
+
+**Co robimy:** `CashierConsole.handle` to łańcuch `if` po nazwie komendy z pełną logiką i zmianą stanu kasy w każdej gałęzi. Wydzielamy gałęzie do metod o wspólnej sygnaturze, zamieniamy je na bezstanowe komendy działające na `Till`, a łańcuch `if` zastępujemy mapą komend.
+
+**Zasada:** Replace Conditional Dispatcher with Command zamienia każdą gałąź dyspozytora w obiekt komendy, a wybór gałęzi w wyszukanie w rejestrze. Mapa jest równoważna warunkom tylko wtedy, gdy klucze są rozłączne i zachowana jest normalizacja. Command nie daje automatycznie asynchroniczności, retry ani undo.
+
+**Efekt:** Dodanie komendy to nowa klasa i wpis w mapie, bez zmiany `handle`. Komendy nie trzymają danych żądania, więc można je bezpiecznie współdzielić, a `sell` i `SELL` nadal działają tak samo.
 
 ### Co widzimy
 
@@ -1204,6 +1324,14 @@ Jak dodalibyście `UNDO` dla ostatniej sprzedaży? Czego wymaga to od komend?
 **Pakiet:** `pl.training.workshop.m6.s16_templatemethod` · **Test:** `scripts/warsztat.sh test m6/s16`
 **Czas:** ~8 min
 
+### W skrócie
+
+**Co robimy:** `CsvSalesReport` i `HtmlSalesReport` mają ten sam szkielet (sortowanie, nagłówek, wiersze z sumą, stopka), ale napisany trochę inaczej. Wydzielamy różnice do metod `header`, `row`, `footer`, doprowadzamy `render` do identycznej postaci i podciągamy go do nadklasy `SalesReport` jako `final`.
+
+**Zasada:** Form Template Method umieszcza wspólną sekwencję kroków w metodzie bazowej, a zmienne kroki w metodach nadpisywanych przez podklasy. Stosuje się ją, gdy kolejność kroków jest stała i różnią się tylko szczegóły. Przy wielu hookach albo zmiennej kolejności lepsza jest kompozycja lub Strategy.
+
+**Efekt:** Sortowanie i sumowanie są w jednym miejscu, a nowy format (np. Markdown) to trzy metody. `final` chroni kolejność kroków, ale w opublikowanej bibliotece dodanie go do nadpisywanej metody złamałoby klientów.
+
 ### Co widzimy
 
 `CsvSalesReport` i `HtmlSalesReport` mają ten sam szkielet: kopia listy, sortowanie po godzinie, nagłówek, wiersze z sumowaniem, stopka. Napisane trochę inaczej (stream kontra `sort`, inne nazwy zmiennych), więc duplikacja nie rzuca się w oczy. Różnice to formatowanie i escapowanie (`;` w CSV, `&` w HTML).
@@ -1261,6 +1389,14 @@ Raport PDF potrzebuje stronicowania co 30 wierszy. Czy to jeszcze Template Metho
 **Temat ze slajdów:** Limit Instantiation with Singleton
 **Pakiet:** `pl.training.workshop.m6.s17_singleton` · **Test:** `scripts/warsztat.sh test m6/s17`
 **Czas:** ~10 min
+
+### W skrócie
+
+**Co robimy:** `TicketDesk` przy każdej wycenie tworzy nowy `PriceList` i parsuje taryfę, choć cennik jest niemutowalny. Po pomiarze ograniczamy go do jednej instancji (najpierw `getInstance()`, potem enum), a na końcu ukrywamy za interfejsem `Tariff` wstrzykiwanym do `TicketDesk`.
+
+**Zasada:** Limit Instantiation with Singleton to decyzja o cyklu życia: jedna instancja jest bezpieczna tylko wtedy, gdy obiekt jest niemutowalny, a instancje równoważne. Enum daje bezpieczną publikację, ale oznacza jedną instancję na loader klas, nie na JVM. Odwrotny ruch, Inline Singleton, jest równie ważny, gdy globalny dostęp szkodzi testom.
+
+**Efekt:** Cennik powstaje raz, a `TicketDesk` zależy od kontraktu i da się go przetestować z innym cennikiem bez globalnego stanu. Globalna instancja zostaje tylko w domyślnym konstruktorze, a dodanie do niej mutowalnego stanu byłoby najgorszym wariantem.
 
 ### Co widzimy
 
@@ -1330,6 +1466,14 @@ Cennik ma się zmieniać o północy bez restartu. Co wtedy z singletonem?
 **Temat ze slajdów:** Collecting Parameter
 **Pakiet:** `pl.training.workshop.m6.s18_collectingparameter` · **Test:** `scripts/warsztat.sh test m6/s18`
 **Czas:** ~8 min
+
+### W skrócie
+
+**Co robimy:** `ReservationValidator` skleja ostrzeżenia w `String`, a każda metoda pomocnicza dopisuje własny separator. Zamieniamy sklejanie na listę, potem przekazujemy akumulator do metod `check...`, a na końcu zawężamy go do klasy `Warnings`.
+
+**Zasada:** Collecting Parameter polega na tym, że metody dopisują wyniki do przekazanego akumulatora, zamiast zwracać fragmenty do sklejenia. Właścicielem kolekcji jest wywołujący, trzeba ustalić, czy metoda czyści, czy dopisuje, a wynik częściowy po wyjątku jest częścią kontraktu. Dobry akumulator ma wąski typ, a nie ogólną mutowalną kolekcję.
+
+**Efekt:** Separator i format wyniku są w jednym miejscu, a metody pomocnicze mogą tylko dopisać ostrzeżenie. Treść, kolejność i separator ostrzeżeń są dokładnie takie jak w start.
 
 ### Co widzimy
 
@@ -1407,6 +1551,14 @@ Czy `Warnings` powinno pozwalać na poziomy (błąd kontra ostrzeżenie)? Jak to
 **Temat ze slajdów:** Visitor i macierz zmian
 **Pakiet:** `pl.training.workshop.m6.s19_visitor` · **Test:** `scripts/warsztat.sh test m6/s19`
 **Czas:** ~12 min
+
+### W skrócie
+
+**Co robimy:** `ReceiptPrinter` ma trzy operacje na pozycjach zamówienia, każda z łańcuchem `instanceof` zakończonym wyjątkiem w runtime. Zamieniamy je na klasyczne Visitory, a potem pokazujemy alternatywę z Javy 25: zamkniętą hierarchię `sealed` i `switch` po typach bez `default`.
+
+**Zasada:** Visitor przenosi operacje na strukturze do osobnych klas, a element wybiera właściwą metodę przez double dispatch. Macierz zmian mówi, kiedy go stosować: nowa operacja jest tania, nowy rodzaj elementu wymaga zmiany wszystkich Visitorów. W Javie 25 tę samą kontrolę kompilatora daje wyczerpujący `switch` po `sealed`, a Visitor ma sens, gdy hierarchii nie da się zamknąć.
+
+**Efekt:** W kodzie nie ma `instanceof`, a pozycja bez obsługi to błąd kompilacji zamiast awarii na kasie. Obie formy są poprawne - wybór zależy od tego, czy częściej dochodzą operacje, czy rodzaje pozycji.
 
 ### Co widzimy
 
@@ -1492,6 +1644,14 @@ Dochodzi pozycja "karta podarunkowa" i operacja "eksport do księgowości". Któ
 **Temat ze slajdów:** Najpierw rodzaj zmienności; Mapa decyzji (1/2 i 2/2); Lista kontrolna
 **Pakiet:** `pl.training.workshop.m6.s20_decisionmap` · **Test:** `scripts/warsztat.sh test m6/s20`
 **Czas:** ~12 min
+
+### W skrócie
+
+**Co robimy:** `ShowPricing` ma tabelę cen 3x3 wpisaną w zagnieżdżone warunki, w których splecione są format i reguła dnia. Najpierw rozplatamy dwie osie, a potem z tego samego punktu budujemy dwie alternatywy: Strategy dla reguły dnia albo typ formatu z zachowaniem.
+
+**Zasada:** Wzorzec wybieramy według rodzaju zmienności, a nie kształtu kodu - ten sam `switch` może sygnalizować różne problemy. Pytamy, która oś zmienia się częściej, i tam budujemy punkt rozszerzenia. Gdy tego nie wiemy, zostajemy przy prostej strukturze bez nowych typów.
+
+**Efekt:** Obie ścieżki są behawioralnie równoważne, a różnią się kosztem przyszłej zmiany: A tanio przyjmuje nowe akcje dniowe, B nowe formaty. Reguła zależna od obu osi naraz łamie założenie niezależności i wtedy tabela może być lepsza niż wzorzec.
 
 ### Co widzimy
 

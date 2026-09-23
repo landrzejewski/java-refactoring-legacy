@@ -6,6 +6,9 @@ Tam, gdzie zadanie mówi o **zmianie zachowania**, nazwij ją wprost i zrób ją
 
 ## Scena s00. Test charakterystyki przed pierwszą zmianą
 **Pakiet:** `pl.training.workshop.m4.s00_characterization.start` · **Test:** `scripts/warsztat.sh test m4/s00`
+
+**Zasada:** Test charakterystyki zapisuje obecne, obserwowalne zachowanie kodu - razem z dziwnymi regułami - zanim cokolwiek zmienimy. Oczekiwania zatwierdza człowiek, a nie liczy je ponownie ten sam algorytm.
+
 **Zadanie:**
 1. Zanim przeczytasz istniejący `S00CharacterizationTest`, napisz własny test charakterystyki dla `BookingConfirmation.confirm`: pełny dokument dla co najmniej czterech rezerwacji.
 2. Spraw, żeby test był deterministyczny, choć dokument zawiera bieżący czas i zależy od `Locale`.
@@ -17,6 +20,9 @@ Tam, gdzie zadanie mówi o **zmianie zachowania**, nazwij ją wprost i zrób ją
 
 ## Scena s01. Rename - nazwy, które żyją poza Javą
 **Pakiet:** `pl.training.workshop.m4.s01_rename.start` · **Test:** `scripts/warsztat.sh test m4/s01`
+
+**Zasada:** Rename nadaje nazwę opisującą rolę w kontekście. Nazwa używana poza Javą (konfiguracja, refleksja, formaty plików) jest kontraktem i wymaga strategii migracji, a nie tylko operacji IDE.
+
 **Zadanie:**
 1. Nadaj znaczące nazwy zmiennym lokalnym i parametrom w `SalesReport`.
 2. Zmień nazwę metody `calc2` na nazwę opisującą, co zwraca.
@@ -28,6 +34,9 @@ Tam, gdzie zadanie mówi o **zmianie zachowania**, nazwij ją wprost i zrób ją
 
 ## Scena s02. Extract Variable dla złożonego wyrażenia ceny
 **Pakiet:** `pl.training.workshop.m4.s02_extractvariable.start` · **Test:** `scripts/warsztat.sh test m4/s02`
+
+**Zasada:** Extract Variable nazywa znaczenie fragmentu wyrażenia. Może przesunąć moment ewaluacji, a krótkie spięcie `&&` / `||` jest częścią zachowania.
+
 **Zadanie:**
 1. Rozbij wyrażenie w `TicketPrice.price` na zmienne z nazwami pojęć z cennika.
 2. Nazwij osobno warunki (poranek, miejsce VIP, okulary) i osobno kwoty.
@@ -38,6 +47,9 @@ Tam, gdzie zadanie mówi o **zmianie zachowania**, nazwij ją wprost i zrób ją
 
 ## Scena s03. Stałe z nazwą zamiast magicznych liczb
 **Pakiet:** `pl.training.workshop.m4.s03_magicnumbers.start` · **Test:** `scripts/warsztat.sh test m4/s03`
+
+**Zasada:** Replace Magic Numbers zastępuje liczbę bez nazwy stałą z nazwą roli, bo problemem jest ukryta decyzja, a nie sama liczba. Dwa identyczne literały nie zawsze oznaczają tę samą wiedzę.
+
 **Zadanie:**
 1. Zastąp każdą liczbę w `OrderPricer.summary` stałą z nazwą opisującą rolę.
 2. Dla każdej liczby 10 (i `BigDecimal.TEN`) zdecyduj, czy to ta sama wiedza, co inna dziesiątka.
@@ -48,6 +60,9 @@ Tam, gdzie zadanie mówi o **zmianie zachowania**, nazwij ją wprost i zrób ją
 
 ## Scena s04. Extract Method - przepływ danych i wiele wyjść
 **Pakiet:** `pl.training.workshop.m4.s04_extractmethod.start` · **Test:** `scripts/warsztat.sh test m4/s04`
+
+**Zasada:** Extract Method przenosi spójny fragment do metody, której nazwa wyraża intencję. Przed ekstrakcją trzeba przeanalizować przepływ danych: co wchodzi, a co wychodzi z fragmentu.
+
 **Zadanie:**
 1. Zamień bloki opisane komentarzami w `TicketSummary.describe` na metody z nazwami.
 2. Poradź sobie z pętlą, która ma dwie wartości wyjściowe.
@@ -58,6 +73,9 @@ Tam, gdzie zadanie mówi o **zmianie zachowania**, nazwij ją wprost i zrób ją
 
 ## Scena s05. Inline Variable - liczba i moment ewaluacji
 **Pakiet:** `pl.training.workshop.m4.s05_inlinevariable.start` · **Test:** `scripts/warsztat.sh test m4/s05`
+
+**Zasada:** Inline Variable usuwa zmienną, która nic nie wnosi, ale może zmienić liczbę i moment ewaluacji inicjalizatora. Jawny typ zmiennej bywa typem docelowym, który wybiera przeciążenie.
+
 **Zadanie:**
 1. Dla każdej zmiennej lokalnej w `TicketIssuer.issue` zdecyduj, czy wolno ją wkleić (Inline Variable), i zapisz uzasadnienie.
 2. Wklej te, które wolno. Test ma zostać zielony.
@@ -68,6 +86,9 @@ Tam, gdzie zadanie mówi o **zmianie zachowania**, nazwij ją wprost i zrób ją
 
 ## Scena s06. Inline Method i nadpisanie w podklasie
 **Pakiet:** `pl.training.workshop.m4.s06_inlinemethod.start` · **Test:** `scripts/warsztat.sh test m4/s06`
+
+**Zasada:** Inline Method usuwa pośrednictwo bez znaczenia. Wklejenie ciała metody nadpisywanej usuwa dynamiczną dyspozycję, więc przed inline sprawdza się hierarchię klas.
+
 **Zadanie:**
 1. Usuń z `TicketPricing` pośredniki, które nie dodają znaczenia (Inline Method).
 2. Zanim wkleisz którąkolwiek metodę, sprawdź, czy nie jest nadpisywana.
@@ -78,6 +99,9 @@ Tam, gdzie zadanie mówi o **zmianie zachowania**, nazwij ją wprost i zrób ją
 
 ## Scena s07. Move Method - Feature Envy i pułapka przeciążenia
 **Pakiet:** `pl.training.workshop.m4.s07_movemethod.start` · **Test:** `scripts/warsztat.sh test m4/s07`
+
+**Zasada:** Move Method przenosi zachowanie do klasy, która ma jego dane i odpowiedzialność, a Feature Envy to sygnał do analizy, nie nakaz. Po przeniesieniu zmienia się kontekst typów i przeciążeń.
+
 **Zadanie:**
 1. Wskaż metody `BookingPrinter`, które używają danych tylko jednej innej klasy, i przenieś je do właściciela tych danych.
 2. Nadaj przeniesionym metodom nazwy pasujące do nowego właściciela.
@@ -88,6 +112,9 @@ Tam, gdzie zadanie mówi o **zmianie zachowania**, nazwij ją wprost i zrób ją
 
 ## Scena s08. Move Field - próg VIP należy do sali
 **Pakiet:** `pl.training.workshop.m4.s08_movefield.start` · **Test:** `scripts/warsztat.sh test m4/s08`
+
+**Zasada:** Move Field przenosi stan do właściwego właściciela: najpierw odczyty przez akcesor, potem zapisy, bez okresu z dwiema zapisywalnymi kopiami.
+
 **Zadanie:**
 1. Przenieś `vipFromRow` z `Screening` do `Hall`.
 2. Rób to małymi krokami, bez okresu, w którym obie klasy mają zapisywalną kopię.
@@ -98,6 +125,9 @@ Tam, gdzie zadanie mówi o **zmianie zachowania**, nazwij ją wprost i zrób ją
 
 ## Scena s09. Extract Class - klient, płatność i klasa-worek
 **Pakiet:** `pl.training.workshop.m4.s09_extractclass.start` · **Test:** `scripts/warsztat.sh test m4/s09`
+
+**Zasada:** Extract Class wydziela spójne dane i zachowanie o odrębnym powodzie zmiany. Klasa, która tylko przechowuje dane, a logika zostaje w źródle, to zły wynik.
+
 **Zadanie:**
 1. Wydziel z `Booking` klasę z danymi klienta, a potem przenieś do niej zachowanie, które na tych danych działa.
 2. Wydziel klasę płatności od razu z danymi i zachowaniem.
@@ -109,6 +139,9 @@ Tam, gdzie zadanie mówi o **zmianie zachowania**, nazwij ją wprost i zrób ją
 
 ## Scena s10. Encapsulate Field - status, który każdy może nadpisać
 **Pakiet:** `pl.training.workshop.m4.s10_encapsulatefield.start` · **Test:** `scripts/warsztat.sh test m4/s10`
+
+**Zasada:** Encapsulate Field ukrywa pole za operacjami właściciela, żeby kontrolować zmiany stanu. Sama hermetyzacja nie zmienia zachowania, a dodanie walidacji już tak.
+
 **Zadanie:**
 1. Ukryj pole `status` bez zmiany zachowania.
 2. Zastąp ogólne ustawianie statusu operacjami, które mówią, co się dzieje w domenie.
@@ -119,6 +152,9 @@ Tam, gdzie zadanie mówi o **zmianie zachowania**, nazwij ją wprost i zrób ją
 
 ## Scena s11. Encapsulate Collection - trzy kontrakty listy miejsc
 **Pakiet:** `pl.training.workshop.m4.s11_encapsulatecollection.start` · **Test:** `scripts/warsztat.sh test m4/s11`
+
+**Zasada:** Encapsulate Collection oddaje właścicielowi kontrolę nad członkostwem kolekcji. To, co zwraca getter (alias, widok albo kopia), jest osobnym kontraktem.
+
 **Zadanie:**
 1. Ukryj listę miejsc i przenieś zmiany członkostwa do `Booking`.
 2. Przepisz `SeatDesk`, żeby nie dotykał listy bezpośrednio.
@@ -129,6 +165,9 @@ Tam, gdzie zadanie mówi o **zmianie zachowania**, nazwij ją wprost i zrób ją
 
 ## Scena s12. Encapsulate Conditional - czy przysługuje zwrot
 **Pakiet:** `pl.training.workshop.m4.s12_encapsulateconditional.start` · **Test:** `scripts/warsztat.sh test m4/s12`
+
+**Zasada:** Encapsulate Conditional zamienia warunek pytający o implementację na predykat z nazwą z domeny. Krótkie spięcie i kolejność warunków są częścią zachowania.
+
 **Zadanie:**
 1. Zamień warunki w `RefundCalculator.refund` na metody o nazwach z regulaminu zwrotów.
 2. Zacznij od najmniejszego fragmentu, skończ na całym warunku i na warunku gałęzi.

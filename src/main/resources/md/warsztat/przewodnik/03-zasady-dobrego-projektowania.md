@@ -48,6 +48,14 @@ scripts/warsztat.sh reset m3/s12         # przywrócenie start z repozytorium
 **Pakiet:** `pl.training.workshop.m3.s01_dryknowledge` · **Test:** `scripts/warsztat.sh test m3/s01`
 **Czas:** ~12 min
 
+### W skrócie
+
+**Co robimy:** W `BoxOffice` reguła ceny biletu jest zapisana dwa razy - raz przy sprzedaży, raz przy zwrocie - różnym kodem. Nazywamy obie kopie, sprawdzamy testem, że liczą to samo, zostawiamy jedną i przenosimy ją do klasy `TicketPrice`.
+
+**Zasada:** DRY mówi, że każda wiedza w systemie powinna mieć jedną autorytatywną reprezentację. Chodzi o wiedzę (regułę biznesową), a nie o podobny tekst: dwa różne fragmenty mogą kodować tę samą regułę, a dwa identyczne mogą być przypadkowo podobne.
+
+**Efekt:** Zmiana zniżki studenckiej to teraz edycja jednego miejsca, a zwrot automatycznie używa aktualnego cennika. Reguły samego zwrotu zostają w `BoxOffice`, bo mają innego właściciela.
+
 ### Co widzimy
 
 `BoxOffice` sprzedaje bilety i przyjmuje zwroty. Reguła ceny biletu (cena formatu, zniżka typu, seans poranny) jest zapisana dwa razy: w `sell` jako dwa `switch` i procent, w `refund` jako łańcuch `if` i mnożniki. Tekst jest inny, więc detektor duplikatów IDE nic nie znajdzie, ale wiedza jest ta sama. Zmiana zniżki studenckiej wymaga zgodnej edycji dwóch miejsc.
@@ -147,6 +155,14 @@ Gdzie w waszym systemie ta sama reguła żyje w SQL, w kodzie i w dokumentacji j
 **Pakiet:** `pl.training.workshop.m3.s02_similarity` · **Test:** `scripts/warsztat.sh test m3/s02`
 **Czas:** ~10 min
 
+### W skrócie
+
+**Co robimy:** Klasa `ServiceFee` scala opłatę rezerwacyjną online i potrącenie przy zwrocie tylko dlatego, że obie wyglądają jak "kwota razy liczba sztuk". Wklejamy wspólny kod z powrotem do obu wywołujących, usuwamy martwe gałęzie i dajemy każdej kwocie stałą u jej właściciela.
+
+**Zasada:** Podobny kod to jeszcze nie ta sama wiedza - rozstrzyga pytanie, czy dwie reguły zmieniają się razem i z tego samego powodu. Wspólna metoda dla niezależnych reguł tworzy fałszywą zależność, a chwilowe powtórzenie kodu jest bezpiecznym etapem ich rozdzielania.
+
+**Efekt:** Marketing może zmienić opłatę rezerwacyjną bez ryzyka dla regulaminu zwrotów, a parametr `units = 1` znika. Płacimy za to dwiema podobnie wyglądającymi linijkami, co jest w porządku, bo kodują różną wiedzę.
+
 ### Co widzimy
 
 Ktoś "zDRYował" dwie reguły, bo wyglądały tak samo ("stała kwota razy liczba sztuk"): opłatę rezerwacyjną online (2.00 za bilet, właściciel: sprzedaż online i marketing) i potrącenie przy zwrocie (3.00 za zwrot, właściciel: regulamin zwrotów). Powstała wspólna metoda z przełącznikiem, a `RefundDesk` musi podać `units = 1`, choć ten parametr pasuje tylko drugiej regule.
@@ -220,6 +236,14 @@ Jakie pytanie zadać biznesowi, żeby rozstrzygnąć, czy dwie podobne reguły t
 **Pakiet:** `pl.training.workshop.m3.s03_falseabstraction` · **Test:** `scripts/warsztat.sh test m3/s03`
 **Czas:** ~8 min
 
+### W skrócie
+
+**Co robimy:** `Pricing.price` obsługuje bilety i karnety przez pięć parametrów, w tym flagi `boolean`, z których każdy wywołujący potrzebuje tylko części. Cofamy abstrakcję do obu kas, upraszczamy martwe gałęzie i sprawdzamy, czy zostało coś wspólnego.
+
+**Zasada:** Fałszywa abstrakcja to wspólny kod, który łączy konteksty bez wspólnej wiedzy i rośnie przez kolejne flagi. Kolejność naprawy: zabezpiecz testami, przenieś kod z powrotem do kontekstów, a wydziel tylko tę wiedzę, która się potwierdzi.
+
+**Efekt:** Zostają dwie proste klasy, a `PassCounter` nie wie nic o formatach i okularach. Wspólnej wiedzy nie było wcale, więc świadomie niczego nowego nie wydzielamy.
+
 ### Co widzimy
 
 `Pricing.price` wycenia bilety i karnety (reguła sceny: karnet to 20.00 za wejście na seans 2D), sterowana flagami `boolean`. Kasa biletowa podaje `quantity = 1` i `pass = false`, kasa karnetów podaje format, poranek i okulary "na wszelki wypadek".
@@ -288,6 +312,14 @@ Ile flag `boolean` ma najdłuższa metoda w waszym projekcie? Ilu wywołujących
 **Pakiet:** `pl.training.workshop.m3.s04_drytests` · **Test:** `scripts/warsztat.sh test m3/s04`
 **Czas:** ~10 min
 
+### W skrócie
+
+**Co robimy:** Specyfikacja cen `TicketPriceSpecs` ma przypadki zaszyfrowane w napisach i liczy oczekiwaną cenę tym samym wzorem co produkcja. Najpierw nadajemy przypadkom czytelne nazwy, potem zastępujemy wyliczanie oczekiwania kwotami policzonymi ręcznie z regulaminu.
+
+**Zasada:** DRY w testach obejmuje fabryki danych i wspólne helpery, ale nie oczekiwaną wartość: test liczący ją algorytmem produkcyjnym traci niezależną wyrocznię. DAMP oznacza, że każdy przypadek czyta się jak zdanie z regulaminu, nawet kosztem pewnego powtórzenia.
+
+**Efekt:** Specyfikacja łapie błędną zniżkę studencką i mówi, który przypadek, jaka kwota oczekiwana i jaka faktyczna. Koszt: przy zmianie cennika kwoty w przykładach trzeba przeliczyć ręcznie - i to jest zamierzone.
+
 ### Co widzimy
 
 Kod produkcyjny sceny (`Tariff`, `TicketPrice`) jest stabilny. Refaktoryzujemy specyfikację cen `TicketPriceSpecs` - w projekcie byłaby to klasa testowa JUnit, tu leży w `main`, żeby działał mechanizm start/stepN. Metoda `run` zwraca listę niespełnionych przypadków. Start jest "maksymalnie DRY": przypadki zaszyfrowane w stringach, a oczekiwana cena liczona z tej samej taryfy i tym samym wzorem co produkcja.
@@ -347,6 +379,14 @@ W którym waszym teście oczekiwana wartość jest wyliczana, a nie wpisana? Co 
 **Temat ze slajdów:** 2.4-2.5 KISS: prostota po poprawności; ukryty przepływ przez refleksję
 **Pakiet:** `pl.training.workshop.m3.s05_kiss` · **Test:** `scripts/warsztat.sh test m3/s05`
 **Czas:** ~8 min
+
+### W skrócie
+
+**Co robimy:** `SeatCounter` wybiera rodzaj miejsc napisem i refleksją, a wolne miejsca liczy wyrażeniem regularnym. Zastępujemy to dwiema jawnymi metodami i zwykłą pętlą po znakach.
+
+**Zasada:** KISS to najmniej złożone rozwiązanie, które poprawnie realizuje aktualne wymagania. Celuje w złożoność wprowadzoną (refleksja, sprytne mechanizmy), a złożoność istotną zostawia, tylko ją nazywa - nie myl go z najmniejszą liczbą linii.
+
+**Efekt:** Literówka w rodzaju miejsc nie przejdzie kompilacji, a Find Usages znów pokazuje przepływ. Reguły istotne, jak miejsce zablokowane czy początek strefy VIP, zostają i pilnuje ich test.
 
 ### Co widzimy
 
@@ -415,6 +455,14 @@ Jaki "sprytny" mechanizm (refleksja, adnotacje, konwencje nazw) w waszym kodzie 
 **Temat ze slajdów:** 2.6-2.7 YAGNI i czego nie zabrania; 2.8 Napięcia (ogólny silnik hipotetycznych taryf); 2.9 Filtr decyzyjny
 **Pakiet:** `pl.training.workshop.m3.s06_yagni` · **Test:** `scripts/warsztat.sh test m3/s06`
 **Czas:** ~12 min
+
+### W skrócie
+
+**Co robimy:** `TicketPricer` to silnik z rejestrem pluginów, konfiguracją napisem i kontekstem `Map` - dla dokładnie dwóch reguł. W trzech krokach usuwamy rejestr, zastępujemy mapę typowanymi danymi i wklejamy reguły do jednej klasy.
+
+**Zasada:** YAGNI mówi, żeby nie budować zdolności potrzebnej tylko dla przewidywanego wymagania. Nie zabrania testów, refaktoryzacji ani nazwanych metod - to one pozwalają bezpiecznie odłożyć abstrakcję do chwili, gdy pojawi się realna potrzeba.
+
+**Efekt:** Z pięciu klas zostaje jedna z dwiema nazwanymi regułami, a literówka w nazwie reguły nie skompiluje się. Gdy przyjdzie trzecia reguła z innym właścicielem, abstrakcję trzeba będzie wprowadzić ponownie.
 
 ### Co widzimy
 
@@ -503,6 +551,14 @@ Który mechanizm rozszerzeń w waszym systemie ma dziś jedną albo dwie impleme
 **Pakiet:** `pl.training.workshop.m3.s07_srp` · **Test:** `scripts/warsztat.sh test m3/s07`
 **Czas:** ~12 min
 
+### W skrócie
+
+**Co robimy:** `DailyReport` składa raport dla księgowości i marketingu, a wspólny helper `revenue` sprawia, że zmiana dla jednego aktora cicho zmienia kwoty drugiego. Wydzielamy sekcje, rozdzielamy helper i tworzymy klasę na każdego aktora.
+
+**Zasada:** SRP mówi, że moduł powinien odpowiadać przed jednym aktorem, czyli mieć jeden powód zmiany. To nie jest "klasa robi jedną rzecz" ani jedna metoda na klasę - klasa może mieć kilka metod, jeśli wszystkie zmieniają się dla tego samego aktora.
+
+**Efekt:** Zmiana definicji hitu dotyka tylko `MarketingSection`, a zmiana stawki VAT tylko `AccountingSection`. Koszt: dwie identyczne dziś formuły, powtórzone świadomie, bo to kod, a nie wspólna wiedza.
+
 ### Co widzimy
 
 `DailyReport.render` składa raport dla księgowości (przychód brutto i netto wg VAT 8% i 23%) i dla marketingu (hit dnia, liczba biletów). Obie części korzystają ze wspólnego helpera `revenue`. Gdy marketing poprosi "hit dnia licz bez baru", poprawka helpera po cichu zmieni też "Razem brutto" dla księgowości.
@@ -587,6 +643,14 @@ Kto w waszej organizacji zgłasza zmiany do największej klasy w systemie? Ilu t
 **Pakiet:** `pl.training.workshop.m3.s08_ocp` · **Test:** `scripts/warsztat.sh test m3/s08`
 **Czas:** ~10 min
 
+### W skrócie
+
+**Co robimy:** Wiedza o formatach seansu jest rozsiana po trzech `switch` na napisach, więc nowy format wymaga edycji wielu miejsc. Zamieniamy napisy na enum, przenosimy do niego dane formatów i dodajemy 4DX jedną linią.
+
+**Zasada:** OCP to możliwość rozszerzenia wybranego zachowania bez modyfikowania stabilnej części. Zamyka się kod na jedną, realnie rosnącą oś zmian, nie na wszystkie naraz, a nie każdy `switch` łamie OCP - na enumie bez `default` bywa dobrym modelem zamkniętego zbioru.
+
+**Efekt:** Dodanie formatu to zmiana tylko w `Format`, a `ScreeningOffer` nie zmienia się ani o znak. Na inne osie, na przykład nową dopłatę, klasa nadal nie jest zamknięta - i nie musi.
+
 ### Co widzimy
 
 Wiedza o formatach (2D, 3D, IMAX) jest rozsiana po trzech `switch` na stringu: cena bazowa, okulary 3D, etykieta. Kino kupuje salę 4DX - trzeba edytować każdy `switch`, a zapomniany trafi do `default`.
@@ -664,6 +728,14 @@ Która oś zmian w waszym systemie rośnie najszybciej? Czy kod jest zamknięty 
 **Pakiet:** `pl.training.workshop.m3.s09_lsp` · **Test:** `scripts/warsztat.sh test m3/s09`
 **Czas:** ~12 min
 
+### W skrócie
+
+**Co robimy:** `ReadOnlyHall` dziedziczy po `Hall`, ale na `reserve` rzuca wyjątek, więc łamie kontrakt sali bazowej. Wydzielamy interfejs odczytu `SeatMap` i zastępujemy dziedziczenie delegacją.
+
+**Zasada:** LSP wymaga, by podtyp dało się podstawić za typ bazowy bez zmiany zachowania: nie może wzmacniać warunków wstępnych ani osłabiać końcowych. Kompilator tego nie sprawdzi, dlatego ten sam test kontraktowy uruchamia się dla każdej implementacji, a `UnsupportedOperationException` ocenia się względem kontraktu typu bazowego.
+
+**Efekt:** Sala archiwalna spełnia tylko kontrakt odczytu, który naprawdę obiecuje, a przekazanie jej do kasy kończy się błędem kompilacji zamiast wyjątkiem w runtime. Test daje dowody zgodności dla sprawdzonych stanów, nie formalny dowód.
+
 ### Co widzimy
 
 `Hall` ma udokumentowany kontrakt `reserve`: wolne miejsce zostaje zajęte, `freeSeats()` maleje o 1, zajęte miejsce daje `IllegalStateException`. Kontrakt nie przewiduje odmowy. `ReadOnlyHall extends Hall` (plan zamkniętego seansu dla raportów) nadpisuje `reserve` rzucając `UnsupportedOperationException` - wzmacnia warunek wstępny do "nigdy".
@@ -735,6 +807,14 @@ Które wasze klasy nadpisują metodę bazową tylko po to, żeby rzucić wyjąte
 **Pakiet:** `pl.training.workshop.m3.s10_isp` · **Test:** `scripts/warsztat.sh test m3/s10`
 **Czas:** ~8 min
 
+### W skrócie
+
+**Co robimy:** Gruby `CinemaAdminService` ma osiem metod, a każdy klient używa dwóch lub trzech - fake kasy musi implementować wszystkie. Wydzielamy interfejsy ról według klientów i usuwamy gruby interfejs.
+
+**Zasada:** ISP mówi, że klient nie powinien zależeć od metod, których nie używa, więc interfejsy projektuje się według ról klientów. To nie znaczy "jedna metoda na interfejs" - rola może mieć kilka metod, jeśli jest spójna.
+
+**Efekt:** Kasa zależy tylko od `TicketSales`, a jej fake ma dwie metody zamiast ośmiu. Sprzężenie z zapleczem nie znika - staje się zależnością od węższego, stabilniejszego kontraktu.
+
 ### Co widzimy
 
 Gruby `CinemaAdminService` ma osiem metod. Kasa używa dwóch (`sellTicket`, `refundTicket`), raport dwóch, tablica seansów trzech, zmianę ceny woła tylko konfiguracja. Fake do testu kasy musi implementować wszystkie osiem.
@@ -803,6 +883,14 @@ Który wasz przypadek użycia dostaje `CrudRepository` (albo podobny gruby typ),
 **Temat ze slajdów:** 3.6 DIP i DIP to nie dependency injection; 5.1-5.2 Reguła zależności a przepływ sterowania
 **Pakiet:** `pl.training.workshop.m3.s11_dip` · **Test:** `scripts/warsztat.sh test m3/s11`
 **Czas:** ~12 min
+
+### W skrócie
+
+**Co robimy:** Przypadek użycia `ConfirmReservation` sam tworzy klienta SMTP i zna protokół, więc import i wywołania biegną `app -> infra`. Wstrzykujemy zależność, nazywamy potrzebę polityki i wprowadzamy port `CustomerNotifier` z adapterem w `infra`.
+
+**Zasada:** DIP mówi, że zależności źródłowe mają wskazywać od szczegółów ku polityce i abstrakcjom, a port nazywa potrzebę klienta, nie kształt technologii. DIP to nie dependency injection: wstrzyknięcie konkretnej klasy przez konstruktor wciąż wiąże politykę ze szczegółem.
+
+**Efekt:** Sterowanie nadal płynie do `infra`, ale import odwrócił się na `infra -> app`, a politykę da się przetestować lambdą. Wystarczył ręczny `Main` jako composition root, bez kontenera DI.
 
 ### Co widzimy
 
@@ -883,6 +971,14 @@ Narysujcie strzałki importów i strzałki wywołań dla jednego waszego przypad
 **Temat ze slajdów:** 5.3 Elementy praktyczne; 5.4 Dane na granicy i composition root; 5.5-5.6 Kręgi to nie szablon; 7.8 Protokół efektów
 **Pakiet:** `pl.training.workshop.m3.s12_cleanarchitecture` · **Test:** `scripts/warsztat.sh test m3/s12`
 **Czas:** ~18 min
+
+### W skrócie
+
+**Co robimy:** `ReservationController` parsuje żądanie, liczy cenę, zapisuje wiersz i publikuje komunikat w jednej metodzie. W czterech krokach wydzielamy przypadek użycia, porty z adapterami, pakiety `app` i `adapter` oraz composition root.
+
+**Zasada:** Clean Architecture to zasada, że polityka (przypadki użycia) nie zależy od mechanizmów: porty należą do strony formułującej potrzebę, granicę przekraczają proste rekordy, a composition root składa graf bez reguł biznesowych. Liczy się kierunek importów, a nie nazwy czterech folderów.
+
+**Efekt:** Przypadek użycia testujemy bez HTTP i bazy, a kolejność zapis-powiadomienie jest jawną decyzją protokołu. Koszt to siedem typów więcej, uzasadniony dwoma realnymi efektami zewnętrznymi.
 
 ### Co widzimy
 
@@ -987,6 +1083,14 @@ Czy wasz przypadek użycia da się uruchomić w teście bez frameworka webowego 
 **Pakiet:** `pl.training.workshop.m3.s13_boundarycheck` · **Test:** `scripts/warsztat.sh test m3/s13`
 **Czas:** ~12 min
 
+### W skrócie
+
+**Co robimy:** Klasa domeny `ScreeningService` miesza politykę cenową z mapowaniem na wiersz bazy i importuje adapter oraz `java.sql`. Wydzielamy maper, przenosimy go do adaptera, a narzędzia `BoundaryRule` i `CohesionProbe` mierzą efekt po każdym kroku.
+
+**Zasada:** Spójny moduł zmienia się z jednego powodu, a reguła zależności mówi, że domena nie importuje technologii - to dwa niezależne wymiary. Regułę architektury warto sprawdzać automatycznie przy każdym buildzie, a metryki takie jak LCOM4 traktować jako sygnał do rozmowy, nie wyrocznię.
+
+**Efekt:** Domena jest wolna od `java.sql` i typów adaptera, a każda klasa ma LCOM4 równe 1. Skan importów jest słabą bramką - pełna nazwa klasy w kodzie przejdzie, więc silniejsze są ArchUnit, moduły Maven lub JPMS.
+
 ### Co widzimy
 
 Dwa narzędzia bez bibliotek w pakiecie sceny: `BoundaryRule` (skanuje pliki `.java` w katalogu i zgłasza zakazane importy) oraz `CohesionProbe` (LCOM4: liczba grup metod połączonych wspólnym polem lub wywołaniem). Klasa domeny `ScreeningService` miesza politykę cenową z mapowaniem na wiersz bazy - importuje adapter i `java.sql`.
@@ -1057,6 +1161,14 @@ Która reguła architektury w waszym projekcie istnieje tylko w głowach lub na 
 **Temat ze slajdów:** 6.1-6.2 Wzorzec i refaktoryzacja w jego kierunku; 6.3 Strategy i Adapter; 6.4 Wzorzec można usunąć
 **Pakiet:** `pl.training.workshop.m3.s14_reversiblepattern` · **Test:** `scripts/warsztat.sh test m3/s14`
 **Czas:** ~12 min
+
+### W skrócie
+
+**Co robimy:** Rozliczenie z dystrybutorem ma dwa modele w jednym `switch`, w tym festiwalowy z obcego systemu w groszach. Wprowadzamy Strategy z Adapterem, a gdy umowy festiwalowe wygasają, usuwamy wariant i cały wzorzec.
+
+**Zasada:** Wzorzec to odpowiedź na konkretne siły (tu: dwa istniejące warianty i obcy interfejs), a nie kod do skopiowania. Strategy opłaca się dla rodziny wymiennych algorytmów, Adapter dla realnego tłumaczenia obcego modelu, a refaktoryzacja od wzorca jest równie poprawna jak do niego.
+
+**Efekt:** Zachowanie świadomie się zmienia: umowy FESTIVAL są teraz odrzucane, a model procentowy liczy tak samo na każdym etapie. Zostaje prosta metoda bez interfejsu i mapy, którą w razie potrzeby rozbudujemy tymi samymi krokami w przód.
 
 ### Co widzimy
 
@@ -1135,6 +1247,14 @@ Który wzorzec w waszym kodzie przeżył powód, dla którego go wprowadzono? Co
 **Pakiet:** `pl.training.workshop.m3.s15_invariants` · **Test:** `scripts/warsztat.sh test m3/s15`
 **Czas:** ~8 min
 
+### W skrócie
+
+**Co robimy:** `Reservation` to anemiczny JavaBean, walidację robi tylko `BookingService`, więc import pliku partnera tworzy niepoprawne rezerwacje. Zamieniamy klasę na niezmienny rekord i przenosimy strażników do jego kompaktowego konstruktora.
+
+**Zasada:** Inwariant to warunek, który obiekt spełnia przez całe życie, a jego naturalnym właścicielem jest sam model domeny. Pilnują go konstruktor i niezmienność, a nie każdy serwis z osobna; reguły wymagające danych spoza obiektu należą do przypadku użycia.
+
+**Efekt:** Złej rezerwacji nie da się utworzyć żadną ścieżką - import stał się chroniony, choć go nie zmienialiśmy. Zachowanie importu świadomie się zmienia: błędny wiersz kończy się teraz wyjątkiem.
+
 ### Co widzimy
 
 `Reservation` to anemiczny JavaBean z setterami. Walidację (e-mail z `@`, co najmniej jedno miejsce, kwota nieujemna) robi tylko `BookingService`. `ReservationImport` (plik partnera `email;miejsca;kwota`) tworzy model z pominięciem walidacji - i przepuszcza `jan-kino.pl;0;-5.00`.
@@ -1198,6 +1318,14 @@ Ile ścieżek tworzy wasz najważniejszy obiekt domeny? Czy wszystkie przechodz�
 **Temat ze slajdów:** 4.4 "Czy wywołania wymagają ukrytej kolejności?" - sprzężenie protokołu lub czasu
 **Pakiet:** `pl.training.workshop.m3.s16_temporalcoupling` · **Test:** `scripts/warsztat.sh test m3/s16`
 **Czas:** ~6 min
+
+### W skrócie
+
+**Co robimy:** `TicketPrinter` wymaga wywołania trzech setterów przed `print`, czego nie widać w typach - pominięcie kończy się `NullPointerException`. Przenosimy dane do parametrów `print`, a potem do rekordu `TicketRequest` z walidacją.
+
+**Zasada:** Sprzężenie czasowe (protokołu) to ukryte wymaganie kolejności wywołań, o którym klient musi wiedzieć poza typami. Naprawia się je, zamieniając stan i kolejność na jawne dane wejściowe, które kompilator i konstruktor mogą sprawdzić.
+
+**Efekt:** Drukarka jest bezstanowa i bezpieczna współbieżnie, a niekompletne dane są odrzucane w chwili tworzenia żądania. Klient zamiast trzech wywołań buduje jeden obiekt.
 
 ### Co widzimy
 

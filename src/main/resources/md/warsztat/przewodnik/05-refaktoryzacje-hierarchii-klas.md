@@ -45,6 +45,14 @@ scripts/warsztat.sh reset m5/s01         # przywraca start z repozytorium
 **Pakiet:** `pl.training.workshop.m5.s01_pullupmethod` · **Test:** `scripts/warsztat.sh test m5/s01`
 **Czas:** ~12 min
 
+### W skrócie
+
+**Co robimy:** Trzy podklasy `Ticket` mają własne `label()`, różne tekstem, a robiące to samo. Najpierw ujednolicamy ciała, potem wciągamy do bazy abstrakcyjne `price()` jako punkt rozszerzenia, a na końcu jedno finalne `label()`.
+
+**Zasada:** Pull Up Method przenosi metodę na najniższy poziom hierarchii, na którym jest prawdziwa dla wszystkich potomków. Porównujemy kontrakty, a nie tekst: identyczne ciało nie gwarantuje tego samego zachowania, a różny tekst może kodować ten sam kontrakt.
+
+**Efekt:** Podklasy zawierają tylko regułę ceny, a `BoxOffice` pracuje na typie bazowym. Kosztem jest `final` na `label()`: bilet z innym formatem etykiety będzie wymagał świadomej zmiany kontraktu bazy.
+
 ### Co widzimy
 
 Trzy bilety (`StandardTicket`, `StudentTicket`, `VipTicket`) mają wspólną nadklasę `Ticket`, ale każdy deklaruje własne `label()`. Ciała różnią się tekstem, a robią to samo:
@@ -123,6 +131,14 @@ Czy `label()` powinno być `final`, jeśli za rok pojawi się bilet z etykietą 
 **Temat ze slajdów:** 3.4-3.6. Pull Up Field i ryzyka Pull Up
 **Pakiet:** `pl.training.workshop.m5.s02_pullupfield` · **Test:** `scripts/warsztat.sh test m5/s02`
 **Czas:** ~10 min
+
+### W skrócie
+
+**Co robimy:** Każdy bilet trzyma miejsce na sali po swojemu: inna nazwa pola, setter zamiast konstruktora, normalizacja w VIP. Wyrównujemy nazwę i cykl życia pól, a dopiero potem przenosimy jedno pole `seat` do `Ticket`.
+
+**Zasada:** Pull Up Field łączy pola tylko wtedy, gdy mają to samo znaczenie, typ, cykl życia, walidację i moment inicjalizacji. Pole w bazie jest `private` i ustawiane przez `super(...)`, a nie surowe `protected`. Ten sam typ i podobna nazwa to za mało - dlatego `studentId` zostaje.
+
+**Efekt:** Stan miejsca ma jedno źródło, a normalizacja VIP została w podklasie, która przekazuje bazie gotową wartość. Znika setter, więc miejsce biletu normalnego jest teraz niemutowalne.
 
 ### Co widzimy
 
@@ -204,6 +220,14 @@ Gdyby `VipTicket` normalizował miejsce w getterze, a nie w konstruktorze, czy P
 **Temat ze slajdów:** 4.1-4.4. Push Down Method, Push Down Field i asymetria przesunięć
 **Pakiet:** `pl.training.workshop.m5.s03_pushdown` · **Test:** `scripts/warsztat.sh test m5/s03`
 **Czas:** ~12 min
+
+### W skrócie
+
+**Co robimy:** `Ticket` obiecuje `upgradeToVip()` wszystkim biletom, a bilet studencki odmawia wyjątkiem. Przestawiamy klientów na podtyp, przenosimy zachowanie za hak `surcharge()`, a na końcu spychamy pole i operację VIP do `StandardTicket`.
+
+**Zasada:** Push Down zawęża zbyt szeroki kontrakt bazy do gałęzi, która naprawdę potrzebuje członka. Sygnały to `UnsupportedOperationException`, flagi bez znaczenia i wywołania po `instanceof`. Kolejność: klienci, potem zachowanie korzystające z pola, na końcu pole.
+
+**Efekt:** Baza obiecuje tylko to, co prawdziwe dla wszystkich biletów, a `StudentTicket` nie musi niczego odmawiać. W bibliotece to zmiana łamiąca: stare binaria wołające `Ticket.upgradeToVip` dostaną `NoSuchMethodError`, bo Pull Up i Push Down nie są symetryczne.
 
 ### Co widzimy
 
@@ -289,6 +313,14 @@ Jak przeprowadzić ten Push Down w opublikowanej bibliotece, której klientów n
 **Temat ze slajdów:** 5. Extract Superclass
 **Pakiet:** `pl.training.workshop.m5.s04_extractsuperclass` · **Test:** `scripts/warsztat.sh test m5/s04`
 **Czas:** ~15 min
+
+### W skrócie
+
+**Co robimy:** Seans i wynajem sali nie mają wspólnego typu, więc `HallPlanner` ma trzy kopie warunku kolizji. Wydzielamy abstrakcyjną nadklasę `HallBooking`, dołączamy do niej klasy pojedynczo i przenosimy tam jeden algorytm `overlaps`.
+
+**Zasada:** Extract Superclass ma sens, gdy klasy są wariantami jednego pojęcia ze wspólnym kontraktem - samo podobieństwo linii kodu to za mało. Nazwa nadklasy opisuje pojęcie domenowe, a nie `Base` czy `Common`. Konstruktory nie są dziedziczone, więc publiczne sygnatury i fabryki zachowujemy świadomie.
+
+**Efekt:** `HallPlanner` ma jedną pętlę, a klienci nie zauważyli zmiany, bo `conflicts(...)`, konstruktory i `rental(...)` zostały. Nowy poziom zmienia jednak `getSuperclass()` i typ deklarujący akcesorów, co może mieć znaczenie dla refleksji i mapperów.
 
 ### Co widzimy
 
@@ -376,6 +408,14 @@ Czy `HallBooking` powinna być klasą abstrakcyjną, czy interfejsem z `default 
 **Temat ze slajdów:** 6. Extract Subclass
 **Pakiet:** `pl.training.workshop.m5.s05_extractsubclass` · **Test:** `scripts/warsztat.sh test m5/s05`
 **Czas:** ~15 min
+
+### W skrócie
+
+**Co robimy:** `Screening` ma flagę `premiere` i pole `guest`, które dla zwykłego seansu jest zawsze `null`, a cena i opis powtarzają `if (premiere)`. Najpierw wprowadzamy fabryki, potem podklasę `PremiereScreening`, przenosimy do niej zachowanie i stan, a na końcu usuwamy flagę.
+
+**Zasada:** Extract Subclass tworzy podklasę dla stabilnego podzbioru instancji, który ma dodatkowy stan lub zachowanie. Wariant musi być stały przez całe życie obiektu - rola zmienna w czasie to State lub Strategy, a wiele niezależnych osi to kompozycja.
+
+**Efekt:** Nie ma już `if (premiere)` ani pola `null`, a `Programme` nie zmienił się od kroku 1, bo tworzy obiekty przez fabryki. Ruch celowo zmienia klasę runtime premier, co widzą `getClass()`, `equals`, ORM i serializacja.
 
 ### Co widzimy
 
@@ -473,6 +513,14 @@ Kino zaczyna ogłaszać gości tydzień po dodaniu seansu do repertuaru. Czy pod
 **Pakiet:** `pl.training.workshop.m5.s06_extractinterface` · **Test:** `scripts/warsztat.sh test m5/s06`
 **Czas:** ~12 min
 
+### W skrócie
+
+**Co robimy:** `Cart` ma dwie listy, dwa `add(...)` i dwie kopie liczenia VAT dla biletów i przekąsek. Wydzielamy interfejs roli `Priceable` tylko z tym, czego używa koszyk, przestawiamy na niego klienta i dodajemy metodę domyślną `vatAmount()`.
+
+**Zasada:** Extract Interface wydziela rolę określonej grupy klientów, a nie kopię całego publicznego API klasy. `implements` wymusza sygnatury, nie zachowanie. Metoda `default` musi być poprawna dla każdej implementacji i korzystać wyłącznie z operacji kontraktu.
+
+**Efekt:** Nowy rodzaj pozycji to nowa implementacja bez zmian w koszyku, a VAT liczy się w jednym miejscu. Zmiana parametru z klasy na interfejs jest zgodna źródłowo, ale nie binarnie - w bibliotece zostawilibyśmy stare przeciążenie.
+
 ### Co widzimy
 
 `Cart` przyjmuje bilety i przekąski z baru, ma dla nich dwie listy, dwa przeciążenia `add(...)` i dwie kopie liczenia VAT (bilety 8%, bar 23%). Koszyk używa z obu klas tylko `price()` i `vatPercent()`.
@@ -553,6 +601,14 @@ Czy `vatPercent()` w ogóle powinno być częścią roli, skoro stawka zależy o
 **Pakiet:** `pl.training.workshop.m5.s07_collapsehierarchy` · **Test:** `scripts/warsztat.sh test m5/s07`
 **Czas:** ~8 min
 
+### W skrócie
+
+**Co robimy:** `ImaxHall` nie ma własnego stanu, jej override'y tylko wołają `super`, a jedyna różnica to reguła VIP w konstruktorze. Usuwamy puste override'y, przenosimy regułę do fabryki `Hall.imax(...)` i kasujemy podklasę.
+
+**Zasada:** Collapse Hierarchy scala poziomy, gdy rozróżnienie nie jest już kontraktem, wariantem ani punktem rozszerzenia. Przed usunięciem typu trzeba sprawdzić, czy nie jest markerem, typem w konfiguracji albo kontraktem DI.
+
+**Efekt:** Zostaje jedna finalna klasa `Hall` z nazwaną fabryką, a wiedza o sali IMAX nie ginie. Usunięcie publicznej klasy łamie klientów, więc w bibliotece `ImaxHall` zostałaby na jedno wydanie jako przestarzały typ zgodności.
+
 ### Co widzimy
 
 `ImaxHall extends Hall` nie ma własnego stanu. Jej override'y tylko wołają `super`, a jedyna różnica to reguła w konstruktorze: VIP w dwóch ostatnich rzędach. Nikt nie sprawdza `instanceof ImaxHall`.
@@ -632,6 +688,14 @@ Za pół roku sale IMAX dostaną inną politykę zwrotów. Czy wtedy przywrócic
 **Pakiet:** `pl.training.workshop.m5.s08_composition` · **Test:** `scripts/warsztat.sh test m5/s08`
 **Czas:** ~12 min
 
+### W skrócie
+
+**Co robimy:** `SeatSelection` dziedziczy po `LinkedHashSet` tylko dla wygody i liczy kliknięcia, a odziedziczone `addAll()` woła nasze `add()`, więc dwa miejsca dają cztery kliknięcia. Zastępujemy dziedziczenie delegatem i zamykamy go za wąską finalną fasadą.
+
+**Zasada:** Replace Inheritance with Composition stosujemy, gdy `extends` służy tylko do ponownego użycia kodu, a podklasa nie jest zastępowalnym wariantem. Pułapka self-use polega na tym, że metody nadklasy wołają inne metody na `this`, czego kontrakt JDK nie gwarantuje. Delegowanie ma własne pułapki: wyciek delegata, inny monitor i utrata `equals`/`hashCode`.
+
+**Efekt:** Zachowanie świadomie się zmienia: hurtowy wybór liczy każde miejsce raz, a klient dostaje niemodyfikowalną kopię listy. Kosztem jest utrata przypisywalności do `Set` oraz operacji `remove`, `clear` i `retainAll` - to nie jest zgodny zamiennik.
+
 ### Co widzimy
 
 `SeatSelection extends LinkedHashSet<String>` tylko po to, by mieć `add`/`contains` za darmo, i liczy kliknięcia klienta do analityki. Pułapka self-use: odziedziczone `addAll()` woła `add()` na `this`, więc miejsca dodane hurtem liczą się podwójnie.
@@ -701,6 +765,14 @@ Które testy wykryłyby, że wrapper przypadkiem zwraca delegata? Spy, callback,
 **Pakiet:** `pl.training.workshop.m5.s09_overloading` · **Test:** `scripts/warsztat.sh test m5/s09`
 **Czas:** ~10 min
 
+### W skrócie
+
+**Co robimy:** Po Extract Superclass `PriceList` ma przeciążenia `price(Ticket)` i `price(StudentTicket)`, a klient z `List<Ticket>` zawsze trafia w wersję bazową, więc student płaci pełną cenę. Zamieniamy przeciążenie na nadpisywane `discountPercent()` i poprawiamy `equals(Ticket)` na prawdziwe `equals(Object)`.
+
+**Zasada:** Overriding działa dynamicznie: JVM wybiera implementację według klasy obiektu i rzutowanie tego nie wyłącza. Overloading wybiera kompilator według typu deklarowanego, a decyzja zostaje zapisana w `.class` klienta. Reguła bezpieczeństwa: zachowanie zależne od typu umieszczamy w override, a każde nadpisanie oznaczamy `@Override`.
+
+**Efekt:** Zachowanie świadomie się zmienia: student dostaje zniżkę niezależnie od typu referencji, a `List.contains` znajduje równy bilet. Test równoważności tego nie wykrył, bo testował przez typ konkretny - dlatego testy przez typ bazowy są obowiązkowe.
+
 ### Co widzimy
 
 Stan po Extract Superclass: `StudentTicket extends Ticket`. `PriceList` ma dwa przeciążenia `price(Ticket)` i `price(StudentTicket)`. Dopóki klient miał `List<StudentTicket>`, działało. Po migracji na `List<Ticket>` ten sam tekst `priceList.price(ticket)` wybiera `price(Ticket)`, bo przeciążenie wybiera kompilator po typie deklarowanym. Student płaci pełną cenę.
@@ -764,6 +836,14 @@ Dlaczego test równoważności tej sceny przechodzi dla start, mimo że start li
 **Temat ze slajdów:** 2.3. Pola nie są polimorficzne; 2.1. `static` jest ukrywana
 **Pakiet:** `pl.training.workshop.m5.s10_fieldhiding` · **Test:** `scripts/warsztat.sh test m5/s10`
 **Czas:** ~8 min
+
+### W skrócie
+
+**Co robimy:** `StudentTicket` redeklaruje pole `type` i statyczne `category()` z `Ticket`, więc `label()` dla studenta zwraca `"BILET: NORMAL"`. Zastępujemy dwa sloty jednym prywatnym polem ustawianym przez konstruktor bazy, a `category()` robimy metodą instancji.
+
+**Zasada:** Pola i metody `static` nie są polimorficzne: są wiązane w czasie kompilacji według typu, w którym stoi odwołanie. Ukryte pole to dwa niezależne sloty w jednym obiekcie. Reguła: stan przekazujemy przez `super(...)`, a zachowanie zależne od obiektu musi być metodą instancji.
+
+**Efekt:** Zachowanie świadomie się zmienia: `label()` studenta zwraca `"BILET ULGOWY: STUDENT"` bez względu na typ referencji. Znika też ryzyko, że Pull Up Field bez usunięcia deklaracji w podklasie po cichu stworzy ukrycie.
 
 ### Co widzimy
 
@@ -830,6 +910,14 @@ Gdzie w waszym kodzie są stałe `public static final` redeklarowane w podklasac
 **Pakiet:** `pl.training.workshop.m5.s11_constructorcall` · **Test:** `scripts/warsztat.sh test m5/s11`
 **Czas:** ~8 min
 
+### W skrócie
+
+**Co robimy:** Konstruktor `Ticket` woła nadpisywalne `describe()`, a `VipTicket` czyta w nim pole, które nie jest jeszcze przypisane, więc etykieta na zawsze zawiera `null`. Najpierw naprawiamy lokalnie prologiem konstruktora z Javy 25, potem strukturalnie: etykieta liczona na żądanie.
+
+**Zasada:** Konstruktor bazy wykonuje się przed przypisaniem pól podklasy, więc wywołany z niego override widzi obiekt w połowie zbudowany. Java 25 pozwala przypisać pola przed `super(...)`, ale to naprawa lokalna, o której każda podklasa musi pamiętać. Reguła: konstruktor tylko przypisuje pola i nie woła metod nadpisywalnych.
+
+**Efekt:** Zachowanie świadomie się zmienia: etykieta VIP zawiera salonik, a poprawność nie zależy od kolejności inicjalizacji. Ostrzeżenie `this-escape` znika, a kosztem jest liczenie etykiety przy każdym wywołaniu zamiast raz w konstruktorze.
+
 ### Co widzimy
 
 Konstruktor `Ticket` zapamiętuje etykietę, wołając `describe()`. `VipTicket` nadpisuje `describe()` i używa pola `lounge`, które w tym momencie jest jeszcze `null` - konstruktor bazy kończy się, zanim podklasa przypisze swoje pola.
@@ -894,6 +982,14 @@ Czy włączylibyście `-Xlint:this-escape -Werror` w buildzie legacy? Ile ostrze
 **Pakiet:** `pl.training.workshop.m5.s12_bridgemethods` · **Test:** `scripts/warsztat.sh test m5/s12`
 **Czas:** ~10 min
 
+### W skrócie
+
+**Co robimy:** `RuleRegistry` rejestruje reguły cenowe refleksją, po typie parametru każdej metody `apply`. Po wydzieleniu generycznego `PriceRule<T>` kompilator dodaje syntetyczną metodę bridge i rejestr się psuje, więc najpierw ją filtrujemy, a potem zastępujemy refleksję jawnym `ticketType()`.
+
+**Zasada:** Po erasure `apply(T)` staje się `apply(Ticket)`, więc dla implementacji z konkretnym `T` kompilator generuje metodę bridge z rzutowaniem. Źródło jej nie pokazuje, ale widzą ją refleksja, `javap` i stack trace. Reguła: kod iterujący po `getDeclaredMethods()` musi filtrować `isBridge()`, a najlepiej zastąpić go jawnym kontraktem.
+
+**Efekt:** Rejestr nie używa refleksji, więc metody syntetyczne przestają mieć znaczenie, a brak reguły kończy się czytelnym `IllegalStateException`. Każda reguła musi teraz dodatkowo deklarować swój typ biletu.
+
 ### Co widzimy
 
 Reguły cenowe `StandardRule` i `StudentRule` nie mają wspólnego typu. `RuleRegistry` znajduje je refleksją: każda metoda o nazwie `apply` rejestruje regułę pod typem swojego parametru.
@@ -955,6 +1051,14 @@ Gdzie w waszym systemie ktoś iteruje po `getDeclaredMethods()` i czy filtruje m
 **Temat ze slajdów:** 2.5-2.8. `sealed`, `permits`, `MatchException`
 **Pakiet:** `pl.training.workshop.m5.s13_sealed` · **Test:** `scripts/warsztat.sh test m5/s13`
 **Czas:** ~12 min
+
+### W skrócie
+
+**Co robimy:** Otwarta hierarchia biletów i łańcuch `instanceof` z cichym `return 0` sprawiają, że nowy typ biletu nie dostaje zniżki bez żadnego ostrzeżenia. Zamykamy hierarchię przez `sealed`, zamieniamy łańcuch na wyczerpujący `switch` bez `default` i dodajemy bilet dziecięcy.
+
+**Zasada:** `sealed` z `permits` zamyka listę bezpośrednich podtypów w jednym miejscu, a `switch` bez `default` pozwala kompilatorowi sprawdzić, czy obsłużono wszystkie warianty. Działa to tylko przy rekompilacji: stary skompilowany `switch` z nowym wariantem rzuci `MatchException`. `default` wyłącza sprawdzanie wyczerpania.
+
+**Efekt:** Zachowanie świadomie się zmienia: obce typy biletów nie przejdą, a nowy wariant bez obsługi to błąd kompilacji zamiast cichego zera. Kosztem jest zamknięcie hierarchii dla implementacji spoza repozytorium i ryzyko `MatchException` w osobno budowanych modułach.
 
 ### Co widzimy
 
@@ -1034,6 +1138,14 @@ Kiedy otwarta hierarchia jest lepsza niż `sealed`? Kto w waszym systemie dopisu
 **Pakiet:** `pl.training.workshop.m5.s14_reuse` · **Test:** `scripts/warsztat.sh test m5/s14`
 **Czas:** ~10 min
 
+### W skrócie
+
+**Co robimy:** `CorporateAccount` dziedziczy po `LoyaltyAccount` tylko po to, by nie pisać drugi raz naliczania punktów, i blokuje wyjątkiem wymianę punktów na bilet. Wydzielamy logikę punktów do `PointsLedger`, zrywamy dziedziczenie, a raportowi dajemy wspólną rolę `PointsHolder`.
+
+**Zasada:** Wspólny kod uzasadnia współpracownika, a dziedziczenie dopiero wspólny kontrakt. Podtyp musi móc wystąpić wszędzie tam, gdzie nadtyp, więc override rzucający `UnsupportedOperationException` to podręcznikowy sygnał złamanej substytucji. Zgodna sygnatura nie dowodzi zastępowalności.
+
+**Efekt:** Implementację współdzieli kompozycja, a kontrakt - interfejs, więc operacji, której nie da się wykonać, po prostu nie ma. Klienci, którzy przyjmowali `LoyaltyAccount` i dostawali konto firmowe, przestaną się kompilować i każdego trzeba przejrzeć.
+
 ### Co widzimy
 
 `CorporateAccount extends LoyaltyAccount` tylko po to, by nie pisać drugi raz naliczania punktów (1 pkt za pełne 10.00). Firma zbiera punkty do rocznego rabatu i nie wymienia ich na bilety, więc odziedziczoną operację blokuje wyjątkiem.
@@ -1099,6 +1211,14 @@ Pytania ze slajdów 1.1-1.2: czy te klasy mają ten sam kod, czy są wariantami 
 **Temat ze slajdów:** 1.3. Warstwy zgodności; 10.2-10.3. Zgodność binarna, refleksja i adnotacje
 **Pakiet:** `pl.training.workshop.m5.s15_compatibility` · **Test:** `scripts/warsztat.sh test m5/s15`
 **Czas:** ~15 min
+
+### W skrócie
+
+**Co robimy:** Biblioteka kasowa ma eksporter szukający adnotacji `@Column` przez `getDeclaredMethods()` i API używane przez skompilowane wtyczki partnerów. Zabezpieczamy refleksję, wciągamy `price()` do bazy, uogólniamy parametr `quote` i przywracamy stary deskryptor przestarzałym przeciążeniem.
+
+**Zasada:** Zgodność ma kilka warstw: zachowanie, źródło, binaria, refleksja, serializacja i integracje - i każda wymaga osobnego sprawdzenia. Pull Up jest zwykle zgodny binarnie dla wywołań, ale zmienia typ deklarujący widoczny dla refleksji, a zmiana typu parametru zmienia deskryptor JVM. Pełny build sprawdza tylko zgodność źródłową.
+
+**Efekt:** Eksport działa po przesunięciu metody, `quote` przyjmuje każdy bilet, a stare wtyczki działają dzięki przeciążeniu delegującemu. Przestarzała metoda zostaje na okres przejściowy, a jej usunięcie to osobna, zapowiedziana zmiana łamiąca.
 
 ### Co widzimy
 
@@ -1188,6 +1308,14 @@ Którą warstwę zgodności z tabeli 1.3 sprawdza wasz obecny pipeline, a które
 **Temat ze slajdów:** 10.4-10.6. Serializacja, ORM i DI
 **Pakiet:** `pl.training.workshop.m5.s16_serializationproxy` · **Test:** `scripts/warsztat.sh test m5/s16`
 **Czas:** ~12 min
+
+### W skrócie
+
+**Co robimy:** Wydzielenie nadklasy z polami `title` i `seat` w serializowalnym `StudentTicket` sprawia, że stare dane czytają się bez wyjątku, ale z `null` w tych polach. Wprowadzamy Serialization Proxy z nowym UID, a dla `final` serwisu cenowego wydzielamy interfejs, żeby dało się go opakować proxy JDK.
+
+**Zasada:** Serializacja Javy zapisuje osobny segment dla każdego poziomu hierarchii, więc przeniesienie pola zmienia format danych, a stały `serialVersionUID` nie przenosi stanu między segmentami. Serialization Proxy oddziela format od struktury klas. Dynamiczne proxy JDK opakowuje tylko interfejsy, a proxy klasowe nie ruszy klas i metod `final`.
+
+**Efekt:** Przyszłe Pull Up i Push Down nie zmienią strumienia, a proxy audytowe działa bez usuwania `final`. Zachowanie świadomie się zmienia: stare dane są odrzucane głośno zamiast czytane z utratą pól, a ich migracja to osobne zadanie.
 
 ### Co widzimy
 

@@ -4,6 +4,9 @@ Każda scena ma pakiet `start` - na nim pracujesz. Po każdym ruchu uruchom test
 
 ## Scena s01. Branch by Abstraction na cenniku z CinemaManager
 **Pakiet:** `pl.training.workshop.m8.s01_branchbyabstraction.start` · **Test:** `scripts/warsztat.sh test m8/s01`
+
+**Zasada:** Branch by Abstraction wymienia implementację wewnątrz aplikacji bez długiej gałęzi w Git: stabilny kontrakt, za nim stara i nowa implementacja, a każdy krok da się od razu zintegrować. Wydzielenie kontraktu to jeszcze refaktoryzacja, przełączenie na nową implementację to już migracja.
+
 **Zadanie:**
 1. Wydziel wyliczenie ceny z `BookingService.confirm` do osobnej klasy starego cennika, bez poprawiania go.
 2. Wprowadź abstrakcję `TicketPricing` zwracającą `Money` i schowaj za nią stary cennik.
@@ -14,6 +17,9 @@ Każda scena ma pakiet `start` - na nim pracujesz. Po każdym ruchu uruchom test
 
 ## Scena s02. Strangler Fig - fasada, która przejmuje ścieżki
 **Pakiet:** `pl.training.workshop.m8.s02_stranglerfig.start` · **Test:** `scripts/warsztat.sh test m8/s02`
+
+**Zasada:** Strangler Fig przejmuje system operacja po operacji: punkt na granicy systemu kieruje część wywołań do nowego kodu, a resztę dalej do starego, aż stary kod przestaje być potrzebny i można go usunąć.
+
 **Zadanie:**
 1. Postaw przed `LegacyCinema` fasadę implementującą `CinemaApi`, która deleguje wszystko 1:1.
 2. Przenieś rezerwację do nowego modułu, a raport zostaw w legacy.
@@ -24,6 +30,9 @@ Każda scena ma pakiet `start` - na nim pracujesz. Po każdym ruchu uruchom test
 
 ## Scena s03. Równoległa weryfikacja (shadow) kalkulatora cen
 **Pakiet:** `pl.training.workshop.m8.s03_parallelrun.start` · **Test:** `scripts/warsztat.sh test m8/s03`
+
+**Zasada:** Równoległa weryfikacja (shadow) liczy wynik starą i nową implementacją na tym samym ruchu, ale autorytatywny pozostaje wynik starej, a awaria nowej nie może dotknąć klienta. Zgodność obu implementacji nie dowodzi jeszcze poprawności.
+
 **Zadanie:**
 1. Uruchamiaj kandydata w cieniu starego kalkulatora - klient zawsze dostaje wynik legacy, a wyjątek kandydata nie może przerwać sprzedaży.
 2. Zbieraj wynik porównania w raporcie, który odróżnia zgodność, rozbieżność i awarię kandydata.
@@ -34,6 +43,9 @@ Każda scena ma pakiet `start` - na nim pracujesz. Po każdym ruchu uruchom test
 
 ## Scena s04. Granice trybu shadow - efekty uboczne
 **Pakiet:** `pl.training.workshop.m8.s04_shadowlimits.start` · **Test:** `scripts/warsztat.sh test m8/s04`
+
+**Zasada:** Tryb shadow jest bezpieczny tylko dla czystych obliczeń - efektów ubocznych (płatność, mail, zapis) nie wolno wykonać dwa razy. Efekt zapisany jako dana można porównać zamiast go wykonywać.
+
 **Zadanie:**
 1. Uruchom test i sprawdź w dzienniku `Infrastructure`, co dostaje klient po jednej rezerwacji w trybie shadow.
 2. Spraw, żeby nowa ścieżka wykonywała efekty uboczne przez port, a nie bezpośrednio.
@@ -44,6 +56,9 @@ Każda scena ma pakiet `start` - na nim pracujesz. Po każdym ruchu uruchom test
 
 ## Scena s05. Boy Scout Rule - mała poprawa i jej nadużycie
 **Pakiet:** `pl.training.workshop.m8.s05_boyscout.start` · **Test:** `scripts/warsztat.sh test m8/s05`
+
+**Zasada:** Boy Scout Rule: dotykany kod zostaw w nieco lepszym stanie, ale poprawa ma być mała, lokalna i bez zmiany zachowania. Zmiana tego, co widzi użytkownik, to osobna decyzja, a nie sprzątanie.
+
 **Zadanie:**
 1. Popraw czytelność `TicketPrinter.print`: nazwy, sklejanie listy miejsc, powtórzenia.
 2. Nie zmieniaj niczego, co widzi klient: kolejności miejsc, wielkości liter, linii z telefonem, formatu kwoty.
@@ -53,6 +68,9 @@ Każda scena ma pakiet `start` - na nim pracujesz. Po każdym ruchu uruchom test
 
 ## Scena s06. Seria małych zmian gotowych do przeglądu
 **Pakiet:** `pl.training.workshop.m8.s06_reviewableseries.start` · **Test:** `scripts/warsztat.sh test m8/s06`
+
+**Zasada:** Dobry zestaw zmian ma jedną intencję, własny dowód i zielony build. Refaktoryzacji nie łączy się ze zmianą zachowania - najpierw ułatw zmianę, potem zrób łatwą zmianę.
+
 **Zadanie:**
 1. Dodaj regułę "Tani wtorek": bilet NORMAL -20% ceny bazowej we wtorek.
 2. Podziel pracę na co najmniej trzy kroki (commity): refaktoryzacje bez zmiany zachowania osobno, nowa reguła osobno.
@@ -62,6 +80,9 @@ Każda scena ma pakiet `start` - na nim pracujesz. Po każdym ruchu uruchom test
 
 ## Scena s07. ADR i wykonywalny model decyzji
 **Pakiet:** `pl.training.workshop.m8.s07_adr.start` · **Test:** `scripts/warsztat.sh test m8/s07`
+
+**Zasada:** ADR zapisuje trwałą decyzję architektoniczną z kontekstem i konsekwencjami; zaakceptowanego ADR się nie edytuje, tylko zastępuje nowym. Reguły z ADR można sprawdzać testem, żeby build pilnował decyzji.
+
 **Zadanie:**
 1. Przeczytaj `ADR-0007-cennik-jako-czysty-modul.md` i sprawdź w teście, które reguły narusza `start`.
 2. Usuń zależność pakietu `pricing` od `notification` bez zmiany wysyłanych maili.
@@ -71,6 +92,9 @@ Każda scena ma pakiet `start` - na nim pracujesz. Po każdym ruchu uruchom test
 
 ## Scena s08. Bramka kompilatora -Xlint:all -Werror
 **Pakiet:** `pl.training.workshop.m8.s08_compilergate.start` · **Test:** `scripts/warsztat.sh test m8/s08`
+
+**Zasada:** Bramka kompilatora (`-Xlint:all -Werror`) zamienia ostrzeżenia w błędy builda. Ostrzeżenia usuwa się zmianą kodu, po jednej kategorii na krok, a tłumienie jest wyjątkiem wąskim i uzasadnionym.
+
 **Zadanie:**
 1. Sprawdź, jakie kategorie ostrzeżeń zgłasza `CompilerGate` dla `start`.
 2. Usuwaj je po jednej kategorii na krok, uruchamiając test po każdym kroku.
@@ -80,6 +104,9 @@ Każda scena ma pakiet `start` - na nim pracujesz. Po każdym ruchu uruchom test
 
 ## Scena s09. Codemod na Compiler Tree API
 **Pakiet:** `pl.training.workshop.m8.s09_codemod.start` · **Test:** `scripts/warsztat.sh test m8/s09`
+
+**Zasada:** Codemod to automatyczna transformacja wielu miejsc naraz; oparty na drzewie składni i typach jest bezpieczniejszy od wyrażeń regularnych, ale automatyzacja zwiększa też zasięg błędu. Dobra receptura ma test przed i po oraz jest idempotentna.
+
 **Zadanie:**
 1. Zastąp wyszukiwanie wyrażeniem regularnym wyszukiwaniem po drzewie składni (`JavacTask`, `TreeScanner`).
 2. Przepisuj tylko dwa ostatnie argumenty wywołania według pozycji z drzewa i dopisz brakujące importy.
@@ -89,6 +116,9 @@ Każda scena ma pakiet `start` - na nim pracujesz. Po każdym ruchu uruchom test
 
 ## Scena s10. Minimalna bramka jakości jako kod
 **Pakiet:** `pl.training.workshop.m8.s10_qualitygate.start` · **Test:** `scripts/warsztat.sh test m8/s10`
+
+**Zasada:** Minimalna bramka jakości to kilka niezależnych, wykonywalnych sprawdzeń z deterministycznym wynikiem, który wskazuje miejsce problemu. Bramka, która nic nie sprawdza albo daje fałszywe alarmy, jest gorsza niż jej brak.
+
 **Zadanie:**
 1. Zamień listę kontrolną z Javadocu `QualityGate` na wykonywalne sprawdzenia, po jednym na krok.
 2. Każdy wynik ma wskazywać plik i linię albo metodę.
@@ -98,6 +128,9 @@ Każda scena ma pakiet `start` - na nim pracujesz. Po każdym ruchu uruchom test
 
 ## Scena s11. Jawna polityka wdrożenia etapowego
 **Pakiet:** `pl.training.workshop.m8.s11_stagedrollout.start` · **Test:** `scripts/warsztat.sh test m8/s11`
+
+**Zasada:** Wdrożenie etapowe to jawna, testowana polityka: kto dostaje nową ścieżkę, jaka część ruchu i jak ją natychmiast wyłączyć. Przydział klienta musi być stabilny, żeby nie przeskakiwał między ścieżkami.
+
 **Zadanie:**
 1. Zamień stałą i listę testerów na jawny obiekt polityki przekazywany do routera.
 2. Dodaj wdrożenie procentowe z deterministycznym przydziałem klienta.
@@ -108,6 +141,9 @@ Każda scena ma pakiet `start` - na nim pracujesz. Po każdym ruchu uruchom test
 
 ## Scena s12. Expand and contract - format danych rezerwacji
 **Pakiet:** `pl.training.workshop.m8.s12_expandcontract.start` · **Test:** `scripts/warsztat.sh test m8/s12`
+
+**Zasada:** Expand and contract zmienia format danych w krokach tak, żeby w oknie wycofania stara wersja kodu zawsze czytała dane zapisane przez nową. Stary format usuwa się dopiero na końcu, gdy powrót nie będzie już potrzebny.
+
 **Zadanie:**
 1. Wprowadź nowy, wersjonowany format rezerwacji w kolumnie `payload` tak, żeby wycofanie do starej wersji było bezpieczne.
 2. Czytaj nowy format, ale nie gub wierszy zapisanych wcześniej.
@@ -118,6 +154,9 @@ Każda scena ma pakiet `start` - na nim pracujesz. Po każdym ruchu uruchom test
 
 ## Scena s13. Dokumentacja żywa kontra historyczna
 **Pakiet:** `pl.training.workshop.m8.s13_livingdocs.start` · **Test:** `scripts/warsztat.sh test m8/s13`
+
+**Zasada:** Dokumentacja żywa opisuje stan obecny i powinna powstawać z kodu albo być z nim sprawdzana, a historyczna (np. ADR) jest niezmienna. Ręcznie utrzymywany opis stanu systemu prędzej czy później się rozjeżdża.
+
 **Zadanie:**
 1. Sprawdź, czym `start/ROUTING.md` różni się od `Routing.routes()`.
 2. Spraw, żeby dokument powstawał z kodu, i dopisz test, który wykryje jego ręczną edycję albo zestarzenie.

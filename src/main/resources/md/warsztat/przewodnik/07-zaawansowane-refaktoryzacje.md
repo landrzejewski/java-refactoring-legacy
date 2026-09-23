@@ -48,6 +48,14 @@ scripts/warsztat.sh reset m7/s13       # przywróć start po pokazie
 **Pakiet:** `pl.training.workshop.m7.s01_breakdependencies` · **Test:** `scripts/warsztat.sh test m7/s01`
 **Czas:** ~20 min
 
+### W skrócie
+
+**Co robimy:** `ShowtimeReminderJob` sam tworzy bazę, czyta zegar systemowy i woła statyczny mailer, więc nie da się go uruchomić w teście. Kolejnymi małymi ruchami wyciągamy trzy zależności do konstruktora, aż test może podstawić fałszywą bazę, stały zegar i lambdę zamiast maila.
+
+**Zasada:** Break Dependencies tworzy seam - miejsce, w którym można podstawić inną implementację bez edycji algorytmu, żeby uruchomić kod bez kosztownego otoczenia i obserwować jego komunikację. Wybieramy najwęższy skuteczny seam: parametr, zależność konstruktora, `Clock` albo interfejs funkcyjny, a nie interfejs przed każdą klasą. To nie jest zmiana reguły biznesowej, tylko zmiana miejsca tworzenia zależności.
+
+**Efekt:** Klasa ma pierwszy prawdziwy test z granicą 120/121 minut, a produkcyjny konstruktor składa te same implementacje co wcześniej, łącznie z bazą otwieraną przy każdym `run()`. Kosztem są trzy nowe małe typy i konstruktor z trzema parametrami.
+
 ### Co widzimy
 
 `ShowtimeReminderJob.run` wysyła przypomnienia na 2 godziny przed seansem. Wszystkie zależności są zaszyte w środku: produkcyjna baza tworzona przez `new`, bieżący czas i statyczny mailer. Konstruktor `LegacyDatabase` rzuca wyjątek poza serwerownią, a `ReminderMailer.send` - poza produkcją. **Tej klasy nie da się uruchomić w teście** - test sceny dla `start` tylko to dokumentuje.
@@ -145,6 +153,14 @@ Kiedy Subclass and Override jest lepszym pierwszym ruchem niż Parameterize Cons
 **Pakiet:** `pl.training.workshop.m7.s02_methodobject` · **Test:** `scripts/warsztat.sh test m7/s02`
 **Czas:** ~15 min
 
+### W skrócie
+
+**Co robimy:** `GroupPricing.quote` ma osiem splątanych zmiennych lokalnych i pętlę z dwoma wynikami, więc zwykły Extract Method się nie udaje. Przenosimy całe ciało dosłownie do obiektu `GroupQuoteCalculation`, zmienne robocze robimy polami i dopiero wtedy tniemy algorytm na nazwane kroki.
+
+**Zasada:** Extract Method Object zamienia jedno wywołanie metody w krótko żyjący obiekt, którego pola niosą stan lokalny, dzięki czemu każdy blok może stać się metodą bez parametrów. Stosujemy go dopiero wtedy, gdy przepływ lokalnego stanu blokuje zwykłe ekstrakcje, w kolejności: skopiuj bez upraszczania, deleguj, porównaj, potem porządkuj.
+
+**Efekt:** `calculate()` czyta się jak sześć kroków wyceny, a publiczne API `GroupPricing` i `Quote` się nie zmieniły. Kolejność wywołań kroków staje się kontraktem, a obiekt musi powstawać na każde wywołanie, bo inaczej wyceny zaczną współdzielić stan.
+
 ### Co widzimy
 
 `GroupPricing.quote` liczy cenę zamówienia (także grupowego): cena formatu, zniżki, poranek, okulary 3D, VIP, rabat 10% od 10 biletów, opłaty online i punkty. Osiem zmiennych lokalnych karmi się nawzajem. Pętla ma dwa wyjścia (`tickets`, `count`) i trzy wejścia robocze.
@@ -237,6 +253,14 @@ Po co w ogóle Method Object, skoro można zwrócić record `(tickets, count)` z
 **Pakiet:** `pl.training.workshop.m7.s03_breakresponsibilities` · **Test:** `scripts/warsztat.sh test m7/s03`
 **Czas:** ~12 min
 
+### W skrócie
+
+**Co robimy:** `BookingDesk.book` waliduje prośbę, wycenia miejsca i wysyła powiadomienie, czyli ma trzy powody zmiany od trzech różnych działów kina. Wydzielamy po jednej klasie na raz: `BookingValidator`, `TicketPricer` z rekordem `Pricing` i `BookingNotifier`.
+
+**Zasada:** Break Responsibilities dzieli klasę według powodów zmiany, a nie według liczby linii czy metod. Wydzielamy spójny klaster, stara klasa zostaje delegującą fasadą, a każdy stan ma dokładnie jednego właściciela, bez dwóch kopii.
+
+**Efekt:** `BookingDesk` tylko składa kroki w tej samej kolejności co wcześniej, a publiczny konstruktor i `book` są bez zmian, więc klienci niczego nie zauważają. `Outbox` należy wyłącznie do notifiera, a w prawdziwym systemie trzeba jeszcze pilnować granic transakcji między nowymi klasami.
+
 ### Co widzimy
 
 `BookingDesk.book` waliduje prośbę, wycenia miejsca i wysyła powiadomienie do `Outbox`. Trzy powody zmiany: reguły walidacji (obsługa klienta), cennik (finanse), treść wiadomości (marketing). Komentarze `// walidacja`, `// wycena`, `// powiadomienie` wyznaczają klastry. Test obserwuje wynik i zawartość skrzynki nadawczej.
@@ -321,6 +345,14 @@ Czy `TicketPricer` powinien dostać `BookingRequest`, czy tylko format i listę 
 **Pakiet:** `pl.training.workshop.m7.s04_removeduplication` · **Test:** `scripts/warsztat.sh test m7/s04`
 **Czas:** ~12 min
 
+### W skrócie
+
+**Co robimy:** Reguła "10 i więcej biletów to 10% rabatu" żyje w `BoxOffice` i `WebShop`, zapisana zupełnie inaczej i z innym zaokrągleniem. Najpierw ujednolicamy zapis, żeby różnica stała się widoczna, potem świadomie decydujemy o zaokrągleniu i wydzielamy regułę do `GroupDiscount`.
+
+**Zasada:** Remove Duplication łączy fragmenty reprezentujące tę samą wiedzę, czyli regułę, która zmienia się razem, a nie podobny tekst. Podobne reguły z niezależnych kontekstów mogą celowo żyć osobno, a wspólna metoda z flagą "żeby nic nie zmienić" zwykle utrwala przypadkową różnicę.
+
+**Efekt:** Reguła rabatu ma jednego właściciela, a opłata online zostaje jawnie w `WebShop`. Zachowanie świadomie się zmienia: w przypadku brzegowym sklep zaokrągla teraz HALF_UP jak kasa i klient płaci grosz mniej, co trafia do osobnego commita jako zmiana kontraktu.
+
 ### Co widzimy
 
 Reguła "10+ biletów = -10%" żyje w dwóch miejscach, zapisana inaczej: `BoxOffice` (pętla, `> 9`, `multiply(0.10)`, HALF_UP) i `WebShop` (stream, `>= 10`, `x * 10 / 100`, **HALF_EVEN**). Tekstowo niepodobne, ale to ta sama wiedza. Czy różnica w zaokrągleniu to decyzja, czy przypadek?
@@ -399,6 +431,14 @@ Kto w Waszej firmie może zdecydować, że HALF_EVEN w sklepie był błędem, a 
 **Pakiet:** `pl.training.workshop.m7.s05_breakmethod` · **Test:** `scripts/warsztat.sh test m7/s05`
 **Czas:** ~10 min
 
+### W skrócie
+
+**Co robimy:** `RepertoireBuilder.build` miesza kontrolę wejścia, porządkowanie seansów i renderowanie tekstu w jednej metodzie. Serią zwykłych Extract Method dzielimy ją na `validateAndCopy`, `order` i `render`.
+
+**Zasada:** Break Method to seria małych ekstrakcji, po której metoda opisuje algorytm na jednym poziomie abstrakcji - kryterium to nazwane, spójne kroki, a nie liczba wierszy. Zaczynamy od fragmentu z najmniejszą liczbą wejść i jednym wynikiem, przenosimy go dosłownie, a nazwę nadajemy po teście. Method Object jest potrzebny dopiero wtedy, gdy lokalny stan blokuje ekstrakcje.
+
+**Efekt:** `build` ma trzy linie, a typ i komunikat wyjątku oraz nienaruszona lista klienta zostają bez zmian. Etapy nadal dzielą model `Screening`, więc gdyby potrzebne były osobne modele danych, następnym ruchem byłby Split Phase.
+
 ### Co widzimy
 
 `RepertoireBuilder.build` miesza trzy poziomy abstrakcji: kontrolę wejścia (null w liście), porządkowanie (odwołane seanse, sortowanie po godzinie i tytule) i renderowanie tekstu. Test obserwuje tekst albo wyjątek (typ i komunikat) oraz to, czy lista klienta pozostała nietknięta.
@@ -472,6 +512,14 @@ Kiedy `order` i `render` zasługują na osobne klasy, a kiedy wystarczą prywatn
 **Temat ze slajdów:** 6. Introduce Parameter Object - data clump jako pojęcie; Parameter Object - walidacja, migracja i ryzyka
 **Pakiet:** `pl.training.workshop.m7.s06_parameterobject` · **Test:** `scripts/warsztat.sh test m7/s06`
 **Czas:** ~12 min
+
+### W skrócie
+
+**Co robimy:** Dwie metody `ScreeningPlanner` przyjmują tę samą czwórkę parametrów, która w domenie znaczy "termin seansu w sali". Nazywamy ją rekordem `ScreeningSlot`, zostawiamy stare sygnatury na czas migracji, przenosimy do rekordu opis, a na końcu walidację.
+
+**Zasada:** Introduce Parameter Object zamienia grupę parametrów, które zawsze chodzą razem (data clump), w typ nazywający jedno pojęcie z domeny - typ ogranicza pomyłki kolejności i przyciąga zachowanie. To nie jest worek `Parameters` na długą listę argumentów. Walidacja w konstruktorze rekordu przesuwa moment błędu, więc jest osobnym krokiem.
+
+**Efekt:** `ScreeningSlot` jest poprawny z definicji, a walidacja jest w jednym miejscu. Zachowanie świadomie się zmienia: zła sala rzuca wyjątek już przy tworzeniu rekordu, więc `describe` dla sali 12 przestaje zwracać tekst, a stare sygnatury trzeba jeszcze usunąć po migracji klientów.
 
 ### Co widzimy
 
@@ -554,6 +602,14 @@ Czy `date` naprawdę należy do tego pojęcia, skoro `ticketPrice` jej nie używ
 **Temat ze slajdów:** 7. Remove Arrowhead Antipattern; Remove Arrowhead - po zmianie
 **Pakiet:** `pl.training.workshop.m7.s07_arrowhead` · **Test:** `scripts/warsztat.sh test m7/s07`
 **Czas:** ~10 min
+
+### W skrócie
+
+**Co robimy:** `BookingGate.book` ma pięć poziomów zagnieżdżenia, a główna ścieżka rezerwacji siedzi na dnie, pod którym jeszcze zapisuje się audyt. Najpierw wydzielamy decyzję do `decide`, żeby audyt został w jednym miejscu, a potem spłaszczamy warunki poziom po poziomie.
+
+**Zasada:** Remove Arrowhead zamienia zagnieżdżone `if`/`else` na guard clauses, czyli wczesne wyjścia dla przypadków kończących przetwarzanie. Jest bezpieczne tylko przy zachowanym priorytecie warunków i wtedy, gdy wczesny `return` nie omija efektu na końcu metody, takiego jak log, zmiana stanu czy zwolnienie zasobu.
+
+**Efekt:** `decide` to czysta funkcja z pięcioma guard clauses bez zmiennej `result`, a audyt nadal zapisuje się dla każdej ścieżki. Trzeba pilnować poprawnego zaprzeczenia warunków: `<=` odwraca się na `>`, a nie na `>=`.
 
 ### Co widzimy
 
@@ -644,6 +700,14 @@ Gdyby `customerBlocked()` robił zapytanie do bazy, czy wolno przenieść go na 
 **Pakiet:** `pl.training.workshop.m7.s08_designbycontract` · **Test:** `scripts/warsztat.sh test m7/s08`
 **Czas:** ~10 min
 
+### W skrócie
+
+**Co robimy:** `SeatPool` przyjmuje każde wywołanie, więc `reserve(-2)` po cichu dodaje miejsca, a nadmiarowe `release` daje więcej wolnych miejsc, niż ma sala. Dodajemy jawne warunki wstępne przez `Contracts.require`, a potem warunki końcowe i niezmiennik.
+
+**Zasada:** Design by Contract rozróżnia warunek wstępny (obowiązek klienta), warunek końcowy (gwarancję operacji) i niezmiennik (właściwość prawdziwą między operacjami). Kontrole piszemy jawnie, a nie przez `assert`, który działa tylko z `-ea`, i stawiamy je przed pierwszą mutacją. Odpowiedź `false` przy braku miejsc to poprawny wynik, a nie naruszenie kontraktu.
+
+**Efekt:** Zachowanie świadomie się zmienia dla niepoprawnych wejść: zamiast psuć stan, `SeatPool` rzuca wyjątek i zostaje nietknięty, więc krok 1 nie jest refaktoryzacją. Dla poprawnych wywołań nic się nie zmienia, a warunki końcowe i niezmiennik chronią przyszłe zmiany.
+
 ### Co widzimy
 
 `SeatPool` pilnuje liczby wolnych miejsc seansu. Nie ma żadnych kontraktów: `reserve(-2)` po cichu dodaje dwa miejsca, a `release(15)` po rezerwacji 10 daje 105 wolnych w sali na 100. Test `startSilentlyCorruptsStateForInvalidInput` dokumentuje te niemożliwe stany.
@@ -714,6 +778,14 @@ Czy "nie więcej miejsc, niż zostało" to warunek wstępny, czy zwykła odpowie
 **Temat ze slajdów:** 9. Remove Double Negative
 **Pakiet:** `pl.training.workshop.m7.s09_doublenegative` · **Test:** `scripts/warsztat.sh test m7/s09`
 **Czas:** ~8 min
+
+### W skrócie
+
+**Co robimy:** `LoungeAccess` sprawdza `!customer.notVip()` i `!voucher.isNotExpired(today)`, więc każdy warunek trzeba odwracać w głowie. Dodajemy pozytywne predykaty delegujące, migrujemy użycia po jednym i na końcu odwracamy delegację, zmieniając komponent rekordu na `vip`.
+
+**Zasada:** Remove Double Negative zastępuje negatywną nazwę pozytywną, która musi być dokładnym logicznym dopełnieniem starej, także na granicy i dla `null`. Bezpieczna sekwencja to predykat pozytywny delegujący, migracja po jednym użyciu i odwrócenie delegacji. Negatywna nazwa w bazie, JSON-ie czy konfiguracji wymaga osobnej migracji granicy.
+
+**Efekt:** Warunki czytają się wprost: `customer.vip()` i `voucher.isExpired(today)`. Kosztem jest zmiana komponentu rekordu `Customer` - każdy, kto go tworzy, musi odwrócić wartość, co widać w adapterze testu.
 
 ### Co widzimy
 
@@ -792,6 +864,14 @@ Gdzie w Waszym kodzie negatywna nazwa żyje w kolumnie bazy albo w pliku konfigu
 **Temat ze slajdów:** 11. Remove Boolean Method Parameters; Java 25 w tym module (zgodność binarna)
 **Pakiet:** `pl.training.workshop.m7.s10_booleanparameter` · **Test:** `scripts/warsztat.sh test m7/s10`
 **Czas:** ~12 min
+
+### W skrócie
+
+**Co robimy:** `TicketService.book` ma dwie flagi, więc wywołanie `book(..., true, false)` nic nie mówi bez zaglądania do sygnatury. Kanał zamieniamy na jawne metody `bookOnline` i `bookAtBoxOffice`, okulary na enum `Glasses`, migrujemy klientów po jednym i dopiero na końcu usuwamy starą metodę.
+
+**Zasada:** Remove Boolean Method Parameters zastępuje literał `true`/`false`, który steruje zachowaniem, jawną metodą albo typem. Nie każdy `boolean` jest flagą: dana z formularza zostaje daną, a przy wielu flagach zamiast metody na każdą kombinację robimy przegląd odpowiedzialności i obiekt polityki. Stara metoda zostaje jako `@Deprecated` i delegująca do końca migracji, bo jej usunięcie łamie zgodność binarną.
+
+**Efekt:** Wywołania w `MobileApp` i `BoxOfficeTerminal` czytają się bez sygnatury, a ostrzeżenia `[deprecation]` znikają. Usunięcie starej metody w bibliotece publicznej to zmiana łamiąca zgodność, więc wymaga jawnego kryterium końca migracji.
 
 ### Co widzimy
 
@@ -881,6 +961,14 @@ Jak długo trzymać `@Deprecated` w module używanym przez inne zespoły? Kto mi
 **Pakiet:** `pl.training.workshop.m7.s11_middleman` · **Test:** `scripts/warsztat.sh test m7/s11`
 **Czas:** ~8 min
 
+### W skrócie
+
+**Co robimy:** `CinemaFacade` prawie wszystko deleguje 1:1 do `ScreeningCatalog`, ale w `freeSeats` po cichu zamienia nieznany seans na 0 wolnych miejsc. Przenosimy to tłumaczenie do `SeatBadge`, migrujemy obu klientów do katalogu po jednym i usuwamy fasadę.
+
+**Zasada:** Remove Middle Man usuwa pośrednika, który tylko przekazuje wywołania dalej, i pozwala klientom rozmawiać bezpośrednio z właściwym obiektem - ruch odwrotny to Hide Delegate. Najpierw sprawdzamy, czy pośrednik nie robi czegoś więcej (autoryzacja, transakcja, telemetria, retry, translacja błędów), bo fasada modułu czy seam testowy mogą być wartościowe.
+
+**Efekt:** Klienci zależą bezpośrednio od `ScreeningCatalog`, a zachowanie "nieznany seans = WYPRZEDANE" zostało zachowane w jedynym miejscu, które go potrzebuje. To dziwne zachowanie jest teraz widoczne i czeka na osobną decyzję.
+
 ### Co widzimy
 
 `CinemaFacade` deleguje 1:1 do `ScreeningCatalog` - prawie. `freeSeats` po cichu tłumaczy `NoSuchElementException` na 0, więc `SeatBadge` pokazuje "WYPRZEDANE" dla nieznanego seansu. Dwóch klientów: `SeatBadge` i `DailyBoard`.
@@ -965,6 +1053,14 @@ Czy "nieznany seans = WYPRZEDANE" to błąd? Kiedy wolno go poprawić?
 **Pakiet:** `pl.training.workshop.m7.s12_returnasap` · **Test:** `scripts/warsztat.sh test m7/s12`
 **Czas:** ~8 min
 
+### W skrócie
+
+**Co robimy:** `SeatFinder` trzyma się zasady jednego wyjścia: `seatClass` ma zagnieżdżone `if` ze zmienną `result`, a `firstFree` pętlę z flagą `found`. Zamieniamy je na guard clauses i `return` w miejscu, gdzie wynik jest już znany.
+
+**Zasada:** Return ASAP każe zwracać wynik tam, gdzie jest ostateczny, zamiast nieść go w zmiennej i fladze do końca metody. Wczesny `return` nie może jednak ominąć wymaganej mutacji ani zmienić sposobu dostępu do danych, a `return` w `try` nadal uruchamia `finally`.
+
+**Efekt:** Obie metody nie mają flag ani zmiennych wyniku, a licznik `inspected` jest taki sam, bo `return` stoi po inkrementacji. Celowo zostają `size()` i `get(index)`, bo iterator albo stream zmieniłby sposób czytania listy.
+
 ### Co widzimy
 
 `SeatFinder` ma dwie metody w stylu "jeden punkt wyjścia": `seatClass` z zagnieżdżonymi `if` i zmienną `result`, oraz `firstFree` z pętlą `while (!found && index < size)`. Licznik `inspected` (metryka dla działu IT) jest efektem ubocznym, który musi przetrwać zmianę.
@@ -1036,6 +1132,14 @@ Czy reguła "jeden return na metodę" ma jeszcze sens w Javie z try-with-resourc
 **Temat ze slajdów:** 10. Remove God Classes - kampania, nie pojedynczy ruch; Remove God Classes - wydzielony fragment i ryzyka; Warsztat 3 (kontekst)
 **Pakiet:** `pl.training.workshop.m7.s13_godclass` · **Test:** `scripts/warsztat.sh test m7/s13`
 **Czas:** ~30 min
+
+### W skrócie
+
+**Co robimy:** Kopia `CinemaManager` to 300 linii z cennikiem, powiadomieniami, rezerwacjami w `Object[]` i raportami w jednej klasie. Prowadzimy kampanię czterech pionowych wycinków: `PricingService`, `NotificationService`, `Booking` z `BookingRepository` i `ReportService`, z golden masterem po każdym kroku.
+
+**Zasada:** God Class to klasa o niskiej spójności, wielu powodach zmiany i roli centralnego węzła zależności, a nie po prostu długi plik. Usuwamy ją kampanią małych Extract Class i Move Method w obszarze bieżącej zmiany: stara klasa zostaje fasadą, a stan dostaje jednego właściciela. To nie jest przepisanie od nowa.
+
+**Efekt:** Publiczne API `CinemaManager` i pełny wektor zachowania (maile, SMS-y, bramka, raporty) są identyczne, a dane rezerwacji mają nazwany typ. Świadomie zostają `double` w cenach, globalny magazyn `LegacyDb` i brak atomowości - to osobne decyzje na kolejne kroki.
 
 ### Co widzimy
 
@@ -1135,6 +1239,14 @@ Który wycinek zrobilibyście jako następny, jeśli za tydzień dochodzi nowa z
 **Pakiet:** `pl.training.workshop.m7.s14_contractchange` · **Test:** `scripts/warsztat.sh test m7/s14`
 **Czas:** ~10 min
 
+### W skrócie
+
+**Co robimy:** `RefundCalculator.refund` liczy zwrot na `double`, a kontraktem jest też format z dwoma miejscami po przecinku. Robimy jedną czystą refaktoryzację, potem pokazujemy naiwne przejście na `BigDecimal`, które zmienia dwie rzeczy naraz, i na koniec zostawiamy tylko uzgodnioną zmianę.
+
+**Zasada:** Refaktoryzacja zachowuje obserwowalne zachowanie w przyjętej granicy, a kryterium brzmi: klient nie dostrzega żadnej nieuzgodnionej różnicy. Zmiana typu, zaokrąglenia, formatu czy wyjątku to zmiana kontraktu, którą robimy i zatwierdzamy osobno od ruchów strukturalnych, a nie "przy okazji".
+
+**Efekt:** Zachowanie świadomie się zmienia w jednym punkcie: 64.35 anulowane 2 godziny przed seansem daje 29.18 zamiast 29.17, zatwierdzone w osobnym commicie. Format "0.00" zostaje, a naiwny krok 2 nie powinien trafić do repozytorium.
+
 ### Co widzimy
 
 `RefundCalculator.refund` liczy zwrot na `double` - dokładnie jak w legacy: 100%, 50% albo 0%, minus 3.00, nie poniżej zera, zaokrąglenie `Math.round(x * 100) / 100.0`, format `%.2f`. Kontraktem jest także **format**: zawsze dwa miejsca po przecinku.
@@ -1216,6 +1328,14 @@ Kto zatwierdza zmianę kontraktu o 1 grosz: programista, księgowość czy klien
 **Temat ze slajdów:** Wektor obserwowalnego zachowania; Lista kontrolna przeglądu (zachowanie)
 **Pakiet:** `pl.training.workshop.m7.s15_behaviourvector` · **Test:** `scripts/warsztat.sh test m7/s15`
 **Czas:** ~12 min
+
+### W skrócie
+
+**Co robimy:** Po "porządkach" kolegi `TicketCheckout.pay` wysyła mail z potwierdzeniem także klientowi z odrzuconą kartą, a test sprawdzający tylko wynik tego nie widzi. Wprowadzamy seam dla maili, naprawiamy regresję i dodajemy seam dla płatności, żeby test widział pełny wektor.
+
+**Zasada:** Wektor obserwowalnego zachowania to wszystko, co klient może zauważyć: wynik, wyjątki (typ, komunikat, moment), stan po sukcesie i po błędzie, wywołania współpracowników z ich kolejnością, czas i granice. Test sprawdzający jeden wymiar przepuści regresję w pozostałych, dlatego granica kontraktu ma być świadomą decyzją, a nie skutkiem słabego testu.
+
+**Efekt:** Test widzi wynik, wyjątek, maile i obciążenia karty w jednym dzienniku oraz status rezerwacji. Zachowanie świadomie się zmienia w kroku 2: przy odrzuconej karcie znika błędny mail o opłaceniu - to naprawa błędu, a nie refaktoryzacja, choć wynik metody pozostaje ten sam.
 
 ### Co widzimy
 

@@ -10,6 +10,9 @@ Zasady:
 
 ## Scena s01. DRY - jedna wiedza, dwie reprezentacje
 **Pakiet:** `pl.training.workshop.m3.s01_dryknowledge.start` · **Test:** `scripts/warsztat.sh test m3/s01`
+
+**Zasada:** DRY dotyczy wiedzy, nie tekstu: jedna reguła biznesowa powinna mieć jedną autorytatywną reprezentację, nawet jeśli jej kopie są napisane zupełnie inaczej.
+
 **Zadanie:**
 1. Znajdź w `BoxOffice` wiedzę zapisaną dwa razy (choć tekst jest różny).
 2. Doprowadź do tego, żeby reguła ceny biletu miała jedną, nazwaną reprezentację.
@@ -20,6 +23,9 @@ Zasady:
 
 ## Scena s02. Podobieństwo to nie duplikacja
 **Pakiet:** `pl.training.workshop.m3.s02_similarity.start` · **Test:** `scripts/warsztat.sh test m3/s02`
+
+**Zasada:** Podobny kod nie oznacza tej samej wiedzy - o duplikacji decyduje to, czy reguły zmieniają się razem i dla tego samego właściciela. Scalenie niezależnych reguł tworzy fałszywą zależność.
+
 **Zadanie:**
 1. Oceń klasę `ServiceFee`: jaką wiedzę reprezentuje i kto jest właścicielem każdej z reguł?
 2. Rozdziel fałszywie scaloną wiedzę tak, żeby zmiana opłaty rezerwacyjnej nie mogła wpłynąć na zwroty.
@@ -30,6 +36,9 @@ Zasady:
 
 ## Scena s03. Fałszywa abstrakcja z flagami
 **Pakiet:** `pl.training.workshop.m3.s03_falseabstraction.start` · **Test:** `scripts/warsztat.sh test m3/s03`
+
+**Zasada:** Fałszywa abstrakcja łączy konteksty bez wspólnej wiedzy i rośnie przez kolejne flagi. Naprawia się ją, przenosząc kod z powrotem do kontekstów pod ochroną testów i wydzielając tylko potwierdzoną wiedzę.
+
 **Zadanie:**
 1. Usuń metodę `Pricing.price` sterowaną flagami `boolean`.
 2. Zostaw w `TicketCounter` i `PassCounter` tylko tę logikę, która ich dotyczy.
@@ -40,6 +49,9 @@ Zasady:
 
 ## Scena s04. DRY w testach i niezależna wyrocznia
 **Pakiet:** `pl.training.workshop.m3.s04_drytests.start` · **Test:** `scripts/warsztat.sh test m3/s04`
+
+**Zasada:** W testach warto współdzielić fabryki danych i helpery, ale oczekiwana wartość musi pochodzić z niezależnego źródła, a nie z algorytmu, który test sprawdza. Czytelne, nazwane przypadki (DAMP) są ważniejsze niż maksymalne DRY.
+
 **Zadanie:**
 1. Przepisz `TicketPriceSpecs` tak, żeby każdy przypadek miał czytelną nazwę i jawne dane wejściowe (bez szyfru "3D S 11").
 2. Spraw, żeby komunikat o błędzie mówił, który przypadek, jaka oczekiwana i jaka faktyczna cena.
@@ -50,6 +62,9 @@ Zasady:
 
 ## Scena s05. KISS - złożoność wprowadzona kontra istotna
 **Pakiet:** `pl.training.workshop.m3.s05_kiss.start` · **Test:** `scripts/warsztat.sh test m3/s05`
+
+**Zasada:** KISS to najmniej złożone rozwiązanie, które poprawnie spełnia wymagania: usuwamy złożoność wprowadzoną, a istotną zostawiamy i nazywamy. Krótszy kod nie zawsze jest prostszy.
+
 **Zadanie:**
 1. Usuń refleksję wybierającą rodzaj miejsc po napisie.
 2. Zastąp wyrażenie regularne i strumień indeksów prostszym algorytmem.
@@ -60,6 +75,9 @@ Zasady:
 
 ## Scena s06. YAGNI - silnik reguł dla dwóch reguł
 **Pakiet:** `pl.training.workshop.m3.s06_yagni.start` · **Test:** `scripts/warsztat.sh test m3/s06`
+
+**Zasada:** YAGNI mówi, żeby nie budować mechanizmów dla przewidywanych wymagań, tylko dla aktualnych. Nie zabrania testów, refaktoryzacji ani czytelnych nazw.
+
 **Zadanie:**
 1. Przejdź filtr decyzyjny: jakie aktualne wymaganie uzasadnia rejestr, konfigurację napisem, priorytety i kontekst `Map`?
 2. Uprość `TicketPricer` w kilku krokach, zachowując publiczne `new TicketPricer()` i `price(TicketQuote)`.
@@ -70,6 +88,9 @@ Zasady:
 
 ## Scena s07. SRP - raport dla dwóch aktorów
 **Pakiet:** `pl.training.workshop.m3.s07_srp.start` · **Test:** `scripts/warsztat.sh test m3/s07`
+
+**Zasada:** SRP oznacza jeden aktor i jeden powód zmiany dla modułu, a nie "jedną rzecz" czy jedną metodę na klasę.
+
 **Zadanie:**
 1. Wskaż aktorów, dla których `DailyReport` się zmienia, i helper, który ich łączy.
 2. Podziel raport tak, żeby zmiana definicji "hitu dnia" nie mogła zmienić kwot księgowości.
@@ -80,6 +101,9 @@ Zasady:
 
 ## Scena s08. OCP na wybranej osi - formaty seansu
 **Pakiet:** `pl.training.workshop.m3.s08_ocp.start` · **Test:** `scripts/warsztat.sh test m3/s08`
+
+**Zasada:** OCP to możliwość rozszerzenia wybranego zachowania bez modyfikowania stabilnej części kodu. Zamyka się kod na jedną realną oś zmian, a nie każdy `switch` jest naruszeniem.
+
 **Zadanie:**
 1. Usuń rozproszenie wiedzy o formatach po kilku `switch` na napisach.
 2. Doprowadź do stanu, w którym nowy format wymaga zmiany w jednym miejscu, a `ScreeningOffer` się nie zmienia.
@@ -90,6 +114,9 @@ Zasady:
 
 ## Scena s09. LSP i test kontraktowy
 **Pakiet:** `pl.training.workshop.m3.s09_lsp.start` · **Test:** `scripts/warsztat.sh test m3/s09`
+
+**Zasada:** LSP wymaga, by podtyp spełniał kontrakt typu bazowego: nie wzmacnia warunków wstępnych i nie osłabia końcowych. Sprawdza się to testem kontraktowym uruchamianym dla każdej implementacji.
+
 **Zadanie:**
 1. Przeczytaj kontrakt `Hall.reserve` i test `S09ContractTest`. Który podtyp go łamie i dlaczego?
 2. Przebuduj typy tak, żeby sala archiwalna spełniała wszystkie kontrakty, które obiecuje.
@@ -100,6 +127,9 @@ Zasady:
 
 ## Scena s10. ISP z perspektywy klienta
 **Pakiet:** `pl.training.workshop.m3.s10_isp.start` · **Test:** `scripts/warsztat.sh test m3/s10`
+
+**Zasada:** ISP mówi, że klient powinien zależeć tylko od metod, których używa, więc interfejsy projektuje się według ról klientów, a nie według implementacji.
+
 **Zadanie:**
 1. Dla każdego klienta (`CashDesk`, `RevenueReport`, `ScheduleBoard`) wypisz metody `CinemaAdminService`, których naprawdę używa.
 2. Wprowadź interfejsy ról i przepnij klientów.
@@ -110,6 +140,9 @@ Zasady:
 
 ## Scena s11. DIP - kierunek zależności kontra przepływ sterowania
 **Pakiet:** `pl.training.workshop.m3.s11_dip.start` · **Test:** `scripts/warsztat.sh test m3/s11`
+
+**Zasada:** DIP dotyczy kierunku zależności źródłowych: szczegóły mają zależeć od polityki, a nie odwrotnie. Wstrzyknięcie konkretnej klasy przez konstruktor to dependency injection, ale jeszcze nie DIP.
+
 **Zadanie:**
 1. Narysuj strzałki importów i wywołań między `app` i `infra`.
 2. Wstrzyknij zależność przez konstruktor i sprawdź, czy kierunek importu się zmienił.
@@ -120,6 +153,9 @@ Zasady:
 
 ## Scena s12. Clean Architecture - use case, dane na granicy, composition root
 **Pakiet:** `pl.training.workshop.m3.s12_cleanarchitecture.start` · **Test:** `scripts/warsztat.sh test m3/s12`
+
+**Zasada:** Polityka aplikacji nie powinna zależeć od mechanizmów (HTTP, baza, broker): potrzeby wnętrza wyrażają porty, szczegóły realizują adaptery, a graf składa jedno miejsce bez reguł biznesowych.
+
 **Zadanie:**
 1. Wydziel przypadek użycia rezerwacji z kontrolera; wejście i wyjście jako rekordy.
 2. Zastąp bezpośrednie użycie `RowStore` i `Outbox` portami zdefiniowanymi przez przypadek użycia i adapterami.
@@ -131,6 +167,9 @@ Zasady:
 
 ## Scena s13. Automatyczna ochrona granicy i diagnostyka spójności
 **Pakiet:** `pl.training.workshop.m3.s13_boundarycheck.start` · **Test:** `scripts/warsztat.sh test m3/s13`
+
+**Zasada:** Spójność (elementy zmieniają się z jednego powodu) i kierunek zależności (domena nie zna technologii) to dwa niezależne wymiary. Reguły granic warto sprawdzać automatycznie, a metryki traktować jako sygnał, nie wyrocznię.
+
 **Zadanie:**
 1. Uruchom test i odczytaj z konsoli naruszenia granicy oraz wynik LCOM4 dla `ScreeningService`.
 2. Popraw spójność `ScreeningService`, a potem kierunek zależności, tak żeby pakiet `domain` nie importował `adapter` ani `java.sql`.
@@ -141,6 +180,9 @@ Zasady:
 
 ## Scena s14. Wzorzec jako decyzja odwracalna
 **Pakiet:** `pl.training.workshop.m3.s14_reversiblepattern.start` · **Test:** `scripts/warsztat.sh test m3/s14`
+
+**Zasada:** Wzorzec projektowy to odpowiedź na konkretne siły, a nie kod na zapas - gdy siły znikają, wzorzec można usunąć. Refaktoryzacja od wzorca jest równie poprawna jak do wzorca.
+
 **Zadanie:**
 1. Wprowadź Strategy dla dwóch istniejących modeli rozliczeń; dla modelu festiwalowego napisz Adapter do `FestivalTariffClient`.
 2. Umowy festiwalowe wygasły: usuń ten wariant (to świadoma zmiana zachowania).
@@ -151,6 +193,9 @@ Zasady:
 
 ## Scena s15. Inwarianty w modelu domeny
 **Pakiet:** `pl.training.workshop.m3.s15_invariants.start` · **Test:** `scripts/warsztat.sh test m3/s15`
+
+**Zasada:** Inwariant to warunek, który obiekt domeny spełnia zawsze, niezależnie od ścieżki, którą powstał. Jego właścicielem powinien być sam model, a nie każdy serwis z osobna.
+
 **Zadanie:**
 1. Sprawdź, ile ścieżek tworzy `Reservation` i które z nich walidują dane.
 2. Uczyń rezerwację niezmienną.
@@ -161,6 +206,9 @@ Zasady:
 
 ## Scena s16. Sprzężenie protokołu - ukryta kolejność wywołań
 **Pakiet:** `pl.training.workshop.m3.s16_temporalcoupling.start` · **Test:** `scripts/warsztat.sh test m3/s16`
+
+**Zasada:** Sprzężenie czasowe to ukryte wymaganie kolejności wywołań, którego nie widać w typach. Usuwa się je, zamieniając stan i kolejność na jawne, kompletne dane wejściowe.
+
 **Zadanie:**
 1. Zakomentuj jedno z wywołań `select...` w `TicketDesk` i uruchom test - zobacz, gdzie i jak objawia się błąd. Cofnij zmianę.
 2. Usuń z `TicketPrinter` stan i wymagany protokół wywołań.

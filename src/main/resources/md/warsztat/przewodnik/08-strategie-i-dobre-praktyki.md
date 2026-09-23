@@ -41,6 +41,14 @@ scripts/warsztat.sh reset m8/s03            # przywraca start z repozytorium
 **Pakiet:** `pl.training.workshop.m8.s01_branchbyabstraction` · **Test:** `scripts/warsztat.sh test m8/s01`
 **Czas:** ~15 min
 
+### W skrócie
+
+**Co robimy:** `BookingService.confirm` ma wklejony stary cennik z `CinemaManager` (`double`, kody formatu, typy "S"/"E"/"C") i nie ma szwu, przez który dałoby się go wymienić. Izolujemy stary cennik w osobnej klasie, chowamy go za abstrakcją `TicketPricing` zwracającą `Money`, dokładamy obok `ModernTicketPricing` z przełącznikiem, a na końcu usuwamy starą ścieżkę.
+
+**Zasada:** Branch by Abstraction to "gałąź" zrobiona w kodzie, a nie w Git: stabilny kontrakt wewnątrz aplikacji, za nim stara i nowa implementacja, a każdy krok trafia od razu do głównej gałęzi. Wydzielenie abstrakcji i adaptera to jeszcze refaktoryzacja, a nowa implementacja i przełączenie to już migracja. Nie mylić ze Strangler Fig, który działa na granicy systemu, a nie wewnątrz aplikacji.
+
+**Efekt:** `BookingService` zależy tylko od `TicketPricing` i liczy w `Money`, a starego cennika i przełącznika `PricingMode` już nie ma - migracja jest zamknięta. Do pilnowania zostaje moment zaokrąglenia: nowy kod zaokrągla każdy procent osobno, a legacy dopiero sumę.
+
 ### Co widzimy
 
 `start.BookingService.confirm` to kopia cennika z `CinemaManager.book()`: `double`, kody formatu `1/2/3`, typy biletu `"S"/"E"/"C"` i formatowanie potwierdzenia w jednej metodzie. Chcemy wymienić cennik na nową implementację, ale nie ma szwu, a długa gałąź w Git na czas przepisywania to antywzorzec.
@@ -142,6 +150,14 @@ Który z czterech kroków jest refaktoryzacją, a który migracją? Jakie dowody
 **Pakiet:** `pl.training.workshop.m8.s02_stranglerfig` · **Test:** `scripts/warsztat.sh test m8/s02`
 **Czas:** ~12 min
 
+### W skrócie
+
+**Co robimy:** `LegacyCinema` jest wystawiony klientom wprost jako `CinemaApi`, więc nie da się przenieść rezerwacji bez raportu. Stawiamy przed nim `CinemaFacade`, która najpierw deleguje 1:1, potem kieruje rezerwację do `BookingModule`, raport do `ReportModule`, a na końcu legacy znika.
+
+**Zasada:** Strangler Fig to przejmowanie systemu operacja po operacji: brama, proxy lub fasada na granicy systemu kieruje część ruchu do nowego komponentu, a reszta dalej trafia do starego. Każdy element przejściowy, tu fasada i jej routing, potrzebuje właściciela i kryterium usunięcia. Fasada tylko kieruje ruch - nie powinna mieć własnej logiki biznesowej.
+
+**Efekt:** Klienci rozmawiają z fasadą, która opisuje routing w `routes()`, a `LegacyCinema` zostało usunięte po przejęciu obu ścieżek. Przez okres hybrydy obie strony musiały pisać do `BookingLedger` w tym samym formacie - zgodność danych to osobny kontrakt migracji.
+
 ### Co widzimy
 
 `start.LegacyCinema` implementuje publiczne API `CinemaApi` (rezerwacja i raport) i jest wystawiony klientom wprost. Obie operacje korzystają ze wspólnej bazy `BookingLedger`. Nie da się przenieść jednej operacji bez drugiej.
@@ -229,6 +245,14 @@ Którą operację przenieślibyście jako pierwszą w prawdziwym CinemaManager i
 **Temat ze slajdów:** 1.5 Przykład: równoległa weryfikacja kalkulatora
 **Pakiet:** `pl.training.workshop.m8.s03_parallelrun` · **Test:** `scripts/warsztat.sh test m8/s03`
 **Czas:** ~15 min
+
+### W skrócie
+
+**Co robimy:** `PriceService` woła tylko stary kalkulator w `double`, a gotowy `CandidatePriceCalculator` nigdy nie był porównany z produkcją. Uruchamiamy kandydata w cieniu, zbieramy typowany raport rozbieżności, poprawiamy znaleziony błąd i wprowadzamy jawny tryb `MigrationMode`.
+
+**Zasada:** Równoległa weryfikacja (shadow) liczy wynik obiema implementacjami na prawdziwym ruchu, ale klient dostaje wynik legacy, a awaria kandydata jest izolowana. Nadaje się dla czystych obliczeń bez efektów ubocznych. Zgodność obu implementacji nie dowodzi poprawności - obie mogą mieć ten sam błąd.
+
+**Efekt:** Raport wskazał złą kolejność rabatu porannego i zniżki procentowej, a po poprawce zostaje tylko awaria dla 4DX. W trybie `CANDIDATE` zachowanie dla 4DX świadomie się zmienia (odrzucenie zamiast wyceny 0.00), a `LEGACY` służy za natychmiastowe wycofanie, dopóki stary kod istnieje.
 
 ### Co widzimy
 
@@ -329,6 +353,14 @@ Ile dni ruchu i ile zgodnych porównań wystarczy, żeby przełączyć tryb na C
 **Pakiet:** `pl.training.workshop.m8.s04_shadowlimits` · **Test:** `scripts/warsztat.sh test m8/s04`
 **Czas:** ~12 min
 
+### W skrócie
+
+**Co robimy:** `ShadowBooking` stosuje shadow do rezerwacji z efektami ubocznymi, więc klient dostaje dwa maile i dwa obciążenia karty, a cień niczego nie zgłasza. Wprowadzamy port `Effects`, w cieniu nagrywamy efekty zamiast je wykonywać, a na końcu wydzielamy czysty `BookingPlanner`, który zwraca plan jako dane.
+
+**Zasada:** Podwójne wykonanie w trybie shadow jest bezpieczne tylko dla czystych obliczeń - płatności, maili, zapisów ani zdarzeń nie wolno powielać. Efekty zamieniamy w dane (Separate Query from Modifier): opis "co zrobić" można porównać, a wykonuje się go tylko raz. Zgodność zwracanego wyniku nie dowodzi zgodności efektów.
+
+**Efekt:** Po rezerwacji klient dostaje jeden mail i jedno obciążenie, a cień porównuje zaplanowane efekty z efektami legacy i wyłapuje błędną kwotę w mailu kandydata. Bezpieczeństwo gwarantuje typ, bo `BookingPlanner` nie ma dostępu do portu efektów; kosztem jest rozdzielenie planu od wykonania i dodatkowy typ `BookingPlan`.
+
 ### Co widzimy
 
 `start.ShadowBooking` stosuje shadow "jak dla kalkulatora" do rezerwacji z efektami ubocznymi. `NewBookingFlow` sam obciąża kartę, zapisuje wiersz i wysyła mail. Test pokazuje: klient dostaje **dwa maile i dwa obciążenia**, a cień niczego nie zgłasza, bo porównuje tylko zwracany tekst.
@@ -402,6 +434,14 @@ Jakie efekty uboczne ma wasz "czysty" kod, o których zwykle nie myślicie (logi
 **Pakiet:** `pl.training.workshop.m8.s05_boyscout` · **Test:** `scripts/warsztat.sh test m8/s05`
 **Czas:** ~8 min
 
+### W skrócie
+
+**Co robimy:** `TicketPrinter.print` i tak otwieramy dla nowej linii "Sala", a kod ma nazwy `s`, `d`, `x` i ręczne sklejanie listy miejsc. Najpierw pokazujemy antyprzykład "skoro już tu jestem", który po cichu zmienia wydruk, a potem robimy małą poprawę tylko w tej metodzie.
+
+**Zasada:** Boy Scout Rule mówi: dotykany kod zostaw w nieco lepszym stanie - to heurystyka, nie licencja na przebudowę. Poprawa jest mała, lokalna, dotyczy kodu bieżącej zmiany i nie zmienia zachowania; zmiana reguły biznesowej pod etykietą sprzątania to nadużycie.
+
+**Efekt:** Metoda ma czytelne nazwy, `String.join`, `StringBuilder` i `phoneLine`, a test równoważności potwierdza identyczny wydruk. Sortowanie miejsc czy małe litery w e-mailu mogą być dobrymi pomysłami, ale trafiają do osobnego commita jako świadoma zmiana zachowania.
+
 ### Co widzimy
 
 `start.TicketPrinter.print` trzeba i tak otworzyć, bo w sprincie dochodzi linia "Sala". Kod ma nazwy `s`, `d`, `x`, konkatenację w pętli i ręczne sklejanie listy miejsc. Kusi, żeby "posprzątać wszystko".
@@ -464,6 +504,14 @@ Posortowane miejsca są czytelniejsze. Jak wprowadzić tę zmianę uczciwie?
 **Temat ze slajdów:** 3.2 Małe zestawy zmian - czego nie łączyć; 3.3-3.4 Przegląd kodu
 **Pakiet:** `pl.training.workshop.m8.s06_reviewableseries` · **Test:** `scripts/warsztat.sh test m8/s06`
 **Czas:** ~10 min
+
+### W skrócie
+
+**Co robimy:** `PriceList.price` ma dostać "Tani wtorek" (NORMAL -20% we wtorek), a zniżki są wplecione w jedną metodę i nie widzą daty. Zamiast jednego commita "porządki + tani wtorek" robimy serię: Extract Method, Change Signature, a dopiero potem nowa reguła.
+
+**Zasada:** Dobry zestaw zmian ma jedną intencję, własny dowód i zielony build po integracji. Refaktoryzację oddziela się od zmiany funkcjonalnej, formatowanie od logiki, a diff automatyczny od ręcznego - najpierw ułatw zmianę, potem zrób łatwą zmianę.
+
+**Efekt:** Dwa pierwsze commity dowodzi test równoważności, a trzeci świadomie zmienia zachowanie: test różnicowy pokazuje, że zmieniło się dokładnie 12 przypadków, wszystkie NORMAL we wtorek. Kosztem jest więcej commitów, ale recenzent sprawdza w każdym tylko jedną rzecz.
 
 ### Co widzimy
 
@@ -538,6 +586,14 @@ Jak opisalibyście commit 3 według pięciu pytań ze slajdu 3.3 (dlaczego, co i
 **Pakiet:** `pl.training.workshop.m8.s07_adr` · **Test:** `scripts/warsztat.sh test m8/s07`
 **Czas:** ~10 min
 
+### W skrócie
+
+**Co robimy:** ADR-0007 mówi, że cennik nie zależy od `notification` i nie używa `double`, a cennik w `start` sam wysyła mail o rabacie grupowym i liczy w `double`. Cennik zaczyna zwracać `Quote` z informacją o rabacie, mail wysyła `BookingService`, a kwoty przechodzą na `Money`.
+
+**Zasada:** ADR zapisuje decyzję o trwałym wpływie: kontekst, opcje, decyzję i konsekwencje - to dokument historyczny, którego się nie edytuje, tylko zastępuje nowym. Regułę z ADR warto uczynić wykonywalną, żeby build pilnował jej na co dzień. Nie pisze się ADR dla każdego Rename.
+
+**Efekt:** `ArchitectureRules` zwraca pustą listę naruszeń, a maile i odpowiedzi są takie same jak przed zmianą. Reguła tekstowa ma swoje granice (pełna nazwa klasy bez importu albo refleksja ją ominą) i ADR opisuje to w konsekwencjach.
+
 ### Co widzimy
 
 Obok kodu sceny leży `ADR-0007-cennik-jako-czysty-modul.md` (status: Zaakceptowana) z dwiema regułami: **R1** pakiet `pricing` nie zależy od `notification`, **R2** `pricing` nie używa `double`. `ArchitectureRules` to wykonywalny model tych reguł. W `start` cennik sam wysyła mail o rabacie grupowym i liczy w `double`:
@@ -599,6 +655,14 @@ Co zrobić, gdy zespół chce złamać R2 dla jednego przypadku (np. statystyk)?
 **Temat ze slajdów:** 5.2-5.3 Refaktoryzacje IDE i kompilator Javy 25; 5.6 Bramka kompilatora
 **Pakiet:** `pl.training.workshop.m8.s08_compilergate` · **Test:** `scripts/warsztat.sh test m8/s08`
 **Czas:** ~10 min
+
+### W skrócie
+
+**Co robimy:** Kod `start` nie przechodzi bramki `--release 25 -Xlint:all -Werror`: surowe typy w `SeatMap`, przestarzałe `PriceTable.basePrice(int)` i celowy przelot w `switch`. Usuwamy ostrzeżenia po jednej kategorii na krok: typy generyczne, nowe przeciążenie, switch expression.
+
+**Zasada:** Bramka kompilatora traktuje ostrzeżenia `-Xlint` jak błędy i zwraca strukturalną diagnostykę, więc test może wymagać zera ostrzeżeń albo braku nowych. W dużym legacy nie włącza się jej nagle: najpierw stan bazowy, potem "brak nowych naruszeń" i stopniowa redukcja, a tłumienie tylko wąskie i uzasadnione.
+
+**Efekt:** Bramka przechodzi z zerem ostrzeżeń, a raport działa tak samo, z intencją "IMAX ma też Dolby" zapisaną wprost w `switch`. Przestarzała metoda zostaje w `PriceTable`, dopóki ktoś może ją wołać spoza repozytorium.
 
 ### Co widzimy
 
@@ -680,6 +744,14 @@ Jak wprowadzić tę bramkę w projekcie z 3000 ostrzeżeń, nie blokując nikogo
 **Pakiet:** `pl.training.workshop.m8.s09_codemod` · **Test:** `scripts/warsztat.sh test m8/s09`
 **Czas:** ~15 min
 
+### W skrócie
+
+**Co robimy:** `BookCallCodemod` migruje wywołania przestarzałego `book(..., boolean, boolean)` wyrażeniem regularnym, które trafia w komentarz i w `HotelService`, a gubi wywołanie rozbite na trzy linie. Zastępujemy regex wyszukiwaniem po AST, przepisujemy argumenty według pozycji z drzewa, a na końcu dopasowujemy wywołania po typach.
+
+**Zasada:** Codemod (receptura automatyczna) to powtarzalna transformacja wielu miejsc naraz; oparty na składni i typach jest bezpieczniejszy od regexa, ale automatyzacja zwiększa też zasięg błędu receptury. Recepturę sprawdzają testy `before`/`after`, kompilacja wyniku i test idempotencji.
+
+**Efekt:** Codemod migruje tylko wywołania rozwiązane do przestarzałej `cinema.BookingService.book`, wynik kompiluje się bez ostrzeżeń, a drugie uruchomienie niczego nie zmienia. Kosztem jest sporo kodu narzędziowego, więc przy kilku miejscach szybsze bywa Change Signature w IDE.
+
 ### Co widzimy
 
 `SampleProject` zawiera API kina z przestarzałym `book(..., boolean web, boolean ownGlasses)` i nowym `book(..., Channel, Glasses)`, łudząco podobne `HotelService.book(..., boolean, boolean)` oraz klienta `TicketDesk` z trzema wywołaniami: w jednej linii (11), rozbite na trzy linie (16-18) i hotelowe (22), plus komentarz ze starym przykładem (15). `start.BookCallCodemod` to "grep i zamień":
@@ -757,6 +829,14 @@ Kiedy codemod się opłaca, a kiedy szybciej jest poprawić 12 miejsc ręcznie z
 **Temat ze slajdów:** 5.6-5.7 Bramka kompilatora i minimalna bramka jakości
 **Pakiet:** `pl.training.workshop.m8.s10_qualitygate` · **Test:** `scripts/warsztat.sh test m8/s10`
 **Czas:** ~12 min
+
+### W skrócie
+
+**Co robimy:** `QualityGate` w `start` to lista kontrolna w Javadocu i metoda, która zawsze zwraca pustą listę, więc przepuszcza brudną próbkę. Zamieniamy listę na cztery wykonywalne sprawdzenia: skan TODO i `System.out`, ostrzeżenia kompilatora, przybliżenie pokrycia i uruchomienie testów.
+
+**Zasada:** Minimalna bramka jakości łączy kilka niezależnych sygnałów, bo każde narzędzie dowodzi czegoś innego. Wynik ma być deterministyczny i wskazywać miejsce, a bramka potrzebuje właściciela i nie może dawać fałszywych alarmów - inaczej zespół ją wyłączy.
+
+**Efekt:** Bramka zgłasza problemy `sample/dirty`, zatrzymuje nieprzechodzący test z `sample/broken` i przepuszcza `sample/clean`. Sprawdzenie pokrycia to tylko przybliżenie ("czy jakiś test w ogóle woła metodę") i nie zastępuje pomiaru JaCoCo.
 
 ### Co widzimy
 
@@ -849,6 +929,14 @@ Które z tych czterech sprawdzeń uruchomilibyście lokalnie przed commitem, a k
 **Pakiet:** `pl.training.workshop.m8.s11_stagedrollout` · **Test:** `scripts/warsztat.sh test m8/s11`
 **Czas:** ~10 min
 
+### W skrócie
+
+**Co robimy:** `CheckoutRouter` wdraża nowy proces płatności przez stałą w kodzie i testerów wpisanych w `if`, bez etapów i bez wyłącznika. Zamieniamy to na rekord `RolloutPolicy` z procentem ruchu, deterministycznym koszykiem klienta i wyłącznikiem awaryjnym.
+
+**Zasada:** Wdrożenie etapowe to jawna, testowana polityka: populacja, deterministyczny podział klientów, wyjątki i wyłącznik, a o zwiększeniu ekspozycji decydują z góry ustalone kryteria. Podział ma być stabilny - ten sam klient zawsze na tej samej ścieżce - więc bez losowania i bez `hashCode` obiektu.
+
+**Efekt:** Z dotychczasowymi ustawieniami router kieruje klientów tak samo jak `start`, procent da się zwiększać bez wyrzucania nikogo, a kill switch wycofuje zmianę bez nowego wydania. Świadomie zmienia się jedno zachowanie: e-mail jest normalizowany, a start porównywał go dosłownie.
+
 ### Co widzimy
 
 `start.CheckoutRouter` wdraża nowy proces płatności "na flagę": stała w kodzie (zmiana = nowe wydanie), testerzy wpisani w `if`, brak etapów i wyłącznika awaryjnego.
@@ -928,6 +1016,14 @@ Kill switch wyłącza nowy proces płatności. Co z zamówieniami, które są w 
 **Temat ze slajdów:** 6.5-6.6 Dane, wycofanie i zamknięcie migracji
 **Pakiet:** `pl.training.workshop.m8.s12_expandcontract` · **Test:** `scripts/warsztat.sh test m8/s12`
 **Czas:** ~15 min
+
+### W skrócie
+
+**Co robimy:** Repozytorium rezerwacji zna tylko format csv, a zapis nowego formatu w tej samej kolumnie uniemożliwiłby wycofanie wydania. Przechodzimy na kolumnę `payload` w czterech krokach: podwójny zapis, odczyt z fallbackiem, backfill starych wierszy i contract.
+
+**Zasada:** Expand and contract migruje dane tak, żeby w oknie wycofania stara wersja kodu czytała to, co zapisała nowa: najpierw rozszerzamy (nowe pole, podwójny zapis), potem przełączamy odczyt i uzupełniamy stare dane, a stary format usuwamy na końcu. Flaga ani wycofanie `.jar` nie cofną danych zapisanych w niezgodnym formacie.
+
+**Efekt:** Repozytorium pisze i czyta tylko wersjonowany `payload`, a w kodzie nie ma już odwołań do starego formatu - migracja jest zamknięta. Ceną jest zamknięcie okna wycofania: po contract stara wersja nie widzi nowych danych, więc ten krok robi się dopiero, gdy powrót nie będzie potrzebny.
 
 ### Co widzimy
 
@@ -1019,6 +1115,14 @@ Jak długo trzymać okno wycofania dla danych i kto decyduje o jego zamknięciu?
 **Temat ze slajdów:** 4.1 Dokumentacja według trwałości; 4.5 Dokumentacja żywa i historyczna
 **Pakiet:** `pl.training.workshop.m8.s13_livingdocs` · **Test:** `scripts/warsztat.sh test m8/s13`
 **Czas:** ~8 min
+
+### W skrócie
+
+**Co robimy:** Ręcznie pisany `ROUTING.md` rozjechał się z `Routing.routes()`: twierdzi, że raport obsługuje legacy, i nie zna operacji `cancel`. Generujemy dokument z kodu przez `RoutingDoc`, pilnujemy go testem i dopisujemy właściciela oraz kryterium usunięcia każdej trasy.
+
+**Zasada:** Dokumentacja żywa opisuje stan obecny, więc powinna powstawać z systemu albo być z nim sprawdzana, a historyczna (ADR, zamknięty opis zmian) jest niezmienna. Mieszanie tych ról kończy się dokumentem, który opisuje nieistniejący system albo gubi historię.
+
+**Efekt:** Test porównuje zapisany `ROUTING.md` z wygenerowanym przy każdym buildzie, a każda trasa pokazuje właściciela i warunek usunięcia. Uzasadnienia decyzji nie wpisujemy do tego pliku, bo zniknęłyby przy regeneracji - ich miejsce jest w ADR.
 
 ### Co widzimy
 

@@ -19,6 +19,9 @@ scripts/warsztat.sh reset m6/s08     # przywrócenie start do wersji z repozytor
 ## Scena s01. Replace Conditional Logic with Strategy - polityka zniżek
 
 **Pakiet:** `pl.training.workshop.m6.s01_strategy.start` · **Test:** `scripts/warsztat.sh test m6/s01`
+
+**Zasada:** Strategy wydziela wymienne warianty jednego obliczenia za wspólnym interfejsem, gdy wariant wybiera się niezależnie od klasy obiektu. Wspólna walidacja zostaje w kontekście, a moment wyboru wariantu jest częścią zachowania.
+
 **Zadanie:**
 1. Wprowadź interfejs `DiscountPolicy` i najpierw użyj go jako strategii przejściowej delegującej do starego kodu.
 2. Przenieś każdy program zniżek (STANDARD, STUDENT_WEEK, PREMIERE) do osobnej strategii, po jednym.
@@ -30,6 +33,9 @@ scripts/warsztat.sh reset m6/s08     # przywrócenie start do wersji z repozytor
 ## Scena s02. Replace Conditional with Polymorphism - rodzaj seansu
 
 **Pakiet:** `pl.training.workshop.m6.s02_polymorphism.start` · **Test:** `scripts/warsztat.sh test m6/s02`
+
+**Zasada:** Polimorfizm podtypów przenosi zachowanie zależne od trwałego rodzaju obiektu do osobnych typów, zamiast powtarzać `switch` po polu rodzaju. Najpierw trzeba znaleźć wszystkie miejsca, w których obiekty powstają.
+
 **Zadanie:**
 1. Znajdź miejsce tworzenia obiektów `Screening`.
 2. Wydziel podtyp dla jednego rodzaju seansu, uruchom test, potem kolejne.
@@ -41,6 +47,9 @@ scripts/warsztat.sh reset m6/s08     # przywrócenie start do wersji z repozytor
 ## Scena s03. Replace Type Code with Class - format jako typ
 
 **Pakiet:** `pl.training.workshop.m6.s03_typecode.start` · **Test:** `scripts/warsztat.sh test m6/s03`
+
+**Zasada:** Replace Type Code with Class zastępuje surowy kod typem, który sam pilnuje poprawnych wartości i zna operacje swojego pojęcia. Kod zapisywany trwale to osobna sprawa - musi pozostać stabilny niezależnie od kształtu typu.
+
 **Zadanie:**
 1. Zastąp `int formatCode` typem `Format`; zamieniaj kod na typ tuż po odczycie CSV.
 2. Przenieś zachowanie zależne od formatu (etykieta, cena, okulary) do typu.
@@ -52,6 +61,9 @@ scripts/warsztat.sh reset m6/s08     # przywrócenie start do wersji z repozytor
 ## Scena s04. Encapsulate Classes with Factory - bilety
 
 **Pakiet:** `pl.training.workshop.m6.s04_encapsulatefactory.start` · **Test:** `scripts/warsztat.sh test m6/s04`
+
+**Zasada:** Encapsulate Classes with Factory chowa klasy konkretne za fabryką, tak żeby klient znał tylko wspólny interfejs. Tworzenie przekierowuje się pojedynczo, a widoczność ogranicza dopiero wtedy, gdy wszyscy klienci już przeszli.
+
 **Zadanie:**
 1. Zastąp każde `new StandardTicket/VipTicket` w `BoxOffice` metodą tworzącą.
 2. Przenieś regułę "który bilet dla którego rzędu" do fabryki.
@@ -63,6 +75,9 @@ scripts/warsztat.sh reset m6/s08     # przywrócenie start do wersji z repozytor
 ## Scena s05. Extract Factory Class - tworzenie rezerwacji
 
 **Pakiet:** `pl.training.workshop.m6.s05_extractfactory.start` · **Test:** `scripts/warsztat.sh test m6/s05`
+
+**Zasada:** Extract Factory Class przenosi reguły tworzenia obiektu do osobnej klasy, gdy klasa, która je dziś zawiera, ma inną główną odpowiedzialność. Fabryka jest zwykłą zależnością, a kolejność operacji przy tworzeniu pozostaje częścią kontraktu.
+
 **Zadanie:**
 1. Usuń duplikację tworzenia rezerwacji między `reserve` i `reserveGroup`.
 2. Wydziel klasę fabryki odpowiedzialną za numer, opłatę i termin ważności.
@@ -74,6 +89,9 @@ scripts/warsztat.sh reset m6/s08     # przywrócenie start do wersji z repozytor
 ## Scena s06. Encapsulate Composite with Builder - repertuar dnia
 
 **Pakiet:** `pl.training.workshop.m6.s06_builder.start` · **Test:** `scripts/warsztat.sh test m6/s06`
+
+**Zasada:** Builder dla struktury złożonej ukrywa tworzenie i łączenie węzłów za API opisującym kształt wyniku. Opłaca się, gdy budowa jest wieloetapowa i ma własne reguły, a gotowy wynik nie powinien się już zmieniać.
+
 **Zadanie:**
 1. Napisz builder repertuaru, dzięki któremu `WeekendPlanner` nie używa `new Hall` ani `add`.
 2. Uczyń drzewo niemutowalnym po zbudowaniu.
@@ -85,6 +103,9 @@ scripts/warsztat.sh reset m6/s08     # przywrócenie start do wersji z repozytor
 ## Scena s07. Move Embellishment to Decorator - dodatki do biletu
 
 **Pakiet:** `pl.training.workshop.m6.s07_decorator.start` · **Test:** `scripts/warsztat.sh test m6/s07`
+
+**Zasada:** Decorator owija rdzeń obiektem o tym samym kontrakcie, który dokłada opcjonalne zachowanie i deleguje resztę do środka. Kolejność owijania jest częścią zachowania, a udekorowany obiekt nie jest przezroczysty dla pytań o typ i tożsamość.
+
 **Zadanie:**
 1. Wydziel wspólny interfejs biletu i miejsce składania biletu.
 2. Przenoś dodatki (VIP, okulary 3D, ubezpieczenie) do dekoratorów po jednym, usuwając flagi z rdzenia.
@@ -96,6 +117,9 @@ scripts/warsztat.sh reset m6/s08     # przywrócenie start do wersji z repozytor
 ## Scena s08. Replace State-Altering Conditionals with State - status rezerwacji
 
 **Pakiet:** `pl.training.workshop.m6.s08_state.start` · **Test:** `scripts/warsztat.sh test m6/s08`
+
+**Zasada:** State przenosi zachowanie zależne od bieżącego stanu do obiektów stanów, a kontekst tylko do nich deleguje. Tabelę przejść ustala się przed budową hierarchii, a niedozwolone przejście nadal musi kończyć się tym samym błędem.
+
 **Zadanie:**
 1. Przeczytaj tabelę przejść w teście i porównaj ją z kodem.
 2. Zastąp pole `status` obiektem stanu.
@@ -107,6 +131,9 @@ scripts/warsztat.sh reset m6/s08     # przywrócenie start do wersji z repozytor
 ## Scena s09. Replace Hard-coded Notifications with Observer - po opłaceniu
 
 **Pakiet:** `pl.training.workshop.m6.s09_observer.start` · **Test:** `scripts/warsztat.sh test m6/s09`
+
+**Zasada:** Observer sprawia, że źródło zdarzenia zna tylko wspólny interfejs odbiorców, a nie ich konkretne klasy. Kolejność powiadomień i polityka błędów to kontrakt, którego refaktoryzacja nie zmienia.
+
 **Zadanie:**
 1. Wprowadź zdarzenie "rezerwacja opłacona" i jedno miejsce powiadamiania.
 2. Zamień maila, SMS i punkty lojalnościowe na obserwatorów wspólnego interfejsu.
@@ -118,6 +145,9 @@ scripts/warsztat.sh reset m6/s08     # przywrócenie start do wersji z repozytor
 ## Scena s10. Replace Implicit Tree with Composite - zestawy baru
 
 **Pakiet:** `pl.training.workshop.m6.s10_implicittree.start` · **Test:** `scripts/warsztat.sh test m6/s10`
+
+**Zasada:** Composite zastępuje drzewo ukryte w konwencji danych jawnymi typami liścia i węzła o wspólnym kontrakcie. Operacje przenosi się po jednej, a stary format tłumaczy mapper, który zachowuje dotychczasowe błędy.
+
 **Zadanie:**
 1. Zaprojektuj jawny Composite zestawu (produkt i zestaw) oraz mapper z zagnieżdżonych list.
 2. Przenieś `price`, a potem `render` na Composite - po jednej operacji.
@@ -129,6 +159,9 @@ scripts/warsztat.sh reset m6/s08     # przywrócenie start do wersji z repozytor
 ## Scena s11. Transparent vs Safe Composite - add() na liściu
 
 **Pakiet:** `pl.training.workshop.m6.s11_safecomposite.start` · **Test:** `scripts/warsztat.sh test m6/s11`
+
+**Zasada:** Composite może trzymać zarządzanie dziećmi we wspólnym interfejsie (Transparent) albo tylko w węźle (Safe). Pierwszy wariant upraszcza klienta kosztem błędów w runtime, drugi przenosi te błędy do kompilacji.
+
 **Zadanie:**
 1. Spraw, żeby wywołanie `add` na produkcie było błędem kompilacji, a nie wyjątkiem w runtime.
 2. Popraw typy w `ComboCatalog` tam, gdzie dodajesz elementy.
@@ -140,6 +173,9 @@ scripts/warsztat.sh reset m6/s08     # przywrócenie start do wersji z repozytor
 ## Scena s12. Replace One/Many Distinctions with Composite - zwroty
 
 **Pakiet:** `pl.training.workshop.m6.s12_onemany.start` · **Test:** `scripts/warsztat.sh test m6/s12`
+
+**Zasada:** Composite pozwala traktować jeden element i grupę elementów przez ten sam kontrakt, dzięki czemu API nie potrzebuje osobnych ścieżek "jeden" i "wiele". Efekty naliczane raz na wywołanie muszą przy tym pozostać naliczane raz.
+
 **Zadanie:**
 1. Usuń duplikację reguły zwrotu między `refund` i `refundAll`.
 2. Wprowadź wspólny kontrakt dla jednego biletu i grupy biletów oraz jedną metodę `refund`.
@@ -151,6 +187,9 @@ scripts/warsztat.sh reset m6/s08     # przywrócenie start do wersji z repozytor
 ## Scena s13. Extract Composite - kontenery programu
 
 **Pakiet:** `pl.training.workshop.m6.s13_extractcomposite.start` · **Test:** `scripts/warsztat.sh test m6/s13`
+
+**Zasada:** Extract Composite przenosi powieloną obsługę dzieci z kilku klas kontenerów do wspólnej nadklasy. Podciąga się tylko to, co ma ten sam kontrakt, a nie wszystko, co wygląda podobnie.
+
 **Zadanie:**
 1. Wydziel wspólną nadklasę dla `Marathon` i `ShortsBlock` z obsługą dzieci.
 2. Podciągnij do niej to, co naprawdę jest wspólne; zostaw w podklasach to, co się różni.
@@ -161,6 +200,9 @@ scripts/warsztat.sh reset m6/s08     # przywrócenie start do wersji z repozytor
 ## Scena s14. Unify Interfaces with Adapter - dwie bramki płatności
 
 **Pakiet:** `pl.training.workshop.m6.s14_adapter.start` · **Test:** `scripts/warsztat.sh test m6/s14`
+
+**Zasada:** Adapter tłumaczy obcy interfejs na kontrakt, którego oczekuje klient, tak żeby klient nie znał szczegółów zewnętrznej biblioteki. Tłumaczyć trzeba nie tylko nazwy, ale też jednostki, formaty i sposób zgłaszania błędów.
+
 **Zadanie:**
 1. Wydziel obsługę każdej bramki do metody o tej samej sygnaturze.
 2. Zdefiniuj preferowany interfejs płatności kina i dwa adaptery.
@@ -172,6 +214,9 @@ scripts/warsztat.sh reset m6/s08     # przywrócenie start do wersji z repozytor
 ## Scena s15. Replace Conditional Dispatcher with Command - konsola kasjera
 
 **Pakiet:** `pl.training.workshop.m6.s15_command.start` · **Test:** `scripts/warsztat.sh test m6/s15`
+
+**Zasada:** Command zamienia każdą gałąź dyspozytora w osobny obiekt o wspólnym interfejsie, a wybór gałęzi w wyszukanie w rejestrze. Rejestr jest równoważny warunkom tylko przy rozłącznych kluczach i zachowanej normalizacji.
+
 **Zadanie:**
 1. Wydziel ciało każdej gałęzi do metody o wspólnej sygnaturze.
 2. Zamień gałęzie na obiekty komend; stan kasy wydziel z konsoli.
@@ -183,6 +228,9 @@ scripts/warsztat.sh reset m6/s08     # przywrócenie start do wersji z repozytor
 ## Scena s16. Form Template Method - raporty CSV i HTML
 
 **Pakiet:** `pl.training.workshop.m6.s16_templatemethod.start` · **Test:** `scripts/warsztat.sh test m6/s16`
+
+**Zasada:** Template Method zapisuje stałą sekwencję kroków raz w nadklasie, a podklasy dostarczają tylko kroki, które się różnią. Najpierw doprowadza się podobne metody do identycznej postaci, dopiero potem je podciąga.
+
 **Zadanie:**
 1. Doprowadź `render` obu raportów do identycznej postaci, wydzielając różnice do metod o tych samych nazwach.
 2. Przenieś wspólny szkielet do nadklasy i zabezpiecz go przed nadpisaniem.
@@ -193,6 +241,9 @@ scripts/warsztat.sh reset m6/s08     # przywrócenie start do wersji z repozytor
 ## Scena s17. Limit Instantiation with Singleton - cennik
 
 **Pakiet:** `pl.training.workshop.m6.s17_singleton.start` · **Test:** `scripts/warsztat.sh test m6/s17`
+
+**Zasada:** Singleton ogranicza tworzenie obiektu do jednej instancji i jest decyzją o cyklu życia, bezpieczną tylko dla obiektów niemutowalnych i równoważnych. Globalny dostęp do tej instancji ukrywa zależności i utrudnia testy.
+
 **Zadanie:**
 1. Sprawdź w teście, ile cenników powstaje przy trzech wycenach, i uzasadnij, dlaczego jedna instancja jest bezpieczna.
 2. Ogranicz tworzenie cennika do jednej instancji.
@@ -204,6 +255,9 @@ scripts/warsztat.sh reset m6/s08     # przywrócenie start do wersji z repozytor
 ## Scena s18. Move Accumulation to Collecting Parameter - ostrzeżenia walidacji
 
 **Pakiet:** `pl.training.workshop.m6.s18_collectingparameter.start` · **Test:** `scripts/warsztat.sh test m6/s18`
+
+**Zasada:** Collecting Parameter przekazuje do metod wspólny akumulator, do którego dopisują one swoje wyniki, zamiast zwracać fragmenty do sklejenia. Akumulator należy do wywołującego i powinien mieć wąski typ.
+
 **Zadanie:**
 1. Zastąp sklejanie ostrzeżeń w `String` listą.
 2. Przekaż akumulator do metod pomocniczych zamiast zwracać z nich fragmenty.
@@ -215,6 +269,9 @@ scripts/warsztat.sh reset m6/s08     # przywrócenie start do wersji z repozytor
 ## Scena s19. Visitor i macierz zmian - pozycje zamówienia
 
 **Pakiet:** `pl.training.workshop.m6.s19_visitor.start` · **Test:** `scripts/warsztat.sh test m6/s19`
+
+**Zasada:** Visitor wydziela operacje na strukturze do osobnych klas, a element sam wybiera właściwą metodę odwiedzającego. Tanio dodaje się w nim nowe operacje, drogo nowe rodzaje elementów.
+
 **Zadanie:**
 1. Zamień trzy łańcuchy `instanceof` na klasyczny Visitor.
 2. Przygotuj alternatywę: zamknięta hierarchia pozycji i `switch` po typach bez `default`.
@@ -226,6 +283,9 @@ scripts/warsztat.sh reset m6/s08     # przywrócenie start do wersji z repozytor
 ## Scena s20. Mapa decyzji - jedna tabela, dwie struktury
 
 **Pakiet:** `pl.training.workshop.m6.s20_decisionmap.start` · **Test:** `scripts/warsztat.sh test m6/s20`
+
+**Zasada:** Wzorzec dobiera się do rodzaju zmienności, a nie do wyglądu kodu: punkt rozszerzenia powinien leżeć na osi, która zmienia się najczęściej. Gdy nie wiadomo, która to oś, prostsza struktura bez nowych typów jest bezpieczniejsza.
+
 **Zadanie:**
 1. Rozplącz tabelę cen na dwie niezależne reguły.
 2. Zaimplementuj wariant A: marketing często zmienia reguły dniowe.

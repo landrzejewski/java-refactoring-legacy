@@ -96,8 +96,9 @@ scripts/warsztat.sh <span class="hljs-built_in">test</span> m6/s08      <span cl
 scripts/warsztat.sh reset m6/s08     <span class="hljs-comment"># przywrócenie start do wersji z repozytorium</span>
 </code></pre>
 <h2 id="scena-s01-replace-conditional-logic-with-strategy-polityka-znizek" tabindex="-1"><a class="header-anchor" href="#scena-s01-replace-conditional-logic-with-strategy-polityka-znizek"><span>Scena s01. Replace Conditional Logic with Strategy - polityka zniżek</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s01_strategy.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s01</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s01_strategy.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s01</code></p>
+<p><strong>Zasada:</strong> Strategy wydziela wymienne warianty jednego obliczenia za wspólnym interfejsem, gdy wariant wybiera się niezależnie od klasy obiektu. Wspólna walidacja zostaje w kontekście, a moment wyboru wariantu jest częścią zachowania.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Wprowadź interfejs <code>DiscountPolicy</code> i najpierw użyj go jako strategii przejściowej delegującej do starego kodu.</li>
 <li>Przenieś każdy program zniżek (STANDARD, STUDENT_WEEK, PREMIERE) do osobnej strategii, po jednym.</li>
@@ -106,8 +107,9 @@ scripts/warsztat.sh reset m6/s08     <span class="hljs-comment"># przywrócenie 
 <p><strong>Podpowiedź:</strong> walidacja ceny i programu jest wspólna - niech zostanie w kontekście. Sprawdź w teście przypadek &quot;PREMIERE nie sprawdza typu&quot;.
 <strong>Gotowe, gdy:</strong> test zielony, <code>TicketPricer</code> nie zawiera łańcucha <code>if</code> po nazwie programu, a strategie są bezstanowe.</p>
 <h2 id="scena-s02-replace-conditional-with-polymorphism-rodzaj-seansu" tabindex="-1"><a class="header-anchor" href="#scena-s02-replace-conditional-with-polymorphism-rodzaj-seansu"><span>Scena s02. Replace Conditional with Polymorphism - rodzaj seansu</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s02_polymorphism.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s02</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s02_polymorphism.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s02</code></p>
+<p><strong>Zasada:</strong> Polimorfizm podtypów przenosi zachowanie zależne od trwałego rodzaju obiektu do osobnych typów, zamiast powtarzać <code>switch</code> po polu rodzaju. Najpierw trzeba znaleźć wszystkie miejsca, w których obiekty powstają.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Znajdź miejsce tworzenia obiektów <code>Screening</code>.</li>
 <li>Wydziel podtyp dla jednego rodzaju seansu, uruchom test, potem kolejne.</li>
@@ -116,8 +118,9 @@ scripts/warsztat.sh reset m6/s08     <span class="hljs-comment"># przywrócenie 
 <p><strong>Podpowiedź:</strong> <code>switch</code> w miejscu tworzenia może zostać. Znikają te w <code>label</code>, <code>durationMinutes</code> i <code>price</code>.
 <strong>Gotowe, gdy:</strong> test zielony, zachowanie rodzajów jest w podtypach, a nieznany rodzaj w danych nadal daje ten sam wyjątek.</p>
 <h2 id="scena-s03-replace-type-code-with-class-format-jako-typ" tabindex="-1"><a class="header-anchor" href="#scena-s03-replace-type-code-with-class-format-jako-typ"><span>Scena s03. Replace Type Code with Class - format jako typ</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s03_typecode.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s03</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s03_typecode.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s03</code></p>
+<p><strong>Zasada:</strong> Replace Type Code with Class zastępuje surowy kod typem, który sam pilnuje poprawnych wartości i zna operacje swojego pojęcia. Kod zapisywany trwale to osobna sprawa - musi pozostać stabilny niezależnie od kształtu typu.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Zastąp <code>int formatCode</code> typem <code>Format</code>; zamieniaj kod na typ tuż po odczycie CSV.</li>
 <li>Przenieś zachowanie zależne od formatu (etykieta, cena, okulary) do typu.</li>
@@ -126,8 +129,9 @@ scripts/warsztat.sh reset m6/s08     <span class="hljs-comment"># przywrócenie 
 <p><strong>Podpowiedź:</strong> plik CSV musi nadal zawierać <code>Diuna;3</code>. Nie używaj <code>ordinal()</code>.
 <strong>Gotowe, gdy:</strong> test zielony, żaden kod poza mapperem nie operuje na liczbach 1, 2, 3, a zapis CSV jest bez zmian.</p>
 <h2 id="scena-s04-encapsulate-classes-with-factory-bilety" tabindex="-1"><a class="header-anchor" href="#scena-s04-encapsulate-classes-with-factory-bilety"><span>Scena s04. Encapsulate Classes with Factory - bilety</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s04_encapsulatefactory.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s04</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s04_encapsulatefactory.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s04</code></p>
+<p><strong>Zasada:</strong> Encapsulate Classes with Factory chowa klasy konkretne za fabryką, tak żeby klient znał tylko wspólny interfejs. Tworzenie przekierowuje się pojedynczo, a widoczność ogranicza dopiero wtedy, gdy wszyscy klienci już przeszli.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Zastąp każde <code>new StandardTicket/<wbr>VipTicket</code> w <code>BoxOffice</code> metodą tworzącą.</li>
 <li>Przenieś regułę &quot;który bilet dla którego rzędu&quot; do fabryki.</li>
@@ -136,8 +140,9 @@ scripts/warsztat.sh reset m6/s08     <span class="hljs-comment"># przywrócenie 
 <p><strong>Podpowiedź:</strong> kompilator pokaże wszystkie użycia klas konkretnych, gdy odbierzesz im <code>public</code>.
 <strong>Gotowe, gdy:</strong> test zielony (także <code>S04SolutionTest</code> sprawdzający widoczność w rozwiązaniu wzorcowym), a <code>BoxOffice</code> importuje tylko <code>Ticket</code> i fabrykę.</p>
 <h2 id="scena-s05-extract-factory-class-tworzenie-rezerwacji" tabindex="-1"><a class="header-anchor" href="#scena-s05-extract-factory-class-tworzenie-rezerwacji"><span>Scena s05. Extract Factory Class - tworzenie rezerwacji</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s05_extractfactory.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s05</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s05_extractfactory.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s05</code></p>
+<p><strong>Zasada:</strong> Extract Factory Class przenosi reguły tworzenia obiektu do osobnej klasy, gdy klasa, która je dziś zawiera, ma inną główną odpowiedzialność. Fabryka jest zwykłą zależnością, a kolejność operacji przy tworzeniu pozostaje częścią kontraktu.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Usuń duplikację tworzenia rezerwacji między <code>reserve</code> i <code>reserveGroup</code>.</li>
 <li>Wydziel klasę fabryki odpowiedzialną za numer, opłatę i termin ważności.</li>
@@ -146,8 +151,9 @@ scripts/warsztat.sh reset m6/s08     <span class="hljs-comment"># przywrócenie 
 <p><strong>Podpowiedź:</strong> przeczytaj przypadek testowy o &quot;spalonym&quot; numerze - kolejność operacji jest częścią kontraktu.
 <strong>Gotowe, gdy:</strong> test zielony, serwis nie zawiera reguł numeracji, opłat ani terminu ważności, a fabrykę da się przetestować osobno.</p>
 <h2 id="scena-s06-encapsulate-composite-with-builder-repertuar-dnia" tabindex="-1"><a class="header-anchor" href="#scena-s06-encapsulate-composite-with-builder-repertuar-dnia"><span>Scena s06. Encapsulate Composite with Builder - repertuar dnia</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s06_builder.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s06</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s06_builder.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s06</code></p>
+<p><strong>Zasada:</strong> Builder dla struktury złożonej ukrywa tworzenie i łączenie węzłów za API opisującym kształt wyniku. Opłaca się, gdy budowa jest wieloetapowa i ma własne reguły, a gotowy wynik nie powinien się już zmieniać.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Napisz builder repertuaru, dzięki któremu <code>WeekendPlanner</code> nie używa <code>new Hall</code> ani <code>add</code>.</li>
 <li>Uczyń drzewo niemutowalnym po zbudowaniu.</li>
@@ -156,8 +162,9 @@ scripts/warsztat.sh reset m6/s08     <span class="hljs-comment"># przywrócenie 
 <p><strong>Podpowiedź:</strong> porównaj builder z &quot;bieżącą salą&quot; i builder z lambdą dla każdej sali - który mniej ukrywa?
 <strong>Gotowe, gdy:</strong> test zielony, kształt kodu planera odpowiada kształtowi repertuaru, a zbudowanych list nie da się zmodyfikować.</p>
 <h2 id="scena-s07-move-embellishment-to-decorator-dodatki-do-biletu" tabindex="-1"><a class="header-anchor" href="#scena-s07-move-embellishment-to-decorator-dodatki-do-biletu"><span>Scena s07. Move Embellishment to Decorator - dodatki do biletu</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s07_decorator.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s07</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s07_decorator.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s07</code></p>
+<p><strong>Zasada:</strong> Decorator owija rdzeń obiektem o tym samym kontrakcie, który dokłada opcjonalne zachowanie i deleguje resztę do środka. Kolejność owijania jest częścią zachowania, a udekorowany obiekt nie jest przezroczysty dla pytań o typ i tożsamość.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Wydziel wspólny interfejs biletu i miejsce składania biletu.</li>
 <li>Przenoś dodatki (VIP, okulary 3D, ubezpieczenie) do dekoratorów po jednym, usuwając flagi z rdzenia.</li>
@@ -166,8 +173,9 @@ scripts/warsztat.sh reset m6/s08     <span class="hljs-comment"># przywrócenie 
 <p><strong>Podpowiedź:</strong> opis biletu ma ustaloną kolejność dodatków. Od którego dodatku zacząć, żeby jej nie zmienić?
 <strong>Gotowe, gdy:</strong> test zielony, rdzeń biletu nie ma żadnej flagi dodatku, a kolejność owijania jest w jednym miejscu.</p>
 <h2 id="scena-s08-replace-state-altering-conditionals-with-state-status-rezerwacji" tabindex="-1"><a class="header-anchor" href="#scena-s08-replace-state-altering-conditionals-with-state-status-rezerwacji"><span>Scena s08. Replace State-Altering Conditionals with State - status rezerwacji</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s08_state.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s08</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s08_state.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s08</code></p>
+<p><strong>Zasada:</strong> State przenosi zachowanie zależne od bieżącego stanu do obiektów stanów, a kontekst tylko do nich deleguje. Tabelę przejść ustala się przed budową hierarchii, a niedozwolone przejście nadal musi kończyć się tym samym błędem.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Przeczytaj tabelę przejść w teście i porównaj ją z kodem.</li>
 <li>Zastąp pole <code>status</code> obiektem stanu.</li>
@@ -176,8 +184,9 @@ scripts/warsztat.sh reset m6/s08     <span class="hljs-comment"># przywrócenie 
 <p><strong>Podpowiedź:</strong> gdy bramka płatności zawiedzie, rezerwacja zostaje NEW. Zachowaj kolejność: obciążenie, zmiana stanu, efekt.
 <strong>Gotowe, gdy:</strong> wszystkie 84 testy zielone, a metody <code>Reservation</code> tylko delegują do stanu.</p>
 <h2 id="scena-s09-replace-hard-coded-notifications-with-observer-po-oplaceniu" tabindex="-1"><a class="header-anchor" href="#scena-s09-replace-hard-coded-notifications-with-observer-po-oplaceniu"><span>Scena s09. Replace Hard-coded Notifications with Observer - po opłaceniu</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s09_observer.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s09</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s09_observer.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s09</code></p>
+<p><strong>Zasada:</strong> Observer sprawia, że źródło zdarzenia zna tylko wspólny interfejs odbiorców, a nie ich konkretne klasy. Kolejność powiadomień i polityka błędów to kontrakt, którego refaktoryzacja nie zmienia.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Wprowadź zdarzenie &quot;rezerwacja opłacona&quot; i jedno miejsce powiadamiania.</li>
 <li>Zamień maila, SMS i punkty lojalnościowe na obserwatorów wspólnego interfejsu.</li>
@@ -186,8 +195,9 @@ scripts/warsztat.sh reset m6/s08     <span class="hljs-comment"># przywrócenie 
 <p><strong>Podpowiedź:</strong> wyjątek w SMS przerywa naliczanie punktów - to obecny kontrakt, nie błąd do naprawy w tej refaktoryzacji.
 <strong>Gotowe, gdy:</strong> test zielony (kolejność i awarie), a serwis nie importuje <code>Mailer</code>, <code>SmsGateway</code> ani <code>LoyaltyProgram</code>.</p>
 <h2 id="scena-s10-replace-implicit-tree-with-composite-zestawy-baru" tabindex="-1"><a class="header-anchor" href="#scena-s10-replace-implicit-tree-with-composite-zestawy-baru"><span>Scena s10. Replace Implicit Tree with Composite - zestawy baru</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s10_implicittree.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s10</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s10_implicittree.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s10</code></p>
+<p><strong>Zasada:</strong> Composite zastępuje drzewo ukryte w konwencji danych jawnymi typami liścia i węzła o wspólnym kontrakcie. Operacje przenosi się po jednej, a stary format tłumaczy mapper, który zachowuje dotychczasowe błędy.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Zaprojektuj jawny Composite zestawu (produkt i zestaw) oraz mapper z zagnieżdżonych list.</li>
 <li>Przenieś <code>price</code>, a potem <code>render</code> na Composite - po jednej operacji.</li>
@@ -196,8 +206,9 @@ scripts/warsztat.sh reset m6/s08     <span class="hljs-comment"># przywrócenie 
 <p><strong>Podpowiedź:</strong> komunikaty błędów dla złych danych też są kontraktem. Test różnicowy porównuje wynik <code>start</code> z rozwiązaniem wzorcowym na 500 losowych drzewach.
 <strong>Gotowe, gdy:</strong> testy równoważności i różnicowy zielone, a <code>BarMenu</code> nie zawiera <code>instanceof</code> ani rzutowań.</p>
 <h2 id="scena-s11-transparent-vs-safe-composite-add-na-lisciu" tabindex="-1"><a class="header-anchor" href="#scena-s11-transparent-vs-safe-composite-add-na-lisciu"><span>Scena s11. Transparent vs Safe Composite - add() na liściu</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s11_safecomposite.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s11</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s11_safecomposite.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s11</code></p>
+<p><strong>Zasada:</strong> Composite może trzymać zarządzanie dziećmi we wspólnym interfejsie (Transparent) albo tylko w węźle (Safe). Pierwszy wariant upraszcza klienta kosztem błędów w runtime, drugi przenosi te błędy do kompilacji.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Spraw, żeby wywołanie <code>add</code> na produkcie było błędem kompilacji, a nie wyjątkiem w runtime.</li>
 <li>Popraw typy w <code>ComboCatalog</code> tam, gdzie dodajesz elementy.</li>
@@ -206,8 +217,9 @@ scripts/warsztat.sh reset m6/s08     <span class="hljs-comment"># przywrócenie 
 <p><strong>Podpowiedź:</strong> w IntelliJ poszukaj refaktoryzacji przenoszącej metody do podklasy.
 <strong>Gotowe, gdy:</strong> test zielony, a wspólny typ <code>MenuComponent</code> nie ma metod <code>add</code> ani <code>children</code>.</p>
 <h2 id="scena-s12-replace-onemany-distinctions-with-composite-zwroty" tabindex="-1"><a class="header-anchor" href="#scena-s12-replace-onemany-distinctions-with-composite-zwroty"><span>Scena s12. Replace One/Many Distinctions with Composite - zwroty</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s12_onemany.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s12</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s12_onemany.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s12</code></p>
+<p><strong>Zasada:</strong> Composite pozwala traktować jeden element i grupę elementów przez ten sam kontrakt, dzięki czemu API nie potrzebuje osobnych ścieżek &quot;jeden&quot; i &quot;wiele&quot;. Efekty naliczane raz na wywołanie muszą przy tym pozostać naliczane raz.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Usuń duplikację reguły zwrotu między <code>refund</code> i <code>refundAll</code>.</li>
 <li>Wprowadź wspólny kontrakt dla jednego biletu i grupy biletów oraz jedną metodę <code>refund</code>.</li>
@@ -216,8 +228,9 @@ scripts/warsztat.sh reset m6/s08     <span class="hljs-comment"># przywrócenie 
 <p><strong>Podpowiedź:</strong> potrącenie 3.00 jest naliczane raz na zwrot, nie raz na bilet.
 <strong>Gotowe, gdy:</strong> test zielony, reguła zwrotu jest w jednym miejscu, a ani <code>RefundService</code>, ani klient <code>CancellationDesk</code> nie rozróżniają jednego biletu i wielu.</p>
 <h2 id="scena-s13-extract-composite-kontenery-programu" tabindex="-1"><a class="header-anchor" href="#scena-s13-extract-composite-kontenery-programu"><span>Scena s13. Extract Composite - kontenery programu</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s13_extractcomposite.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s13</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s13_extractcomposite.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s13</code></p>
+<p><strong>Zasada:</strong> Extract Composite przenosi powieloną obsługę dzieci z kilku klas kontenerów do wspólnej nadklasy. Podciąga się tylko to, co ma ten sam kontrakt, a nie wszystko, co wygląda podobnie.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Wydziel wspólną nadklasę dla <code>Marathon</code> i <code>ShortsBlock</code> z obsługą dzieci.</li>
 <li>Podciągnij do niej to, co naprawdę jest wspólne; zostaw w podklasach to, co się różni.</li>
@@ -225,8 +238,9 @@ scripts/warsztat.sh reset m6/s08     <span class="hljs-comment"># przywrócenie 
 <p><strong>Podpowiedź:</strong> obie klasy sumują minuty, ale tylko maraton dolicza przerwy.
 <strong>Gotowe, gdy:</strong> test zielony, lista dzieci i <code>add</code> istnieją w jednym miejscu, a podklasy mają po kilkanaście linii.</p>
 <h2 id="scena-s14-unify-interfaces-with-adapter-dwie-bramki-platnosci" tabindex="-1"><a class="header-anchor" href="#scena-s14-unify-interfaces-with-adapter-dwie-bramki-platnosci"><span>Scena s14. Unify Interfaces with Adapter - dwie bramki płatności</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s14_adapter.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s14</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s14_adapter.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s14</code></p>
+<p><strong>Zasada:</strong> Adapter tłumaczy obcy interfejs na kontrakt, którego oczekuje klient, tak żeby klient nie znał szczegółów zewnętrznej biblioteki. Tłumaczyć trzeba nie tylko nazwy, ale też jednostki, formaty i sposób zgłaszania błędów.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Wydziel obsługę każdej bramki do metody o tej samej sygnaturze.</li>
 <li>Zdefiniuj preferowany interfejs płatności kina i dwa adaptery.</li>
@@ -235,8 +249,9 @@ scripts/warsztat.sh reset m6/s08     <span class="hljs-comment"># przywrócenie 
 <p><strong>Podpowiedź:</strong> stara bramka liczy w groszach i zwraca odmowę w XML, nowa liczy w złotych i zgłasza odmowę wyjątkiem. Nie zmieniaj klas bramek.
 <strong>Gotowe, gdy:</strong> test zielony, a metoda <code>pay</code> w <code>CheckoutService</code> korzysta wyłącznie z preferowanego interfejsu (szczegóły XML i REST są tylko w adapterach).</p>
 <h2 id="scena-s15-replace-conditional-dispatcher-with-command-konsola-kasjera" tabindex="-1"><a class="header-anchor" href="#scena-s15-replace-conditional-dispatcher-with-command-konsola-kasjera"><span>Scena s15. Replace Conditional Dispatcher with Command - konsola kasjera</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s15_command.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s15</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s15_command.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s15</code></p>
+<p><strong>Zasada:</strong> Command zamienia każdą gałąź dyspozytora w osobny obiekt o wspólnym interfejsie, a wybór gałęzi w wyszukanie w rejestrze. Rejestr jest równoważny warunkom tylko przy rozłącznych kluczach i zachowanej normalizacji.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Wydziel ciało każdej gałęzi do metody o wspólnej sygnaturze.</li>
 <li>Zamień gałęzie na obiekty komend; stan kasy wydziel z konsoli.</li>
@@ -245,8 +260,9 @@ scripts/warsztat.sh reset m6/s08     <span class="hljs-comment"># przywrócenie 
 <p><strong>Podpowiedź:</strong> <code>sell</code> i <code>SELL</code> działają tak samo - nie zgub normalizacji klucza.
 <strong>Gotowe, gdy:</strong> test zielony, komendy są bezstanowe, a dodanie komendy nie wymaga zmiany metody <code>handle</code>.</p>
 <h2 id="scena-s16-form-template-method-raporty-csv-i-html" tabindex="-1"><a class="header-anchor" href="#scena-s16-form-template-method-raporty-csv-i-html"><span>Scena s16. Form Template Method - raporty CSV i HTML</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s16_templatemethod.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s16</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s16_templatemethod.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s16</code></p>
+<p><strong>Zasada:</strong> Template Method zapisuje stałą sekwencję kroków raz w nadklasie, a podklasy dostarczają tylko kroki, które się różnią. Najpierw doprowadza się podobne metody do identycznej postaci, dopiero potem je podciąga.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Doprowadź <code>render</code> obu raportów do identycznej postaci, wydzielając różnice do metod o tych samych nazwach.</li>
 <li>Przenieś wspólny szkielet do nadklasy i zabezpiecz go przed nadpisaniem.</li>
@@ -254,8 +270,9 @@ scripts/warsztat.sh reset m6/s08     <span class="hljs-comment"># przywrócenie 
 <p><strong>Podpowiedź:</strong> różnice to nagłówek, wiersz (z escapowaniem) i stopka.
 <strong>Gotowe, gdy:</strong> test zielony, sortowanie i sumowanie są w jednym miejscu, a raporty zawierają tylko formatowanie.</p>
 <h2 id="scena-s17-limit-instantiation-with-singleton-cennik" tabindex="-1"><a class="header-anchor" href="#scena-s17-limit-instantiation-with-singleton-cennik"><span>Scena s17. Limit Instantiation with Singleton - cennik</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s17_singleton.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s17</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s17_singleton.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s17</code></p>
+<p><strong>Zasada:</strong> Singleton ogranicza tworzenie obiektu do jednej instancji i jest decyzją o cyklu życia, bezpieczną tylko dla obiektów niemutowalnych i równoważnych. Globalny dostęp do tej instancji ukrywa zależności i utrudnia testy.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Sprawdź w teście, ile cenników powstaje przy trzech wycenach, i uzasadnij, dlaczego jedna instancja jest bezpieczna.</li>
 <li>Ogranicz tworzenie cennika do jednej instancji.</li>
@@ -264,8 +281,9 @@ scripts/warsztat.sh reset m6/s08     <span class="hljs-comment"># przywrócenie 
 <p><strong>Podpowiedź:</strong> porównaj klasyczne <code>getInstance()</code> z enumem, a potem zastanów się, kto powinien decydować o cyklu życia.
 <strong>Gotowe, gdy:</strong> test zielony, cennik jest tworzony raz, a <code>TicketDesk</code> przyjmuje cennik przez konstruktor.</p>
 <h2 id="scena-s18-move-accumulation-to-collecting-parameter-ostrzezenia-walidacji" tabindex="-1"><a class="header-anchor" href="#scena-s18-move-accumulation-to-collecting-parameter-ostrzezenia-walidacji"><span>Scena s18. Move Accumulation to Collecting Parameter - ostrzeżenia walidacji</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s18_collectingparameter.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s18</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s18_collectingparameter.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s18</code></p>
+<p><strong>Zasada:</strong> Collecting Parameter przekazuje do metod wspólny akumulator, do którego dopisują one swoje wyniki, zamiast zwracać fragmenty do sklejenia. Akumulator należy do wywołującego i powinien mieć wąski typ.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Zastąp sklejanie ostrzeżeń w <code>String</code> listą.</li>
 <li>Przekaż akumulator do metod pomocniczych zamiast zwracać z nich fragmenty.</li>
@@ -274,8 +292,9 @@ scripts/warsztat.sh reset m6/s08     <span class="hljs-comment"># przywrócenie 
 <p><strong>Podpowiedź:</strong> separator <code>&quot;; &quot;</code> powinien pojawiać się w kodzie dokładnie raz.
 <strong>Gotowe, gdy:</strong> test zielony, metody <code>check...</code> zwracają <code>void</code>, a format wyniku jest ustalany w jednym miejscu.</p>
 <h2 id="scena-s19-visitor-i-macierz-zmian-pozycje-zamowienia" tabindex="-1"><a class="header-anchor" href="#scena-s19-visitor-i-macierz-zmian-pozycje-zamowienia"><span>Scena s19. Visitor i macierz zmian - pozycje zamówienia</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s19_visitor.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s19</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s19_visitor.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s19</code></p>
+<p><strong>Zasada:</strong> Visitor wydziela operacje na strukturze do osobnych klas, a element sam wybiera właściwą metodę odwiedzającego. Tanio dodaje się w nim nowe operacje, drogo nowe rodzaje elementów.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Zamień trzy łańcuchy <code>instanceof</code> na klasyczny Visitor.</li>
 <li>Przygotuj alternatywę: zamknięta hierarchia pozycji i <code>switch</code> po typach bez <code>default</code>.</li>
@@ -284,8 +303,9 @@ scripts/warsztat.sh reset m6/s08     <span class="hljs-comment"># przywrócenie 
 <p><strong>Podpowiedź:</strong> VAT liczymy od ceny brutto każdej pozycji osobno i dopiero potem sumujemy.
 <strong>Gotowe, gdy:</strong> test zielony dla wybranej wersji, w kodzie nie ma <code>instanceof</code>, a dodanie typu pozycji bez obsługi kończy się błędem kompilacji.</p>
 <h2 id="scena-s20-mapa-decyzji-jedna-tabela-dwie-struktury" tabindex="-1"><a class="header-anchor" href="#scena-s20-mapa-decyzji-jedna-tabela-dwie-struktury"><span>Scena s20. Mapa decyzji - jedna tabela, dwie struktury</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s20_decisionmap.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s20</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m6.s20_decisionmap.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m6/<wbr>s20</code></p>
+<p><strong>Zasada:</strong> Wzorzec dobiera się do rodzaju zmienności, a nie do wyglądu kodu: punkt rozszerzenia powinien leżeć na osi, która zmienia się najczęściej. Gdy nie wiadomo, która to oś, prostsza struktura bez nowych typów jest bezpieczniejsza.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Rozplącz tabelę cen na dwie niezależne reguły.</li>
 <li>Zaimplementuj wariant A: marketing często zmienia reguły dniowe.</li>

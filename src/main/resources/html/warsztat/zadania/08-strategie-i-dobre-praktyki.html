@@ -84,8 +84,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <h1>Moduł 8. Strategie i dobre praktyki - warsztat CineLegacy: zadania</h1>
 <p>Każda scena ma pakiet <code>start</code> - na nim pracujesz. Po każdym ruchu uruchom test sceny (<code>scripts/<wbr>warsztat.sh test m8/<wbr>sNN</code>) i nie zaglądaj do katalogów <code>stepN</code> przed końcem zadania. Część testów opisuje stan startowy (np. &quot;start wysyła dwa maile&quot;, &quot;start narusza ADR&quot;) - gdy naprawisz <code>start</code>, zmienią kolor na czerwony, a to znaczy, że zadanie jest zrobione. Testy uruchamiaj z katalogu głównego repozytorium. Powrót do stanu wyjściowego: <code>scripts/<wbr>warsztat.sh reset m8/<wbr>sNN</code>.</p>
 <h2 id="scena-s01-branch-by-abstraction-na-cenniku-z-cinemamanager" tabindex="-1"><a class="header-anchor" href="#scena-s01-branch-by-abstraction-na-cenniku-z-cinemamanager"><span>Scena s01. Branch by Abstraction na cenniku z CinemaManager</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s01_branchbyabstraction.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s01</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s01_branchbyabstraction.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s01</code></p>
+<p><strong>Zasada:</strong> Branch by Abstraction wymienia implementację wewnątrz aplikacji bez długiej gałęzi w Git: stabilny kontrakt, za nim stara i nowa implementacja, a każdy krok da się od razu zintegrować. Wydzielenie kontraktu to jeszcze refaktoryzacja, przełączenie na nową implementację to już migracja.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Wydziel wyliczenie ceny z <code>BookingService.confirm</code> do osobnej klasy starego cennika, bez poprawiania go.</li>
 <li>Wprowadź abstrakcję <code>TicketPricing</code> zwracającą <code>Money</code> i schowaj za nią stary cennik.</li>
@@ -95,8 +96,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <strong>Gotowe, gdy:</strong> test równoważności jest zielony po każdym kroku (w kroku 3 dla obu ustawień przełącznika), a na końcu w pakiecie nie ma ani starego cennika, ani przełącznika.</li>
 </ol>
 <h2 id="scena-s02-strangler-fig-fasada-ktora-przejmuje-sciezki" tabindex="-1"><a class="header-anchor" href="#scena-s02-strangler-fig-fasada-ktora-przejmuje-sciezki"><span>Scena s02. Strangler Fig - fasada, która przejmuje ścieżki</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s02_stranglerfig.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s02</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s02_stranglerfig.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s02</code></p>
+<p><strong>Zasada:</strong> Strangler Fig przejmuje system operacja po operacji: punkt na granicy systemu kieruje część wywołań do nowego kodu, a resztę dalej do starego, aż stary kod przestaje być potrzebny i można go usunąć.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Postaw przed <code>LegacyCinema</code> fasadę implementującą <code>CinemaApi</code>, która deleguje wszystko 1:1.</li>
 <li>Przenieś rezerwację do nowego modułu, a raport zostaw w legacy.</li>
@@ -106,8 +108,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <strong>Gotowe, gdy:</strong> scenariusz klienta w teście równoważności daje ten sam wynik na każdym etapie, a na końcu nie ma już klasy <code>LegacyCinema</code>.</li>
 </ol>
 <h2 id="scena-s03-rownolegla-weryfikacja-shadow-kalkulatora-cen" tabindex="-1"><a class="header-anchor" href="#scena-s03-rownolegla-weryfikacja-shadow-kalkulatora-cen"><span>Scena s03. Równoległa weryfikacja (shadow) kalkulatora cen</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s03_parallelrun.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s03</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s03_parallelrun.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s03</code></p>
+<p><strong>Zasada:</strong> Równoległa weryfikacja (shadow) liczy wynik starą i nową implementacją na tym samym ruchu, ale autorytatywny pozostaje wynik starej, a awaria nowej nie może dotknąć klienta. Zgodność obu implementacji nie dowodzi jeszcze poprawności.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Uruchamiaj kandydata w cieniu starego kalkulatora - klient zawsze dostaje wynik legacy, a wyjątek kandydata nie może przerwać sprzedaży.</li>
 <li>Zbieraj wynik porównania w raporcie, który odróżnia zgodność, rozbieżność i awarię kandydata.</li>
@@ -117,8 +120,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <strong>Gotowe, gdy:</strong> klient dostaje tę samą cenę w każdym trybie, raport nie zawiera rozbieżności, a różnica dla 4DX jest świadomą, opisaną decyzją.</li>
 </ol>
 <h2 id="scena-s04-granice-trybu-shadow-efekty-uboczne" tabindex="-1"><a class="header-anchor" href="#scena-s04-granice-trybu-shadow-efekty-uboczne"><span>Scena s04. Granice trybu shadow - efekty uboczne</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s04_shadowlimits.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s04</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s04_shadowlimits.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s04</code></p>
+<p><strong>Zasada:</strong> Tryb shadow jest bezpieczny tylko dla czystych obliczeń - efektów ubocznych (płatność, mail, zapis) nie wolno wykonać dwa razy. Efekt zapisany jako dana można porównać zamiast go wykonywać.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Uruchom test i sprawdź w dzienniku <code>Infrastructure</code>, co dostaje klient po jednej rezerwacji w trybie shadow.</li>
 <li>Spraw, żeby nowa ścieżka wykonywała efekty uboczne przez port, a nie bezpośrednio.</li>
@@ -128,8 +132,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <strong>Gotowe, gdy:</strong> po rezerwacji w dzienniku są tylko efekty legacy (jeden mail, jedno obciążenie, jeden zapis), a cień zgłasza rozbieżność w treści maila kandydata.</li>
 </ol>
 <h2 id="scena-s05-boy-scout-rule-mala-poprawa-i-jej-naduzycie" tabindex="-1"><a class="header-anchor" href="#scena-s05-boy-scout-rule-mala-poprawa-i-jej-naduzycie"><span>Scena s05. Boy Scout Rule - mała poprawa i jej nadużycie</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s05_boyscout.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s05</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s05_boyscout.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s05</code></p>
+<p><strong>Zasada:</strong> Boy Scout Rule: dotykany kod zostaw w nieco lepszym stanie, ale poprawa ma być mała, lokalna i bez zmiany zachowania. Zmiana tego, co widzi użytkownik, to osobna decyzja, a nie sprzątanie.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Popraw czytelność <code>TicketPrinter.print</code>: nazwy, sklejanie listy miejsc, powtórzenia.</li>
 <li>Nie zmieniaj niczego, co widzi klient: kolejności miejsc, wielkości liter, linii z telefonem, formatu kwoty.</li>
@@ -138,8 +143,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <strong>Gotowe, gdy:</strong> test równoważności jest zielony, diff dotyczy tylko jednej metody i da się go przejrzeć w minutę.</li>
 </ol>
 <h2 id="scena-s06-seria-malych-zmian-gotowych-do-przegladu" tabindex="-1"><a class="header-anchor" href="#scena-s06-seria-malych-zmian-gotowych-do-przegladu"><span>Scena s06. Seria małych zmian gotowych do przeglądu</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s06_reviewableseries.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s06</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s06_reviewableseries.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s06</code></p>
+<p><strong>Zasada:</strong> Dobry zestaw zmian ma jedną intencję, własny dowód i zielony build. Refaktoryzacji nie łączy się ze zmianą zachowania - najpierw ułatw zmianę, potem zrób łatwą zmianę.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Dodaj regułę &quot;Tani wtorek&quot;: bilet NORMAL -20% ceny bazowej we wtorek.</li>
 <li>Podziel pracę na co najmniej trzy kroki (commity): refaktoryzacje bez zmiany zachowania osobno, nowa reguła osobno.</li>
@@ -148,8 +154,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <strong>Gotowe, gdy:</strong> po krokach refaktoryzacyjnych test równoważności jest zielony, a po ostatnim 2D NORMAL we wtorek wieczorem kosztuje 20.00 i zmieniły się wyłącznie bilety NORMAL we wtorek.</li>
 </ol>
 <h2 id="scena-s07-adr-i-wykonywalny-model-decyzji" tabindex="-1"><a class="header-anchor" href="#scena-s07-adr-i-wykonywalny-model-decyzji"><span>Scena s07. ADR i wykonywalny model decyzji</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s07_adr.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s07</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s07_adr.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s07</code></p>
+<p><strong>Zasada:</strong> ADR zapisuje trwałą decyzję architektoniczną z kontekstem i konsekwencjami; zaakceptowanego ADR się nie edytuje, tylko zastępuje nowym. Reguły z ADR można sprawdzać testem, żeby build pilnował decyzji.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Przeczytaj <code>ADR-0007-cennik-jako-czysty-modul.md</code> i sprawdź w teście, które reguły narusza <code>start</code>.</li>
 <li>Usuń zależność pakietu <code>pricing</code> od <code>notification</code> bez zmiany wysyłanych maili.</li>
@@ -158,8 +165,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <strong>Gotowe, gdy:</strong> <code>ArchitectureRules.violations</code> dla <code>start</code> zwraca pustą listę, a odpowiedzi i maile są takie same jak przed zmianą.</li>
 </ol>
 <h2 id="scena-s08-bramka-kompilatora-xlintall-werror" tabindex="-1"><a class="header-anchor" href="#scena-s08-bramka-kompilatora-xlintall-werror"><span>Scena s08. Bramka kompilatora -Xlint:all -Werror</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s08_compilergate.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s08</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s08_compilergate.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s08</code></p>
+<p><strong>Zasada:</strong> Bramka kompilatora (<code>-Xlint:all -Werror</code>) zamienia ostrzeżenia w błędy builda. Ostrzeżenia usuwa się zmianą kodu, po jednej kategorii na krok, a tłumienie jest wyjątkiem wąskim i uzasadnionym.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Sprawdź, jakie kategorie ostrzeżeń zgłasza <code>CompilerGate</code> dla <code>start</code>.</li>
 <li>Usuwaj je po jednej kategorii na krok, uruchamiając test po każdym kroku.</li>
@@ -168,8 +176,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <strong>Gotowe, gdy:</strong> <code>CompilerGate.check</code> dla <code>start</code> zwraca zero ostrzeżeń i <code>passed() == true</code>, a test równoważności raportu jest zielony.</li>
 </ol>
 <h2 id="scena-s09-codemod-na-compiler-tree-api" tabindex="-1"><a class="header-anchor" href="#scena-s09-codemod-na-compiler-tree-api"><span>Scena s09. Codemod na Compiler Tree API</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s09_codemod.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s09</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s09_codemod.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s09</code></p>
+<p><strong>Zasada:</strong> Codemod to automatyczna transformacja wielu miejsc naraz; oparty na drzewie składni i typach jest bezpieczniejszy od wyrażeń regularnych, ale automatyzacja zwiększa też zasięg błędu. Dobra receptura ma test przed i po oraz jest idempotentna.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Zastąp wyszukiwanie wyrażeniem regularnym wyszukiwaniem po drzewie składni (<code>JavacTask</code>, <code>TreeScanner</code>).</li>
 <li>Przepisuj tylko dwa ostatnie argumenty wywołania według pozycji z drzewa i dopisz brakujące importy.</li>
@@ -178,8 +187,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <strong>Gotowe, gdy:</strong> codemod znajduje linie 11 i 16, wynik kompiluje się bez ostrzeżeń razem z <code>SampleProject.API</code>, a drugie uruchomienie niczego nie zmienia.</li>
 </ol>
 <h2 id="scena-s10-minimalna-bramka-jakosci-jako-kod" tabindex="-1"><a class="header-anchor" href="#scena-s10-minimalna-bramka-jakosci-jako-kod"><span>Scena s10. Minimalna bramka jakości jako kod</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s10_qualitygate.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s10</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s10_qualitygate.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s10</code></p>
+<p><strong>Zasada:</strong> Minimalna bramka jakości to kilka niezależnych, wykonywalnych sprawdzeń z deterministycznym wynikiem, który wskazuje miejsce problemu. Bramka, która nic nie sprawdza albo daje fałszywe alarmy, jest gorsza niż jej brak.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Zamień listę kontrolną z Javadocu <code>QualityGate</code> na wykonywalne sprawdzenia, po jednym na krok.</li>
 <li>Każdy wynik ma wskazywać plik i linię albo metodę.</li>
@@ -188,8 +198,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <strong>Gotowe, gdy:</strong> bramka zgłasza wszystkie problemy próbki <code>sample/<wbr>dirty</code>, zatrzymuje przypadek z nieprzechodzącym testem (<code>sample/<wbr>broken</code>) i przepuszcza <code>sample/<wbr>clean</code>.</li>
 </ol>
 <h2 id="scena-s11-jawna-polityka-wdrozenia-etapowego" tabindex="-1"><a class="header-anchor" href="#scena-s11-jawna-polityka-wdrozenia-etapowego"><span>Scena s11. Jawna polityka wdrożenia etapowego</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s11_stagedrollout.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s11</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s11_stagedrollout.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s11</code></p>
+<p><strong>Zasada:</strong> Wdrożenie etapowe to jawna, testowana polityka: kto dostaje nową ścieżkę, jaka część ruchu i jak ją natychmiast wyłączyć. Przydział klienta musi być stabilny, żeby nie przeskakiwał między ścieżkami.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Zamień stałą i listę testerów na jawny obiekt polityki przekazywany do routera.</li>
 <li>Dodaj wdrożenie procentowe z deterministycznym przydziałem klienta.</li>
@@ -199,8 +210,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <strong>Gotowe, gdy:</strong> z dotychczasowymi ustawieniami router kieruje klientów tak samo jak <code>start</code>, a polityka przechodzi twoje testy.</li>
 </ol>
 <h2 id="scena-s12-expand-and-contract-format-danych-rezerwacji" tabindex="-1"><a class="header-anchor" href="#scena-s12-expand-and-contract-format-danych-rezerwacji"><span>Scena s12. Expand and contract - format danych rezerwacji</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s12_expandcontract.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s12</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s12_expandcontract.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s12</code></p>
+<p><strong>Zasada:</strong> Expand and contract zmienia format danych w krokach tak, żeby w oknie wycofania stara wersja kodu zawsze czytała dane zapisane przez nową. Stary format usuwa się dopiero na końcu, gdy powrót nie będzie już potrzebny.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Wprowadź nowy, wersjonowany format rezerwacji w kolumnie <code>payload</code> tak, żeby wycofanie do starej wersji było bezpieczne.</li>
 <li>Czytaj nowy format, ale nie gub wierszy zapisanych wcześniej.</li>
@@ -210,8 +222,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <strong>Gotowe, gdy:</strong> rezerwacja zapisana i odczytana wraca bez zmian, stare wiersze są czytelne po migracji, a w końcowej wersji nie ma żadnego odwołania do starego formatu.</li>
 </ol>
 <h2 id="scena-s13-dokumentacja-zywa-kontra-historyczna" tabindex="-1"><a class="header-anchor" href="#scena-s13-dokumentacja-zywa-kontra-historyczna"><span>Scena s13. Dokumentacja żywa kontra historyczna</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s13_livingdocs.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s13</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m8.s13_livingdocs.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m8/<wbr>s13</code></p>
+<p><strong>Zasada:</strong> Dokumentacja żywa opisuje stan obecny i powinna powstawać z kodu albo być z nim sprawdzana, a historyczna (np. ADR) jest niezmienna. Ręcznie utrzymywany opis stanu systemu prędzej czy później się rozjeżdża.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Sprawdź, czym <code>start/<wbr>ROUTING.md</code> różni się od <code>Routing.routes()</code>.</li>
 <li>Spraw, żeby dokument powstawał z kodu, i dopisz test, który wykryje jego ręczną edycję albo zestarzenie.</li>

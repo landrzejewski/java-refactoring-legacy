@@ -97,6 +97,7 @@ src/test/java/pl/training/workshop/
     m6/s08_state/S08EquivalenceTest, S08SolutionTest ...
 </code></pre>
 <ul>
+<li>Każda scena w przewodniku zaczyna się od sekcji &quot;W skrócie&quot;: co robimy, na czym polega zasada lub technika i jaki jest efekt. Można ją przeczytać sali przed pokazem.</li>
 <li><code>start</code> zawiera zapach albo pułapkę. Prowadzący otwiera go w IntelliJ i wykonuje ruchy opisane w przewodniku.</li>
 <li><code>stepN</code> to kompletny stan kodu po kroku N. Klasy mają te same nazwy co w <code>start</code>, różni się tylko pakiet. Ostatni krok jest rozwiązaniem wzorcowym.</li>
 <li>Test równoważności sceny uruchamia <strong>te same przypadki</strong> na <code>start</code> i na każdym kroku. Jeśli po ruchu na żywo test jest zielony, zachowanie się nie zmieniło.</li>
@@ -107,8 +108,12 @@ src/test/java/pl/training/workshop/
 scripts/warsztat.sh list m6         <span class="hljs-comment"># sceny jednego modułu</span>
 scripts/warsztat.sh <span class="hljs-built_in">test</span> m6/s08     <span class="hljs-comment"># testy jednej sceny (mvn)</span>
 scripts/warsztat.sh <span class="hljs-built_in">test</span> m6         <span class="hljs-comment"># testy całego modułu</span>
-scripts/warsztat.sh diff m6/s08 1 2 <span class="hljs-comment"># co dokładnie zmienia krok 2 (0 = start)</span>
+scripts/warsztat.sh diff m6/s08 1 2 <span class="hljs-comment"># co dokładnie zmienia krok 2 (0 = start), w kolorach</span>
+scripts/warsztat.sh diff m6/s08 1 2 --word  <span class="hljs-comment"># zmiany podświetlone w obrębie linii</span>
 scripts/warsztat.sh jump m6/s08 2   <span class="hljs-comment"># skopiuj step2 do start - przeskok, gdy brakuje czasu</span>
+scripts/warsztat.sh next            <span class="hljs-comment"># następny krok do start (ostatnio używana scena)</span>
+scripts/warsztat.sh prev            <span class="hljs-comment"># krok wstecz</span>
+scripts/warsztat.sh status          <span class="hljs-comment"># który krok jest teraz w start</span>
 scripts/warsztat.sh reset m6/s08    <span class="hljs-comment"># przywróć start z repozytorium po pokazie</span>
 scripts/warsztat.sh html            <span class="hljs-comment"># wygeneruj strony HTML z md/warsztat (Node.js)</span>
 </code></pre>
@@ -121,8 +126,9 @@ scripts/warsztat.sh html            <span class="hljs-comment"># wygeneruj stron
 <li>Wykonaj ruch w IDE, najlepiej automatyczną refaktoryzacją ze skrótem z przewodnika.</li>
 <li><code>scripts/<wbr>warsztat.sh test mM/<wbr>sNN</code>, czyli zielony test.</li>
 <li>Jedno zdanie komentarza (&quot;Co powiedzieć&quot;).</li>
-<li>Jeśli coś się rozjedzie: <code>jump</code> do gotowego kroku i kontynuujesz.</li>
+<li>Jeśli coś się rozjedzie albo brakuje czasu: <code>next</code> wstawia gotowy następny krok i pokazuje, co się zmieniło. Skrypt pamięta ostatnią scenę, więc wystarczy samo <code>scripts/<wbr>warsztat.sh next</code>.</li>
 </ol>
+<p>Diff jest kolorowy w terminalu (git diff). Jeśli zainstalujesz <code>delta</code> (<code>brew install git-delta</code>), skrypt użyje go automatycznie: dostaniesz podświetlanie składni Javy i numery linii, co dobrze wygląda na rzutniku.</p>
 <p>W IntelliJ wygodnie jest uruchamiać test sceny z gutter (ikona przy klasie <code>SNNEquivalenceTest</code>) i ustawić go jako ostatnią konfigurację (⌃R).</p>
 <h2 id="reguly-biznesowe-cinelegacy" tabindex="-1"><a class="header-anchor" href="#reguly-biznesowe-cinelegacy"><span>Reguły biznesowe CineLegacy</span></a></h2>
 <p>Wszystkie sceny korzystają z tych samych reguł i liczb, więc wyniki w różnych modułach są spójne.</p>

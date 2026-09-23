@@ -85,8 +85,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p>Każda scena to mały fragment systemu kina CineLegacy w pakiecie <code>pl.training.workshop.m5.sNN_.../<wbr>start</code>. Pracuj wyłącznie w <code>start</code>, małymi krokami, i po każdym ruchu uruchamiaj test sceny (<code>scripts/<wbr>warsztat.sh test m5/<wbr>sNN</code>). Test równoważności (<code>SNNEquivalenceTest</code>) ma być zielony przez cały czas. W scenach o pułapkach (s08-s11, s13) testy o nazwie <code>start...</code> dokumentują błąd w kodzie wyjściowym - gdy go usuniesz, te testy zrobią się czerwone i to jest oczekiwany efekt. Nie zaglądaj do katalogów <code>stepN</code> przed zakończeniem zadania; potem porównaj swoje rozwiązanie z ostatnim krokiem (<code>scripts/<wbr>warsztat.sh diff m5/<wbr>sNN 0 N</code>). Chcesz zacząć od nowa: <code>scripts/<wbr>warsztat.sh reset m5/<wbr>sNN</code>.</p>
 <p>Korzystaj z automatycznych refaktoryzacji IntelliJ IDEA (menu Refactor: Pull Members Up, Push Members Down, Extract Superclass, Extract Interface, Replace Inheritance with Delegation, Inline, Safe Delete), a ruchy ręczne rób tak, by po każdym dało się uruchomić test.</p>
 <h2 id="scena-s01-pull-up-method" tabindex="-1"><a class="header-anchor" href="#scena-s01-pull-up-method"><span>Scena s01. Pull Up Method</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s01_pullupmethod.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s01</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s01_pullupmethod.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s01</code></p>
+<p><strong>Zasada:</strong> Pull Up Method przenosi metodę na najniższy poziom, na którym jest prawdziwa dla wszystkich potomków. Porównuje się kontrakty metod, a nie ich tekst, a IDE przeniesie tylko metody o identycznych ciałach.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Usuń trzy kopie metody <code>label()</code> z podklas <code>Ticket</code>, zostawiając jedną implementację.</li>
 <li>Klient <code>BoxOffice</code> ma wywoływać <code>label()</code> przez typ bazowy.</li>
@@ -95,8 +96,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> IDE przeniesie w górę tylko metody o identycznych ciałach, a wspólna metoda potrzebuje czegoś, czego baza jeszcze nie zna.
 <strong>Gotowe, gdy:</strong> test zielony, <code>label()</code> jest zadeklarowane tylko w <code>Ticket</code>, a podklasy zawierają wyłącznie regułę ceny.</p>
 <h2 id="scena-s02-pull-up-field" tabindex="-1"><a class="header-anchor" href="#scena-s02-pull-up-field"><span>Scena s02. Pull Up Field</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s02_pullupfield.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s02</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s02_pullupfield.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s02</code></p>
+<p><strong>Zasada:</strong> Pull Up Field łączy pola tylko przy tym samym znaczeniu, typie, cyklu życia i momencie inicjalizacji. Pole w bazie powinno być prywatne i ustawiane przez konstruktor bazy, a nie <code>protected</code>.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Przenieś informację o miejscu na sali do <code>Ticket</code> jako jedno pole.</li>
 <li>Pole w bazie ma być <code>private final</code>, ustawiane przez konstruktor bazy.</li>
@@ -105,8 +107,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> zanim połączysz pola, porównaj ich nazwę, typ, znaczenie, cykl życia i sposób inicjalizacji. Każda różnica to osobny krok przygotowawczy.
 <strong>Gotowe, gdy:</strong> test zielony, żadna podklasa nie deklaruje pola miejsca, nie ma settera, a normalizacja miejsca VIP działa jak wcześniej.</p>
 <h2 id="scena-s03-push-down-methodfield" tabindex="-1"><a class="header-anchor" href="#scena-s03-push-down-methodfield"><span>Scena s03. Push Down Method/Field</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s03_pushdown.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s03</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s03_pushdown.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s03</code></p>
+<p><strong>Zasada:</strong> Push Down zawęża zbyt szeroki kontrakt bazy do gałęzi, która naprawdę potrzebuje członka. Sygnałem jest <code>UnsupportedOperationException</code> lub wywołanie tylko po <code>instanceof</code>, a w bibliotece taki ruch łamie stare binaria.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Usuń z <code>Ticket</code> operację dopłaty VIP i związany z nią stan - ma zostać tylko tam, gdzie ma sens.</li>
 <li>Usuń override rzucający <code>UnsupportedOperationException</code>.</li>
@@ -115,8 +118,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> kolejność ma znaczenie: klienci, potem zachowanie korzystające z pola, na końcu pole.
 <strong>Gotowe, gdy:</strong> test zielony, <code>Ticket</code> nie ma <code>upgradeToVip()</code> ani pola VIP, <code>BoxOffice</code> nie używa <code>instanceof</code>.</p>
 <h2 id="scena-s04-extract-superclass" tabindex="-1"><a class="header-anchor" href="#scena-s04-extract-superclass"><span>Scena s04. Extract Superclass</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s04_extractsuperclass.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s04</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s04_extractsuperclass.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s04</code></p>
+<p><strong>Zasada:</strong> Extract Superclass ma sens, gdy klasy są wariantami jednego pojęcia ze wspólnym kontraktem, a nie tylko mają podobny kod. Konstruktory nie są dziedziczone, więc publiczne sygnatury trzeba zachować świadomie.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Wydziel wspólną nadklasę dla seansu i wynajmu sali z nazwą opisującą pojęcie domenowe.</li>
 <li>Dołączaj klasy do hierarchii pojedynczo, z testem po każdej.</li>
@@ -126,8 +130,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> zacznij od Refactor &gt; Extract Superclass na jednej klasie. Algorytm kolizji potrzebuje od podklas tylko nazwy do komunikatu.
 <strong>Gotowe, gdy:</strong> test zielony (w tym przypadek &quot;styk 20:00 to nie konflikt&quot;), nadklasa jest abstrakcyjna i ma prywatne pola, <code>HallPlanner</code> ma jedną pętlę.</p>
 <h2 id="scena-s05-extract-subclass" tabindex="-1"><a class="header-anchor" href="#scena-s05-extract-subclass"><span>Scena s05. Extract Subclass</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s05_extractsubclass.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s05</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s05_extractsubclass.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s05</code></p>
+<p><strong>Zasada:</strong> Extract Subclass tworzy podklasę dla stabilnego podzbioru instancji z dodatkowym stanem lub zachowaniem. Wariant zmienny w czasie życia obiektu to State lub Strategy, a nie podklasa.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Wydziel podklasę dla premier i przenieś do niej stan i zachowanie, które dotyczą tylko premier.</li>
 <li>Usuń flagę <code>premiere</code> i wszystkie <code>if (premiere)</code>.</li>
@@ -136,8 +141,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> zacznij od punktów tworzenia obiektów - to one mają wybierać klasę runtime.
 <strong>Gotowe, gdy:</strong> test zielony, zwykły seans nie ma pola gościa, a fabryka premiery zwraca obiekt podklasy.</p>
 <h2 id="scena-s06-extract-interface-i-metody-domyslne" tabindex="-1"><a class="header-anchor" href="#scena-s06-extract-interface-i-metody-domyslne"><span>Scena s06. Extract Interface i metody domyślne</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s06_extractinterface.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s06</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s06_extractinterface.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s06</code></p>
+<p><strong>Zasada:</strong> Extract Interface wydziela rolę potrzebną konkretnym klientom, a nie kopię całego API klasy. Metoda domyślna musi być poprawna dla każdej implementacji i korzystać tylko z operacji kontraktu.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Wydziel interfejs roli, której potrzebuje koszyk - tylko z operacjami, których <code>Cart</code> używa.</li>
 <li><code>Cart</code> ma mieć jedną listę pozycji i jedno <code>add(...)</code>.</li>
@@ -146,8 +152,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> w Extract Interface odznacz wszystko, czego koszyk nie woła. Nowa metoda interfejsu nie może łamać istniejących implementacji.
 <strong>Gotowe, gdy:</strong> test zielony, <code>Cart</code> nie importuje <code>Ticket</code> ani <code>Snack</code>, a nowa implementacja roli (np. okulary 3D za 3.00 z VAT 23%) działa bez zmian w koszyku.</p>
 <h2 id="scena-s07-collapse-hierarchy" tabindex="-1"><a class="header-anchor" href="#scena-s07-collapse-hierarchy"><span>Scena s07. Collapse Hierarchy</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s07_collapsehierarchy.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s07</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s07_collapsehierarchy.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s07</code></p>
+<p><strong>Zasada:</strong> Collapse Hierarchy scala poziomy, gdy rozróżnienie nie jest już kontraktem, wariantem ani punktem rozszerzenia. Pusty typ może jednak być markerem lub kontraktem konfiguracji, więc trzeba to sprawdzić przed usunięciem.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Usuń zbędny poziom hierarchii sal, zachowując nazwę klasy używaną przez klientów.</li>
 <li>Wiedza o regule VIP w sali IMAX nie może zniknąć.</li>
@@ -156,8 +163,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> najpierw pozbądź się metod, które tylko wołają <code>super</code>. Jedyna różnica między klasami to sposób tworzenia.
 <strong>Gotowe, gdy:</strong> test zielony, istnieje jedna finalna klasa <code>Hall</code>, sala IMAX ma VIP od przedostatniego rzędu.</p>
 <h2 id="scena-s08-replace-inheritance-with-composition" tabindex="-1"><a class="header-anchor" href="#scena-s08-replace-inheritance-with-composition"><span>Scena s08. Replace Inheritance with Composition</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s08_composition.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s08</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s08_composition.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s08</code></p>
+<p><strong>Zasada:</strong> Kompozycja zastępuje dziedziczenie, gdy <code>extends</code> służy tylko do ponownego użycia kodu. Dziedziczenie po cudzej klasie wiąże nas z jej self-use, czyli z tym, które metody wołają inne metody na <code>this</code>.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Uruchom test i wyjaśnij, dlaczego <code>addAll</code> z dwoma miejscami daje 4 kliknięcia.</li>
 <li>Zastąp dziedziczenie po <code>LinkedHashSet</code> delegatem.</li>
@@ -167,8 +175,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> Refactor &gt; Replace Inheritance with Delegation. Sprawdź, co zwraca wygenerowany getter.
 <strong>Gotowe, gdy:</strong> testy nie-<code>start</code> zielone, <code>addAll</code> liczy każde miejsce raz, <code>SeatSelection</code> nie jest <code>Set</code>, a lista miejsc zwracana klientowi jest niemodyfikowalna.</p>
 <h2 id="scena-s09-overriding-a-overloading" tabindex="-1"><a class="header-anchor" href="#scena-s09-overriding-a-overloading"><span>Scena s09. Overriding a overloading</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s09_overloading.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s09</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s09_overloading.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s09</code></p>
+<p><strong>Zasada:</strong> Override wybiera JVM w czasie wykonania według klasy obiektu, a przeciążenie wybiera kompilator według typu deklarowanego. Adnotacja <code>@Override</code> zamienia pomyłkę przeciążenia w błąd kompilacji.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Uruchom test i wyjaśnij, dlaczego student w <code>Checkout.total(List&lt;Ticket&gt;)</code> płaci pełną cenę, choć <code>PriceList</code> ma metodę dla <code>StudentTicket</code>.</li>
 <li>Popraw model tak, by zniżka zależała od klasy runtime biletu.</li>
@@ -177,8 +186,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> który z mechanizmów wybiera kompilator, a który JVM w czasie wykonania? Jak kompilator mógłby cię ostrzec przed drugim błędem?
 <strong>Gotowe, gdy:</strong> testy nie-<code>start</code> zielone, <code>PriceList</code> ma jedno <code>price(...)</code>, <code>equals</code> i <code>hashCode</code> są nadpisane z <code>@Override</code>.</p>
 <h2 id="scena-s10-ukrywanie-pol-i-metod-static" tabindex="-1"><a class="header-anchor" href="#scena-s10-ukrywanie-pol-i-metod-static"><span>Scena s10. Ukrywanie pól i metod static</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s10_fieldhiding.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s10</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s10_fieldhiding.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s10</code></p>
+<p><strong>Zasada:</strong> Pola i metody <code>static</code> nie są polimorficzne - wiąże je kompilator według typu referencji. Pole redeklarowane w podklasie to drugi, niezależny slot w tym samym obiekcie.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Wyjaśnij, dlaczego <code>new StudentTicket().label()</code> zwraca <code>&quot;BILET: NORMAL&quot;</code>.</li>
 <li>Usuń ukrywanie pola.</li>
@@ -187,8 +197,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> pola i metody <code>static</code> są wiązane według typu, w którym stoi odwołanie.
 <strong>Gotowe, gdy:</strong> testy nie-<code>start</code> zielone, <code>label()</code> studenta zwraca <code>&quot;BILET ULGOWY: STUDENT&quot;</code> niezależnie od typu referencji.</p>
 <h2 id="scena-s11-konstruktor-wolajacy-metode-nadpisywalna" tabindex="-1"><a class="header-anchor" href="#scena-s11-konstruktor-wolajacy-metode-nadpisywalna"><span>Scena s11. Konstruktor wołający metodę nadpisywalną</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s11_constructorcall.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s11</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s11_constructorcall.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s11</code></p>
+<p><strong>Zasada:</strong> Konstruktor nadklasy wykonuje się przed przypisaniem pól podklasy, więc wywołany z niego override widzi obiekt w połowie zbudowany. Bezpieczny konstruktor nie woła metod nadpisywalnych.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Znajdź przyczynę <code>&quot;null&quot;</code> w etykiecie biletu VIP i ostrzeżenie kompilatora, które ją zapowiada.</li>
 <li>Napraw błąd najpierw lokalnie w <code>VipTicket</code>, potem strukturalnie w <code>Ticket</code>.</li>
@@ -196,8 +207,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> Java 25 pozwala na instrukcje przed <code>super(...)</code>. Czy to wystarczy dla następnej podklasy?
 <strong>Gotowe, gdy:</strong> testy nie-<code>start</code> zielone, konstruktor <code>Ticket</code> nie woła metod nadpisywalnych i nie ma ostrzeżenia <code>this-escape</code>.</p>
 <h2 id="scena-s12-generyki-i-metody-bridge" tabindex="-1"><a class="header-anchor" href="#scena-s12-generyki-i-metody-bridge"><span>Scena s12. Generyki i metody bridge</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s12_bridgemethods.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s12</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s12_bridgemethods.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s12</code></p>
+<p><strong>Zasada:</strong> Po erasure generyczna metoda ma w bajtkodzie inną sygnaturę, więc kompilator dodaje syntetyczne metody bridge. Źródło ich nie pokazuje, ale refleksja je widzi.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Wydziel generyczny interfejs reguły cenowej <code>PriceRule&lt;T extends Ticket&gt;</code>.</li>
 <li>Gdy test zrobi się czerwony, znajdź przyczynę (<code>javap -p</code> na klasie reguły) i napraw rejestr.</li>
@@ -206,8 +218,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> co robi kompilator z <code>apply(T)</code> po erasure, gdy implementacja ma konkretne <code>T</code>?
 <strong>Gotowe, gdy:</strong> test zielony, <code>RuleRegistry</code> nie używa <code>java.lang.reflect</code>, a brak reguły kończy się czytelnym wyjątkiem.</p>
 <h2 id="scena-s13-hierarchie-sealed" tabindex="-1"><a class="header-anchor" href="#scena-s13-hierarchie-sealed"><span>Scena s13. Hierarchie sealed</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s13_sealed.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s13</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s13_sealed.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s13</code></p>
+<p><strong>Zasada:</strong> <code>sealed</code> zamyka listę podtypów, a <code>switch</code> bez <code>default</code> pozwala kompilatorowi sprawdzić, czy obsłużono wszystkie warianty. Ochrona działa tylko przy rekompilacji kodu, który używa <code>switch</code>.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Zamknij hierarchię biletów.</li>
 <li>Zastąp łańcuch <code>instanceof</code> wyczerpującym <code>switch</code> bez <code>default</code>.</li>
@@ -216,8 +229,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> po kroku 3 przeczytaj test <code>oldExhaustiveSwitchThrowsMatchExceptionForNewVariant</code> - co się dzieje ze skompilowanym wcześniej <code>switch</code>?
 <strong>Gotowe, gdy:</strong> testy nie-<code>start</code> zielone, bilet dziecięcy za 25.00 kosztuje 15.00, w <code>PriceCalculator</code> nie ma <code>default</code> ani <code>instanceof</code>.</p>
 <h2 id="scena-s14-wspoldzielenie-implementacji-a-podtypowanie" tabindex="-1"><a class="header-anchor" href="#scena-s14-wspoldzielenie-implementacji-a-podtypowanie"><span>Scena s14. Współdzielenie implementacji a podtypowanie</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s14_reuse.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s14</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s14_reuse.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s14</code></p>
+<p><strong>Zasada:</strong> Wspólny kod uzasadnia współpracownika, a dziedziczenie dopiero wspólny kontrakt. Podtyp, który blokuje odziedziczoną operację wyjątkiem, łamie zasadę podstawienia.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Wskaż, który kontrakt <code>LoyaltyAccount</code> łamie <code>CorporateAccount</code>.</li>
 <li>Wydziel współdzieloną logikę punktów do osobnej klasy.</li>
@@ -226,8 +240,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> osobno odpowiedz na pytania &quot;czy mają ten sam kod?&quot; i &quot;czy są wariantami jednego pojęcia?&quot;.
 <strong>Gotowe, gdy:</strong> test zielony, <code>CorporateAccount</code> nie jest <code>LoyaltyAccount</code> i nie ma metody wymiany punktów, <code>LoyaltyReport</code> przyjmuje oba konta.</p>
 <h2 id="scena-s15-zgodnosc-binarna-refleksja-i-adnotacje" tabindex="-1"><a class="header-anchor" href="#scena-s15-zgodnosc-binarna-refleksja-i-adnotacje"><span>Scena s15. Zgodność binarna, refleksja i adnotacje</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s15_compatibility.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s15</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s15_compatibility.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s15</code></p>
+<p><strong>Zasada:</strong> Zgodność ma kilka warstw: źródłową, binarną, refleksyjną i inne - pełny build sprawdza tylko pierwszą. Przeniesienie członka lub zmiana typu parametru może zmienić to, co widzą stare binaria i refleksja.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Przenieś <code>price()</code> (z adnotacją <code>@Column</code>) do <code>Ticket</code>, nie psując eksportu CSV.</li>
 <li>Zmień <code>BoxOfficeApi.quote</code> tak, by przyjmowało każdy bilet.</li>
@@ -236,8 +251,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> przeczytaj <code>S15SolutionTest</code> - kompiluje wtyczkę przeciw jednej wersji i uruchamia z inną. Zastanów się, która zmiana jest zgodna źródłowo, a która binarnie.
 <strong>Gotowe, gdy:</strong> test zielony, eksport daje <code>Amator;cena=18.75</code>, stara sygnatura <code>quote(StudentTicket)</code> jest dostępna jako przestarzała i deleguje do nowej.</p>
 <h2 id="scena-s16-serializacja-i-proxy" tabindex="-1"><a class="header-anchor" href="#scena-s16-serializacja-i-proxy"><span>Scena s16. Serializacja i proxy</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s16_serializationproxy.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s16</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m5.s16_serializationproxy.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m5/<wbr>s16</code></p>
+<p><strong>Zasada:</strong> Serializacja Javy zapisuje osobny segment dla każdego poziomu hierarchii, więc ruch pola zmienia format danych, a stały <code>serialVersionUID</code> tego nie naprawia. Dynamiczne proxy JDK potrafi opakować tylko interfejsy.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Wydziel nadklasę <code>Ticket</code> z polami <code>title</code> i <code>seat</code> i sprawdź w teście, co się dzieje z danymi zapisanymi przez starą wersję.</li>
 <li>Uniezależnij postać serializowaną od hierarchii klas.</li>

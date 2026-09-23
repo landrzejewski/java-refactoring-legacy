@@ -90,8 +90,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <li>Liczby domenowe: 2D 25.00, 3D 32.00, IMAX 40.00; zniżki STUDENT 25%, SENIOR 30%, CHILD 40%; seans przed 12:00 -5.00; VIP +10.00; okulary 3D +3.00; opłata rezerwacyjna online 2.00 za bilet; zwrot 100% / 50% / 0% minus 3.00.</li>
 </ul>
 <h2 id="scena-s01-dry-jedna-wiedza-dwie-reprezentacje" tabindex="-1"><a class="header-anchor" href="#scena-s01-dry-jedna-wiedza-dwie-reprezentacje"><span>Scena s01. DRY - jedna wiedza, dwie reprezentacje</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m3.s01_dryknowledge.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m3/<wbr>s01</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m3.s01_dryknowledge.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m3/<wbr>s01</code></p>
+<p><strong>Zasada:</strong> DRY dotyczy wiedzy, nie tekstu: jedna reguła biznesowa powinna mieć jedną autorytatywną reprezentację, nawet jeśli jej kopie są napisane zupełnie inaczej.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Znajdź w <code>BoxOffice</code> wiedzę zapisaną dwa razy (choć tekst jest różny).</li>
 <li>Doprowadź do tego, żeby reguła ceny biletu miała jedną, nazwaną reprezentację.</li>
@@ -100,8 +101,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> najpierw nadaj obu kopiom nazwy (Extract Method), potem zastąp jedną drugą i pozwól testowi rozstrzygnąć, czy liczyły to samo.
 <strong>Gotowe, gdy:</strong> test zielony, zmiana zniżki studenckiej wymaga edycji jednego miejsca, a reguły zwrotu nie trafiły do klasy z ceną biletu.</p>
 <h2 id="scena-s02-podobienstwo-to-nie-duplikacja" tabindex="-1"><a class="header-anchor" href="#scena-s02-podobienstwo-to-nie-duplikacja"><span>Scena s02. Podobieństwo to nie duplikacja</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m3.s02_similarity.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m3/<wbr>s02</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m3.s02_similarity.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m3/<wbr>s02</code></p>
+<p><strong>Zasada:</strong> Podobny kod nie oznacza tej samej wiedzy - o duplikacji decyduje to, czy reguły zmieniają się razem i dla tego samego właściciela. Scalenie niezależnych reguł tworzy fałszywą zależność.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Oceń klasę <code>ServiceFee</code>: jaką wiedzę reprezentuje i kto jest właścicielem każdej z reguł?</li>
 <li>Rozdziel fałszywie scaloną wiedzę tak, żeby zmiana opłaty rezerwacyjnej nie mogła wpłynąć na zwroty.</li>
@@ -110,8 +112,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> tymczasowe powtórzenie kodu jest dozwolone - zacznij od Inline Method.
 <strong>Gotowe, gdy:</strong> test zielony, <code>ServiceFee</code> nie istnieje, każda kwota jest stałą u swojego właściciela.</p>
 <h2 id="scena-s03-falszywa-abstrakcja-z-flagami" tabindex="-1"><a class="header-anchor" href="#scena-s03-falszywa-abstrakcja-z-flagami"><span>Scena s03. Fałszywa abstrakcja z flagami</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m3.s03_falseabstraction.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m3/<wbr>s03</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m3.s03_falseabstraction.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m3/<wbr>s03</code></p>
+<p><strong>Zasada:</strong> Fałszywa abstrakcja łączy konteksty bez wspólnej wiedzy i rośnie przez kolejne flagi. Naprawia się ją, przenosząc kod z powrotem do kontekstów pod ochroną testów i wydzielając tylko potwierdzoną wiedzę.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Usuń metodę <code>Pricing.price</code> sterowaną flagami <code>boolean</code>.</li>
 <li>Zostaw w <code>TicketCounter</code> i <code>PassCounter</code> tylko tę logikę, która ich dotyczy.</li>
@@ -120,8 +123,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> Inline Method, potem Inline Variable dla stałych argumentów i ⌥⏎ Simplify.
 <strong>Gotowe, gdy:</strong> test zielony, żadna metoda nie przyjmuje flagi <code>boolean</code>, której wywołujący nie potrzebuje, a <code>PassCounter</code> nie wie nic o formatach.</p>
 <h2 id="scena-s04-dry-w-testach-i-niezalezna-wyrocznia" tabindex="-1"><a class="header-anchor" href="#scena-s04-dry-w-testach-i-niezalezna-wyrocznia"><span>Scena s04. DRY w testach i niezależna wyrocznia</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m3.s04_drytests.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m3/<wbr>s04</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m3.s04_drytests.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m3/<wbr>s04</code></p>
+<p><strong>Zasada:</strong> W testach warto współdzielić fabryki danych i helpery, ale oczekiwana wartość musi pochodzić z niezależnego źródła, a nie z algorytmu, który test sprawdza. Czytelne, nazwane przypadki (DAMP) są ważniejsze niż maksymalne DRY.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Przepisz <code>TicketPriceSpecs</code> tak, żeby każdy przypadek miał czytelną nazwę i jawne dane wejściowe (bez szyfru &quot;3D S 11&quot;).</li>
 <li>Spraw, żeby komunikat o błędzie mówił, który przypadek, jaka oczekiwana i jaka faktyczna cena.</li>
@@ -130,8 +134,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> sprawdź się w teście: dla taryfy ze zniżką studencką 20% zamiast 25% Twoja specyfikacja musi zgłosić dokładnie jeden problem.
 <strong>Gotowe, gdy:</strong> test zielony, <code>run</code> dla poprawnej taryfy zwraca pustą listę, a dla błędnej zgłasza przypadek studenta na porannym seansie 3D.</p>
 <h2 id="scena-s05-kiss-zlozonosc-wprowadzona-kontra-istotna" tabindex="-1"><a class="header-anchor" href="#scena-s05-kiss-zlozonosc-wprowadzona-kontra-istotna"><span>Scena s05. KISS - złożoność wprowadzona kontra istotna</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m3.s05_kiss.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m3/<wbr>s05</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m3.s05_kiss.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m3/<wbr>s05</code></p>
+<p><strong>Zasada:</strong> KISS to najmniej złożone rozwiązanie, które poprawnie spełnia wymagania: usuwamy złożoność wprowadzoną, a istotną zostawiamy i nazywamy. Krótszy kod nie zawsze jest prostszy.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Usuń refleksję wybierającą rodzaj miejsc po napisie.</li>
 <li>Zastąp wyrażenie regularne i strumień indeksów prostszym algorytmem.</li>
@@ -140,8 +145,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> przed uproszczeniem przeczytaj przypadki testowe - jest wśród nich rząd z miejscem zablokowanym i przejściem.
 <strong>Gotowe, gdy:</strong> test zielony, IDE nie pokazuje nieużywanych metod, a w klasie nie ma <code>java.lang.reflect</code> ani <code>java.util.regex</code>.</p>
 <h2 id="scena-s06-yagni-silnik-regul-dla-dwoch-regul" tabindex="-1"><a class="header-anchor" href="#scena-s06-yagni-silnik-regul-dla-dwoch-regul"><span>Scena s06. YAGNI - silnik reguł dla dwóch reguł</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m3.s06_yagni.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m3/<wbr>s06</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m3.s06_yagni.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m3/<wbr>s06</code></p>
+<p><strong>Zasada:</strong> YAGNI mówi, żeby nie budować mechanizmów dla przewidywanych wymagań, tylko dla aktualnych. Nie zabrania testów, refaktoryzacji ani czytelnych nazw.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Przejdź filtr decyzyjny: jakie aktualne wymaganie uzasadnia rejestr, konfigurację napisem, priorytety i kontekst <code>Map</code>?</li>
 <li>Uprość <code>TicketPricer</code> w kilku krokach, zachowując publiczne <code>new TicketPricer()</code> i <code>price(TicketQuote)</code>.</li>
@@ -150,8 +156,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> zacznij od elementu, którego nikt nie używa (konfiguracja napisem), potem typowane dane, na końcu same reguły.
 <strong>Gotowe, gdy:</strong> test zielony, zostało najwyżej kilka nazwanych metod w jednej klasie, a literówka w nazwie reguły nie może przejść kompilacji.</p>
 <h2 id="scena-s07-srp-raport-dla-dwoch-aktorow" tabindex="-1"><a class="header-anchor" href="#scena-s07-srp-raport-dla-dwoch-aktorow"><span>Scena s07. SRP - raport dla dwóch aktorów</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m3.s07_srp.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m3/<wbr>s07</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m3.s07_srp.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m3/<wbr>s07</code></p>
+<p><strong>Zasada:</strong> SRP oznacza jeden aktor i jeden powód zmiany dla modułu, a nie &quot;jedną rzecz&quot; czy jedną metodę na klasę.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Wskaż aktorów, dla których <code>DailyReport</code> się zmienia, i helper, który ich łączy.</li>
 <li>Podziel raport tak, żeby zmiana definicji &quot;hitu dnia&quot; nie mogła zmienić kwot księgowości.</li>
@@ -160,8 +167,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> komentarze w kodzie już nazywają aktorów. Wspólny helper rozdziel, zanim wydzielisz klasy.
 <strong>Gotowe, gdy:</strong> test zielony, każda sekcja jest w klasie swojego aktora, a <code>DailyReport</code> tylko składa wynik.</p>
 <h2 id="scena-s08-ocp-na-wybranej-osi-formaty-seansu" tabindex="-1"><a class="header-anchor" href="#scena-s08-ocp-na-wybranej-osi-formaty-seansu"><span>Scena s08. OCP na wybranej osi - formaty seansu</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m3.s08_ocp.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m3/<wbr>s08</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m3.s08_ocp.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m3/<wbr>s08</code></p>
+<p><strong>Zasada:</strong> OCP to możliwość rozszerzenia wybranego zachowania bez modyfikowania stabilnej części kodu. Zamyka się kod na jedną realną oś zmian, a nie każdy <code>switch</code> jest naruszeniem.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Usuń rozproszenie wiedzy o formatach po kilku <code>switch</code> na napisach.</li>
 <li>Doprowadź do stanu, w którym nowy format wymaga zmiany w jednym miejscu, a <code>ScreeningOffer</code> się nie zmienia.</li>
@@ -170,8 +178,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> formaty to dane, nie algorytmy - rozważ enum z polami zamiast hierarchii klas.
 <strong>Gotowe, gdy:</strong> test zielony, 4DX kosztuje 48.00 bez własnych okularów i 45.00 z własnymi, a dodanie 4DX nie zmieniło <code>ScreeningOffer</code>.</p>
 <h2 id="scena-s09-lsp-i-test-kontraktowy" tabindex="-1"><a class="header-anchor" href="#scena-s09-lsp-i-test-kontraktowy"><span>Scena s09. LSP i test kontraktowy</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m3.s09_lsp.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m3/<wbr>s09</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m3.s09_lsp.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m3/<wbr>s09</code></p>
+<p><strong>Zasada:</strong> LSP wymaga, by podtyp spełniał kontrakt typu bazowego: nie wzmacnia warunków wstępnych i nie osłabia końcowych. Sprawdza się to testem kontraktowym uruchamianym dla każdej implementacji.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Przeczytaj kontrakt <code>Hall.reserve</code> i test <code>S09ContractTest</code>. Który podtyp go łamie i dlaczego?</li>
 <li>Przebuduj typy tak, żeby sala archiwalna spełniała wszystkie kontrakty, które obiecuje.</li>
@@ -180,8 +189,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> raport potrzebuje tylko odczytu planu miejsc. Extract Interface, potem Replace Inheritance with Delegation.
 <strong>Gotowe, gdy:</strong> test zielony, <code>ReadOnlyHall</code> nie rzuca <code>UnsupportedOperationException</code>, a próba przekazania jej do kasy nie kompiluje się.</p>
 <h2 id="scena-s10-isp-z-perspektywy-klienta" tabindex="-1"><a class="header-anchor" href="#scena-s10-isp-z-perspektywy-klienta"><span>Scena s10. ISP z perspektywy klienta</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m3.s10_isp.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m3/<wbr>s10</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m3.s10_isp.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m3/<wbr>s10</code></p>
+<p><strong>Zasada:</strong> ISP mówi, że klient powinien zależeć tylko od metod, których używa, więc interfejsy projektuje się według ról klientów, a nie według implementacji.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Dla każdego klienta (<code>CashDesk</code>, <code>RevenueReport</code>, <code>ScheduleBoard</code>) wypisz metody <code>CinemaAdminService</code>, których naprawdę używa.</li>
 <li>Wprowadź interfejsy ról i przepnij klientów.</li>
@@ -190,8 +200,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> policz, ile metod musiałby mieć fake w teście kasy przed i po zmianie.
 <strong>Gotowe, gdy:</strong> test zielony, każdy klient zależy tylko od swojej roli, a fake kasy ma dwie metody.</p>
 <h2 id="scena-s11-dip-kierunek-zaleznosci-kontra-przeplyw-sterowania" tabindex="-1"><a class="header-anchor" href="#scena-s11-dip-kierunek-zaleznosci-kontra-przeplyw-sterowania"><span>Scena s11. DIP - kierunek zależności kontra przepływ sterowania</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m3.s11_dip.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m3/<wbr>s11</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m3.s11_dip.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m3/<wbr>s11</code></p>
+<p><strong>Zasada:</strong> DIP dotyczy kierunku zależności źródłowych: szczegóły mają zależeć od polityki, a nie odwrotnie. Wstrzyknięcie konkretnej klasy przez konstruktor to dependency injection, ale jeszcze nie DIP.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Narysuj strzałki importów i wywołań między <code>app</code> i <code>infra</code>.</li>
 <li>Wstrzyknij zależność przez konstruktor i sprawdź, czy kierunek importu się zmienił.</li>
@@ -200,8 +211,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> nie rób Extract Interface z <code>SmtpMailSender</code> - najpierw wydziel metodę, która mówi, czego potrzebuje polityka.
 <strong>Gotowe, gdy:</strong> test zielony, żaden plik w <code>app</code> nie importuje <code>infra</code>, a przypadek użycia da się przetestować lambdą zamiast SMTP.</p>
 <h2 id="scena-s12-clean-architecture-use-case-dane-na-granicy-composition-root" tabindex="-1"><a class="header-anchor" href="#scena-s12-clean-architecture-use-case-dane-na-granicy-composition-root"><span>Scena s12. Clean Architecture - use case, dane na granicy, composition root</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m3.s12_cleanarchitecture.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m3/<wbr>s12</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m3.s12_cleanarchitecture.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m3/<wbr>s12</code></p>
+<p><strong>Zasada:</strong> Polityka aplikacji nie powinna zależeć od mechanizmów (HTTP, baza, broker): potrzeby wnętrza wyrażają porty, szczegóły realizują adaptery, a graf składa jedno miejsce bez reguł biznesowych.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Wydziel przypadek użycia rezerwacji z kontrolera; wejście i wyjście jako rekordy.</li>
 <li>Zastąp bezpośrednie użycie <code>RowStore</code> i <code>Outbox</code> portami zdefiniowanymi przez przypadek użycia i adapterami.</li>
@@ -211,8 +223,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> kolejność &quot;zapis, potem powiadomienie&quot; to decyzja protokołu - niech będzie jawna w przypadku użycia.
 <strong>Gotowe, gdy:</strong> test zielony, <code>app</code> nie importuje <code>adapter</code> ani <code>RowStore</code>/<code>Outbox</code>, kontroler tylko tłumaczy żądanie i odpowiedź, a <code>CinemaApplication</code> nie zawiera reguł biznesowych.</p>
 <h2 id="scena-s13-automatyczna-ochrona-granicy-i-diagnostyka-spojnosci" tabindex="-1"><a class="header-anchor" href="#scena-s13-automatyczna-ochrona-granicy-i-diagnostyka-spojnosci"><span>Scena s13. Automatyczna ochrona granicy i diagnostyka spójności</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m3.s13_boundarycheck.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m3/<wbr>s13</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m3.s13_boundarycheck.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m3/<wbr>s13</code></p>
+<p><strong>Zasada:</strong> Spójność (elementy zmieniają się z jednego powodu) i kierunek zależności (domena nie zna technologii) to dwa niezależne wymiary. Reguły granic warto sprawdzać automatycznie, a metryki traktować jako sygnał, nie wyrocznię.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Uruchom test i odczytaj z konsoli naruszenia granicy oraz wynik LCOM4 dla <code>ScreeningService</code>.</li>
 <li>Popraw spójność <code>ScreeningService</code>, a potem kierunek zależności, tak żeby pakiet <code>domain</code> nie importował <code>adapter</code> ani <code>java.sql</code>.</li>
@@ -221,8 +234,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> spójność i kierunek zależności to dwa osobne kroki - sprawdź oba wskaźniki po każdym z nich.
 <strong>Gotowe, gdy:</strong> test zielony, lista naruszeń dla <code>start/<wbr>domain</code> jest pusta, a LCOM4 każdej klasy wynosi 1.</p>
 <h2 id="scena-s14-wzorzec-jako-decyzja-odwracalna" tabindex="-1"><a class="header-anchor" href="#scena-s14-wzorzec-jako-decyzja-odwracalna"><span>Scena s14. Wzorzec jako decyzja odwracalna</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m3.s14_reversiblepattern.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m3/<wbr>s14</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m3.s14_reversiblepattern.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m3/<wbr>s14</code></p>
+<p><strong>Zasada:</strong> Wzorzec projektowy to odpowiedź na konkretne siły, a nie kod na zapas - gdy siły znikają, wzorzec można usunąć. Refaktoryzacja od wzorca jest równie poprawna jak do wzorca.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Wprowadź Strategy dla dwóch istniejących modeli rozliczeń; dla modelu festiwalowego napisz Adapter do <code>FestivalTariffClient</code>.</li>
 <li>Umowy festiwalowe wygasły: usuń ten wariant (to świadoma zmiana zachowania).</li>
@@ -231,8 +245,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> po każdym kroku test równoważności dla modelu procentowego musi być zielony. Sygnały nadmiaru wzorca: jedna implementacja, mapa z jednym wpisem.
 <strong>Gotowe, gdy:</strong> test zielony, rozliczenie procentowe daje te same kwoty co na początku, model FESTIVAL jest odrzucany, a w kodzie nie zostały nieużywane typy.</p>
 <h2 id="scena-s15-inwarianty-w-modelu-domeny" tabindex="-1"><a class="header-anchor" href="#scena-s15-inwarianty-w-modelu-domeny"><span>Scena s15. Inwarianty w modelu domeny</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m3.s15_invariants.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m3/<wbr>s15</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m3.s15_invariants.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m3/<wbr>s15</code></p>
+<p><strong>Zasada:</strong> Inwariant to warunek, który obiekt domeny spełnia zawsze, niezależnie od ścieżki, którą powstał. Jego właścicielem powinien być sam model, a nie każdy serwis z osobna.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Sprawdź, ile ścieżek tworzy <code>Reservation</code> i które z nich walidują dane.</li>
 <li>Uczyń rezerwację niezmienną.</li>
@@ -241,8 +256,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> IntelliJ potrafi zamienić klasę na record (⌥⏎), a record ma kompaktowy konstruktor.
 <strong>Gotowe, gdy:</strong> test zielony, <code>BookingService</code> nie zawiera już walidacji, a import wiersza <code>jan-kino.pl;0;-5.00</code> kończy się wyjątkiem.</p>
 <h2 id="scena-s16-sprzezenie-protokolu-ukryta-kolejnosc-wywolan" tabindex="-1"><a class="header-anchor" href="#scena-s16-sprzezenie-protokolu-ukryta-kolejnosc-wywolan"><span>Scena s16. Sprzężenie protokołu - ukryta kolejność wywołań</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m3.s16_temporalcoupling.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m3/<wbr>s16</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m3.s16_temporalcoupling.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m3/<wbr>s16</code></p>
+<p><strong>Zasada:</strong> Sprzężenie czasowe to ukryte wymaganie kolejności wywołań, którego nie widać w typach. Usuwa się je, zamieniając stan i kolejność na jawne, kompletne dane wejściowe.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Zakomentuj jedno z wywołań <code>select...</code> w <code>TicketDesk</code> i uruchom test - zobacz, gdzie i jak objawia się błąd. Cofnij zmianę.</li>
 <li>Usuń z <code>TicketPrinter</code> stan i wymagany protokół wywołań.</li>

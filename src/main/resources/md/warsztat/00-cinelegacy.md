@@ -19,6 +19,7 @@ src/test/java/pl/training/workshop/
     m6/s08_state/S08EquivalenceTest, S08SolutionTest ...
 ```
 
+- Każda scena w przewodniku zaczyna się od sekcji "W skrócie": co robimy, na czym polega zasada lub technika i jaki jest efekt. Można ją przeczytać sali przed pokazem.
 - `start` zawiera zapach albo pułapkę. Prowadzący otwiera go w IntelliJ i wykonuje ruchy opisane w przewodniku.
 - `stepN` to kompletny stan kodu po kroku N. Klasy mają te same nazwy co w `start`, różni się tylko pakiet. Ostatni krok jest rozwiązaniem wzorcowym.
 - Test równoważności sceny uruchamia **te same przypadki** na `start` i na każdym kroku. Jeśli po ruchu na żywo test jest zielony, zachowanie się nie zmieniło.
@@ -31,8 +32,12 @@ scripts/warsztat.sh list            # wszystkie sceny i ich kroki
 scripts/warsztat.sh list m6         # sceny jednego modułu
 scripts/warsztat.sh test m6/s08     # testy jednej sceny (mvn)
 scripts/warsztat.sh test m6         # testy całego modułu
-scripts/warsztat.sh diff m6/s08 1 2 # co dokładnie zmienia krok 2 (0 = start)
+scripts/warsztat.sh diff m6/s08 1 2 # co dokładnie zmienia krok 2 (0 = start), w kolorach
+scripts/warsztat.sh diff m6/s08 1 2 --word  # zmiany podświetlone w obrębie linii
 scripts/warsztat.sh jump m6/s08 2   # skopiuj step2 do start - przeskok, gdy brakuje czasu
+scripts/warsztat.sh next            # następny krok do start (ostatnio używana scena)
+scripts/warsztat.sh prev            # krok wstecz
+scripts/warsztat.sh status          # który krok jest teraz w start
 scripts/warsztat.sh reset m6/s08    # przywróć start z repozytorium po pokazie
 scripts/warsztat.sh html            # wygeneruj strony HTML z md/warsztat (Node.js)
 ```
@@ -45,7 +50,9 @@ Pętla pokazu dla każdego kroku:
 2. Wykonaj ruch w IDE, najlepiej automatyczną refaktoryzacją ze skrótem z przewodnika.
 3. `scripts/warsztat.sh test mM/sNN`, czyli zielony test.
 4. Jedno zdanie komentarza ("Co powiedzieć").
-5. Jeśli coś się rozjedzie: `jump` do gotowego kroku i kontynuujesz.
+5. Jeśli coś się rozjedzie albo brakuje czasu: `next` wstawia gotowy następny krok i pokazuje, co się zmieniło. Skrypt pamięta ostatnią scenę, więc wystarczy samo `scripts/warsztat.sh next`.
+
+Diff jest kolorowy w terminalu (git diff). Jeśli zainstalujesz `delta` (`brew install git-delta`), skrypt użyje go automatycznie: dostaniesz podświetlanie składni Javy i numery linii, co dobrze wygląda na rzutniku.
 
 W IntelliJ wygodnie jest uruchamiać test sceny z gutter (ikona przy klasie `SNNEquivalenceTest`) i ustawić go jako ostatnią konfigurację (⌃R).
 

@@ -6,6 +6,9 @@ Przy każdej scenie zadaj sobie pytanie ze slajdu "Wektor obserwowalnego zachowa
 
 ## Scena s01. Break Dependencies - seam dla zadania przypomnień
 **Pakiet:** `pl.training.workshop.m7.s01_breakdependencies.start` · **Test:** `scripts/warsztat.sh test m7/s01`
+
+**Zasada:** Break Dependencies tworzy seam, czyli miejsce, w którym można podstawić inną implementację zależności bez edycji algorytmu. Wybiera się najwęższy skuteczny seam, który nie zmienia czasu życia ani momentu tworzenia zależności.
+
 **Zadanie:**
 1. Uruchom `ShowtimeReminderJob.run()` w teście i zapisz, co stoi na przeszkodzie (są trzy przeszkody).
 2. Usuń przeszkody po kolei, każdą osobnym ruchem, tak aby produkcyjny konstruktor bezargumentowy nadal składał te same implementacje.
@@ -17,6 +20,9 @@ Przy każdej scenie zadaj sobie pytanie ze slajdu "Wektor obserwowalnego zachowa
 
 ## Scena s02. Extract Method Object - wycena zamówienia grupowego
 **Pakiet:** `pl.training.workshop.m7.s02_methodobject.start` · **Test:** `scripts/warsztat.sh test m7/s02`
+
+**Zasada:** Extract Method Object przenosi metodę do krótko żyjącego obiektu, którego pola niosą stan lokalny. Stosuje się go, gdy splątane zmienne lokalne blokują zwykłe ekstrakcje.
+
 **Zadanie:**
 1. Spróbuj Extract Method na pętli w `GroupPricing.quote` i zapisz, dlaczego się nie udaje.
 2. Przenieś algorytm do obiektu metody tak, aby publiczne API `GroupPricing` się nie zmieniło.
@@ -27,6 +33,9 @@ Przy każdej scenie zadaj sobie pytanie ze slajdu "Wektor obserwowalnego zachowa
 
 ## Scena s03. Break Responsibilities - walidacja, wycena, powiadomienie
 **Pakiet:** `pl.training.workshop.m7.s03_breakresponsibilities.start` · **Test:** `scripts/warsztat.sh test m7/s03`
+
+**Zasada:** Odpowiedzialność to powód zmiany, a nie liczba metod czy linii. Każdy wydzielony fragment powinien mieć jeden powód zmiany, a każdy stan jednego właściciela.
+
 **Zadanie:**
 1. Wypisz powody zmiany `BookingDesk.book` i kto w kinie za nimi stoi.
 2. Wydziel każdą odpowiedzialność do osobnej klasy, jedną na raz.
@@ -37,6 +46,9 @@ Przy każdej scenie zadaj sobie pytanie ze slajdu "Wektor obserwowalnego zachowa
 
 ## Scena s04. Remove Duplication - rabat grupowy w kasie i w sklepie
 **Pakiet:** `pl.training.workshop.m7.s04_removeduplication.start` · **Test:** `scripts/warsztat.sh test m7/s04`
+
+**Zasada:** Usuwamy duplikację wiedzy, czyli tej samej reguły, która zmienia się razem, a nie podobnego tekstu. Różnice między kopiami trzeba najpierw ujawnić i rozstrzygnąć, a dopiero potem łączyć.
+
 **Zadanie:**
 1. Znajdź regułę zapisaną dwa razy w `BoxOffice` i `WebShop` i opisz wszystkie różnice w zapisie.
 2. Ujednolić zapis w obu klasach tak, żeby różniły się tylko tym, co naprawdę jest różne. Test ma być zielony bez zmian.
@@ -48,6 +60,9 @@ Przy każdej scenie zadaj sobie pytanie ze slajdu "Wektor obserwowalnego zachowa
 
 ## Scena s05. Break Method - repertuar dnia
 **Pakiet:** `pl.training.workshop.m7.s05_breakmethod.start` · **Test:** `scripts/warsztat.sh test m7/s05`
+
+**Zasada:** Break Method to seria małych ekstrakcji, po której metoda opisuje algorytm na jednym poziomie abstrakcji. Fragmenty przenosi się dosłownie, a nazwę nadaje po teście.
+
 **Zadanie:**
 1. Rozbij `RepertoireBuilder.build` na etapy tak, aby metoda publiczna była na jednym poziomie abstrakcji.
 2. Zacznij od etapu z najmniejszą liczbą wejść i wyjść.
@@ -58,6 +73,9 @@ Przy każdej scenie zadaj sobie pytanie ze slajdu "Wektor obserwowalnego zachowa
 
 ## Scena s06. Introduce Parameter Object - termin seansu
 **Pakiet:** `pl.training.workshop.m7.s06_parameterobject.start` · **Test:** `scripts/warsztat.sh test m7/s06`
+
+**Zasada:** Parameter Object nazywa jedno pojęcie ukryte w grupie parametrów, które zawsze chodzą razem, i przyciąga związane z nim zachowanie. Walidacja w nowym typie zmienia moment zgłoszenia błędu, więc jest zmianą kontraktu.
+
 **Zadanie:**
 1. Nazwij pojęcie, które ukrywa czwórka parametrów w `ScreeningPlanner`, i wprowadź dla niego typ.
 2. Zostaw stare sygnatury na okres migracji.
@@ -69,6 +87,9 @@ Przy każdej scenie zadaj sobie pytanie ze slajdu "Wektor obserwowalnego zachowa
 
 ## Scena s07. Remove Arrowhead Antipattern - bramka rezerwacji
 **Pakiet:** `pl.training.workshop.m7.s07_arrowhead.start` · **Test:** `scripts/warsztat.sh test m7/s07`
+
+**Zasada:** Guard clauses wyciągają przypadki kończące przetwarzanie na początek metody, dzięki czemu główna ścieżka nie jest zagnieżdżona. Spłaszczenie jest bezpieczne tylko przy zachowanym priorytecie warunków i nieominiętych efektach na końcu metody.
+
 **Zadanie:**
 1. Spłaszcz `BookingGate.book` do guard clauses.
 2. Nie zgub wpisu do audytu dla żadnej ścieżki.
@@ -79,6 +100,9 @@ Przy każdej scenie zadaj sobie pytanie ze slajdu "Wektor obserwowalnego zachowa
 
 ## Scena s08. Introduce Design by Contract Checks - pula miejsc
 **Pakiet:** `pl.training.workshop.m7.s08_designbycontract.start` · **Test:** `scripts/warsztat.sh test m7/s08`
+
+**Zasada:** Warunek wstępny to obowiązek klienta, warunek końcowy to gwarancja operacji, a niezmiennik to właściwość prawdziwa między operacjami. Odrzucanie niepoprawnych wejść jest zmianą zachowania, a nie refaktoryzacją.
+
 **Zadanie:**
 1. Wypisz niepoprawne wywołania `SeatPool`, które dziś psują stan.
 2. Dodaj warunki wstępne tak, aby naruszenie nie zmieniało obiektu.
@@ -90,6 +114,9 @@ Przy każdej scenie zadaj sobie pytanie ze slajdu "Wektor obserwowalnego zachowa
 
 ## Scena s09. Remove Double Negative - wstęp do strefy VIP
 **Pakiet:** `pl.training.workshop.m7.s09_doublenegative.start` · **Test:** `scripts/warsztat.sh test m7/s09`
+
+**Zasada:** Pozytywna nazwa musi być dokładnym logicznym dopełnieniem negatywnej, także na granicy i dla `null`. Zmienia się ją przez stan przejściowy, w którym obie nazwy współistnieją.
+
 **Zadanie:**
 1. Usuń podwójne zaprzeczenia z `LoungeAccess`.
 2. Przejdź przez stan, w którym stara i nowa nazwa istnieją jednocześnie.
@@ -100,6 +127,9 @@ Przy każdej scenie zadaj sobie pytanie ze slajdu "Wektor obserwowalnego zachowa
 
 ## Scena s10. Remove Boolean Method Parameters - migracja API
 **Pakiet:** `pl.training.workshop.m7.s10_booleanparameter.start` · **Test:** `scripts/warsztat.sh test m7/s10`
+
+**Zasada:** Literał `true`/`false` w wywołaniu nie mówi, co się stanie, ale nie każdy `boolean` jest flagą sterującą. Publiczne API zmienia się przez okres przejściowy, w którym stara metoda deleguje do nowej.
+
 **Zadanie:**
 1. Zastąp flagi w publicznym API `TicketService` czytelnymi metodami lub typami.
 2. Zostaw starą metodę jako przestarzałą i delegującą, dopóki istnieje choć jeden klient.
@@ -111,6 +141,9 @@ Przy każdej scenie zadaj sobie pytanie ze slajdu "Wektor obserwowalnego zachowa
 
 ## Scena s11. Remove Middle Man - fasada kina
 **Pakiet:** `pl.training.workshop.m7.s11_middleman.start` · **Test:** `scripts/warsztat.sh test m7/s11`
+
+**Zasada:** Pośrednika, który tylko przekazuje wywołania dalej, można usunąć. Najpierw trzeba jednak sprawdzić, czy nie robi czegoś więcej, na przykład autoryzacji, retry albo translacji błędów.
+
 **Zadanie:**
 1. Sprawdź każdą metodę `CinemaFacade`: czy tylko deleguje, czy robi coś więcej.
 2. Przenieś to, co robi więcej, tam, gdzie jest potrzebne.
@@ -121,6 +154,9 @@ Przy każdej scenie zadaj sobie pytanie ze slajdu "Wektor obserwowalnego zachowa
 
 ## Scena s12. Return ASAP - wyszukiwanie wolnego miejsca
 **Pakiet:** `pl.training.workshop.m7.s12_returnasap.start` · **Test:** `scripts/warsztat.sh test m7/s12`
+
+**Zasada:** Return ASAP zwraca wynik tam, gdzie jest już ostateczny, zamiast nieść go w zmiennej i fladze do końca metody. Wczesny `return` nie może ominąć mutacji, która musiała się wydarzyć.
+
 **Zadanie:**
 1. Zastąp zagnieżdżenia w `seatClass` guard clauses.
 2. Usuń flagę `found` i zmienną `result` z `firstFree`.
@@ -131,6 +167,9 @@ Przy każdej scenie zadaj sobie pytanie ze slajdu "Wektor obserwowalnego zachowa
 
 ## Scena s13. Remove God Class - kampania na kopii CinemaManager
 **Pakiet:** `pl.training.workshop.m7.s13_godclass.start` · **Test:** `scripts/warsztat.sh test m7/s13`
+
+**Zasada:** God Class ma wiele powodów zmiany i jest centralnym węzłem zależności. Usuwa się ją kampanią małych pionowych wycinków, a nie przepisaniem, a stara klasa zostaje fasadą.
+
 **Zadanie:**
 1. Narysuj mapę `CinemaManager`: metody, dane z `LegacyDb`, które czytają i zmieniają, oraz efekty (mail, SMS, bramka płatności).
 2. Wybierz i wydziel jeden pionowy wycinek (na przykład cennik), zostawiając publiczne API `CinemaManager` bez zmian.
@@ -142,6 +181,9 @@ Przy każdej scenie zadaj sobie pytanie ze slajdu "Wektor obserwowalnego zachowa
 
 ## Scena s14. Refaktoryzacja a zmiana kontraktu - zwrot na BigDecimal
 **Pakiet:** `pl.training.workshop.m7.s14_contractchange.start` · **Test:** `scripts/warsztat.sh test m7/s14`
+
+**Zasada:** Refaktoryzacja zachowuje obserwowalne zachowanie: klient nie może dostrzec żadnej nieuzgodnionej różnicy. Każda zmiana wyniku, formatu czy wyjątku to zmiana kontraktu, którą robi się osobno i świadomie.
+
 **Zadanie:**
 1. Zrób jedną czystą refaktoryzację `RefundCalculator.refund` bez zmiany typów.
 2. Przejdź na `BigDecimal` i znajdź wszystkie różnice w zachowaniu, które to wprowadza.
@@ -152,6 +194,9 @@ Przy każdej scenie zadaj sobie pytanie ze slajdu "Wektor obserwowalnego zachowa
 
 ## Scena s15. Wektor obserwowalnego zachowania - płatność za bilety
 **Pakiet:** `pl.training.workshop.m7.s15_behaviourvector.start` · **Test:** `scripts/warsztat.sh test m7/s15`
+
+**Zasada:** Wektor obserwowalnego zachowania obejmuje wynik, wyjątki, stan, wywołania współpracowników z ich kolejnością, czas i granice. Test, który widzi tylko wynik, przepuści regresję w pozostałych wymiarach.
+
 **Zadanie:**
 1. Przeczytaj `S15ResultOnlyTest` i wypisz, czego ten test nie widzi.
 2. Wprowadź seamy tak, aby test widział wysłane maile i obciążenia karty w jednej kolejności.

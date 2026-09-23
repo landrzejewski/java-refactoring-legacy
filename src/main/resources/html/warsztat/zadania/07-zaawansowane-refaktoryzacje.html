@@ -85,8 +85,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p>Każda scena ma pakiet <code>start</code> z kodem wyjściowym i test, który na starcie jest zielony (wyjątek: w s01 kodu startowego nie da się uruchomić w teście - to część zadania). Pracuj tylko w <code>start</code>. Po każdym ruchu (jedna technika naraz) uruchom test sceny, na przykład <code>scripts/<wbr>warsztat.sh test m7/<wbr>s02</code>, albo ⌃R w IntelliJ na klasie testu. Test ma być zielony po każdym kroku, a nie dopiero na końcu. Nie zaglądaj do pakietów <code>stepN</code>, dopóki nie skończysz, bo to gotowe rozwiązania. Jeśli się zgubisz, <code>scripts/<wbr>warsztat.sh reset m7/<wbr>s02</code> przywraca <code>start</code>.</p>
 <p>Przy każdej scenie zadaj sobie pytanie ze slajdu &quot;Wektor obserwowalnego zachowania&quot;: co obserwuje test - wynik, wyjątek, stan, efekty uboczne, ich kolejność? Tam, gdzie zadanie mówi o <strong>zmianie kontraktu</strong>, nazwij ją wprost i zrób ją jako osobny krok. Dopiero wtedy wolno zmienić oczekiwania w teście.</p>
 <h2 id="scena-s01-break-dependencies-seam-dla-zadania-przypomnien" tabindex="-1"><a class="header-anchor" href="#scena-s01-break-dependencies-seam-dla-zadania-przypomnien"><span>Scena s01. Break Dependencies - seam dla zadania przypomnień</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m7.s01_breakdependencies.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s01</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m7.s01_breakdependencies.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s01</code></p>
+<p><strong>Zasada:</strong> Break Dependencies tworzy seam, czyli miejsce, w którym można podstawić inną implementację zależności bez edycji algorytmu. Wybiera się najwęższy skuteczny seam, który nie zmienia czasu życia ani momentu tworzenia zależności.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Uruchom <code>ShowtimeReminderJob.run()</code> w teście i zapisz, co stoi na przeszkodzie (są trzy przeszkody).</li>
 <li>Usuń przeszkody po kolei, każdą osobnym ruchem, tak aby produkcyjny konstruktor bezargumentowy nadal składał te same implementacje.</li>
@@ -96,8 +97,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> najwęższy seam to często parametr konstruktora, <code>Clock</code> albo interfejs funkcyjny. Zastanów się, co by się stało, gdyby domyślny konstruktor zrobił <code>new LegacyDatabase()</code> od razu.
 <strong>Gotowe, gdy:</strong> Twój test jest zielony bez sieci i bazy, <code>ShowtimeReminderJob</code> jest <code>final</code>, a nowe interfejsy nie mają metod, których zadanie nie używa.</p>
 <h2 id="scena-s02-extract-method-object-wycena-zamowienia-grupowego" tabindex="-1"><a class="header-anchor" href="#scena-s02-extract-method-object-wycena-zamowienia-grupowego"><span>Scena s02. Extract Method Object - wycena zamówienia grupowego</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m7.s02_methodobject.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s02</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m7.s02_methodobject.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s02</code></p>
+<p><strong>Zasada:</strong> Extract Method Object przenosi metodę do krótko żyjącego obiektu, którego pola niosą stan lokalny. Stosuje się go, gdy splątane zmienne lokalne blokują zwykłe ekstrakcje.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Spróbuj Extract Method na pętli w <code>GroupPricing.quote</code> i zapisz, dlaczego się nie udaje.</li>
 <li>Przenieś algorytm do obiektu metody tak, aby publiczne API <code>GroupPricing</code> się nie zmieniło.</li>
@@ -106,8 +108,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> najpierw kopia bez upraszczania i delegacja, dopiero potem pola i ekstrakcje.
 <strong>Gotowe, gdy:</strong> test jest zielony, obiekt metody powstaje na każde wywołanie, a metoda główna obiektu ma najwyżej 6 linii.</p>
 <h2 id="scena-s03-break-responsibilities-walidacja-wycena-powiadomienie" tabindex="-1"><a class="header-anchor" href="#scena-s03-break-responsibilities-walidacja-wycena-powiadomienie"><span>Scena s03. Break Responsibilities - walidacja, wycena, powiadomienie</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m7.s03_breakresponsibilities.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s03</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m7.s03_breakresponsibilities.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s03</code></p>
+<p><strong>Zasada:</strong> Odpowiedzialność to powód zmiany, a nie liczba metod czy linii. Każdy wydzielony fragment powinien mieć jeden powód zmiany, a każdy stan jednego właściciela.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Wypisz powody zmiany <code>BookingDesk.book</code> i kto w kinie za nimi stoi.</li>
 <li>Wydziel każdą odpowiedzialność do osobnej klasy, jedną na raz.</li>
@@ -116,8 +119,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> jedna odpowiedzialność liczy dwie wartości, z których druga jest potrzebna dopiero przy powiadomieniu.
 <strong>Gotowe, gdy:</strong> test jest zielony, <code>book</code> ma najwyżej 7 linii, a <code>Outbox</code> ma jednego właściciela.</p>
 <h2 id="scena-s04-remove-duplication-rabat-grupowy-w-kasie-i-w-sklepie" tabindex="-1"><a class="header-anchor" href="#scena-s04-remove-duplication-rabat-grupowy-w-kasie-i-w-sklepie"><span>Scena s04. Remove Duplication - rabat grupowy w kasie i w sklepie</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m7.s04_removeduplication.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s04</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m7.s04_removeduplication.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s04</code></p>
+<p><strong>Zasada:</strong> Usuwamy duplikację wiedzy, czyli tej samej reguły, która zmienia się razem, a nie podobnego tekstu. Różnice między kopiami trzeba najpierw ujawnić i rozstrzygnąć, a dopiero potem łączyć.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Znajdź regułę zapisaną dwa razy w <code>BoxOffice</code> i <code>WebShop</code> i opisz wszystkie różnice w zapisie.</li>
 <li>Ujednolić zapis w obu klasach tak, żeby różniły się tylko tym, co naprawdę jest różne. Test ma być zielony bez zmian.</li>
@@ -127,8 +131,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> policz rabat dla koszyka 3 x 18.75 + 7 x 25.00 ręcznie w obu trybach zaokrąglenia.
 <strong>Gotowe, gdy:</strong> testy są zielone, reguła 10+/-10% ma jedno źródło, a opłata online nadal żyje tylko w <code>WebShop</code>.</p>
 <h2 id="scena-s05-break-method-repertuar-dnia" tabindex="-1"><a class="header-anchor" href="#scena-s05-break-method-repertuar-dnia"><span>Scena s05. Break Method - repertuar dnia</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m7.s05_breakmethod.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s05</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m7.s05_breakmethod.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s05</code></p>
+<p><strong>Zasada:</strong> Break Method to seria małych ekstrakcji, po której metoda opisuje algorytm na jednym poziomie abstrakcji. Fragmenty przenosi się dosłownie, a nazwę nadaje po teście.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Rozbij <code>RepertoireBuilder.build</code> na etapy tak, aby metoda publiczna była na jednym poziomie abstrakcji.</li>
 <li>Zacznij od etapu z najmniejszą liczbą wejść i wyjść.</li>
@@ -137,8 +142,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> zastanów się, czy potrzebujesz Method Object ze sceny s02. Ile wartości przechodzi między etapami?
 <strong>Gotowe, gdy:</strong> test jest zielony, a <code>build</code> ma trzy linie.</p>
 <h2 id="scena-s06-introduce-parameter-object-termin-seansu" tabindex="-1"><a class="header-anchor" href="#scena-s06-introduce-parameter-object-termin-seansu"><span>Scena s06. Introduce Parameter Object - termin seansu</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m7.s06_parameterobject.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s06</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m7.s06_parameterobject.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s06</code></p>
+<p><strong>Zasada:</strong> Parameter Object nazywa jedno pojęcie ukryte w grupie parametrów, które zawsze chodzą razem, i przyciąga związane z nim zachowanie. Walidacja w nowym typie zmienia moment zgłoszenia błędu, więc jest zmianą kontraktu.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Nazwij pojęcie, które ukrywa czwórka parametrów w <code>ScreeningPlanner</code>, i wprowadź dla niego typ.</li>
 <li>Zostaw stare sygnatury na okres migracji.</li>
@@ -148,8 +154,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> porównaj, co zwraca <code>describe</code> dla sali 12 przed i po kroku 4.
 <strong>Gotowe, gdy:</strong> test jest zielony, walidacja jest w jednym miejscu, a zmiana momentu błędu jest opisana w Javadoc albo w opisie commita.</p>
 <h2 id="scena-s07-remove-arrowhead-antipattern-bramka-rezerwacji" tabindex="-1"><a class="header-anchor" href="#scena-s07-remove-arrowhead-antipattern-bramka-rezerwacji"><span>Scena s07. Remove Arrowhead Antipattern - bramka rezerwacji</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m7.s07_arrowhead.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s07</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m7.s07_arrowhead.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s07</code></p>
+<p><strong>Zasada:</strong> Guard clauses wyciągają przypadki kończące przetwarzanie na początek metody, dzięki czemu główna ścieżka nie jest zagnieżdżona. Spłaszczenie jest bezpieczne tylko przy zachowanym priorytecie warunków i nieominiętych efektach na końcu metody.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Spłaszcz <code>BookingGate.book</code> do guard clauses.</li>
 <li>Nie zgub wpisu do audytu dla żadnej ścieżki.</li>
@@ -158,8 +165,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> zanim wstawisz pierwszy wczesny <code>return</code>, sprawdź, co metoda robi po zagnieżdżonym <code>if</code>.
 <strong>Gotowe, gdy:</strong> test jest zielony, zagnieżdżenie ma najwyżej jeden poziom, a zmienna <code>result</code> nie jest potrzebna w logice decyzji.</p>
 <h2 id="scena-s08-introduce-design-by-contract-checks-pula-miejsc" tabindex="-1"><a class="header-anchor" href="#scena-s08-introduce-design-by-contract-checks-pula-miejsc"><span>Scena s08. Introduce Design by Contract Checks - pula miejsc</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m7.s08_designbycontract.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s08</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m7.s08_designbycontract.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s08</code></p>
+<p><strong>Zasada:</strong> Warunek wstępny to obowiązek klienta, warunek końcowy to gwarancja operacji, a niezmiennik to właściwość prawdziwa między operacjami. Odrzucanie niepoprawnych wejść jest zmianą zachowania, a nie refaktoryzacją.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Wypisz niepoprawne wywołania <code>SeatPool</code>, które dziś psują stan.</li>
 <li>Dodaj warunki wstępne tak, aby naruszenie nie zmieniało obiektu.</li>
@@ -169,8 +177,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> nie używaj <code>assert</code>. Sprawdź, w którym miejscu metody kontrola musi stać, żeby wyjątek nie zostawił zepsutego stanu.
 <strong>Gotowe, gdy:</strong> test jest zielony, a Ty umiesz powiedzieć, które zmiany są refaktoryzacją, a które zmianą kontraktu.</p>
 <h2 id="scena-s09-remove-double-negative-wstep-do-strefy-vip" tabindex="-1"><a class="header-anchor" href="#scena-s09-remove-double-negative-wstep-do-strefy-vip"><span>Scena s09. Remove Double Negative - wstęp do strefy VIP</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m7.s09_doublenegative.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s09</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m7.s09_doublenegative.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s09</code></p>
+<p><strong>Zasada:</strong> Pozytywna nazwa musi być dokładnym logicznym dopełnieniem negatywnej, także na granicy i dla <code>null</code>. Zmienia się ją przez stan przejściowy, w którym obie nazwy współistnieją.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Usuń podwójne zaprzeczenia z <code>LoungeAccess</code>.</li>
 <li>Przejdź przez stan, w którym stara i nowa nazwa istnieją jednocześnie.</li>
@@ -179,8 +188,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> voucher ważny &quot;do dziś&quot; jest ważny także dziś. Sprawdź dopełnienie na granicy.
 <strong>Gotowe, gdy:</strong> test jest zielony, w kodzie nie ma <code>!customer.notVip()</code> ani <code>!voucher.isNotExpired(...)</code>, a adapter w teście zmieniłeś świadomie.</p>
 <h2 id="scena-s10-remove-boolean-method-parameters-migracja-api" tabindex="-1"><a class="header-anchor" href="#scena-s10-remove-boolean-method-parameters-migracja-api"><span>Scena s10. Remove Boolean Method Parameters - migracja API</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m7.s10_booleanparameter.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s10</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m7.s10_booleanparameter.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s10</code></p>
+<p><strong>Zasada:</strong> Literał <code>true</code>/<code>false</code> w wywołaniu nie mówi, co się stanie, ale nie każdy <code>boolean</code> jest flagą sterującą. Publiczne API zmienia się przez okres przejściowy, w którym stara metoda deleguje do nowej.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Zastąp flagi w publicznym API <code>TicketService</code> czytelnymi metodami lub typami.</li>
 <li>Zostaw starą metodę jako przestarzałą i delegującą, dopóki istnieje choć jeden klient.</li>
@@ -190,8 +200,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> nie każdy <code>boolean</code> jest flagą. Nie twórz metody na każdą kombinację.
 <strong>Gotowe, gdy:</strong> test jest zielony, kompilacja nie ma ostrzeżeń <code>[deprecation]</code>, a wywołania w klientach da się przeczytać bez zaglądania do sygnatury.</p>
 <h2 id="scena-s11-remove-middle-man-fasada-kina" tabindex="-1"><a class="header-anchor" href="#scena-s11-remove-middle-man-fasada-kina"><span>Scena s11. Remove Middle Man - fasada kina</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m7.s11_middleman.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s11</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m7.s11_middleman.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s11</code></p>
+<p><strong>Zasada:</strong> Pośrednika, który tylko przekazuje wywołania dalej, można usunąć. Najpierw trzeba jednak sprawdzić, czy nie robi czegoś więcej, na przykład autoryzacji, retry albo translacji błędów.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Sprawdź każdą metodę <code>CinemaFacade</code>: czy tylko deleguje, czy robi coś więcej.</li>
 <li>Przenieś to, co robi więcej, tam, gdzie jest potrzebne.</li>
@@ -200,8 +211,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> uruchom <code>SeatBadge</code> dla seansu <code>S9</code> przed i po zmianie.
 <strong>Gotowe, gdy:</strong> test jest zielony, <code>CinemaFacade</code> nie istnieje, a zachowanie dla nieznanego seansu jest takie samo jak na starcie.</p>
 <h2 id="scena-s12-return-asap-wyszukiwanie-wolnego-miejsca" tabindex="-1"><a class="header-anchor" href="#scena-s12-return-asap-wyszukiwanie-wolnego-miejsca"><span>Scena s12. Return ASAP - wyszukiwanie wolnego miejsca</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m7.s12_returnasap.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s12</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m7.s12_returnasap.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s12</code></p>
+<p><strong>Zasada:</strong> Return ASAP zwraca wynik tam, gdzie jest już ostateczny, zamiast nieść go w zmiennej i fladze do końca metody. Wczesny <code>return</code> nie może ominąć mutacji, która musiała się wydarzyć.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Zastąp zagnieżdżenia w <code>seatClass</code> guard clauses.</li>
 <li>Usuń flagę <code>found</code> i zmienną <code>result</code> z <code>firstFree</code>.</li>
@@ -210,8 +222,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> sprawdź, w której linii pętli musi stać <code>return</code>, żeby licznik się zgadzał.
 <strong>Gotowe, gdy:</strong> test jest zielony, żadna metoda nie ma zmiennej wyniku ani flagi pętli.</p>
 <h2 id="scena-s13-remove-god-class-kampania-na-kopii-cinemamanager" tabindex="-1"><a class="header-anchor" href="#scena-s13-remove-god-class-kampania-na-kopii-cinemamanager"><span>Scena s13. Remove God Class - kampania na kopii CinemaManager</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m7.s13_godclass.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s13</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m7.s13_godclass.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s13</code></p>
+<p><strong>Zasada:</strong> God Class ma wiele powodów zmiany i jest centralnym węzłem zależności. Usuwa się ją kampanią małych pionowych wycinków, a nie przepisaniem, a stara klasa zostaje fasadą.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Narysuj mapę <code>CinemaManager</code>: metody, dane z <code>LegacyDb</code>, które czytają i zmieniają, oraz efekty (mail, SMS, bramka płatności).</li>
 <li>Wybierz i wydziel jeden pionowy wycinek (na przykład cennik), zostawiając publiczne API <code>CinemaManager</code> bez zmian.</li>
@@ -221,8 +234,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> kolejność efektów jest częścią zatwierdzonego wyniku. Nie poprawiaj <code>double</code> ani innych &quot;błędów&quot; w tym samym kroku.
 <strong>Gotowe, gdy:</strong> golden master jest zielony po każdym kroku, wydzielone klasy nie znają układu <code>Object[]</code>, a nie ma cyklu zależności między nimi a <code>CinemaManager</code>.</p>
 <h2 id="scena-s14-refaktoryzacja-a-zmiana-kontraktu-zwrot-na-bigdecimal" tabindex="-1"><a class="header-anchor" href="#scena-s14-refaktoryzacja-a-zmiana-kontraktu-zwrot-na-bigdecimal"><span>Scena s14. Refaktoryzacja a zmiana kontraktu - zwrot na BigDecimal</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m7.s14_contractchange.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s14</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m7.s14_contractchange.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s14</code></p>
+<p><strong>Zasada:</strong> Refaktoryzacja zachowuje obserwowalne zachowanie: klient nie może dostrzec żadnej nieuzgodnionej różnicy. Każda zmiana wyniku, formatu czy wyjątku to zmiana kontraktu, którą robi się osobno i świadomie.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Zrób jedną czystą refaktoryzację <code>RefundCalculator.refund</code> bez zmiany typów.</li>
 <li>Przejdź na <code>BigDecimal</code> i znajdź wszystkie różnice w zachowaniu, które to wprowadza.</li>
@@ -231,8 +245,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> sprawdź zwrot po starcie seansu oraz kwotę 64.35 anulowaną 2 godziny przed seansem.
 <strong>Gotowe, gdy:</strong> testy są zielone, a każda różnica względem startu ma w teście jawne oczekiwanie i jedno zdanie uzasadnienia.</p>
 <h2 id="scena-s15-wektor-obserwowalnego-zachowania-platnosc-za-bilety" tabindex="-1"><a class="header-anchor" href="#scena-s15-wektor-obserwowalnego-zachowania-platnosc-za-bilety"><span>Scena s15. Wektor obserwowalnego zachowania - płatność za bilety</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m7.s15_behaviourvector.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s15</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m7.s15_behaviourvector.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m7/<wbr>s15</code></p>
+<p><strong>Zasada:</strong> Wektor obserwowalnego zachowania obejmuje wynik, wyjątki, stan, wywołania współpracowników z ich kolejnością, czas i granice. Test, który widzi tylko wynik, przepuści regresję w pozostałych wymiarach.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Przeczytaj <code>S15ResultOnlyTest</code> i wypisz, czego ten test nie widzi.</li>
 <li>Wprowadź seamy tak, aby test widział wysłane maile i obciążenia karty w jednej kolejności.</li>

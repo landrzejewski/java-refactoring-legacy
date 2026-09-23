@@ -85,8 +85,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p>Każda scena ma pakiet <code>start</code> z kodem wyjściowym i test, który na starcie jest zielony. Pracuj tylko w <code>start</code>. Po każdym ruchu (jedna technika naraz) uruchom test sceny, na przykład <code>scripts/<wbr>warsztat.sh test m4/<wbr>s05</code>, albo ⌃R w IntelliJ na klasie testu. Test ma być zielony po każdym kroku, a nie dopiero na końcu. Nie zaglądaj do pakietów <code>stepN</code>, dopóki nie skończysz, bo to gotowe rozwiązania. Jeśli się zgubisz, <code>scripts/<wbr>warsztat.sh reset m4/<wbr>s05</code> przywraca <code>start</code>.</p>
 <p>Tam, gdzie zadanie mówi o <strong>zmianie zachowania</strong>, nazwij ją wprost i zrób ją jako osobny krok. Dopiero wtedy wolno zmienić oczekiwania w teście.</p>
 <h2 id="scena-s00-test-charakterystyki-przed-pierwsza-zmiana" tabindex="-1"><a class="header-anchor" href="#scena-s00-test-charakterystyki-przed-pierwsza-zmiana"><span>Scena s00. Test charakterystyki przed pierwszą zmianą</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m4.s00_characterization.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m4/<wbr>s00</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m4.s00_characterization.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m4/<wbr>s00</code></p>
+<p><strong>Zasada:</strong> Test charakterystyki zapisuje obecne, obserwowalne zachowanie kodu - razem z dziwnymi regułami - zanim cokolwiek zmienimy. Oczekiwania zatwierdza człowiek, a nie liczy je ponownie ten sam algorytm.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Zanim przeczytasz istniejący <code>S00CharacterizationTest</code>, napisz własny test charakterystyki dla <code>BookingConfirmation.confirm</code>: pełny dokument dla co najmniej czterech rezerwacji.</li>
 <li>Spraw, żeby test był deterministyczny, choć dokument zawiera bieżący czas i zależy od <code>Locale</code>.</li>
@@ -96,8 +97,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> zacznij od <code>assertEquals(&quot;&quot;, ...)</code> i skopiuj wynik z komunikatu błędu. Szukaj progów w regułach i sprawdzaj obie strony każdego z nich.
 <strong>Gotowe, gdy:</strong> Twój test i test sceny są zielone, dokument jest porównywany w całości, a stary konstruktor bezargumentowy nadal istnieje.</p>
 <h2 id="scena-s01-rename-nazwy-ktore-zyja-poza-java" tabindex="-1"><a class="header-anchor" href="#scena-s01-rename-nazwy-ktore-zyja-poza-java"><span>Scena s01. Rename - nazwy, które żyją poza Javą</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m4.s01_rename.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m4/<wbr>s01</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m4.s01_rename.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m4/<wbr>s01</code></p>
+<p><strong>Zasada:</strong> Rename nadaje nazwę opisującą rolę w kontekście. Nazwa używana poza Javą (konfiguracja, refleksja, formaty plików) jest kontraktem i wymaga strategii migracji, a nie tylko operacji IDE.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Nadaj znaczące nazwy zmiennym lokalnym i parametrom w <code>SalesReport</code>.</li>
 <li>Zmień nazwę metody <code>calc2</code> na nazwę opisującą, co zwraca.</li>
@@ -107,8 +109,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> po każdym Rename uruchom oba testy równoważności. Jeśli jeden jest czerwony, zastanów się, gdzie jeszcze żyje ta nazwa.
 <strong>Gotowe, gdy:</strong> test jest zielony, w <code>SalesReport</code> nie ma jedno- ani dwuliterowych nazw, a zadanie z konfiguracji dalej działa.</p>
 <h2 id="scena-s02-extract-variable-dla-zlozonego-wyrazenia-ceny" tabindex="-1"><a class="header-anchor" href="#scena-s02-extract-variable-dla-zlozonego-wyrazenia-ceny"><span>Scena s02. Extract Variable dla złożonego wyrażenia ceny</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m4.s02_extractvariable.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m4/<wbr>s02</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m4.s02_extractvariable.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m4/<wbr>s02</code></p>
+<p><strong>Zasada:</strong> Extract Variable nazywa znaczenie fragmentu wyrażenia. Może przesunąć moment ewaluacji, a krótkie spięcie <code>&amp;&amp;</code> / <code>||</code> jest częścią zachowania.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Rozbij wyrażenie w <code>TicketPrice.price</code> na zmienne z nazwami pojęć z cennika.</li>
 <li>Nazwij osobno warunki (poranek, miejsce VIP, okulary) i osobno kwoty.</li>
@@ -117,8 +120,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> <code>row</code> może być <code>null</code>. Zastanów się, co dokładnie zaznaczasz przed ⌥⌘V przy warunku VIP.
 <strong>Gotowe, gdy:</strong> test jest zielony, a instrukcja <code>return</code> mieści się w jednej linii i czyta się jak paragon.</p>
 <h2 id="scena-s03-stale-z-nazwa-zamiast-magicznych-liczb" tabindex="-1"><a class="header-anchor" href="#scena-s03-stale-z-nazwa-zamiast-magicznych-liczb"><span>Scena s03. Stałe z nazwą zamiast magicznych liczb</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m4.s03_magicnumbers.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m4/<wbr>s03</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m4.s03_magicnumbers.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m4/<wbr>s03</code></p>
+<p><strong>Zasada:</strong> Replace Magic Numbers zastępuje liczbę bez nazwy stałą z nazwą roli, bo problemem jest ukryta decyzja, a nie sama liczba. Dwa identyczne literały nie zawsze oznaczają tę samą wiedzę.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Zastąp każdą liczbę w <code>OrderPricer.summary</code> stałą z nazwą opisującą rolę.</li>
 <li>Dla każdej liczby 10 (i <code>BigDecimal.TEN</code>) zdecyduj, czy to ta sama wiedza, co inna dziesiątka.</li>
@@ -127,8 +131,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> gdy IntelliJ zapyta &quot;Replace all occurrences?&quot;, nie odpowiadaj odruchowo. Pomyśl, co by się stało, gdyby jedna z reguł się zmieniła.
 <strong>Gotowe, gdy:</strong> test jest zielony, w metodzie nie ma literałów liczbowych, a żadna stała nie nazywa się jak swoja wartość.</p>
 <h2 id="scena-s04-extract-method-przeplyw-danych-i-wiele-wyjsc" tabindex="-1"><a class="header-anchor" href="#scena-s04-extract-method-przeplyw-danych-i-wiele-wyjsc"><span>Scena s04. Extract Method - przepływ danych i wiele wyjść</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m4.s04_extractmethod.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m4/<wbr>s04</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m4.s04_extractmethod.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m4/<wbr>s04</code></p>
+<p><strong>Zasada:</strong> Extract Method przenosi spójny fragment do metody, której nazwa wyraża intencję. Przed ekstrakcją trzeba przeanalizować przepływ danych: co wchodzi, a co wychodzi z fragmentu.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Zamień bloki opisane komentarzami w <code>TicketSummary.describe</code> na metody z nazwami.</li>
 <li>Poradź sobie z pętlą, która ma dwie wartości wyjściowe.</li>
@@ -137,8 +142,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> jeśli IDE odmawia ekstrakcji, przeczytaj dokładnie, dlaczego. Rozwiązaniem nie jest tablica ani mutowalny &quot;holder&quot;.
 <strong>Gotowe, gdy:</strong> test jest zielony, <code>describe</code> ma najwyżej trzy linie, a każda wydzielona metoda ma jedno wyjście.</p>
 <h2 id="scena-s05-inline-variable-liczba-i-moment-ewaluacji" tabindex="-1"><a class="header-anchor" href="#scena-s05-inline-variable-liczba-i-moment-ewaluacji"><span>Scena s05. Inline Variable - liczba i moment ewaluacji</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m4.s05_inlinevariable.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m4/<wbr>s05</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m4.s05_inlinevariable.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m4/<wbr>s05</code></p>
+<p><strong>Zasada:</strong> Inline Variable usuwa zmienną, która nic nie wnosi, ale może zmienić liczbę i moment ewaluacji inicjalizatora. Jawny typ zmiennej bywa typem docelowym, który wybiera przeciążenie.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Dla każdej zmiennej lokalnej w <code>TicketIssuer.issue</code> zdecyduj, czy wolno ją wkleić (Inline Variable), i zapisz uzasadnienie.</li>
 <li>Wklej te, które wolno. Test ma zostać zielony.</li>
@@ -147,8 +153,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> zegar w teście przesuwa się o sekundę przy każdym odczycie. Zwróć uwagę na metody o tej samej nazwie i różnych typach parametrów.
 <strong>Gotowe, gdy:</strong> test jest zielony, a zmienne, które zostały, mają pisemne uzasadnienie (komentarz albo notatka).</p>
 <h2 id="scena-s06-inline-method-i-nadpisanie-w-podklasie" tabindex="-1"><a class="header-anchor" href="#scena-s06-inline-method-i-nadpisanie-w-podklasie"><span>Scena s06. Inline Method i nadpisanie w podklasie</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m4.s06_inlinemethod.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m4/<wbr>s06</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m4.s06_inlinemethod.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m4/<wbr>s06</code></p>
+<p><strong>Zasada:</strong> Inline Method usuwa pośrednictwo bez znaczenia. Wklejenie ciała metody nadpisywanej usuwa dynamiczną dyspozycję, więc przed inline sprawdza się hierarchię klas.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Usuń z <code>TicketPricing</code> pośredniki, które nie dodają znaczenia (Inline Method).</li>
 <li>Zanim wkleisz którąkolwiek metodę, sprawdź, czy nie jest nadpisywana.</li>
@@ -157,8 +164,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> test uruchamia dwie klasy. Kasa może być zielona, a internet czerwony.
 <strong>Gotowe, gdy:</strong> test jest zielony dla kasy i internetu, a w <code>TicketPricing</code> nie ma prywatnej metody, która tylko przekazuje wywołanie dalej.</p>
 <h2 id="scena-s07-move-method-feature-envy-i-pulapka-przeciazenia" tabindex="-1"><a class="header-anchor" href="#scena-s07-move-method-feature-envy-i-pulapka-przeciazenia"><span>Scena s07. Move Method - Feature Envy i pułapka przeciążenia</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m4.s07_movemethod.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m4/<wbr>s07</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m4.s07_movemethod.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m4/<wbr>s07</code></p>
+<p><strong>Zasada:</strong> Move Method przenosi zachowanie do klasy, która ma jego dane i odpowiedzialność, a Feature Envy to sygnał do analizy, nie nakaz. Po przeniesieniu zmienia się kontekst typów i przeciążeń.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Wskaż metody <code>BookingPrinter</code>, które używają danych tylko jednej innej klasy, i przenieś je do właściciela tych danych.</li>
 <li>Nadaj przeniesionym metodom nazwy pasujące do nowego właściciela.</li>
@@ -167,8 +175,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> po przeniesieniu nie zmieniaj typów parametrów. Sprawdź, czy wszystkie przypadki testowe w ogóle odróżniają dwa przeciążenia <code>List.remove</code>.
 <strong>Gotowe, gdy:</strong> test jest zielony, a <code>BookingPrinter</code> nie ma żadnej prywatnej metody.</p>
 <h2 id="scena-s08-move-field-prog-vip-nalezy-do-sali" tabindex="-1"><a class="header-anchor" href="#scena-s08-move-field-prog-vip-nalezy-do-sali"><span>Scena s08. Move Field - próg VIP należy do sali</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m4.s08_movefield.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m4/<wbr>s08</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m4.s08_movefield.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m4/<wbr>s08</code></p>
+<p><strong>Zasada:</strong> Move Field przenosi stan do właściwego właściciela: najpierw odczyty przez akcesor, potem zapisy, bez okresu z dwiema zapisywalnymi kopiami.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Przenieś <code>vipFromRow</code> z <code>Screening</code> do <code>Hall</code>.</li>
 <li>Rób to małymi krokami, bez okresu, w którym obie klasy mają zapisywalną kopię.</li>
@@ -177,8 +186,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> zanim przeniesiesz pole, sprawdź, kto czyta je bezpośrednio, także z innej klasy w tym samym pakiecie.
 <strong>Gotowe, gdy:</strong> test jest zielony, <code>Screening</code> nie ma pola ani akcesora <code>vipFromRow</code>, a dwa seanse w tej samej sali nie mogą się różnić progiem.</p>
 <h2 id="scena-s09-extract-class-klient-platnosc-i-klasa-worek" tabindex="-1"><a class="header-anchor" href="#scena-s09-extract-class-klient-platnosc-i-klasa-worek"><span>Scena s09. Extract Class - klient, płatność i klasa-worek</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m4.s09_extractclass.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m4/<wbr>s09</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m4.s09_extractclass.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m4/<wbr>s09</code></p>
+<p><strong>Zasada:</strong> Extract Class wydziela spójne dane i zachowanie o odrębnym powodzie zmiany. Klasa, która tylko przechowuje dane, a logika zostaje w źródle, to zły wynik.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Wydziel z <code>Booking</code> klasę z danymi klienta, a potem przenieś do niej zachowanie, które na tych danych działa.</li>
 <li>Wydziel klasę płatności od razu z danymi i zachowaniem.</li>
@@ -188,8 +198,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> po pierwszej ekstrakcji zatrzymaj się i oceń wynik. Czy nowa klasa coś robi, czy tylko przechowuje?
 <strong>Gotowe, gdy:</strong> test jest zielony, <code>Booking</code> ma najwyżej cztery pola, a każda nowa klasa ma co najmniej jedną metodę poza akcesorami.</p>
 <h2 id="scena-s10-encapsulate-field-status-ktory-kazdy-moze-nadpisac" tabindex="-1"><a class="header-anchor" href="#scena-s10-encapsulate-field-status-ktory-kazdy-moze-nadpisac"><span>Scena s10. Encapsulate Field - status, który każdy może nadpisać</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m4.s10_encapsulatefield.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m4/<wbr>s10</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m4.s10_encapsulatefield.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m4/<wbr>s10</code></p>
+<p><strong>Zasada:</strong> Encapsulate Field ukrywa pole za operacjami właściciela, żeby kontrolować zmiany stanu. Sama hermetyzacja nie zmienia zachowania, a dodanie walidacji już tak.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Ukryj pole <code>status</code> bez zmiany zachowania.</li>
 <li>Zastąp ogólne ustawianie statusu operacjami, które mówią, co się dzieje w domenie.</li>
@@ -198,8 +209,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> kroki 1 i 2 muszą przejść <code>encapsulationKeepsBehaviour</code> bez zmiany oczekiwań. Po kroku 3 porównaj swój wynik z <code>step3RejectsIllegalTransitions</code>.
 <strong>Gotowe, gdy:</strong> po krokach 1-2 test równoważności jest zielony, pole jest prywatne i nie ma settera, a po kroku 3 dozwolone ścieżki działają jak wcześniej.</p>
 <h2 id="scena-s11-encapsulate-collection-trzy-kontrakty-listy-miejsc" tabindex="-1"><a class="header-anchor" href="#scena-s11-encapsulate-collection-trzy-kontrakty-listy-miejsc"><span>Scena s11. Encapsulate Collection - trzy kontrakty listy miejsc</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m4.s11_encapsulatecollection.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m4/<wbr>s11</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m4.s11_encapsulatecollection.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m4/<wbr>s11</code></p>
+<p><strong>Zasada:</strong> Encapsulate Collection oddaje właścicielowi kontrolę nad członkostwem kolekcji. To, co zwraca getter (alias, widok albo kopia), jest osobnym kontraktem.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Ukryj listę miejsc i przenieś zmiany członkostwa do <code>Booking</code>.</li>
 <li>Przepisz <code>SeatDesk</code>, żeby nie dotykał listy bezpośrednio.</li>
@@ -208,8 +220,9 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <p><strong>Podpowiedź:</strong> który z tych kroków jest jeszcze refaktoryzacją, a który już zmianą kontraktu? <code>S11CollectionContractTest</code> odpowiada na to tabelą.
 <strong>Gotowe, gdy:</strong> <code>S11EquivalenceTest</code> jest zielony dla każdej wersji, pole jest prywatne, a Twoje przewidywania zgadzają się z testem kontraktów.</p>
 <h2 id="scena-s12-encapsulate-conditional-czy-przysluguje-zwrot" tabindex="-1"><a class="header-anchor" href="#scena-s12-encapsulate-conditional-czy-przysluguje-zwrot"><span>Scena s12. Encapsulate Conditional - czy przysługuje zwrot</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m4.s12_encapsulateconditional.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m4/<wbr>s12</code>
-<strong>Zadanie:</strong></p>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m4.s12_encapsulateconditional.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m4/<wbr>s12</code></p>
+<p><strong>Zasada:</strong> Encapsulate Conditional zamienia warunek pytający o implementację na predykat z nazwą z domeny. Krótkie spięcie i kolejność warunków są częścią zachowania.</p>
+<p><strong>Zadanie:</strong></p>
 <ol>
 <li>Zamień warunki w <code>RefundCalculator.refund</code> na metody o nazwach z regulaminu zwrotów.</li>
 <li>Zacznij od najmniejszego fragmentu, skończ na całym warunku i na warunku gałęzi.</li>
