@@ -11,12 +11,18 @@ scripts/warsztat.sh list m4            # sceny modułu i ich kroki
 scripts/warsztat.sh test m4/s05        # testy jednej sceny
 scripts/warsztat.sh test m4            # wszystkie sceny modułu (230 testów)
 scripts/warsztat.sh diff m4/s05 2 3    # co zmienia krok 3 względem kroku 2 (0 = start)
+scripts/warsztat.sh diff m4/s05 2 3 --word  # to samo, zmiany podświetlone w obrębie linii
 scripts/warsztat.sh jump m4/s05 2      # skopiuj step2 do start, gdy brakuje czasu
+scripts/warsztat.sh next m4/s05        # następny krok do start + podsumowanie zmian
+scripts/warsztat.sh next               # kolejny krok tej samej sceny (scena zapamiętana)
+scripts/warsztat.sh prev               # krok wstecz
+scripts/warsztat.sh status             # który krok jest teraz w start
 scripts/warsztat.sh reset m4/s05       # przywróć start po pokazie
 ```
 
 - Zasada: **jeden krok - jeden test - jedno zdanie komentarza.** Ruch w IDE, ⌃R na teście sceny, zdanie z sekcji "Co powiedzieć".
-- Pracujesz zawsze w pakiecie `start`. Snapshoty `stepN` są po to, żeby pokazać `diff` albo przeskoczyć (`jump`), gdy coś się rozjedzie.
+- **Krok po kroku bez numerów:** `scripts/warsztat.sh next` wstawia do `start` gotowy następny krok i wypisuje, co się zmieniło. `prev` cofa o krok, `status` mówi, który krok jest teraz w `start`. Skrypt pamięta ostatnią scenę, więc po pierwszym `next m4/sNN` wystarczy samo `next`. Ręczne zmiany w `start` zostają nadpisane - o to chodzi, gdy krok na żywo się rozjechał.
+- Pracujesz zawsze w pakiecie `start`. Snapshoty `stepN` są po to, żeby pokazać `diff` albo przeskoczyć (`next`, `jump`), gdy coś się rozjedzie.
 - W scenach o pułapkach (s01, s02, s05, s06, s07) warto najpierw **zrobić naiwny ruch na żywo**, pokazać czerwony test, cofnąć (⌘Z) i dopiero wtedy wykonać krok z przewodnika.
 - Sceny s10 i s11 zawierają kroki, które **świadomie zmieniają zachowanie**. Test ma dla nich osobne oczekiwania. Powiedz to na głos: to osobny commit, a nie refaktoryzacja.
 

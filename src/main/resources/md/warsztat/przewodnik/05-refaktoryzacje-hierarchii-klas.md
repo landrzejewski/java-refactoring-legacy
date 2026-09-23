@@ -8,11 +8,17 @@ Szesnaście małych scen w domenie kina CineLegacy pokazuje każdy ruch z moduł
 scripts/warsztat.sh list m5              # sceny i kroki modułu 5
 scripts/warsztat.sh test m5/s01          # testy jednej sceny (albo całego modułu: m5)
 scripts/warsztat.sh diff m5/s01 0 1      # co zmienia krok 1 względem start
+scripts/warsztat.sh diff m5/s01 0 1 --word  # to samo, zmiany podświetlone w obrębie linii
 scripts/warsztat.sh jump m5/s01 2        # nie zdążyłeś? start = snapshot step2
+scripts/warsztat.sh next m5/s01          # następny krok do start + podsumowanie zmian
+scripts/warsztat.sh next                 # kolejny krok tej samej sceny (scena zapamiętana)
+scripts/warsztat.sh prev                 # krok wstecz
+scripts/warsztat.sh status               # który krok jest teraz w start
 scripts/warsztat.sh reset m5/s01         # przywraca start z repozytorium
 ```
 
 - Zasada: **jeden krok - jeden test - jedno zdanie komentarza**. Po każdym ruchu w IDE uruchamiasz test sceny, zanim cokolwiek powiesz.
+- **Krok po kroku bez numerów:** `scripts/warsztat.sh next` wstawia do `start` gotowy następny krok i wypisuje, co się zmieniło. `prev` cofa o krok, `status` mówi, który krok jest teraz w `start`. Skrypt pamięta ostatnią scenę, więc po pierwszym `next m5/sNN` wystarczy samo `next`. Ręczne zmiany w `start` zostają nadpisane - o to chodzi, gdy krok na żywo się rozjechał.
 - Test `SNNEquivalenceTest` sprawdza, że start i wszystkie kroki zachowują się tak samo. `SNNSolutionTest` pokazuje to, czego równoważność nie widzi: typ deklarujący członka, klasę runtime, pułapkę semantyki, zgodność binarną.
 - Sceny o pułapkach (s08-s11, s13) mają w `SNNSolutionTest` testy o nazwie `start...`, które **dokumentują pułapkę w start**. Gdy naprawisz start na żywo, te testy zrobią się czerwone - to jest dowód, że pułapka zniknęła. Powiedz to sali przed pierwszym krokiem. `reset` przywraca stan wyjściowy.
 - Pozostałe testy strukturalne sprawdzają snapshoty `stepN`, więc praca na `start` ich nie psuje.

@@ -87,11 +87,17 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <pre class="code" data-lang="bash"><code class="hljs">scripts/warsztat.sh list m5              <span class="hljs-comment"># sceny i kroki modułu 5</span>
 scripts/warsztat.sh <span class="hljs-built_in">test</span> m5/s01          <span class="hljs-comment"># testy jednej sceny (albo całego modułu: m5)</span>
 scripts/warsztat.sh diff m5/s01 0 1      <span class="hljs-comment"># co zmienia krok 1 względem start</span>
+scripts/warsztat.sh diff m5/s01 0 1 --word  <span class="hljs-comment"># to samo, zmiany podświetlone w obrębie linii</span>
 scripts/warsztat.sh jump m5/s01 2        <span class="hljs-comment"># nie zdążyłeś? start = snapshot step2</span>
+scripts/warsztat.sh next m5/s01          <span class="hljs-comment"># następny krok do start + podsumowanie zmian</span>
+scripts/warsztat.sh next                 <span class="hljs-comment"># kolejny krok tej samej sceny (scena zapamiętana)</span>
+scripts/warsztat.sh prev                 <span class="hljs-comment"># krok wstecz</span>
+scripts/warsztat.sh status               <span class="hljs-comment"># który krok jest teraz w start</span>
 scripts/warsztat.sh reset m5/s01         <span class="hljs-comment"># przywraca start z repozytorium</span>
 </code></pre>
 <ul>
 <li>Zasada: <strong>jeden krok - jeden test - jedno zdanie komentarza</strong>. Po każdym ruchu w IDE uruchamiasz test sceny, zanim cokolwiek powiesz.</li>
+<li><strong>Krok po kroku bez numerów:</strong> <code>scripts/<wbr>warsztat.sh next</code> wstawia do <code>start</code> gotowy następny krok i wypisuje, co się zmieniło. <code>prev</code> cofa o krok, <code>status</code> mówi, który krok jest teraz w <code>start</code>. Skrypt pamięta ostatnią scenę, więc po pierwszym <code>next m5/<wbr>sNN</code> wystarczy samo <code>next</code>. Ręczne zmiany w <code>start</code> zostają nadpisane - o to chodzi, gdy krok na żywo się rozjechał.</li>
 <li>Test <code>SNNEquivalenceTest</code> sprawdza, że start i wszystkie kroki zachowują się tak samo. <code>SNNSolutionTest</code> pokazuje to, czego równoważność nie widzi: typ deklarujący członka, klasę runtime, pułapkę semantyki, zgodność binarną.</li>
 <li>Sceny o pułapkach (s08-s11, s13) mają w <code>SNNSolutionTest</code> testy o nazwie <code>start...</code>, które <strong>dokumentują pułapkę w start</strong>. Gdy naprawisz start na żywo, te testy zrobią się czerwone - to jest dowód, że pułapka zniknęła. Powiedz to sali przed pierwszym krokiem. <code>reset</code> przywraca stan wyjściowy.</li>
 <li>Pozostałe testy strukturalne sprawdzają snapshoty <code>stepN</code>, więc praca na <code>start</code> ich nie psuje.</li>

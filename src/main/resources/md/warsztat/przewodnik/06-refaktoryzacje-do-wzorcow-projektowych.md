@@ -9,12 +9,18 @@ scripts/warsztat.sh list m6              # sceny i kroki modułu 6
 scripts/warsztat.sh test m6/s08          # testy jednej sceny
 scripts/warsztat.sh test m6              # wszystkie sceny modułu (473 testy)
 scripts/warsztat.sh diff m6/s08 1 2      # co zmienia krok 2 względem kroku 1 (0 = start)
+scripts/warsztat.sh diff m6/s08 1 2 --word  # to samo, zmiany podświetlone w obrębie linii
 scripts/warsztat.sh jump m6/s08 2        # kopiuje step2 do start (przeskok, gdy brakuje czasu)
+scripts/warsztat.sh next m6/s08          # następny krok do start + podsumowanie zmian
+scripts/warsztat.sh next                 # kolejny krok tej samej sceny (scena zapamiętana)
+scripts/warsztat.sh prev                 # krok wstecz
+scripts/warsztat.sh status               # który krok jest teraz w start
 scripts/warsztat.sh reset m6/s08         # przywraca start z repozytorium
 ```
 
 - Zasada: **jeden krok - jeden test - jedno zdanie komentarza**. Po każdym ruchu w IDE uruchamiamy test sceny; zielony pasek jest dowodem, że wzorzec nie zmienił kontraktu.
-- Pracujemy na pakiecie `start`. Gdy coś pójdzie nie tak, `jump` do właściwego kroku, a po scenie `reset`.
+- **Krok po kroku bez numerów:** `scripts/warsztat.sh next` wstawia do `start` gotowy następny krok i wypisuje, co się zmieniło. `prev` cofa o krok, `status` mówi, który krok jest teraz w `start`. Skrypt pamięta ostatnią scenę, więc po pierwszym `next m6/sNN` wystarczy samo `next`. Ręczne zmiany w `start` zostają nadpisane - o to chodzi, gdy krok na żywo się rozjechał.
+- Pracujemy na pakiecie `start`. Gdy coś pójdzie nie tak, `next` (albo `jump` do właściwego kroku), a po scenie `reset`.
 - Test równoważności przechodzi przez `start` i wszystkie kroki. Jeśli uczestnicy pracują równolegle, to ten sam test jest ich kryterium ukończenia.
 - Testy wołają sceny przez stabilne punkty wejścia (klient w rodzaju `PriceBoard`, `CancellationDesk`, `PaymentServices` albo zachowany konstruktor), dzięki czemu `jump` do dowolnego kroku kompiluje się i przechodzi. Testy dokumentujące pułapkę samego `start` (s11, s17) po `jump` są pomijane (JUnit pokazuje je jako "aborted") - to zamierzone.
 - Motyw przewodni modułu: **najpierw kontrakt, potem diagram klas**. W każdej scenie zaczynamy od pytania "co jest obserwowalne?" (wyjątek, kolejność efektów, moment wyboru, format trwały).

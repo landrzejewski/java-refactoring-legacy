@@ -11,12 +11,18 @@ scripts/warsztat.sh list m7            # sceny modułu i ich kroki
 scripts/warsztat.sh test m7/s02        # testy jednej sceny
 scripts/warsztat.sh test m7            # wszystkie sceny modułu (286 testów)
 scripts/warsztat.sh diff m7/s13 2 3    # co zmienia krok 3 względem kroku 2 (0 = start)
+scripts/warsztat.sh diff m7/s13 2 3 --word  # to samo, zmiany podświetlone w obrębie linii
 scripts/warsztat.sh jump m7/s13 2      # skopiuj step2 do start, gdy brakuje czasu
+scripts/warsztat.sh next m7/s13        # następny krok do start + podsumowanie zmian
+scripts/warsztat.sh next               # kolejny krok tej samej sceny (scena zapamiętana)
+scripts/warsztat.sh prev               # krok wstecz
+scripts/warsztat.sh status             # który krok jest teraz w start
 scripts/warsztat.sh reset m7/s13       # przywróć start po pokazie
 ```
 
 - Zasada: **jeden krok - jeden test - jedno zdanie komentarza.** Ruch w IDE, ⌃R na teście sceny, zdanie z sekcji "Co powiedzieć".
-- Pracujesz zawsze w pakiecie `start`. Snapshoty `stepN` służą do `diff` albo do przeskoku (`jump`), gdy coś się rozjedzie.
+- **Krok po kroku bez numerów:** `scripts/warsztat.sh next` wstawia do `start` gotowy następny krok i wypisuje, co się zmieniło. `prev` cofa o krok, `status` mówi, który krok jest teraz w `start`. Skrypt pamięta ostatnią scenę, więc po pierwszym `next m7/sNN` wystarczy samo `next`. Ręczne zmiany w `start` zostają nadpisane - o to chodzi, gdy krok na żywo się rozjechał.
+- Pracujesz zawsze w pakiecie `start`. Snapshoty `stepN` służą do `diff` albo do przeskoku (`next`, `jump`), gdy coś się rozjedzie.
 - Zanim zaczniesz, pokaż slajd "Wektor obserwowalnego zachowania" i wracaj do niego przy każdej scenie: *co tu obserwujemy - wynik, wyjątek, stan, efekty, kolejność?* Testy scen celowo obserwują więcej niż sam wynik (audyt w s07, licznik w s12, lista wejściowa w s05, skrzynka nadawcza w s03).
 - W s01 start **nie ma testów** i to jest puenta: testy pojawiają się dopiero wtedy, gdy kod ma seam.
 - W s10 kompilator zgłasza 4 ostrzeżenia `[deprecation]` (kroki 1 i 2). To celowe: lista ostrzeżeń jest listą klientów do migracji. Zniknie w kroku 3.

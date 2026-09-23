@@ -8,11 +8,17 @@ Trzynaście małych scen pokazuje strategie z modułu 8 na kodzie kina CineLegac
 scripts/warsztat.sh list m8                 # sceny i kroki modułu 8
 scripts/warsztat.sh test m8/s01             # testy jednej sceny (albo całego modułu: m8)
 scripts/warsztat.sh diff m8/s03 1 2         # co zmienia krok 2 względem kroku 1 (0 = start)
+scripts/warsztat.sh diff m8/s03 1 2 --word  # to samo, zmiany podświetlone w obrębie linii
 scripts/warsztat.sh jump m8/s03 2           # start = step2, gdy trzeba przeskoczyć krok
+scripts/warsztat.sh next m8/s03             # następny krok do start + podsumowanie zmian
+scripts/warsztat.sh next                    # kolejny krok tej samej sceny (scena zapamiętana)
+scripts/warsztat.sh prev                    # krok wstecz
+scripts/warsztat.sh status                  # który krok jest teraz w start
 scripts/warsztat.sh reset m8/s03            # przywraca start z repozytorium
 ```
 
 - Zasada: **jeden krok - jeden test - jedno zdanie komentarza**. Zanim ruszysz kod, powiedz, jaki dowód da test po kroku.
+- **Krok po kroku bez numerów:** `scripts/warsztat.sh next` wstawia do `start` gotowy następny krok i wypisuje, co się zmieniło. `prev` cofa o krok, `status` mówi, który krok jest teraz w `start`. Skrypt pamięta ostatnią scenę, więc po pierwszym `next m8/sNN` wystarczy samo `next`. Ręczne zmiany w `start` zostają nadpisane - o to chodzi, gdy krok na żywo się rozjechał.
 - W tym module część testów to nie tylko równoważność (`SNNEquivalenceTest`), ale też dowody strategii (`SNNSolutionTest`): raport rozbieżności, dziennik efektów ubocznych, wynik bramki, lista naruszeń ADR. Testy, które **dokumentują stan startowy** (np. "start wysyła dwa maile", "start narusza ADR"), zmienią kolor na czerwony, gdy wykonasz kroki na pakiecie `start` - to znak, że start jest już naprawiony. Po pokazie: `scripts/warsztat.sh reset`.
 - Sceny s07, s08, s10, s12 i s13 czytają pliki źródłowe sceny. Testy uruchamiaj z katalogu głównego repozytorium (tak działa `warsztat.sh` i `mvn test`).
 - Sceny s08 i s10 celowo zawierają kod z ostrzeżeniami kompilatora (`start` i `sample/dirty`) - to materiał dla bramek, nie niedoróbka.

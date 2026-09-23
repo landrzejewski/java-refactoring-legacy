@@ -89,12 +89,18 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 scripts/warsztat.sh <span class="hljs-built_in">test</span> m7/s02        <span class="hljs-comment"># testy jednej sceny</span>
 scripts/warsztat.sh <span class="hljs-built_in">test</span> m7            <span class="hljs-comment"># wszystkie sceny modułu (286 testów)</span>
 scripts/warsztat.sh diff m7/s13 2 3    <span class="hljs-comment"># co zmienia krok 3 względem kroku 2 (0 = start)</span>
+scripts/warsztat.sh diff m7/s13 2 3 --word  <span class="hljs-comment"># to samo, zmiany podświetlone w obrębie linii</span>
 scripts/warsztat.sh jump m7/s13 2      <span class="hljs-comment"># skopiuj step2 do start, gdy brakuje czasu</span>
+scripts/warsztat.sh next m7/s13        <span class="hljs-comment"># następny krok do start + podsumowanie zmian</span>
+scripts/warsztat.sh next               <span class="hljs-comment"># kolejny krok tej samej sceny (scena zapamiętana)</span>
+scripts/warsztat.sh prev               <span class="hljs-comment"># krok wstecz</span>
+scripts/warsztat.sh status             <span class="hljs-comment"># który krok jest teraz w start</span>
 scripts/warsztat.sh reset m7/s13       <span class="hljs-comment"># przywróć start po pokazie</span>
 </code></pre>
 <ul>
 <li>Zasada: <strong>jeden krok - jeden test - jedno zdanie komentarza.</strong> Ruch w IDE, ⌃R na teście sceny, zdanie z sekcji &quot;Co powiedzieć&quot;.</li>
-<li>Pracujesz zawsze w pakiecie <code>start</code>. Snapshoty <code>stepN</code> służą do <code>diff</code> albo do przeskoku (<code>jump</code>), gdy coś się rozjedzie.</li>
+<li><strong>Krok po kroku bez numerów:</strong> <code>scripts/<wbr>warsztat.sh next</code> wstawia do <code>start</code> gotowy następny krok i wypisuje, co się zmieniło. <code>prev</code> cofa o krok, <code>status</code> mówi, który krok jest teraz w <code>start</code>. Skrypt pamięta ostatnią scenę, więc po pierwszym <code>next m7/<wbr>sNN</code> wystarczy samo <code>next</code>. Ręczne zmiany w <code>start</code> zostają nadpisane - o to chodzi, gdy krok na żywo się rozjechał.</li>
+<li>Pracujesz zawsze w pakiecie <code>start</code>. Snapshoty <code>stepN</code> służą do <code>diff</code> albo do przeskoku (<code>next</code>, <code>jump</code>), gdy coś się rozjedzie.</li>
 <li>Zanim zaczniesz, pokaż slajd &quot;Wektor obserwowalnego zachowania&quot; i wracaj do niego przy każdej scenie: <em>co tu obserwujemy - wynik, wyjątek, stan, efekty, kolejność?</em> Testy scen celowo obserwują więcej niż sam wynik (audyt w s07, licznik w s12, lista wejściowa w s05, skrzynka nadawcza w s03).</li>
 <li>W s01 start <strong>nie ma testów</strong> i to jest puenta: testy pojawiają się dopiero wtedy, gdy kod ma seam.</li>
 <li>W s10 kompilator zgłasza 4 ostrzeżenia <code>[deprecation]</code> (kroki 1 i 2). To celowe: lista ostrzeżeń jest listą klientów do migracji. Zniknie w kroku 3.</li>

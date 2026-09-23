@@ -11,12 +11,18 @@ scripts/warsztat.sh list m3              # lista scen i kroków modułu 3
 scripts/warsztat.sh test m3/s01          # testy jednej sceny (krótka nazwa wystarczy)
 scripts/warsztat.sh test m3              # wszystkie sceny modułu (238 testów)
 scripts/warsztat.sh diff m3/s01 0 1      # co zmienia krok 1 względem start (0 = start)
+scripts/warsztat.sh diff m3/s01 0 1 --word  # to samo, zmiany podświetlone w obrębie linii
 scripts/warsztat.sh jump m3/s12 3        # przeskok: start = snapshot kroku 3
+scripts/warsztat.sh next m3/s12          # następny krok do start + podsumowanie zmian
+scripts/warsztat.sh next                 # kolejny krok tej samej sceny (scena zapamiętana)
+scripts/warsztat.sh prev                 # krok wstecz
+scripts/warsztat.sh status               # który krok jest teraz w start
 scripts/warsztat.sh reset m3/s12         # przywrócenie start z repozytorium
 ```
 
 - Zasada pokazu: **jeden krok - jeden test - jedno zdanie komentarza**. Nie łącz kroków, nawet jeśli IDE pozwala.
-- Jeśli krok na żywo się nie uda albo brakuje czasu: `jump` do snapshotu i kontynuuj od następnego kroku. Po pokazie zawsze `reset`.
+- **Krok po kroku bez numerów:** `scripts/warsztat.sh next` wstawia do `start` gotowy następny krok i wypisuje, co się zmieniło. `prev` cofa o krok, `status` mówi, który krok jest teraz w `start`. Skrypt pamięta ostatnią scenę, więc po pierwszym `next m3/sNN` wystarczy samo `next`. Ręczne zmiany w `start` zostają nadpisane - o to chodzi, gdy krok na żywo się rozjechał.
+- Jeśli krok na żywo się nie uda albo brakuje czasu: `next` (albo `jump` do konkretnego snapshotu) i kontynuuj od następnego kroku. Po pokazie zawsze `reset`.
 - Testy dotykają `start` wyłącznie przez API wspólne dla wszystkich kroków, więc kompilują się w każdym stanie pośrednim. Tam, gdzie refaktoryzacja zmienia konstruktory, scena ma punkt wejścia pełniący rolę composition root: `Main` (s11), `CinemaApplication` (s12), `CinemaApp` (s13), `TicketDesk` (s16). Refaktoryzacje IntelliJ (Introduce Parameter, Move Class) same aktualizują te miejsca.
 - Pułapki, których nie da się sprawdzić na edytowanym `start` (bo znikają po naprawie), testy dokumentują na kopii w kroku, który jeszcze ją ma (np. s04 krok 1, s09 krok 1, s15 krok 1).
 - Test s13 czyta pliki źródłowe względem katalogu projektu - uruchamiaj go z katalogu głównego repozytorium (tak działa Maven i skrypt).
