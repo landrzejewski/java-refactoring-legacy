@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zadania: Moduł 7. Zaawansowane refaktoryzacje - warsztat CineLegacy (TypeScript): zadania (TypeScript)</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1d1f23;--muted:#5f6670;--line:#e3e5e8;--card:#ffffff;--accent:#2457c5;--accent-bg:#eef3fd;
+--code-bg:#f4f5f7;--note-bg:#fff7e6;--note-line:#e6a700;--th:#f1f3f6;
+--k:#b3246b;--s:#1a7f37;--c:#6e7781;--n:#0550ae;--t:#8250df;--f:#6639ba;--a:#953800;
+--kind:#2457c5}
+@media (prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3036;--card:#1c1f23;--accent:#7aa7ff;--accent-bg:#1e2a40;
+--code-bg:#1f2328;--note-bg:#2b2412;--note-line:#c99400;--th:#23272d;
+--k:#ff7b9c;--s:#7ee2a0;--c:#8b949e;--n:#79c0ff;--t:#d2a8ff;--f:#d2a8ff;--a:#ffa657}}
+body.zadania{--kind:#1a7f37} body.warsztat{--kind:#c2570c} body.warsztat-zadania{--kind:#0f7b7b} body.rozwiazania{--kind:#b3246b} body.przyklady{--kind:#2457c5}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.topbar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 24px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);border-top:3px solid var(--kind)}
+.topbar a{color:var(--fg);text-decoration:none}
+.home{font-weight:600}
+.tabs{display:flex;gap:4px}
+.tab{padding:4px 12px;border-radius:999px;font-size:15px;color:var(--muted)!important}
+.tab:hover{background:var(--code-bg)}
+.tab.active{background:var(--accent-bg);color:var(--accent)!important;font-weight:600}
+.pager{margin-left:auto;display:flex;gap:14px;font-size:15px}
+.pager a{color:var(--muted)}.pager a:hover{color:var(--accent)}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:48px;max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+.layout.no-toc{grid-template-columns:minmax(0,1fr);max-width:1000px}
+aside{position:sticky;top:72px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px}
+.toc-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;font-weight:600}
+.toc ul{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.toc li a{display:block;padding:3px 12px;color:var(--muted);text-decoration:none;line-height:1.35}
+.toc li.h3 a{padding-left:24px;font-size:13px}
+.toc li a:hover{color:var(--accent)}
+main{min-width:0;max-width:860px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 1.2rem;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:2.6rem 0 .8rem;padding-top:.6rem;border-top:1px solid var(--line)}
+h3{font-size:1.18rem;margin:2rem 0 .6rem}
+h4{font-size:1rem;margin:1.5rem 0 .5rem}
+h1 a,h2 a,h3 a,h4 a{color:inherit;text-decoration:none}
+h2 a:hover::after,h3 a:hover::after{content:" #";color:var(--muted)}
+p,ul,ol{margin:.6rem 0 1rem}
+li{margin:.25rem 0}
+li>ul,li>ol{margin:.2rem 0}
+a{color:var(--accent)}
+strong{font-weight:650}
+code{font:0.88em/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre.code{position:relative;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:1rem 0 1.4rem}
+pre.code code{background:none;padding:0;font-size:14px;line-height:1.55}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:6px;right:10px;font:11px ui-monospace,Menlo,monospace;color:var(--muted);text-transform:uppercase}
+.table-wrap{overflow-x:auto;margin:1rem 0 1.4rem;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--th);font-weight:600}
+tr:last-child td{border-bottom:none}
+blockquote{margin:1rem 0 1.4rem;padding:10px 16px;background:var(--note-bg);border-left:4px solid var(--note-line);border-radius:0 8px 8px 0}
+blockquote p{margin:.3rem 0}
+hr{border:none;border-top:1px solid var(--line);margin:2rem 0}
+hr+h2{border-top:none;margin-top:1.4rem}
+main p code,main li code,main td code{overflow-wrap:break-word}
+.toc summary{cursor:pointer;list-style:none}.toc summary::-webkit-details-marker{display:none}
+.hljs-keyword,.hljs-selector-tag,.hljs-built_in,.hljs-literal{color:var(--k)}
+.hljs-string,.hljs-regexp,.hljs-addition{color:var(--s)}
+.hljs-comment,.hljs-quote,.hljs-meta{color:var(--c);font-style:italic}
+.hljs-number,.hljs-symbol{color:var(--n)}
+.hljs-type,.hljs-class .hljs-title,.hljs-title.class_{color:var(--t)}
+.hljs-title,.hljs-title.function_,.hljs-section{color:var(--f)}
+.hljs-attr,.hljs-attribute,.hljs-variable,.hljs-params,.hljs-tag{color:var(--a)}
+.hljs-deletion{color:var(--k)}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:16px;padding:20px 16px 60px}
+aside{position:static;max-height:none;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--card)}
+.toc-title{margin:0}.toc details[open] .toc-title{margin-bottom:8px}.toc summary::after{content:" ▾"}
+body{font-size:16px}.topbar{padding:8px 16px}.pager{margin-left:0}h1{font-size:1.6rem}}
+@media print{.topbar,aside{display:none}.layout{display:block;padding:0}main{max-width:none}
+pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#000;font-size:12pt}}
+.langs{margin-left:auto}.langs+.pager{margin-left:0}</style>
+</head>
+<body class="warsztat-zadania">
+<header class="topbar"><a class="home" href="../../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../00-cinelegacy.html">Warsztat CineLegacy</a><a class="tab active" href="07-zaawansowane-refaktoryzacje.html">Zadania</a><a class="tab" href="../przewodnik/07-zaawansowane-refaktoryzacje.html">Przewodnik</a></div><div class="tabs langs" aria-label="Język"><a class="tab" href="../../warsztat/zadania/07-zaawansowane-refaktoryzacje.html">Java</a><a class="tab" href="../../warsztat-csharp/zadania/07-zaawansowane-refaktoryzacje.html">C#</a><a class="tab active" href="../../warsztat-typescript/zadania/07-zaawansowane-refaktoryzacje.html">TypeScript</a></div><div class="pager"><a href="06-refaktoryzacje-do-wzorcow-projektowych.html" title="Poprzedni moduł">&larr; 06</a><a href="08-strategie-i-dobre-praktyki.html" title="Następny moduł">08 &rarr;</a></div></header>
+<div class="layout">
+<aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#scena-s01-break-dependencies-seam-dla-zadania-przypomnien">Scena s01. Break Dependencies - seam dla zadania przypomnień</a></li><li class="h2"><a href="#scena-s02-extract-method-object-wycena-zamowienia-grupowego">Scena s02. Extract Method Object - wycena zamówienia grupowego</a></li><li class="h2"><a href="#scena-s03-break-responsibilities-walidacja-wycena-powiadomienie">Scena s03. Break Responsibilities - walidacja, wycena, powiadomienie</a></li><li class="h2"><a href="#scena-s04-remove-duplication-rabat-grupowy-w-kasie-i-w-sklepie">Scena s04. Remove Duplication - rabat grupowy w kasie i w sklepie</a></li><li class="h2"><a href="#scena-s05-break-method-repertuar-dnia">Scena s05. Break Method - repertuar dnia</a></li><li class="h2"><a href="#scena-s06-introduce-parameter-object-termin-seansu">Scena s06. Introduce Parameter Object - termin seansu</a></li><li class="h2"><a href="#scena-s07-remove-arrowhead-antipattern-bramka-rezerwacji">Scena s07. Remove Arrowhead Antipattern - bramka rezerwacji</a></li><li class="h2"><a href="#scena-s08-introduce-design-by-contract-checks-pula-miejsc">Scena s08. Introduce Design by Contract Checks - pula miejsc</a></li><li class="h2"><a href="#scena-s09-remove-double-negative-wstep-do-strefy-vip">Scena s09. Remove Double Negative - wstęp do strefy VIP</a></li><li class="h2"><a href="#scena-s10-remove-boolean-method-parameters-migracja-api">Scena s10. Remove Boolean Method Parameters - migracja API</a></li><li class="h2"><a href="#scena-s11-remove-middle-man-fasada-kina">Scena s11. Remove Middle Man - fasada kina</a></li><li class="h2"><a href="#scena-s12-return-asap-wyszukiwanie-wolnego-miejsca">Scena s12. Return ASAP - wyszukiwanie wolnego miejsca</a></li><li class="h2"><a href="#scena-s13-remove-god-class-kampania-na-kopii-cinemamanager">Scena s13. Remove God Class - kampania na kopii CinemaManager</a></li><li class="h2"><a href="#scena-s14-refaktoryzacja-a-zmiana-kontraktu-zwrot-na-bigdecimal">Scena s14. Refaktoryzacja a zmiana kontraktu - zwrot na BigDecimal</a></li><li class="h2"><a href="#scena-s15-wektor-obserwowalnego-zachowania-platnosc-za-bilety">Scena s15. Wektor obserwowalnego zachowania - płatność za bilety</a></li></ul></details></nav></aside>
+<main>
+<h1>Moduł 7. Zaawansowane refaktoryzacje - warsztat CineLegacy (TypeScript): zadania</h1>
+<p>Każda scena ma katalog <code>start</code> z kodem wyjściowym i test, który na starcie jest zielony (wyjątek: w s01 kodu startowego nie da się uruchomić w teście - to część zadania). Pracuj tylko w <code>start</code>. Po każdym ruchu (jedna technika naraz) uruchom test sceny, na przykład <code>scripts/<wbr>warsztat.sh --lang ts test m7/<wbr>s02</code>, albo test z rozszerzenia Vitest w VS Code. Test ma być zielony po każdym kroku, a nie dopiero na końcu. Vitest nie sprawdza typów, więc po zmianach sygnatur uruchom też <code>npm run typecheck</code> w katalogu <code>typescript</code>. Nie zaglądaj do katalogów <code>stepN</code>, dopóki nie skończysz, bo to gotowe rozwiązania. Jeśli się zgubisz, <code>scripts/<wbr>warsztat.sh --lang ts reset m7/<wbr>s02</code> przywraca <code>start</code>.</p>
+<p>Przy każdej scenie zadaj sobie pytanie ze slajdu &quot;Wektor obserwowalnego zachowania&quot;: co obserwuje test - wynik, wyjątek, stan, efekty uboczne, ich kolejność? Tam, gdzie zadanie mówi o <strong>zmianie kontraktu</strong>, nazwij ją wprost i zrób ją jako osobny krok. Dopiero wtedy wolno zmienić oczekiwania w teście.</p>
+<h2 id="scena-s01-break-dependencies-seam-dla-zadania-przypomnien" tabindex="-1"><a class="header-anchor" href="#scena-s01-break-dependencies-seam-dla-zadania-przypomnien"><span>Scena s01. Break Dependencies - seam dla zadania przypomnień</span></a></h2>
+<p><strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m7/<wbr>s01_breakdependencies/<wbr>start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m7/<wbr>s01</code></p>
+<p><strong>Zasada:</strong> Break Dependencies tworzy seam, czyli miejsce, w którym można podstawić inną implementację zależności bez edycji algorytmu. Wybiera się najwęższy skuteczny seam, który nie zmienia czasu życia ani momentu tworzenia zależności.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Uruchom <code>ShowtimeReminderJob.run()</code> w teście i zapisz, co stoi na przeszkodzie (są trzy przeszkody).</li>
+<li>Usuń przeszkody po kolei, każdą osobnym ruchem, tak aby wywołanie <code>new ShowtimeReminderJob()</code> bez argumentów nadal składało te same implementacje produkcyjne.</li>
+<li>Napisz test, który sprawdza wysłane przypomnienia i oznaczone rezerwacje dla seansu za 90, 120 i 121 minut.</li>
+<li>Zachowaj moment, w którym powstaje połączenie z bazą.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> najwęższy seam to często parametr konstruktora, <code>Clock</code> albo typ funkcyjny. Zastanów się, co by się stało, gdyby parametr domyślny konstruktora był gotową instancją <code>new LegacyDatabase()</code>, a nie fabryką.
+<strong>Gotowe, gdy:</strong> Twój test jest zielony bez sieci i bazy, <code>ShowtimeReminderJob</code> nie ma metod <code>protected</code> dodanych tylko dla testu, a nowe typy nie mają metod, których zadanie nie używa.</p>
+<h2 id="scena-s02-extract-method-object-wycena-zamowienia-grupowego" tabindex="-1"><a class="header-anchor" href="#scena-s02-extract-method-object-wycena-zamowienia-grupowego"><span>Scena s02. Extract Method Object - wycena zamówienia grupowego</span></a></h2>
+<p><strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m7/<wbr>s02_methodobject/<wbr>start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m7/<wbr>s02</code></p>
+<p><strong>Zasada:</strong> Extract Method Object przenosi metodę do krótko żyjącego obiektu, którego pola niosą stan lokalny. Stosuje się go, gdy splątane zmienne lokalne blokują zwykłe ekstrakcje.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Spróbuj Extract to function (⌃⇧R) na pętli w <code>GroupPricing.quote</code> i zapisz, co zaproponował VS Code i dlaczego to nie rozwiązuje problemu.</li>
+<li>Przenieś algorytm do obiektu metody tak, aby publiczne API <code>GroupPricing</code> się nie zmieniło.</li>
+<li>Rozbij algorytm na metody bez parametrów, które czytają się jak kroki wyceny.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> najpierw kopia bez upraszczania i delegacja, dopiero potem pola i ekstrakcje.
+<strong>Gotowe, gdy:</strong> test jest zielony, obiekt metody powstaje na każde wywołanie, a metoda główna obiektu ma najwyżej 6 linii.</p>
+<h2 id="scena-s03-break-responsibilities-walidacja-wycena-powiadomienie" tabindex="-1"><a class="header-anchor" href="#scena-s03-break-responsibilities-walidacja-wycena-powiadomienie"><span>Scena s03. Break Responsibilities - walidacja, wycena, powiadomienie</span></a></h2>
+<p><strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m7/<wbr>s03_breakresponsibilities/<wbr>start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m7/<wbr>s03</code></p>
+<p><strong>Zasada:</strong> Odpowiedzialność to powód zmiany, a nie liczba metod czy linii. Każdy wydzielony fragment powinien mieć jeden powód zmiany, a każdy stan jednego właściciela.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Wypisz powody zmiany <code>BookingDesk.book</code> i kto w kinie za nimi stoi.</li>
+<li>Wydziel każdą odpowiedzialność do osobnej klasy, jedną na raz.</li>
+<li>Zostaw <code>BookingDesk</code> z niezmienionym publicznym konstruktorem i metodą <code>book</code>.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> jedna odpowiedzialność liczy dwie wartości, z których druga jest potrzebna dopiero przy powiadomieniu.
+<strong>Gotowe, gdy:</strong> test jest zielony, <code>book</code> ma najwyżej 7 linii, a <code>Outbox</code> ma jednego właściciela.</p>
+<h2 id="scena-s04-remove-duplication-rabat-grupowy-w-kasie-i-w-sklepie" tabindex="-1"><a class="header-anchor" href="#scena-s04-remove-duplication-rabat-grupowy-w-kasie-i-w-sklepie"><span>Scena s04. Remove Duplication - rabat grupowy w kasie i w sklepie</span></a></h2>
+<p><strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m7/<wbr>s04_removeduplication/<wbr>start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m7/<wbr>s04</code></p>
+<p><strong>Zasada:</strong> Usuwamy duplikację wiedzy, czyli tej samej reguły, która zmienia się razem, a nie podobnego tekstu. Różnice między kopiami trzeba najpierw ujawnić i rozstrzygnąć, a dopiero potem łączyć.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Znajdź regułę zapisaną dwa razy w <code>BoxOffice</code> i <code>WebShop</code> i opisz wszystkie różnice w zapisie.</li>
+<li>Ujednolić zapis w obu klasach tak, żeby różniły się tylko tym, co naprawdę jest różne. Test ma być zielony bez zmian.</li>
+<li>Podejmij decyzję o różnicy, która zostanie, i opisz ją jednym zdaniem jako zmianę kontraktu (albo jako świadomie zachowaną różnicę).</li>
+<li>Wydziel wspólną regułę do jednego właściciela.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> policz rabat dla koszyka 3 x 18.75 + 7 x 25.00 ręcznie w obu trybach zaokrąglenia (<code>Decimal.ROUND_HALF_UP</code> i <code>Decimal.ROUND_HALF_EVEN</code>).
+<strong>Gotowe, gdy:</strong> testy są zielone, reguła 10+/-10% ma jedno źródło, a opłata online nadal żyje tylko w <code>WebShop</code>.</p>
+<h2 id="scena-s05-break-method-repertuar-dnia" tabindex="-1"><a class="header-anchor" href="#scena-s05-break-method-repertuar-dnia"><span>Scena s05. Break Method - repertuar dnia</span></a></h2>
+<p><strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m7/<wbr>s05_breakmethod/<wbr>start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m7/<wbr>s05</code></p>
+<p><strong>Zasada:</strong> Break Method to seria małych ekstrakcji, po której metoda opisuje algorytm na jednym poziomie abstrakcji. Fragmenty przenosi się dosłownie, a nazwę nadaje po teście.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Rozbij <code>RepertoireBuilder.build</code> na etapy tak, aby metoda publiczna była na jednym poziomie abstrakcji.</li>
+<li>Zacznij od etapu z najmniejszą liczbą wejść i wyjść.</li>
+<li>Zachowaj klasę i komunikat błędu (<code>IllegalArgumentError</code>) oraz nienaruszoną tablicę wejściową.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> zastanów się, czy potrzebujesz Method Object ze sceny s02. Ile wartości przechodzi między etapami?
+<strong>Gotowe, gdy:</strong> test jest zielony, a <code>build</code> ma trzy linie.</p>
+<h2 id="scena-s06-introduce-parameter-object-termin-seansu" tabindex="-1"><a class="header-anchor" href="#scena-s06-introduce-parameter-object-termin-seansu"><span>Scena s06. Introduce Parameter Object - termin seansu</span></a></h2>
+<p><strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m7/<wbr>s06_parameterobject/<wbr>start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m7/<wbr>s06</code></p>
+<p><strong>Zasada:</strong> Parameter Object nazywa jedno pojęcie ukryte w grupie parametrów, które zawsze chodzą razem, i przyciąga związane z nim zachowanie. Walidacja w nowym typie zmienia moment zgłoszenia błędu, więc jest zmianą kontraktu.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Nazwij pojęcie, które ukrywa czwórka parametrów w <code>ScreeningPlanner</code>, i wprowadź dla niego klasę.</li>
+<li>Zostaw stare sygnatury na okres migracji (sygnatury przeciążeń z <code>/<wbr>** @deprecated */<wbr></code>).</li>
+<li>Przenieś do nowego typu zachowanie, które do niego należy.</li>
+<li>Jako osobny krok przenieś walidację do nowego typu i zapisz, jak zmienił się moment zgłoszenia wyjątku.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> porównaj, co zwraca <code>describe</code> dla sali 12 przed i po kroku 4.
+<strong>Gotowe, gdy:</strong> test jest zielony, walidacja jest w jednym miejscu, a zmiana momentu błędu jest opisana w komentarzu TSDoc albo w opisie commita.</p>
+<h2 id="scena-s07-remove-arrowhead-antipattern-bramka-rezerwacji" tabindex="-1"><a class="header-anchor" href="#scena-s07-remove-arrowhead-antipattern-bramka-rezerwacji"><span>Scena s07. Remove Arrowhead Antipattern - bramka rezerwacji</span></a></h2>
+<p><strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m7/<wbr>s07_arrowhead/<wbr>start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m7/<wbr>s07</code></p>
+<p><strong>Zasada:</strong> Guard clauses wyciągają przypadki kończące przetwarzanie na początek metody, dzięki czemu główna ścieżka nie jest zagnieżdżona. Spłaszczenie jest bezpieczne tylko przy zachowanym priorytecie warunków i nieominiętych efektach na końcu metody.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Spłaszcz <code>BookingGate.book</code> do guard clauses.</li>
+<li>Nie zgub wpisu do audytu dla żadnej ścieżki.</li>
+<li>Zachowaj priorytet warunków.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> zanim wstawisz pierwszy wczesny <code>return</code>, sprawdź, co metoda robi po zagnieżdżonym <code>if</code>.
+<strong>Gotowe, gdy:</strong> test jest zielony, zagnieżdżenie ma najwyżej jeden poziom, a zmienna <code>result</code> nie jest potrzebna w logice decyzji.</p>
+<h2 id="scena-s08-introduce-design-by-contract-checks-pula-miejsc" tabindex="-1"><a class="header-anchor" href="#scena-s08-introduce-design-by-contract-checks-pula-miejsc"><span>Scena s08. Introduce Design by Contract Checks - pula miejsc</span></a></h2>
+<p><strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m7/<wbr>s08_designbycontract/<wbr>start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m7/<wbr>s08</code></p>
+<p><strong>Zasada:</strong> Warunek wstępny to obowiązek klienta, warunek końcowy to gwarancja operacji, a niezmiennik to właściwość prawdziwa między operacjami. Odrzucanie niepoprawnych wejść jest zmianą zachowania, a nie refaktoryzacją.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Wypisz niepoprawne wywołania <code>SeatPool</code>, które dziś psują stan.</li>
+<li>Dodaj warunki wstępne tak, aby naruszenie nie zmieniało obiektu.</li>
+<li>Dodaj warunki końcowe i niezmiennik.</li>
+<li>Nie zmieniaj zachowania dla poprawnych wywołań, łącznie z odpowiedzią <code>false</code> przy braku miejsc.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> nie używaj <code>console.assert</code> - tylko wypisuje komunikat. Sprawdź, w którym miejscu metody kontrola musi stać, żeby wyjątek nie zostawił zepsutego stanu.
+<strong>Gotowe, gdy:</strong> test jest zielony, a Ty umiesz powiedzieć, które zmiany są refaktoryzacją, a które zmianą kontraktu.</p>
+<h2 id="scena-s09-remove-double-negative-wstep-do-strefy-vip" tabindex="-1"><a class="header-anchor" href="#scena-s09-remove-double-negative-wstep-do-strefy-vip"><span>Scena s09. Remove Double Negative - wstęp do strefy VIP</span></a></h2>
+<p><strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m7/<wbr>s09_doublenegative/<wbr>start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m7/<wbr>s09</code></p>
+<p><strong>Zasada:</strong> Pozytywna nazwa musi być dokładnym logicznym dopełnieniem negatywnej, także na granicy i dla <code>null</code>/<code>undefined</code>. Zmienia się ją przez stan przejściowy, w którym obie nazwy współistnieją.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Usuń podwójne zaprzeczenia z <code>LoungeAccess</code>.</li>
+<li>Przejdź przez stan, w którym stara i nowa nazwa istnieją jednocześnie.</li>
+<li>Na koniec zostaw tylko pozytywne nazwy w <code>Customer</code> i <code>Voucher</code>.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> voucher ważny &quot;do dziś&quot; jest ważny także dziś. Sprawdź dopełnienie na granicy. Getter pozwala dodać pozytywną nazwę tak, żeby później pole o tej samej nazwie zastąpiło go bez zmiany wywołań.
+<strong>Gotowe, gdy:</strong> test jest zielony, w kodzie nie ma <code>!customer.notVip</code> ani <code>!voucher.isNotExpired(...)</code>, a adapter w teście zmieniłeś świadomie.</p>
+<h2 id="scena-s10-remove-boolean-method-parameters-migracja-api" tabindex="-1"><a class="header-anchor" href="#scena-s10-remove-boolean-method-parameters-migracja-api"><span>Scena s10. Remove Boolean Method Parameters - migracja API</span></a></h2>
+<p><strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m7/<wbr>s10_booleanparameter/<wbr>start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m7/<wbr>s10</code></p>
+<p><strong>Zasada:</strong> Literał <code>true</code>/<code>false</code> w wywołaniu nie mówi, co się stanie, ale nie każdy <code>boolean</code> jest flagą sterującą. Publiczne API zmienia się przez okres przejściowy, w którym stara metoda deleguje do nowej.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Zastąp flagi w publicznym API <code>TicketService</code> czytelnymi metodami lub typami.</li>
+<li>Zostaw starą metodę jako przestarzałą (<code>/<wbr>** @deprecated */<wbr></code>) i delegującą, dopóki istnieje choć jeden klient.</li>
+<li>Zmigruj <code>MobileApp</code> i <code>BoxOfficeTerminal</code>, każdego osobno.</li>
+<li>Usuń starą metodę dopiero wtedy, gdy Find All References i <code>npm run typecheck</code> nie pokazują już jej użyć.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> nie każdy <code>boolean</code> jest flagą. Nie twórz metody na każdą kombinację. Zobacz test <code>precompiledJsClientBreaksOnlyAfterSafeDelete</code> - kogo nie widzi kompilator?
+<strong>Gotowe, gdy:</strong> test jest zielony, VS Code nie przekreśla już żadnego wywołania w klientach, a wywołania w klientach da się przeczytać bez zaglądania do sygnatury.</p>
+<h2 id="scena-s11-remove-middle-man-fasada-kina" tabindex="-1"><a class="header-anchor" href="#scena-s11-remove-middle-man-fasada-kina"><span>Scena s11. Remove Middle Man - fasada kina</span></a></h2>
+<p><strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m7/<wbr>s11_middleman/<wbr>start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m7/<wbr>s11</code></p>
+<p><strong>Zasada:</strong> Pośrednika, który tylko przekazuje wywołania dalej, można usunąć. Najpierw trzeba jednak sprawdzić, czy nie robi czegoś więcej, na przykład autoryzacji, retry albo translacji błędów.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Sprawdź każdą metodę <code>CinemaFacade</code>: czy tylko deleguje, czy robi coś więcej.</li>
+<li>Przenieś to, co robi więcej, tam, gdzie jest potrzebne.</li>
+<li>Zmigruj klientów do <code>ScreeningCatalog</code> po jednym i usuń fasadę.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> uruchom <code>SeatBadge</code> dla seansu <code>S9</code> przed i po zmianie.
+<strong>Gotowe, gdy:</strong> test jest zielony, <code>CinemaFacade</code> nie istnieje, a zachowanie dla nieznanego seansu jest takie samo jak na starcie.</p>
+<h2 id="scena-s12-return-asap-wyszukiwanie-wolnego-miejsca" tabindex="-1"><a class="header-anchor" href="#scena-s12-return-asap-wyszukiwanie-wolnego-miejsca"><span>Scena s12. Return ASAP - wyszukiwanie wolnego miejsca</span></a></h2>
+<p><strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m7/<wbr>s12_returnasap/<wbr>start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m7/<wbr>s12</code></p>
+<p><strong>Zasada:</strong> Return ASAP zwraca wynik tam, gdzie jest już ostateczny, zamiast nieść go w zmiennej i fladze do końca metody. Wczesny <code>return</code> nie może ominąć mutacji, która musiała się wydarzyć.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Zastąp zagnieżdżenia w <code>seatClass</code> guard clauses.</li>
+<li>Usuń flagę <code>found</code> i zmienną <code>result</code> z <code>firstFree</code>.</li>
+<li>Zachowaj licznik <code>inspected()</code> dokładnie taki sam jak na starcie.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> sprawdź, w której linii pętli musi stać <code>return</code>, żeby licznik się zgadzał.
+<strong>Gotowe, gdy:</strong> test jest zielony, żadna metoda nie ma zmiennej wyniku ani flagi pętli.</p>
+<h2 id="scena-s13-remove-god-class-kampania-na-kopii-cinemamanager" tabindex="-1"><a class="header-anchor" href="#scena-s13-remove-god-class-kampania-na-kopii-cinemamanager"><span>Scena s13. Remove God Class - kampania na kopii CinemaManager</span></a></h2>
+<p><strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m7/<wbr>s13_godclass/<wbr>start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m7/<wbr>s13</code></p>
+<p><strong>Zasada:</strong> God Class ma wiele powodów zmiany i jest centralnym węzłem zależności. Usuwa się ją kampanią małych pionowych wycinków, a nie przepisaniem, a stara klasa zostaje fasadą.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Narysuj mapę <code>CinemaManager</code>: metody, dane z <code>LegacyDb</code>, które czytają i zmieniają, oraz efekty (mail, SMS, bramka płatności).</li>
+<li>Wybierz i wydziel jeden pionowy wycinek (na przykład cennik), zostawiając publiczne API <code>CinemaManager</code> bez zmian.</li>
+<li>Powtórz dla kolejnego wycinka. Jeden z nich niech zastąpi <code>unknown[]</code> nazwanym typem.</li>
+<li>Po każdym wycinku uruchom golden master i zrób commit.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> kolejność efektów jest częścią zatwierdzonego wyniku. Nie poprawiaj kwot w <code>number</code> ani innych &quot;błędów&quot; w tym samym kroku. Po zmianie typu mapy <code>LegacyDb.BOOKINGS</code> listę miejsc do poprawy da <code>npm run typecheck</code>.
+<strong>Gotowe, gdy:</strong> golden master jest zielony po każdym kroku, wydzielone klasy nie znają układu <code>unknown[]</code>, a nie ma cyklu zależności (cyklu importów) między nimi a <code>CinemaManager</code>.</p>
+<h2 id="scena-s14-refaktoryzacja-a-zmiana-kontraktu-zwrot-na-bigdecimal" tabindex="-1"><a class="header-anchor" href="#scena-s14-refaktoryzacja-a-zmiana-kontraktu-zwrot-na-bigdecimal"><span>Scena s14. Refaktoryzacja a zmiana kontraktu - zwrot na BigDecimal</span></a></h2>
+<p><strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m7/<wbr>s14_contractchange/<wbr>start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m7/<wbr>s14</code></p>
+<p><strong>Zasada:</strong> Refaktoryzacja zachowuje obserwowalne zachowanie: klient nie może dostrzec żadnej nieuzgodnionej różnicy. Każda zmiana wyniku, formatu czy wyjątku to zmiana kontraktu, którą robi się osobno i świadomie.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Zrób jedną czystą refaktoryzację <code>RefundCalculator.refund</code> bez zmiany typów.</li>
+<li>Przejdź z <code>number</code> na <code>Decimal</code> (decimal.js - odpowiednik <code>BigDecimal</code>) i znajdź wszystkie różnice w zachowaniu, które to wprowadza.</li>
+<li>Dla każdej różnicy zdecyduj: zachować stary kontrakt czy świadomie go zmienić. Zapisz decyzję.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> sprawdź zwrot po starcie seansu oraz kwotę 64.35 anulowaną 2 godziny przed seansem. Pamiętaj, że <code>Decimal</code> nie przechowuje liczby miejsc po przecinku.
+<strong>Gotowe, gdy:</strong> testy są zielone, a każda różnica względem startu ma w teście jawne oczekiwanie i jedno zdanie uzasadnienia.</p>
+<h2 id="scena-s15-wektor-obserwowalnego-zachowania-platnosc-za-bilety" tabindex="-1"><a class="header-anchor" href="#scena-s15-wektor-obserwowalnego-zachowania-platnosc-za-bilety"><span>Scena s15. Wektor obserwowalnego zachowania - płatność za bilety</span></a></h2>
+<p><strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m7/<wbr>s15_behaviourvector/<wbr>start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m7/<wbr>s15</code></p>
+<p><strong>Zasada:</strong> Wektor obserwowalnego zachowania obejmuje wynik, wyjątki, stan, wywołania współpracowników z ich kolejnością, czas i granice. Test, który widzi tylko wynik, przepuści regresję w pozostałych wymiarach.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Przeczytaj <code>S15ResultOnlyTest</code> i wypisz, czego ten test nie widzi.</li>
+<li>Wprowadź seamy tak, aby test widział wysłane maile i obciążenia karty w jednej kolejności.</li>
+<li>Napisz test, który wykrywa błąd w <code>TicketCheckout.pay</code>, a potem go napraw.</li>
+<li>Dodaj do testu stan rezerwacji po operacji oraz klasę i komunikat błędu dla braku karty.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> porównaj, co dostaje klient z kartą kończącą się na 0000, z tym, czego oczekujesz od kina.
+<strong>Gotowe, gdy:</strong> Twój test jest czerwony dla kodu startowego i zielony po naprawie, a wynik metody <code>pay</code> w żadnym przypadku się nie zmienił.</p>
+
+</main>
+</div>
+<script>if(matchMedia('(max-width:900px)').matches){var d=document.querySelector('.toc details');if(d)d.open=false}</script>
+</body>
+</html>

@@ -1,0 +1,1241 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Przewodnik: Moduł 4. Podstawowe refaktoryzacje - warsztat CineLegacy: przewodnik prowadzącego (TypeScript)</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1d1f23;--muted:#5f6670;--line:#e3e5e8;--card:#ffffff;--accent:#2457c5;--accent-bg:#eef3fd;
+--code-bg:#f4f5f7;--note-bg:#fff7e6;--note-line:#e6a700;--th:#f1f3f6;
+--k:#b3246b;--s:#1a7f37;--c:#6e7781;--n:#0550ae;--t:#8250df;--f:#6639ba;--a:#953800;
+--kind:#2457c5}
+@media (prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3036;--card:#1c1f23;--accent:#7aa7ff;--accent-bg:#1e2a40;
+--code-bg:#1f2328;--note-bg:#2b2412;--note-line:#c99400;--th:#23272d;
+--k:#ff7b9c;--s:#7ee2a0;--c:#8b949e;--n:#79c0ff;--t:#d2a8ff;--f:#d2a8ff;--a:#ffa657}}
+body.zadania{--kind:#1a7f37} body.warsztat{--kind:#c2570c} body.warsztat-zadania{--kind:#0f7b7b} body.rozwiazania{--kind:#b3246b} body.przyklady{--kind:#2457c5}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.topbar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 24px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);border-top:3px solid var(--kind)}
+.topbar a{color:var(--fg);text-decoration:none}
+.home{font-weight:600}
+.tabs{display:flex;gap:4px}
+.tab{padding:4px 12px;border-radius:999px;font-size:15px;color:var(--muted)!important}
+.tab:hover{background:var(--code-bg)}
+.tab.active{background:var(--accent-bg);color:var(--accent)!important;font-weight:600}
+.pager{margin-left:auto;display:flex;gap:14px;font-size:15px}
+.pager a{color:var(--muted)}.pager a:hover{color:var(--accent)}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:48px;max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+.layout.no-toc{grid-template-columns:minmax(0,1fr);max-width:1000px}
+aside{position:sticky;top:72px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px}
+.toc-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;font-weight:600}
+.toc ul{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.toc li a{display:block;padding:3px 12px;color:var(--muted);text-decoration:none;line-height:1.35}
+.toc li.h3 a{padding-left:24px;font-size:13px}
+.toc li a:hover{color:var(--accent)}
+main{min-width:0;max-width:860px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 1.2rem;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:2.6rem 0 .8rem;padding-top:.6rem;border-top:1px solid var(--line)}
+h3{font-size:1.18rem;margin:2rem 0 .6rem}
+h4{font-size:1rem;margin:1.5rem 0 .5rem}
+h1 a,h2 a,h3 a,h4 a{color:inherit;text-decoration:none}
+h2 a:hover::after,h3 a:hover::after{content:" #";color:var(--muted)}
+p,ul,ol{margin:.6rem 0 1rem}
+li{margin:.25rem 0}
+li>ul,li>ol{margin:.2rem 0}
+a{color:var(--accent)}
+strong{font-weight:650}
+code{font:0.88em/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre.code{position:relative;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:1rem 0 1.4rem}
+pre.code code{background:none;padding:0;font-size:14px;line-height:1.55}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:6px;right:10px;font:11px ui-monospace,Menlo,monospace;color:var(--muted);text-transform:uppercase}
+.table-wrap{overflow-x:auto;margin:1rem 0 1.4rem;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--th);font-weight:600}
+tr:last-child td{border-bottom:none}
+blockquote{margin:1rem 0 1.4rem;padding:10px 16px;background:var(--note-bg);border-left:4px solid var(--note-line);border-radius:0 8px 8px 0}
+blockquote p{margin:.3rem 0}
+hr{border:none;border-top:1px solid var(--line);margin:2rem 0}
+hr+h2{border-top:none;margin-top:1.4rem}
+main p code,main li code,main td code{overflow-wrap:break-word}
+.toc summary{cursor:pointer;list-style:none}.toc summary::-webkit-details-marker{display:none}
+.hljs-keyword,.hljs-selector-tag,.hljs-built_in,.hljs-literal{color:var(--k)}
+.hljs-string,.hljs-regexp,.hljs-addition{color:var(--s)}
+.hljs-comment,.hljs-quote,.hljs-meta{color:var(--c);font-style:italic}
+.hljs-number,.hljs-symbol{color:var(--n)}
+.hljs-type,.hljs-class .hljs-title,.hljs-title.class_{color:var(--t)}
+.hljs-title,.hljs-title.function_,.hljs-section{color:var(--f)}
+.hljs-attr,.hljs-attribute,.hljs-variable,.hljs-params,.hljs-tag{color:var(--a)}
+.hljs-deletion{color:var(--k)}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:16px;padding:20px 16px 60px}
+aside{position:static;max-height:none;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--card)}
+.toc-title{margin:0}.toc details[open] .toc-title{margin-bottom:8px}.toc summary::after{content:" ▾"}
+body{font-size:16px}.topbar{padding:8px 16px}.pager{margin-left:0}h1{font-size:1.6rem}}
+@media print{.topbar,aside{display:none}.layout{display:block;padding:0}main{max-width:none}
+pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#000;font-size:12pt}}
+.langs{margin-left:auto}.langs+.pager{margin-left:0}</style>
+</head>
+<body class="warsztat">
+<header class="topbar"><a class="home" href="../../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../00-cinelegacy.html">Warsztat CineLegacy</a><a class="tab" href="../zadania/04-podstawowe-refaktoryzacje.html">Zadania</a><a class="tab active" href="04-podstawowe-refaktoryzacje.html">Przewodnik</a></div><div class="tabs langs" aria-label="Język"><a class="tab" href="../../warsztat/przewodnik/04-podstawowe-refaktoryzacje.html">Java</a><a class="tab" href="../../warsztat-csharp/przewodnik/04-podstawowe-refaktoryzacje.html">C#</a><a class="tab active" href="../../warsztat-typescript/przewodnik/04-podstawowe-refaktoryzacje.html">TypeScript</a></div><div class="pager"><a href="03-zasady-dobrego-projektowania.html" title="Poprzedni moduł">&larr; 03</a><a href="05-refaktoryzacje-hierarchii-klas.html" title="Następny moduł">05 &rarr;</a></div></header>
+<div class="layout">
+<aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#jak-prowadzic-pokaz">Jak prowadzić pokaz</a></li><li class="h2"><a href="#mapa-scen">Mapa scen</a></li><li class="h2"><a href="#scena-s00-test-charakterystyki-przed-pierwsza-zmiana">Scena s00. Test charakterystyki przed pierwszą zmianą</a></li><li class="h3"><a href="#w-skrocie">W skrócie</a></li><li class="h3"><a href="#co-widzimy">Co widzimy</a></li><li class="h3"><a href="#krok-1-parameterize-constructor-wstrzykniety-clock">Krok 1: Parameterize Constructor - wstrzyknięty Clock</a></li><li class="h3"><a href="#krok-2-pierwsza-refaktoryzacja-pod-ochrona-testu">Krok 2: pierwsza refaktoryzacja pod ochroną testu</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali">Pytanie do sali</a></li><li class="h2"><a href="#scena-s01-rename-nazwy-ktore-zyja-poza-kodem">Scena s01. Rename - nazwy, które żyją poza kodem</a></li><li class="h3"><a href="#w-skrocie-1">W skrócie</a></li><li class="h3"><a href="#co-widzimy-1">Co widzimy</a></li><li class="h3"><a href="#krok-1-rename-zmiennych-lokalnych-i-parametrow">Krok 1: Rename zmiennych lokalnych i parametrów</a></li><li class="h3"><a href="#krok-2-rename-metody-z-delegatem-dla-starej-nazwy">Krok 2: Rename metody z delegatem dla starej nazwy</a></li><li class="h3"><a href="#krok-3-rename-pol-wiersza-po-odcieciu-kontraktu-csv">Krok 3: Rename pól wiersza po odcięciu kontraktu CSV</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-1">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-1">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-1">Pytanie do sali</a></li><li class="h2"><a href="#scena-s02-extract-variable-dla-zlozonego-wyrazenia-ceny">Scena s02. Extract Variable dla złożonego wyrażenia ceny</a></li><li class="h3"><a href="#w-skrocie-2">W skrócie</a></li><li class="h3"><a href="#co-widzimy-2">Co widzimy</a></li><li class="h3"><a href="#krok-1-extract-variable-dla-ceny-bazowej-i-znizki">Krok 1: Extract Variable dla ceny bazowej i zniżki</a></li><li class="h3"><a href="#krok-2-extract-variable-dla-warunkow">Krok 2: Extract Variable dla warunków</a></li><li class="h3"><a href="#krok-3-extract-variable-dla-kwot">Krok 3: Extract Variable dla kwot</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-2">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-2">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-2">Pytanie do sali</a></li><li class="h2"><a href="#scena-s03-stale-z-nazwa-zamiast-magicznych-liczb">Scena s03. Stałe z nazwą zamiast magicznych liczb</a></li><li class="h3"><a href="#w-skrocie-3">W skrócie</a></li><li class="h3"><a href="#co-widzimy-3">Co widzimy</a></li><li class="h3"><a href="#krok-1-extract-constant-dla-kwot-z-cennika">Krok 1: Extract Constant dla kwot z cennika</a></li><li class="h3"><a href="#krok-2-replace-magic-numbers-progi-regul">Krok 2: Replace Magic Numbers - progi reguł</a></li><li class="h3"><a href="#krok-3-extract-constant-dla-stawek-znizek">Krok 3: Extract Constant dla stawek zniżek</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-3">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-3">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-3">Pytanie do sali</a></li><li class="h2"><a href="#scena-s04-extract-method-przeplyw-danych-i-wiele-wyjsc">Scena s04. Extract Method - przepływ danych i wiele wyjść</a></li><li class="h3"><a href="#w-skrocie-4">W skrócie</a></li><li class="h3"><a href="#co-widzimy-4">Co widzimy</a></li><li class="h3"><a href="#krok-1-extract-method-dla-bloku-z-jednym-wyjsciem">Krok 1: Extract Method dla bloku z jednym wyjściem</a></li><li class="h3"><a href="#krok-2-split-loop-potem-dwa-razy-extract-method">Krok 2: Split Loop, potem dwa razy Extract Method</a></li><li class="h3"><a href="#krok-3-extract-method-dla-renderowania">Krok 3: Extract Method dla renderowania</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-4">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-4">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-4">Pytanie do sali</a></li><li class="h2"><a href="#scena-s05-inline-variable-liczba-i-moment-ewaluacji">Scena s05. Inline Variable - liczba i moment ewaluacji</a></li><li class="h3"><a href="#w-skrocie-5">W skrócie</a></li><li class="h3"><a href="#co-widzimy-5">Co widzimy</a></li><li class="h3"><a href="#krok-1-inline-variable-dla-czystego-wyrazenia-uzytego-raz">Krok 1: Inline Variable dla czystego wyrażenia użytego raz</a></li><li class="h3"><a href="#krok-2-inline-variable-ktory-czyta-zmienna-a-nie-zegar">Krok 2: Inline Variable, który czyta zmienną, a nie zegar</a></li><li class="h3"><a href="#krok-3-najpierw-rename-przeciazenia-potem-inline-price">Krok 3: najpierw Rename przeciążenia, potem Inline price</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-5">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-5">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-5">Pytanie do sali</a></li><li class="h2"><a href="#scena-s06-inline-method-i-nadpisanie-w-podklasie">Scena s06. Inline Method i nadpisanie w podklasie</a></li><li class="h3"><a href="#w-skrocie-6">W skrócie</a></li><li class="h3"><a href="#co-widzimy-6">Co widzimy</a></li><li class="h3"><a href="#krok-1-inline-method-trywialnego-delegata">Krok 1: Inline Method trywialnego delegata</a></li><li class="h3"><a href="#krok-2-inline-method-wywolujacego-hak-a-nie-samego-haka">Krok 2: Inline Method wywołującego hak, a nie samego haka</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-6">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-6">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-6">Pytanie do sali</a></li><li class="h2"><a href="#scena-s07-move-method-feature-envy-i-pulapka-przeciazenia">Scena s07. Move Method - Feature Envy i pułapka przeciążenia</a></li><li class="h3"><a href="#w-skrocie-7">W skrócie</a></li><li class="h3"><a href="#co-widzimy-7">Co widzimy</a></li><li class="h3"><a href="#krok-1-move-method-opis-seansu">Krok 1: Move Method - opis seansu</a></li><li class="h3"><a href="#krok-2-move-method-wolne-miejsca-bez-sprzatania-przy-przenosinach">Krok 2: Move Method - wolne miejsca, bez &quot;sprzątania&quot; przy przenosinach</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-7">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-7">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-7">Pytanie do sali</a></li><li class="h2"><a href="#scena-s08-move-field-prog-vip-nalezy-do-sali">Scena s08. Move Field - próg VIP należy do sali</a></li><li class="h3"><a href="#w-skrocie-8">W skrócie</a></li><li class="h3"><a href="#co-widzimy-8">Co widzimy</a></li><li class="h3"><a href="#krok-1-self-encapsulate-field">Krok 1: Self-Encapsulate Field</a></li><li class="h3"><a href="#krok-2-move-field-do-hall">Krok 2: Move Field do Hall</a></li><li class="h3"><a href="#krok-3-aktualizacja-odczytow-i-usuniecie-akcesora-przejsciowego">Krok 3: aktualizacja odczytów i usunięcie akcesora przejściowego</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-8">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-8">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-8">Pytanie do sali</a></li><li class="h2"><a href="#scena-s09-extract-class-klient-platnosc-i-klasa-worek">Scena s09. Extract Class - klient, płatność i klasa-worek</a></li><li class="h3"><a href="#w-skrocie-9">W skrócie</a></li><li class="h3"><a href="#co-widzimy-9">Co widzimy</a></li><li class="h3"><a href="#krok-1-extract-class-tylko-dane-zly-wynik-posredni">Krok 1: Extract Class - tylko dane (zły wynik pośredni)</a></li><li class="h3"><a href="#krok-2-move-method-zachowanie-idzie-za-danymi">Krok 2: Move Method - zachowanie idzie za danymi</a></li><li class="h3"><a href="#krok-3-extract-class-platnosc-od-razu-z-zachowaniem">Krok 3: Extract Class - płatność od razu z zachowaniem</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-9">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-9">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-9">Pytanie do sali</a></li><li class="h2"><a href="#scena-s10-encapsulate-field-status-ktory-kazdy-moze-nadpisac">Scena s10. Encapsulate Field - status, który każdy może nadpisać</a></li><li class="h3"><a href="#w-skrocie-10">W skrócie</a></li><li class="h3"><a href="#co-widzimy-10">Co widzimy</a></li><li class="h3"><a href="#krok-1-encapsulate-field">Krok 1: Encapsulate Field</a></li><li class="h3"><a href="#krok-2-operacje-domenowe-zamiast-settera">Krok 2: operacje domenowe zamiast settera</a></li><li class="h3"><a href="#krok-3-niezmiennik-w-operacjach-swiadoma-zmiana-zachowania">Krok 3: niezmiennik w operacjach (świadoma zmiana zachowania)</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-10">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-10">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-10">Pytanie do sali</a></li><li class="h2"><a href="#scena-s11-encapsulate-collection-trzy-kontrakty-listy-miejsc">Scena s11. Encapsulate Collection - trzy kontrakty listy miejsc</a></li><li class="h3"><a href="#w-skrocie-11">W skrócie</a></li><li class="h3"><a href="#co-widzimy-11">Co widzimy</a></li><li class="h3"><a href="#krok-1-operacje-w-wlascicielu-getter-bez-zmiany-kontraktu">Krok 1: operacje w właścicielu, getter bez zmiany kontraktu</a></li><li class="h3"><a href="#krok-2-niemodyfikowalny-widok">Krok 2: niemodyfikowalny widok</a></li><li class="h3"><a href="#krok-3-migawka">Krok 3: migawka</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-11">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-11">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-11">Pytanie do sali</a></li><li class="h2"><a href="#scena-s12-encapsulate-conditional-czy-przysluguje-zwrot">Scena s12. Encapsulate Conditional - czy przysługuje zwrot</a></li><li class="h3"><a href="#w-skrocie-12">W skrócie</a></li><li class="h3"><a href="#co-widzimy-12">Co widzimy</a></li><li class="h3"><a href="#krok-1-extract-method-dla-najmniejszego-fragmentu">Krok 1: Extract Method dla najmniejszego fragmentu</a></li><li class="h3"><a href="#krok-2-encapsulate-conditional-caly-warunek">Krok 2: Encapsulate Conditional - cały warunek</a></li><li class="h3"><a href="#krok-3-encapsulate-conditional-dla-galezi">Krok 3: Encapsulate Conditional dla gałęzi</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-12">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-12">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-12">Pytanie do sali</a></li><li class="h2"><a href="#proponowana-kolejnosc-pokazu">Proponowana kolejność pokazu</a></li></ul></details></nav></aside>
+<main>
+<h1>Moduł 4. Podstawowe refaktoryzacje - warsztat CineLegacy: przewodnik prowadzącego</h1>
+<p>Trzynaście krótkich scen w domenie kina pokazuje na żywo każdą technikę z modułu 4: od testu charakterystyki, przez Rename, Extract i Inline, Move Method i Move Field, Extract Class, aż po hermetyzację pól, kolekcji i warunków. Każda scena ma kod wyjściowy (<code>start</code>), gotowe snapshoty po każdym kroku (<code>stepN</code>) i test (Vitest), który po każdym ruchu w IDE ma być zielony. Tam, gdzie tematem jest pułapka semantyki, test ją dokumentuje: pokazuje, co by się zepsuło, i dlaczego bezpieczny krok wygląda inaczej.</p>
+<p>To wersja przewodnika dla portu TypeScript. Kod scen leży w <code>typescript/<wbr>src/<wbr>workshop/<wbr>m4/<wbr></code>, testy w <code>typescript/<wbr>test/<wbr>workshop/<wbr>m4/<wbr></code>, a pokaz prowadzimy w VS Code. Tam, gdzie TypeScript zmienia mechanikę albo objaw pułapki, scena ma akapit <strong>Różnica względem Javy</strong>.</p>
+<p>Sceny nie powtarzają studium &quot;generator oferty wynajmu&quot; z zadań modułu 4. Tamto studium uczestnicy robią sami, a sceny poniżej służą do pokazu.</p>
+<h2 id="jak-prowadzic-pokaz" tabindex="-1"><a class="header-anchor" href="#jak-prowadzic-pokaz"><span>Jak prowadzić pokaz</span></a></h2>
+<pre class="code" data-lang="bash"><code class="hljs">scripts/warsztat.sh --lang ts list m4            <span class="hljs-comment"># sceny modułu i ich kroki</span>
+scripts/warsztat.sh --lang ts <span class="hljs-built_in">test</span> m4/s05        <span class="hljs-comment"># testy jednej sceny</span>
+scripts/warsztat.sh --lang ts <span class="hljs-built_in">test</span> m4            <span class="hljs-comment"># wszystkie sceny modułu (230 testów)</span>
+scripts/warsztat.sh --lang ts diff m4/s05 2 3    <span class="hljs-comment"># co zmienia krok 3 względem kroku 2 (0 = start)</span>
+scripts/warsztat.sh --lang ts diff m4/s05 2 3 --word  <span class="hljs-comment"># to samo, zmiany podświetlone w obrębie linii</span>
+scripts/warsztat.sh --lang ts jump m4/s05 2      <span class="hljs-comment"># skopiuj step2 do start, gdy brakuje czasu</span>
+scripts/warsztat.sh --lang ts next m4/s05        <span class="hljs-comment"># następny krok do start + podsumowanie zmian</span>
+scripts/warsztat.sh next                         <span class="hljs-comment"># kolejny krok tej samej sceny (język i scena zapamiętane)</span>
+scripts/warsztat.sh prev                         <span class="hljs-comment"># krok wstecz</span>
+scripts/warsztat.sh status                       <span class="hljs-comment"># który krok jest teraz w start</span>
+scripts/warsztat.sh --lang ts reset m4/s05       <span class="hljs-comment"># przywróć start po pokazie</span>
+</code></pre>
+<ul>
+<li>Zasada: <strong>jeden krok - jeden test - jedno zdanie komentarza.</strong> Ruch w IDE, uruchomienie testu sceny (skrypt albo przycisk Run przy teście w rozszerzeniu Vitest), zdanie z sekcji &quot;Co powiedzieć&quot;.</li>
+<li><strong>Krok po kroku bez numerów:</strong> <code>scripts/<wbr>warsztat.sh next</code> wstawia do <code>start</code> gotowy następny krok i wypisuje, co się zmieniło. <code>prev</code> cofa o krok, <code>status</code> mówi, który krok jest teraz w <code>start</code>. Skrypt pamięta ostatni język i ostatnią scenę, więc po pierwszym <code>--lang ts next m4/<wbr>sNN</code> wystarczy samo <code>next</code>. Ręczne zmiany w <code>start</code> zostają nadpisane - o to chodzi, gdy krok na żywo się rozjechał.</li>
+<li>Pracujesz zawsze w katalogu <code>start</code>. Snapshoty <code>stepN</code> są po to, żeby pokazać <code>diff</code> albo przeskoczyć (<code>next</code>, <code>jump</code>), gdy coś się rozjedzie. Kroki importują typy sceny ścieżką <code>../<wbr>Typ.js</code>, a własne klasy ścieżką <code>./<wbr>Klasa.js</code>, więc skopiowanie <code>stepN</code> do <code>start</code> działa bez zmiany importów.</li>
+<li>Skróty VS Code (macOS): Refactor... ⌃⇧R, Rename Symbol F2, Quick Fix ⌘., Go to Definition F12, Go to References ⇧F12. VS Code ma automatyczne Rename, Extract to constant/function/method, Inline variable i Move to file, ale nie ma Inline Method, Move Method między klasami, Change Signature ani Safe Delete. Te ruchy robimy ręcznie, a kompilator (<code>tsc</code>) i test pilnują, czy nic nie zgubiliśmy.</li>
+<li>W scenach o pułapkach (s01, s02, s05, s06, s07) warto najpierw <strong>zrobić naiwny ruch na żywo</strong>, pokazać czerwony test (albo błąd kompilacji), cofnąć (⌘Z) i dopiero wtedy wykonać krok z przewodnika.</li>
+<li>Sceny s10 i s11 zawierają kroki, które <strong>świadomie zmieniają zachowanie</strong>. Test ma dla nich osobne oczekiwania. Powiedz to na głos: to osobny commit, a nie refaktoryzacja.</li>
+</ul>
+<h2 id="mapa-scen" tabindex="-1"><a class="header-anchor" href="#mapa-scen"><span>Mapa scen</span></a></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Scena</th>
+<th>Temat ze slajdów</th>
+<th>Kroki</th>
+<th>Katalog</th>
+<th>Czas</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>s00</td>
+<td>Test charakterystyki przed pierwszą zmianą; Test równoważności etapów</td>
+<td>2</td>
+<td><code>m4/<wbr>s00_characterization</code></td>
+<td>~15 min</td>
+</tr>
+<tr>
+<td>s01</td>
+<td>Rename - cel i mechanika (nazwy poza kodem)</td>
+<td>3</td>
+<td><code>m4/<wbr>s01_rename</code></td>
+<td>~12 min</td>
+</tr>
+<tr>
+<td>s02</td>
+<td>Extract Variable i moment ewaluacji</td>
+<td>3</td>
+<td><code>m4/<wbr>s02_extractvariable</code></td>
+<td>~8 min</td>
+</tr>
+<tr>
+<td>s03</td>
+<td>Extract Constant i <code>const</code>; Replace Magic Numbers</td>
+<td>3</td>
+<td><code>m4/<wbr>s03_magicnumbers</code></td>
+<td>~10 min</td>
+</tr>
+<tr>
+<td>s04</td>
+<td>Extract Method - przepływ danych, mechanika i trudne przypadki</td>
+<td>3</td>
+<td><code>m4/<wbr>s04_extractmethod</code></td>
+<td>~15 min</td>
+</tr>
+<tr>
+<td>s05</td>
+<td>Inline Variable i typ docelowy (liczba i moment ewaluacji)</td>
+<td>3</td>
+<td><code>m4/<wbr>s05_inlinevariable</code></td>
+<td>~12 min</td>
+</tr>
+<tr>
+<td>s06</td>
+<td>Inline Method i jego ryzyka</td>
+<td>2</td>
+<td><code>m4/<wbr>s06_inlinemethod</code></td>
+<td>~8 min</td>
+</tr>
+<tr>
+<td>s07</td>
+<td>Move Method - wybór właściciela, krok po kroku i ryzyka</td>
+<td>2</td>
+<td><code>m4/<wbr>s07_movemethod</code></td>
+<td>~10 min</td>
+</tr>
+<tr>
+<td>s08</td>
+<td>Move Field krok po kroku i ryzyka</td>
+<td>3</td>
+<td><code>m4/<wbr>s08_movefield</code></td>
+<td>~10 min</td>
+</tr>
+<tr>
+<td>s09</td>
+<td>Extract Class - cel, mechanika i zły wynik</td>
+<td>3</td>
+<td><code>m4/<wbr>s09_extractclass</code></td>
+<td>~15 min</td>
+</tr>
+<tr>
+<td>s10</td>
+<td>Encapsulate Field</td>
+<td>3</td>
+<td><code>m4/<wbr>s10_encapsulatefield</code></td>
+<td>~10 min</td>
+</tr>
+<tr>
+<td>s11</td>
+<td>Encapsulate Collection; Trzy różne kontrakty kolekcji</td>
+<td>3</td>
+<td><code>m4/<wbr>s11_encapsulatecollection</code></td>
+<td>~12 min</td>
+</tr>
+<tr>
+<td>s12</td>
+<td>Encapsulate Conditional</td>
+<td>3</td>
+<td><code>m4/<wbr>s12_encapsulateconditional</code></td>
+<td>~8 min</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="scena-s00-test-charakterystyki-przed-pierwsza-zmiana" tabindex="-1"><a class="header-anchor" href="#scena-s00-test-charakterystyki-przed-pierwsza-zmiana"><span>Scena s00. Test charakterystyki przed pierwszą zmianą</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> Test charakterystyki przed pierwszą zmianą; Test równoważności etapów; Co ma pozostać niezmienione
+<strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m4/<wbr>s00_characterization</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m4/<wbr>s00</code> (<code>typescript/<wbr>test/<wbr>workshop/<wbr>m4/<wbr>s00_characterization/<wbr>S00CharacterizationTest.test.ts</code>)
+<strong>Czas:</strong> ~15 min</p>
+<h3 id="w-skrocie" tabindex="-1"><a class="header-anchor" href="#w-skrocie"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> <code>BookingConfirmation.confirm</code> drukuje potwierdzenie bez żadnego testu, a w wydruku jest bieżący czas i kwoty zależne od domyślnego locale. Najpierw zapisujemy w teście pełny dokument, potem robimy szew na zegar i dopiero wtedy pierwszą ekstrakcję.</p>
+<p><strong>Zasada:</strong> Test charakterystyki zapisuje, co kod faktycznie robi, a nie co powinien robić - razem z dziwnymi regułami. Stosujemy go przed pierwszą zmianą kodu bez testów, a ten sam zestaw oczekiwań uruchamiamy na każdym etapie jako test równoważności. Nie mylić z testem, który liczy oczekiwania tym samym algorytmem co kod.</p>
+<p><strong>Efekt:</strong> Mamy deterministyczny test całego dokumentu, wstrzykiwany <code>Clock</code> i wydzieloną metodę <code>ticketPrice</code>, a wywołanie <code>new BookingConfirmation()</code> bez argumentu dalej działa. Znaleziska (rabat od 11 biletów, kwoty zależne od locale) zostają zapisane, ale niepoprawione, bo to osobne decyzje.</p>
+<p><strong>Różnica względem Javy:</strong> JavaScript nie ma <code>Locale.setDefault</code>. Odpowiednikiem <code>String.format(&quot;%.2f&quot;, x)</code> bez <code>Locale</code> jest <code>x.toLocaleString(undefined, AMOUNT)</code>, którego wynik zależy od domyślnego locale środowiska. Pomocnik testu <code>inLocale</code> podmienia na czas wywołania domyślny argument <code>Number.prototype.toLocaleString</code> i przywraca oryginał w <code>finally</code>. Parameterize Constructor to jeden konstruktor z parametrem domyślnym (<code>clock: Clock = systemClock</code>) zamiast dwóch konstruktorów, bo TypeScript nie ma przeciążeń konstruktorów, a dla klientów efekt jest ten sam.</p>
+<h3 id="co-widzimy" tabindex="-1"><a class="header-anchor" href="#co-widzimy"><span>Co widzimy</span></a></h3>
+<p><code>BookingConfirmation.confirm</code> drukuje potwierdzenie rezerwacji. Nie ma żadnego testu, a dokument czytają klienci i infolinia. Zanim cokolwiek zmienimy, zapisujemy, co kod <strong>robi</strong>. Na drodze stoją dwie rzeczy: bieżący czas w ostatniej linii i <code>toLocaleString(undefined, ...)</code>, czyli formatowanie zależne od domyślnego locale.</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">if</span> (b.<span class="hljs-property">ticketTypes</span>.<span class="hljs-property">length</span> &gt; <span class="hljs-number">10</span>) {
+  sum = sum * <span class="hljs-number">0.9</span>;
+}
+...
+  + <span class="hljs-string">&#x27;Do zaplaty: &#x27;</span> + (sum + fee).<span class="hljs-title function_">toLocaleString</span>(<span class="hljs-literal">undefined</span>, <span class="hljs-variable constant_">AMOUNT</span>) + <span class="hljs-string">&#x27;\n&#x27;</span>
+  + <span class="hljs-string">&#x27;Wygenerowano: &#x27;</span> + <span class="hljs-title class_">LocalDateTime</span>.<span class="hljs-title function_">now</span>().<span class="hljs-title function_">toString</span>() + <span class="hljs-string">&#x27;\n&#x27;</span>;
+</code></pre>
+<p>W tej scenie najważniejszy jest test <code>S00CharacterizationTest</code>. Powstaje w trzech ruchach (A, B, C), a kod <code>start/<wbr>step1/<wbr>step2</code> tylko za nim nadąża.</p>
+<p><strong>Ruch A (na <code>start</code>, przed krokiem 1):</strong> napisz <code>expect(new BookingConfirmation().confirm(booking)).toBe(&#x27;&#x27;)</code>, uruchom i skopiuj rzeczywisty wynik z diffu Vitest do oczekiwań. Test dalej jest czerwony, bo zmienia się sekunda. Dodaj &quot;scrubber&quot;, który maskuje linię z czasem (<code>document.replace(/<wbr>Wygenerowano: .*\n/<wbr>g, &#x27;Wygenerowano: &lt;czas&gt;\n&#x27;)</code>), i ustaw locale jawnie na czas wywołania (<code>inLocale(&#x27;pl-PL&#x27;, () =&gt; ...)</code>). Teraz test jest zielony i deterministyczny. Dopisz przypadki na obu bokach progów: 10 i 11 biletów, rano i wieczorem, kasa i online.</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">function</span> <span class="hljs-title function_">inLocale</span>(<span class="hljs-params"><span class="hljs-attr">locale</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">action</span>: () =&gt; <span class="hljs-built_in">string</span></span>): <span class="hljs-built_in">string</span> {
+  <span class="hljs-keyword">const</span> original = <span class="hljs-title class_">Number</span>.<span class="hljs-property"><span class="hljs-keyword">prototype</span></span>.<span class="hljs-property">toLocaleString</span>;
+  <span class="hljs-title class_">Number</span>.<span class="hljs-property"><span class="hljs-keyword">prototype</span></span>.<span class="hljs-property">toLocaleString</span> = <span class="hljs-keyword">function</span> (<span class="hljs-params"><span class="hljs-attr">this</span>: <span class="hljs-built_in">number</span>, <span class="hljs-attr">locales</span>?: <span class="hljs-title class_">Intl</span>.<span class="hljs-title class_">LocalesArgument</span>,
+    <span class="hljs-attr">options</span>?: <span class="hljs-title class_">Intl</span>.<span class="hljs-title class_">NumberFormatOptions</span></span>): <span class="hljs-built_in">string</span> {
+    <span class="hljs-keyword">return</span> original.<span class="hljs-title function_">call</span>(<span class="hljs-variable language_">this</span>, locales ?? locale, options);
+  };
+  <span class="hljs-keyword">try</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-title function_">action</span>();
+  } <span class="hljs-keyword">finally</span> {
+    <span class="hljs-title class_">Number</span>.<span class="hljs-property"><span class="hljs-keyword">prototype</span></span>.<span class="hljs-property">toLocaleString</span> = original;
+  }
+}
+</code></pre>
+<p>W trakcie wychodzą dwa znaleziska, które test zapisuje, a nie poprawia:</p>
+<ul>
+<li>rabat grupowy działa od <strong>11</strong> biletów (<code>&gt; 10</code>), choć regulamin mówi &quot;10+&quot; - przypadek nazwany <code>ZASTANE: ...</code>,</li>
+<li>kwoty zależą od locale serwera: na <code>pl-PL</code> jest <code>74,00</code>, na <code>en-US</code> <code>74.00</code> (test <code>foundDuringCharacterizationAmountsDependOnServerLocale</code>).</li>
+</ul>
+<h3 id="krok-1-parameterize-constructor-wstrzykniety-clock" tabindex="-1"><a class="header-anchor" href="#krok-1-parameterize-constructor-wstrzykniety-clock"><span>Krok 1: Parameterize Constructor - wstrzyknięty Clock</span></a></h3>
+<p><strong>W IDE:</strong> VS Code nie ma Extract Parameter ani Introduce Field dla konstruktora, więc ruch robimy ręcznie w dwóch małych krokach. Najpierw dodaj konstruktor z parametrem domyślnym: <code>constructor(private readonly clock: Clock = systemClock) {}</code> (import <code>Clock</code> i <code>systemClock</code> z <code>shared/<wbr>time.js</code> podpowie Quick Fix ⌘.). Uruchom test - nic się nie zmieniło, bo nikt jeszcze nie czyta pola. Potem w <code>confirm</code> zamień <code>LocalDateTime.now()</code> na <code>LocalDateTime.now(this.clock)</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">BookingConfirmation</span> {
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">clock</span>: <span class="hljs-title class_">Clock</span> = systemClock</span>) {}
+  ...
+      + <span class="hljs-string">&#x27;Wygenerowano: &#x27;</span> + <span class="hljs-title class_">LocalDateTime</span>.<span class="hljs-title function_">now</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">clock</span>).<span class="hljs-title function_">toString</span>() + <span class="hljs-string">&#x27;\n&#x27;</span>;
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m4/<wbr>s00</code> - 15 testów zielonych, w tym <code>fromStep1TheWholeDocumentIsDeterministic</code> (z <code>fixedClock(...)</code> porównujemy także linię z czasem, bez scrubbera).
+<strong>Co powiedzieć:</strong> to minimalna zmiana, która robi szew dla testu. Wywołanie bez argumentu zostaje (parametr domyślny to zegar systemowy), więc produkcyjni klienci nie widzą różnicy. Scrubber był rusztowaniem i od tego kroku jest potrzebny tylko dla <code>start</code>.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m4/<wbr>s00 0 1</code></p>
+<h3 id="krok-2-pierwsza-refaktoryzacja-pod-ochrona-testu" tabindex="-1"><a class="header-anchor" href="#krok-2-pierwsza-refaktoryzacja-pod-ochrona-testu"><span>Krok 2: pierwsza refaktoryzacja pod ochroną testu</span></a></h3>
+<p><strong>W IDE:</strong> zaznacz ciało pętli od <code>let p: number;</code> do końca <code>if</code> z porankiem (<code>p = p - 5.00; }</code>), ⌃⇧R, &quot;Extract to method in class 'BookingConfirmation'&quot;, nazwa <code>ticketPrice</code>. VS Code wykryje dwa wejścia (<code>b</code>, <code>t</code>) i jedno wyjście (<code>p</code>), więc w pętli zostanie zmienna z wynikiem metody. Kursor na tej zmiennej, ⌃⇧R, &quot;Inline variable&quot;. W pętli zostaje <code>sum = sum + this.ticketPrice(b, t);</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> t <span class="hljs-keyword">of</span> b.<span class="hljs-property">ticketTypes</span>) {
+  sum = sum + <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">ticketPrice</span>(b, t);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony - ten sam dokument, znak w znak.
+<strong>Co powiedzieć:</strong> kusi, żeby przy okazji zamienić <code>number</code> na <code>Decimal</code>, podać jawne locale i poprawić próg grupy. Każda z tych rzeczy zmienia wydruk, więc to trzy osobne decyzje z wymaganiem, a nie refaktoryzacja.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m4/<wbr>s00 1 2</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Test charakterystyki porównuje <strong>pełny dokument</strong>, a nie wybrane liczby, dla przypadków po obu stronach progów. Ten sam zestaw oczekiwań uruchamiamy na <code>start</code>, <code>step1</code> i <code>step2</code>, co jest testem równoważności etapów. Oczekiwania zapisaliśmy raz, zatwierdzone przez człowieka, a nie liczone na nowo przez starą wersję kodu. Kod zmienia się minimalnie: szew na czas i jedna ekstrakcja.</p>
+<h3 id="pulapki" tabindex="-1"><a class="header-anchor" href="#pulapki"><span>Pułapki</span></a></h3>
+<ul>
+<li>Test, który wylicza oczekiwania tym samym algorytmem co kod (&quot;drugi raz to samo&quot;), niczego nie charakteryzuje.</li>
+<li>Test zależny od strefy czasowej, locale albo bieżącej daty przejdzie na laptopie i padnie na CI. Tutaj locale ustawiamy na czas wywołania i przywracamy w <code>finally</code>. Podmiana <code>Number.prototype.toLocaleString</code> bez <code>finally</code> rozlałaby się na inne testy w tym samym procesie.</li>
+<li>&quot;Poprawienie&quot; znaleziska z charakterystyki w tym samym commicie co refaktoryzacja. Znalezisko zapisujemy (<code>ZASTANE: ...</code>), zgłaszamy i poprawiamy osobno.</li>
+<li>Brak sprawdzenia czułości testu. Zmień na chwilę <code>&gt; 10</code> na <code>&gt;= 10</code> w <code>start</code> i zobacz, że test padnie. Potem cofnij.</li>
+</ul>
+<h3 id="pytanie-do-sali" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali"><span>Pytanie do sali</span></a></h3>
+<p>Znaleźliście w charakterystyce ewidentny błąd (rabat od 11 biletów). Kto decyduje, czy go poprawić, i jak powinien wyglądać commit z poprawką?</p>
+<h2 id="scena-s01-rename-nazwy-ktore-zyja-poza-kodem" tabindex="-1"><a class="header-anchor" href="#scena-s01-rename-nazwy-ktore-zyja-poza-kodem"><span>Scena s01. Rename - nazwy, które żyją poza kodem</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> Rename - cel i mechanika; Co ma pozostać niezmienione (wywołanie po nazwie, konfiguracja)
+<strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m4/<wbr>s01_rename</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m4/<wbr>s01</code> (<code>S01EquivalenceTest.test.ts</code>, <code>S01RenameLimitsTest.test.ts</code>)
+<strong>Czas:</strong> ~12 min</p>
+<h3 id="w-skrocie-1" tabindex="-1"><a class="header-anchor" href="#w-skrocie-1"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> W <code>SalesReport</code> nazwy <code>calc2</code>, <code>s</code>, <code>m</code>, <code>x</code> nic nie mówią, ale nazwa metody żyje w konfiguracji, a nazwy pól klasy <code>Line</code> trafiają przez <code>Object.keys</code> do nagłówka CSV. Zmieniamy nazwy od najbezpieczniejszych lokalnych do tych, które są kontraktem zewnętrznym.</p>
+<p><strong>Zasada:</strong> Rename nadaje nazwę opisującą rolę w kontekście, a nie typ ani implementację. Dla zmiennych lokalnych IDE robi to bezpiecznie, ale nazwa użyta w konfiguracji, wywołaniu po nazwie (<code>obj[name]</code>), JSON czy ORM jest częścią API i wymaga strategii migracji. IDE nie widzi takich użyć, więc nie mylić operacji F2 z bezpieczną zmianą kontraktu.</p>
+<p><strong>Efekt:</strong> Kod czyta się po nazwach ról, a oba kontrakty zostają nietknięte: stara nazwa <code>calc2</code> jako przestarzały delegat, nagłówek CSV jako jawna stała. Koszt to delegat, którego nie wolno usunąć, dopóki ktoś nie zmieni konfiguracji na serwerach.</p>
+<p><strong>Różnica względem Javy:</strong> refleksja Javy ma w TypeScript dwa odpowiedniki. <code>ReportJob</code> wywołuje metodę po nazwie z tekstu konfiguracji (<code>report[name].call(...)</code>, brak metody kończy się <code>IllegalStateError</code>). Nagłówek CSV liczy <code>Object.keys(...)</code> wiersza, a sam wiersz <code>Object.values(...)</code> - to odpowiednik <code>getRecordComponents()</code>. <code>Line</code> jest eksportowaną klasą z polami <code>readonly</code> (zamiast rekordu), a kwoty to <code>Money</code>, który w wydruku zachowuje dwa miejsca po przecinku. Adnotację <code>@Deprecated</code> zastępuje tag JSDoc <code>@deprecated</code>.</p>
+<h3 id="co-widzimy-1" tabindex="-1"><a class="header-anchor" href="#co-widzimy-1"><span>Co widzimy</span></a></h3>
+<p><code>SalesReport.calc2(s: readonly Sale[], flag: boolean)</code> składa CSV dla dystrybutora: <code>m</code>, <code>x</code>, <code>l</code>, <code>b</code>, a wiersz to <code>Line(t: string, n: number, d: Money)</code>. Dwie nazwy żyją poza kodem:</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-comment">// ReportJob - w produkcji plik report.properties na serwerze</span>
+<span class="hljs-keyword">static</span> <span class="hljs-keyword">readonly</span> <span class="hljs-variable constant_">CONFIG</span> = <span class="hljs-string">`
+report.method=calc2
+report.onlineOnly=true
+`</span>;
+...
+<span class="hljs-comment">// Wywołanie po nazwie z tekstu - odpowiednik refleksji (getMethod + invoke).</span>
+<span class="hljs-keyword">const</span> <span class="hljs-attr">method</span>: <span class="hljs-built_in">unknown</span> = (<span class="hljs-variable language_">this</span>.<span class="hljs-property">report</span> <span class="hljs-keyword">as</span> <span class="hljs-built_in">unknown</span> <span class="hljs-keyword">as</span> <span class="hljs-title class_">Record</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">unknown</span>&gt;)[methodName];
+
+<span class="hljs-comment">// SalesReport - nagłówek CSV liczony z nazw pól wiersza</span>
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">header</span>(<span class="hljs-params"></span>): <span class="hljs-built_in">string</span> {
+  <span class="hljs-keyword">return</span> <span class="hljs-title class_">Object</span>.<span class="hljs-title function_">keys</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Line</span>(<span class="hljs-string">&#x27;&#x27;</span>, <span class="hljs-number">0</span>, <span class="hljs-title class_">Money</span>.<span class="hljs-property">ZERO</span>)).<span class="hljs-title function_">join</span>(<span class="hljs-string">&#x27;;&#x27;</span>);
+}
+</code></pre>
+<h3 id="krok-1-rename-zmiennych-lokalnych-i-parametrow" tabindex="-1"><a class="header-anchor" href="#krok-1-rename-zmiennych-lokalnych-i-parametrow"><span>Krok 1: Rename zmiennych lokalnych i parametrów</span></a></h3>
+<p><strong>W IDE:</strong> kursor na <code>s</code>, F2, <code>sales</code>. Tak samo <code>flag</code> -&gt; <code>onlineOnly</code>, <code>m</code> -&gt; <code>linesByTitle</code>, <code>x</code> -&gt; <code>sale</code>, <code>l</code> -&gt; <code>previous</code> / <code>line</code>, <code>b</code> -&gt; <code>csv</code>, <code>v</code> -&gt; <code>values</code>, <code>c</code> -&gt; <code>component</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-title function_">calc2</span>(<span class="hljs-attr">sales</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-title class_">Sale</span>[], <span class="hljs-attr">onlineOnly</span>: <span class="hljs-built_in">boolean</span>): <span class="hljs-built_in">string</span> {
+  <span class="hljs-keyword">const</span> linesByTitle = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Map</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-title class_">Line</span>&gt;();
+  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> sale <span class="hljs-keyword">of</span> sales) {
+    <span class="hljs-keyword">if</span> (onlineOnly &amp;&amp; !sale.<span class="hljs-property">online</span>) {
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m4/<wbr>s01</code> - 14 testów zielonych.
+<strong>Co powiedzieć:</strong> zasięg lokalny, zero użyć poza metodą, więc IDE robi to w stu procentach bezpiecznie. Od tego zaczynamy każde porządkowanie, bo tanie nazwy ułatwiają następne kroki.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m4/<wbr>s01 0 1</code></p>
+<h3 id="krok-2-rename-metody-z-delegatem-dla-starej-nazwy" tabindex="-1"><a class="header-anchor" href="#krok-2-rename-metody-z-delegatem-dla-starej-nazwy"><span>Krok 2: Rename metody z delegatem dla starej nazwy</span></a></h3>
+<p><strong>W IDE:</strong> najpierw na żywo naiwnie: F2 na <code>calc2</code>, nazwa <code>revenueCsv</code>. VS Code poprawi wszystkie wywołania w kodzie, ale nie tekst <code>report.method=calc2</code>. Uruchom test: <code>everyStepRunsTheConfiguredJob</code> jest czerwony (<code>IllegalStateError: Zadanie raportu nie działa: brak metody calc2</code>). IDE nie wie, że tekst w konfiguracji to nazwa metody. Cofnij (⌘Z). Teraz poprawnie: skopiuj metodę, zmień nazwę kopii na <code>revenueCsv</code>, a ciało <code>calc2</code> zamień na delegowanie i oznacz w JSDoc <code>@deprecated</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-comment">/**
+ * Stara nazwa z konfiguracji report.properties (report.method=calc2).
+ * Usunąć dopiero, gdy żaden serwer nie ma jej w konfiguracji.
+ *
+ * <span class="hljs-doctag">@deprecated</span> użyj {<span class="hljs-doctag">@link</span> revenueCsv}
+ */</span>
+<span class="hljs-title function_">calc2</span>(<span class="hljs-attr">sales</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-title class_">Sale</span>[], <span class="hljs-attr">onlineOnly</span>: <span class="hljs-built_in">boolean</span>): <span class="hljs-built_in">string</span> {
+  <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">revenueCsv</span>(sales, onlineOnly);
+}
+
+<span class="hljs-title function_">revenueCsv</span>(<span class="hljs-attr">sales</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-title class_">Sale</span>[], <span class="hljs-attr">onlineOnly</span>: <span class="hljs-built_in">boolean</span>): <span class="hljs-built_in">string</span> {
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony, zadanie z konfiguracji działa. <code>S01RenameLimitsTest.configurationStillNamesTheOldMethod</code> sprawdza, że na prototypie są obie metody.
+<strong>Co powiedzieć:</strong> konfiguracja leży na serwerach, poza naszym repozytorium, więc nie zmienimy jej w tym samym commicie. Stara nazwa zostaje jako przestarzały delegat, dopóki ktoś nie zmieni konfiguracji wszędzie. To jest strategia migracji ze slajdu. VS Code przekreśli wywołania <code>calc2</code> w kodzie, więc nowi klienci od razu widzą, której nazwy używać.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m4/<wbr>s01 1 2</code></p>
+<h3 id="krok-3-rename-pol-wiersza-po-odcieciu-kontraktu-csv" tabindex="-1"><a class="header-anchor" href="#krok-3-rename-pol-wiersza-po-odcieciu-kontraktu-csv"><span>Krok 3: Rename pól wiersza po odcięciu kontraktu CSV</span></a></h3>
+<p><strong>W IDE:</strong> najpierw naiwnie: F2 na <code>t</code> w <code>Line</code>, <code>title</code>. Test pokaże nagłówek <code>title;n;d</code> zamiast <code>t;n;d</code>: plik dla dystrybutora właśnie się zmienił. Cofnij. Teraz poprawnie: najpierw zamień <code>header()</code> i <code>row()</code> oparte na <code>Object.keys</code>/<code>Object.values</code> na jawną stałą <code>CSV_HEADER = &#x27;t;n;d&#x27;</code> i jawne składanie wiersza (test zielony), dopiero potem F2 na <code>t</code>, <code>n</code>, <code>d</code> -&gt; <code>title</code>, <code>tickets</code>, <code>revenue</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-comment">/** Nagłówek uzgodniony z dystrybutorem - kontrakt zewnętrzny, NIE nazwy pól w kodzie. */</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> <span class="hljs-variable constant_">CSV_HEADER</span> = <span class="hljs-string">&#x27;t;n;d&#x27;</span>;
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Line</span> {
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-keyword">readonly</span> <span class="hljs-attr">title</span>: <span class="hljs-built_in">string</span>, <span class="hljs-keyword">readonly</span> <span class="hljs-attr">tickets</span>: <span class="hljs-built_in">number</span>, <span class="hljs-keyword">readonly</span> <span class="hljs-attr">revenue</span>: <span class="hljs-title class_">Money</span></span>) {}
+}
+
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">row</span>(<span class="hljs-params"><span class="hljs-attr">line</span>: <span class="hljs-title class_">Line</span></span>): <span class="hljs-built_in">string</span> {
+  <span class="hljs-keyword">return</span> line.<span class="hljs-property">title</span> + <span class="hljs-string">&#x27;;&#x27;</span> + line.<span class="hljs-property">tickets</span> + <span class="hljs-string">&#x27;;&#x27;</span> + line.<span class="hljs-property">revenue</span>.<span class="hljs-title function_">toString</span>();
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony, także <code>S01RenameLimitsTest.reflectionTurnsJavaNamesIntoTheCsvHeader</code>, który pokazuje, że <code>Object.keys</code> na nowej klasie dałoby <code>title;tickets;revenue</code>.
+<strong>Co powiedzieć:</strong> nazwa w kodzie i nazwa w kontrakcie zewnętrznym to dwie różne rzeczy. Dopóki są sklejone przez <code>Object.keys</code>, każdy Rename jest zmianą API. To samo dotyczy <code>JSON.stringify</code> - nazwy pól obiektu stają się kluczami w JSON.
+<strong>Snapshot:</strong> <code>step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m4/<wbr>s01 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-1" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-1"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>step3</code>: wszystkie nazwy mówią o roli (<code>revenueCsv</code>, <code>onlineOnly</code>, <code>linesByTitle</code>, <code>Line.revenue</code>), a dwa kontrakty zewnętrzne (nazwa metody w konfiguracji i nagłówek CSV) są zachowane jawnie: przez delegat i przez stałą. Oba testy równoważności (wywołanie z kodu i zadanie z konfiguracji) są zielone na każdym etapie.</p>
+<h3 id="pulapki-1" tabindex="-1"><a class="header-anchor" href="#pulapki-1"><span>Pułapki</span></a></h3>
+<ul>
+<li>Poleganie na tym, że Rename w VS Code &quot;znajdzie wszystko&quot;. Rename Symbol działa na typach i nie zmienia tekstu w stringach, a globalne szukaj-zamień (⇧⌘H) nie widzi plików poza projektem ani nazw składanych dynamicznie (<code>&#x27;calc&#x27; + version</code>).</li>
+<li>Inne miejsca, w których nazwa jest kontraktem: <code>JSON.stringify</code> / <code>JSON.parse</code> (klucze obiektu), kolumny ORM, szablony, nazwy pól w odpowiedziach REST, dostęp <code>obj[name]</code>, logi parsowane przez monitoring.</li>
+<li>Usunięcie delegatu <code>calc2</code> &quot;bo nikt go nie woła&quot;. Go to References (⇧F12) go nie znajdzie, bo woła go tylko konfiguracja przez <code>report[name]</code>.</li>
+</ul>
+<h3 id="pytanie-do-sali-1" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-1"><span>Pytanie do sali</span></a></h3>
+<p>Jak w waszym systemie sprawdzić, czy nazwa klasy albo metody nie jest użyta w konfiguracji, bazie danych lub innym repozytorium?</p>
+<h2 id="scena-s02-extract-variable-dla-zlozonego-wyrazenia-ceny" tabindex="-1"><a class="header-anchor" href="#scena-s02-extract-variable-dla-zlozonego-wyrazenia-ceny"><span>Scena s02. Extract Variable dla złożonego wyrażenia ceny</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> Extract Variable i moment ewaluacji
+<strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m4/<wbr>s02_extractvariable</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m4/<wbr>s02</code> (<code>S02EquivalenceTest.test.ts</code>)
+<strong>Czas:</strong> ~8 min</p>
+<h3 id="w-skrocie-2" tabindex="-1"><a class="header-anchor" href="#w-skrocie-2"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> Cena biletu w <code>TicketPrice</code> to jedno długie wyrażenie z pięcioma ternary, którego nie da się przeczytać bez liczenia w głowie. Rozbijamy je na zmienne z nazwami z cennika: najpierw kwoty bazowe, potem warunki, na końcu dopłaty.</p>
+<p><strong>Zasada:</strong> Extract Variable nazywa znaczenie fragmentu wyrażenia, a nie jego składnię. Może jednak zmienić moment ewaluacji, więc trzeba uważać na wyrażenia z efektem, odczytem czasu albo wyjątkiem. Krótkie spięcie <code>&amp;&amp;</code> jest zachowaniem - nie wolno wydzielić prawej strony przed osłoną <code>!== null</code>.</p>
+<p><strong>Efekt:</strong> Ostatnia linia czyta się jak paragon, a kolejność działań i miejsce zaokrąglenia są takie same jak w <code>start</code>. Liczby nadal są literałami, co zostawiamy na następną scenę.</p>
+<p><strong>Różnica względem Javy:</strong> w Javie wydzielenie <code>r.row() &gt;= 10</code> przed osłoną kończy się <code>NullPointerException</code> z unboxingu <code>Integer</code>. W TypeScript <code>row: number | null</code>, więc takie wydzielenie odrzuca już kompilator (TS18047: 'row' is possibly 'null'). Kto obejdzie kompilator operatorem <code>!</code>, nie dostanie wyjątku, tylko cichą zmianę zachowania: JavaScript zamienia <code>null</code> na 0 w porównaniu (<code>null &gt;= 0</code> to <code>true</code>). Kwoty to <code>Decimal</code> (<code>decimal.js</code>), a zaokrąglenie to <code>.dividedBy(100).toDecimalPlaces(2, Decimal.ROUND_HALF_UP)</code>.</p>
+<h3 id="co-widzimy-2" tabindex="-1"><a class="header-anchor" href="#co-widzimy-2"><span>Co widzimy</span></a></h3>
+<p>Cała cena biletu to jedno wyrażenie z pięcioma ternary. Żeby odpowiedzieć na pytanie &quot;skąd 32.00?&quot;, trzeba policzyć je w głowie. Uwaga na <code>row</code>: to <code>number | null</code>, a <code>null</code> oznacza wolną widownię.</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">return</span> (r.<span class="hljs-property">format</span> === <span class="hljs-number">3</span> ? <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;40.00&#x27;</span>)
+  : r.<span class="hljs-property">format</span> === <span class="hljs-number">2</span> ? <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;32.00&#x27;</span>) : <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;25.00&#x27;</span>))
+  .<span class="hljs-title function_">times</span>(<span class="hljs-number">100</span> - (r.<span class="hljs-property">type</span> === <span class="hljs-string">&#x27;S&#x27;</span> ? <span class="hljs-number">25</span>
+    : r.<span class="hljs-property">type</span> === <span class="hljs-string">&#x27;E&#x27;</span> ? <span class="hljs-number">30</span> : r.<span class="hljs-property">type</span> === <span class="hljs-string">&#x27;C&#x27;</span> ? <span class="hljs-number">40</span> : <span class="hljs-number">0</span>))
+  .<span class="hljs-title function_">dividedBy</span>(<span class="hljs-number">100</span>).<span class="hljs-title function_">toDecimalPlaces</span>(<span class="hljs-number">2</span>, <span class="hljs-title class_">Decimal</span>.<span class="hljs-property">ROUND_HALF_UP</span>)
+  .<span class="hljs-title function_">minus</span>(r.<span class="hljs-property">start</span>.<span class="hljs-title function_">isBefore</span>(<span class="hljs-title class_">LocalTime</span>.<span class="hljs-property">NOON</span>)
+    ? <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;5.00&#x27;</span>) : <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-number">0</span>))
+  .<span class="hljs-title function_">plus</span>(r.<span class="hljs-property">row</span> !== <span class="hljs-literal">null</span> &amp;&amp; r.<span class="hljs-property">row</span> &gt;= <span class="hljs-number">10</span> ? <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;10.00&#x27;</span>) : <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-number">0</span>))
+  .<span class="hljs-title function_">plus</span>(r.<span class="hljs-property">format</span> === <span class="hljs-number">2</span> &amp;&amp; !r.<span class="hljs-property">ownGlasses</span> ? <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;3.00&#x27;</span>) : <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-number">0</span>));
+</code></pre>
+<h3 id="krok-1-extract-variable-dla-ceny-bazowej-i-znizki" tabindex="-1"><a class="header-anchor" href="#krok-1-extract-variable-dla-ceny-bazowej-i-znizki"><span>Krok 1: Extract Variable dla ceny bazowej i zniżki</span></a></h3>
+<p><strong>W IDE:</strong> zaznacz pierwszy nawias z ternary formatu (bez nawiasów), ⌃⇧R, &quot;Extract to constant in enclosing scope&quot;, <code>basePrice</code>. Potem zaznacz ternary typu biletu, ⌃⇧R, <code>discountPercent</code>. Na koniec zaznacz <code>basePrice.times(...).dividedBy(...).toDecimalPlaces(...)</code>, ⌃⇧R, <code>discountedPrice</code>. VS Code nadaje nazwę <code>newLocal</code> i od razu uruchamia Rename, więc wystarczy wpisać nową nazwę.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">const</span> basePrice = r.<span class="hljs-property">format</span> === <span class="hljs-number">3</span> ? <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;40.00&#x27;</span>)
+  : r.<span class="hljs-property">format</span> === <span class="hljs-number">2</span> ? <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;32.00&#x27;</span>) : <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;25.00&#x27;</span>);
+<span class="hljs-keyword">const</span> discountPercent = r.<span class="hljs-property">type</span> === <span class="hljs-string">&#x27;S&#x27;</span> ? <span class="hljs-number">25</span>
+  : r.<span class="hljs-property">type</span> === <span class="hljs-string">&#x27;E&#x27;</span> ? <span class="hljs-number">30</span> : r.<span class="hljs-property">type</span> === <span class="hljs-string">&#x27;C&#x27;</span> ? <span class="hljs-number">40</span> : <span class="hljs-number">0</span>;
+<span class="hljs-keyword">const</span> discountedPrice = basePrice
+  .<span class="hljs-title function_">times</span>(<span class="hljs-number">100</span> - discountPercent)
+  .<span class="hljs-title function_">dividedBy</span>(<span class="hljs-number">100</span>).<span class="hljs-title function_">toDecimalPlaces</span>(<span class="hljs-number">2</span>, <span class="hljs-title class_">Decimal</span>.<span class="hljs-property">ROUND_HALF_UP</span>);
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m4/<wbr>s02</code> - 25 testów zielonych.
+<strong>Co powiedzieć:</strong> zmienna nazywa pojęcie z cennika, a nie fragment składni. Wyrażenia są czyste, więc przesunięcie ich ewaluacji wcześniej niczego nie zmienia.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m4/<wbr>s02 0 1</code></p>
+<h3 id="krok-2-extract-variable-dla-warunkow" tabindex="-1"><a class="header-anchor" href="#krok-2-extract-variable-dla-warunkow"><span>Krok 2: Extract Variable dla warunków</span></a></h3>
+<p><strong>W IDE:</strong> zaznacz <code>r.start.isBefore(LocalTime.NOON)</code>, ⌃⇧R, <code>morning</code>. Dla VIP zaznacz <strong>całe</strong> <code>r.row !== null &amp;&amp; r.row &gt;= 10</code>, ⌃⇧R, <code>vipSeat</code>. Potem <code>r.format === 2 &amp;&amp; !r.ownGlasses</code> -&gt; <code>needsGlasses</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">const</span> morning = r.<span class="hljs-property">start</span>.<span class="hljs-title function_">isBefore</span>(<span class="hljs-title class_">LocalTime</span>.<span class="hljs-property">NOON</span>);
+<span class="hljs-keyword">const</span> vipSeat = r.<span class="hljs-property">row</span> !== <span class="hljs-literal">null</span> &amp;&amp; r.<span class="hljs-property">row</span> &gt;= <span class="hljs-number">10</span>;
+<span class="hljs-keyword">const</span> needsGlasses = r.<span class="hljs-property">format</span> === <span class="hljs-number">2</span> &amp;&amp; !r.<span class="hljs-property">ownGlasses</span>;
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony, także przypadki &quot;wolna widownia (row = null)&quot;.
+<strong>Co powiedzieć:</strong> gdybyśmy wydzielili samo <code>r.row &gt;= 10</code>, zmienna policzyłaby się <strong>przed</strong> osłoną <code>!== null</code>. TypeScript od razu to zgłasza (TS18047), a &quot;naprawienie&quot; tego przez <code>r.row! &gt;= 10</code> wyłącza sprawdzenie i daje kod, który dla wolnej widowni porównuje <code>null</code> jak 0. Krótkie spięcie jest zachowaniem. Pokazuje to test <code>extractingTheComparisonWithoutTheNullGuardThrows</code>: utrwala błąd kompilacji przez <code>/<wbr>/<wbr> @ts-expect-error</code> i sprawdza, że <code>null &gt;= 0</code> daje <code>true</code>.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m4/<wbr>s02 1 2</code></p>
+<h3 id="krok-3-extract-variable-dla-kwot" tabindex="-1"><a class="header-anchor" href="#krok-3-extract-variable-dla-kwot"><span>Krok 3: Extract Variable dla kwot</span></a></h3>
+<p><strong>W IDE:</strong> zaznacz każde <code>warunek ? kwota : new Decimal(0)</code>, ⌃⇧R: <code>morningReduction</code>, <code>vipSurcharge</code>, <code>glassesFee</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">const</span> morningReduction = morning ? <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;5.00&#x27;</span>) : <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-number">0</span>);
+<span class="hljs-keyword">const</span> vipSurcharge = vipSeat ? <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;10.00&#x27;</span>) : <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-number">0</span>);
+<span class="hljs-keyword">const</span> glassesFee = needsGlasses ? <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;3.00&#x27;</span>) : <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-number">0</span>);
+<span class="hljs-keyword">return</span> discountedPrice.<span class="hljs-title function_">minus</span>(morningReduction).<span class="hljs-title function_">plus</span>(vipSurcharge).<span class="hljs-title function_">plus</span>(glassesFee);
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> ostatnia linia czyta się jak paragon. Następny naturalny krok to Replace Magic Numbers (scena s03) albo Extract Method dla <code>basePrice</code> (scena s04).
+<strong>Snapshot:</strong> <code>step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m4/<wbr>s02 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-2" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-2"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>step3/<wbr>TicketPrice.ts</code>: każda część ceny ma nazwę, kolejność operacji arytmetycznych i miejsce zaokrąglenia są takie same jak w <code>start</code>. Test obejmuje obie strony progów (11:59 i 12:00, rząd 9 i 10) oraz <code>row = null</code>.</p>
+<h3 id="pulapki-2" tabindex="-1"><a class="header-anchor" href="#pulapki-2"><span>Pułapki</span></a></h3>
+<ul>
+<li>Wydzielenie jednej strony <code>&amp;&amp;</code> / <code>||</code> przed osłoną (<code>null</code>, <code>instanceof</code>, <code>typeof</code>, <code>length &gt; 0</code>). W TypeScript zawężanie typów często to wyłapie, ale tylko przy <code>strictNullChecks</code> i bez <code>!</code>.</li>
+<li>Scalenie dwóch identycznych wyrażeń w jedną zmienną, gdy wyrażenie ma efekt uboczny albo czyta czas. Wtedy zmienia się <strong>liczba</strong> ewaluacji (patrz s05).</li>
+<li>Nazwa opisująca składnię (<code>ternary1</code>, <code>tmp</code>, domyślne <code>newLocal</code> z VS Code) zamiast znaczenia.</li>
+</ul>
+<h3 id="pytanie-do-sali-2" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-2"><span>Pytanie do sali</span></a></h3>
+<p>Kiedy jedna zmienna <code>now = clock.now()</code> zamiast dwóch wywołań zegara jest poprawką, a kiedy zmianą kontraktu?</p>
+<h2 id="scena-s03-stale-z-nazwa-zamiast-magicznych-liczb" tabindex="-1"><a class="header-anchor" href="#scena-s03-stale-z-nazwa-zamiast-magicznych-liczb"><span>Scena s03. Stałe z nazwą zamiast magicznych liczb</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> Extract Constant i <code>const</code>; Replace Magic Numbers with Named Constants
+<strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m4/<wbr>s03_magicnumbers</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m4/<wbr>s03</code> (<code>S03EquivalenceTest.test.ts</code>)
+<strong>Czas:</strong> ~10 min</p>
+<h3 id="w-skrocie-3" tabindex="-1"><a class="header-anchor" href="#w-skrocie-3"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> <code>OrderPricer.summary</code> jest pełen liczb bez nazw, a cztery dziesiątki oznaczają cztery różne decyzje biznesowe. Zamieniamy każdą liczbę na nieeksportowaną stałą modułu z nazwą roli, osobno dla każdej reguły.</p>
+<p><strong>Zasada:</strong> Replace Magic Numbers usuwa ukrytą decyzję, a Extract Constant to mechanika tej zmiany. Nazwa opisuje rolę (<code>GROUP_MIN_TICKETS</code>), nie wartość (<code>TEN</code>), a dwa identyczne literały nie zawsze są tą samą wiedzą. Stała nie jest miejscem na konfigurację zmienianą bez wdrożenia, a <code>const</code> blokuje tylko przypisanie, nie zawartość.</p>
+<p><strong>Efekt:</strong> W metodzie nie ma żadnej liczby bez nazwy, a zmiana progu grupy nie przesunie już rzędu VIP. Czternaście stałych pokazuje przy okazji, że cennik to osobna odpowiedzialność, którą jeszcze trzeba będzie przenieść.</p>
+<p><strong>Różnica względem Javy:</strong> <code>private static final BigDecimal</code> to w porcie nieeksportowane stałe modułu (<code>const</code> na poziomie pliku) z <code>Decimal</code>. Uwaga z Javy o wklejaniu publicznych <code>static final int</code> do klas klienta nie ma odpowiednika: moduły ES importują stałe jako wiązania, więc klient zawsze czyta aktualną wartość. Zamiast <code>List.of</code> niezmienną tablicę daje <code>Object.freeze([...])</code>, a zapis do niej rzuca <code>TypeError</code>. Kwoty w wydruku to <code>toFixed(2)</code>, bo <code>decimal.js</code> nie przechowuje skali.</p>
+<h3 id="co-widzimy-3" tabindex="-1"><a class="header-anchor" href="#co-widzimy-3"><span>Co widzimy</span></a></h3>
+<p><code>OrderPricer.summary</code> liczy bilety, opłatę online i punkty lojalnościowe. Liczby: 25.00, 32.00, 40.00, 0.25, 0.30, 0.40, 5.00, 12, 10, 10.00, 10, 0.90, 2.00 i dzielnik 10 przy punktach. Cztery &quot;dziesiątki&quot; oznaczają cztery różne decyzje biznesowe.</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">if</span> (t.<span class="hljs-property">row</span> &gt;= <span class="hljs-number">10</span>) {                                    <span class="hljs-comment">// od którego rzędu VIP</span>
+  p = p.<span class="hljs-title function_">plus</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;10.00&#x27;</span>));                   <span class="hljs-comment">// dopłata VIP</span>
+}
+...
+<span class="hljs-keyword">if</span> (o.<span class="hljs-property">tickets</span>.<span class="hljs-property">length</span> &gt;= <span class="hljs-number">10</span>) {                         <span class="hljs-comment">// próg grupy</span>
+  tickets = tickets.<span class="hljs-title function_">times</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;0.90&#x27;</span>));
+}
+<span class="hljs-keyword">const</span> points = tickets.<span class="hljs-title function_">dividedBy</span>(<span class="hljs-number">10</span>).<span class="hljs-title function_">toDecimalPlaces</span>(<span class="hljs-number">0</span>, <span class="hljs-title class_">Decimal</span>.<span class="hljs-property">ROUND_DOWN</span>).<span class="hljs-title function_">toNumber</span>(); <span class="hljs-comment">// zł za punkt</span>
+</code></pre>
+<h3 id="krok-1-extract-constant-dla-kwot-z-cennika" tabindex="-1"><a class="header-anchor" href="#krok-1-extract-constant-dla-kwot-z-cennika"><span>Krok 1: Extract Constant dla kwot z cennika</span></a></h3>
+<p><strong>W IDE:</strong> zaznacz <code>new Decimal(&#x27;25.00&#x27;)</code>, ⌃⇧R, &quot;Extract to constant in module scope&quot;, <code>BASE_PRICE_2D</code>. VS Code zastępuje tylko zaznaczone wystąpienie i nie pyta o pozostałe, więc inne wystąpienia tej samej kwoty zamieniasz na stałą ręcznie - i tylko wtedy, gdy to ta sama wiedza. Tak samo <code>BASE_PRICE_3D</code>, <code>BASE_PRICE_IMAX</code>, <code>MORNING_REDUCTION</code>, <code>VIP_SURCHARGE</code>, <code>ONLINE_FEE_PER_TICKET</code>, <code>NO_FEE</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">const</span> <span class="hljs-variable constant_">BASE_PRICE_2D</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;25.00&#x27;</span>);
+<span class="hljs-keyword">const</span> <span class="hljs-variable constant_">BASE_PRICE_3D</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;32.00&#x27;</span>);
+<span class="hljs-keyword">const</span> <span class="hljs-variable constant_">BASE_PRICE_IMAX</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;40.00&#x27;</span>);
+<span class="hljs-keyword">const</span> <span class="hljs-variable constant_">MORNING_REDUCTION</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;5.00&#x27;</span>);
+<span class="hljs-keyword">const</span> <span class="hljs-variable constant_">VIP_SURCHARGE</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;10.00&#x27;</span>);
+<span class="hljs-keyword">const</span> <span class="hljs-variable constant_">ONLINE_FEE_PER_TICKET</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;2.00&#x27;</span>);
+<span class="hljs-keyword">const</span> <span class="hljs-variable constant_">NO_FEE</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;0.00&#x27;</span>);
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m4/<wbr>s03</code> - 17 testów zielonych.
+<strong>Co powiedzieć:</strong> <code>Decimal</code> jest niezmienny (każda operacja zwraca nowy obiekt), więc <code>const</code> rzeczywiście jest stałą. Stała nie jest eksportowana, bo ma jednego właściciela.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m4/<wbr>s03 0 1</code></p>
+<h3 id="krok-2-replace-magic-numbers-progi-regul" tabindex="-1"><a class="header-anchor" href="#krok-2-replace-magic-numbers-progi-regul"><span>Krok 2: Replace Magic Numbers - progi reguł</span></a></h3>
+<p><strong>W IDE:</strong> zaznacz <code>10</code> w <code>t.row &gt;= 10</code>, ⌃⇧R, &quot;Extract to constant in module scope&quot;, <code>VIP_FROM_ROW</code>. <strong>Nie zamieniaj</strong> pozostałych dziesiątek na tę stałą, bo to inna wiedza. Osobno: <code>GROUP_MIN_TICKETS</code>, <code>GROUP_PRICE_FACTOR</code>, <code>AMOUNT_PER_LOYALTY_POINT</code> (z dzielnika 10), <code>MORNING_ENDS_AT_HOUR</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">const</span> <span class="hljs-variable constant_">MORNING_ENDS_AT_HOUR</span> = <span class="hljs-number">12</span>;
+<span class="hljs-keyword">const</span> <span class="hljs-variable constant_">VIP_FROM_ROW</span> = <span class="hljs-number">10</span>;
+<span class="hljs-keyword">const</span> <span class="hljs-variable constant_">GROUP_MIN_TICKETS</span> = <span class="hljs-number">10</span>;
+<span class="hljs-keyword">const</span> <span class="hljs-variable constant_">GROUP_PRICE_FACTOR</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;0.90&#x27;</span>);
+<span class="hljs-keyword">const</span> <span class="hljs-variable constant_">AMOUNT_PER_LOYALTY_POINT</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-number">10</span>);
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> jeśli dyrekcja zmieni próg grupy na 8, rząd VIP nie może się przesunąć razem z nim. Nazwa opisuje rolę (<code>GROUP_MIN_TICKETS</code>), a nie wartość (<code>TEN</code>). Extract Constant to mechanika, a Replace Magic Number to powód.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m4/<wbr>s03 1 2</code></p>
+<h3 id="krok-3-extract-constant-dla-stawek-znizek" tabindex="-1"><a class="header-anchor" href="#krok-3-extract-constant-dla-stawek-znizek"><span>Krok 3: Extract Constant dla stawek zniżek</span></a></h3>
+<p><strong>W IDE:</strong> zaznacz <code>new Decimal(&#x27;0.25&#x27;)</code>, ⌃⇧R, &quot;Extract to constant in module scope&quot;, <code>STUDENT_DISCOUNT</code>. Tak samo <code>SENIOR_DISCOUNT</code> i <code>CHILD_DISCOUNT</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">if</span> (t.<span class="hljs-property">type</span> === <span class="hljs-string">&#x27;S&#x27;</span>) {
+  p = p.<span class="hljs-title function_">times</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-number">1</span>).<span class="hljs-title function_">minus</span>(<span class="hljs-variable constant_">STUDENT_DISCOUNT</span>));
+} <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (t.<span class="hljs-property">type</span> === <span class="hljs-string">&#x27;E&#x27;</span>) {
+  p = p.<span class="hljs-title function_">times</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-number">1</span>).<span class="hljs-title function_">minus</span>(<span class="hljs-variable constant_">SENIOR_DISCOUNT</span>));
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> w metodzie nie ma już żadnej liczby bez nazwy. Stałe nie są eksportowane, bo to szczegół tego modułu, a nie API dla klientów. Następny ruch (już nie w tej scenie) to przeniesienie cennika do własnej klasy albo modułu, bo stałe pokazują, że to osobna odpowiedzialność.
+<strong>Snapshot:</strong> <code>step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m4/<wbr>s03 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-3" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-3"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>step3/<wbr>OrderPricer.ts</code>: czternaście nieeksportowanych stałych modułu, każda z nazwą roli. Trzy progi o wartości 10 mają trzy różne nazwy, bo zmieniają się z różnych powodów. Test obejmuje 9 i 10 biletów, 12:00 i rano, kasę i online.</p>
+<h3 id="pulapki-3" tabindex="-1"><a class="header-anchor" href="#pulapki-3"><span>Pułapki</span></a></h3>
+<ul>
+<li><code>const</code> blokuje tylko przypisanie. <code>const discountedTypes = [&#x27;S&#x27;, &#x27;E&#x27;, &#x27;C&#x27;]</code> każdy może zmodyfikować przez <code>push</code>. Test <code>finalDoesNotMakeACollectionConstant</code> pokazuje to na liście typów zniżkowych, a tablica z <code>Object.freeze([...])</code> przy <code>push</code> rzuca <code>TypeError</code>. Typ <code>readonly string[]</code> blokuje zmiany tylko w kompilacji, a <code>Object.freeze</code> jest płytkie.</li>
+<li>Eksportowana stała to kontrakt modułu. Klienci importują wiązanie, więc widzą nową wartość po przebudowie, ale każdy, kto polegał na starej wartości (np. w teście albo w innym serwisie z kopią liczby), dowie się o zmianie dopiero w produkcji.</li>
+<li>Stała dla czegoś, co jest konfiguracją (ceny zmieniane bez wdrożenia). Wtedy miejsce jest w konfiguracji albo w bazie, a nie w kodzie.</li>
+<li>Jedna stała <code>TEN</code> dla czterech reguł.</li>
+</ul>
+<h3 id="pytanie-do-sali-3" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-3"><span>Pytanie do sali</span></a></h3>
+<p>Które z tych stałych w prawdziwym kinie powinny być konfiguracją, a nie kodem? Po czym to poznać?</p>
+<h2 id="scena-s04-extract-method-przeplyw-danych-i-wiele-wyjsc" tabindex="-1"><a class="header-anchor" href="#scena-s04-extract-method-przeplyw-danych-i-wiele-wyjsc"><span>Scena s04. Extract Method - przepływ danych i wiele wyjść</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> Extract Method - cel i sygnały; Extract Method - analiza przepływu danych; Extract Method - mechanika i trudne przypadki
+<strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m4/<wbr>s04_extractmethod</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m4/<wbr>s04</code> (<code>S04EquivalenceTest.test.ts</code>)
+<strong>Czas:</strong> ~15 min</p>
+<h3 id="w-skrocie-4" tabindex="-1"><a class="header-anchor" href="#w-skrocie-4"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> <code>TicketSummary.describe</code> liczy cenę, sumę i liczbę miejsc VIP, a potem składa dokument, i to wszystko w jednej metodzie z komentarzami zamiast nazw. Wydzielamy bloki do metod, a pętlę z dwoma wyjściami najpierw rozdzielamy przez Split Loop.</p>
+<p><strong>Zasada:</strong> Extract Method przenosi spójny fragment do metody, gdy nazwa wyrazi intencję lepiej niż szczegóły, a sama długość nie jest powodem. Kluczowa jest analiza przepływu danych: co wchodzi jako parametr, co wychodzi jako wynik. Gdy fragment ma kilka wyjść, dzielimy go albo tworzymy obiekt wyniku z nazwą, a nie zwracamy tablicy czy anonimowego &quot;worka&quot; na dwie wartości.</p>
+<p><strong>Efekt:</strong> Metoda publiczna czyta się jak spis treści, a obliczenia są oddzielone od renderowania, bez zmiany sygnatury ani formatu. Kosztem są dwa przejścia po liście rzędów, pomijalne wobec czytelności.</p>
+<p><strong>Różnica względem Javy:</strong> IntelliJ odmawia wydzielenia fragmentu z dwiema wartościami wyjściowymi. VS Code nie odmawia: wydzielona metoda zwraca wtedy obiekt <code>{ subtotal, vipSeats }</code>, a w miejscu wywołania pojawia się destrukturyzacja. Kod się kompiluje i test jest zielony, ale to dokładnie &quot;holder&quot; z pułapek - dwie odpowiedzialności w jednej metodzie. Kwoty to <code>Decimal</code>, w wydruku <code>toFixed(2)</code>.</p>
+<h3 id="co-widzimy-4" tabindex="-1"><a class="header-anchor" href="#co-widzimy-4"><span>Co widzimy</span></a></h3>
+<p><code>TicketSummary.describe</code> liczy cenę bazową, sumę i liczbę miejsc VIP, a na końcu składa dokument. Komentarze <code>/<wbr>/<wbr> cena bazowa formatu</code>, <code>/<wbr>/<wbr> suma i liczba miejsc VIP</code>, <code>/<wbr>/<wbr> dokument</code> to naturalne granice metod. Pętla ma jednak <strong>dwa wyjścia</strong>: <code>subtotal</code> i <code>vipSeats</code>.</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">let</span> subtotal = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-number">0</span>);
+<span class="hljs-keyword">let</span> vipSeats = <span class="hljs-number">0</span>;
+<span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> row <span class="hljs-keyword">of</span> order.<span class="hljs-property">rows</span>) {
+  <span class="hljs-keyword">let</span> price = base;
+  <span class="hljs-keyword">if</span> (row &gt;= <span class="hljs-number">10</span>) {
+    price = price.<span class="hljs-title function_">plus</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;10.00&#x27;</span>));
+    vipSeats++;
+  }
+  subtotal = subtotal.<span class="hljs-title function_">plus</span>(price);
+}
+subtotal = subtotal.<span class="hljs-title function_">toDecimalPlaces</span>(<span class="hljs-number">2</span>, <span class="hljs-title class_">Decimal</span>.<span class="hljs-property">ROUND_HALF_UP</span>);
+</code></pre>
+<h3 id="krok-1-extract-method-dla-bloku-z-jednym-wyjsciem" tabindex="-1"><a class="header-anchor" href="#krok-1-extract-method-dla-bloku-z-jednym-wyjsciem"><span>Krok 1: Extract Method dla bloku z jednym wyjściem</span></a></h3>
+<p><strong>W IDE:</strong> zaznacz blok pod <code>/<wbr>/<wbr> cena bazowa formatu</code> (od <code>let base: Decimal;</code> do końca <code>if</code> z porankiem), ⌃⇧R, &quot;Extract to method in class 'TicketSummary'&quot;, nazwa <code>basePrice</code>. VS Code sam wykryje jedno wejście (<code>order</code>) i jedno wyjście (<code>base</code>). Usuń zbędny komentarz.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">const</span> base = <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">basePrice</span>(order);
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m4/<wbr>s04</code> - 16 testów zielonych.
+<strong>Co powiedzieć:</strong> blok z jednym wyjściem to najprostszy przypadek, IDE robi to bezpiecznie. Komentarz stał się nazwą metody.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m4/<wbr>s04 0 1</code></p>
+<h3 id="krok-2-split-loop-potem-dwa-razy-extract-method" tabindex="-1"><a class="header-anchor" href="#krok-2-split-loop-potem-dwa-razy-extract-method"><span>Krok 2: Split Loop, potem dwa razy Extract Method</span></a></h3>
+<p><strong>W IDE:</strong> zaznacz pętlę razem z deklaracjami <code>subtotal</code> i <code>vipSeats</code> i otwórz ⌃⇧R. Pokaż podgląd &quot;Extract to method&quot;: VS Code zaproponuje metodę zwracającą <code>{ subtotal, vipSeats }</code>. To jest moment dydaktyczny - IDE nie widzi, że to dwie odpowiedzialności. Zamknij bez zmian (Esc). Ręcznie skopiuj pętlę (Split Loop) i z pierwszej kopii usuń <code>vipSeats</code>, a z drugiej <code>subtotal</code>. Uruchom test. Następnie na każdej pętli ⌃⇧R, &quot;Extract to method&quot;, nazwy <code>subtotal</code> i <code>vipSeats</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">const</span> subtotal = <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">subtotal</span>(order, base);
+<span class="hljs-keyword">const</span> vipSeats = <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">vipSeats</span>(order);
+</code></pre>
+<p><strong>Uruchom:</strong> test po Split Loop i po każdej ekstrakcji.
+<strong>Co powiedzieć:</strong> zamiast zwracać parę (obiekt z dwoma polami) rozdzielamy odpowiedzialności. Dwa przejścia po liście to koszt pomijalny wobec czytelności. Jeśli wydajność miałaby znaczenie, mierzymy, a nie zgadujemy.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m4/<wbr>s04 1 2</code></p>
+<h3 id="krok-3-extract-method-dla-renderowania" tabindex="-1"><a class="header-anchor" href="#krok-3-extract-method-dla-renderowania"><span>Krok 3: Extract Method dla renderowania</span></a></h3>
+<p><strong>W IDE:</strong> zaznacz blok <code>/<wbr>/<wbr> dokument</code> i wykonaj ⌃⇧R, &quot;Extract to method&quot;, nazwa <code>render</code>. Parametry: <code>order</code>, <code>subtotal</code>, <code>vipSeats</code>. Potem kursor na <code>base</code>, ⌃⇧R, &quot;Inline variable&quot;.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-title function_">describe</span>(<span class="hljs-attr">order</span>: <span class="hljs-title class_">Order</span>): <span class="hljs-built_in">string</span> {
+  <span class="hljs-keyword">const</span> subtotal = <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">subtotal</span>(order, <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">basePrice</span>(order));
+  <span class="hljs-keyword">const</span> vipSeats = <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">vipSeats</span>(order);
+  <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">render</span>(order, subtotal, vipSeats);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> metoda publiczna czyta się jak spis treści. Obliczenia są oddzielone od prezentacji, więc przygotowaliśmy grunt pod Extract Class (scena s09).
+<strong>Snapshot:</strong> <code>step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m4/<wbr>s04 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-4" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-4"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>step3/<wbr>TicketSummary.ts</code>: cztery prywatne metody, każda z jednym wyjściem. Nie zmieniliśmy sygnatury publicznej ani formatu dokumentu, co potwierdza test równoważności na czterech przypadkach (w tym zamówienie puste i same miejsca VIP).</p>
+<h3 id="pulapki-4" tabindex="-1"><a class="header-anchor" href="#pulapki-4"><span>Pułapki</span></a></h3>
+<ul>
+<li>Ekstrakcja bloku, który modyfikuje zmienną lokalną używaną dalej, bez zwrócenia jej wartości. IDE tego pilnuje, ręczne kopiowanie nie.</li>
+<li>Zwracanie tablicy (<code>[subtotal, vipSeats]</code>) albo anonimowego obiektu tylko po to, żeby wyciągnąć dwa wyniki. VS Code zrobi to sam, jeśli mu pozwolimy.</li>
+<li>Ekstrakcja fragmentu z <code>this</code> do funkcji w zasięgu modułu (&quot;Extract to function in module scope&quot;) zamiast do metody klasy. VS Code zaproponuje oba warianty, a wybór zmienia miejsce i dostęp do pól.</li>
+<li>Nazwa metody opisująca &quot;jak&quot; (<code>loopRows</code>) zamiast &quot;co&quot; (<code>vipSeats</code>), albo domyślne <code>newMethod</code> z VS Code.</li>
+</ul>
+<h3 id="pytanie-do-sali-4" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-4"><span>Pytanie do sali</span></a></h3>
+<p>Kiedy zamiast Split Loop lepiej zwrócić obiekt z dwoma polami (i jak go wtedy nazwać)?</p>
+<h2 id="scena-s05-inline-variable-liczba-i-moment-ewaluacji" tabindex="-1"><a class="header-anchor" href="#scena-s05-inline-variable-liczba-i-moment-ewaluacji"><span>Scena s05. Inline Variable - liczba i moment ewaluacji</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> Inline Variable i typ docelowy; Extract Variable i moment ewaluacji
+<strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m4/<wbr>s05_inlinevariable</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m4/<wbr>s05</code> (<code>S05EquivalenceTest.test.ts</code>, <code>S05InlineTrapTest.test.ts</code>)
+<strong>Czas:</strong> ~12 min</p>
+<h3 id="w-skrocie-5" tabindex="-1"><a class="header-anchor" href="#w-skrocie-5"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> <code>TicketIssuer.issue</code> ma sześć zmiennych lokalnych, które wyglądają na zbędne, ale trzy z nich chronią pojedynczy efekt uboczny, pojedynczy odczyt zegara i jawną konwersję jednostki przed wywołaniem przeciążonej funkcji. Wklejamy tylko bezpieczne zmienne, a przy <code>price</code> najpierw usuwamy niejednoznaczność nazwą przeciążenia.</p>
+<p><strong>Zasada:</strong> Inline Variable usuwa zmienną, której nazwa nic nie wnosi, ale zmienia liczbę i moment ewaluacji inicjalizatora. Wyrażenie z efektem ubocznym albo odczytem czasu po wklejeniu wykona się tyle razy, ile jest użyć. Jawny typ zmiennej i konwersja w inicjalizatorze decydują, które przeciążenie zostanie wybrane - to nie jest ozdoba.</p>
+<p><strong>Efekt:</strong> Znikają <code>label</code>, <code>holdUntil</code> i <code>price</code>, a <code>number</code>, <code>issuedAt</code> i <code>code</code> zostają celowo i warto je opisać. Wynik jest identyczny, co potwierdza test z tykającym zegarem.</p>
+<p><strong>Różnica względem Javy:</strong> w Javie <code>double price = basePrice(format)</code> niejawnie poszerza <code>int</code> do <code>double</code>, a wklejenie <code>money(basePrice(format))</code> wybiera przeciążenie <code>money(int grosze)</code>. TypeScript nie ma niejawnych konwersji liczbowych, więc port odwzorowuje to jawnie: <code>basePrice</code> zwraca <code>bigint</code> (jak <code>int</code> ze starego cennika), <code>money</code> ma dwie sygnatury przeciążenia (<code>number</code> = złote, <code>bigint</code> = grosze) i jedną implementację z <code>typeof</code>, a zmienna <code>const price: number = Number(basePrice(format))</code> niesie konwersję. Zegar to <code>Clock</code> z <code>shared/<wbr>time.ts</code>, a czas trzymania rezerwacji to <code>HOLD_MINUTES</code> i <code>plusMinutes</code>.</p>
+<h3 id="co-widzimy-5" tabindex="-1"><a class="header-anchor" href="#co-widzimy-5"><span>Co widzimy</span></a></h3>
+<p><code>TicketIssuer.issue</code> ma sześć zmiennych lokalnych. Wyglądają na zbędne, ale trzy z nich trzymają wynik, którego <strong>nie wolno</strong> obliczyć ponownie:</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">const</span> <span class="hljs-built_in">number</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">nextNumber</span>();                  <span class="hljs-comment">// efekt uboczny: każde wywołanie zużywa numer</span>
+<span class="hljs-keyword">const</span> <span class="hljs-attr">issuedAt</span>: <span class="hljs-title class_">LocalDateTime</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">clock</span>.<span class="hljs-title function_">now</span>();  <span class="hljs-comment">// odczyt czasu: każde wywołanie to inna chwila</span>
+<span class="hljs-keyword">const</span> code = screeningCode + <span class="hljs-string">&#x27;-&#x27;</span> + <span class="hljs-built_in">number</span>;
+<span class="hljs-keyword">const</span> <span class="hljs-attr">price</span>: <span class="hljs-built_in">number</span> = <span class="hljs-title class_">Number</span>(<span class="hljs-title function_">basePrice</span>(format));   <span class="hljs-comment">// bigint -&gt; number: wybiera przeciążenie money</span>
+<span class="hljs-keyword">const</span> label = <span class="hljs-string">&#x27;Bilet &#x27;</span> + code + <span class="hljs-string">&#x27;, cena &#x27;</span> + <span class="hljs-title function_">money</span>(price)
+  + <span class="hljs-string">&#x27;, oplata &#x27;</span> + <span class="hljs-title function_">money</span>(<span class="hljs-variable constant_">ONLINE_FEE_GROSZE</span>);
+<span class="hljs-keyword">const</span> holdUntil = issuedAt.<span class="hljs-title function_">plusMinutes</span>(<span class="hljs-variable constant_">HOLD_MINUTES</span>);
+<span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Ticket</span>(code, label, issuedAt, holdUntil);
+</code></pre>
+<p><code>money(zloty: number)</code> i <code>money(grosze: bigint)</code> to dwie sygnatury przeciążenia o tej samej nazwie i różnych jednostkach:</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-comment">/** Kwota w złotych. */</span>
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">money</span>(<span class="hljs-params"><span class="hljs-attr">zloty</span>: <span class="hljs-built_in">number</span></span>): <span class="hljs-built_in">string</span>;
+<span class="hljs-comment">/** Kwota w groszach - ta sama nazwa, inna jednostka. */</span>
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">money</span>(<span class="hljs-params"><span class="hljs-attr">grosze</span>: <span class="hljs-built_in">bigint</span></span>): <span class="hljs-built_in">string</span>;
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">money</span>(<span class="hljs-params"><span class="hljs-attr">amount</span>: <span class="hljs-built_in">number</span> | <span class="hljs-built_in">bigint</span></span>): <span class="hljs-built_in">string</span> {
+  <span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> amount === <span class="hljs-string">&#x27;bigint&#x27;</span>) {
+    <span class="hljs-keyword">return</span> <span class="hljs-string">`<span class="hljs-subst">${amount / <span class="hljs-number">100n</span>}</span>.<span class="hljs-subst">${<span class="hljs-built_in">String</span>(amount % <span class="hljs-number">100n</span>).padStart(<span class="hljs-number">2</span>, <span class="hljs-string">&#x27;0&#x27;</span>)}</span>`</span>;
+  }
+  <span class="hljs-keyword">return</span> amount.<span class="hljs-title function_">toFixed</span>(<span class="hljs-number">2</span>);
+}
+</code></pre>
+<p><strong>Pokaz pułapki (przed krokiem 1):</strong> ⌃⇧R &quot;Inline variable&quot; na <code>number</code> i na <code>issuedAt</code>, a przy <code>price</code> wklej <code>basePrice(format)</code> ręcznie, bez <code>Number(...)</code> (&quot;po co konwersja, skoro <code>money</code> przyjmuje też <code>bigint</code>&quot;). Kod się kompiluje, IDE nie protestuje, bo nie wie, że <code>nextNumber()</code> ma efekt uboczny, a <code>clock.now()</code> zależy od czasu. Test równoważności jest czerwony: etykieta ma numer 2, a kod numer 1, rezerwacja trzyma o sekundę za długo (fake zegar tyka przy każdym odczycie), a cena 40 zł to &quot;0.40&quot;. Cofnij (⌘Z). Te same trzy objawy dokumentuje stale <code>S05InlineTrapTest</code>.</p>
+<h3 id="krok-1-inline-variable-dla-czystego-wyrazenia-uzytego-raz" tabindex="-1"><a class="header-anchor" href="#krok-1-inline-variable-dla-czystego-wyrazenia-uzytego-raz"><span>Krok 1: Inline Variable dla czystego wyrażenia użytego raz</span></a></h3>
+<p><strong>W IDE:</strong> kursor na <code>label</code>, ⌃⇧R, &quot;Inline variable&quot;.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Ticket</span>(code,
+  <span class="hljs-string">&#x27;Bilet &#x27;</span> + code + <span class="hljs-string">&#x27;, cena &#x27;</span> + <span class="hljs-title function_">money</span>(price)
+    + <span class="hljs-string">&#x27;, oplata &#x27;</span> + <span class="hljs-title function_">money</span>(<span class="hljs-variable constant_">ONLINE_FEE_GROSZE</span>),
+  issuedAt, holdUntil);
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m4/<wbr>s05</code> - 11 testów zielonych.
+<strong>Co powiedzieć:</strong> wyrażenie jest czyste i użyte raz, a nazwa parametru konstruktora <code>Ticket</code> (<code>label</code>) mówi to samo co zmienna. To podręcznikowy bezpieczny inline.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m4/<wbr>s05 0 1</code></p>
+<h3 id="krok-2-inline-variable-ktory-czyta-zmienna-a-nie-zegar" tabindex="-1"><a class="header-anchor" href="#krok-2-inline-variable-ktory-czyta-zmienna-a-nie-zegar"><span>Krok 2: Inline Variable, który czyta zmienną, a nie zegar</span></a></h3>
+<p><strong>W IDE:</strong> kursor na <code>holdUntil</code>, ⌃⇧R, &quot;Inline variable&quot;.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Ticket</span>(code, ..., issuedAt, issuedAt.<span class="hljs-title function_">plusMinutes</span>(<span class="hljs-variable constant_">HOLD_MINUTES</span>));
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> ten inline jest bezpieczny, bo inicjalizator czyta <strong>zmienną</strong> <code>issuedAt</code>, która zamroziła jeden odczyt zegara. Gdybyśmy wcześniej zrobili inline <code>issuedAt</code>, ten sam ruch dałby dwa różne odczyty czasu.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m4/<wbr>s05 1 2</code></p>
+<h3 id="krok-3-najpierw-rename-przeciazenia-potem-inline-price" tabindex="-1"><a class="header-anchor" href="#krok-3-najpierw-rename-przeciazenia-potem-inline-price"><span>Krok 3: najpierw Rename przeciążenia, potem Inline <code>price</code></span></a></h3>
+<p><strong>W IDE:</strong> przeciążenia w TypeScript dzielą jedną implementację, więc Rename Symbol nie rozdzieli ich za nas. Ręcznie: wydziel wariant groszowy do osobnej funkcji <code>moneyFromGrosze(grosze: bigint)</code>, zostaw <code>money(zloty: number)</code> jako zwykłą funkcję bez przeciążeń i zmień wywołanie <code>money(ONLINE_FEE_GROSZE)</code> na <code>moneyFromGrosze(ONLINE_FEE_GROSZE)</code> (kompilator wskaże je sam, bo <code>money</code> przestała przyjmować <code>bigint</code>). Test zielony. Teraz kursor na <code>price</code>, ⌃⇧R, &quot;Inline variable&quot;: VS Code wklei cały inicjalizator razem z <code>Number(...)</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-string">&#x27;Bilet &#x27;</span> + code + <span class="hljs-string">&#x27;, cena &#x27;</span> + <span class="hljs-title function_">money</span>(<span class="hljs-title class_">Number</span>(<span class="hljs-title function_">basePrice</span>(format)))
+  + <span class="hljs-string">&#x27;, oplata &#x27;</span> + <span class="hljs-title function_">moneyFromGrosze</span>(<span class="hljs-variable constant_">ONLINE_FEE_GROSZE</span>),
+...
+<span class="hljs-comment">/** Kwota w złotych. */</span>
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">money</span>(<span class="hljs-params"><span class="hljs-attr">zloty</span>: <span class="hljs-built_in">number</span></span>): <span class="hljs-built_in">string</span> {
+  <span class="hljs-keyword">return</span> zloty.<span class="hljs-title function_">toFixed</span>(<span class="hljs-number">2</span>);
+}
+
+<span class="hljs-comment">/** Kwota w groszach - osobna nazwa, osobna jednostka. */</span>
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">moneyFromGrosze</span>(<span class="hljs-params"><span class="hljs-attr">grosze</span>: <span class="hljs-built_in">bigint</span></span>): <span class="hljs-built_in">string</span> {
+  <span class="hljs-keyword">return</span> <span class="hljs-string">`<span class="hljs-subst">${grosze / <span class="hljs-number">100n</span>}</span>.<span class="hljs-subst">${<span class="hljs-built_in">String</span>(grosze % <span class="hljs-number">100n</span>).padStart(<span class="hljs-number">2</span>, <span class="hljs-string">&#x27;0&#x27;</span>)}</span>`</span>;
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> konwersja w zmiennej wybierała przeciążenie. Najpierw usuwamy niejednoznaczność nazwą, a dopiero potem inline. Po rozdzieleniu nazw zgubienie <code>Number(...)</code> przy wklejaniu jest błędem kompilacji, a nie cichą zmianą ceny. <code>number</code> i <code>issuedAt</code> zostają celowo i warto dopisać im komentarz albo nic nie ruszać.
+<strong>Snapshot:</strong> <code>step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m4/<wbr>s05 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-5" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-5"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>step3/<wbr>TicketIssuer.ts</code>: zostały trzy zmienne (<code>number</code>, <code>issuedAt</code>, <code>code</code>), bo każda chroni pojedynczą ewaluację albo nazywa pojęcie. Zniknęły te, które nic nie wnosiły. Test równoważności używa ręcznego <code>TickingClock</code> (każdy odczyt +1 s, w pliku <code>test/<wbr>workshop/<wbr>m4/<wbr>s05_inlinevariable/<wbr>TickingClock.ts</code>), więc wykryłby każde podwójne czytanie zegara.</p>
+<h3 id="pulapki-5" tabindex="-1"><a class="header-anchor" href="#pulapki-5"><span>Pułapki</span></a></h3>
+<ul>
+<li>Inline zmiennej z inicjalizatorem, który ma efekt uboczny (<code>nextSequence()</code>, <code>iterator.next()</code>, <code>queue.shift()</code>), zmienia <strong>liczbę</strong> wywołań.</li>
+<li>Inline odczytu czasu, losowości albo I/O zmienia <strong>moment</strong> i liczbę odczytów, a test z <code>fixedClock(...)</code> tego nie wykryje. Dlatego zegar w teście tyka.</li>
+<li>Inline zmiennej z jawnym typem albo konwersją (<code>: number</code>, <code>Number(...)</code>, <code>String(...)</code>) może wybrać inną sygnaturę przeciążenia albo zmienić jednostkę. Przy <code>number | bigint</code> czy <code>string | number</code> kompilator zaakceptuje oba warianty.</li>
+<li><code>await</code> w inicjalizatorze: <code>const user = await load()</code> wklejone w dwa miejsca to dwa wywołania i dwa oczekiwania, a wklejone do wyrażenia warunkowego może się nie wykonać wcale.</li>
+</ul>
+<h3 id="pytanie-do-sali-5" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-5"><span>Pytanie do sali</span></a></h3>
+<p>Jak w teście wykryć, że kod czyta zegar dwa razy, skoro <code>fixedClock(...)</code> zawsze zwraca tę samą chwilę?</p>
+<h2 id="scena-s06-inline-method-i-nadpisanie-w-podklasie" tabindex="-1"><a class="header-anchor" href="#scena-s06-inline-method-i-nadpisanie-w-podklasie"><span>Scena s06. Inline Method i nadpisanie w podklasie</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> Inline Method i jego ryzyka
+<strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m4/<wbr>s06_inlinemethod</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m4/<wbr>s06</code> (<code>S06EquivalenceTest.test.ts</code>, <code>S06InlineOverriddenMethodTrapTest.test.ts</code>)
+<strong>Czas:</strong> ~8 min</p>
+<h3 id="w-skrocie-6" tabindex="-1"><a class="header-anchor" href="#w-skrocie-6"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> <code>TicketPricing</code> ma trzy małe metody: dwa prywatne pośredniki i chroniony hak <code>bookingFee()</code>, nadpisany w wersji internetowej. Wklejamy pośredniki, ale hak zostaje, bo wklejenie jego ciała zabiłoby nadpisanie.</p>
+<p><strong>Zasada:</strong> Inline Method usuwa pośrednictwo, które nie dodaje znaczenia, a najbezpieczniejszy jest prywatny, niepolimorficzny delegat z jednym wywołaniem. Wklejenie ciała metody nadpisywanej usuwa dynamiczną dyspozycję, a przy dekoratorze albo proxy (transakcja, cache, autoryzacja) znika to, co owijało metodę. Liczba linii nie przesądza - metoda z nazwą z domeny zostaje.</p>
+<p><strong>Efekt:</strong> <code>total</code> wprost pokazuje &quot;cena + opłata&quot;, a kasa i internet liczą tak jak wcześniej. Hak <code>bookingFee()</code> zostaje, bo zachowanie podklasy jest częścią kontraktu klasy bazowej.</p>
+<p><strong>Różnica względem Javy:</strong> VS Code nie ma refaktoryzacji Inline Method, więc oba kroki robimy ręcznie: kopiujemy ciało w miejsce wywołania, podstawiamy argumenty i usuwamy metodę, a kompilator pokazuje, czy coś jeszcze jej używa. <code>@Override</code> to w TypeScript modyfikator <code>protected override</code> (port ma włączone <code>noImplicitOverride</code>). Klasy nie da się zamknąć jak <code>final</code>, więc <code>OnlineTicketPricing</code> to zwykła podklasa.</p>
+<h3 id="co-widzimy-6" tabindex="-1"><a class="header-anchor" href="#co-widzimy-6"><span>Co widzimy</span></a></h3>
+<p><code>TicketPricing</code> ma trzy małe metody, które &quot;wyglądają na trywialne&quot;: dwa prywatne pośredniki (<code>base</code>, <code>addFee</code>) i chroniony hak <code>bookingFee()</code>, nadpisany w <code>OnlineTicketPricing</code> (+2.00).</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-title function_">total</span>(<span class="hljs-attr">ticket</span>: <span class="hljs-title class_">Ticket</span>): <span class="hljs-title class_">Decimal</span> {
+  <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">addFee</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-title function_">price</span>(ticket));
+}
+
+<span class="hljs-comment">/** Kasa nie pobiera opłaty rezerwacyjnej. Nadpisywane w OnlineTicketPricing. */</span>
+<span class="hljs-keyword">protected</span> <span class="hljs-title function_">bookingFee</span>(): <span class="hljs-title class_">Decimal</span> {
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;0.00&#x27;</span>);
+}
+
+<span class="hljs-keyword">private</span> <span class="hljs-title function_">base</span>(<span class="hljs-attr">ticket</span>: <span class="hljs-title class_">Ticket</span>): <span class="hljs-title class_">Decimal</span> {
+  <span class="hljs-keyword">return</span> <span class="hljs-title function_">basePrice</span>(ticket.<span class="hljs-property">format</span>);
+}
+
+<span class="hljs-comment">// OnlineTicketPricing</span>
+<span class="hljs-keyword">protected</span> <span class="hljs-keyword">override</span> <span class="hljs-title function_">bookingFee</span>(): <span class="hljs-title class_">Decimal</span> {
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;2.00&#x27;</span>);
+}
+</code></pre>
+<h3 id="krok-1-inline-method-trywialnego-delegata" tabindex="-1"><a class="header-anchor" href="#krok-1-inline-method-trywialnego-delegata"><span>Krok 1: Inline Method trywialnego delegata</span></a></h3>
+<p><strong>W IDE:</strong> ⇧F12 na <code>base</code> pokazuje jedno wywołanie. Zastąp <code>this.base(ticket)</code> ciałem metody (<code>basePrice(ticket.format)</code>) i usuń metodę <code>base</code>. Brak błędów kompilacji potwierdza, że nie było innych użyć.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">const</span> price = <span class="hljs-title function_">basePrice</span>(ticket.<span class="hljs-property">format</span>);
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m4/<wbr>s06</code> - 19 testów zielonych (kasa i internet).
+<strong>Co powiedzieć:</strong> prywatny, niepolimorficzny delegat z jednym wywołaniem to najbezpieczniejszy możliwy inline. Nazwa <code>base</code> nic nie dodawała do <code>basePrice</code>.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m4/<wbr>s06 0 1</code></p>
+<h3 id="krok-2-inline-method-wywolujacego-hak-a-nie-samego-haka" tabindex="-1"><a class="header-anchor" href="#krok-2-inline-method-wywolujacego-hak-a-nie-samego-haka"><span>Krok 2: Inline Method wywołującego hak, a nie samego haka</span></a></h3>
+<p><strong>W IDE:</strong> najpierw pokaż pułapkę: ⇧F12 na <code>bookingFee()</code> w klasie bazowej pokazuje też <code>override</code> w <code>OnlineTicketPricing</code>, ale nic nie blokuje ręcznego wklejenia ciała. Wklej je w <code>addFee</code>: <code>price.plus(new Decimal(&#x27;0.00&#x27;))</code>. Kompiluje się, a internet sprzedaje bez opłaty. Test <code>S06InlineOverriddenMethodTrapTest.inliningAnOverriddenMethodSilentlyDropsTheOnlineFee</code> pokazuje dokładnie ten wynik: <code>40.00</code> zamiast <code>42.00</code>. Cofnij (⌘Z). Teraz poprawnie: w <code>total</code> zastąp <code>this.addFee(...)</code> ciałem <code>addFee</code> z podstawionym argumentem i usuń <code>addFee</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-title function_">total</span>(<span class="hljs-attr">ticket</span>: <span class="hljs-title class_">Ticket</span>): <span class="hljs-title class_">Decimal</span> {
+  <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">price</span>(ticket).<span class="hljs-title function_">plus</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-title function_">bookingFee</span>());
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony, <code>onlineTotalsStayTheSame</code> nadal daje 42.00.
+<strong>Co powiedzieć:</strong> wklejamy <strong>wywołanie</strong> metody polimorficznej, więc dynamiczna dyspozycja zostaje. Wklejenie <strong>ciała</strong> metody nadpisywanej zabija nadpisanie po cichu, a podklasa kompiluje się dalej, z poprawnym <code>override</code>, bo metoda w klasie bazowej nadal istnieje.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m4/<wbr>s06 1 2</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-6" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-6"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>step2/<wbr>TicketPricing.ts</code>: bez pośredników, <code>total</code> wprost pokazuje &quot;cena + opłata&quot;, a <code>bookingFee()</code> zostaje hakiem dla podklasy. Test równoważności uruchamia <strong>obie</strong> klasy, bo zachowanie podklasy jest częścią kontraktu klasy bazowej (bilety wspólne dla obu plików testów są w <code>test/<wbr>workshop/<wbr>m4/<wbr>s06_inlinemethod/<wbr>tickets.ts</code>).</p>
+<h3 id="pulapki-6" tabindex="-1"><a class="header-anchor" href="#pulapki-6"><span>Pułapki</span></a></h3>
+<ul>
+<li>Inline metody nadpisywanej albo implementującej interfejs usuwa dynamiczną dyspozycję.</li>
+<li>Inline metody owiniętej dekoratorem albo wołanej przez proxy (np. <code>@Transactional</code> w NestJS/TypeORM, cache, autoryzacja) usuwa transakcję, cache albo sprawdzenie uprawnień. Inline metody <code>async</code> zmienia miejsce, w którym czekamy na <code>await</code>.</li>
+<li>Parametr użyty w ciele dwa razy, a w wywołaniu argument z efektem ubocznym: po ręcznym inline efekt wykona się dwa razy. Wtedy najpierw wprowadź zmienną na argument.</li>
+<li>Liczba linii nie przesądza. Metoda o nazwie z domeny (<code>qualifiesForGroupDiscount</code>) zostaje, nawet jeśli ma jedną linię.</li>
+</ul>
+<h3 id="pytanie-do-sali-6" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-6"><span>Pytanie do sali</span></a></h3>
+<p>Jak test klasy bazowej ma &quot;wiedzieć&quot; o podklasach, które jeszcze nie istnieją albo są w innym pakiecie npm?</p>
+<h2 id="scena-s07-move-method-feature-envy-i-pulapka-przeciazenia" tabindex="-1"><a class="header-anchor" href="#scena-s07-move-method-feature-envy-i-pulapka-przeciazenia"><span>Scena s07. Move Method - Feature Envy i pułapka przeciążenia</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> Move Method i Move Field - wybór właściciela; Move Method krok po kroku i ryzyka
+<strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m4/<wbr>s07_movemethod</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m4/<wbr>s07</code> (<code>S07EquivalenceTest.test.ts</code>, <code>S07OverloadTrapTest.test.ts</code>)
+<strong>Czas:</strong> ~10 min</p>
+<h3 id="w-skrocie-7" tabindex="-1"><a class="header-anchor" href="#w-skrocie-7"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> <code>BookingPrinter</code> ma dwie metody, które używają wyłącznie danych <code>Screening</code>. Przenosimy je do seansu i zmieniamy im nazwy, ale sposób usuwania miejsca z listy (po wartości, nie po pozycji) zostaje bez zmian.</p>
+<p><strong>Zasada:</strong> Move Method przenosi zachowanie do klasy, która ma jego dane i odpowiedzialność. Feature Envy to sygnał do analizy, a nie nakaz, bo metoda koordynująca kilka obiektów może zostać na miejscu. Przeniesienie zmienia kontekst typów, więc &quot;sprzątanie&quot; przy okazji może po cichu zmienić znaczenie operacji: tutaj usuwanie miejsca o danym numerze zamienia się w usuwanie elementu o danym indeksie.</p>
+<p><strong>Efekt:</strong> <code>Screening</code> ma <code>headline</code> i <code>freeSeatsWithout</code>, a <code>BookingPrinter</code> tylko składa wydruk, który jest identyczny. Zapis <code>splice(indexOf(seat), 1)</code> wygląda na zbyt rozwlekły, więc jego powód zapisujemy w JSDoc.</p>
+<p><strong>Różnica względem Javy:</strong> w Javie pułapką jest zmiana typu parametru <code>Integer</code> na <code>int</code>, po której <code>free.remove(seat)</code> wybiera przeciążenie <code>remove(int index)</code> zamiast <code>remove(Object)</code>. TypeScript nie wybiera przeciążeń po typie statycznym, a <code>number</code> to jeden typ, więc pułapka w porcie to dwa idiomy JavaScript, które odpowiadają tym przeciążeniom: usuwanie po wartości <code>free.splice(free.indexOf(seat), 1)</code> kontra &quot;uproszczone&quot; usuwanie po pozycji <code>free.splice(seat, 1)</code>. Oba się kompilują. Zamiast <code>IndexOutOfBoundsException</code> dla miejsca spoza zakresu <code>splice</code> po cichu nic nie usuwa. Nazwa testu <code>S07OverloadTrapTest</code> i nazwy przypadków zostały jak w Javie. VS Code nie ma Move Method między klasami, więc przenosimy ręcznie.</p>
+<h3 id="co-widzimy-7" tabindex="-1"><a class="header-anchor" href="#co-widzimy-7"><span>Co widzimy</span></a></h3>
+<p><code>BookingPrinter</code> ma dwie metody, które używają <strong>wyłącznie</strong> danych <code>Screening</code>. <code>print</code> koordynuje <code>Booking</code> i <code>Screening</code>, więc zostaje.</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-title function_">screeningLine</span>(<span class="hljs-attr">s</span>: <span class="hljs-title class_">Screening</span>): <span class="hljs-built_in">string</span> {
+  <span class="hljs-keyword">let</span> <span class="hljs-attr">format</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-keyword">switch</span> (s.<span class="hljs-property">format</span>) { ... }
+  <span class="hljs-keyword">return</span> s.<span class="hljs-property">title</span> + <span class="hljs-string">&#x27; (&#x27;</span> + format + <span class="hljs-string">&#x27;), sala &#x27;</span> + s.<span class="hljs-property">hall</span> + <span class="hljs-string">&#x27;, &#x27;</span>
+    + s.<span class="hljs-property">start</span>.<span class="hljs-title function_">toLocalDate</span>().<span class="hljs-title function_">toString</span>() + <span class="hljs-string">&#x27; &#x27;</span> + s.<span class="hljs-property">start</span>.<span class="hljs-title function_">toLocalTime</span>().<span class="hljs-title function_">toString</span>();
+}
+
+<span class="hljs-keyword">private</span> <span class="hljs-title function_">remainingSeats</span>(<span class="hljs-attr">s</span>: <span class="hljs-title class_">Screening</span>, <span class="hljs-attr">seat</span>: <span class="hljs-built_in">number</span>): <span class="hljs-built_in">number</span>[] {
+  <span class="hljs-keyword">const</span> free = [...s.<span class="hljs-property">freeSeats</span>];
+  free.<span class="hljs-title function_">splice</span>(free.<span class="hljs-title function_">indexOf</span>(seat), <span class="hljs-number">1</span>);   <span class="hljs-comment">// usuń MIEJSCE o tym numerze</span>
+  <span class="hljs-keyword">return</span> free;
+}
+</code></pre>
+<h3 id="krok-1-move-method-opis-seansu" tabindex="-1"><a class="header-anchor" href="#krok-1-move-method-opis-seansu"><span>Krok 1: Move Method - opis seansu</span></a></h3>
+<p><strong>W IDE:</strong> ręcznie: skopiuj <code>screeningLine</code> do klasy <code>Screening</code> jako publiczną metodę bez parametru, zamień <code>s.</code> na <code>this.</code> (zaznacz <code>s.</code> i ⌘D, żeby zaznaczyć kolejne wystąpienia), a lokalną zmienną <code>format</code> przemianuj F2 na <code>formatName</code>, bo zasłaniałaby pole <code>this.format</code>. W <code>BookingPrinter</code> zamień wywołanie na <code>booking.screening.headline()</code> i usuń starą metodę. Na koniec F2 na nowej metodzie, jeśli nazwa jest jeszcze inna niż <code>headline</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-comment">// Screening</span>
+<span class="hljs-title function_">headline</span>(): <span class="hljs-built_in">string</span> {
+  <span class="hljs-keyword">let</span> <span class="hljs-attr">formatName</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-keyword">switch</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-property">format</span>) { ... }
+  <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">title</span> + <span class="hljs-string">&#x27; (&#x27;</span> + formatName + <span class="hljs-string">&#x27;), sala &#x27;</span> + <span class="hljs-variable language_">this</span>.<span class="hljs-property">hall</span> + <span class="hljs-string">&#x27;, &#x27;</span> + ...;
+}
+<span class="hljs-comment">// BookingPrinter</span>
++ booking.<span class="hljs-property">screening</span>.<span class="hljs-title function_">headline</span>() + <span class="hljs-string">&#x27;\n&#x27;</span>
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m4/<wbr>s07</code> - 11 testów zielonych.
+<strong>Co powiedzieć:</strong> metoda poszła tam, gdzie są jej dane. Wybór właściciela jest decyzją, a nie automatem: <code>print</code> też sięga do <code>Screening</code>, ale jej zadaniem jest złożenie wydruku z kilku obiektów.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m4/<wbr>s07 0 1</code></p>
+<h3 id="krok-2-move-method-wolne-miejsca-bez-sprzatania-przy-przenosinach" tabindex="-1"><a class="header-anchor" href="#krok-2-move-method-wolne-miejsca-bez-sprzatania-przy-przenosinach"><span>Krok 2: Move Method - wolne miejsca, bez &quot;sprzątania&quot; przy przenosinach</span></a></h3>
+<p><strong>W IDE:</strong> najpierw pokaż pułapkę: przenieś <code>remainingSeats</code> do <code>Screening</code> i &quot;posprzątaj&quot; <code>free.splice(free.indexOf(seat), 1)</code> do <code>free.splice(seat, 1)</code>, bo w <code>Screening</code> wszystkie numery to po prostu <code>number</code>. Kompiluje się. Test jest czerwony: przy miejscu 1 zostało <code>[1, 3, 4, 5]</code>, a przy miejscu 8 w <code>[7, 8, 9]</code> zarezerwowane miejsce zostało na liście, bo teraz usuwamy po pozycji. Cofnij. Poprawnie: przenieś metodę bez zmiany ciała, F2 na <code>freeSeatsWithout</code>, a w JSDoc zapisz, dlaczego usuwamy po wartości.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-comment">/**
+ * Wolne miejsca bez wskazanego. Usuwamy po WARTOŚCI (`splice(indexOf(seat), 1)`), nie po pozycji:
+ * &quot;uproszczone&quot; przy przenosinach `splice(seat, 1)` też się kompiluje (seat to number),
+ * ale usuwa element o indeksie seat, a nie miejsce o tym numerze.
+ */</span>
+<span class="hljs-title function_">freeSeatsWithout</span>(<span class="hljs-attr">seat</span>: <span class="hljs-built_in">number</span>): <span class="hljs-built_in">number</span>[] {
+  <span class="hljs-keyword">const</span> free = [...<span class="hljs-variable language_">this</span>.<span class="hljs-property">freeSeats</span>];
+  free.<span class="hljs-title function_">splice</span>(free.<span class="hljs-title function_">indexOf</span>(seat), <span class="hljs-number">1</span>);
+  <span class="hljs-keyword">return</span> free;
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony. <code>S07OverloadTrapTest</code> dokumentuje oba wyniki pułapki (<code>integerParameterRemovesTheSeatNumber</code> i <code>intParameterRemovesTheElementAtIndex</code>).
+<strong>Co powiedzieć:</strong> przeniesienie metody zmienia kontekst: inne pola, inne typy, inne pokusy &quot;uproszczenia&quot;. Zwróć uwagę na trzeci przypadek testu: miejsce 2 na pozycji 2 <strong>nie</strong> odróżnia usuwania po indeksie od usuwania po wartości. Jeden przypadek testowy to za mało.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m4/<wbr>s07 1 2</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-7" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-7"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>step2</code>: <code>Screening</code> ma zachowanie o seansie (<code>headline</code>, <code>freeSeatsWithout</code>), a <code>BookingPrinter</code> tylko składa wydruk. Wydruk jest identyczny dla trzech rezerwacji, w tym takich, gdzie numer miejsca różni się od indeksu.</p>
+<h3 id="pulapki-7" tabindex="-1"><a class="header-anchor" href="#pulapki-7"><span>Pułapki</span></a></h3>
+<ul>
+<li>Zmiana typu albo idiomu &quot;przy okazji&quot; przenosin (usuwanie po wartości na usuwanie po indeksie, <code>readonly number[]</code> na <code>number[]</code>, <code>number</code> na <code>string</code> z formularza) zmienia znaczenie operacji, a kompilator milczy.</li>
+<li>Metoda przenoszona z klasy, która ma podklasy nadpisujące tę metodę. Nadpisania zostają w starym miejscu i przestają działać. Port ma w <code>tsconfig.json</code> włączone <code>noImplicitOverride</code>, więc nadpisanie musi mieć <code>override</code>, a po usunięciu metody z klasy bazowej kompilator to zgłosi. Bez tej flagi podklasa kompiluje się dalej i po cichu definiuje nową, osieroconą metodę.</li>
+<li>Metoda przekazywana jako callback (<code>items.map(this.format)</code>) po przeniesieniu traci właściwe <code>this</code>. Wtedy potrzebna jest funkcja strzałkowa albo <code>bind</code>.</li>
+<li>Publiczna metoda przeniesiona bez delegatu w starym miejscu psuje zewnętrznych klientów. Delegat może zostać jako fasada.</li>
+</ul>
+<h3 id="pytanie-do-sali-7" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-7"><span>Pytanie do sali</span></a></h3>
+<p><code>print</code> też używa głównie danych <code>Booking</code> i <code>Screening</code>. Dlaczego nie przenosimy jej do <code>Booking</code>?</p>
+<h2 id="scena-s08-move-field-prog-vip-nalezy-do-sali" tabindex="-1"><a class="header-anchor" href="#scena-s08-move-field-prog-vip-nalezy-do-sali"><span>Scena s08. Move Field - próg VIP należy do sali</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> Move Field krok po kroku i ryzyka; Move Method i Move Field - wybór właściciela
+<strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m4/<wbr>s08_movefield</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m4/<wbr>s08</code> (<code>S08EquivalenceTest.test.ts</code>, <code>S08SingleSourceOfTruthTest.test.ts</code>)
+<strong>Czas:</strong> ~10 min</p>
+<h3 id="w-skrocie-8" tabindex="-1"><a class="header-anchor" href="#w-skrocie-8"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> Próg VIP <code>vipFromRow</code> siedzi w seansie, choć jest cechą sali, więc dwa seanse w tej samej sali mogą się różnić. Przenosimy pole do <code>Hall</code> przez getter, a potem zamieniamy odczyty surowego progu na pytanie o regułę.</p>
+<p><strong>Zasada:</strong> Move Field przenosi stan do właściciela, a zaczyna się od Self-Encapsulate Field, żeby mieć jedno miejsce odczytu. Najpierw migrujemy odczyty, potem zapisy, bez okresu z dwiema zapisywalnymi kopiami (dual write). Go to References nie pokaże użyć przez dostęp po nazwie (<code>obj[key]</code>), ORM ani serializację.</p>
+<p><strong>Efekt:</strong> Próg VIP ma jednego właściciela i jedną regułę <code>Hall.isVip</code>, a wycena miejsca się nie zmienia. Kosztem jest zmieniony konstruktor <code>Screening</code>, a w systemie z bazą danych także osobna migracja danych.</p>
+<p><strong>Różnica względem Javy:</strong> TypeScript nie ma widoczności pakietowej, więc w <code>start</code> <code>vipFromRow</code> to publiczne pole <code>readonly</code>, które <code>SeatPricer</code> czyta bezpośrednio. Self-Encapsulate Field to prywatne pole <code>#vipFromRow</code> i getter <code>get vipFromRow()</code>. Getter jest przezroczysty dla klienta: odczyt <code>screening.vipFromRow</code> w <code>SeatPricer</code> i w <code>isVip</code> nie zmienia zapisu, więc klienci nie wymagają żadnej edycji (w Javie IDE przepisuje odczyty na <code>vipFromRow()</code>). To zaleta TypeScript warta powiedzenia na pokazie. Pozostałe akcesory rekordów z Javy (<code>hall()</code>, <code>format()</code>, <code>name()</code>) to pola <code>readonly</code>.</p>
+<h3 id="co-widzimy-8" tabindex="-1"><a class="header-anchor" href="#co-widzimy-8"><span>Co widzimy</span></a></h3>
+<p>Od którego rzędu zaczynają się miejsca VIP, to cecha <strong>sali</strong>, a pole <code>vipFromRow</code> siedzi w <strong>seansie</strong>. Każdy seans w tej samej sali niesie własną kopię i nic nie pilnuje zgodności. <code>SeatPricer</code> czyta publiczne pole bezpośrednio.</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Screening</span> {
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params">
+    <span class="hljs-keyword">readonly</span> <span class="hljs-attr">hall</span>: <span class="hljs-title class_">Hall</span>,
+    <span class="hljs-keyword">readonly</span> <span class="hljs-attr">format</span>: <span class="hljs-built_in">number</span>,
+    <span class="hljs-keyword">readonly</span> <span class="hljs-attr">vipFromRow</span>: <span class="hljs-built_in">number</span>,
+  </span>) {}
+  ...
+}
+<span class="hljs-comment">// SeatPricer</span>
+<span class="hljs-keyword">const</span> price = row &gt;= screening.<span class="hljs-property">vipFromRow</span> ? base.<span class="hljs-title function_">plus</span>(<span class="hljs-variable constant_">VIP_SURCHARGE</span>) : base;
+</code></pre>
+<p><code>S08SingleSourceOfTruthTest.startLetsScreeningsInOneHallDisagree</code> pokazuje, że w <code>start</code> ten sam fotel w tej samej sali bywa VIP albo nie, zależnie od seansu.</p>
+<h3 id="krok-1-self-encapsulate-field" tabindex="-1"><a class="header-anchor" href="#krok-1-self-encapsulate-field"><span>Krok 1: Self-Encapsulate Field</span></a></h3>
+<p><strong>W IDE:</strong> ręcznie: zamień parametr-pole <code>readonly vipFromRow: number</code> na zwykły parametr konstruktora, dodaj prywatne pole <code>readonly #vipFromRow: number</code> przypisane w konstruktorze i getter <code>get vipFromRow()</code>. (VS Code ma ⌃⇧R &quot;Generate 'get' and 'set' accessors&quot;, ale tworzy pole z podkreśleniem <code>_vipFromRow</code>, a port używa pól prywatnych <code>#</code>.) Odczyty w <code>isVip</code> i w <code>SeatPricer</code> zostają bez zmian, bo idą już przez getter.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">readonly</span> #<span class="hljs-attr">vipFromRow</span>: <span class="hljs-built_in">number</span>;
+
+<span class="hljs-title function_">constructor</span>(<span class="hljs-params">
+  <span class="hljs-keyword">readonly</span> <span class="hljs-attr">hall</span>: <span class="hljs-title class_">Hall</span>,
+  <span class="hljs-keyword">readonly</span> <span class="hljs-attr">format</span>: <span class="hljs-built_in">number</span>,
+  <span class="hljs-attr">vipFromRow</span>: <span class="hljs-built_in">number</span>,
+</span>) {
+  <span class="hljs-variable language_">this</span>.#vipFromRow = vipFromRow;
+}
+
+<span class="hljs-keyword">get</span> <span class="hljs-title function_">vipFromRow</span>(): <span class="hljs-built_in">number</span> {
+  <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.#vipFromRow;
+}
+
+<span class="hljs-title function_">isVip</span>(<span class="hljs-attr">row</span>: <span class="hljs-built_in">number</span>): <span class="hljs-built_in">boolean</span> {
+  <span class="hljs-keyword">return</span> row &gt;= <span class="hljs-variable language_">this</span>.<span class="hljs-property">vipFromRow</span>;
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m4/<wbr>s08</code> - 14 testów zielonych.
+<strong>Co powiedzieć:</strong> teraz jest dokładnie jedno miejsce, w którym zmienimy źródło wartości. Bez tego kroku przeniesienie oznaczałoby poprawianie każdego odczytu ręcznie. W TypeScript getter nie zmienia zapisu po stronie klientów, więc ten krok nie dotyka <code>SeatPricer</code>.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m4/<wbr>s08 0 1</code></p>
+<h3 id="krok-2-move-field-do-hall" tabindex="-1"><a class="header-anchor" href="#krok-2-move-field-do-hall"><span>Krok 2: Move Field do Hall</span></a></h3>
+<p><strong>W IDE:</strong> VS Code nie ma Change Signature, więc ręcznie: w <code>Hall</code> dodaj parametr-pole <code>readonly vipFromRow: number</code> w konstruktorze. W <code>Screening</code> ciało gettera zamień na <code>return this.hall.vipFromRow;</code>, usuń pole <code>#vipFromRow</code> i parametr konstruktora. Kompilator pokaże wszystkie miejsca tworzące sale i seanse (tu: adaptery w teście) - każde przekazuje teraz próg do sali.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-comment">// Hall</span>
+<span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-keyword">readonly</span> <span class="hljs-attr">name</span>: <span class="hljs-built_in">string</span>, <span class="hljs-keyword">readonly</span> <span class="hljs-attr">vipFromRow</span>: <span class="hljs-built_in">number</span></span>) {}
+<span class="hljs-comment">// Screening</span>
+<span class="hljs-keyword">get</span> <span class="hljs-title function_">vipFromRow</span>(): <span class="hljs-built_in">number</span> {
+  <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">hall</span>.<span class="hljs-property">vipFromRow</span>;
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> przenosimy w jednym ruchu, bez okresu, w którym obie klasy mają zapisywalną kopię (dual write). Dwie kopie rozjadą się przy pierwszym wyjątku albo przy pierwszym zapomnianym zapisie.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m4/<wbr>s08 1 2</code></p>
+<h3 id="krok-3-aktualizacja-odczytow-i-usuniecie-akcesora-przejsciowego" tabindex="-1"><a class="header-anchor" href="#krok-3-aktualizacja-odczytow-i-usuniecie-akcesora-przejsciowego"><span>Krok 3: aktualizacja odczytów i usunięcie akcesora przejściowego</span></a></h3>
+<p><strong>W IDE:</strong> w <code>Hall</code> dodaj <code>isVip(row: number)</code>. W <code>Screening.isVip</code> zamień ciało na <code>this.hall.isVip(row)</code>. W <code>SeatPricer</code> zamień <code>row &gt;= screening.vipFromRow</code> na <code>screening.isVip(row)</code> i wydziel stałą <code>vip</code> (⌃⇧R, &quot;Extract to constant&quot;), której użyj też w opisie <code>(VIP)</code>. Na koniec ⇧F12 na getterze <code>Screening.vipFromRow</code> - brak odwołań, więc go usuń - i zmień pole w <code>Hall</code> na <code>private readonly</code>. Kompilator potwierdzi, że nikt spoza <code>Hall</code> go nie czyta.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-comment">// Hall</span>
+<span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-keyword">readonly</span> <span class="hljs-attr">name</span>: <span class="hljs-built_in">string</span>, <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">vipFromRow</span>: <span class="hljs-built_in">number</span></span>) {}
+
+<span class="hljs-title function_">isVip</span>(<span class="hljs-attr">row</span>: <span class="hljs-built_in">number</span>): <span class="hljs-built_in">boolean</span> {
+  <span class="hljs-keyword">return</span> row &gt;= <span class="hljs-variable language_">this</span>.<span class="hljs-property">vipFromRow</span>;
+}
+<span class="hljs-comment">// SeatPricer</span>
+<span class="hljs-keyword">const</span> vip = screening.<span class="hljs-title function_">isVip</span>(row);
+<span class="hljs-keyword">const</span> price = vip ? base.<span class="hljs-title function_">plus</span>(<span class="hljs-variable constant_">VIP_SURCHARGE</span>) : base;
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony, także <code>afterMoveFieldTheHallDecidesForEveryScreening</code>.
+<strong>Co powiedzieć:</strong> najpierw migrujemy odczyty, a stary akcesor usuwamy dopiero, gdy nikt go nie używa. Przy okazji klienci przestali porównywać surowy próg i pytają o regułę.
+<strong>Snapshot:</strong> <code>step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m4/<wbr>s08 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-8" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-8"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>step3</code>: próg VIP ma jednego właściciela (<code>Hall</code>) i jedną regułę (<code>Hall.isVip</code>). Wycena miejsca jest identyczna na każdym etapie. Zmienił się sposób tworzenia seansu, bo konstruktor stracił parametr. W systemie z bazą danych to osobna migracja danych.</p>
+<h3 id="pulapki-8" tabindex="-1"><a class="header-anchor" href="#pulapki-8"><span>Pułapki</span></a></h3>
+<ul>
+<li>Pole używane przez dostęp po nazwie (<code>obj[&#x27;vipFromRow&#x27;]</code>), ORM (kolumna w tabeli seansów), <code>JSON.stringify</code> / deserializację albo porównanie obiektów. Go to References tego nie pokaże.</li>
+<li>Utrata modyfikatorów przy przenoszeniu: <code>readonly</code>, <code>private</code>, <code>#</code>. Bez <code>readonly</code> w nowym właścicielu wraca możliwość zapisu z zewnątrz.</li>
+<li>Pole prywatne <code>#</code> nie trafia do <code>JSON.stringify</code> ani <code>Object.keys</code>, a pole <code>private</code> z TypeScript trafia. Zamiana jednego na drugie przy przenosinach zmienia serializację.</li>
+<li>Migracja zapisów przed odczytami albo dwie zapisywalne kopie &quot;na chwilę&quot;.</li>
+<li>Seanse, które naprawdę miały różny próg w tej samej sali (np. inna konfiguracja foteli). Wtedy Move Field jest zmianą zachowania i trzeba najpierw sprawdzić dane.</li>
+</ul>
+<h3 id="pytanie-do-sali-8" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-8"><span>Pytanie do sali</span></a></h3>
+<p>Jak przeprowadzić ten Move Field, gdy <code>vipFromRow</code> jest kolumną w tabeli <code>screening</code> z milionem wierszy?</p>
+<h2 id="scena-s09-extract-class-klient-platnosc-i-klasa-worek" tabindex="-1"><a class="header-anchor" href="#scena-s09-extract-class-klient-platnosc-i-klasa-worek"><span>Scena s09. Extract Class - klient, płatność i klasa-worek</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> Extract Class - cel, mechanika i zły wynik
+<strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m4/<wbr>s09_extractclass</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m4/<wbr>s09</code> (<code>S09EquivalenceTest.test.ts</code>, <code>S09StructureTest.test.ts</code>)
+<strong>Czas:</strong> ~15 min</p>
+<h3 id="w-skrocie-9" tabindex="-1"><a class="header-anchor" href="#w-skrocie-9"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> <code>Booking</code> ma siedem pól i trzy powody zmiany: dane klienta, płatność i samą rezerwację. Wydzielamy <code>Customer</code> i <code>Payment</code>, przy czym pierwszy krok celowo daje zły wynik, który potem naprawiamy przeniesieniem zachowania.</p>
+<p><strong>Zasada:</strong> Extract Class wydziela spójne pola i operacje z odrębnym powodem zmiany, a Move Field i Move Method to tylko mechanika tej decyzji. Zły wynik to klasa-worek: dane przeniesione, a logika dalej w źródle przez odczyty pól. Nowa klasa nie powinna trzymać referencji zwrotnej do źródła, bo powstaje cykl.</p>
+<p><strong>Efekt:</strong> <code>Booking</code> ma cztery pola i składa rezerwację z dwóch klas z własnym zachowaniem, a jego publiczne API działa jak wcześniej jako fasada. Delegaty <code>pay</code>, <code>isPaid</code> i <code>contact</code> zostają w <code>Booking</code>, dopóki klienci nie zechcą wołać nowych klas wprost.</p>
+<p><strong>Różnica względem Javy:</strong> <code>record Customer</code> to klasa z polami <code>readonly</code> (worek z kroku 1 to klasa bez metod). <code>S09StructureTest</code> nie ma refleksji Javy: pola liczy <code>Object.keys(instancja)</code> (pola <code>private</code> z TypeScript są w JavaScript zwykłymi właściwościami, więc liczą się jak <code>getDeclaredFields</code>), a &quot;zachowanie&quot; to publiczne metody sprawdzane na poziomie typów (<code>expectTypeOf&lt;Behaviour&lt;Customer&gt;&gt;()</code>, bo <code>keyof</code> widzi tylko publiczne składowe) oraz, dla worka z kroku 1, pusta lista metod na prototypie. Karta na starcie to <code>&#x27;&#x27;</code> zamiast <code>null</code>, <code>toLowerCase(Locale.ROOT)</code> to zwykłe <code>toLowerCase()</code>, a kwota to <code>Money</code>.</p>
+<h3 id="co-widzimy-9" tabindex="-1"><a class="header-anchor" href="#co-widzimy-9"><span>Co widzimy</span></a></h3>
+<p><code>Booking</code> ma siedem pól i trzy powody zmiany: dane klienta i ich formatowanie (e-mail, telefon), płatność (karta, status, maskowanie) oraz samą rezerwację (id, kwota).</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">private</span> cardNumber = <span class="hljs-string">&#x27;&#x27;</span>;
+<span class="hljs-keyword">private</span> paymentStatus = <span class="hljs-string">&#x27;NEW&#x27;</span>;
+
+<span class="hljs-title function_">constructor</span>(<span class="hljs-params">
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">id</span>: <span class="hljs-built_in">string</span>,
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">customerName</span>: <span class="hljs-built_in">string</span>,
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">customerEmail</span>: <span class="hljs-built_in">string</span>,
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">customerPhone</span>: <span class="hljs-built_in">string</span>,
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">amount</span>: <span class="hljs-title class_">Money</span>,
+</span>) {}
+
+<span class="hljs-title function_">contact</span>(): <span class="hljs-built_in">string</span> {
+  <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">customerName</span> + <span class="hljs-string">&#x27; &lt;&#x27;</span> + <span class="hljs-variable language_">this</span>.<span class="hljs-property">customerEmail</span>.<span class="hljs-title function_">trim</span>().<span class="hljs-title function_">toLowerCase</span>() + <span class="hljs-string">&#x27;&gt;, tel. &#x27;</span>
+    + <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">formattedPhone</span>();
+}
+</code></pre>
+<h3 id="krok-1-extract-class-tylko-dane-zly-wynik-posredni" tabindex="-1"><a class="header-anchor" href="#krok-1-extract-class-tylko-dane-zly-wynik-posredni"><span>Krok 1: Extract Class - tylko dane (zły wynik pośredni)</span></a></h3>
+<p><strong>W IDE:</strong> VS Code nie ma Extract Class, więc ręcznie: utwórz plik <code>Customer.ts</code> z klasą <code>Customer(readonly name, readonly email, readonly phone)</code>. W <code>Booking</code> trzy parametry <code>customer*</code> przestają być polami (usuń <code>private readonly</code>), a konstruktor tworzy <code>this.customer = new Customer(...)</code>. Kompilator wskaże każdy odczyt <code>this.customerEmail</code> i <code>this.customerPhone</code> - zamień je na <code>this.customer.email</code> i <code>this.customer.phone</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Customer</span> {
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-keyword">readonly</span> <span class="hljs-attr">name</span>: <span class="hljs-built_in">string</span>, <span class="hljs-keyword">readonly</span> <span class="hljs-attr">email</span>: <span class="hljs-built_in">string</span>, <span class="hljs-keyword">readonly</span> <span class="hljs-attr">phone</span>: <span class="hljs-built_in">string</span></span>) {}
+}
+
+<span class="hljs-comment">// Booking</span>
+<span class="hljs-title function_">contact</span>(): <span class="hljs-built_in">string</span> {
+  <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">customer</span>.<span class="hljs-property">name</span> + <span class="hljs-string">&#x27; &lt;&#x27;</span> + <span class="hljs-variable language_">this</span>.<span class="hljs-property">customer</span>.<span class="hljs-property">email</span>.<span class="hljs-title function_">trim</span>().<span class="hljs-title function_">toLowerCase</span>() + <span class="hljs-string">&#x27;&gt;, tel. &#x27;</span>
+    + <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">formattedPhone</span>();
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m4/<wbr>s09</code> - 15 testów zielonych, także <code>step1CustomerIsADataBagWithoutBehaviour</code>.
+<strong>Co powiedzieć:</strong> to jest <strong>zły wynik</strong>, jeśli się tu zatrzymamy. Mamy klasę-worek z polami, a cała wiedza o kliencie nadal siedzi w <code>Booking</code>. Dane się przeniosły, odpowiedzialność nie. Test struktury to pokazuje: <code>Customer</code> nie ma na prototypie ani jednej metody.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m4/<wbr>s09 0 1</code></p>
+<h3 id="krok-2-move-method-zachowanie-idzie-za-danymi" tabindex="-1"><a class="header-anchor" href="#krok-2-move-method-zachowanie-idzie-za-danymi"><span>Krok 2: Move Method - zachowanie idzie za danymi</span></a></h3>
+<p><strong>W IDE:</strong> w <code>Booking.contact()</code> zaznacz wyrażenie po <code>return</code> i ⌃⇧R, &quot;Extract to method&quot;, nazwa <code>contactLine</code>. Potem ręcznie przenieś <code>contactLine</code> i <code>formattedPhone</code> do <code>Customer</code> (w ciałach <code>this.customer.x</code> staje się <code>this.x</code>, a <code>formattedPhone</code> zostaje <code>private</code>). <code>Booking.contact()</code> zostaje jako delegat.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Customer</span> {
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-keyword">readonly</span> <span class="hljs-attr">name</span>: <span class="hljs-built_in">string</span>, <span class="hljs-keyword">readonly</span> <span class="hljs-attr">email</span>: <span class="hljs-built_in">string</span>, <span class="hljs-keyword">readonly</span> <span class="hljs-attr">phone</span>: <span class="hljs-built_in">string</span></span>) {}
+
+  <span class="hljs-title function_">contactLine</span>(): <span class="hljs-built_in">string</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">name</span> + <span class="hljs-string">&#x27; &lt;&#x27;</span> + <span class="hljs-variable language_">this</span>.<span class="hljs-property">email</span>.<span class="hljs-title function_">trim</span>().<span class="hljs-title function_">toLowerCase</span>() + <span class="hljs-string">&#x27;&gt;, tel. &#x27;</span> + <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">formattedPhone</span>();
+  }
+  ...
+}
+<span class="hljs-comment">// Booking</span>
+<span class="hljs-title function_">contact</span>(): <span class="hljs-built_in">string</span> {
+  <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">customer</span>.<span class="hljs-title function_">contactLine</span>();
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> teraz <code>Customer</code> ma własną odpowiedzialność. Extract Class to decyzja projektowa, a Move Field i Move Method to mechanika jej realizacji.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m4/<wbr>s09 1 2</code></p>
+<h3 id="krok-3-extract-class-platnosc-od-razu-z-zachowaniem" tabindex="-1"><a class="header-anchor" href="#krok-3-extract-class-platnosc-od-razu-z-zachowaniem"><span>Krok 3: Extract Class - płatność od razu z zachowaniem</span></a></h3>
+<p><strong>W IDE:</strong> utwórz plik <code>Payment.ts</code> z klasą <code>Payment</code>, przenieś do niej pola <code>cardNumber</code> i <code>paymentStatus</code> (jako <code>status</code>) oraz metody <code>pay</code>, <code>isPaid</code>, <code>maskedCard</code>. Metoda <code>Payment.payWith(card, bookingId)</code> dostaje id jako <strong>wartość</strong>, bez referencji do <code>Booking</code>. W <code>Booking</code> zostają delegaty <code>pay</code> i <code>isPaid</code>, a <code>summary</code> woła <code>this.payment.description()</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Payment</span> {
+  <span class="hljs-keyword">private</span> cardNumber = <span class="hljs-string">&#x27;&#x27;</span>;
+  <span class="hljs-keyword">private</span> status = <span class="hljs-string">&#x27;NEW&#x27;</span>;
+
+  <span class="hljs-title function_">payWith</span>(<span class="hljs-attr">card</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">bookingId</span>: <span class="hljs-built_in">string</span>): <span class="hljs-built_in">void</span> {
+    <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-property">status</span> !== <span class="hljs-string">&#x27;NEW&#x27;</span>) {
+      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateError</span>(<span class="hljs-string">&#x27;Rezerwacja &#x27;</span> + bookingId + <span class="hljs-string">&#x27; jest juz oplacona&#x27;</span>);
+    }
+    ...
+  }
+
+  <span class="hljs-title function_">isPaid</span>(): <span class="hljs-built_in">boolean</span> { ... }
+
+  <span class="hljs-title function_">description</span>(): <span class="hljs-built_in">string</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">isPaid</span>() ? <span class="hljs-string">&#x27;oplacona karta &#x27;</span> + <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">maskedCard</span>() : <span class="hljs-string">&#x27;oczekuje&#x27;</span>;
+  }
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony, także druga płatność odrzucona z tym samym komunikatem i <code>step3BookingComposesCustomerAndPayment</code>.
+<strong>Co powiedzieć:</strong> tym razem od razu przenosimy dane <strong>i</strong> zachowanie. <code>Payment</code> nie zna <code>Booking</code>, więc nie powstał cykl importów. Publiczne API <code>Booking</code> się nie zmieniło, bo działa jako fasada.
+<strong>Snapshot:</strong> <code>step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m4/<wbr>s09 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-9" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-9"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>step3</code>: <code>Booking</code> ma cztery pola (<code>amount</code>, <code>customer</code>, <code>id</code>, <code>payment</code>) i składa rezerwację z dwóch spójnych części. Każda z nich ma jeden powód zmiany: formaty kontaktu, płatność i PCI. Podsumowanie i komunikaty błędów są identyczne na każdym etapie.</p>
+<h3 id="pulapki-9" tabindex="-1"><a class="header-anchor" href="#pulapki-9"><span>Pułapki</span></a></h3>
+<ul>
+<li><strong>Klasa-worek:</strong> przeniesione dane, logika w źródle przez odczyty pól (krok 1). Drugi rodzaj worka to jedna klasa <code>BookingDetails</code> na &quot;wszystko, co nie pasuje&quot;, bez spójności.</li>
+<li>Referencja zwrotna (<code>new Payment(this)</code>) tworzy cykl. W TypeScript cykl klas w dwóch modułach potrafi dodatkowo dać <code>undefined</code> przy imporcie w czasie ładowania. Lepiej przekazać wartość albo wąski interfejs.</li>
+<li>Dwa źródła prawdy: pole zostawione w <code>Booking</code> &quot;na wszelki wypadek&quot; obok kopii w nowej klasie.</li>
+<li>Zmiana publicznego API przy okazji ekstrakcji (np. <code>booking.payment.payWith(...)</code> u klientów). To osobny krok.</li>
+</ul>
+<h3 id="pytanie-do-sali-9" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-9"><span>Pytanie do sali</span></a></h3>
+<p>Po czym na przeglądzie kodu rozpoznać, że wydzielona klasa jest workiem, a nie pojęciem?</p>
+<h2 id="scena-s10-encapsulate-field-status-ktory-kazdy-moze-nadpisac" tabindex="-1"><a class="header-anchor" href="#scena-s10-encapsulate-field-status-ktory-kazdy-moze-nadpisac"><span>Scena s10. Encapsulate Field - status, który każdy może nadpisać</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> Encapsulate Field
+<strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m4/<wbr>s10_encapsulatefield</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m4/<wbr>s10</code> (<code>S10EquivalenceTest.test.ts</code>)
+<strong>Czas:</strong> ~10 min</p>
+<h3 id="w-skrocie-10" tabindex="-1"><a class="header-anchor" href="#w-skrocie-10"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> Publiczne pole <code>Reservation.status</code> pozwala każdemu wpisać dowolny status, także gościa na anulowaną rezerwację. Najpierw ukrywamy pole i zastępujemy setter operacjami domenowymi, a na końcu osobnym krokiem dodajemy pilnowanie przejść.</p>
+<p><strong>Zasada:</strong> Encapsulate Field daje dostęp do stanu tylko przez operacje właściciela, więc można kontrolować zmiany i pilnować niezmiennika. Migracja idzie przez trywialne akcesory, migrację klientów i zwężenie widoczności. Walidacja to już zmiana zachowania, więc dodajemy ją osobno, nie razem z getterem i setterem.</p>
+<p><strong>Efekt:</strong> Po kroku 2 pole jest prywatne, nie ma settera, a zachowanie jest identyczne. Krok 3 świadomie zmienia zachowanie: niedozwolone przejścia rzucają <code>IllegalStateError</code> zamiast być cicho ignorowane, więc to osobny commit z decyzją biznesu.</p>
+<p><strong>Różnica względem Javy:</strong> Encapsulate Field w TypeScript to prywatne pole <code>#status</code> i akcesory <code>get status()</code> / <code>set status(...)</code> zamiast <code>getStatus()</code> / <code>setStatus(...)</code>. Klienci nie zmieniają zapisu - <code>r.status = &#x27;PAID&#x27;</code> woła teraz setter - więc diff <code>start -&gt; step1</code> dotyczy tylko <code>Reservation</code> (i komentarza kasy). Krok 2 usuwa setter (Remove Setting Method) i zostawia sam getter <code>status</code>, co odpowiada Rename <code>getStatus</code> -&gt; <code>status()</code> z Javy. <code>IllegalStateException</code> to <code>IllegalStateError</code>, a varargs <code>String...</code> to parametr resztowy <code>...allowedFrom: string[]</code>.</p>
+<h3 id="co-widzimy-10" tabindex="-1"><a class="header-anchor" href="#co-widzimy-10"><span>Co widzimy</span></a></h3>
+<p><code>Reservation.status</code> to publiczne pole. Reguły przejść (NEW -&gt; PAID -&gt; USED, NEW -&gt; EXPIRED, NEW/PAID -&gt; CANCELLED) pilnuje kasa, a <code>guestEntry</code> po prostu przypisuje <code>&#x27;USED&#x27;</code>, także na rezerwację anulowaną.</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Reservation</span> {
+  status = <span class="hljs-string">&#x27;NEW&#x27;</span>;
+}
+<span class="hljs-comment">// BoxOffice</span>
+<span class="hljs-title function_">guestEntry</span>(<span class="hljs-attr">r</span>: <span class="hljs-title class_">Reservation</span>): <span class="hljs-built_in">void</span> {
+  r.<span class="hljs-property">status</span> = <span class="hljs-string">&#x27;USED&#x27;</span>;
+}
+</code></pre>
+<p>Test równoważności zapisuje dziwne zachowanie jako <code>ZASTANE: ...</code>: płatność po wygaśnięciu, druga płatność i wejście bez płatności są cicho ignorowane, a gość wchodzi na anulowaną rezerwację.</p>
+<h3 id="krok-1-encapsulate-field" tabindex="-1"><a class="header-anchor" href="#krok-1-encapsulate-field"><span>Krok 1: Encapsulate Field</span></a></h3>
+<p><strong>W IDE:</strong> zmień pole na prywatne <code>#status = &#x27;NEW&#x27;</code> i dopisz trywialne akcesory <code>get status()</code> i <code>set status(...)</code>. (⌃⇧R &quot;Generate 'get' and 'set' accessors&quot; zrobi to samo z polem <code>_status</code>, jeśli wolisz ruch automatyczny, ale port używa pól <code>#</code>.) <code>BoxOffice</code> zostaje bez zmian.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs">#status = <span class="hljs-string">&#x27;NEW&#x27;</span>;
+
+<span class="hljs-keyword">get</span> <span class="hljs-title function_">status</span>(): <span class="hljs-built_in">string</span> {
+  <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.#status;
+}
+
+<span class="hljs-keyword">set</span> <span class="hljs-title function_">status</span>(<span class="hljs-params"><span class="hljs-attr">status</span>: <span class="hljs-built_in">string</span></span>) {
+  <span class="hljs-variable language_">this</span>.#status = status;
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m4/<wbr>s10</code> - 29 testów zielonych, także <code>startFieldIsPublicFromStep1ItIsNot</code> (w <code>start</code> <code>status</code> to własna właściwość obiektu, od <code>step1</code> akcesor na prototypie - <code>Object.hasOwn(...)</code>).
+<strong>Co powiedzieć:</strong> trywialne akcesory na tym samym polu to czysta refaktoryzacja, bo setter przyjmuje wszystko jak wcześniej. Zysk jest taki, że każdy zapis przechodzi teraz przez jedno miejsce. W TypeScript klienci nawet tego nie widzą - to zaleta i zarazem ryzyko, bo <code>r.status = ...</code> wygląda jak przypisanie, a jest wywołaniem.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m4/<wbr>s10 0 1</code></p>
+<h3 id="krok-2-operacje-domenowe-zamiast-settera" tabindex="-1"><a class="header-anchor" href="#krok-2-operacje-domenowe-zamiast-settera"><span>Krok 2: operacje domenowe zamiast settera</span></a></h3>
+<p><strong>W IDE:</strong> w <code>BoxOffice.pay</code> przenieś ciało do <code>Reservation</code> jako metodę <code>pay()</code> (ręcznie: <code>r.status</code> staje się <code>this.#status</code>), a w kasie zostaw <code>r.pay()</code>. Powtórz dla <code>checkIn</code>, <code>cancel</code>, <code>expire</code>, a <code>guestEntry</code> przenieś jako <code>admitGuestWithoutPayment()</code>. Na końcu usuń setter <code>set status(...)</code> - kompilator potwierdzi, że nikt już nie przypisuje statusu z zewnątrz.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-title function_">pay</span>(): <span class="hljs-built_in">void</span> {
+  <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.#status === <span class="hljs-string">&#x27;NEW&#x27;</span>) {
+    <span class="hljs-variable language_">this</span>.#status = <span class="hljs-string">&#x27;PAID&#x27;</span>;
+  }
+}
+
+<span class="hljs-title function_">admitGuestWithoutPayment</span>(): <span class="hljs-built_in">void</span> {
+  <span class="hljs-variable language_">this</span>.#status = <span class="hljs-string">&#x27;USED&#x27;</span>;
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony, bo warunki przepisaliśmy 1:1. Test sprawdza też, że w <code>step2</code> zapis do <code>status</code> jest błędem kompilacji (<code>@ts-expect-error</code>) i rzuca <code>TypeError</code> w czasie wykonania.
+<strong>Co powiedzieć:</strong> <code>pay()</code> komunikuje dozwoloną zmianę lepiej niż <code>status = &#x27;PAID&#x27;</code>. Obejście z <code>guestEntry</code> ma teraz uczciwą nazwę i jest widoczne w API, a nie ukryte w przypisaniu.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m4/<wbr>s10 1 2</code></p>
+<h3 id="krok-3-niezmiennik-w-operacjach-swiadoma-zmiana-zachowania" tabindex="-1"><a class="header-anchor" href="#krok-3-niezmiennik-w-operacjach-swiadoma-zmiana-zachowania"><span>Krok 3: niezmiennik w operacjach (świadoma zmiana zachowania)</span></a></h3>
+<p><strong>W IDE:</strong> ręcznie: prywatna <code>moveTo(target, ...allowedFrom)</code> rzuca <code>IllegalStateError</code>, gdy przejście jest niedozwolone. Każda operacja deleguje do <code>moveTo</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-title function_">pay</span>(): <span class="hljs-built_in">void</span> {
+  <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">moveTo</span>(<span class="hljs-string">&#x27;PAID&#x27;</span>, <span class="hljs-string">&#x27;NEW&#x27;</span>);
+}
+
+<span class="hljs-title function_">admitGuestWithoutPayment</span>(): <span class="hljs-built_in">void</span> {
+  <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">moveTo</span>(<span class="hljs-string">&#x27;USED&#x27;</span>, <span class="hljs-string">&#x27;NEW&#x27;</span>, <span class="hljs-string">&#x27;PAID&#x27;</span>);
+}
+
+<span class="hljs-keyword">private</span> <span class="hljs-title function_">moveTo</span>(<span class="hljs-attr">target</span>: <span class="hljs-built_in">string</span>, ...<span class="hljs-attr">allowedFrom</span>: <span class="hljs-built_in">string</span>[]): <span class="hljs-built_in">void</span> {
+  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> allowed <span class="hljs-keyword">of</span> allowedFrom) {
+    <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.#status === allowed) {
+      <span class="hljs-variable language_">this</span>.#status = target;
+      <span class="hljs-keyword">return</span>;
+    }
+  }
+  <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateError</span>(<span class="hljs-string">&#x27;Niedozwolone przejscie &#x27;</span> + <span class="hljs-variable language_">this</span>.#status + <span class="hljs-string">&#x27; -&gt; &#x27;</span> + target);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony, ale dla <code>step3</code> z <strong>innymi oczekiwaniami</strong> (<code>step3RejectsIllegalTransitions</code>): dozwolone ścieżki bez zmian, a przypadki <code>ZASTANE</code> kończą się <code>BLAD</code>.
+<strong>Co powiedzieć:</strong> to już nie jest refaktoryzacja. Zmieniają się akceptowane operacje i wyjątki, więc to osobny commit z wymaganiem od biznesu. Hermetyzacja z kroków 1-2 sprawiła, że ta zmiana dotyczy jednej klasy.
+<strong>Snapshot:</strong> <code>step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m4/<wbr>s10 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-10" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-10"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>step2</code> to koniec refaktoryzacji: pole prywatne, operacje domenowe i identyczne zachowanie. <code>step3</code> to zatwierdzona zmiana kontraktu, którą test opisuje osobno. Kolejność ma znaczenie: najpierw hermetyzacja bez zmiany zachowania, potem reguła.</p>
+<h3 id="pulapki-10" tabindex="-1"><a class="header-anchor" href="#pulapki-10"><span>Pułapki</span></a></h3>
+<ul>
+<li>Walidacja dodana razem z getterem i setterem w jednym commicie. Nie da się wtedy odróżnić refaktoryzacji od zmiany zachowania.</li>
+<li>Setter, który zostaje &quot;na wszelki wypadek&quot;. Wtedy niezmiennik da się obejść tak samo jak przez publiczne pole - a w TypeScript nawet nie widać, że to setter.</li>
+<li><code>private</code> z TypeScript chroni tylko w kompilacji: <code>(r as any).status = &#x27;X&#x27;</code> albo JavaScript bez typów zapisze pole. Pole <code>#</code> jest prywatne także w czasie wykonania.</li>
+<li>Kod, który zapisuje stan z pominięciem operacji: <code>Object.assign(r, dane)</code>, deserializacja, ORM ustawiający właściwości. Omija operacje domenowe.</li>
+</ul>
+<h3 id="pytanie-do-sali-10" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-10"><span>Pytanie do sali</span></a></h3>
+<p>Kto w waszej organizacji decyduje, że &quot;gość na anulowaną rezerwację&quot; to błąd, a nie funkcja? Jak test ma to zapisać, zanim decyzja zapadnie?</p>
+<h2 id="scena-s11-encapsulate-collection-trzy-kontrakty-listy-miejsc" tabindex="-1"><a class="header-anchor" href="#scena-s11-encapsulate-collection-trzy-kontrakty-listy-miejsc"><span>Scena s11. Encapsulate Collection - trzy kontrakty listy miejsc</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> Encapsulate Collection; Trzy różne kontrakty kolekcji
+<strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m4/<wbr>s11_encapsulatecollection</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m4/<wbr>s11</code> (<code>S11EquivalenceTest.test.ts</code>, <code>S11CollectionContractTest.test.ts</code>)
+<strong>Czas:</strong> ~12 min</p>
+<h3 id="w-skrocie-11" tabindex="-1"><a class="header-anchor" href="#w-skrocie-11"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> <code>Booking.seats</code> to publiczna, mutowalna tablica i każdy może zmienić miejsca z pominięciem właściciela. Przenosimy dodawanie i usuwanie do <code>Booking</code>, a potem zmieniamy getter na niemodyfikowalny widok i wreszcie na migawkę.</p>
+<p><strong>Zasada:</strong> Encapsulate Collection oddaje właścicielowi kontrolę nad członkostwem: odczyt przez kontrakt, zmiana przez <code>addSeat</code>/<code>removeSeat</code> lub polecenia. Widok (odpowiednik <code>Collections.unmodifiableList</code>) i migawka (odpowiednik <code>List.copyOf</code>) to dwa różne kontrakty, bo tylko widok pokazuje późniejsze zmiany. Niemodyfikowalność nie chroni wnętrza elementów.</p>
+<p><strong>Efekt:</strong> Kasa działa tak samo na każdym etapie, ale kroki 2 i 3 świadomie zmieniają kontrakt gettera: klient nie może już modyfikować listy, a po kroku 3 nie widzi późniejszych zmian. Wybór między widokiem a migawką zależy od tego, czego potrzebują klienci.</p>
+<p><strong>Różnica względem Javy:</strong> JavaScript nie ma <code>Collections.unmodifiableList</code> ani <code>List.copyOf</code>. Widok w <code>step2</code> to <code>Proxy</code> na prywatnej tablicy, którego pułapki <code>set</code> i <code>deleteProperty</code> rzucają <code>UnsupportedOperationError</code>, a typ <code>readonly Seat[]</code> blokuje zmiany już w kompilacji. Migawka w <code>step3</code> to <code>Object.freeze([...this.#seats])</code> (zapis rzuca <code>TypeError</code>). Tablice porównują referencje, więc <code>Seat</code> ma <code>equals</code>, a usuwanie to <code>findIndex(s =&gt; s.equals(seat))</code> i <code>splice</code> z osłoną <code>index &gt;= 0</code> (samo <code>splice(-1, 1)</code> usunęłoby ostatni element) - odpowiednik <code>List.remove(Object)</code>. Pole i getter mają tę samą nazwę dzięki <code>#seats</code> i <code>get seats()</code>. Test kontraktu rzutuje wynik gettera na <code>Seat[]</code>, żeby sprawdzić zachowanie w czasie wykonania.</p>
+<h3 id="co-widzimy-11" tabindex="-1"><a class="header-anchor" href="#co-widzimy-11"><span>Co widzimy</span></a></h3>
+<p><code>Booking.seats</code> to publiczna, mutowalna tablica. <code>readonly</code> blokuje tylko przypisanie, więc każdy może dodać, usunąć albo wyczyścić miejsca z pominięciem właściciela.</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">readonly</span> <span class="hljs-attr">seats</span>: <span class="hljs-title class_">Seat</span>[] = [];
+<span class="hljs-comment">// SeatDesk</span>
+booking.<span class="hljs-property">seats</span>.<span class="hljs-title function_">push</span>(seat);
+...
+<span class="hljs-keyword">const</span> index = booking.<span class="hljs-property">seats</span>.<span class="hljs-title function_">findIndex</span>(<span class="hljs-function">(<span class="hljs-params">s</span>) =&gt;</span> s.<span class="hljs-title function_">equals</span>(seat));
+<span class="hljs-keyword">if</span> (index &gt;= <span class="hljs-number">0</span>) {
+  booking.<span class="hljs-property">seats</span>.<span class="hljs-title function_">splice</span>(index, <span class="hljs-number">1</span>);
+}
+</code></pre>
+<h3 id="krok-1-operacje-w-wlascicielu-getter-bez-zmiany-kontraktu" tabindex="-1"><a class="header-anchor" href="#krok-1-operacje-w-wlascicielu-getter-bez-zmiany-kontraktu"><span>Krok 1: operacje w właścicielu, getter bez zmiany kontraktu</span></a></h3>
+<p><strong>W IDE:</strong> zmień pole na prywatne <code>readonly #seats: Seat[] = []</code> i dodaj getter <code>get seats(): Seat[]</code>, który zwraca <strong>tę samą</strong> tablicę. Dodaj <code>addSeat</code> i <code>removeSeat</code> w <code>Booking</code> (ciała przenieś ręcznie z <code>SeatDesk</code>) i przepisz <code>SeatDesk</code> na te operacje.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">readonly</span> #<span class="hljs-attr">seats</span>: <span class="hljs-title class_">Seat</span>[] = [];
+
+<span class="hljs-comment">/** Przejściowo: żywa, MODYFIKOWALNA tablica - dokładnie to, co dawało publiczne pole. */</span>
+<span class="hljs-keyword">get</span> <span class="hljs-title function_">seats</span>(): <span class="hljs-title class_">Seat</span>[] {
+  <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.#seats;
+}
+
+<span class="hljs-title function_">addSeat</span>(<span class="hljs-attr">seat</span>: <span class="hljs-title class_">Seat</span>): <span class="hljs-built_in">void</span> {
+  <span class="hljs-variable language_">this</span>.#seats.<span class="hljs-title function_">push</span>(seat);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m4/<wbr>s11</code> - 16 testów zielonych, <code>step1GetterStillReturnsTheSameAlias</code>: klient zmienia tak, widzi zmiany tak.
+<strong>Co powiedzieć:</strong> to faza przejściowa, która nadal jest czystą refaktoryzacją. Klient, który jeszcze modyfikuje listę przez getter, działa jak wcześniej, a my migrujemy klientów po kolei.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m4/<wbr>s11 0 1</code></p>
+<h3 id="krok-2-niemodyfikowalny-widok" tabindex="-1"><a class="header-anchor" href="#krok-2-niemodyfikowalny-widok"><span>Krok 2: niemodyfikowalny widok</span></a></h3>
+<p><strong>W IDE:</strong> w getterze zwróć <code>new Proxy(this.#seats, READ_ONLY)</code> i zmień typ na <code>readonly Seat[]</code>. Kompilator od razu pokaże klientów, którzy jeszcze modyfikują listę przez getter.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-comment">/** Żywy widok tylko do odczytu. */</span>
+<span class="hljs-keyword">get</span> <span class="hljs-title function_">seats</span>(): <span class="hljs-keyword">readonly</span> <span class="hljs-title class_">Seat</span>[] {
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Proxy</span>(<span class="hljs-variable language_">this</span>.#seats, <span class="hljs-variable constant_">READ_ONLY</span>);
+}
+...
+<span class="hljs-keyword">const</span> <span class="hljs-attr">READ_ONLY</span>: <span class="hljs-title class_">ProxyHandler</span>&lt;<span class="hljs-title class_">Seat</span>[]&gt; = {
+  <span class="hljs-attr">set</span>: <span class="hljs-function">() =&gt;</span> {
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">UnsupportedOperationError</span>(<span class="hljs-string">&#x27;lista miejsc tylko do odczytu&#x27;</span>);
+  },
+  <span class="hljs-attr">deleteProperty</span>: <span class="hljs-function">() =&gt;</span> {
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">UnsupportedOperationError</span>(<span class="hljs-string">&#x27;lista miejsc tylko do odczytu&#x27;</span>);
+  },
+};
+</code></pre>
+<p><strong>Uruchom:</strong> test równoważności zielony (kasa używa już <code>addSeat</code>/<code>removeSeat</code>). <code>S11CollectionContractTest</code>: klient zmienia nie, widzi zmiany tak.
+<strong>Co powiedzieć:</strong> to pierwsza <strong>zmiana kontraktu</strong> gettera. Jest bezpieczna dopiero wtedy, gdy żaden klient nie modyfikuje listy przez getter. Widok jest żywy, więc wcześniej pobrana lista pokaże miejsca dodane później. Sam typ <code>readonly Seat[]</code> byłby tylko obietnicą kompilatora - rzutowanie albo JavaScript bez typów obszedłby ją bez <code>Proxy</code>.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m4/<wbr>s11 1 2</code></p>
+<h3 id="krok-3-migawka" tabindex="-1"><a class="header-anchor" href="#krok-3-migawka"><span>Krok 3: migawka</span></a></h3>
+<p><strong>W IDE:</strong> w getterze <code>return Object.freeze([...this.#seats]);</code> i usuń nieużywane <code>READ_ONLY</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-comment">/** Niemodyfikowalna kopia z chwili wywołania. */</span>
+<span class="hljs-keyword">get</span> <span class="hljs-title function_">seats</span>(): <span class="hljs-keyword">readonly</span> <span class="hljs-title class_">Seat</span>[] {
+  <span class="hljs-keyword">return</span> <span class="hljs-title class_">Object</span>.<span class="hljs-title function_">freeze</span>([...<span class="hljs-variable language_">this</span>.#seats]);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test równoważności zielony. <code>S11CollectionContractTest</code>: klient zmienia nie, widzi zmiany nie.
+<strong>Co powiedzieć:</strong> widok czy migawka to decyzja o kontrakcie, a nie szczegół implementacji. Klient, który trzymał listę i liczył, że &quot;sama się odświeży&quot;, po tym kroku widzi stare dane.
+<strong>Snapshot:</strong> <code>step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m4/<wbr>s11 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-11" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-11"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Tabela ze slajdu jako test:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Wariant</th>
+<th style="text-align:center">Klient zmienia</th>
+<th style="text-align:center">Widzi późniejsze zmiany</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>start</code> (publiczne pole)</td>
+<td style="text-align:center">tak</td>
+<td style="text-align:center">tak</td>
+</tr>
+<tr>
+<td><code>step1</code> (getter na tej samej tablicy)</td>
+<td style="text-align:center">tak</td>
+<td style="text-align:center">tak</td>
+</tr>
+<tr>
+<td><code>step2</code> (widok przez <code>Proxy</code>)</td>
+<td style="text-align:center">nie</td>
+<td style="text-align:center">tak</td>
+</tr>
+<tr>
+<td><code>step3</code> (<code>Object.freeze([...])</code>)</td>
+<td style="text-align:center">nie</td>
+<td style="text-align:center">nie</td>
+</tr>
+</tbody>
+</table></div>
+<p>Wszystkie warianty dają ten sam wynik operacji kasy (<code>S11EquivalenceTest</code>), a różnią się kontraktem gettera (<code>S11CollectionContractTest</code>). Który wariant jest rozwiązaniem, zależy od klientów: widok, gdy ktoś potrzebuje bieżącego stanu, a migawka, gdy wynik idzie dalej (raport, e-mail, inny proces).</p>
+<h3 id="pulapki-11" tabindex="-1"><a class="header-anchor" href="#pulapki-11"><span>Pułapki</span></a></h3>
+<ul>
+<li>Niemodyfikowalność blokuje członkostwo, a nie wnętrze elementów. Tu <code>Seat</code> ma pola <code>readonly</code>, więc to wystarcza. Przy mutowalnych elementach nie wystarczy, a <code>Object.freeze</code> jest płytkie.</li>
+<li><code>readonly Seat[]</code> to tylko typ. Bez <code>Proxy</code> albo <code>Object.freeze</code> klient z rzutowaniem (<code>as Seat[]</code>) albo kod JavaScript zmieni tablicę właściciela.</li>
+<li>Getter, który przy każdym wywołaniu tworzy nowy <code>Proxy</code> albo nową kopię, zwraca za każdym razem inny obiekt. Nie opieraj kontraktu na tożsamości (<code>booking.seats === booking.seats</code> to <code>false</code>).</li>
+<li>Konstruktor przyjmujący tablicę z zewnątrz bez kopii zachowuje alias do tablicy klienta.</li>
+<li>Zmiana na <code>Set</code> &quot;przy okazji&quot; zmienia zachowanie duplikatów, a przy obiektach <code>Seat</code> porównuje referencje, nie <code>equals</code>. Test ma przypadek z tym samym miejscem dwa razy.</li>
+</ul>
+<h3 id="pytanie-do-sali-11" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-11"><span>Pytanie do sali</span></a></h3>
+<p>Który kontrakt wybierzecie dla listy miejsc, którą czyta ekran sali w kasie, a który dla listy wysyłanej w e-mailu z potwierdzeniem?</p>
+<h2 id="scena-s12-encapsulate-conditional-czy-przysluguje-zwrot" tabindex="-1"><a class="header-anchor" href="#scena-s12-encapsulate-conditional-czy-przysluguje-zwrot"><span>Scena s12. Encapsulate Conditional - czy przysługuje zwrot</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> Encapsulate Conditional
+<strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m4/<wbr>s12_encapsulateconditional</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m4/<wbr>s12</code> (<code>S12EquivalenceTest.test.ts</code>)
+<strong>Czas:</strong> ~8 min</p>
+<h3 id="w-skrocie-12" tabindex="-1"><a class="header-anchor" href="#w-skrocie-12"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> Warunek zwrotu w <code>RefundCalculator.refund</code> pyta o status, czas i prefiks promocji zamiast o regułę z regulaminu. Zamykamy kolejne fragmenty w predykaty z nazwami domenowymi, od najmniejszego do warunku gałęzi.</p>
+<p><strong>Zasada:</strong> Encapsulate Conditional zamienia pytanie o implementację na pytanie o znaczenie, czyli wydziela predykat z nazwą z domeny. Krótkie spięcie jest zachowaniem, więc osłona <code>null</code> idzie razem z testem, a kolejność warunków się nie zmienia. Nazwa <code>is</code>/<code>has</code> nie gwarantuje, że predykat jest czysty.</p>
+<p><strong>Efekt:</strong> <code>refund</code> czyta się jak regulamin (<code>isRefundable</code>, <code>cancelledAtLeast24hBefore</code>), a granica &quot;dokładnie 24 h&quot; jest opisana testem. Wyrażeń celowo nie upraszczamy, bo prosta zamiana <code>!isAfter</code> na <code>isBefore</code> zgubiłaby ten przypadek.</p>
+<p><strong>Różnica względem Javy:</strong> <code>private static boolean</code> predykaty to nieeksportowane funkcje modułu obok klasy (<code>hasFreeTicketPromo</code>, <code>isRefundable</code>, <code>cancelledAtLeast24hBefore</code>), bo nie potrzebują stanu obiektu. <code>promo</code> ma typ <code>string | null</code>, więc wydzielenie testu prefiksu bez osłony <code>b.promo !== null &amp;&amp;</code> kończy się błędem kompilacji, a nie <code>NullPointerException</code>.</p>
+<h3 id="co-widzimy-12" tabindex="-1"><a class="header-anchor" href="#co-widzimy-12"><span>Co widzimy</span></a></h3>
+<p><code>RefundCalculator.refund</code> liczy zwrot: 100% przy anulowaniu co najmniej 24 h przed seansem, 50% później, 0 po starcie, potrącenie 3.00 (nie poniżej zera). Warunek pyta o implementację, a nie o regułę:</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">if</span> (b.<span class="hljs-property">status</span> === <span class="hljs-string">&#x27;PAID&#x27;</span> &amp;&amp; now.<span class="hljs-title function_">isBefore</span>(b.<span class="hljs-property">screeningStart</span>)
+  &amp;&amp; !(b.<span class="hljs-property">promo</span> !== <span class="hljs-literal">null</span> &amp;&amp; b.<span class="hljs-property">promo</span>.<span class="hljs-title function_">startsWith</span>(<span class="hljs-string">&#x27;FREE&#x27;</span>))) {
+  <span class="hljs-keyword">if</span> (!now.<span class="hljs-title function_">plusHours</span>(<span class="hljs-number">24</span>).<span class="hljs-title function_">isAfter</span>(b.<span class="hljs-property">screeningStart</span>)) {
+    amount = b.<span class="hljs-property">tickets</span>;
+  } <span class="hljs-keyword">else</span> {
+    amount = b.<span class="hljs-property">tickets</span>.<span class="hljs-title function_">percent</span>(<span class="hljs-number">50</span>);
+  }
+}
+</code></pre>
+<h3 id="krok-1-extract-method-dla-najmniejszego-fragmentu" tabindex="-1"><a class="header-anchor" href="#krok-1-extract-method-dla-najmniejszego-fragmentu"><span>Krok 1: Extract Method dla najmniejszego fragmentu</span></a></h3>
+<p><strong>W IDE:</strong> zaznacz <code>b.promo !== null &amp;&amp; b.promo.startsWith(&#x27;FREE&#x27;)</code> (bez negacji), ⌃⇧R, &quot;Extract to function in module scope&quot;, nazwa <code>hasFreeTicketPromo</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">if</span> (b.<span class="hljs-property">status</span> === <span class="hljs-string">&#x27;PAID&#x27;</span> &amp;&amp; now.<span class="hljs-title function_">isBefore</span>(b.<span class="hljs-property">screeningStart</span>) &amp;&amp; !<span class="hljs-title function_">hasFreeTicketPromo</span>(b)) {
+
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">hasFreeTicketPromo</span>(<span class="hljs-params"><span class="hljs-attr">b</span>: <span class="hljs-title class_">Booking</span></span>): <span class="hljs-built_in">boolean</span> {
+  <span class="hljs-keyword">return</span> b.<span class="hljs-property">promo</span> !== <span class="hljs-literal">null</span> &amp;&amp; b.<span class="hljs-property">promo</span>.<span class="hljs-title function_">startsWith</span>(<span class="hljs-string">&#x27;FREE&#x27;</span>);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m4/<wbr>s12</code> - 28 testów zielonych.
+<strong>Co powiedzieć:</strong> osłona <code>!== null</code> idzie razem z testem prefiksu. Krótkie spięcie jest zachowaniem, co sprawdza przypadek z <code>promo = null</code>. TypeScript pilnuje tego za nas: bez osłony w tym samym wyrażeniu <code>b.promo.startsWith</code> się nie skompiluje.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m4/<wbr>s12 0 1</code></p>
+<h3 id="krok-2-encapsulate-conditional-caly-warunek" tabindex="-1"><a class="header-anchor" href="#krok-2-encapsulate-conditional-caly-warunek"><span>Krok 2: Encapsulate Conditional - cały warunek</span></a></h3>
+<p><strong>W IDE:</strong> zaznacz cały warunek pierwszego <code>if</code>, ⌃⇧R, &quot;Extract to function in module scope&quot;, nazwa <code>isRefundable</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">if</span> (<span class="hljs-title function_">isRefundable</span>(b, now)) {
+
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">isRefundable</span>(<span class="hljs-params"><span class="hljs-attr">b</span>: <span class="hljs-title class_">Booking</span>, <span class="hljs-attr">now</span>: <span class="hljs-title class_">LocalDateTime</span></span>): <span class="hljs-built_in">boolean</span> {
+  <span class="hljs-keyword">return</span> b.<span class="hljs-property">status</span> === <span class="hljs-string">&#x27;PAID&#x27;</span> &amp;&amp; now.<span class="hljs-title function_">isBefore</span>(b.<span class="hljs-property">screeningStart</span>) &amp;&amp; !<span class="hljs-title function_">hasFreeTicketPromo</span>(b);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> <code>if</code> pyta teraz o regułę z regulaminu, a szczegóły (status, czas, promocja) mieszkają w jednym miejscu. Kolejność warunków w <code>&amp;&amp;</code> jest taka sama, więc wyjątki i krótkie spięcie też są te same.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m4/<wbr>s12 1 2</code></p>
+<h3 id="krok-3-encapsulate-conditional-dla-galezi" tabindex="-1"><a class="header-anchor" href="#krok-3-encapsulate-conditional-dla-galezi"><span>Krok 3: Encapsulate Conditional dla gałęzi</span></a></h3>
+<p><strong>W IDE:</strong> zaznacz <code>!now.plusHours(24).isAfter(b.screeningStart)</code>, ⌃⇧R, &quot;Extract to function in module scope&quot;, nazwa <code>cancelledAtLeast24hBefore</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">if</span> (<span class="hljs-title function_">isRefundable</span>(b, now)) {
+  <span class="hljs-keyword">if</span> (<span class="hljs-title function_">cancelledAtLeast24hBefore</span>(b, now)) {
+    amount = b.<span class="hljs-property">tickets</span>;
+  } <span class="hljs-keyword">else</span> {
+    amount = b.<span class="hljs-property">tickets</span>.<span class="hljs-title function_">percent</span>(<span class="hljs-number">50</span>);
+  }
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony, także przypadek &quot;dokładnie 24 h przed&quot; (100%) i &quot;24 h minus minuta&quot; (50%).
+<strong>Co powiedzieć:</strong> podwójne zaprzeczenie zamknęliśmy w nazwie. Granicę (<code>&gt;=</code> 24 h) opisuje test, więc nikt jej nie &quot;poprawi&quot; przy okazji uproszczenia wyrażenia.
+<strong>Snapshot:</strong> <code>step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m4/<wbr>s12 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-12" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-12"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>step3/<wbr>RefundCalculator.ts</code>: metoda publiczna czyta się jak regulamin (czy przysługuje zwrot, czy anulowano co najmniej 24 h przed), a predykaty mają nazwy z domeny. Test obejmuje granice czasu, statusy, promocje, <code>null</code> i dolną granicę kwoty.</p>
+<h3 id="pulapki-12" tabindex="-1"><a class="header-anchor" href="#pulapki-12"><span>Pułapki</span></a></h3>
+<ul>
+<li>Uproszczenie <code>!now.plusHours(24).isAfter(start)</code> do <code>now.plusHours(24).isBefore(start)</code> gubi przypadek &quot;dokładnie 24 h&quot;.</li>
+<li>Obliczenie prawej strony osłony wcześniej (np. <code>const free = b.promo!.startsWith(&#x27;FREE&#x27;)</code> przed sprawdzeniem <code>null</code>). Kompilator zaprotestuje, ale <code>!</code> albo <code>?.</code> to uciszą: <code>b.promo?.startsWith(&#x27;FREE&#x27;)</code> daje <code>undefined</code> zamiast <code>false</code>, a negacja <code>!undefined</code> to <code>true</code>, więc łatwo o odwrócenie znaczenia.</li>
+<li>Nazwa <code>is</code>/<code>has</code> nie gwarantuje czystości. Predykat z efektem ubocznym (log, licznik, zapytanie do bazy) po ekstrakcji może zostać wywołany w innym miejscu albo inną liczbę razy.</li>
+<li>Przeniesienie predykatu do <code>Booking</code> jako następny krok ma sens, ale wymaga zegara albo <code>now</code> jako parametru, bo sama rezerwacja nie zna bieżącej chwili.</li>
+</ul>
+<h3 id="pytanie-do-sali-12" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-12"><span>Pytanie do sali</span></a></h3>
+<p>Czy <code>isRefundable</code> powinno trafić do <code>Booking</code>? Co wtedy z parametrem <code>now</code>?</p>
+<h2 id="proponowana-kolejnosc-pokazu" tabindex="-1"><a class="header-anchor" href="#proponowana-kolejnosc-pokazu"><span>Proponowana kolejność pokazu</span></a></h2>
+<p><strong>Ścieżka krótka (~75 min):</strong> zasada &quot;najpierw test, potem ruch&quot; i pułapki semantyki.</p>
+<ol>
+<li>s00 Test charakterystyki (ruch A i krok 1, ~12 min)</li>
+<li>s01 Rename, tylko krok 2 i 3 z naiwnym ruchem na żywo (~8 min)</li>
+<li>s02 Extract Variable, krok 2 z osłoną <code>null</code> (~5 min)</li>
+<li>s04 Extract Method (~15 min)</li>
+<li>s05 Inline Variable, pokaz pułapki i krok 3 (~8 min)</li>
+<li>s06 Inline Method, krok 2 (~5 min)</li>
+<li>s07 Move Method, krok 2 (~6 min)</li>
+<li>s09 Extract Class, kroki 1 i 2 ze &quot;złym wynikiem&quot; (~10 min)</li>
+<li>s11 Encapsulate Collection, tabela kontraktów (~6 min)</li>
+</ol>
+<p><strong>Ścieżka pełna (~145 min):</strong> wszystkie sceny w kolejności numerów, s00-s12. Po s04 i po s09 zrób przerwę na pytania. Sceny s03, s08, s10 i s12 dobrze nadają się do zadania dla uczestników, jeśli brakuje czasu na pokaz (patrz plik zadań modułu 4).</p>
+
+</main>
+</div>
+<script>if(matchMedia('(max-width:900px)').matches){var d=document.querySelector('.toc details');if(d)d.open=false}</script>
+</body>
+</html>

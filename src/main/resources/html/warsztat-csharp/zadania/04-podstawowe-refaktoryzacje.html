@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zadania: Moduł 4. Podstawowe refaktoryzacje - warsztat CineLegacy (C#): zadania (C#)</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1d1f23;--muted:#5f6670;--line:#e3e5e8;--card:#ffffff;--accent:#2457c5;--accent-bg:#eef3fd;
+--code-bg:#f4f5f7;--note-bg:#fff7e6;--note-line:#e6a700;--th:#f1f3f6;
+--k:#b3246b;--s:#1a7f37;--c:#6e7781;--n:#0550ae;--t:#8250df;--f:#6639ba;--a:#953800;
+--kind:#2457c5}
+@media (prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3036;--card:#1c1f23;--accent:#7aa7ff;--accent-bg:#1e2a40;
+--code-bg:#1f2328;--note-bg:#2b2412;--note-line:#c99400;--th:#23272d;
+--k:#ff7b9c;--s:#7ee2a0;--c:#8b949e;--n:#79c0ff;--t:#d2a8ff;--f:#d2a8ff;--a:#ffa657}}
+body.zadania{--kind:#1a7f37} body.warsztat{--kind:#c2570c} body.warsztat-zadania{--kind:#0f7b7b} body.rozwiazania{--kind:#b3246b} body.przyklady{--kind:#2457c5}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.topbar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 24px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);border-top:3px solid var(--kind)}
+.topbar a{color:var(--fg);text-decoration:none}
+.home{font-weight:600}
+.tabs{display:flex;gap:4px}
+.tab{padding:4px 12px;border-radius:999px;font-size:15px;color:var(--muted)!important}
+.tab:hover{background:var(--code-bg)}
+.tab.active{background:var(--accent-bg);color:var(--accent)!important;font-weight:600}
+.pager{margin-left:auto;display:flex;gap:14px;font-size:15px}
+.pager a{color:var(--muted)}.pager a:hover{color:var(--accent)}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:48px;max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+.layout.no-toc{grid-template-columns:minmax(0,1fr);max-width:1000px}
+aside{position:sticky;top:72px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px}
+.toc-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;font-weight:600}
+.toc ul{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.toc li a{display:block;padding:3px 12px;color:var(--muted);text-decoration:none;line-height:1.35}
+.toc li.h3 a{padding-left:24px;font-size:13px}
+.toc li a:hover{color:var(--accent)}
+main{min-width:0;max-width:860px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 1.2rem;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:2.6rem 0 .8rem;padding-top:.6rem;border-top:1px solid var(--line)}
+h3{font-size:1.18rem;margin:2rem 0 .6rem}
+h4{font-size:1rem;margin:1.5rem 0 .5rem}
+h1 a,h2 a,h3 a,h4 a{color:inherit;text-decoration:none}
+h2 a:hover::after,h3 a:hover::after{content:" #";color:var(--muted)}
+p,ul,ol{margin:.6rem 0 1rem}
+li{margin:.25rem 0}
+li>ul,li>ol{margin:.2rem 0}
+a{color:var(--accent)}
+strong{font-weight:650}
+code{font:0.88em/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre.code{position:relative;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:1rem 0 1.4rem}
+pre.code code{background:none;padding:0;font-size:14px;line-height:1.55}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:6px;right:10px;font:11px ui-monospace,Menlo,monospace;color:var(--muted);text-transform:uppercase}
+.table-wrap{overflow-x:auto;margin:1rem 0 1.4rem;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--th);font-weight:600}
+tr:last-child td{border-bottom:none}
+blockquote{margin:1rem 0 1.4rem;padding:10px 16px;background:var(--note-bg);border-left:4px solid var(--note-line);border-radius:0 8px 8px 0}
+blockquote p{margin:.3rem 0}
+hr{border:none;border-top:1px solid var(--line);margin:2rem 0}
+hr+h2{border-top:none;margin-top:1.4rem}
+main p code,main li code,main td code{overflow-wrap:break-word}
+.toc summary{cursor:pointer;list-style:none}.toc summary::-webkit-details-marker{display:none}
+.hljs-keyword,.hljs-selector-tag,.hljs-built_in,.hljs-literal{color:var(--k)}
+.hljs-string,.hljs-regexp,.hljs-addition{color:var(--s)}
+.hljs-comment,.hljs-quote,.hljs-meta{color:var(--c);font-style:italic}
+.hljs-number,.hljs-symbol{color:var(--n)}
+.hljs-type,.hljs-class .hljs-title,.hljs-title.class_{color:var(--t)}
+.hljs-title,.hljs-title.function_,.hljs-section{color:var(--f)}
+.hljs-attr,.hljs-attribute,.hljs-variable,.hljs-params,.hljs-tag{color:var(--a)}
+.hljs-deletion{color:var(--k)}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:16px;padding:20px 16px 60px}
+aside{position:static;max-height:none;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--card)}
+.toc-title{margin:0}.toc details[open] .toc-title{margin-bottom:8px}.toc summary::after{content:" ▾"}
+body{font-size:16px}.topbar{padding:8px 16px}.pager{margin-left:0}h1{font-size:1.6rem}}
+@media print{.topbar,aside{display:none}.layout{display:block;padding:0}main{max-width:none}
+pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#000;font-size:12pt}}
+.langs{margin-left:auto}.langs+.pager{margin-left:0}</style>
+</head>
+<body class="warsztat-zadania">
+<header class="topbar"><a class="home" href="../../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../00-cinelegacy.html">Warsztat CineLegacy</a><a class="tab active" href="04-podstawowe-refaktoryzacje.html">Zadania</a><a class="tab" href="../przewodnik/04-podstawowe-refaktoryzacje.html">Przewodnik</a></div><div class="tabs langs" aria-label="Język"><a class="tab" href="../../warsztat/zadania/04-podstawowe-refaktoryzacje.html">Java</a><a class="tab active" href="../../warsztat-csharp/zadania/04-podstawowe-refaktoryzacje.html">C#</a><a class="tab" href="../../warsztat-typescript/zadania/04-podstawowe-refaktoryzacje.html">TypeScript</a></div><div class="pager"><a href="03-zasady-dobrego-projektowania.html" title="Poprzedni moduł">&larr; 03</a><a href="05-refaktoryzacje-hierarchii-klas.html" title="Następny moduł">05 &rarr;</a></div></header>
+<div class="layout">
+<aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#scena-s00-test-charakterystyki-przed-pierwsza-zmiana">Scena s00. Test charakterystyki przed pierwszą zmianą</a></li><li class="h2"><a href="#scena-s01-rename-nazwy-ktore-zyja-poza-c">Scena s01. Rename - nazwy, które żyją poza C#</a></li><li class="h2"><a href="#scena-s02-extract-variable-dla-zlozonego-wyrazenia-ceny">Scena s02. Extract Variable dla złożonego wyrażenia ceny</a></li><li class="h2"><a href="#scena-s03-stale-z-nazwa-zamiast-magicznych-liczb">Scena s03. Stałe z nazwą zamiast magicznych liczb</a></li><li class="h2"><a href="#scena-s04-extract-method-przeplyw-danych-i-wiele-wyjsc">Scena s04. Extract Method - przepływ danych i wiele wyjść</a></li><li class="h2"><a href="#scena-s05-inline-variable-liczba-i-moment-ewaluacji">Scena s05. Inline Variable - liczba i moment ewaluacji</a></li><li class="h2"><a href="#scena-s06-inline-method-i-nadpisanie-w-podklasie">Scena s06. Inline Method i nadpisanie w podklasie</a></li><li class="h2"><a href="#scena-s07-move-method-feature-envy-i-pulapka-przeciazenia">Scena s07. Move Method - Feature Envy i pułapka przeciążenia</a></li><li class="h2"><a href="#scena-s08-move-field-prog-vip-nalezy-do-sali">Scena s08. Move Field - próg VIP należy do sali</a></li><li class="h2"><a href="#scena-s09-extract-class-klient-platnosc-i-klasa-worek">Scena s09. Extract Class - klient, płatność i klasa-worek</a></li><li class="h2"><a href="#scena-s10-encapsulate-field-status-ktory-kazdy-moze-nadpisac">Scena s10. Encapsulate Field - status, który każdy może nadpisać</a></li><li class="h2"><a href="#scena-s11-encapsulate-collection-trzy-kontrakty-listy-miejsc">Scena s11. Encapsulate Collection - trzy kontrakty listy miejsc</a></li><li class="h2"><a href="#scena-s12-encapsulate-conditional-czy-przysluguje-zwrot">Scena s12. Encapsulate Conditional - czy przysługuje zwrot</a></li></ul></details></nav></aside>
+<main>
+<h1>Moduł 4. Podstawowe refaktoryzacje - warsztat CineLegacy (C#): zadania</h1>
+<p>Każda scena ma katalog (namespace) <code>Start</code> z kodem wyjściowym i test, który na starcie jest zielony. Pracuj tylko w <code>Start</code>. Po każdym ruchu (jedna technika naraz) uruchom test sceny, na przykład <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s05</code>, albo w Rider z gutteru przy klasie testu lub z okna Unit Tests. Test ma być zielony po każdym kroku, a nie dopiero na końcu. Nie zaglądaj do katalogów <code>StepN</code>, dopóki nie skończysz, bo to gotowe rozwiązania. Jeśli się zgubisz, <code>scripts/<wbr>warsztat.sh --lang cs reset m4/<wbr>s05</code> przywraca <code>Start</code>.</p>
+<p>Kod leży w <code>csharp/<wbr>src/<wbr>Training.Workshop/<wbr>M4/<wbr>SNN.../<wbr>Start</code>, testy w <code>csharp/<wbr>tests/<wbr>Training.Workshop.Tests/<wbr>M4/<wbr>SNN.../<wbr></code>.</p>
+<p>Tam, gdzie zadanie mówi o <strong>zmianie zachowania</strong>, nazwij ją wprost i zrób ją jako osobny krok. Dopiero wtedy wolno zmienić oczekiwania w teście.</p>
+<h2 id="scena-s00-test-charakterystyki-przed-pierwsza-zmiana" tabindex="-1"><a class="header-anchor" href="#scena-s00-test-charakterystyki-przed-pierwsza-zmiana"><span>Scena s00. Test charakterystyki przed pierwszą zmianą</span></a></h2>
+<p><strong>Namespace:</strong> <code>Training.Workshop.M4.S00Characterization.Start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s00</code></p>
+<p><strong>Zasada:</strong> Test charakterystyki zapisuje obecne, obserwowalne zachowanie kodu - razem z dziwnymi regułami - zanim cokolwiek zmienimy. Oczekiwania zatwierdza człowiek, a nie liczy je ponownie ten sam algorytm.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Zanim przeczytasz istniejący <code>S00CharacterizationTest</code>, napisz własny test charakterystyki dla <code>BookingConfirmation.Confirm</code>: pełny dokument dla co najmniej czterech rezerwacji.</li>
+<li>Spraw, żeby test był deterministyczny, choć dokument zawiera bieżący czas i zależy od bieżącej kultury (<code>CultureInfo.CurrentCulture</code>).</li>
+<li>Wprowadź do <code>BookingConfirmation</code> minimalny szew (<code>TimeProvider</code>), dzięki któremu test porówna także linię z czasem, i wykonaj jedną refaktoryzację pod ochroną testu.</li>
+<li>Zapisz jedno znalezisko, które wygląda na błąd, ale którego nie poprawiasz.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> zacznij od <code>Assert.Equal(&quot;&quot;, ...)</code> i skopiuj wynik z komunikatu błędu. W teście użyj <code>FakeTimeProvider</code> (<code>Microsoft.Extensions.Time.Testing</code>), a kulturę ustaw tylko na czas wywołania i przywróć w <code>finally</code>. Szukaj progów w regułach i sprawdzaj obie strony każdego z nich.
+<strong>Gotowe, gdy:</strong> Twój test i test sceny są zielone, dokument jest porównywany w całości, a stary konstruktor bezargumentowy nadal istnieje.</p>
+<h2 id="scena-s01-rename-nazwy-ktore-zyja-poza-c" tabindex="-1"><a class="header-anchor" href="#scena-s01-rename-nazwy-ktore-zyja-poza-c"><span>Scena s01. Rename - nazwy, które żyją poza C#</span></a></h2>
+<p><strong>Namespace:</strong> <code>Training.Workshop.M4.S01Rename.Start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s01</code></p>
+<p><strong>Zasada:</strong> Rename nadaje nazwę opisującą rolę w kontekście. Nazwa używana poza C# (konfiguracja, refleksja, formaty plików) jest kontraktem i wymaga strategii migracji, a nie tylko operacji IDE.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Nadaj znaczące nazwy zmiennym lokalnym i parametrom w <code>SalesReport</code>.</li>
+<li>Zmień nazwę metody <code>Calc2</code> na nazwę opisującą, co zwraca.</li>
+<li>Zmień nazwy właściwości rekordu <code>Line</code> (<code>t</code>, <code>n</code>, <code>d</code>).</li>
+<li>Nie zmieniaj konfiguracji w <code>ReportJob</code> ani formatu CSV, bo oba są kontraktem z kimś spoza repozytorium.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> po każdym Rename uruchom oba testy równoważności. Jeśli jeden jest czerwony, zastanów się, gdzie jeszcze żyje ta nazwa.
+<strong>Gotowe, gdy:</strong> test jest zielony, w <code>SalesReport</code> nie ma jedno- ani dwuliterowych nazw, a zadanie z konfiguracji dalej działa.</p>
+<h2 id="scena-s02-extract-variable-dla-zlozonego-wyrazenia-ceny" tabindex="-1"><a class="header-anchor" href="#scena-s02-extract-variable-dla-zlozonego-wyrazenia-ceny"><span>Scena s02. Extract Variable dla złożonego wyrażenia ceny</span></a></h2>
+<p><strong>Namespace:</strong> <code>Training.Workshop.M4.S02ExtractVariable.Start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s02</code></p>
+<p><strong>Zasada:</strong> Extract Variable nazywa znaczenie fragmentu wyrażenia. Może przesunąć moment ewaluacji, a krótkie spięcie <code>&amp;&amp;</code> / <code>||</code> jest częścią zachowania.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Rozbij wyrażenie w <code>TicketPrice.Price</code> na zmienne z nazwami pojęć z cennika.</li>
+<li>Nazwij osobno warunki (poranek, miejsce VIP, okulary) i osobno kwoty.</li>
+<li>Nie zmieniaj kolejności działań ani miejsca zaokrąglenia.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> <code>Row</code> to <code>int?</code> i może być <code>null</code>. Zastanów się, co dokładnie zaznaczasz przed ⌥⌘V przy warunku VIP.
+<strong>Gotowe, gdy:</strong> test jest zielony, a instrukcja <code>return</code> mieści się w jednej linii i czyta się jak paragon.</p>
+<h2 id="scena-s03-stale-z-nazwa-zamiast-magicznych-liczb" tabindex="-1"><a class="header-anchor" href="#scena-s03-stale-z-nazwa-zamiast-magicznych-liczb"><span>Scena s03. Stałe z nazwą zamiast magicznych liczb</span></a></h2>
+<p><strong>Namespace:</strong> <code>Training.Workshop.M4.S03MagicNumbers.Start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s03</code></p>
+<p><strong>Zasada:</strong> Replace Magic Numbers zastępuje liczbę bez nazwy stałą z nazwą roli, bo problemem jest ukryta decyzja, a nie sama liczba. Dwa identyczne literały nie zawsze oznaczają tę samą wiedzę.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Zastąp każdą liczbę w <code>OrderPricer.Summary</code> stałą z nazwą opisującą rolę.</li>
+<li>Dla każdej liczby 10 (także dzielnika przy punktach lojalnościowych) zdecyduj, czy to ta sama wiedza, co inna dziesiątka.</li>
+<li>Wybierz widoczność i rodzaj stałych (<code>const</code> czy <code>static readonly</code>) i uzasadnij wybór jednym zdaniem.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> gdy Rider zapyta o zastąpienie wszystkich wystąpień, nie odpowiadaj odruchowo. Pomyśl, co by się stało, gdyby jedna z reguł się zmieniła.
+<strong>Gotowe, gdy:</strong> test jest zielony, w metodzie nie ma literałów liczbowych, a żadna stała nie nazywa się jak swoja wartość.</p>
+<h2 id="scena-s04-extract-method-przeplyw-danych-i-wiele-wyjsc" tabindex="-1"><a class="header-anchor" href="#scena-s04-extract-method-przeplyw-danych-i-wiele-wyjsc"><span>Scena s04. Extract Method - przepływ danych i wiele wyjść</span></a></h2>
+<p><strong>Namespace:</strong> <code>Training.Workshop.M4.S04ExtractMethod.Start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s04</code></p>
+<p><strong>Zasada:</strong> Extract Method przenosi spójny fragment do metody, której nazwa wyraża intencję. Przed ekstrakcją trzeba przeanalizować przepływ danych: co wchodzi, a co wychodzi z fragmentu.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Zamień bloki opisane komentarzami w <code>TicketSummary.Describe</code> na metody z nazwami.</li>
+<li>Poradź sobie z pętlą, która ma dwie wartości wyjściowe.</li>
+<li>Oddziel obliczenia od składania tekstu.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> jeśli IDE przy ekstrakcji proponuje parametr <code>out</code>, przeczytaj dokładnie, dlaczego. Rozwiązaniem nie jest <code>out</code>, tablica ani mutowalny &quot;holder&quot;.
+<strong>Gotowe, gdy:</strong> test jest zielony, <code>Describe</code> ma najwyżej trzy linie, a każda wydzielona metoda ma jedno wyjście (bez parametrów <code>out</code>/<code>ref</code>).</p>
+<h2 id="scena-s05-inline-variable-liczba-i-moment-ewaluacji" tabindex="-1"><a class="header-anchor" href="#scena-s05-inline-variable-liczba-i-moment-ewaluacji"><span>Scena s05. Inline Variable - liczba i moment ewaluacji</span></a></h2>
+<p><strong>Namespace:</strong> <code>Training.Workshop.M4.S05InlineVariable.Start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s05</code></p>
+<p><strong>Zasada:</strong> Inline Variable usuwa zmienną, która nic nie wnosi, ale może zmienić liczbę i moment ewaluacji inicjalizatora. Jawny typ zmiennej bywa typem docelowym, który wybiera przeciążenie.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Dla każdej zmiennej lokalnej w <code>TicketIssuer.Issue</code> zdecyduj, czy wolno ją wkleić (Inline Variable), i zapisz uzasadnienie.</li>
+<li>Wklej te, które wolno. Test ma zostać zielony.</li>
+<li>Jedna ze zmiennych da się wkleić bezpiecznie dopiero po innym, przygotowawczym ruchu. Znajdź ją i wykonaj oba ruchy.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> zegar w teście (<code>TickingClock</code>) przesuwa się o sekundę przy każdym odczycie. Zwróć uwagę na metody o tej samej nazwie i różnych typach parametrów.
+<strong>Gotowe, gdy:</strong> test jest zielony, a zmienne, które zostały, mają pisemne uzasadnienie (komentarz albo notatka).</p>
+<h2 id="scena-s06-inline-method-i-nadpisanie-w-podklasie" tabindex="-1"><a class="header-anchor" href="#scena-s06-inline-method-i-nadpisanie-w-podklasie"><span>Scena s06. Inline Method i nadpisanie w podklasie</span></a></h2>
+<p><strong>Namespace:</strong> <code>Training.Workshop.M4.S06InlineMethod.Start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s06</code></p>
+<p><strong>Zasada:</strong> Inline Method usuwa pośrednictwo bez znaczenia. Wklejenie ciała metody nadpisywanej (<code>virtual</code>/<code>override</code>) usuwa dynamiczną dyspozycję, więc przed inline sprawdza się hierarchię klas.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Usuń z <code>TicketPricing</code> pośredniki, które nie dodają znaczenia (Inline Method).</li>
+<li>Zanim wkleisz którąkolwiek metodę, sprawdź, czy nie jest nadpisywana.</li>
+<li>Wyjaśnij jednym zdaniem, dlaczego jedna z trzech małych metod musi zostać.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> test uruchamia dwie klasy. Kasa może być zielona, a internet czerwony.
+<strong>Gotowe, gdy:</strong> test jest zielony dla kasy i internetu, a w <code>TicketPricing</code> nie ma prywatnej metody, która tylko przekazuje wywołanie dalej.</p>
+<h2 id="scena-s07-move-method-feature-envy-i-pulapka-przeciazenia" tabindex="-1"><a class="header-anchor" href="#scena-s07-move-method-feature-envy-i-pulapka-przeciazenia"><span>Scena s07. Move Method - Feature Envy i pułapka przeciążenia</span></a></h2>
+<p><strong>Namespace:</strong> <code>Training.Workshop.M4.S07MoveMethod.Start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s07</code></p>
+<p><strong>Zasada:</strong> Move Method przenosi zachowanie do klasy, która ma jego dane i odpowiedzialność, a Feature Envy to sygnał do analizy, nie nakaz. Po przeniesieniu zmienia się kontekst typów i przeciążeń.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Wskaż metody <code>BookingPrinter</code>, które używają danych tylko jednej innej klasy, i przenieś je do właściciela tych danych.</li>
+<li>Nadaj przeniesionym metodom nazwy pasujące do nowego właściciela.</li>
+<li>Uzasadnij, dlaczego <code>Print</code> zostaje w <code>BookingPrinter</code>.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> po przeniesieniu nie zmieniaj typów parametrów. Sprawdź, czy wszystkie przypadki testowe w ogóle odróżniają dwa przeciążenia <code>SeatList.Remove</code> (<code>Remove(int index)</code> i <code>Remove(int? seat)</code>).
+<strong>Gotowe, gdy:</strong> test jest zielony, a <code>BookingPrinter</code> nie ma żadnej prywatnej metody.</p>
+<h2 id="scena-s08-move-field-prog-vip-nalezy-do-sali" tabindex="-1"><a class="header-anchor" href="#scena-s08-move-field-prog-vip-nalezy-do-sali"><span>Scena s08. Move Field - próg VIP należy do sali</span></a></h2>
+<p><strong>Namespace:</strong> <code>Training.Workshop.M4.S08MoveField.Start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s08</code></p>
+<p><strong>Zasada:</strong> Move Field przenosi stan do właściwego właściciela: najpierw odczyty przez akcesor (właściwość), potem zapisy, bez okresu z dwiema zapisywalnymi kopiami.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Przenieś <code>VipFromRow</code> z <code>Screening</code> do <code>Hall</code>.</li>
+<li>Rób to małymi krokami, bez okresu, w którym obie klasy mają zapisywalną kopię.</li>
+<li>Na koniec żaden klient nie powinien porównywać rzędu z surowym progiem.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> zanim przeniesiesz pole, sprawdź, kto czyta je bezpośrednio, także z innej klasy w tym samym assembly (pole jest <code>internal</code>).
+<strong>Gotowe, gdy:</strong> test jest zielony, <code>Screening</code> nie ma pola ani właściwości <code>VipFromRow</code>, a dwa seanse w tej samej sali nie mogą się różnić progiem.</p>
+<h2 id="scena-s09-extract-class-klient-platnosc-i-klasa-worek" tabindex="-1"><a class="header-anchor" href="#scena-s09-extract-class-klient-platnosc-i-klasa-worek"><span>Scena s09. Extract Class - klient, płatność i klasa-worek</span></a></h2>
+<p><strong>Namespace:</strong> <code>Training.Workshop.M4.S09ExtractClass.Start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s09</code></p>
+<p><strong>Zasada:</strong> Extract Class wydziela spójne dane i zachowanie o odrębnym powodzie zmiany. Klasa, która tylko przechowuje dane, a logika zostaje w źródle, to zły wynik.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Wydziel z <code>Booking</code> klasę z danymi klienta, a potem przenieś do niej zachowanie, które na tych danych działa.</li>
+<li>Wydziel klasę płatności od razu z danymi i zachowaniem.</li>
+<li>Nie zmieniaj publicznego API <code>Booking</code> (konstruktor, <code>Contact</code>, <code>Pay</code>, <code>IsPaid</code>, <code>Summary</code>).</li>
+<li>Nowe klasy nie mogą mieć referencji do <code>Booking</code>.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> po pierwszej ekstrakcji zatrzymaj się i oceń wynik. Czy nowa klasa coś robi, czy tylko przechowuje?
+<strong>Gotowe, gdy:</strong> test jest zielony, <code>Booking</code> ma najwyżej cztery pola, a każda nowa klasa ma co najmniej jedną metodę poza akcesorami właściwości (i poza tym, co kompilator generuje dla rekordu).</p>
+<h2 id="scena-s10-encapsulate-field-status-ktory-kazdy-moze-nadpisac" tabindex="-1"><a class="header-anchor" href="#scena-s10-encapsulate-field-status-ktory-kazdy-moze-nadpisac"><span>Scena s10. Encapsulate Field - status, który każdy może nadpisać</span></a></h2>
+<p><strong>Namespace:</strong> <code>Training.Workshop.M4.S10EncapsulateField.Start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s10</code></p>
+<p><strong>Zasada:</strong> Encapsulate Field ukrywa pole za operacjami właściciela, żeby kontrolować zmiany stanu. Sama hermetyzacja nie zmienia zachowania, a dodanie walidacji już tak.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Ukryj pole <code>Status</code> bez zmiany zachowania.</li>
+<li>Zastąp ogólne ustawianie statusu operacjami, które mówią, co się dzieje w domenie.</li>
+<li>Jako <strong>osobny krok</strong> (zmiana zachowania) spraw, żeby niedozwolone przejścia rzucały <code>InvalidOperationException</code>. Zanim to zrobisz, ustal, które przypadki testu zmienią wynik.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> kroki 1 i 2 muszą przejść <code>EncapsulationKeepsBehaviour</code> bez zmiany oczekiwań. Po kroku 3 porównaj swój wynik z <code>Step3RejectsIllegalTransitions</code>.
+<strong>Gotowe, gdy:</strong> po krokach 1-2 test równoważności jest zielony, pole jest prywatne i właściwość <code>Status</code> nie ma settera, a po kroku 3 dozwolone ścieżki działają jak wcześniej.</p>
+<h2 id="scena-s11-encapsulate-collection-trzy-kontrakty-listy-miejsc" tabindex="-1"><a class="header-anchor" href="#scena-s11-encapsulate-collection-trzy-kontrakty-listy-miejsc"><span>Scena s11. Encapsulate Collection - trzy kontrakty listy miejsc</span></a></h2>
+<p><strong>Namespace:</strong> <code>Training.Workshop.M4.S11EncapsulateCollection.Start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s11</code></p>
+<p><strong>Zasada:</strong> Encapsulate Collection oddaje właścicielowi kontrolę nad członkostwem kolekcji. To, co zwraca właściwość (alias, widok albo kopia), jest osobnym kontraktem.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Ukryj listę miejsc i przenieś zmiany członkostwa do <code>Booking</code>.</li>
+<li>Przepisz <code>SeatDesk</code>, żeby nie dotykał listy bezpośrednio.</li>
+<li>Przygotuj dwie wersje właściwości: niemodyfikowalny widok i migawkę. Dla każdej napisz, co zobaczy klient, który pobrał listę przed dodaniem nowego miejsca.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> który z tych kroków jest jeszcze refaktoryzacją, a który już zmianą kontraktu? <code>S11CollectionContractTest</code> odpowiada na to tabelą. Pamiętaj, że sam typ <code>IReadOnlyList&lt;T&gt;</code> nie chroni listy przed rzutowaniem.
+<strong>Gotowe, gdy:</strong> <code>S11EquivalenceTest</code> jest zielony dla każdej wersji, pole jest prywatne, a Twoje przewidywania zgadzają się z testem kontraktów.</p>
+<h2 id="scena-s12-encapsulate-conditional-czy-przysluguje-zwrot" tabindex="-1"><a class="header-anchor" href="#scena-s12-encapsulate-conditional-czy-przysluguje-zwrot"><span>Scena s12. Encapsulate Conditional - czy przysługuje zwrot</span></a></h2>
+<p><strong>Namespace:</strong> <code>Training.Workshop.M4.S12EncapsulateConditional.Start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s12</code></p>
+<p><strong>Zasada:</strong> Encapsulate Conditional zamienia warunek pytający o implementację na predykat z nazwą z domeny. Krótkie spięcie i kolejność warunków są częścią zachowania.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Zamień warunki w <code>RefundCalculator.Refund</code> na metody o nazwach z regulaminu zwrotów.</li>
+<li>Zacznij od najmniejszego fragmentu, skończ na całym warunku i na warunku gałęzi.</li>
+<li>Nie upraszczaj wyrażeń logicznych przy okazji.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> sprawdź przypadki <code>Promo = null</code> i &quot;dokładnie 24 godziny przed seansem&quot;. Zastanów się, które uproszczenie by je zepsuło.
+<strong>Gotowe, gdy:</strong> test jest zielony, a oba <code>if</code> w <code>Refund</code> czytają się jak zdania z regulaminu.</p>
+
+</main>
+</div>
+<script>if(matchMedia('(max-width:900px)').matches){var d=document.querySelector('.toc details');if(d)d.open=false}</script>
+</body>
+</html>

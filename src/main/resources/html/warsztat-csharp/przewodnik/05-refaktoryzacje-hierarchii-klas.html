@@ -1,0 +1,1342 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Przewodnik: Moduł 5. Refaktoryzacje hierarchii klas - warsztat CineLegacy (C#): przewodnik prowadzącego (C#)</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1d1f23;--muted:#5f6670;--line:#e3e5e8;--card:#ffffff;--accent:#2457c5;--accent-bg:#eef3fd;
+--code-bg:#f4f5f7;--note-bg:#fff7e6;--note-line:#e6a700;--th:#f1f3f6;
+--k:#b3246b;--s:#1a7f37;--c:#6e7781;--n:#0550ae;--t:#8250df;--f:#6639ba;--a:#953800;
+--kind:#2457c5}
+@media (prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3036;--card:#1c1f23;--accent:#7aa7ff;--accent-bg:#1e2a40;
+--code-bg:#1f2328;--note-bg:#2b2412;--note-line:#c99400;--th:#23272d;
+--k:#ff7b9c;--s:#7ee2a0;--c:#8b949e;--n:#79c0ff;--t:#d2a8ff;--f:#d2a8ff;--a:#ffa657}}
+body.zadania{--kind:#1a7f37} body.warsztat{--kind:#c2570c} body.warsztat-zadania{--kind:#0f7b7b} body.rozwiazania{--kind:#b3246b} body.przyklady{--kind:#2457c5}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.topbar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 24px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);border-top:3px solid var(--kind)}
+.topbar a{color:var(--fg);text-decoration:none}
+.home{font-weight:600}
+.tabs{display:flex;gap:4px}
+.tab{padding:4px 12px;border-radius:999px;font-size:15px;color:var(--muted)!important}
+.tab:hover{background:var(--code-bg)}
+.tab.active{background:var(--accent-bg);color:var(--accent)!important;font-weight:600}
+.pager{margin-left:auto;display:flex;gap:14px;font-size:15px}
+.pager a{color:var(--muted)}.pager a:hover{color:var(--accent)}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:48px;max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+.layout.no-toc{grid-template-columns:minmax(0,1fr);max-width:1000px}
+aside{position:sticky;top:72px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px}
+.toc-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;font-weight:600}
+.toc ul{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.toc li a{display:block;padding:3px 12px;color:var(--muted);text-decoration:none;line-height:1.35}
+.toc li.h3 a{padding-left:24px;font-size:13px}
+.toc li a:hover{color:var(--accent)}
+main{min-width:0;max-width:860px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 1.2rem;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:2.6rem 0 .8rem;padding-top:.6rem;border-top:1px solid var(--line)}
+h3{font-size:1.18rem;margin:2rem 0 .6rem}
+h4{font-size:1rem;margin:1.5rem 0 .5rem}
+h1 a,h2 a,h3 a,h4 a{color:inherit;text-decoration:none}
+h2 a:hover::after,h3 a:hover::after{content:" #";color:var(--muted)}
+p,ul,ol{margin:.6rem 0 1rem}
+li{margin:.25rem 0}
+li>ul,li>ol{margin:.2rem 0}
+a{color:var(--accent)}
+strong{font-weight:650}
+code{font:0.88em/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre.code{position:relative;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:1rem 0 1.4rem}
+pre.code code{background:none;padding:0;font-size:14px;line-height:1.55}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:6px;right:10px;font:11px ui-monospace,Menlo,monospace;color:var(--muted);text-transform:uppercase}
+.table-wrap{overflow-x:auto;margin:1rem 0 1.4rem;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--th);font-weight:600}
+tr:last-child td{border-bottom:none}
+blockquote{margin:1rem 0 1.4rem;padding:10px 16px;background:var(--note-bg);border-left:4px solid var(--note-line);border-radius:0 8px 8px 0}
+blockquote p{margin:.3rem 0}
+hr{border:none;border-top:1px solid var(--line);margin:2rem 0}
+hr+h2{border-top:none;margin-top:1.4rem}
+main p code,main li code,main td code{overflow-wrap:break-word}
+.toc summary{cursor:pointer;list-style:none}.toc summary::-webkit-details-marker{display:none}
+.hljs-keyword,.hljs-selector-tag,.hljs-built_in,.hljs-literal{color:var(--k)}
+.hljs-string,.hljs-regexp,.hljs-addition{color:var(--s)}
+.hljs-comment,.hljs-quote,.hljs-meta{color:var(--c);font-style:italic}
+.hljs-number,.hljs-symbol{color:var(--n)}
+.hljs-type,.hljs-class .hljs-title,.hljs-title.class_{color:var(--t)}
+.hljs-title,.hljs-title.function_,.hljs-section{color:var(--f)}
+.hljs-attr,.hljs-attribute,.hljs-variable,.hljs-params,.hljs-tag{color:var(--a)}
+.hljs-deletion{color:var(--k)}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:16px;padding:20px 16px 60px}
+aside{position:static;max-height:none;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--card)}
+.toc-title{margin:0}.toc details[open] .toc-title{margin-bottom:8px}.toc summary::after{content:" ▾"}
+body{font-size:16px}.topbar{padding:8px 16px}.pager{margin-left:0}h1{font-size:1.6rem}}
+@media print{.topbar,aside{display:none}.layout{display:block;padding:0}main{max-width:none}
+pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#000;font-size:12pt}}
+.langs{margin-left:auto}.langs+.pager{margin-left:0}</style>
+</head>
+<body class="warsztat">
+<header class="topbar"><a class="home" href="../../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../00-cinelegacy.html">Warsztat CineLegacy</a><a class="tab" href="../zadania/05-refaktoryzacje-hierarchii-klas.html">Zadania</a><a class="tab active" href="05-refaktoryzacje-hierarchii-klas.html">Przewodnik</a></div><div class="tabs langs" aria-label="Język"><a class="tab" href="../../warsztat/przewodnik/05-refaktoryzacje-hierarchii-klas.html">Java</a><a class="tab active" href="../../warsztat-csharp/przewodnik/05-refaktoryzacje-hierarchii-klas.html">C#</a><a class="tab" href="../../warsztat-typescript/przewodnik/05-refaktoryzacje-hierarchii-klas.html">TypeScript</a></div><div class="pager"><a href="04-podstawowe-refaktoryzacje.html" title="Poprzedni moduł">&larr; 04</a><a href="06-refaktoryzacje-do-wzorcow-projektowych.html" title="Następny moduł">06 &rarr;</a></div></header>
+<div class="layout">
+<aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#jak-prowadzic-pokaz">Jak prowadzić pokaz</a></li><li class="h2"><a href="#mapa-scen">Mapa scen</a></li><li class="h2"><a href="#scena-s01-pull-up-method-najpierw-ujednolicic-ciala">Scena s01. Pull Up Method - najpierw ujednolicić ciała</a></li><li class="h3"><a href="#w-skrocie">W skrócie</a></li><li class="h3"><a href="#co-widzimy">Co widzimy</a></li><li class="h3"><a href="#krok-1-ujednolicenie-cial-metod">Krok 1: Ujednolicenie ciał metod</a></li><li class="h3"><a href="#krok-2-pull-up-price-jako-metoda-abstrakcyjna">Krok 2: Pull Up Price() jako metoda abstrakcyjna</a></li><li class="h3"><a href="#krok-3-pull-up-label-i-klient-na-typie-bazowym">Krok 3: Pull Up Label() i klient na typie bazowym</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali">Pytanie do sali</a></li><li class="h2"><a href="#scena-s02-pull-up-field-to-samo-znaczenie-typ-i-cykl-zycia">Scena s02. Pull Up Field - to samo znaczenie, typ i cykl życia</a></li><li class="h3"><a href="#w-skrocie-1">W skrócie</a></li><li class="h3"><a href="#co-widzimy-1">Co widzimy</a></li><li class="h3"><a href="#krok-1-rename-_seatcode-na-_seat">Krok 1: Rename _seatCode na _seat</a></li><li class="h3"><a href="#krok-2-ujednolicenie-cyklu-zycia-konstruktor-zamiast-settera">Krok 2: Ujednolicenie cyklu życia (konstruktor zamiast settera)</a></li><li class="h3"><a href="#krok-3-pull-up-field-_seat-i-wlasciwosci-seat">Krok 3: Pull Up Field _seat i właściwości Seat</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-1">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-1">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-1">Pytanie do sali</a></li><li class="h2"><a href="#scena-s03-push-down-methodfield-i-asymetria-przesuniec">Scena s03. Push Down Method/Field i asymetria przesunięć</a></li><li class="h3"><a href="#w-skrocie-2">W skrócie</a></li><li class="h3"><a href="#co-widzimy-2">Co widzimy</a></li><li class="h3"><a href="#krok-1-klienci-na-podtyp">Krok 1: Klienci na podtyp</a></li><li class="h3"><a href="#krok-2-najpierw-zachowanie-hak-surcharge">Krok 2: Najpierw zachowanie - hak Surcharge()</a></li><li class="h3"><a href="#krok-3-push-members-down">Krok 3: Push Members Down</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-2">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-2">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-2">Pytanie do sali</a></li><li class="h2"><a href="#scena-s04-extract-superclass-seans-i-wynajem-sali">Scena s04. Extract Superclass - seans i wynajem sali</a></li><li class="h3"><a href="#w-skrocie-3">W skrócie</a></li><li class="h3"><a href="#co-widzimy-3">Co widzimy</a></li><li class="h3"><a href="#krok-1-extract-superclass-z-screening">Krok 1: Extract Superclass z Screening</a></li><li class="h3"><a href="#krok-2-privateevent-dolacza-do-hierarchii">Krok 2: PrivateEvent dołącza do hierarchii</a></li><li class="h3"><a href="#krok-3-wspolny-algorytm-w-nadklasie">Krok 3: Wspólny algorytm w nadklasie</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-3">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-3">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-3">Pytanie do sali</a></li><li class="h2"><a href="#scena-s05-extract-subclass-premiera-z-gosciem">Scena s05. Extract Subclass - premiera z gościem</a></li><li class="h3"><a href="#w-skrocie-4">W skrócie</a></li><li class="h3"><a href="#co-widzimy-4">Co widzimy</a></li><li class="h3"><a href="#krok-1-replace-constructor-with-factory-method">Krok 1: Replace Constructor with Factory Method</a></li><li class="h3"><a href="#krok-2-extract-subclass">Krok 2: Extract Subclass</a></li><li class="h3"><a href="#krok-3-push-down-opis-i-pole-_guest">Krok 3: Push Down - opis i pole _guest</a></li><li class="h3"><a href="#krok-4-usuniecie-flagi-_premiere">Krok 4: Usunięcie flagi _premiere</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-4">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-4">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-4">Pytanie do sali</a></li><li class="h2"><a href="#scena-s06-extract-interface-rola-koszyka-i-metoda-domyslna">Scena s06. Extract Interface - rola koszyka i metoda domyślna</a></li><li class="h3"><a href="#w-skrocie-5">W skrócie</a></li><li class="h3"><a href="#co-widzimy-5">Co widzimy</a></li><li class="h3"><a href="#krok-1-extract-interface-z-perspektywy-klienta">Krok 1: Extract Interface z perspektywy klienta</a></li><li class="h3"><a href="#krok-2-klient-na-role">Krok 2: Klient na rolę</a></li><li class="h3"><a href="#krok-3-metoda-domyslna-vatamount">Krok 3: Metoda domyślna VatAmount()</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-5">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-5">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-5">Pytanie do sali</a></li><li class="h2"><a href="#scena-s07-collapse-hierarchy-sala-imax">Scena s07. Collapse Hierarchy - sala IMAX</a></li><li class="h3"><a href="#w-skrocie-6">W skrócie</a></li><li class="h3"><a href="#co-widzimy-6">Co widzimy</a></li><li class="h3"><a href="#krok-1-usuniecie-overrideow-wolajacych-tylko-base">Krok 1: Usunięcie override&#x27;ów wołających tylko base</a></li><li class="h3"><a href="#krok-2-regula-tworzenia-do-fabryki-w-hall">Krok 2: Reguła tworzenia do fabryki w Hall</a></li><li class="h3"><a href="#krok-3-safe-delete-imaxhall">Krok 3: Safe Delete ImaxHall</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-6">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-6">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-6">Pytanie do sali</a></li><li class="h2"><a href="#scena-s08-replace-inheritance-with-composition-licznik-klikniec">Scena s08. Replace Inheritance with Composition - licznik kliknięć</a></li><li class="h3"><a href="#w-skrocie-7">W skrócie</a></li><li class="h3"><a href="#co-widzimy-7">Co widzimy</a></li><li class="h3"><a href="#krok-1-replace-inheritance-with-delegation">Krok 1: Replace Inheritance with Delegation</a></li><li class="h3"><a href="#krok-2-encapsulate-collection-i-waska-fasada">Krok 2: Encapsulate Collection i wąska fasada</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-7">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-7">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-7">Pytanie do sali</a></li><li class="h2"><a href="#scena-s09-overriding-a-overloading-pulapka-po-extract-superclass">Scena s09. Overriding a overloading - pułapka po Extract Superclass</a></li><li class="h3"><a href="#w-skrocie-8">W skrócie</a></li><li class="h3"><a href="#co-widzimy-8">Co widzimy</a></li><li class="h3"><a href="#krok-1-replace-overloading-with-overriding">Krok 1: Replace Overloading with Overriding</a></li><li class="h3"><a href="#krok-2-override-equalsobject-i-gethashcode">Krok 2: override Equals(object?) i GetHashCode</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-8">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-8">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-8">Pytanie do sali</a></li><li class="h2"><a href="#scena-s10-ukrywanie-pol-i-metod-static">Scena s10. Ukrywanie pól i metod static</a></li><li class="h3"><a href="#w-skrocie-9">W skrócie</a></li><li class="h3"><a href="#co-widzimy-9">Co widzimy</a></li><li class="h3"><a href="#krok-1-jedno-pole-zamiast-dwoch-slotow">Krok 1: Jedno pole zamiast dwóch slotów</a></li><li class="h3"><a href="#krok-2-category-jako-metoda-instancji">Krok 2: Category() jako metoda instancji</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-9">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-9">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-9">Pytanie do sali</a></li><li class="h2"><a href="#scena-s11-konstruktor-wolajacy-metode-nadpisywalna">Scena s11. Konstruktor wołający metodę nadpisywalną</a></li><li class="h3"><a href="#w-skrocie-10">W skrócie</a></li><li class="h3"><a href="#co-widzimy-10">Co widzimy</a></li><li class="h3"><a href="#krok-1-szybka-naprawa-inicjalizator-pola-w-konstruktorze-glownym">Krok 1: Szybka naprawa - inicjalizator pola w konstruktorze głównym</a></li><li class="h3"><a href="#krok-2-konstruktor-bez-wywolan-wirtualnych">Krok 2: Konstruktor bez wywołań wirtualnych</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-10">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-10">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-10">Pytanie do sali</a></li><li class="h2"><a href="#scena-s12-generyki-i-metody-bridge">Scena s12. Generyki i metody bridge</a></li><li class="h3"><a href="#w-skrocie-11">W skrócie</a></li><li class="h3"><a href="#co-widzimy-11">Co widzimy</a></li><li class="h3"><a href="#krok-1-extract-interface-generycznej-roli-i-naprawa-refleksji">Krok 1: Extract Interface generycznej roli (i naprawa refleksji)</a></li><li class="h3"><a href="#krok-2-jawny-kontrakt-zamiast-refleksji">Krok 2: Jawny kontrakt zamiast refleksji</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-11">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-11">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-11">Pytanie do sali</a></li><li class="h2"><a href="#scena-s13-hierarchie-sealed-i-wyczerpujacy-switch">Scena s13. Hierarchie sealed i wyczerpujący switch</a></li><li class="h3"><a href="#w-skrocie-12">W skrócie</a></li><li class="h3"><a href="#co-widzimy-12">Co widzimy</a></li><li class="h3"><a href="#krok-1-zamkniecie-hierarchii-konstruktor-private-protected-i-sealed-record">Krok 1: Zamknięcie hierarchii - konstruktor private protected i sealed record</a></li><li class="h3"><a href="#krok-2-switch-po-typach-z-unreachableexception">Krok 2: switch po typach z UnreachableException</a></li><li class="h3"><a href="#krok-3-nowy-typ-biletu-i-test-wyczerpania">Krok 3: Nowy typ biletu i test wyczerpania</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-12">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-12">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-12">Pytanie do sali</a></li><li class="h2"><a href="#scena-s14-wspoldzielenie-implementacji-a-podtypowanie">Scena s14. Współdzielenie implementacji a podtypowanie</a></li><li class="h3"><a href="#w-skrocie-13">W skrócie</a></li><li class="h3"><a href="#co-widzimy-13">Co widzimy</a></li><li class="h3"><a href="#krok-1-extract-delegate-wspoldzielona-implementacja">Krok 1: Extract Delegate - współdzielona implementacja</a></li><li class="h3"><a href="#krok-2-konto-firmowe-przez-kompozycje-rola-dla-raportu">Krok 2: Konto firmowe przez kompozycję + rola dla raportu</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-13">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-13">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-13">Pytanie do sali</a></li><li class="h2"><a href="#scena-s15-zgodnosc-binarna-refleksja-i-adnotacje">Scena s15. Zgodność binarna, refleksja i adnotacje</a></li><li class="h3"><a href="#w-skrocie-14">W skrócie</a></li><li class="h3"><a href="#co-widzimy-14">Co widzimy</a></li><li class="h3"><a href="#krok-1-przygotowanie-refleksji-przed-ruchem-w-hierarchii">Krok 1: Przygotowanie refleksji przed ruchem w hierarchii</a></li><li class="h3"><a href="#krok-2-pull-up-price-z-atrybutem">Krok 2: Pull Up Price() z atrybutem</a></li><li class="h3"><a href="#krok-3-generalize-parameter-type-zmiana-lamiaca-binarnie">Krok 3: Generalize Parameter Type - zmiana łamiąca binarnie</a></li><li class="h3"><a href="#krok-4-przestarzale-przeciazenie-delegujace">Krok 4: Przestarzałe przeciążenie delegujące</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-14">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-14">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-14">Pytanie do sali</a></li><li class="h2"><a href="#scena-s16-serializacja-i-proxy-hierarchia-jako-format-danych">Scena s16. Serializacja i proxy - hierarchia jako format danych</a></li><li class="h3"><a href="#w-skrocie-15">W skrócie</a></li><li class="h3"><a href="#co-widzimy-15">Co widzimy</a></li><li class="h3"><a href="#krok-1-extract-superclass-pull-up-field-ciche-zgubienie-danych">Krok 1: Extract Superclass + Pull Up Field - ciche zgubienie danych</a></li><li class="h3"><a href="#krok-2-serialization-proxy-json-i-plaski-dto">Krok 2: Serialization Proxy (JSON i płaski DTO)</a></li><li class="h3"><a href="#krok-3-extract-interface-dla-dynamicznego-proxy">Krok 3: Extract Interface dla dynamicznego proxy</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-15">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-15">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-15">Pytanie do sali</a></li><li class="h2"><a href="#proponowana-kolejnosc-pokazu">Proponowana kolejność pokazu</a></li></ul></details></nav></aside>
+<main>
+<h1>Moduł 5. Refaktoryzacje hierarchii klas - warsztat CineLegacy (C#): przewodnik prowadzącego</h1>
+<p>Szesnaście małych scen w domenie kina CineLegacy pokazuje każdy ruch z modułu 5: Pull Up / Push Down, Extract Superclass / Subclass / Interface, Collapse Hierarchy, kompozycję zamiast dziedziczenia, a także semantykę C# i CLR, która sprawia, że te ruchy bywają niebezpieczne (przeciążenia, ukrywanie pól, konstruktory, generyki i refleksja, hierarchie zamknięte, zgodność binarna, serializacja, proxy). Sceny nie powielają studium powiadomień z modułu 5 (w repozytorium w wersji Java, <code>pl.training.module5</code>) ani ćwiczeń z <code>md/<wbr>zadania/<wbr>05-*.md</code>. Każda scena ma katalog (namespace) <code>Start</code> (na nim pracujesz na żywo), kompletne snapshoty <code>StepN</code> i testy, które po każdym kroku mają być zielone.</p>
+<p>Kod portu C# leży w <code>csharp/<wbr>src/<wbr>Training.Workshop/<wbr>M5/<wbr>SNN.../<wbr>{Start,Step1,...}</code>, testy (xUnit) w <code>csharp/<wbr>tests/<wbr>Training.Workshop.Tests/<wbr>M5/<wbr>SNN.../<wbr></code>. Wspólne konwencje portu: gettery Javy (<code>title()</code>, <code>seat()</code>, <code>basePrice()</code>) to właściwości (<code>Title</code>, <code>Seat</code>, <code>BasePrice</code>), a metody liczące i nadpisywane (<code>Price()</code>, <code>Label()</code>, <code>Describe()</code>) zostały metodami. W C# metody <strong>domyślnie nie są wirtualne</strong>: tam, gdzie Java po prostu nadpisuje metodę bazy, baza ma w C# jawne <code>virtual</code> albo <code>abstract</code>, podklasa obowiązkowe <code>override</code>, a javowe <code>final</code> na metodzie to zwykła metoda niewirtualna. Ukrycie członka bazy wymaga słowa <code>new</code> - bez niego kompilator daje ostrzeżenie CS0108/CS0114, a projekt ma <code>TreatWarningsAsErrors</code>, więc to błąd. Tam, gdzie scena w porcie działa inaczej niż w Javie, akapit <strong>Różnica względem Javy</strong> mówi, co i dlaczego.</p>
+<h2 id="jak-prowadzic-pokaz" tabindex="-1"><a class="header-anchor" href="#jak-prowadzic-pokaz"><span>Jak prowadzić pokaz</span></a></h2>
+<pre class="code" data-lang="bash"><code class="hljs">scripts/warsztat.sh --lang cs list m5              <span class="hljs-comment"># sceny i kroki modułu 5</span>
+scripts/warsztat.sh --lang cs <span class="hljs-built_in">test</span> m5/s01          <span class="hljs-comment"># testy jednej sceny</span>
+scripts/warsztat.sh --lang cs <span class="hljs-built_in">test</span> m5              <span class="hljs-comment"># wszystkie sceny modułu (238 testów)</span>
+scripts/warsztat.sh --lang cs diff m5/s01 0 1      <span class="hljs-comment"># co zmienia krok 1 względem Start</span>
+scripts/warsztat.sh --lang cs diff m5/s01 0 1 --word  <span class="hljs-comment"># to samo, zmiany podświetlone w obrębie linii</span>
+scripts/warsztat.sh --lang cs jump m5/s01 2        <span class="hljs-comment"># nie zdążyłeś? Start = snapshot Step2</span>
+scripts/warsztat.sh --lang cs next m5/s01          <span class="hljs-comment"># następny krok do Start + podsumowanie zmian</span>
+scripts/warsztat.sh next                           <span class="hljs-comment"># kolejny krok tej samej sceny (język i scena zapamiętane)</span>
+scripts/warsztat.sh prev                           <span class="hljs-comment"># krok wstecz</span>
+scripts/warsztat.sh status                         <span class="hljs-comment"># który krok jest teraz w Start</span>
+scripts/warsztat.sh --lang cs reset m5/s01         <span class="hljs-comment"># przywraca Start z repozytorium</span>
+</code></pre>
+<ul>
+<li>Zasada: <strong>jeden krok - jeden test - jedno zdanie komentarza</strong>. Po każdym ruchu w Rider uruchamiasz test sceny (ikona w gutterze przy klasie testu albo okno Unit Tests), zanim cokolwiek powiesz.</li>
+<li><strong>Krok po kroku bez numerów:</strong> <code>scripts/<wbr>warsztat.sh --lang cs next m5/<wbr>sNN</code> wstawia do <code>Start</code> gotowy następny krok i wypisuje, co się zmieniło. <code>prev</code> cofa o krok, <code>status</code> mówi, który krok jest teraz w <code>Start</code>. Skrypt pamięta język i ostatnią scenę, więc potem wystarczy samo <code>next</code>. Ręczne zmiany w <code>Start</code> zostają nadpisane - o to chodzi, gdy krok na żywo się rozjechał.</li>
+<li>Test <code>SNNEquivalenceTest</code> sprawdza, że Start i wszystkie kroki zachowują się tak samo. <code>SNNSolutionTest</code> pokazuje to, czego równoważność nie widzi: typ deklarujący członka, klasę runtime, pułapkę semantyki, zgodność binarną.</li>
+<li>Sceny o pułapkach (s08-s11, s13) mają w <code>SNNSolutionTest</code> testy o nazwie <code>Start...</code>, które <strong>dokumentują pułapkę w Start</strong>. Gdy naprawisz Start na żywo, te testy zrobią się czerwone - to jest dowód, że pułapka zniknęła. Powiedz to sali przed pierwszym krokiem. <code>reset</code> przywraca stan wyjściowy.</li>
+<li>Pozostałe testy strukturalne sprawdzają snapshoty <code>StepN</code>, więc praca na <code>Start</code> ich nie psuje.</li>
+<li>Kilka scen (s13, s15, s16) kompiluje w teście kod w pamięci przez Roslyn i ładuje go w osobnym <code>AssemblyLoadContext</code> - to odpowiednik <code>javax.tools</code> i <code>URLClassLoader</code> z wersji Java. Pomocnicze klasy leżą w <code>tests/<wbr>Training.Workshop.Tests/<wbr>M5/<wbr>Tooling</code> (<code>InMemoryAssembly</code>, <code>SceneSources</code>) i nie są sceną.</li>
+<li>Scena s11 w C# kompiluje się <strong>bez</strong> ostrzeżenia: kompilator C# nie ma odpowiednika javowego <code>-Xlint:this-escape</code>. Najbliższy jest analizator CA2214 (&quot;nie wołaj metod nadpisywalnych w konstruktorach&quot;), wspomniany w komentarzu kodu, ale niewłączony w buildzie.</li>
+<li>Skróty w Rider (keymap macOS w stylu IntelliJ): ⌃T Refactor This (menu wszystkich refaktoryzacji w miejscu kursora, tam są m.in. Pull Members Up, Push Members Down, Extract Superclass, Extract Interface, Extract Class, Safe Delete), ⇧F6 Rename, ⌥⌘M Extract Method, ⌥⌘V Introduce Variable, ⌥⌘N Inline, F6 Move, ⌘F6 Change Signature, ⌘⌦ Safe Delete, ⌘N Generate (konstruktory, Overriding Members, Delegating Members, Equality Members), ⌥⏎ akcje kontekstowe i quick fixy.</li>
+</ul>
+<h2 id="mapa-scen" tabindex="-1"><a class="header-anchor" href="#mapa-scen"><span>Mapa scen</span></a></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Scena</th>
+<th>Temat ze slajdów</th>
+<th>Kroki</th>
+<th>Namespace</th>
+<th>Czas</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>s01</td>
+<td>Pull Up Method (3.1-3.3)</td>
+<td>3</td>
+<td><code>M5.S01PullUpMethod</code></td>
+<td>~12 min</td>
+</tr>
+<tr>
+<td>s02</td>
+<td>Pull Up Field (3.4-3.6)</td>
+<td>3</td>
+<td><code>M5.S02PullUpField</code></td>
+<td>~10 min</td>
+</tr>
+<tr>
+<td>s03</td>
+<td>Push Down Method/Field, asymetria przesunięć (4.1-4.4)</td>
+<td>3</td>
+<td><code>M5.S03PushDown</code></td>
+<td>~12 min</td>
+</tr>
+<tr>
+<td>s04</td>
+<td>Extract Superclass, konstruktory i fabryki (5)</td>
+<td>3</td>
+<td><code>M5.S04ExtractSuperclass</code></td>
+<td>~15 min</td>
+</tr>
+<tr>
+<td>s05</td>
+<td>Extract Subclass (6)</td>
+<td>4</td>
+<td><code>M5.S05ExtractSubclass</code></td>
+<td>~15 min</td>
+</tr>
+<tr>
+<td>s06</td>
+<td>Extract Interface, domyślne metody interfejsu (7.1-7.4)</td>
+<td>3</td>
+<td><code>M5.S06ExtractInterface</code></td>
+<td>~12 min</td>
+</tr>
+<tr>
+<td>s07</td>
+<td>Collapse Hierarchy (8)</td>
+<td>3</td>
+<td><code>M5.S07CollapseHierarchy</code></td>
+<td>~8 min</td>
+</tr>
+<tr>
+<td>s08</td>
+<td>Replace Inheritance with Composition, <code>new</code> zamiast <code>override</code>, pułapki delegowania (9.1-9.4)</td>
+<td>2</td>
+<td><code>M5.S08Composition</code></td>
+<td>~12 min</td>
+</tr>
+<tr>
+<td>s09</td>
+<td>Overriding a overloading (2.1-2.2)</td>
+<td>2</td>
+<td><code>M5.S09Overloading</code></td>
+<td>~10 min</td>
+</tr>
+<tr>
+<td>s10</td>
+<td>Ukrywanie pól i metod static (2.3)</td>
+<td>2</td>
+<td><code>M5.S10FieldHiding</code></td>
+<td>~8 min</td>
+</tr>
+<tr>
+<td>s11</td>
+<td>Konstruktor wołający override, inicjalizatory pól przed konstruktorem bazy (2.4)</td>
+<td>2</td>
+<td><code>M5.S11ConstructorCall</code></td>
+<td>~8 min</td>
+</tr>
+<tr>
+<td>s12</td>
+<td>Generyki i metody bridge (2.7, 10.2)</td>
+<td>2</td>
+<td><code>M5.S12BridgeMethods</code></td>
+<td>~10 min</td>
+</tr>
+<tr>
+<td>s13</td>
+<td>Hierarchie zamknięte, <code>switch</code> po typach, <code>UnreachableException</code> (2.8)</td>
+<td>3</td>
+<td><code>M5.S13Sealed</code></td>
+<td>~12 min</td>
+</tr>
+<tr>
+<td>s14</td>
+<td>Współdzielenie implementacji a podtypowanie (1.1-1.2, 9.1)</td>
+<td>2</td>
+<td><code>M5.S14Reuse</code></td>
+<td>~10 min</td>
+</tr>
+<tr>
+<td>s15</td>
+<td>Zgodność binarna, refleksja i atrybuty (1.3, 10.2-10.3)</td>
+<td>4</td>
+<td><code>M5.S15Compatibility</code></td>
+<td>~15 min</td>
+</tr>
+<tr>
+<td>s16</td>
+<td>Serializacja, proxy, DI/ORM (10.4-10.6)</td>
+<td>3</td>
+<td><code>M5.S16SerializationProxy</code></td>
+<td>~12 min</td>
+</tr>
+</tbody>
+</table></div>
+<p>Pełne nazwy namespace zaczynają się od <code>Training.Workshop.</code>, katalogi to <code>csharp/<wbr>src/<wbr>Training.Workshop/<wbr>M5/<wbr>S01PullUpMethod</code> itd.</p>
+<h2 id="scena-s01-pull-up-method-najpierw-ujednolicic-ciala" tabindex="-1"><a class="header-anchor" href="#scena-s01-pull-up-method-najpierw-ujednolicic-ciala"><span>Scena s01. Pull Up Method - najpierw ujednolicić ciała</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 3.1-3.3. Pull Up Method
+<strong>Namespace:</strong> <code>Training.Workshop.M5.S01PullUpMethod</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m5/<wbr>s01</code>
+<strong>Czas:</strong> ~12 min</p>
+<h3 id="w-skrocie" tabindex="-1"><a class="header-anchor" href="#w-skrocie"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> Trzy podklasy <code>Ticket</code> mają własne <code>Label()</code>, różne tekstem, a robiące to samo. Najpierw ujednolicamy ciała, potem wciągamy do bazy abstrakcyjne <code>Price()</code> jako punkt rozszerzenia, a na końcu jedno niewirtualne <code>Label()</code>.</p>
+<p><strong>Zasada:</strong> Pull Up Method przenosi metodę na najniższy poziom hierarchii, na którym jest prawdziwa dla wszystkich potomków. Porównujemy kontrakty, a nie tekst: identyczne ciało nie gwarantuje tego samego zachowania, a różny tekst może kodować ten sam kontrakt.</p>
+<p><strong>Efekt:</strong> Podklasy zawierają tylko regułę ceny, a <code>BoxOffice</code> pracuje na typie bazowym. Kosztem jest niewirtualne <code>Label()</code>: bilet z innym formatem etykiety będzie wymagał świadomej zmiany kontraktu bazy.</p>
+<p><strong>Różnica względem Javy:</strong> javowe <code>final label()</code> to w C# po prostu metoda bez <code>virtual</code> - podklasa nie może jej nadpisać (<code>override</code> na niewirtualnej metodzie to błąd CS0506). Test sprawdza to przez <code>Assert.False(label.IsVirtual)</code> zamiast <code>Modifier.isFinal</code>. <code>String.format</code> z wersji Java to <code>string.Format(CultureInfo.InvariantCulture, ...)</code>.</p>
+<h3 id="co-widzimy" tabindex="-1"><a class="header-anchor" href="#co-widzimy"><span>Co widzimy</span></a></h3>
+<p>Trzy bilety (<code>StandardTicket</code>, <code>StudentTicket</code>, <code>VipTicket</code>) mają wspólną nadklasę <code>Ticket</code>, ale każdy deklaruje własne <code>Label()</code>. Ciała różnią się tekstem, a robią to samo:</p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">return</span> Title + <span class="hljs-string">&quot;: &quot;</span> + Price();                                                        <span class="hljs-comment">// StandardTicket</span>
+<span class="hljs-keyword">return</span> <span class="hljs-built_in">string</span>.Format(CultureInfo.InvariantCulture, <span class="hljs-string">&quot;{0}: {1}&quot;</span>, Title, Price());       <span class="hljs-comment">// StudentTicket</span>
+<span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> StringBuilder(Title).Append(<span class="hljs-string">&quot;: &quot;</span>).Append(Price()).ToString();              <span class="hljs-comment">// VipTicket</span>
+</code></pre>
+<p>Rider nie przeniesie w górę trzech różnych metod jako jednej. Do tego <code>Label()</code> woła <code>Price()</code>, którego baza nie zna. Klient <code>BoxOffice</code> musi znać konkretne klasy.</p>
+<h3 id="krok-1-ujednolicenie-cial-metod" tabindex="-1"><a class="header-anchor" href="#krok-1-ujednolicenie-cial-metod"><span>Krok 1: Ujednolicenie ciał metod</span></a></h3>
+<p><strong>W IDE:</strong> ręcznie zmień ciało <code>Label()</code> w <code>StudentTicket</code> i <code>VipTicket</code> na wersję z <code>StandardTicket</code>. Możesz skopiować i wkleić, ale porównaj wynik z kontraktem, nie z tekstem: <code>{0}</code> w <code>string.Format</code> i konkatenacja dają to samo, bo oba wołają <code>Money.ToString()</code>, a ten formatuje kwotę z <code>CultureInfo.InvariantCulture</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Label</span>()</span>
+{
+    <span class="hljs-keyword">return</span> Title + <span class="hljs-string">&quot;: &quot;</span> + Price();
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m5/<wbr>s01</code> - 15 testów zielonych.
+<strong>Co powiedzieć:</strong> Pull Up wymaga identycznego ciała, więc najpierw robimy z trzech wersji jedną. To osobny, bezpieczny krok, a test pilnuje, że format się nie zmienił.
+<strong>Snapshot:</strong> <code>Step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s01 0 1</code></p>
+<h3 id="krok-2-pull-up-price-jako-metoda-abstrakcyjna" tabindex="-1"><a class="header-anchor" href="#krok-2-pull-up-price-jako-metoda-abstrakcyjna"><span>Krok 2: Pull Up Price() jako metoda abstrakcyjna</span></a></h3>
+<p><strong>W IDE:</strong> w <code>StandardTicket</code> na <code>Price()</code> ⌃T &gt; Pull Members Up, zaznacz <code>Price()</code> i opcję <strong>Make abstract</strong>. W pozostałych podklasach dodaj <code>override</code> (⌥⏎ &gt; &quot;Add 'override' modifier&quot; - bez niego kompilator zgłosi, że klasa nie implementuje abstrakcyjnego członka i że metoda ukrywa członka bazy).
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> <span class="hljs-keyword">class</span> <span class="hljs-title">Ticket</span>
+{
+    ...
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> Money <span class="hljs-title">Price</span>()</span>;
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> ciała <code>Price()</code> są różne, więc do bazy idzie tylko deklaracja. To punkt rozszerzenia, dzięki któremu wspólne <code>Label()</code> będzie mogło zamieszkać w bazie. W C# <code>override</code> jest obowiązkowe - kompilator od razu pokazuje, które metody nadpisują bazę.
+<strong>Snapshot:</strong> <code>Step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s01 1 2</code></p>
+<h3 id="krok-3-pull-up-label-i-klient-na-typie-bazowym" tabindex="-1"><a class="header-anchor" href="#krok-3-pull-up-label-i-klient-na-typie-bazowym"><span>Krok 3: Pull Up Label() i klient na typie bazowym</span></a></h3>
+<p><strong>W IDE:</strong> ⌃T &gt; Pull Members Up na <code>Label()</code> w <code>StandardTicket</code>. Kopie w <code>StudentTicket</code> i <code>VipTicket</code> usuń (Safe Delete ⌘⌦) - zostawione ukrywałyby metodę bazy (ostrzeżenie CS0108, u nas błąd). Nie dodawaj <code>virtual</code>. W <code>BoxOffice</code> zmień <code>switch</code> tak, by zwracał <code>Ticket</code>, i wywołaj <code>Label()</code> raz (Introduce Variable ⌥⌘V).
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Label</span>()</span>
+{
+    <span class="hljs-keyword">return</span> Title + <span class="hljs-string">&quot;: &quot;</span> + Price();
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony. <code>S01SolutionTest</code> sprawdza, że <code>Label()</code> jest zadeklarowane tylko w <code>Ticket</code> i nie jest wirtualne, a <code>Price()</code> jest abstrakcyjne.
+<strong>Co powiedzieć:</strong> metoda trafiła na najniższy poziom, na którym jest prawdziwa dla wszystkich potomków. Brak <code>virtual</code> (odpowiednik <code>final</code>) chroni przed przypadkowym nadpisaniem przez podklasę spoza repozytorium, która miała własne <code>Label()</code>: jej <code>override</code> się nie skompiluje, a metoda bez <code>override</code> dostanie ostrzeżenie o ukryciu, zamiast po cichu zmienić zachowanie.
+<strong>Snapshot:</strong> <code>Step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s01 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>Step3/<wbr>Ticket</code> ma abstrakcyjne <code>Price()</code> i niewirtualne <code>Label()</code>. Podklasy zawierają tylko to, co naprawdę różne: regułę ceny. Klient tworzy konkretny bilet w jednym miejscu, a dalej pracuje na typie bazowym.</p>
+<h3 id="pulapki" tabindex="-1"><a class="header-anchor" href="#pulapki"><span>Pułapki</span></a></h3>
+<ul>
+<li>Pull Up metody o tej samej sygnaturze, ale innym kontrakcie (np. <code>Label()</code> jednej podklasy dodaje walutę). Tekst to nie kontrakt.</li>
+<li>Metoda wciągnięta do bazy, która korzysta z pola dostępnego tylko w jednej podklasie - IDE zaproponuje wtedy <code>protected</code> pole albo właściwość &quot;na zapas&quot;.</li>
+<li>Zewnętrzna podklasa z metodą o tej samej nazwie: w C# nie staje się nieplanowanym override (bez <code>override</code> to ukrycie z ostrzeżeniem CS0108), ale gdy ktoś &quot;naprawi&quot; ostrzeżenie słowem <code>new</code>, klient wołający przez typ bazowy dostanie wersję z bazy, a przez typ podklasy - wersję z podklasy.</li>
+<li>Refleksja: <code>typeof(StudentTicket).GetMethod(&quot;Label&quot;, BindingFlags.DeclaredOnly | ...)</code> przestaje ją znajdować po Pull Up (scena s15).</li>
+</ul>
+<h3 id="pytanie-do-sali" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali"><span>Pytanie do sali</span></a></h3>
+<p>Czy <code>Label()</code> powinno zostać niewirtualne, jeśli za rok pojawi się bilet z etykietą w innym formacie? Co wtedy zrobicie?</p>
+<h2 id="scena-s02-pull-up-field-to-samo-znaczenie-typ-i-cykl-zycia" tabindex="-1"><a class="header-anchor" href="#scena-s02-pull-up-field-to-samo-znaczenie-typ-i-cykl-zycia"><span>Scena s02. Pull Up Field - to samo znaczenie, typ i cykl życia</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 3.4-3.6. Pull Up Field i ryzyka Pull Up
+<strong>Namespace:</strong> <code>Training.Workshop.M5.S02PullUpField</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m5/<wbr>s02</code>
+<strong>Czas:</strong> ~10 min</p>
+<h3 id="w-skrocie-1" tabindex="-1"><a class="header-anchor" href="#w-skrocie-1"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> Każdy bilet trzyma miejsce na sali po swojemu: inna nazwa pola, setter zamiast konstruktora, normalizacja w VIP. Wyrównujemy nazwę i cykl życia pól, a dopiero potem przenosimy jedno pole <code>_seat</code> do <code>Ticket</code>.</p>
+<p><strong>Zasada:</strong> Pull Up Field łączy pola tylko wtedy, gdy mają to samo znaczenie, typ, cykl życia, walidację i moment inicjalizacji. Pole w bazie jest <code>private</code> i ustawiane przez <code>base(...)</code>, a nie surowe <code>protected</code>. Ten sam typ i podobna nazwa to za mało - dlatego <code>_studentId</code> zostaje.</p>
+<p><strong>Efekt:</strong> Stan miejsca ma jedno źródło, a normalizacja VIP została w podklasie, która przekazuje bazie gotową wartość. Znika setter, więc miejsce biletu normalnego jest teraz niemutowalne.</p>
+<p><strong>Różnica względem Javy:</strong> setter <code>setSeat</code> to w C# właściwość z setterem (<code>Seat { get; set; }</code>), a klient używa inicjalizatora obiektu <code>new StandardTicket { Seat = seat }</code>. Różnicę cyklu życia widać też w typach: pole ustawiane setterem po konstrukcji jest <code>string?</code>, bo do chwili wywołania settera jest <code>null</code>. Javowe <code>final</code> na polu to <code>readonly</code> (test sprawdza <code>FieldInfo.IsInitOnly</code>), a pola mają prefiks <code>_</code>: <code>_seat</code>, <code>_seatCode</code>, <code>_studentId</code>.</p>
+<h3 id="co-widzimy-1" tabindex="-1"><a class="header-anchor" href="#co-widzimy-1"><span>Co widzimy</span></a></h3>
+<p>Każdy bilet przechowuje miejsce na sali, ale każdy po swojemu: <code>StandardTicket</code> ma mutowalne <code>_seat</code> ustawiane setterem właściwości, <code>StudentTicket</code> ma <code>_seatCode</code> z właściwością <code>SeatCode</code>, a <code>VipTicket</code> normalizuje wartość do wielkich liter. <code>_studentId</code> to zupełnie inne pojęcie.</p>
+<pre class="code" data-lang="csharp"><code class="hljs">_ =&gt; <span class="hljs-keyword">new</span> StandardTicket { Seat = seat }.Describe(),   <span class="hljs-comment">// klient w BoxOffice</span>
+</code></pre>
+<h3 id="krok-1-rename-_seatcode-na-_seat" tabindex="-1"><a class="header-anchor" href="#krok-1-rename-_seatcode-na-_seat"><span>Krok 1: Rename _seatCode na _seat</span></a></h3>
+<p><strong>W IDE:</strong> w <code>StudentTicket</code> na polu <code>_seatCode</code> Rename ⇧F6 -&gt; <code>_seat</code> (Rider zaproponuje zmianę nazwy parametru konstruktora - zgódź się). Właściwość <code>SeatCode</code> również ⇧F6 -&gt; <code>Seat</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">string</span> _seat;
+
+<span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> Seat =&gt; _seat;
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m5/<wbr>s02</code> - 15 testów zielonych.
+<strong>Co powiedzieć:</strong> to samo znaczenie musi mieć tę samą nazwę, inaczej IDE nie połączy pól. Rename jest bezpieczny, bo nikt spoza klasy nie używał <code>SeatCode</code>.
+<strong>Snapshot:</strong> <code>Step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s02 0 1</code></p>
+<h3 id="krok-2-ujednolicenie-cyklu-zycia-konstruktor-zamiast-settera" tabindex="-1"><a class="header-anchor" href="#krok-2-ujednolicenie-cyklu-zycia-konstruktor-zamiast-settera"><span>Krok 2: Ujednolicenie cyklu życia (konstruktor zamiast settera)</span></a></h3>
+<p><strong>W IDE:</strong> Introduce Parameter ⌥⌘P nie pomoże przy setterze, więc ręcznie: w <code>StandardTicket</code> dodaj konstruktor <code>StandardTicket(string seat)</code> (Generate ⌘N &gt; Constructor), oznacz pole <code>readonly</code> i zmień jego typ na <code>string</code>, zamień właściwość na tylko do odczytu <code>Seat =&gt; _seat</code> i popraw klienta na <code>new StandardTicket(seat)</code>. Kompilator wskaże jedyne użycie settera w <code>BoxOffice</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">string</span> _seat;
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">StandardTicket</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> seat</span>)</span>
+{
+    _seat = seat;
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> pole mutowalne i pole <code>readonly</code> to dwa różne cykle życia - w C# widać to nawet w typie (<code>string?</code> kontra <code>string</code>). Gdybyśmy wciągnęli je do bazy teraz, jeden z biletów zmieniłby semantykę. Dopiero po tym kroku trzy pola mają ten sam typ, znaczenie, walidację i moment inicjalizacji.
+<strong>Snapshot:</strong> <code>Step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s02 1 2</code></p>
+<h3 id="krok-3-pull-up-field-_seat-i-wlasciwosci-seat" tabindex="-1"><a class="header-anchor" href="#krok-3-pull-up-field-_seat-i-wlasciwosci-seat"><span>Krok 3: Pull Up Field _seat i właściwości Seat</span></a></h3>
+<p><strong>W IDE:</strong> w <code>StandardTicket</code> ⌃T &gt; Pull Members Up, zaznacz pole <code>_seat</code> i właściwość <code>Seat</code>. Duplikaty w <code>StudentTicket</code> i <code>VipTicket</code> usuń (Safe Delete ⌘⌦) - zostawione ukryłyby członków bazy (scena s10). Następnie w <code>Ticket</code> dodaj konstruktor <code>protected Ticket(string seat)</code> (Generate ⌘N &gt; Constructor) i w podklasach zamień przypisanie na <code>: base(seat)</code>. W <code>VipTicket</code>: <code>: base(seat.ToUpperInvariant())</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> <span class="hljs-keyword">class</span> <span class="hljs-title">Ticket</span>
+{
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">string</span> _seat;
+
+    <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-title">Ticket</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> seat</span>)</span>
+    {
+        _seat = seat;
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> Seat =&gt; _seat;
+    ...
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony. <code>S02SolutionTest</code> sprawdza, że pole jest <code>private readonly</code> w <code>Ticket</code>, a <code>_studentId</code> zostało w <code>StudentTicket</code>.
+<strong>Co powiedzieć:</strong> pole w bazie jest prywatne i ustawiane przez <code>base(...)</code>, nie <code>protected</code>. Reguła normalizacji VIP została w podklasie - baza dostaje już gotową wartość.
+<strong>Snapshot:</strong> <code>Step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s02 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-1" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-1"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Jedno źródło stanu miejsca, bez surowego <code>protected</code>. Pola o innym znaczeniu (<code>_studentId</code>) nie są przenoszone tylko dlatego, że mają ten sam typ.</p>
+<h3 id="pulapki-1" tabindex="-1"><a class="header-anchor" href="#pulapki-1"><span>Pułapki</span></a></h3>
+<ul>
+<li>Pull Members Up potrafi zostawić pole z dostępem <code>protected</code>, żeby podklasy dalej się kompilowały. Zmień na <code>private</code> + właściwość.</li>
+<li>Pola <code>static</code> o tej samej nazwie po Pull Up scalają dwa niezależne stany (np. liczniki numerów biletów).</li>
+<li>Refleksja i serializatory zobaczą inny typ deklarujący pola (scena s16).</li>
+<li>Pole wciągnięte w górę, choć w bazie i podklasie zostawiono deklaracje, to dwa sloty (scena s10). W C# kompilator ostrzeże o ukryciu, ale słowo <code>new</code> to ostrzeżenie ucisza.</li>
+</ul>
+<h3 id="pytanie-do-sali-1" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-1"><span>Pytanie do sali</span></a></h3>
+<p>Gdyby <code>VipTicket</code> normalizował miejsce w getterze właściwości, a nie w konstruktorze, czy Pull Up Field nadal byłby bezpieczny?</p>
+<h2 id="scena-s03-push-down-methodfield-i-asymetria-przesuniec" tabindex="-1"><a class="header-anchor" href="#scena-s03-push-down-methodfield-i-asymetria-przesuniec"><span>Scena s03. Push Down Method/Field i asymetria przesunięć</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 4.1-4.4. Push Down Method, Push Down Field i asymetria przesunięć
+<strong>Namespace:</strong> <code>Training.Workshop.M5.S03PushDown</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m5/<wbr>s03</code>
+<strong>Czas:</strong> ~12 min</p>
+<h3 id="w-skrocie-2" tabindex="-1"><a class="header-anchor" href="#w-skrocie-2"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> <code>Ticket</code> obiecuje <code>UpgradeToVip()</code> wszystkim biletom, a bilet studencki odmawia wyjątkiem. Przestawiamy klientów na podtyp, przenosimy zachowanie za hak <code>Surcharge()</code>, a na końcu spychamy pole i operację VIP do <code>StandardTicket</code>.</p>
+<p><strong>Zasada:</strong> Push Down zawęża zbyt szeroki kontrakt bazy do gałęzi, która naprawdę potrzebuje członka. Sygnały to <code>NotSupportedException</code>, flagi bez znaczenia i wywołania po sprawdzeniu <code>is</code>. Kolejność: klienci, potem zachowanie korzystające z pola, na końcu pole.</p>
+<p><strong>Efekt:</strong> Baza obiecuje tylko to, co prawdziwe dla wszystkich biletów, a <code>StudentTicket</code> nie musi niczego odmawiać. W bibliotece to zmiana łamiąca: stare binaria wołające <code>Ticket.UpgradeToVip</code> dostaną <code>MissingMethodException</code>, bo Pull Up i Push Down nie są symetryczne.</p>
+<p><strong>Różnica względem Javy:</strong> <code>UpgradeToVip()</code> musi być w bazie jawnie <code>virtual</code>, żeby <code>StudentTicket</code> mógł je nadpisać. Javowe <code>UnsupportedOperationException</code> to <code>NotSupportedException</code>, <code>instanceof</code> to <code>is</code>, a <code>getMethod(...)</code> rzucające <code>NoSuchMethodException</code> to <code>GetMethod(...)</code> zwracające <code>null</code>. Asymetria jest w CLR taka sama jak w JVM: wywołanie skompilowane jako odwołanie do metody na podklasie po Pull Up się wiąże (CLR szuka w klasach bazowych), po Push Down kończy się <code>MissingMethodException</code> (odpowiednik <code>NoSuchMethodError</code>).</p>
+<h3 id="co-widzimy-2" tabindex="-1"><a class="header-anchor" href="#co-widzimy-2"><span>Co widzimy</span></a></h3>
+<p><code>Ticket</code> obiecuje <code>UpgradeToVip()</code> wszystkim biletom, ale bilet studencki odrzuca dopłatę wyjątkiem. Klient sprawdza <code>is</code>, zanim wywoła metodę. Klasyczne sygnały zbyt szerokiego kontraktu.</p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">override</span> <span class="hljs-keyword">void</span> <span class="hljs-title">UpgradeToVip</span>()</span>
+{
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> NotSupportedException(<span class="hljs-string">&quot;bilet ulgowy nie ma dopłaty VIP&quot;</span>);
+}
+</code></pre>
+<h3 id="krok-1-klienci-na-podtyp" tabindex="-1"><a class="header-anchor" href="#krok-1-klienci-na-podtyp"><span>Krok 1: Klienci na podtyp</span></a></h3>
+<p><strong>W IDE:</strong> w <code>BoxOffice</code> rozdziel gałęzie: dla studenta zwróć cenę od razu, dla biletu normalnego zadeklaruj zmienną typu <code>StandardTicket</code> (<code>var ticket = new StandardTicket(basePrice)</code>). Ręcznie - to kilka linii.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">if</span> (<span class="hljs-string">&quot;STUDENT&quot;</span> == kind)
+{
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> StudentTicket(basePrice).Price();
+}
+<span class="hljs-keyword">var</span> ticket = <span class="hljs-keyword">new</span> StandardTicket(basePrice);
+<span class="hljs-keyword">if</span> (vip)
+{
+    ticket.UpgradeToVip();
+}
+<span class="hljs-keyword">return</span> ticket.Price();
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m5/<wbr>s03</code> - 19 testów zielonych.
+<strong>Co powiedzieć:</strong> zanim przesuniemy metodę w dół, nikt nie może jej wołać przez typ bazowy. Find Usages (⌥F7) na <code>Ticket.UpgradeToVip</code> ma pokazać tylko wywołania na <code>StandardTicket</code>.
+<strong>Snapshot:</strong> <code>Step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s03 0 1</code></p>
+<h3 id="krok-2-najpierw-zachowanie-hak-surcharge" tabindex="-1"><a class="header-anchor" href="#krok-2-najpierw-zachowanie-hak-surcharge"><span>Krok 2: Najpierw zachowanie - hak Surcharge()</span></a></h3>
+<p><strong>W IDE:</strong> w <code>Ticket.Price()</code> Extract Method ⌥⌘M na wyrażeniu dopłaty, nazwa <code>Surcharge()</code>, zwraca <code>Money.Zero</code>, i oznacz ją <code>protected virtual</code>. Następnie w <code>StandardTicket</code> Generate ⌘N &gt; Overriding Members &gt; <code>Surcharge()</code> z logiką VIP.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-comment">// Ticket</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> Money <span class="hljs-title">Price</span>()</span>
+{
+    <span class="hljs-keyword">return</span> _basePrice.Minus(_basePrice.Percent(DiscountPercent())).Plus(Surcharge());
+}
+
+<span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">virtual</span> Money <span class="hljs-title">Surcharge</span>()</span>
+{
+    <span class="hljs-keyword">return</span> Money.Zero;
+}
+
+<span class="hljs-comment">// StandardTicket</span>
+<span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">override</span> Money <span class="hljs-title">Surcharge</span>()</span>
+{
+    <span class="hljs-keyword">return</span> IsVipUpgraded ? Money.Of(<span class="hljs-string">&quot;10.00&quot;</span>) : Money.Zero;
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> baza nie czyta już pola <code>_vipUpgraded</code>. Najpierw przenosimy zachowanie, które korzysta z pola, potem samo pole - inaczej Push Down się nie skompiluje albo zostawi dwa sloty.
+<strong>Snapshot:</strong> <code>Step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s03 1 2</code></p>
+<h3 id="krok-3-push-members-down" tabindex="-1"><a class="header-anchor" href="#krok-3-push-members-down"><span>Krok 3: Push Members Down</span></a></h3>
+<p><strong>W IDE:</strong> w <code>Ticket</code> ⌃T &gt; Push Members Down, zaznacz <code>_vipUpgraded</code>, <code>UpgradeToVip()</code>, <code>IsVipUpgraded</code>, cel: tylko <code>StandardTicket</code>. W <code>StandardTicket</code> metoda traci <code>virtual</code>. Potem Safe Delete ⌘⌦ na override rzucającym wyjątek w <code>StudentTicket</code> - po ruchu i tak się nie kompiluje (nie ma czego nadpisać).
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">StandardTicket</span> : <span class="hljs-title">Ticket</span>
+{
+    <span class="hljs-keyword">private</span> <span class="hljs-built_in">bool</span> _vipUpgraded;
+    ...
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">UpgradeToVip</span>()</span>
+    {
+        _vipUpgraded = <span class="hljs-literal">true</span>;
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-built_in">bool</span> IsVipUpgraded =&gt; _vipUpgraded;
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony. <code>S03SolutionTest</code> pokazuje, że <code>typeof(Ticket).GetMethod(&quot;UpgradeToVip&quot;)</code> zwraca <code>null</code>, a metoda jest zadeklarowana w <code>StandardTicket</code>.
+<strong>Co powiedzieć:</strong> baza obiecuje tylko to, co prawdziwe dla wszystkich biletów. W bibliotece to zmiana łamiąca: stare assembly klienta ma w IL <code>callvirt Ticket::UpgradeToVip</code> i dostanie <code>MissingMethodException</code>.
+<strong>Snapshot:</strong> <code>Step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s03 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-2" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-2"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Stan i operacja VIP żyją w <code>StandardTicket</code>. <code>StudentTicket</code> nie musi niczego odmawiać. Kontrakt bazy jest węższy, ale uczciwy.</p>
+<h3 id="pulapki-2" tabindex="-1"><a class="header-anchor" href="#pulapki-2"><span>Pułapki</span></a></h3>
+<ul>
+<li><strong>Asymetria:</strong> Pull Up jest zgodny binarnie dla wywołań (CLR szuka metody w klasach bazowych, test <code>BeforePushDownSubclassFindsMethodInSuperclass</code>), Push Down nie jest (CLR nie szuka w podklasach).</li>
+<li>Kilka podklas potrzebuje metody - przesuwamy do najbliższego wspólnego przodka, nie kopiujemy do liści.</li>
+<li>Zostawienie pola w bazie i skopiowanie go do podklasy daje dwa niezależne sloty.</li>
+</ul>
+<h3 id="pytanie-do-sali-2" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-2"><span>Pytanie do sali</span></a></h3>
+<p>Jak przeprowadzić ten Push Down w opublikowanym pakiecie NuGet, którego klientów nie możecie przekompilować?</p>
+<h2 id="scena-s04-extract-superclass-seans-i-wynajem-sali" tabindex="-1"><a class="header-anchor" href="#scena-s04-extract-superclass-seans-i-wynajem-sali"><span>Scena s04. Extract Superclass - seans i wynajem sali</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 5. Extract Superclass
+<strong>Namespace:</strong> <code>Training.Workshop.M5.S04ExtractSuperclass</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m5/<wbr>s04</code>
+<strong>Czas:</strong> ~15 min</p>
+<h3 id="w-skrocie-3" tabindex="-1"><a class="header-anchor" href="#w-skrocie-3"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> Seans i wynajem sali nie mają wspólnego typu, więc <code>HallPlanner</code> ma trzy kopie warunku kolizji. Wydzielamy abstrakcyjną nadklasę <code>HallBooking</code>, dołączamy do niej klasy pojedynczo i przenosimy tam jeden algorytm <code>Overlaps</code>.</p>
+<p><strong>Zasada:</strong> Extract Superclass ma sens, gdy klasy są wariantami jednego pojęcia ze wspólnym kontraktem - samo podobieństwo linii kodu to za mało. Nazwa nadklasy opisuje pojęcie domenowe, a nie <code>Base</code> czy <code>Common</code>. Konstruktory nie są dziedziczone, więc publiczne sygnatury i fabryki zachowujemy świadomie.</p>
+<p><strong>Efekt:</strong> <code>HallPlanner</code> ma jedną pętlę, a klienci nie zauważyli zmiany, bo <code>Conflicts(...)</code>, konstruktory i <code>Rental(...)</code> zostały. Nowy poziom zmienia jednak <code>BaseType</code> i typ deklarujący właściwości, co może mieć znaczenie dla refleksji i mapperów.</p>
+<p><strong>Różnica względem Javy:</strong> <code>name()</code> to abstrakcyjna właściwość <code>Name</code>, a finalne <code>overlaps</code> to niewirtualne <code>Overlaps</code>. <code>getSuperclass()</code> to <code>Type.BaseType</code>. <code>LocalDateTime</code> to <code>DateTime</code>, <code>isBefore</code> to operator <code>&lt;</code>, a wynik jest sortowany <code>string.CompareOrdinal</code> (jak <code>Collections.sort</code> dla <code>String</code>).</p>
+<h3 id="co-widzimy-3" tabindex="-1"><a class="header-anchor" href="#co-widzimy-3"><span>Co widzimy</span></a></h3>
+<p><code>Screening</code> (seans) i <code>PrivateEvent</code> (wynajem sali na firmową imprezę) mają te same pojęcia: sala, początek, czas trwania, koniec. Nie mają wspólnego typu, więc <code>HallPlanner</code> szuka kolizji w trzech pętlach z trzema kopiami warunku.</p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">if</span> (a.Hall == b.Hall
+    &amp;&amp; a.Start &lt; b.End &amp;&amp; b.Start &lt; a.End)
+</code></pre>
+<p>Oba typy są wariantami jednego pojęcia - rezerwacji sali. To jest właściwy sygnał do Extract Superclass, a nie samo podobieństwo linii kodu.</p>
+<h3 id="krok-1-extract-superclass-z-screening" tabindex="-1"><a class="header-anchor" href="#krok-1-extract-superclass-z-screening"><span>Krok 1: Extract Superclass z Screening</span></a></h3>
+<p><strong>W IDE:</strong> na <code>Screening</code> ⌃T &gt; Extract Superclass, nazwa <code>HallBooking</code>, zaznacz pola <code>_hall</code>, <code>_start</code>, <code>_minutes</code> i właściwości <code>Hall</code>, <code>Start</code>, <code>End</code>. Rider wygeneruje klasę bazową i <code>: base(...)</code> w konstruktorze. Klasę bazową oznacz <code>abstract</code>, jej konstruktor <code>protected</code>. Sprawdź, czy pola w bazie są <code>private</code> - jeśli IDE dało <code>protected</code>, zmień.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> <span class="hljs-keyword">class</span> <span class="hljs-title">HallBooking</span>
+{
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">string</span> _hall;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> DateTime _start;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">int</span> _minutes;
+
+    <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-title">HallBooking</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> hall, DateTime start, <span class="hljs-built_in">int</span> minutes</span>)</span> { ... }
+    ...
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m5/<wbr>s04</code> - 19 testów zielonych.
+<strong>Co powiedzieć:</strong> nazwa opisuje pojęcie domenowe. <code>BaseScreening</code> albo <code>CommonBase</code> zdradzałyby, że wydzielamy tylko z powodu duplikacji. Publiczny konstruktor <code>Screening</code> się nie zmienił.
+<strong>Snapshot:</strong> <code>Step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s04 0 1</code></p>
+<h3 id="krok-2-privateevent-dolacza-do-hierarchii" tabindex="-1"><a class="header-anchor" href="#krok-2-privateevent-dolacza-do-hierarchii"><span>Krok 2: PrivateEvent dołącza do hierarchii</span></a></h3>
+<p><strong>W IDE:</strong> w <code>PrivateEvent</code> dopisz <code>: HallBooking</code>, dodaj do konstruktora <code>: base(hall, start, minutes)</code>, usuń zduplikowane pola i właściwości (Rider oznaczy je ostrzeżeniem &quot;hides inherited member&quot; - Safe Delete ⌘⌦).
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">PrivateEvent</span> : <span class="hljs-title">HallBooking</span>
+{
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">string</span> _client;
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">PrivateEvent</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> client, <span class="hljs-built_in">string</span> hall, DateTime start, <span class="hljs-built_in">int</span> minutes</span>) : <span class="hljs-title">base</span>(<span class="hljs-params">hall, start, minutes</span>)</span>
+    {
+        _client = client;
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> PrivateEvent <span class="hljs-title">Rental</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> client, <span class="hljs-built_in">string</span> hall, DateTime start</span>)</span>
+    {
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> PrivateEvent(client, hall, start, <span class="hljs-number">120</span>);
+    }
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> dołączamy klasy pojedynczo, z testem po każdej. Konstruktory nie są dziedziczone, więc każdą publiczną sygnaturę i fabrykę <code>Rental(...)</code> zachowujemy świadomie.
+<strong>Snapshot:</strong> <code>Step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s04 1 2</code></p>
+<h3 id="krok-3-wspolny-algorytm-w-nadklasie" tabindex="-1"><a class="header-anchor" href="#krok-3-wspolny-algorytm-w-nadklasie"><span>Krok 3: Wspólny algorytm w nadklasie</span></a></h3>
+<p><strong>W IDE:</strong> w <code>HallPlanner</code> zaznacz warunek kolizji, Extract Method ⌥⌘M, potem przenieś metodę do <code>HallBooking</code> jako metodę instancji <code>Overlaps(HallBooking other)</code> (F6 Move, albo ręcznie: wytnij i wklej do klasy, parametr <code>a</code> staje się <code>this</code>). Dodaj abstrakcyjne <code>Name</code> (najpierw <code>Name</code> w obu podklasach, potem Pull Members Up z &quot;Make abstract&quot;). Zastąp trzy pętle jedną po <code>List&lt;HallBooking&gt;</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">var</span> bookings = <span class="hljs-keyword">new</span> List&lt;HallBooking&gt;(screenings);
+bookings.AddRange(events);
+...
+<span class="hljs-keyword">if</span> (a.Overlaps(b))
+{
+    result.Add(a.Name + <span class="hljs-string">&quot; x &quot;</span> + b.Name);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony, w tym przypadek graniczny &quot;koniec 20:00 i start 20:00 to nie konflikt&quot;.
+<strong>Co powiedzieć:</strong> dopiero wspólny typ pozwolił usunąć trzy kopie algorytmu. Publiczna sygnatura <code>Conflicts(IReadOnlyList&lt;Screening&gt;, IReadOnlyList&lt;PrivateEvent&gt;)</code> została - klienci niczego nie zauważyli.
+<strong>Snapshot:</strong> <code>Step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s04 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-3" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-3"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>HallBooking</code> jest abstrakcyjna, ma prywatny stan i niewirtualne <code>Overlaps</code>. Podklasy dostarczają tylko nazwę. <code>S04SolutionTest</code> sprawdza nowy nadtyp i symetrię <code>Overlaps</code> między seansem a wynajmem.</p>
+<h3 id="pulapki-3" tabindex="-1"><a class="header-anchor" href="#pulapki-3"><span>Pułapki</span></a></h3>
+<ul>
+<li>Nowy poziom zmienia <code>BaseType</code>, typ deklarujący właściwości i założenia mapperów (EF Core, System.Text.Json). Encja z nową klasą bazową to migracja modelu (TPH/TPT, dyskryminator), nie refaktoryzacja.</li>
+<li>Extract Superclass potrafi zrobić pola <code>protected</code> - to zaproszenie do omijania walidacji.</li>
+<li>Przeniesienie całego <code>Screening</code> naraz zamiast dołączania klas pojedynczo utrudnia znalezienie błędu.</li>
+</ul>
+<h3 id="pytanie-do-sali-3" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-3"><span>Pytanie do sali</span></a></h3>
+<p>Czy <code>HallBooking</code> powinna być klasą abstrakcyjną, czy interfejsem z domyślną metodą <code>Overlaps</code>? Co przemawia za każdą opcją?</p>
+<h2 id="scena-s05-extract-subclass-premiera-z-gosciem" tabindex="-1"><a class="header-anchor" href="#scena-s05-extract-subclass-premiera-z-gosciem"><span>Scena s05. Extract Subclass - premiera z gościem</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 6. Extract Subclass
+<strong>Namespace:</strong> <code>Training.Workshop.M5.S05ExtractSubclass</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m5/<wbr>s05</code>
+<strong>Czas:</strong> ~15 min</p>
+<h3 id="w-skrocie-4" tabindex="-1"><a class="header-anchor" href="#w-skrocie-4"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> <code>Screening</code> ma flagę <code>_premiere</code> i pole <code>_guest</code>, które dla zwykłego seansu jest zawsze <code>null</code>, a cena i opis powtarzają <code>if (_premiere)</code>. Najpierw wprowadzamy fabryki, potem podklasę <code>PremiereScreening</code>, przenosimy do niej zachowanie i stan, a na końcu usuwamy flagę.</p>
+<p><strong>Zasada:</strong> Extract Subclass tworzy podklasę dla stabilnego podzbioru instancji, który ma dodatkowy stan lub zachowanie. Wariant musi być stały przez całe życie obiektu - rola zmienna w czasie to State lub Strategy, a wiele niezależnych osi to kompozycja.</p>
+<p><strong>Efekt:</strong> Nie ma już <code>if (_premiere)</code> ani pola <code>null</code>, a <code>Programme</code> nie zmienił się od kroku 1, bo tworzy obiekty przez fabryki. Ruch celowo zmienia klasę runtime premier, co widzą <code>GetType()</code>, <code>Equals</code>, ORM i serializacja.</p>
+<p><strong>Różnica względem Javy:</strong> C# nie ma <code>sealed class ... permits</code>. Port zamyka hierarchię inaczej: konstruktor bazy jest <code>private protected</code> (dziedziczyć można tylko w tym samym assembly), a jedyna podklasa <code>PremiereScreening</code> jest <code>sealed</code> i ma konstruktor <code>internal</code> (odpowiednik javowego konstruktora pakietowego). <code>Screening</code> przestaje być <code>sealed</code>, a <code>Price()</code> i <code>Describe()</code> stają się <code>virtual</code> dopiero w krokach, w których podklasa je nadpisuje. Test zamiast <code>getPermittedSubclasses()</code> sprawdza <code>IsFamilyAndAssembly</code> konstruktorów i listę podtypów <code>Screening</code> w assembly.</p>
+<h3 id="co-widzimy-4" tabindex="-1"><a class="header-anchor" href="#co-widzimy-4"><span>Co widzimy</span></a></h3>
+<p><code>Screening</code> ma flagę <code>_premiere</code> i pole <code>_guest</code>, które ma sens tylko dla premier (dla zwykłego seansu jest <code>null</code>). Cena i opis powtarzają <code>if (_premiere)</code>. Premiera to stały wariant w całym życiu obiektu - kandydat na podklasę, nie na State.</p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">Screening</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> title, <span class="hljs-built_in">string</span> format, <span class="hljs-built_in">bool</span> premiere, <span class="hljs-built_in">string</span>? guest</span>)
+...
+<span class="hljs-keyword">return</span> _premiere ? @<span class="hljs-keyword">base</span>.<span class="hljs-title">Plus</span>(<span class="hljs-params">Money.Of(<span class="hljs-string">&quot;15.00&quot;</span></span>)) : @<span class="hljs-keyword">base</span></span>;
+</code></pre>
+<p>Reguła sceny: premiera kosztuje 15.00 więcej niż zwykły seans w tym samym formacie.</p>
+<h3 id="krok-1-replace-constructor-with-factory-method" tabindex="-1"><a class="header-anchor" href="#krok-1-replace-constructor-with-factory-method"><span>Krok 1: Replace Constructor with Factory Method</span></a></h3>
+<p><strong>W IDE:</strong> na konstruktorze ⌃T &gt; Replace Constructor with Factory Method, nazwa <code>Regular</code>. Potem ręcznie ustaw jej parametry (<code>title</code>, <code>format</code>) i dodaj drugą fabrykę <code>Premiere(title, format, guest)</code>. W <code>Programme</code> wybierz fabrykę w zależności od <code>guest</code>. Konstruktor zrób <code>private</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Screening <span class="hljs-title">Regular</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> title, <span class="hljs-built_in">string</span> format</span>)</span> { ... }
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Screening <span class="hljs-title">Premiere</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> title, <span class="hljs-built_in">string</span> format, <span class="hljs-built_in">string</span> guest</span>)</span> { ... }
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m5/<wbr>s05</code> - 18 testów zielonych.
+<strong>Co powiedzieć:</strong> najpierw punkty tworzenia. Fabryka to jedyne miejsce, które za chwilę wybierze klasę runtime, a klient już nie przekazuje flagi i <code>null</code>.
+<strong>Snapshot:</strong> <code>Step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s05 0 1</code></p>
+<h3 id="krok-2-extract-subclass" tabindex="-1"><a class="header-anchor" href="#krok-2-extract-subclass"><span>Krok 2: Extract Subclass</span></a></h3>
+<p><strong>W IDE:</strong> Rider nie ma automatu Extract Subclass - ręcznie. Usuń <code>sealed</code> z <code>Screening</code>, konstruktor zmień z <code>private</code> na <code>private protected</code>. Utwórz <code>sealed class PremiereScreening : Screening</code> z konstruktorem <code>internal</code> wołającym <code>base(title, format, true, guest)</code>. Fabryka <code>Premiere(...)</code> zwraca <code>new PremiereScreening(...)</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">Screening</span>
+{
+    ...
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">protected</span> <span class="hljs-title">Screening</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> title, <span class="hljs-built_in">string</span> format, <span class="hljs-built_in">bool</span> premiere, <span class="hljs-built_in">string</span>? guest</span>)</span> { ... }
+}
+
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">PremiereScreening</span> : <span class="hljs-title">Screening</span>
+{
+    <span class="hljs-function"><span class="hljs-keyword">internal</span> <span class="hljs-title">PremiereScreening</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> title, <span class="hljs-built_in">string</span> format, <span class="hljs-built_in">string</span> guest</span>) : <span class="hljs-title">base</span>(<span class="hljs-params">title, format, <span class="hljs-literal">true</span>, guest</span>)</span>
+    {
+    }
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> podklasa jest pusta, logika się nie zmieniła - zmieniła się tylko klasa runtime obiektów premierowych. <code>private protected</code> na konstruktorze i <code>sealed</code> na podklasie mówią wprost, że innych wariantów nie ma: nikt spoza assembly nie odziedziczy po <code>Screening</code>.
+<strong>Snapshot:</strong> <code>Step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s05 1 2</code></p>
+<h3 id="krok-3-push-down-opis-i-pole-_guest" tabindex="-1"><a class="header-anchor" href="#krok-3-push-down-opis-i-pole-_guest"><span>Krok 3: Push Down - opis i pole _guest</span></a></h3>
+<p><strong>W IDE:</strong> w bazie oznacz <code>Describe()</code> jako <code>virtual</code>, w <code>PremiereScreening</code> Generate ⌘N &gt; Overriding Members &gt; <code>Describe()</code> i przenieś tam gałąź premierową. Następnie ⌃T &gt; Push Members Down na polu <code>_guest</code> w <code>Screening</code> (albo ręcznie: pole do podklasy, parametr <code>guest</code> konstruktora bazy usunięty przez Change Signature ⌘F6).
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">override</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Describe</span>()</span>
+{
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">base</span>.Describe() + <span class="hljs-string">&quot; - premiera, gość: &quot;</span> + _guest;
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> najpierw zachowanie, potem stan - jak w Push Down ze sceny s03. Zwykły seans nie ma już pola, które zawsze było <code>null</code>, a w podklasie <code>_guest</code> jest <code>string</code>, nie <code>string?</code>.
+<strong>Snapshot:</strong> <code>Step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s05 2 3</code></p>
+<h3 id="krok-4-usuniecie-flagi-_premiere" tabindex="-1"><a class="header-anchor" href="#krok-4-usuniecie-flagi-_premiere"><span>Krok 4: Usunięcie flagi _premiere</span></a></h3>
+<p><strong>W IDE:</strong> w bazie oznacz <code>Price()</code> jako <code>virtual</code>, w <code>PremiereScreening</code> override <code>Price()</code> = <code>base.Price().Plus(PremiereSurcharge)</code>, w bazie usuń dopłatę z <code>Price()</code>. Potem Safe Delete ⌘⌦ na polu <code>_premiere</code> i Change Signature ⌘F6 na konstruktorze bazy.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">override</span> Money <span class="hljs-title">Price</span>()</span>
+{
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">base</span>.Price().Plus(PremiereSurcharge);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony. <code>S05SolutionTest</code> sprawdza klasę runtime zwracaną przez fabryki, brak pól <code>_guest</code>/<code>_premiere</code> w bazie, konstruktor <code>private protected</code> i to, że <code>PremiereScreening</code> jest jedynym, zamkniętym (<code>sealed</code>) podtypem.
+<strong>Co powiedzieć:</strong> żadnego <code>if (_premiere)</code>. Klient <code>Programme</code> nie zmienił się od kroku 1 - dzięki fabrykom cała ekstrakcja była dla niego niewidoczna.
+<strong>Snapshot:</strong> <code>Step4/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s05 3 4</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-4" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-4"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>Screening</code> zna tylko zwykły seans, <code>PremiereScreening</code> dodaje gościa i dopłatę. Hierarchia jest zamknięta w assembly (konstruktor <code>private protected</code>, podklasa <code>sealed</code>), więc wszystkie warianty seansu są znane w jednym miejscu. Kompilator C# nie sprawdzi jednak wyczerpania <code>switch</code> po klasach - wraca to w scenie s13.</p>
+<h3 id="pulapki-4" tabindex="-1"><a class="header-anchor" href="#pulapki-4"><span>Pułapki</span></a></h3>
+<ul>
+<li>Extract Subclass <strong>celowo zmienia klasę runtime</strong>: <code>GetType()</code>, <code>Equals</code> oparte na <code>GetType()</code>, dyskryminator EF Core, JSON z polem typu (<code>$type</code>), serializacja.</li>
+<li>Rola zmienna w czasie życia (seans, który &quot;staje się&quot; premierą po ogłoszeniu gościa) to State albo Strategy, nie podklasa.</li>
+<li>Kilka niezależnych osi (premiera, maraton, seans dla szkół) daje eksplozję podklas - wtedy kompozycja.</li>
+</ul>
+<h3 id="pytanie-do-sali-4" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-4"><span>Pytanie do sali</span></a></h3>
+<p>Kino zaczyna ogłaszać gości tydzień po dodaniu seansu do repertuaru. Czy podklasa nadal jest dobrym modelem?</p>
+<h2 id="scena-s06-extract-interface-rola-koszyka-i-metoda-domyslna" tabindex="-1"><a class="header-anchor" href="#scena-s06-extract-interface-rola-koszyka-i-metoda-domyslna"><span>Scena s06. Extract Interface - rola koszyka i metoda domyślna</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 7.1-7.3. Extract Interface; 7.4. Metody domyślne
+<strong>Namespace:</strong> <code>Training.Workshop.M5.S06ExtractInterface</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m5/<wbr>s06</code>
+<strong>Czas:</strong> ~12 min</p>
+<h3 id="w-skrocie-5" tabindex="-1"><a class="header-anchor" href="#w-skrocie-5"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> <code>Cart</code> ma dwie listy, dwa <code>Add(...)</code> i dwie kopie liczenia VAT dla biletów i przekąsek. Wydzielamy interfejs roli <code>IPriceable</code> tylko z tym, czego używa koszyk, przestawiamy na niego klienta i dodajemy domyślną metodę interfejsu <code>VatAmount()</code>.</p>
+<p><strong>Zasada:</strong> Extract Interface wydziela rolę określonej grupy klientów, a nie kopię całego publicznego API klasy. Implementacja interfejsu wymusza sygnatury, nie zachowanie. Metoda domyślna musi być poprawna dla każdej implementacji i korzystać wyłącznie z operacji kontraktu.</p>
+<p><strong>Efekt:</strong> Nowy rodzaj pozycji to nowa implementacja bez zmian w koszyku, a VAT liczy się w jednym miejscu. Zmiana parametru z klasy na interfejs jest zgodna źródłowo, ale nie binarnie - w bibliotece zostawilibyśmy stare przeciążenie.</p>
+<p><strong>Różnica względem Javy:</strong> interfejs ma w C# nazwę z prefiksem <code>I</code> i właściwości <code>Price</code> oraz <code>VatPercent</code>. Javowa metoda <code>default</code> to domyślna metoda interfejsu (default interface method, C# 8). W odróżnieniu od Javy jest ona widoczna <strong>tylko przez typ interfejsu</strong>: <code>glasses.VatAmount()</code> na zmiennej typu klasy się nie skompiluje, trzeba <code>((IPriceable)glasses).VatAmount()</code>. Zamiast <code>isDefault()</code> test sprawdza, że metoda interfejsu nie jest abstrakcyjna.</p>
+<h3 id="co-widzimy-5" tabindex="-1"><a class="header-anchor" href="#co-widzimy-5"><span>Co widzimy</span></a></h3>
+<p><code>Cart</code> przyjmuje bilety i przekąski z baru, ma dla nich dwie listy, dwa przeciążenia <code>Add(...)</code> i dwie kopie liczenia VAT (bilety 8%, bar 23%). Koszyk używa z obu klas tylko <code>Price</code> i <code>VatPercent</code>.</p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Add</span>(<span class="hljs-params">Ticket ticket</span>)</span>
+{
+    _tickets.Add(ticket);
+}
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Add</span>(<span class="hljs-params">Snack snack</span>)</span>
+{
+    _snacks.Add(snack);
+}
+</code></pre>
+<h3 id="krok-1-extract-interface-z-perspektywy-klienta" tabindex="-1"><a class="header-anchor" href="#krok-1-extract-interface-z-perspektywy-klienta"><span>Krok 1: Extract Interface z perspektywy klienta</span></a></h3>
+<p><strong>W IDE:</strong> na <code>Ticket</code> ⌃T &gt; Extract Interface, nazwa <code>IPriceable</code>, zaznacz <strong>tylko</strong> <code>Price</code> i <code>VatPercent</code>. Nie zamieniaj jeszcze użyć na interfejs - klientów przeniesiemy osobno. W <code>Snack</code> dopisz <code>: IPriceable</code> (sygnatury już pasują).
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title">IPriceable</span>
+{
+    Money Price { <span class="hljs-keyword">get</span>; }
+
+    <span class="hljs-built_in">int</span> VatPercent { <span class="hljs-keyword">get</span>; }
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m5/<wbr>s06</code> - 19 testów zielonych.
+<strong>Co powiedzieć:</strong> interfejs to rola jednej grupy klientów, a nie kopia publicznego API. <code>Title</code>, <code>Seat</code> i <code>Name</code> koszyka nie obchodzą.
+<strong>Snapshot:</strong> <code>Step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s06 0 1</code></p>
+<h3 id="krok-2-klient-na-role" tabindex="-1"><a class="header-anchor" href="#krok-2-klient-na-role"><span>Krok 2: Klient na rolę</span></a></h3>
+<p><strong>W IDE:</strong> w <code>Cart</code> zastąp dwie listy jedną <code>List&lt;IPriceable&gt;</code>, dwa <code>Add</code> jednym <code>Add(IPriceable)</code> (Safe Delete drugiego przeciążenia), dwie pętle jedną. ⌃T &gt; Use Base Type where Possible pomoże przy typach zmiennych.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> List&lt;IPriceable&gt; _items = [];
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Add</span>(<span class="hljs-params">IPriceable item</span>)</span>
+{
+    _items.Add(item);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> kod klienta <code>cart.Add(ticket)</code> kompiluje się dalej, więc to zmiana zgodna źródłowo. Binarnie nie: w metadanych stare assembly odwołuje się do <code>Add(Ticket)</code>, a tej sygnatury już nie ma. W bibliotece zostawilibyśmy stare przeciążenie delegujące.
+<strong>Snapshot:</strong> <code>Step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s06 1 2</code></p>
+<h3 id="krok-3-metoda-domyslna-vatamount" tabindex="-1"><a class="header-anchor" href="#krok-3-metoda-domyslna-vatamount"><span>Krok 3: Metoda domyślna VatAmount()</span></a></h3>
+<p><strong>W IDE:</strong> w <code>Cart</code> zaznacz wyrażenie liczące VAT pozycji, Extract Method ⌥⌘M, potem przenieś metodę do <code>IPriceable</code> jako metodę z ciałem (ręcznie: wytnij i wklej do interfejsu, <code>item.</code> znika, bo w interfejsie to <code>this</code>). Implementacji nie dotykasz.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function">Money <span class="hljs-title">VatAmount</span>()</span>
+{
+    <span class="hljs-keyword">var</span> rate = (<span class="hljs-built_in">decimal</span>)VatPercent;
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Money(Math.Round(Price.Amount * rate / (rate + <span class="hljs-number">100</span>), <span class="hljs-number">2</span>, MidpointRounding.AwayFromZero));
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony. <code>S06SolutionTest</code> dodaje nową implementację (okulary 3D) spoza pierwotnej hierarchii, która dostaje <code>VatAmount()</code> za darmo.
+<strong>Co powiedzieć:</strong> metoda domyślna używa wyłącznie operacji kontraktu, więc jest poprawna dla każdej implementacji. Nowy członek abstrakcyjny w opublikowanym interfejsie złamałby każdą istniejącą implementację - źródłowo i binarnie (stare assembly z implementacją dostałoby <code>TypeLoadException</code>).
+<strong>Snapshot:</strong> <code>Step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s06 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-5" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-5"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>Cart</code> zależy tylko od <code>IPriceable</code>. Nowy rodzaj pozycji (okulary 3D, voucher) to nowa implementacja bez zmian w koszyku.</p>
+<h3 id="pulapki-5" tabindex="-1"><a class="header-anchor" href="#pulapki-5"><span>Pułapki</span></a></h3>
+<ul>
+<li>Implementacja interfejsu wymusza sygnatury, nie zachowanie. Wszystkie implementacje powinny przejść ten sam test kontraktowy.</li>
+<li>Metoda klasy o tej samej sygnaturze wygrywa z domyślną metodą interfejsu. Konflikt dwóch niespokrewnionych interfejsów z tą samą metodą domyślną trzeba rozstrzygnąć jawnie w klasie.</li>
+<li>Domyślna metoda jest widoczna tylko przez typ interfejsu - klient pracujący na <code>Ticket</code> jej nie zobaczy.</li>
+<li>Metoda domyślna nie zastąpi <code>Equals</code>/<code>GetHashCode</code> i nie robi sekwencji wywołań atomowej.</li>
+<li>Zmiana parametru z klasy na interfejs zmienia sygnaturę w metadanych (scena s15).</li>
+</ul>
+<h3 id="pytanie-do-sali-5" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-5"><span>Pytanie do sali</span></a></h3>
+<p>Czy <code>VatPercent</code> w ogóle powinno być częścią roli, skoro stawka zależy od kategorii towaru, a nie od obiektu?</p>
+<h2 id="scena-s07-collapse-hierarchy-sala-imax" tabindex="-1"><a class="header-anchor" href="#scena-s07-collapse-hierarchy-sala-imax"><span>Scena s07. Collapse Hierarchy - sala IMAX</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 8. Collapse Hierarchy
+<strong>Namespace:</strong> <code>Training.Workshop.M5.S07CollapseHierarchy</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m5/<wbr>s07</code>
+<strong>Czas:</strong> ~8 min</p>
+<h3 id="w-skrocie-6" tabindex="-1"><a class="header-anchor" href="#w-skrocie-6"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> <code>ImaxHall</code> nie ma własnego stanu, jej override'y tylko wołają <code>base</code>, a jedyna różnica to reguła VIP w konstruktorze. Usuwamy puste override'y, przenosimy regułę do fabryki <code>Hall.Imax(...)</code> i kasujemy podklasę.</p>
+<p><strong>Zasada:</strong> Collapse Hierarchy scala poziomy, gdy rozróżnienie nie jest już kontraktem, wariantem ani punktem rozszerzenia. Przed usunięciem typu trzeba sprawdzić, czy nie jest markerem, typem w konfiguracji albo kontraktem DI.</p>
+<p><strong>Efekt:</strong> Zostaje jedna klasa <code>sealed</code> <code>Hall</code> z nazwaną fabryką, a wiedza o sali IMAX nie ginie. Usunięcie publicznej klasy łamie klientów, więc w bibliotece <code>ImaxHall</code> zostałaby na jedno wydanie jako przestarzały typ zgodności.</p>
+<p><strong>Różnica względem Javy:</strong> <code>Capacity</code> i <code>Describe()</code> są w <code>Hall</code> jawnie <code>virtual</code>, bo <code>ImaxHall</code> je nadpisuje. W kroku 3 <code>sealed class Hall</code> wymaga usunięcia <code>virtual</code> - nowy członek wirtualny w klasie <code>sealed</code> to błąd CS0549. <code>@Deprecated(forRemoval = true)</code> to w C# atrybut <code>[Obsolete]</code>, a brak klasy test sprawdza przez <code>Assembly.GetType(...) == null</code>.</p>
+<h3 id="co-widzimy-6" tabindex="-1"><a class="header-anchor" href="#co-widzimy-6"><span>Co widzimy</span></a></h3>
+<p><code>ImaxHall : Hall</code> nie ma własnego stanu. Jej override'y tylko wołają <code>base</code>, a jedyna różnica to reguła w konstruktorze: VIP w dwóch ostatnich rzędach. Nikt nie sprawdza <code>is ImaxHall</code>.</p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ImaxHall</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> name, <span class="hljs-built_in">int</span> rows, <span class="hljs-built_in">int</span> seatsPerRow</span>) : <span class="hljs-title">base</span>(<span class="hljs-params">name, rows, seatsPerRow, rows - <span class="hljs-number">1</span></span>)</span>
+{
+}
+
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">override</span> <span class="hljs-built_in">int</span> Capacity =&gt; <span class="hljs-keyword">base</span>.Capacity;
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">override</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Describe</span>()</span>
+{
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">base</span>.Describe();
+}
+</code></pre>
+<h3 id="krok-1-usuniecie-overrideow-wolajacych-tylko-base" tabindex="-1"><a class="header-anchor" href="#krok-1-usuniecie-overrideow-wolajacych-tylko-base"><span>Krok 1: Usunięcie override'ów wołających tylko base</span></a></h3>
+<p><strong>W IDE:</strong> Rider podkreśla je inspekcją &quot;Redundant overriding member&quot;. ⌥⏎ &gt; Remove redundant member, albo Safe Delete ⌘⌦.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">ImaxHall</span> : <span class="hljs-title">Hall</span>
+{
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ImaxHall</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> name, <span class="hljs-built_in">int</span> rows, <span class="hljs-built_in">int</span> seatsPerRow</span>) : <span class="hljs-title">base</span>(<span class="hljs-params">name, rows, seatsPerRow, rows - <span class="hljs-number">1</span></span>)</span>
+    {
+    }
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m5/<wbr>s07</code> - 22 testy zielone.
+<strong>Co powiedzieć:</strong> zostało jedno: reguła tworzenia. To nie jest kontrakt, wariant zachowania ani punkt rozszerzenia.
+<strong>Snapshot:</strong> <code>Step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s07 0 1</code></p>
+<h3 id="krok-2-regula-tworzenia-do-fabryki-w-hall" tabindex="-1"><a class="header-anchor" href="#krok-2-regula-tworzenia-do-fabryki-w-hall"><span>Krok 2: Reguła tworzenia do fabryki w Hall</span></a></h3>
+<p><strong>W IDE:</strong> w <code>Hall</code> dodaj statyczną fabrykę <code>Imax(name, rows, seatsPerRow)</code> (⌃T &gt; Replace Constructor with Factory Method na konstruktorze <code>ImaxHall</code> generuje fabrykę w <code>ImaxHall</code> - przenieś ją do <code>Hall</code>, zmień typ zwracany i <code>new ImaxHall</code> na <code>new Hall(..., rows - 1)</code>). W <code>HallCatalog</code> zamień <code>new ImaxHall(...)</code> na <code>Hall.Imax(...)</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Hall <span class="hljs-title">Imax</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> name, <span class="hljs-built_in">int</span> rows, <span class="hljs-built_in">int</span> seatsPerRow</span>)</span>
+{
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Hall(name, rows, seatsPerRow, rows - <span class="hljs-number">1</span>);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> wiedza z konstruktora podklasy ma teraz nazwę w klasie bazowej. <code>ImaxHall</code> nie ma już użyć.
+<strong>Snapshot:</strong> <code>Step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s07 1 2</code></p>
+<h3 id="krok-3-safe-delete-imaxhall" tabindex="-1"><a class="header-anchor" href="#krok-3-safe-delete-imaxhall"><span>Krok 3: Safe Delete ImaxHall</span></a></h3>
+<p><strong>W IDE:</strong> Safe Delete ⌘⌦ na <code>ImaxHall</code> (przejdzie bez ostrzeżeń, bo nie ma użyć). <code>Hall</code> oznacz <code>sealed</code> i usuń <code>virtual</code> z <code>Capacity</code> i <code>Describe()</code> - Rider sam podpowie to ⌥⏎, bo w klasie <code>sealed</code> członek wirtualny się nie skompiluje. Rider nie ma odpowiednika javowego Inline Superclass (który zresztą scala w drugą stronę i zostawia nazwę podklasy). Tu klienci używają <code>Hall</code>, więc zostaje <code>Hall</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">Hall</span>
+{
+    ...
+    <span class="hljs-keyword">public</span> <span class="hljs-built_in">int</span> Capacity =&gt; _rows * _seatsPerRow;
+    ...
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Describe</span>()</span> { ... }
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony. <code>S07SolutionTest</code> sprawdza, że klasy <code>ImaxHall</code> nie ma, a <code>Hall</code> jest <code>sealed</code>.
+<strong>Co powiedzieć:</strong> zostaje nazwa, której używają klienci. W bibliotece <code>ImaxHall</code> zostałaby na jedno wydanie jako typ zgodności oznaczony <code>[Obsolete]</code>.
+<strong>Snapshot:</strong> <code>Step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s07 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-6" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-6"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Jedna klasa <code>sealed</code> <code>Hall</code> z nazwaną fabryką. Rozróżnienie IMAX nie było kontraktem, tylko regułą tworzenia.</p>
+<h3 id="pulapki-6" tabindex="-1"><a class="header-anchor" href="#pulapki-6"><span>Pułapki</span></a></h3>
+<ul>
+<li>Pusty typ bywa <strong>markerem</strong> (np. <code>is ImaxHall</code> w konfiguracji projektora), punktem rozszerzenia albo kontraktem DI. Przed Collapse szukaj też w konfiguracji, atrybutach, rejestracjach kontenera i skanowaniu assembly.</li>
+<li>Usunięcie publicznej klasy łamie klientów - źródłowo i binarnie (<code>TypeLoadException</code> w starych assembly).</li>
+<li>Scalenie w złym kierunku (zostaje nazwa podklasy zamiast nazwy używanej przez klientów) - sprawdź kierunek przed ruchem.</li>
+</ul>
+<h3 id="pytanie-do-sali-6" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-6"><span>Pytanie do sali</span></a></h3>
+<p>Za pół roku sale IMAX dostaną inną politykę zwrotów. Czy wtedy przywrócicie podklasę, czy dodacie pole?</p>
+<h2 id="scena-s08-replace-inheritance-with-composition-licznik-klikniec" tabindex="-1"><a class="header-anchor" href="#scena-s08-replace-inheritance-with-composition-licznik-klikniec"><span>Scena s08. Replace Inheritance with Composition - licznik kliknięć</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 9.1-9.4. Replace Inheritance with Composition, procedura i pułapki delegowania
+<strong>Namespace:</strong> <code>Training.Workshop.M5.S08Composition</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m5/<wbr>s08</code>
+<strong>Czas:</strong> ~12 min</p>
+<h3 id="w-skrocie-7" tabindex="-1"><a class="header-anchor" href="#w-skrocie-7"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> <code>SeatSelection</code> dziedziczy po <code>HashSet&lt;string&gt;</code> tylko dla wygody i liczy kliknięcia, ale metody <code>HashSet</code> nie są wirtualne, więc licznik da się dołożyć tylko przez ukrycie (<code>new</code>). Hurtowy wybór wywołany przez typ bazowy albo interfejs trafia prosto do <code>HashSet</code> i nie liczy się wcale. Zastępujemy dziedziczenie delegatem i zamykamy go za wąską fasadą <code>sealed</code>.</p>
+<p><strong>Zasada:</strong> Replace Inheritance with Composition stosujemy, gdy dziedziczenie służy tylko do ponownego użycia kodu, a podklasa nie jest zastępowalnym wariantem. Dziedzicząc po cudzej klasie, wiążemy się z jej szczegółami: które metody są wirtualne i które wołają inne metody na <code>this</code> (self-use) - kontrakt biblioteki tego nie gwarantuje. Delegowanie ma własne pułapki: wyciek delegata, inny obiekt blokady i utrata <code>Equals</code>/<code>GetHashCode</code>.</p>
+<p><strong>Efekt:</strong> Zachowanie świadomie się zmienia: hurtowy wybór liczy każde miejsce raz niezależnie od typu referencji, a klient dostaje niemodyfikowalną kopię listy w kolejności wyboru. Kosztem jest utrata przypisywalności do <code>ISet&lt;string&gt;</code> oraz operacji <code>Remove</code>, <code>Clear</code> i <code>IntersectWith</code> - to nie jest zgodny zamiennik.</p>
+<p><strong>Różnica względem Javy:</strong> to adaptacja. W .NET nie ma kolekcji, w której publiczna metoda hurtowa woła publiczną wirtualną metodę pojedynczą (<code>HashSet&lt;T&gt;</code> i <code>List&lt;T&gt;</code> nie mają metod wirtualnych, a <code>ArrayList.AddRange</code> nie woła <code>Add</code>), więc javowej pułapki self-use (<code>addAll</code> woła <code>add</code>, dwa miejsca - cztery kliknięcia) nie da się odtworzyć. Port pokazuje pułapkę specyficzną dla C#: &quot;nadpisanie&quot; przez <code>new</code> to ukrycie, wiązane statycznie według typu referencji, więc wywołanie przez <code>HashSet&lt;string&gt;</code> albo <code>ISet&lt;string&gt;</code> omija licznik - dwa miejsca, <strong>zero</strong> kliknięć. <code>addAll</code> to we wszystkich wariantach <code>UnionWith</code> (Start musi ukryć metodę <code>HashSet</code>). .NET nie ma <code>LinkedHashSet</code>, więc fasada w kroku 2 trzyma <code>HashSet</code> (unikalność) i <code>List</code> (kolejność wyboru).</p>
+<h3 id="co-widzimy-7" tabindex="-1"><a class="header-anchor" href="#co-widzimy-7"><span>Co widzimy</span></a></h3>
+<p><code>SeatSelection : HashSet&lt;string&gt;</code> tylko po to, by mieć <code>Add</code>/<code>Contains</code> za darmo, i liczy kliknięcia klienta do analityki. Metody <code>HashSet</code> nie są wirtualne, więc <code>override</code> się nie skompiluje - autor dopisał <code>new</code>, żeby uciszyć ostrzeżenie o ukryciu:</p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">new</span> <span class="hljs-keyword">void</span> <span class="hljs-title">UnionWith</span>(<span class="hljs-params">IEnumerable&lt;<span class="hljs-built_in">string</span>&gt; seats</span>)</span>
+{
+    <span class="hljs-keyword">var</span> more = seats.ToList();
+    _clicks += more.Count;
+    <span class="hljs-keyword">base</span>.UnionWith(more);
+}
+</code></pre>
+<p>Działa, dopóki ktoś woła <code>selection.UnionWith(...)</code> przez zmienną typu <code>SeatSelection</code>. Wystarczy przekazać obiekt do metody przyjmującej <code>ISet&lt;string&gt;</code> albo przypisać do <code>HashSet&lt;string&gt;</code>, a wywołanie trafi do metody <code>HashSet</code> i ominie licznik. <code>S08SolutionTest.StartLosesBulkSelectionBecauseNewHidesInsteadOfOverriding</code> dokumentuje: 2 miejsca, 0 kliknięć. Drugi test <code>Start...</code> pokazuje, że odziedziczone <code>Clear()</code> (przez <code>ISet&lt;string&gt;</code>) też omija licznik.</p>
+<h3 id="krok-1-replace-inheritance-with-delegation" tabindex="-1"><a class="header-anchor" href="#krok-1-replace-inheritance-with-delegation"><span>Krok 1: Replace Inheritance with Delegation</span></a></h3>
+<p><strong>W IDE:</strong> ręcznie z pomocą generatora: usuń <code>: HashSet&lt;string&gt;</code>, dodaj pole delegata <code>private readonly HashSet&lt;string&gt; _seats = [];</code>, w <code>Add</code> i <code>UnionWith</code> usuń <code>new</code> i zamień <code>base.</code> na <code>_seats.</code>. Metody <code>Contains</code> i <code>Count</code> dodaj przez Generate ⌘N &gt; Delegating Members (delegat <code>_seats</code>). Dodaj też właściwość wydającą delegata, <code>SeatSet</code> - żeby pokazać pułapkę.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> HashSet&lt;<span class="hljs-built_in">string</span>&gt; _seats = [];
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">UnionWith</span>(<span class="hljs-params">IEnumerable&lt;<span class="hljs-built_in">string</span>&gt; seats</span>)</span>
+{
+    <span class="hljs-keyword">var</span> more = seats.ToList();
+    _clicks += more.Count;
+    _seats.UnionWith(more);    <span class="hljs-comment">// metoda delegata, nie da się jej ominąć przez typ bazowy</span>
+}
+
+<span class="hljs-keyword">public</span> HashSet&lt;<span class="hljs-built_in">string</span>&gt; SeatSet =&gt; _seats;
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m5/<wbr>s08</code> - na snapshotach 14 testów zielonych. Testy <code>Start...</code> sięgają po API zbioru przez <code>object</code> (<code>Assert.IsAssignableFrom&lt;HashSet&lt;string&gt;&gt;((object)selection)</code>), więc projekt testów kompiluje się dla każdego kroku w Start, a po naprawie na żywo te dwa testy robią się czerwone - to dowód, że Start nie jest już zbiorem.
+<strong>Co powiedzieć:</strong> klasa nie ma już typu bazowego ani interfejsu, przez który dałoby się ominąć licznik. Ale wygenerowana właściwość wydaje delegata - <code>SeatSet.Add(&quot;Z1&quot;)</code> omija licznik (test <code>GeneratedGetterLeaksTheDelegate</code>).
+<strong>Snapshot:</strong> <code>Step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s08 0 1</code></p>
+<h3 id="krok-2-encapsulate-collection-i-waska-fasada" tabindex="-1"><a class="header-anchor" href="#krok-2-encapsulate-collection-i-waska-fasada"><span>Krok 2: Encapsulate Collection i wąska fasada</span></a></h3>
+<p><strong>W IDE:</strong> Safe Delete ⌘⌦ na <code>SeatSet</code>, dodaj pole <code>_order</code> (<code>List&lt;string&gt;</code>, kolejność wyboru) i właściwość <code>Seats</code> zwracającą <code>_order.ToList().AsReadOnly()</code>. Klasę oznacz <code>sealed</code>. <code>UnionWith</code> przepisz na pętlę po własnym <code>Add</code> - self-use jest teraz bezpieczne, bo klasa jest <code>sealed</code> i sami kontrolujemy oba końce.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">UnionWith</span>(<span class="hljs-params">IEnumerable&lt;<span class="hljs-built_in">string</span>&gt; seats</span>)</span>
+{
+    <span class="hljs-keyword">foreach</span> (<span class="hljs-keyword">var</span> seat <span class="hljs-keyword">in</span> seats)
+    {
+        Add(seat);
+    }
+}
+
+<span class="hljs-keyword">public</span> IReadOnlyList&lt;<span class="hljs-built_in">string</span>&gt; Seats =&gt; _order.ToList().AsReadOnly();
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony. <code>SolutionIsNarrowFacadeWithDefensiveCopy</code>: modyfikacja zwróconej listy rzuca <code>NotSupportedException</code>, a <code>SeatSelection</code> nie jest <code>ISet&lt;string&gt;</code>.
+<strong>Co powiedzieć:</strong> świadomie tracimy przypisywalność do <code>ISet&lt;string&gt;</code>, <code>Remove</code>/<code>Clear</code>/<code>IntersectWith</code> i <code>SetEquals</code> zbioru. Tę listę trzeba wypisać i uzgodnić z klientami - to nie jest zgodny zamiennik publicznego zbioru.
+<strong>Snapshot:</strong> <code>Step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s08 1 2</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-7" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-7"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Klasa <code>sealed</code> z prywatnym zbiorem, jawnym API i defensywną kopią. Licznik nie zależy od tego, przez jaki typ ktoś trzyma obiekt, ani od szczegółów implementacji <code>HashSet</code>.</p>
+<h3 id="pulapki-7" tabindex="-1"><a class="header-anchor" href="#pulapki-7"><span>Pułapki</span></a></h3>
+<ul>
+<li><code>new</code> na metodzie to ukrycie, nie nadpisanie: wynik zależy od typu referencji, a kolekcja przekazana jako <code>ISet&lt;T&gt;</code>, <code>ICollection&lt;T&gt;</code> albo <code>IEnumerable&lt;T&gt;</code> zawsze używa metod bazy. Kompilator o tym nie ostrzega - <code>new</code> służy właśnie do uciszenia ostrzeżenia.</li>
+<li>Self-use w bibliotece nie jest częścią kontraktu - przy dziedziczeniu po klasie z metodami wirtualnymi (np. <code>Collection&lt;T&gt;</code> z <code>InsertItem</code>) wynik zależy od tego, która metoda woła którą.</li>
+<li>Metoda delegata zwracająca obiekt (np. <code>GetEnumerator()</code>, <code>AsReadOnly()</code>, widok kolekcji) zwraca obiekt delegata, nie wrappera - zmiany omijają logikę.</li>
+<li><code>lock (this)</code> w wrapperze blokuje inny obiekt niż delegat.</li>
+<li>Znikają odziedziczone <code>Equals</code>/<code>GetHashCode</code> i <code>SetEquals</code> - zmienia się zachowanie w <code>HashSet&lt;SeatSelection&gt;</code> i w porównaniach.</li>
+</ul>
+<h3 id="pytanie-do-sali-7" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-7"><span>Pytanie do sali</span></a></h3>
+<p>Które testy wykryłyby, że wrapper przypadkiem zwraca delegata? Spy, callback, a może test tożsamości <code>this</code>?</p>
+<h2 id="scena-s09-overriding-a-overloading-pulapka-po-extract-superclass" tabindex="-1"><a class="header-anchor" href="#scena-s09-overriding-a-overloading-pulapka-po-extract-superclass"><span>Scena s09. Overriding a overloading - pułapka po Extract Superclass</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 2.1. Overriding i dynamiczna dyspozycja; 2.2-2.3. Overloading - wybór statyczny
+<strong>Namespace:</strong> <code>Training.Workshop.M5.S09Overloading</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m5/<wbr>s09</code>
+<strong>Czas:</strong> ~10 min</p>
+<h3 id="w-skrocie-8" tabindex="-1"><a class="header-anchor" href="#w-skrocie-8"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> Po Extract Superclass <code>PriceList</code> ma przeciążenia <code>Price(Ticket)</code> i <code>Price(StudentTicket)</code>, a klient z <code>IReadOnlyList&lt;Ticket&gt;</code> zawsze trafia w wersję bazową, więc student płaci pełną cenę. Zamieniamy przeciążenie na wirtualną właściwość <code>DiscountPercent</code> i poprawiamy <code>Equals(Ticket)</code> na prawdziwe <code>override Equals(object?)</code>.</p>
+<p><strong>Zasada:</strong> Overriding działa dynamicznie: CLR wybiera implementację według klasy obiektu i rzutowanie tego nie wyłącza. Overloading wybiera kompilator według typu deklarowanego, a decyzja zostaje zapisana w IL klienta. Reguła bezpieczeństwa: zachowanie zależne od typu umieszczamy w override - w C# słowo <code>override</code> jest obowiązkowe, więc kompilator pilnuje, że naprawdę coś nadpisujemy.</p>
+<p><strong>Efekt:</strong> Zachowanie świadomie się zmienia: student dostaje zniżkę niezależnie od typu referencji, a <code>Contains</code> znajduje równy bilet. Test równoważności tego nie wykrył, bo testował przez typ konkretny - dlatego testy przez typ bazowy są obowiązkowe.</p>
+<p><strong>Różnica względem Javy:</strong> pułapka przeciążeń jest identyczna. Przy <code>Equals</code>: <code>public bool Equals(Ticket other)</code> bez <code>override</code> to przeciążenie, a <code>List&lt;T&gt;.Contains</code> używa <code>EqualityComparer&lt;T&gt;.Default</code>, który dla typu bez <code>IEquatable&lt;T&gt;</code> woła <code>Equals(object)</code> - przeciążenia nie widzi. Rozwiązanie to <code>override Equals(object?)</code> z <code>GetType()</code> i <code>GetHashCode</code> z <code>HashCode.Combine</code>. <code>discountPercent()</code> to wirtualna właściwość <code>DiscountPercent</code>.</p>
+<h3 id="co-widzimy-8" tabindex="-1"><a class="header-anchor" href="#co-widzimy-8"><span>Co widzimy</span></a></h3>
+<p>Stan po Extract Superclass: <code>StudentTicket : Ticket</code>. <code>PriceList</code> ma dwa przeciążenia <code>Price(Ticket)</code> i <code>Price(StudentTicket)</code>. Dopóki klient miał <code>List&lt;StudentTicket&gt;</code>, działało. Po migracji na <code>IReadOnlyList&lt;Ticket&gt;</code> ten sam tekst <code>_priceList.Price(ticket)</code> wybiera <code>Price(Ticket)</code>, bo przeciążenie wybiera kompilator po typie deklarowanym. Student płaci pełną cenę.</p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> Money <span class="hljs-title">Total</span>(<span class="hljs-params">IReadOnlyList&lt;Ticket&gt; tickets</span>)</span>
+{
+    ...
+    total = total.Plus(_priceList.Price(ticket));   <span class="hljs-comment">// zawsze Price(Ticket)</span>
+</code></pre>
+<p>Druga pułapka: <code>public bool Equals(Ticket other)</code> to przeciążenie, nie override - <code>Contains</code> go nie widzi.</p>
+<h3 id="krok-1-replace-overloading-with-overriding" tabindex="-1"><a class="header-anchor" href="#krok-1-replace-overloading-with-overriding"><span>Krok 1: Replace Overloading with Overriding</span></a></h3>
+<p><strong>W IDE:</strong> w <code>Ticket</code> dodaj <code>public virtual int DiscountPercent =&gt; 0;</code>, w <code>StudentTicket</code> Generate ⌘N &gt; Overriding Members &gt; <code>DiscountPercent</code> = 25. <code>PriceList.Price(Ticket)</code> liczy z <code>ticket.DiscountPercent</code>. Safe Delete ⌘⌦ na <code>Price(StudentTicket)</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> Money <span class="hljs-title">Price</span>(<span class="hljs-params">Ticket ticket</span>)</span>
+{
+    <span class="hljs-keyword">return</span> ticket.BasePrice.Minus(ticket.BasePrice.Percent(ticket.DiscountPercent));
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m5/<wbr>s09</code> - <code>StartPicksOverloadByDeclaredType</code> czerwony po naprawie Start (pułapka usunięta), <code>OverridingDispatchesOnRuntimeClass</code> zielony: 58.75 zamiast 65.00.
+<strong>Co powiedzieć:</strong> dyspozycja dynamiczna wybiera implementację według klasy obiektu, rzutowanie na nadtyp tego nie wyłącza. Przeciążenie to decyzja kompilatora, zapisana na stałe w IL klienta.
+<strong>Snapshot:</strong> <code>Step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s09 0 1</code></p>
+<h3 id="krok-2-override-equalsobject-i-gethashcode" tabindex="-1"><a class="header-anchor" href="#krok-2-override-equalsobject-i-gethashcode"><span>Krok 2: override Equals(object?) i GetHashCode</span></a></h3>
+<p><strong>W IDE:</strong> usuń <code>Equals(Ticket)</code>, Generate ⌘N &gt; Equality Members, pola <code>_title</code> i <code>_basePrice</code>, porównanie typów przez <code>GetType()</code> (Rider wygeneruje też <code>GetHashCode</code>; bez niego kompilator ostrzega CS0659, u nas błąd).
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">override</span> <span class="hljs-built_in">bool</span> <span class="hljs-title">Equals</span>(<span class="hljs-params"><span class="hljs-built_in">object</span>? other</span>)</span>
+{
+    <span class="hljs-keyword">return</span> other != <span class="hljs-literal">null</span> &amp;&amp; GetType() == other.GetType()
+        &amp;&amp; _title == ((Ticket)other)._title &amp;&amp; _basePrice.Equals(((Ticket)other)._basePrice);
+}
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">override</span> <span class="hljs-built_in">int</span> <span class="hljs-title">GetHashCode</span>()</span>
+{
+    <span class="hljs-keyword">return</span> HashCode.Combine(_title, _basePrice);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony - <code>AlreadyInCart</code> znajduje równy bilet.
+<strong>Co powiedzieć:</strong> <code>override</code> zamienia cichy błąd przeciążenia w błąd kompilacji: <code>override bool Equals(Ticket other)</code> się nie skompiluje, bo nie ma czego nadpisać. W C# to słowo jest obowiązkowe przy każdym nadpisaniu - także po Pull Up, gdy metoda w podklasie może nagle nadpisać albo przestać nadpisywać.
+<strong>Snapshot:</strong> <code>Step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s09 1 2</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-8" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-8"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Zniżka jest zachowaniem biletu (override), a nie decyzją kalkulatora (overload). Jedno <code>Price(Ticket)</code> działa poprawnie dla każdego typu deklarowanego.</p>
+<h3 id="pulapki-8" tabindex="-1"><a class="header-anchor" href="#pulapki-8"><span>Pułapki</span></a></h3>
+<ul>
+<li>Po Pull Up / Extract Superclass ten sam kod źródłowy może wybrać inne przeciążenie - testy przez typ bazowy to wykrywają, testy przez typ konkretny nie (<code>S09EquivalenceTest</code> jest zielony nawet dla Start!).</li>
+<li>Stare skompilowane assembly klienta woła dawną sygnaturę przeciążenia, nawet gdy dodamy nowe, &quot;lepsze&quot;.</li>
+<li><code>Equals</code> porównujące <code>is</code> zamiast <code>GetType()</code> łamie symetrię między bazą a podklasą.</li>
+<li>Implementacja <code>IEquatable&lt;Ticket&gt;</code> bez <code>override Equals(object)</code> daje dwa różne pojęcia równości: <code>List.Contains</code> użyje jednego, <code>ArrayList</code> albo <code>object.Equals</code> - drugiego.</li>
+</ul>
+<h3 id="pytanie-do-sali-8" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-8"><span>Pytanie do sali</span></a></h3>
+<p>Dlaczego test równoważności tej sceny przechodzi dla Start, mimo że Start liczy źle?</p>
+<h2 id="scena-s10-ukrywanie-pol-i-metod-static" tabindex="-1"><a class="header-anchor" href="#scena-s10-ukrywanie-pol-i-metod-static"><span>Scena s10. Ukrywanie pól i metod static</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 2.3. Pola nie są polimorficzne; 2.1. <code>static</code> jest ukrywana
+<strong>Namespace:</strong> <code>Training.Workshop.M5.S10FieldHiding</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m5/<wbr>s10</code>
+<strong>Czas:</strong> ~8 min</p>
+<h3 id="w-skrocie-9" tabindex="-1"><a class="header-anchor" href="#w-skrocie-9"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> <code>StudentTicket</code> redeklaruje pole <code>Type</code> i statyczne <code>Category()</code> z <code>Ticket</code> (ze słowem <code>new</code>), więc <code>Label()</code> dla studenta zwraca <code>&quot;BILET: NORMAL&quot;</code>. Zastępujemy dwa sloty jednym prywatnym polem ustawianym przez konstruktor bazy, a <code>Category()</code> robimy wirtualną metodą instancji.</p>
+<p><strong>Zasada:</strong> Pola i metody <code>static</code> nie są polimorficzne: są wiązane w czasie kompilacji według typu, w którym stoi odwołanie. Ukryte pole to dwa niezależne sloty w jednym obiekcie. Reguła: stan przekazujemy przez <code>base(...)</code>, a zachowanie zależne od obiektu musi być wirtualną metodą instancji.</p>
+<p><strong>Efekt:</strong> Zachowanie świadomie się zmienia: <code>Label()</code> studenta zwraca <code>&quot;BILET ULGOWY: STUDENT&quot;</code> bez względu na typ referencji. Znika też ryzyko, że Pull Up Field bez usunięcia deklaracji w podklasie po cichu stworzy ukrycie.</p>
+<p><strong>Różnica względem Javy:</strong> C# wymaga słowa <code>new</code> przy ukrywaniu pola i metody statycznej (bez niego ostrzeżenie CS0108, u nas błąd), więc pułapka jest w kodzie &quot;podpisana&quot;. Ale <code>new</code> tylko ucisza kompilator - zachowanie jest takie samo jak w Javie: dwa sloty, wiązanie statyczne. Pole to publiczne pole <code>Type</code> (jak javowe pole pakietowe), a <code>category()</code> to <code>Category()</code>.</p>
+<h3 id="co-widzimy-9" tabindex="-1"><a class="header-anchor" href="#co-widzimy-9"><span>Co widzimy</span></a></h3>
+<p><code>StudentTicket</code> deklaruje pole <code>Type</code> i statyczne <code>Category()</code> o tych samych nazwach co <code>Ticket</code>. Wygląda na nadpisanie, ale to ukrycie. <code>Label()</code> jest skompilowane w <code>Ticket</code>, więc dla studenta zwraca <code>&quot;BILET: NORMAL&quot;</code>.</p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">StudentTicket</span> : <span class="hljs-title">Ticket</span>
+{
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">string</span> Type = <span class="hljs-string">&quot;STUDENT&quot;</span>;
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Category</span>()</span>
+    {
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;BILET ULGOWY&quot;</span>;
+    }
+}
+
+<span class="hljs-keyword">var</span> student = <span class="hljs-keyword">new</span> StudentTicket();
+Ticket sameObject = student;
+student.Type      <span class="hljs-comment">// &quot;STUDENT&quot;</span>
+sameObject.Type   <span class="hljs-comment">// &quot;NORMAL&quot; - drugi slot w tym samym obiekcie</span>
+</code></pre>
+<p>Testy <code>Start...</code> czytają oba sloty refleksją, żeby projekt testów kompilował się także po naprawie na żywo.</p>
+<h3 id="krok-1-jedno-pole-zamiast-dwoch-slotow" tabindex="-1"><a class="header-anchor" href="#krok-1-jedno-pole-zamiast-dwoch-slotow"><span>Krok 1: Jedno pole zamiast dwóch slotów</span></a></h3>
+<p><strong>W IDE:</strong> w <code>Ticket</code> na polu <code>Type</code> ⌃T &gt; Encapsulate Field (pole <code>private readonly string _type</code>, właściwość tylko do odczytu <code>Type</code>), dodaj konstruktor <code>protected Ticket(string type)</code> i <code>public Ticket() : this(&quot;NORMAL&quot;)</code>. W <code>StudentTicket</code> usuń pole (Safe Delete) i dodaj konstruktor <code>public StudentTicket() : base(&quot;STUDENT&quot;)</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">string</span> _type;
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">Ticket</span>() : <span class="hljs-title">this</span>(<span class="hljs-params"><span class="hljs-string">&quot;NORMAL&quot;</span></span>)</span>
+{
+}
+
+<span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-title">Ticket</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> type</span>)</span>
+{
+    _type = type;
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m5/<wbr>s10</code> - testy <code>Start...</code> czerwone po naprawie Start, <code>Step1FixesFieldButStaticIsStillHidden</code> zielony: <code>&quot;BILET: STUDENT&quot;</code>.
+<strong>Co powiedzieć:</strong> pole ukryte to dwa niezależne sloty. Który zobaczysz, zależy od typu referencji. Stan przekazujemy przez konstruktor, a nie redeklarujemy - <code>new</code> na polu to prawie zawsze błąd projektu.
+<strong>Snapshot:</strong> <code>Step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s10 0 1</code></p>
+<h3 id="krok-2-category-jako-metoda-instancji" tabindex="-1"><a class="header-anchor" href="#krok-2-category-jako-metoda-instancji"><span>Krok 2: Category() jako metoda instancji</span></a></h3>
+<p><strong>W IDE:</strong> w <code>Ticket</code> usuń <code>static</code> z <code>Category()</code> i dodaj <code>virtual</code> (ręcznie; Rider ma też ⌃T &gt; Make Method Non-Static). W <code>StudentTicket</code> zamień <code>static new</code> na <code>override</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-comment">// Ticket</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">virtual</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Category</span>()</span>
+{
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;BILET&quot;</span>;
+}
+
+<span class="hljs-comment">// StudentTicket</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">override</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Category</span>()</span>
+{
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;BILET ULGOWY&quot;</span>;
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony: <code>&quot;BILET ULGOWY: STUDENT&quot;</code> bez względu na typ referencji.
+<strong>Co powiedzieć:</strong> metody statyczne są wiązane w czasie kompilacji według typu, w którym stoi wywołanie. Jeśli zachowanie ma zależeć od obiektu, musi być wirtualną metodą instancji, a <code>override</code> potwierdza, że coś naprawdę nadpisujemy.
+<strong>Snapshot:</strong> <code>Step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s10 1 2</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-9" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-9"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Jedno prywatne pole, jedna polimorficzna metoda. <code>Label()</code> daje ten sam wynik dla <code>Ticket t = new StudentTicket()</code> i <code>StudentTicket s</code>.</p>
+<h3 id="pulapki-9" tabindex="-1"><a class="header-anchor" href="#pulapki-9"><span>Pułapki</span></a></h3>
+<ul>
+<li>Pull Up Field bez usunięcia deklaracji w podklasie tworzy ukrycie zamiast przeniesienia. Kompilator ostrzeże (CS0108), ale &quot;naprawa&quot; przez <code>new</code> utrwala dwa sloty.</li>
+<li><code>lock (typeof(Ticket))</code> albo blokada na statycznym obiekcie w klasie deklarującej - Pull Up takiej metody zmienia obiekt blokady (dwie podklasy zaczynają dzielić jedną blokadę). To odpowiednik javowego <code>static synchronized</code>.</li>
+<li>Pola statyczne w klasach generycznych są osobne dla każdego <code>T</code> (<code>Ticket&lt;A&gt;.Count</code> i <code>Ticket&lt;B&gt;.Count</code> to dwa sloty) - Pull Up do generycznej bazy potrafi rozdzielić stan, który był wspólny.</li>
+<li>W C# wywołanie statycznej metody przez instancję (<code>ticket.Category()</code>) to błąd kompilacji CS0176, więc tej javowej pomyłki nie ma - ale wywołanie przez nazwę podklasy (<code>StudentTicket.Category()</code>) nadal wiąże się statycznie.</li>
+</ul>
+<h3 id="pytanie-do-sali-9" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-9"><span>Pytanie do sali</span></a></h3>
+<p>Gdzie w waszym kodzie są stałe <code>const</code> albo <code>static readonly</code> redeklarowane w podklasach słowem <code>new</code>? Czy ktoś czyta je przez typ bazowy?</p>
+<h2 id="scena-s11-konstruktor-wolajacy-metode-nadpisywalna" tabindex="-1"><a class="header-anchor" href="#scena-s11-konstruktor-wolajacy-metode-nadpisywalna"><span>Scena s11. Konstruktor wołający metodę nadpisywalną</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 2.4. Konstruktory i inicjalizacja; 3.1-3.3 (nie wołaj override z konstruktora, żeby umożliwić Pull Up)
+<strong>Namespace:</strong> <code>Training.Workshop.M5.S11ConstructorCall</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m5/<wbr>s11</code>
+<strong>Czas:</strong> ~8 min</p>
+<h3 id="w-skrocie-10" tabindex="-1"><a class="header-anchor" href="#w-skrocie-10"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> Konstruktor <code>Ticket</code> woła wirtualne <code>Describe()</code>, a <code>VipTicket</code> czyta w nim pole, które nie jest jeszcze przypisane, więc etykieta na zawsze ma pusty salonik. Najpierw naprawiamy lokalnie inicjalizatorem pola w konstruktorze głównym (wykonuje się przed konstruktorem bazy), potem strukturalnie: etykieta liczona na żądanie.</p>
+<p><strong>Zasada:</strong> Konstruktor bazy wykonuje się przed ciałem konstruktora podklasy, więc wywołany z niego override widzi obiekt w połowie zbudowany. C# pozwala przypisać pole wcześniej - inicjalizatory pól wykonują się przed wywołaniem konstruktora bazy - ale to naprawa lokalna, o której każda podklasa musi pamiętać. Reguła: konstruktor tylko przypisuje pola i nie woła metod wirtualnych.</p>
+<p><strong>Efekt:</strong> Zachowanie świadomie się zmienia: etykieta VIP zawiera salonik, a poprawność nie zależy od kolejności inicjalizacji. Kosztem jest liczenie etykiety przy każdym wywołaniu zamiast raz w konstruktorze.</p>
+<p><strong>Różnica względem Javy:</strong> odpowiednikiem prologu konstruktora z Javy 25 (JEP 513, przypisanie pola przed <code>super(...)</code>) jest w C# konstruktor główny (primary constructor) z inicjalizatorem pola: inicjalizatory pól wykonują się <strong>przed</strong> konstruktorem bazy. Oczekiwany tekst pułapki to <code>&quot;Miejsce K12 (VIP: )&quot;</code> zamiast javowego <code>&quot;... (VIP: null)&quot;</code>, bo w C# <code>null</code> sklejony z napisem daje pusty napis. Analiza nullable niczego nie zgłasza: pole ma typ <code>string</code>, nie <code>string?</code> - adnotacje &quot;kłamią&quot; w trakcie konstrukcji. Kompilator C# nie ma odpowiednika <code>-Xlint:this-escape</code>; najbliższa jest reguła analizatora CA2214 (wspomniana w komentarzu, niewłączona w buildzie), więc scena kompiluje się bez ostrzeżeń.</p>
+<h3 id="co-widzimy-10" tabindex="-1"><a class="header-anchor" href="#co-widzimy-10"><span>Co widzimy</span></a></h3>
+<p>Konstruktor <code>Ticket</code> zapamiętuje etykietę, wołając <code>Describe()</code>. <code>VipTicket</code> nadpisuje <code>Describe()</code> i używa pola <code>_lounge</code>, które w tym momencie jest jeszcze <code>null</code> - konstruktor bazy kończy się, zanim ciało konstruktora podklasy przypisze swoje pola.</p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">Ticket</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> seat</span>)</span>
+{
+    _seat = seat;
+    _label = Describe();       <span class="hljs-comment">// CA2214: Do not call overridable methods in constructors</span>
+}
+</code></pre>
+<p><code>new VipTicket(&quot;K12&quot;, &quot;Salonik A&quot;).Label()</code> zwraca <code>&quot;Miejsce K12 (VIP: )&quot;</code> - na zawsze, bo wynik jest w polu <code>readonly</code>.</p>
+<h3 id="krok-1-szybka-naprawa-inicjalizator-pola-w-konstruktorze-glownym" tabindex="-1"><a class="header-anchor" href="#krok-1-szybka-naprawa-inicjalizator-pola-w-konstruktorze-glownym"><span>Krok 1: Szybka naprawa - inicjalizator pola w konstruktorze głównym</span></a></h3>
+<p><strong>W IDE:</strong> na <code>VipTicket</code> ⌥⏎ &gt; Convert to primary constructor, tak by pole <code>_lounge</code> było przypisane inicjalizatorem (<code>private readonly string _lounge = lounge;</code>), a nie w ciele konstruktora. Albo ręcznie: <code>class VipTicket(string seat, string lounge) : Ticket(seat)</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">VipTicket</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> seat, <span class="hljs-built_in">string</span> lounge</span>) : <span class="hljs-title">Ticket</span>(<span class="hljs-params">seat</span>)</span>
+{
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">string</span> _lounge = lounge;
+    ...
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m5/<wbr>s11</code> - <code>StartSubclassSeesUninitializedField</code> czerwony po naprawie Start (pułapka usunięta), <code>FieldInitializerRunsBeforeBaseConstructor</code> i pozostałe zielone.
+<strong>Co powiedzieć:</strong> działa, bo inicjalizatory pól wykonują się przed konstruktorem bazy. Ale naprawa jest lokalna i krucha - każda następna podklasa musi pamiętać, żeby nie przypisywać pól w ciele konstruktora. Wywołanie metody wirtualnej w konstruktorze <code>Ticket</code> zostaje.
+<strong>Snapshot:</strong> <code>Step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s11 0 1</code></p>
+<h3 id="krok-2-konstruktor-bez-wywolan-wirtualnych" tabindex="-1"><a class="header-anchor" href="#krok-2-konstruktor-bez-wywolan-wirtualnych"><span>Krok 2: Konstruktor bez wywołań wirtualnych</span></a></h3>
+<p><strong>W IDE:</strong> w <code>Ticket</code> Inline ⌥⌘N na polu <code>_label</code> (Replace Field with Query): <code>Label()</code> zwraca <code>Describe()</code>. W <code>VipTicket</code> przywróć zwykły konstruktor z <code>: base(seat)</code> i przypisaniem pola w ciele.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Label</span>()</span>
+{
+    <span class="hljs-keyword">return</span> Describe();
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> etykieta liczona na żądanie, gdy obiekt jest w pełni zbudowany. Poprawność nie zależy od kolejności inicjalizacji. Inne naprawy: przekazanie wyliczonej wartości przez parametr konstruktora albo fabryka, która woła metodę po <code>new</code>.
+<strong>Snapshot:</strong> <code>Step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s11 1 2</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-10" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-10"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Konstruktor bazy tylko przypisuje pola. Wszystko, co może być nadpisane, wykonuje się po zakończeniu konstrukcji.</p>
+<h3 id="pulapki-10" tabindex="-1"><a class="header-anchor" href="#pulapki-10"><span>Pułapki</span></a></h3>
+<ul>
+<li>Pull Up metody, którą ktoś potem wywoła z konstruktora bazy &quot;bo tak wygodnie&quot;.</li>
+<li>Kolejność inicjalizacji w C# jest inna niż w Javie: inicjalizatory pól podklasy działają przed konstruktorem bazy, a ciało konstruktora podklasy po nim. Przeniesienie przypisania z inicjalizatora do ciała konstruktora (albo odwrotnie, np. przez akcję IDE) potrafi po cichu włączyć albo wyłączyć tę pułapkę.</li>
+<li>Pole z inicjalizatorem, który sam czyta stan bazy albo woła metodę wirtualną, widzi bazę jeszcze niezbudowaną.</li>
+<li>Podklasa nie może przypisać odziedziczonego pola <code>readonly</code> - trzeba je przekazać przez konstruktor bazy.</li>
+</ul>
+<h3 id="pytanie-do-sali-10" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-10"><span>Pytanie do sali</span></a></h3>
+<p>Czy włączylibyście CA2214 jako błąd (<code>TreatWarningsAsErrors</code>) w buildzie legacy? Ile ostrzeżeń byście dostali?</p>
+<h2 id="scena-s12-generyki-i-metody-bridge" tabindex="-1"><a class="header-anchor" href="#scena-s12-generyki-i-metody-bridge"><span>Scena s12. Generyki i metody bridge</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 2.5-2.8. Sygnatury po erasure i metody bridge; 10.2-10.3. Refleksja
+<strong>Namespace:</strong> <code>Training.Workshop.M5.S12BridgeMethods</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m5/<wbr>s12</code>
+<strong>Czas:</strong> ~10 min</p>
+<h3 id="w-skrocie-11" tabindex="-1"><a class="header-anchor" href="#w-skrocie-11"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> <code>RuleRegistry</code> rejestruje reguły cenowe refleksją, po typie parametru każdej metody <code>Apply</code>. Po wydzieleniu generycznej roli <code>IPriceRule&lt;T&gt;</code> każda reguła dostaje drugą metodę <code>Apply(ITicket)</code> - &quot;most&quot; z rzutowaniem do nieogólnego kontraktu - i rejestr się psuje, więc najpierw ją filtrujemy, a potem zastępujemy refleksję jawnym <code>TicketType</code>.</p>
+<p><strong>Zasada:</strong> Hierarchia generyczna potrzebuje wejścia nieogólnego: w Javie kompilator dokłada po erasure syntetyczną metodę bridge, w C# trzeba napisać nieogólny interfejs bazowy i jego implementację z rzutowaniem. W obu przypadkach źródło reguły &quot;wygląda&quot; na jedną metodę <code>Apply</code>, a refleksja widzi dwie. Reguła: kod iterujący po metodach klasy musi odróżniać metody kontraktu nieogólnego od właściwych, a najlepiej zastąpić go jawnym kontraktem.</p>
+<p><strong>Efekt:</strong> Rejestr nie używa refleksji, więc metody pomostowe przestają mieć znaczenie, a brak reguły kończy się czytelnym <code>InvalidOperationException</code>. Typ biletu i most są napisane raz, w kontrakcie <code>IPriceRule&lt;T&gt;</code>.</p>
+<p><strong>Różnica względem Javy:</strong> to adaptacja. .NET ma generyki reifikowane (bez erasure), więc kompilator C# nie generuje metod bridge. Ale C# nie ma też typów wieloznacznych (<code>PriceRule&lt;?&gt;</code>), więc żeby rejestr mógł trzymać reguły dla różnych biletów, generyczna rola <code>IPriceRule&lt;in T&gt;</code> dostaje nieogólny interfejs bazowy <code>IPriceRule</code> z <code>Apply(ITicket)</code>. Reguła implementuje go publiczną metodą z rzutowaniem (Rider: Implement missing members) - to ręczny &quot;most&quot;, widoczny dla refleksji jak javowy bridge. Naprawa <code>!method.isBridge()</code> to w C# <code>!IsBridge(type, method)</code>, wyliczane z <code>GetInterfaceMap(typeof(IPriceRule))</code>. Wywołanie mostu z innym biletem rzuca <code>InvalidCastException</code> (Java: <code>ClassCastException</code>). W kroku 2 <code>TicketType</code> i most są jawnymi domyślnymi implementacjami nieogólnego kontraktu w <code>IPriceRule&lt;T&gt;</code> (z <code>typeof(T)</code>), więc reguły nie deklarują ich same - w Javie <code>ticketType()</code> jest w każdej regule. Dodatkowy test <code>SolutionRulesDeclareNoBridge</code> sprawdza, że reguły w rozwiązaniu mają jedną metodę <code>Apply</code>.</p>
+<h3 id="co-widzimy-11" tabindex="-1"><a class="header-anchor" href="#co-widzimy-11"><span>Co widzimy</span></a></h3>
+<p>Reguły cenowe <code>StandardRule</code> i <code>StudentRule</code> nie mają wspólnego typu. <code>RuleRegistry</code> znajduje je refleksją: każda metoda o nazwie <code>Apply</code> rejestruje regułę pod typem swojego parametru.</p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">foreach</span> (<span class="hljs-keyword">var</span> method <span class="hljs-keyword">in</span> type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly))
+{
+    <span class="hljs-keyword">if</span> (method.Name == <span class="hljs-string">&quot;Apply&quot;</span>)
+    {
+        _rules[method.GetParameters()[<span class="hljs-number">0</span>].ParameterType] = rule;
+    }
+}
+</code></pre>
+<p>Działa, dopóki w klasie reguły jest dokładnie jedna metoda <code>Apply</code>. Typy biletów (<code>ITicket</code>, <code>StandardTicket</code>, <code>StudentTicket</code>) leżą poza <code>Start</code> i <code>StepN</code> - są stabilnym kontraktem sceny.</p>
+<h3 id="krok-1-extract-interface-generycznej-roli-i-naprawa-refleksji" tabindex="-1"><a class="header-anchor" href="#krok-1-extract-interface-generycznej-roli-i-naprawa-refleksji"><span>Krok 1: Extract Interface generycznej roli (i naprawa refleksji)</span></a></h3>
+<p><strong>W IDE:</strong> na <code>StudentRule</code> ⌃T &gt; Extract Interface, nazwa <code>IPriceRule</code>, metoda <code>Apply</code>. Ręcznie zrób z niego parę interfejsów: nieogólny <code>IPriceRule</code> z <code>Money Apply(ITicket ticket)</code> (tak rejestr może trzymać różne reguły) i generyczny <code>IPriceRule&lt;in T&gt; : IPriceRule where T : ITicket</code> z <code>Money Apply(T ticket)</code>. Reguły implementują <code>IPriceRule&lt;StudentTicket&gt;</code> / <code>IPriceRule&lt;StandardTicket&gt;</code>, a brakujące <code>Apply(ITicket)</code> dodaj przez ⌥⏎ &gt; Implement missing members, z ciałem <code>return Apply((StudentTicket)ticket);</code>. <strong>Uruchom test - jest czerwony:</strong> <code>SupportedTypes()</code> zwraca też <code>&quot;ITicket&quot;</code>. Pokaż test <code>NaiveReflectionWouldRegisterBaseType</code>: naiwny skan widzi <code>[&quot;ITicket&quot;, &quot;StudentTicket&quot;]</code>. Dopisz w rejestrze <code>&amp;&amp; !IsBridge(type, method)</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-comment">// StudentRule - &quot;most&quot; do nieogólnego kontraktu</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> Money <span class="hljs-title">Apply</span>(<span class="hljs-params">ITicket ticket</span>)</span>
+{
+    <span class="hljs-keyword">return</span> Apply((StudentTicket)ticket);
+}
+
+<span class="hljs-comment">// RuleRegistry</span>
+<span class="hljs-keyword">if</span> (method.Name == <span class="hljs-string">&quot;Apply&quot;</span> &amp;&amp; !IsBridge(type, method))
+...
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-built_in">bool</span> <span class="hljs-title">IsBridge</span>(<span class="hljs-params">Type type, MethodInfo method</span>)</span>
+{
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">typeof</span>(IPriceRule).IsAssignableFrom(type)
+        &amp;&amp; type.GetInterfaceMap(<span class="hljs-keyword">typeof</span>(IPriceRule)).TargetMethods.Contains(method);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m5/<wbr>s12</code> - 11 testów zielonych.
+<strong>Co powiedzieć:</strong> rola generyczna potrzebuje wejścia nieogólnego, a to wejście to druga metoda <code>Apply</code> z rzutowaniem. W Javie dokłada ją kompilator i źródło jej nie pokazuje, w C# piszemy ją sami (albo generuje ją IDE) - ale refleksja w obu językach widzi dwie metody. Wywołanie mostu z niewłaściwym biletem kończy się <code>InvalidCastException</code>.
+<strong>Snapshot:</strong> <code>Step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s12 0 1</code></p>
+<h3 id="krok-2-jawny-kontrakt-zamiast-refleksji" tabindex="-1"><a class="header-anchor" href="#krok-2-jawny-kontrakt-zamiast-refleksji"><span>Krok 2: Jawny kontrakt zamiast refleksji</span></a></h3>
+<p><strong>W IDE:</strong> w <code>IPriceRule</code> dodaj właściwość <code>Type TicketType { get; }</code>. W <code>IPriceRule&lt;T&gt;</code> dopisz jawne domyślne implementacje nieogólnego kontraktu: <code>Type IPriceRule.TicketType =&gt; typeof(T);</code> i <code>Money IPriceRule.Apply(ITicket ticket) =&gt; Apply((T)ticket);</code>, a z reguł usuń ręczne mosty (Safe Delete ⌘⌦). <code>RuleRegistry</code> przyjmuje <code>params IPriceRule[]</code>, rejestruje po <code>TicketType</code> i woła <code>rule.Apply(ticket)</code> bez refleksji.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title">IPriceRule</span>&lt;<span class="hljs-keyword">in</span> <span class="hljs-title">T</span>&gt; : <span class="hljs-title">IPriceRule</span>
+    <span class="hljs-keyword">where</span> <span class="hljs-title">T</span> : <span class="hljs-title">ITicket</span>
+{
+    Type IPriceRule.TicketType =&gt; <span class="hljs-keyword">typeof</span>(T);
+
+    <span class="hljs-function">Money <span class="hljs-title">Apply</span>(<span class="hljs-params">T ticket</span>)</span>;
+
+    Money IPriceRule.Apply(ITicket ticket) =&gt; Apply((T)ticket);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony. <code>SolutionReportsMissingRuleExplicitly</code>: brak reguły to <code>InvalidOperationException</code>. <code>SolutionRulesDeclareNoBridge</code>: reguła ma jedną metodę <code>Apply</code>.
+<strong>Co powiedzieć:</strong> zgadywanie typu z sygnatury metody zastąpiliśmy jawnym kontraktem, a rzutowanie jest w jednym miejscu. Brak reguły to czytelny <code>InvalidOperationException</code>, a nie <code>NullReferenceException</code> z refleksji.
+<strong>Snapshot:</strong> <code>Step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s12 1 2</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-11" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-11"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>IPriceRule&lt;T&gt;</code> z nieogólnym kontraktem <code>IPriceRule</code> (<code>TicketType</code>, <code>Apply(ITicket)</code>) zaimplementowanym raz, w interfejsie. Rejestr nie używa refleksji, więc metody pomostowe nie mają znaczenia.</p>
+<h3 id="pulapki-11" tabindex="-1"><a class="header-anchor" href="#pulapki-11"><span>Pułapki</span></a></h3>
+<ul>
+<li>Metody pomostowe pojawiają się w C# wszędzie, gdzie generyczny typ implementuje też nieogólny kontrakt: <code>IEnumerable&lt;T&gt;</code> + <code>IEnumerable.GetEnumerator()</code>, <code>IComparable&lt;T&gt;</code> + <code>IComparable.CompareTo(object)</code>, <code>IEquatable&lt;T&gt;</code> + <code>Equals(object)</code>. Jawna implementacja interfejsu (<code>IEnumerable.GetEnumerator()</code>) jest prywatna i ma nazwę z prefiksem interfejsu - kod szukający metod po nazwie widzi co innego niż przy implementacji publicznej.</li>
+<li>Przeniesienie metody w hierarchii generycznej (Pull Up do bazy z innym parametrem typu) zmienia, gdzie i czy powstaje most - kod szukający metod po nazwie widzi co innego.</li>
+<li>Frameworki (serializatory, kontenery DI, mappery) zwykle rozumieją mapy interfejsów i jawne implementacje - własny kod legacy iterujący po <code>GetMethods()</code> często nie.</li>
+</ul>
+<h3 id="pytanie-do-sali-11" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-11"><span>Pytanie do sali</span></a></h3>
+<p>Gdzie w waszym systemie ktoś iteruje po <code>GetMethods()</code> i czy odróżnia metody implementujące kontrakt nieogólny od właściwych?</p>
+<h2 id="scena-s13-hierarchie-sealed-i-wyczerpujacy-switch" tabindex="-1"><a class="header-anchor" href="#scena-s13-hierarchie-sealed-i-wyczerpujacy-switch"><span>Scena s13. Hierarchie sealed i wyczerpujący switch</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 2.5-2.8. <code>sealed</code>, zamknięte hierarchie, wyjątek z nieobsłużonego wariantu
+<strong>Namespace:</strong> <code>Training.Workshop.M5.S13Sealed</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m5/<wbr>s13</code>
+<strong>Czas:</strong> ~12 min</p>
+<h3 id="w-skrocie-12" tabindex="-1"><a class="header-anchor" href="#w-skrocie-12"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> Otwarta hierarchia biletów i łańcuch <code>is</code> z cichym <code>return 0</code> sprawiają, że nowy typ biletu nie dostaje zniżki bez żadnego ostrzeżenia. Zamykamy hierarchię konstruktorem <code>private protected</code> i wariantami <code>sealed record</code>, zamieniamy łańcuch na <code>switch</code> po typach z jawnym ramieniem <code>_ =&gt; throw new UnreachableException(...)</code> i dodajemy bilet dziecięcy.</p>
+<p><strong>Zasada:</strong> Zamknięta hierarchia trzyma listę wariantów w jednym miejscu, a <code>switch</code>, który wymienia każdy wariant jawnie, pozwala sprawdzić, czy obsłużono wszystkie. W C# tego sprawdzenia nie robi kompilator, tylko test (analizator) - a ramię <code>_</code> zamienia nieobsłużony wariant w głośny <code>UnreachableException</code> zamiast cichego zera. Ramię <code>_</code> zwracające wartość (odpowiednik <code>default</code>) wyłącza całą ochronę.</p>
+<p><strong>Efekt:</strong> Zachowanie świadomie się zmienia: obce typy biletów spoza assembly nie przejdą, a nowy wariant bez obsługi to czerwony test i wyjątek zamiast cichego zera. Kosztem jest zamknięcie hierarchii dla implementacji spoza assembly i ryzyko <code>UnreachableException</code> w kodzie, którego nikt nie sprawdził.</p>
+<p><strong>Różnica względem Javy:</strong> to adaptacja. C# nie ma <code>sealed interface ... permits</code> ani sprawdzania wyczerpania <code>switch</code> dla hierarchii klas. Start to otwarta hierarchia <code>abstract record Ticket(Money BasePrice)</code> (konstruktor <code>protected</code> - każdy, także w innym assembly, może dopisać wariant). Krok 1 zamyka ją konstruktorem <code>private protected</code> i wariantami <code>sealed record</code>. W kroku 2 <code>switch</code> po typach <strong>musi</strong> mieć ramię <code>_</code> - bez niego kompilator zgłasza CS8509 (&quot;switch nie obsługuje wszystkich wartości&quot;) zawsze, nawet dla kompletu wariantów - więc <code>_ =&gt; throw new UnreachableException(...)</code> to jawny odpowiednik niejawnego <code>MatchException</code> z Javy. Wyczerpanie sprawdza dodatkowy test Roslyn <code>ExhaustivenessCheckFlagsUnhandledVariant</code>: czyta <code>switch</code> w <code>PriceCalculator.cs</code> i porównuje obsłużone typy z wariantami w assembly. Zamiast <code>java.lang.reflect.Proxy</code> obcy wariant <code>ChildTicket</code> jest kompilowany w pamięci w osobnym assembly &quot;Outside&quot;.</p>
+<h3 id="co-widzimy-12" tabindex="-1"><a class="header-anchor" href="#co-widzimy-12"><span>Co widzimy</span></a></h3>
+<p>Otwarta hierarchia <code>Ticket</code> z rekordami <code>StandardTicket</code>, <code>StudentTicket</code>, <code>SeniorTicket</code> i kalkulator z łańcuchem <code>is</code> zakończonym cichym <code>return 0</code>.</p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> <span class="hljs-keyword">record</span> <span class="hljs-title">Ticket</span>(<span class="hljs-params">Money BasePrice</span>)</span>;
+
+<span class="hljs-keyword">if</span> (ticket <span class="hljs-keyword">is</span> StudentTicket)
+{
+    <span class="hljs-keyword">return</span> <span class="hljs-number">25</span>;
+}
+<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (ticket <span class="hljs-keyword">is</span> SeniorTicket)
+{
+    <span class="hljs-keyword">return</span> <span class="hljs-number">30</span>;
+}
+<span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+</code></pre>
+<p><code>StartSilentlyGivesUnknownTicketNoDiscount</code> kompiluje w pamięci osobne assembly &quot;Outside&quot; z nowym typem biletu (dziecięcy, 40%) dziedziczącym po <code>Start.Ticket</code> - dostaje 0% zniżki bez żadnego ostrzeżenia.</p>
+<h3 id="krok-1-zamkniecie-hierarchii-konstruktor-private-protected-i-sealed-record" tabindex="-1"><a class="header-anchor" href="#krok-1-zamkniecie-hierarchii-konstruktor-private-protected-i-sealed-record"><span>Krok 1: Zamknięcie hierarchii - konstruktor private protected i sealed record</span></a></h3>
+<p><strong>W IDE:</strong> ręcznie: zamień rekord pozycyjny <code>Ticket</code> na <code>abstract record Ticket</code> z konstruktorem <code>private protected Ticket(Money basePrice)</code> i właściwością <code>BasePrice { get; }</code>. Warianty są już <code>sealed record</code>, więc nic więcej nie trzeba.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> <span class="hljs-keyword">record</span> <span class="hljs-title">Ticket</span>
+{
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">protected</span> <span class="hljs-title">Ticket</span>(<span class="hljs-params">Money basePrice</span>)</span>
+    {
+        BasePrice = basePrice;
+    }
+
+    <span class="hljs-keyword">public</span> Money BasePrice { <span class="hljs-keyword">get</span>; }
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m5/<wbr>s13</code> - 17 testów zielonych; po naprawie Start na żywo <code>StartSilently...</code> robi się czerwony (obce assembly się nie skompiluje), reszta zielona.
+<strong>Co powiedzieć:</strong> zamknięta lista wariantów w jednym assembly: <code>SealedHierarchyListsAllVariants</code> pokazuje, że kod spoza assembly dostaje błąd CS0122 (konstruktor niedostępny). Samo zamknięcie nie naprawia kalkulatora - łańcuch <code>if</code> nie jest wyczerpujący.
+<strong>Snapshot:</strong> <code>Step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s13 0 1</code></p>
+<h3 id="krok-2-switch-po-typach-z-unreachableexception" tabindex="-1"><a class="header-anchor" href="#krok-2-switch-po-typach-z-unreachableexception"><span>Krok 2: switch po typach z UnreachableException</span></a></h3>
+<p><strong>W IDE:</strong> na <code>if</code> ⌥⏎ &gt; Convert to 'switch' expression (albo ręcznie), wymień jawnie każdy wariant, także <code>StandardTicket =&gt; 0</code>, a ostatnie ramię zamień na <code>_ =&gt; throw new UnreachableException(...)</code> zamiast <code>_ =&gt; 0</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">return</span> ticket <span class="hljs-keyword">switch</span>
+{
+    StandardTicket =&gt; <span class="hljs-number">0</span>,
+    StudentTicket =&gt; <span class="hljs-number">25</span>,
+    SeniorTicket =&gt; <span class="hljs-number">30</span>,
+    _ =&gt; <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> UnreachableException(<span class="hljs-string">&quot;nieobsłużony wariant biletu: &quot;</span> + ticket.GetType().Name),
+};
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> każdy wariant jest wymieniony jawnie, także ten z zerową zniżką. Ramię <code>_</code> nie zwraca wartości &quot;na wszelki wypadek&quot;, tylko rzuca - to deklaracja, że tu nie da się dojść. Kompilator C# nie sprawdzi, czy wymieniliśmy wszystkie warianty, więc robi to test Roslyn <code>ExhaustivenessCheckFlagsUnhandledVariant</code>.
+<strong>Snapshot:</strong> <code>Step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s13 1 2</code></p>
+<h3 id="krok-3-nowy-typ-biletu-i-test-wyczerpania" tabindex="-1"><a class="header-anchor" href="#krok-3-nowy-typ-biletu-i-test-wyczerpania"><span>Krok 3: Nowy typ biletu i test wyczerpania</span></a></h3>
+<p><strong>W IDE:</strong> utwórz <code>public sealed record ChildTicket(Money BasePrice) : Ticket(BasePrice);</code>. Kompilacja przechodzi - to jest różnica względem Javy, gdzie wywróciłby ją kompilator. W porcie tę rolę pełni test <code>ExhaustivenessCheckFlagsUnhandledVariant</code>, który sprawdza snapshoty: kalkulator ze Step2 zestawiony z hierarchią ze Step3 ma nieobsłużony <code>ChildTicket</code>. Pokaż ten test sali (na <code>Start</code> na żywo nic nie zrobi się czerwone), potem dopisz ramię z wartością 40.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs">ChildTicket =&gt; <span class="hljs-number">40</span>,
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony: bilet dziecięcy 25.00 -&gt; 15.00.
+<strong>Co powiedzieć:</strong> zamknięta hierarchia plus kontrola wyczerpania zamieniają ciche błędy w czerwone testy. Ale tylko tam, gdzie ktoś ją uruchomi - test <code>OldSwitchThrowsUnreachableExceptionForNewVariant</code> buduje <code>PriceCalculator</code> ze Step2 razem z hierarchią ze Step3: w C# kompiluje się bez błędu (nawet rekompilacja nie pomaga, w odróżnieniu od Javy), a <code>switch</code> rzuca <code>UnreachableException</code>.
+<strong>Snapshot:</strong> <code>Step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s13 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-12" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-12"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Hierarchia zamknięta w assembly (<code>private protected</code> + <code>sealed record</code>) i <code>switch</code> wymieniający każdy wariant jawnie, z ramieniem <code>_</code> rzucającym <code>UnreachableException</code>. Wariant dodany w źródle jest obsłużony, bo inaczej test wyczerpania jest czerwony, a w runtime - wyjątek zamiast cichego zera.</p>
+<h3 id="pulapki-12" tabindex="-1"><a class="header-anchor" href="#pulapki-12"><span>Pułapki</span></a></h3>
+<ul>
+<li>Ramię <code>_ =&gt; 0</code> (odpowiednik <code>default</code>) w <code>switch</code> po zamkniętej hierarchii wyłącza ochronę - wracamy do cichego błędu. Test wyczerpania go nie odróżni od <code>throw</code>, jeśli nie sprawdza treści ramienia.</li>
+<li>Zamknięcie przez <code>private protected</code> działa na poziomie assembly: każdy kod w tym samym projekcie (a przez <code>InternalsVisibleTo</code> także w projektach testów) może dopisać wariant. Pośrednia klasa bazowa (Extract Superclass w środku hierarchii) zmienia oba poziomy.</li>
+<li>Nowy wariant jest zgodny binarnie, a każdy skompilowany wcześniej <code>switch</code> - w tym w osobnych assembly i wtyczkach - rzuci <code>UnreachableException</code>. W C# nawet przebudowanie go nie zgłosi błędu.</li>
+</ul>
+<h3 id="pytanie-do-sali-12" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-12"><span>Pytanie do sali</span></a></h3>
+<p>Kiedy otwarta hierarchia jest lepsza niż zamknięta? Kto w waszym systemie dopisuje implementacje spoza assembly?</p>
+<h2 id="scena-s14-wspoldzielenie-implementacji-a-podtypowanie" tabindex="-1"><a class="header-anchor" href="#scena-s14-wspoldzielenie-implementacji-a-podtypowanie"><span>Scena s14. Współdzielenie implementacji a podtypowanie</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 1.1-1.2. Hierarchia jest częścią zachowania; 9.1. Replace Inheritance with Composition - kiedy?
+<strong>Namespace:</strong> <code>Training.Workshop.M5.S14Reuse</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m5/<wbr>s14</code>
+<strong>Czas:</strong> ~10 min</p>
+<h3 id="w-skrocie-13" tabindex="-1"><a class="header-anchor" href="#w-skrocie-13"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> <code>CorporateAccount</code> dziedziczy po <code>LoyaltyAccount</code> tylko po to, by nie pisać drugi raz naliczania punktów, i blokuje wyjątkiem wymianę punktów na bilet. Wydzielamy logikę punktów do <code>PointsLedger</code>, zrywamy dziedziczenie, a raportowi dajemy wspólną rolę <code>IPointsHolder</code>.</p>
+<p><strong>Zasada:</strong> Wspólny kod uzasadnia współpracownika, a dziedziczenie dopiero wspólny kontrakt. Podtyp musi móc wystąpić wszędzie tam, gdzie nadtyp, więc override rzucający <code>NotSupportedException</code> to podręcznikowy sygnał złamanej substytucji. Zgodna sygnatura nie dowodzi zastępowalności.</p>
+<p><strong>Efekt:</strong> Implementację współdzieli kompozycja, a kontrakt - interfejs, więc operacji, której nie da się wykonać, po prostu nie ma. Klienci, którzy przyjmowali <code>LoyaltyAccount</code> i dostawali konto firmowe, przestaną się kompilować i każdego trzeba przejrzeć.</p>
+<p><strong>Różnica względem Javy:</strong> <code>RedeemFreeTicket()</code> jest w Start i Step1 jawnie <code>virtual</code>, żeby konto firmowe mogło je nadpisać - w C# już sama konieczność dopisania <code>virtual</code> do metody bazy &quot;tylko po to, żeby podklasa mogła odmówić&quot; jest sygnałem ostrzegawczym. Interfejs to <code>IPointsHolder</code> z właściwościami <code>Owner</code> i <code>Points</code>, a <code>divideToIntegralValue(10)</code> to <code>decimal.Truncate(amount /<wbr> 10)</code>.</p>
+<h3 id="co-widzimy-13" tabindex="-1"><a class="header-anchor" href="#co-widzimy-13"><span>Co widzimy</span></a></h3>
+<p><code>CorporateAccount : LoyaltyAccount</code> tylko po to, by nie pisać drugi raz naliczania punktów (1 pkt za pełne 10.00). Firma zbiera punkty do rocznego rabatu i nie wymienia ich na bilety, więc odziedziczoną operację blokuje wyjątkiem.</p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">override</span> <span class="hljs-built_in">bool</span> <span class="hljs-title">RedeemFreeTicket</span>()</span>
+{
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> NotSupportedException(<span class="hljs-string">&quot;konto firmowe nie wymienia punktów na bilety&quot;</span>);
+}
+</code></pre>
+<p>Zgodna sygnatura nie dowodzi zastępowalności: każdy klient <code>LoyaltyAccount</code> może dostać ten obiekt i wybuchnąć.</p>
+<h3 id="krok-1-extract-delegate-wspoldzielona-implementacja" tabindex="-1"><a class="header-anchor" href="#krok-1-extract-delegate-wspoldzielona-implementacja"><span>Krok 1: Extract Delegate - współdzielona implementacja</span></a></h3>
+<p><strong>W IDE:</strong> na <code>LoyaltyAccount</code> ⌃T &gt; Extract Class, nazwa <code>PointsLedger</code>, zaznacz pole <code>_points</code> oraz logikę <code>Earn</code> i odejmowania punktów (Rider zostawi w <code>LoyaltyAccount</code> delegowanie do nowego pola). Metodę odejmowania nazwij <code>Spend(int amount)</code>; jeśli Extract Class nie obejmie fragmentu z <code>RedeemFreeTicket</code>, najpierw Extract Method ⌥⌘M na tym fragmencie.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> PointsLedger _ledger = <span class="hljs-keyword">new</span>();
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">virtual</span> <span class="hljs-built_in">bool</span> <span class="hljs-title">RedeemFreeTicket</span>()</span>
+{
+    <span class="hljs-keyword">return</span> _ledger.Spend(<span class="hljs-number">100</span>);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m5/<wbr>s14</code> - 12 testów zielonych.
+<strong>Co powiedzieć:</strong> kod, który chcieliśmy współdzielić, ma teraz własną klasę. Reużycie nie wymaga już dziedziczenia - można go użyć z dowolnego miejsca.
+<strong>Snapshot:</strong> <code>Step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s14 0 1</code></p>
+<h3 id="krok-2-konto-firmowe-przez-kompozycje-rola-dla-raportu" tabindex="-1"><a class="header-anchor" href="#krok-2-konto-firmowe-przez-kompozycje-rola-dla-raportu"><span>Krok 2: Konto firmowe przez kompozycję + rola dla raportu</span></a></h3>
+<p><strong>W IDE:</strong> w <code>CorporateAccount</code> usuń <code>: LoyaltyAccount</code>, dodaj własne pole <code>PointsLedger</code>, pole <code>_company</code>, metodę <code>Earn</code> i właściwości <code>Owner</code>, <code>Points</code> (Generate ⌘N &gt; Delegating Members dla <code>_ledger</code>), a <code>RedeemFreeTicket</code> usuń. Na <code>LoyaltyAccount</code> ⌃T &gt; Extract Interface <code>IPointsHolder</code> z <code>Owner</code> i <code>Points</code>, <code>CorporateAccount : IPointsHolder</code>, <code>LoyaltyReport.Line(IPointsHolder)</code>. Obie klasy kont oznacz <code>sealed</code>, a z <code>RedeemFreeTicket</code> usuń <code>virtual</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">CorporateAccount</span> : <span class="hljs-title">IPointsHolder</span>
+{
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">string</span> _company;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> PointsLedger _ledger = <span class="hljs-keyword">new</span>();
+    ...
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony. <code>S14SolutionTest</code> sprawdza, że <code>CorporateAccount</code> nie jest <code>LoyaltyAccount</code> i nie ma <code>RedeemFreeTicket</code>.
+<strong>Co powiedzieć:</strong> wspólny kontrakt (właściciel i saldo) jest prawdziwy dla obu kont, więc tu podtypowanie jest uczciwe. Operacji, której nie da się wykonać, po prostu nie ma - nie trzeba jej blokować.
+<strong>Snapshot:</strong> <code>Step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s14 1 2</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-13" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-13"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Implementację współdzieli <code>PointsLedger</code> (kompozycja), kontrakt - <code>IPointsHolder</code> (interfejs). Dziedziczenie zostało tam, gdzie nie było potrzebne: nigdzie.</p>
+<h3 id="pulapki-13" tabindex="-1"><a class="header-anchor" href="#pulapki-13"><span>Pułapki</span></a></h3>
+<ul>
+<li><code>NotSupportedException</code> w override to podręcznikowy sygnał złamanej substytucji (tak samo <code>ReadOnlyAccount.Withdraw</code>). W BCL ten sam zapach ma <code>ReadOnlyCollection&lt;T&gt;</code> implementujące <code>IList&lt;T&gt;.Add</code>.</li>
+<li>Klienci, którzy przyjmowali <code>LoyaltyAccount</code> i dostawali konto firmowe, przestaną się kompilować - dobrze, każdy z nich trzeba przejrzeć.</li>
+<li>Wydzielony współpracownik nie powinien wiedzieć, kto go używa (żadnych <code>if (owner is ...)</code>).</li>
+</ul>
+<h3 id="pytanie-do-sali-13" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-13"><span>Pytanie do sali</span></a></h3>
+<p>Pytania ze slajdów 1.1-1.2: czy te klasy mają ten sam kod, czy są wariantami jednego pojęcia? Jaka jest odpowiedź dla każdej pary w tej scenie?</p>
+<h2 id="scena-s15-zgodnosc-binarna-refleksja-i-adnotacje" tabindex="-1"><a class="header-anchor" href="#scena-s15-zgodnosc-binarna-refleksja-i-adnotacje"><span>Scena s15. Zgodność binarna, refleksja i adnotacje</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 1.3. Warstwy zgodności; 10.2-10.3. Zgodność binarna, refleksja i adnotacje
+<strong>Namespace:</strong> <code>Training.Workshop.M5.S15Compatibility</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m5/<wbr>s15</code>
+<strong>Czas:</strong> ~15 min</p>
+<h3 id="w-skrocie-14" tabindex="-1"><a class="header-anchor" href="#w-skrocie-14"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> Biblioteka kasowa ma eksporter szukający atrybutu <code>[Column]</code> przez <code>GetMethods(... | DeclaredOnly)</code> i API używane przez skompilowane wtyczki partnerów. Zabezpieczamy refleksję, wciągamy <code>Price()</code> do bazy, uogólniamy parametr <code>Quote</code> i przywracamy starą sygnaturę przestarzałym przeciążeniem.</p>
+<p><strong>Zasada:</strong> Zgodność ma kilka warstw: zachowanie, źródło, binaria, refleksja, serializacja i integracje - i każda wymaga osobnego sprawdzenia. Pull Up jest zwykle zgodny binarnie dla wywołań, ale zmienia typ deklarujący widoczny dla refleksji, a zmiana typu parametru zmienia sygnaturę metody w metadanych. Pełny build sprawdza tylko zgodność źródłową.</p>
+<p><strong>Efekt:</strong> Eksport działa po przesunięciu metody, <code>Quote</code> przyjmuje każdy bilet, a stare wtyczki działają dzięki przeciążeniu delegującemu. Przestarzała metoda zostaje na okres przejściowy, a jej usunięcie to osobna, zapowiedziana zmiana łamiąca.</p>
+<p><strong>Różnica względem Javy:</strong> adnotacja <code>@Column</code> to atrybut <code>ColumnAttribute</code> (stabilny kontrakt sceny, poza <code>Start</code>/<code>StepN</code>), <code>getDeclaredMethods()</code> to <code>GetMethods(... | BindingFlags.DeclaredOnly)</code>, a <code>getMethods()</code> to <code>GetMethods()</code>. Zamiast <code>javax.tools</code> i podmiany JAR-a test kompiluje przez Roslyn w pamięci API wariantu jako assembly &quot;Api&quot; (przestrzeń nazw podmieniona na <code>Api</code>), a wtyczkę &quot;Plugin&quot; kompiluje przeciw jednej wersji i ładuje z inną w osobnym <code>AssemblyLoadContext</code> - jak podmiana <code>Api.dll</code> na serwerze. Wyniki są takie jak w Javie, zmieniają się tylko nazwy wyjątków: <code>NoSuchMethodError</code> to <code>MissingMethodException</code>, <code>@Deprecated</code> to <code>[Obsolete]</code>, <code>@SuppressWarnings(&quot;deprecation&quot;)</code> w teście równoważności to <code>#pragma warning disable CS0618</code>. Pliki wariantów mają jawne <code>using Training.Workshop.M5.S15Compatibility;</code> - potrzebne po podmianie przestrzeni nazw.</p>
+<h3 id="co-widzimy-14" tabindex="-1"><a class="header-anchor" href="#co-widzimy-14"><span>Co widzimy</span></a></h3>
+<p>Biblioteka kasowa: <code>StandardTicket</code> i <code>StudentTicket</code> deklarują własne <code>Price()</code> z atrybutem <code>[Column(&quot;cena&quot;)]</code>. <code>TicketExporter</code> szuka kolumn przez <code>GetMethods(... | DeclaredOnly)</code> klasy runtime. <code>BoxOfficeApi.Quote(StudentTicket)</code> jest używane przez <strong>skompilowane</strong> wtyczki partnerów. Ta scena jest nietypowa: główną demonstracją jest <code>S15SolutionTest</code>, który przez Roslyn kompiluje wtyczkę przeciw jednej wersji API (pliki wariantu z przestrzenią nazw podmienioną na <code>Api</code>) i uruchamia ją z inną - jak podmiana DLL na serwerze.</p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">var</span> candidates = ticket.GetType().GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly);   <span class="hljs-comment">// tylko klasa runtime</span>
+</code></pre>
+<h3 id="krok-1-przygotowanie-refleksji-przed-ruchem-w-hierarchii" tabindex="-1"><a class="header-anchor" href="#krok-1-przygotowanie-refleksji-przed-ruchem-w-hierarchii"><span>Krok 1: Przygotowanie refleksji przed ruchem w hierarchii</span></a></h3>
+<p><strong>W IDE:</strong> w <code>TicketExporter</code> zmień wywołanie na <code>GetMethods()</code> bez flag (publiczne metody instancji i statyczne, także odziedziczone).
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">var</span> candidates = ticket.GetType().GetMethods();
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m5/<wbr>s15</code> - 20 testów zielonych.
+<strong>Co powiedzieć:</strong> kod szukający metod po nazwie albo atrybucie to ukryty kontrakt na typ deklarujący. Zabezpieczamy go przed ruchem, a nie po awarii.
+<strong>Snapshot:</strong> <code>Step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s15 0 1</code></p>
+<h3 id="krok-2-pull-up-price-z-atrybutem" tabindex="-1"><a class="header-anchor" href="#krok-2-pull-up-price-z-atrybutem"><span>Krok 2: Pull Up Price() z atrybutem</span></a></h3>
+<p><strong>W IDE:</strong> ciała <code>Price()</code> są różne, więc najpierw Extract Method ⌥⌘M na procencie zniżki (<code>DiscountPercent()</code>), potem ⌃T &gt; Pull Members Up na <code>Price()</code> ze <code>StudentTicket</code> (atrybut idzie razem z metodą), a <code>DiscountPercent()</code> jako abstract (<code>protected abstract int DiscountPercent()</code>). Kopię <code>Price()</code> w <code>StandardTicket</code> usuń. Nie dodawaj <code>virtual</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs">[<span class="hljs-meta">Column(<span class="hljs-string">&quot;cena&quot;</span>)</span>]
+<span class="hljs-function"><span class="hljs-keyword">public</span> Money <span class="hljs-title">Price</span>()</span>
+{
+    <span class="hljs-keyword">return</span> _basePrice.Minus(_basePrice.Percent(DiscountPercent()));
+}
+
+<span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">abstract</span> <span class="hljs-built_in">int</span> <span class="hljs-title">DiscountPercent</span>()</span>;
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony. <code>PullUpIsBinaryCompatibleForCallers</code>: wtyczka skompilowana przeciw Step1 działa z API ze Step2 (CLR znajduje <code>StudentTicket::Price</code> w klasie bazowej). <code>PullUpHidesAnnotatedMethodFromDeclaredMethodsLookup</code>: <code>GetMethods(... | DeclaredOnly)</code> na podklasie już nie widzi kolumny - eksporter ze Start by ją zgubił.
+<strong>Co powiedzieć:</strong> zgodność binarna dla wywołań nie oznacza zgodności refleksyjnej. <code>AttributeUsage(Inherited = true)</code> tu nie pomoże - dotyczy nadpisań metod wirtualnych, a nie metody, której podklasa w ogóle nie deklaruje.
+<strong>Snapshot:</strong> <code>Step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s15 1 2</code></p>
+<h3 id="krok-3-generalize-parameter-type-zmiana-lamiaca-binarnie" tabindex="-1"><a class="header-anchor" href="#krok-3-generalize-parameter-type-zmiana-lamiaca-binarnie"><span>Krok 3: Generalize Parameter Type - zmiana łamiąca binarnie</span></a></h3>
+<p><strong>W IDE:</strong> na <code>BoxOfficeApi.Quote</code> Change Signature ⌘F6, typ parametru <code>StudentTicket</code> -&gt; <code>Ticket</code>. Wszystko się kompiluje.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> Money <span class="hljs-title">Quote</span>(<span class="hljs-params">Ticket ticket</span>)</span>
+{
+    <span class="hljs-keyword">return</span> ticket.Price();
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony. <code>GeneralizedParameterBreaksOldBinary</code>: stara wtyczka dostaje <code>MissingMethodException</code> z nazwą <code>Quote</code> (sygnatury <code>Quote(Api.StudentTicket)</code> nie ma już w metadanych). <code>GeneralizedParameterIsSourceCompatible</code>: po rekompilacji ta sama wtyczka działa.
+<strong>Co powiedzieć:</strong> pełny build sprawdza zgodność źródłową. Stara wtyczka, której nie przebudujemy, widzi zmianę sygnatury w metadanych - IDE tego nie zgłosi.
+<strong>Snapshot:</strong> <code>Step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s15 2 3</code></p>
+<h3 id="krok-4-przestarzale-przeciazenie-delegujace" tabindex="-1"><a class="header-anchor" href="#krok-4-przestarzale-przeciazenie-delegujace"><span>Krok 4: Przestarzałe przeciążenie delegujące</span></a></h3>
+<p><strong>W IDE:</strong> dodaj z powrotem <code>Quote(StudentTicket)</code> z <code>[Obsolete(&quot;od 2.0: użyj Quote(Ticket)&quot;)]</code>, delegujące do <code>Quote((Ticket)ticket)</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs">[<span class="hljs-meta">Obsolete(<span class="hljs-string">&quot;od 2.0: użyj Quote(Ticket)&quot;</span>)</span>]
+<span class="hljs-function"><span class="hljs-keyword">public</span> Money <span class="hljs-title">Quote</span>(<span class="hljs-params">StudentTicket ticket</span>)</span>
+{
+    <span class="hljs-keyword">return</span> Quote((Ticket)ticket);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony. <code>DelegatingOverloadRestoresBinaryCompatibility</code>: stara wtyczka działa z API ze Step4.
+<strong>Co powiedzieć:</strong> stara sygnatura zostaje na okres przejściowy, a usunięcie to osobna, zapowiedziana zmiana łamiąca. Uwaga na przeciążenia: nowi klienci z typem <code>StudentTicket</code> wybiorą przestarzałą metodę (scena s09) i dostaną ostrzeżenie CS0618 - przy <code>TreatWarningsAsErrors</code> to błąd, więc test równoważności wyłącza je <code>#pragma</code>.
+<strong>Snapshot:</strong> <code>Step4/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s15 3 4</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-14" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-14"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Eksporter odporny na przesunięcia metod, <code>Price()</code> w bazie, API przyjmujące <code>Ticket</code> z przejściowym przeciążeniem. Każda warstwa zgodności jest sprawdzona osobnym testem.</p>
+<h3 id="pulapki-14" tabindex="-1"><a class="header-anchor" href="#pulapki-14"><span>Pułapki</span></a></h3>
+<ul>
+<li>Zgodność binarna nie dowodzi zgodności źródłowej ani zachowania - i odwrotnie.</li>
+<li>Push Down, zmiana typu parametru lub wyniku, usunięcie klasy - łamią stare binaria. Pull Up, dodanie metody do klasy - zwykle nie. W C# łamią też rzeczy &quot;niewinne&quot; w źródle: zamiana pola na właściwość, dodanie parametru opcjonalnego (wartość domyślna jest wkompilowana u klienta), zmiana wartości <code>const</code> (klient ma starą wartość).</li>
+<li><code>MethodInfo.DeclaringType</code>, <code>GetMethods(DeclaredOnly)</code>, atrybuty metod i metody pomostowe (scena s12) zmieniają się przy każdym ruchu członka.</li>
+<li>Narzędzia typu Microsoft.DotNet.ApiCompat (walidacja pakietu <code>EnablePackageValidation</code>) w CI sprawdzają zgodność binarną automatycznie.</li>
+</ul>
+<h3 id="pytanie-do-sali-14" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-14"><span>Pytanie do sali</span></a></h3>
+<p>Którą warstwę zgodności z tabeli 1.3 sprawdza wasz obecny pipeline, a której nie sprawdza żadna automatyzacja?</p>
+<h2 id="scena-s16-serializacja-i-proxy-hierarchia-jako-format-danych" tabindex="-1"><a class="header-anchor" href="#scena-s16-serializacja-i-proxy-hierarchia-jako-format-danych"><span>Scena s16. Serializacja i proxy - hierarchia jako format danych</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 10.4-10.6. Serializacja, ORM i DI
+<strong>Namespace:</strong> <code>Training.Workshop.M5.S16SerializationProxy</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m5/<wbr>s16</code>
+<strong>Czas:</strong> ~12 min</p>
+<h3 id="w-skrocie-15" tabindex="-1"><a class="header-anchor" href="#w-skrocie-15"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> Wydzielenie nadklasy z polami <code>_title</code> i <code>_seat</code> w zapisywanym przez <code>DataContractSerializer</code> bilecie <code>StudentTicket</code> sprawia, że stare dane czytają się bez wyjątku, ale z <code>null</code> w tytule. Wprowadzamy Serialization Proxy w nowym formacie (JSON z płaskim DTO), a dla serwisu cenowego <code>sealed</code> wydzielamy interfejs, żeby dało się go opakować <code>DispatchProxy</code>.</p>
+<p><strong>Zasada:</strong> Serializator zapisujący pola obiektu (tu <code>DataContractSerializer</code>) zapisuje je poziomami hierarchii, więc przeniesienie pola zmienia format danych, a stała nazwa kontraktu nie przenosi stanu między poziomami. Serialization Proxy oddziela format od struktury klas. Dynamiczne proxy <code>DispatchProxy</code> opakowuje tylko interfejsy, a proxy klasowe nie ruszy klas <code>sealed</code> ani metod niewirtualnych.</p>
+<p><strong>Efekt:</strong> Przyszłe Pull Up i Push Down nie zmienią zapisu, a proxy audytowe działa bez usuwania <code>sealed</code>. Zachowanie świadomie się zmienia: stare dane są odrzucane głośno zamiast czytane z utratą pól, a ich migracja to osobne zadanie.</p>
+<p><strong>Różnica względem Javy:</strong> to adaptacja. Serializacja Javy nie ma odpowiednika w .NET (<code>BinaryFormatter</code> został usunięty w .NET 9), a System.Text.Json nie ma pułapki &quot;poziomów hierarchii&quot;. Stary format to więc <code>DataContractSerializer</code> (stare serwisy WCF, cache, sesje): czyta prywatne pola bez wołania konstruktora, stała nazwa i przestrzeń kontraktu (<code>[DataContract(Name = &quot;StudentTicket&quot;, Namespace = &quot;urn:cinelegacy:tickets&quot;)]</code>) to odpowiednik <code>serialVersionUID = 1L</code>, a pola bazy stoją w XML przed polami podklasy. Po Pull Up stary XML (<code>seat, studentId, title</code>) czytany przez nową hierarchię (<code>seat, title</code> | <code>studentId</code>) po cichu gubi tylko <code>title</code> (w Javie ginęły <code>title</code> i <code>seat</code>): oczekiwane <code>&quot; F3 (legitymacja S-123)&quot;</code> i <code>Title == null</code>. &quot;Plik z v1&quot; to zamrożona stała XML, a nie Base64. Serialization Proxy w kroku 2 to System.Text.Json + DTO: <code>[JsonConverter]</code> na <code>StudentTicket</code> zapisuje płaski <code>record SerializedForm</code> (<code>writeReplace</code>) i czyta przez publiczny konstruktor (<code>readResolve</code>); nowy format (JSON) jest odpowiednikiem <code>serialVersionUID = 2L</code>, więc stary XML jest odrzucany głośno <code>JsonException</code> (Java: <code>InvalidClassException</code>). Testowy <code>TicketStore</code> (odpowiednik <code>ObjectOutputStream</code>/<code>ObjectInputStream</code>) wybiera format po typie: klasa z <code>[DataContract]</code> - XML, inna - JSON. <code>java.lang.reflect.Proxy</code> to <code>DispatchProxy</code> (dla klasy rzuca <code>ArgumentException</code>), a proxy klasowe CGLIB/ByteBuddy to Castle DynamicProxy (przechwytuje tylko metody wirtualne). Dodatkowy test <code>StartWritesTheFrozenV1Data</code> pilnuje, że stała XML to naprawdę zapis klasy ze Start.</p>
+<h3 id="co-widzimy-15" tabindex="-1"><a class="header-anchor" href="#co-widzimy-15"><span>Co widzimy</span></a></h3>
+<p><code>StudentTicket</code> z <code>[DataContract]</code> i trzema prywatnymi polami <code>[DataMember]</code>: <code>title</code>, <code>seat</code>, <code>studentId</code>. Postać XML zawiera pola każdego poziomu hierarchii po kolei (najpierw baza, potem podklasa, w obrębie poziomu alfabetycznie). <code>TicketPricing</code> to klasa <code>sealed</code> bez interfejsu. Scena nietypowa: główną demonstracją jest <code>S16SolutionTest</code> z &quot;plikiem z v1&quot; zamrożonym jako stała XML (bilet zapisany przez klasę ze Start).</p>
+<pre class="code" data-lang="csharp"><code class="hljs">[<span class="hljs-meta">DataContract(Name = <span class="hljs-string">&quot;StudentTicket&quot;</span>, Namespace = <span class="hljs-string">&quot;urn:cinelegacy:tickets&quot;</span>)</span>]
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">StudentTicket</span>
+{
+    [<span class="hljs-meta">DataMember(Name = <span class="hljs-string">&quot;title&quot;</span>)</span>]
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">string</span> _title;
+    ...
+}
+
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">TicketPricing</span>
+{
+    <span class="hljs-function"><span class="hljs-keyword">public</span> Money <span class="hljs-title">StudentPrice</span>(<span class="hljs-params">Money basePrice</span>)</span> { ... }
+}
+</code></pre>
+<h3 id="krok-1-extract-superclass-pull-up-field-ciche-zgubienie-danych" tabindex="-1"><a class="header-anchor" href="#krok-1-extract-superclass-pull-up-field-ciche-zgubienie-danych"><span>Krok 1: Extract Superclass + Pull Up Field - ciche zgubienie danych</span></a></h3>
+<p><strong>W IDE:</strong> ⌃T &gt; Extract Superclass na <code>StudentTicket</code>, nazwa <code>Ticket</code>, pola <code>_title</code>, <code>_seat</code> + właściwości <code>Title</code>, <code>Seat</code>. <code>Ticket</code> dostaje <code>[DataContract(Name = &quot;Ticket&quot;, Namespace = &quot;urn:cinelegacy:tickets&quot;)]</code>, pola w bazie zachowują <code>[DataMember]</code>, a <code>StudentTicket</code> zostaje z tą samą nazwą i przestrzenią kontraktu.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs">[<span class="hljs-meta">DataContract(Name = <span class="hljs-string">&quot;Ticket&quot;</span>, Namespace = <span class="hljs-string">&quot;urn:cinelegacy:tickets&quot;</span>)</span>]
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> <span class="hljs-keyword">class</span> <span class="hljs-title">Ticket</span>
+{
+    [<span class="hljs-meta">DataMember(Name = <span class="hljs-string">&quot;title&quot;</span>)</span>]
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">string</span> _title;
+
+    [<span class="hljs-meta">DataMember(Name = <span class="hljs-string">&quot;seat&quot;</span>)</span>]
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">string</span> _seat;
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m5/<wbr>s16</code> - 14 testów zielonych. <code>PulledUpFieldsAreSilentlyLostWhenReadingOldData</code>: stare dane odczytane przez Step1 dają <code>&quot; F3 (legitymacja S-123)&quot;</code>, a <code>Title</code> jest <code>null</code>. Bez wyjątku.
+<strong>Co powiedzieć:</strong> pole <code>title</code> przeszło na poziom <code>Ticket</code>, który serializator czyta przed polami podklasy - w starym XML stoi ono po <code>studentId</code>, więc zostaje pominięte. Stała nazwa kontraktu zapobiega wyjątkowi, ale nie migruje stanu - to najgorsza możliwa kombinacja.
+<strong>Snapshot:</strong> <code>Step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s16 0 1</code></p>
+<h3 id="krok-2-serialization-proxy-json-i-plaski-dto" tabindex="-1"><a class="header-anchor" href="#krok-2-serialization-proxy-json-i-plaski-dto"><span>Krok 2: Serialization Proxy (JSON i płaski DTO)</span></a></h3>
+<p><strong>W IDE:</strong> ręcznie (brak automatu): w <code>StudentTicket</code> prywatny <code>sealed record SerializedForm(string Title, string Seat, string StudentId)</code> i prywatny <code>JsonConverter&lt;StudentTicket&gt;</code>: <code>Write</code> zapisuje <code>SerializedForm</code>, <code>Read</code> czyta <code>SerializedForm</code> i woła publiczny konstruktor. Klasę oznacz <code>[JsonConverter(typeof(SerializedFormConverter))]</code>. Z <code>Ticket</code> i <code>StudentTicket</code> usuń <code>[DataContract]</code> i <code>[DataMember]</code> - baza przestaje być kontraktem danych.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">override</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Write</span>(<span class="hljs-params">Utf8JsonWriter writer, StudentTicket <span class="hljs-keyword">value</span>, JsonSerializerOptions options</span>)</span>
+{
+    JsonSerializer.Serialize(writer, <span class="hljs-keyword">new</span> SerializedForm(<span class="hljs-keyword">value</span>.Title, <span class="hljs-keyword">value</span>.Seat, <span class="hljs-keyword">value</span>._studentId), options);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony. <code>SerializationProxyRejectsOldDataLoudly</code>: stare dane odrzucone <code>JsonException</code>. <code>SerializationProxyWritesFlatFormIndependentOfHierarchy</code>: zapis to dokładnie <code>{&quot;Title&quot;:&quot;Amator&quot;,&quot;Seat&quot;:&quot;F3&quot;,&quot;StudentId&quot;:&quot;S-1&quot;}</code>, bez słowa <code>Ticket</code>.
+<strong>Co powiedzieć:</strong> hierarchia klasy przestaje być formatem danych - przyszłe Pull Up/Push Down nie zmienią zapisu. Nowy format to świadoma deklaracja nowej wersji: błąd głośny zamiast cichego. Migracja starych danych to osobne zadanie (czytnik v1 albo konwersja offline).
+<strong>Snapshot:</strong> <code>Step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s16 1 2</code></p>
+<h3 id="krok-3-extract-interface-dla-dynamicznego-proxy" tabindex="-1"><a class="header-anchor" href="#krok-3-extract-interface-dla-dynamicznego-proxy"><span>Krok 3: Extract Interface dla dynamicznego proxy</span></a></h3>
+<p><strong>W IDE:</strong> na <code>TicketPricing</code> ⌃T &gt; Extract Interface, nazwa <code>IPricing</code>, metoda <code>StudentPrice</code>. Klasa może zostać <code>sealed</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title">IPricing</span>
+{
+    <span class="hljs-function">Money <span class="hljs-title">StudentPrice</span>(<span class="hljs-params">Money basePrice</span>)</span>;
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony. <code>DispatchProxyCannotWrapSealedClassWithoutInterface</code>: <code>DispatchProxy.Create</code> dla klasy rzuca <code>ArgumentException</code>. <code>ExtractedInterfaceAllowsDynamicProxy</code>: proxy audytowe liczy wywołania.
+<strong>Co powiedzieć:</strong> <code>DispatchProxy</code> opakowuje tylko interfejsy. Proxy klasowe (Castle DynamicProxy w interceptorach kontenerów DI, lazy loading w EF Core Proxies i NHibernate) robi podklasę, więc nie ruszy klasy <code>sealed</code> ani metod niewirtualnych - a interceptor transakcji albo cache na metodzie niewirtualnej po cichu nie działa.
+<strong>Snapshot:</strong> <code>Step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m5/<wbr>s16 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-15" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-15"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Serializowana postać to płaski record niezależny od hierarchii. Serwis ma interfejs roli, który kontener DI może opakować bez dziedziczenia.</p>
+<h3 id="pulapki-15" tabindex="-1"><a class="header-anchor" href="#pulapki-15"><span>Pułapki</span></a></h3>
+<ul>
+<li><code>sealed</code> albo usunięcie <code>virtual</code> dodane &quot;dla porządku&quot; przy refaktoryzacji potrafi wyłączyć interceptory, lazy loading (EF Core Proxies wymaga <code>virtual</code> na nawigacjach) i mocki (Moq, NSubstitute).</li>
+<li>Self-invocation: <code>this.InnaMetoda()</code> wewnątrz serwisu omija proxy (także po Extract Interface).</li>
+<li>Hierarchia encji EF Core to migracja modelu: strategia TPH/TPT/TPC, dyskryminator, tabele, zapytania polimorficzne. Test z prawdziwym dostawcą: <code>SaveChanges</code>, <code>ChangeTracker.Clear()</code>, ponowny odczyt.</li>
+<li>DI po Extract Interface: dwie rejestracje tej samej roli to po cichu &quot;wygrywa ostatnia&quot; (<code>GetService&lt;IPricing&gt;</code>) albo lista w <code>IEnumerable&lt;IPricing&gt;</code> - uruchom kontener (<code>ValidateOnBuild</code>) w teście.</li>
+</ul>
+<h3 id="pytanie-do-sali-15" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-15"><span>Pytanie do sali</span></a></h3>
+<p>Gdzie wasz system trzyma obiekty zapisane serializatorem pól (sesje, cache rozproszony, kolejki, stary WCF)? Czy macie choć jeden plik z poprzedniej wersji formatu w testach?</p>
+<h2 id="proponowana-kolejnosc-pokazu" tabindex="-1"><a class="header-anchor" href="#proponowana-kolejnosc-pokazu"><span>Proponowana kolejność pokazu</span></a></h2>
+<p><strong>Ścieżka krótka (~80 min)</strong> - rdzeń katalogu refaktoryzacji plus dwie najgroźniejsze pułapki:</p>
+<ol>
+<li>s01 Pull Up Method (12 min)</li>
+<li>s03 Push Down i asymetria (12 min)</li>
+<li>s04 Extract Superclass (15 min)</li>
+<li>s06 Extract Interface i metoda domyślna (12 min)</li>
+<li>s08 Kompozycja i <code>new</code> zamiast <code>override</code> (12 min)</li>
+<li>s09 Overloading po Extract Superclass (10 min)</li>
+<li>s15 tylko kroki 3-4 z <code>scripts/<wbr>warsztat.sh --lang cs jump m5/<wbr>s15 2</code> (7 min)</li>
+</ol>
+<p><strong>Ścieżka pełna (~3 h 10 min, z przerwą)</strong> - według agendy slajdów:</p>
+<ol>
+<li>Semantyka C# i CLR: s09, s10, s11, s12, s13 (~48 min)</li>
+<li>Pull Up / Push Down: s01, s02, s03 (~34 min)</li>
+<li>Ekstrakcje: s04, s05, s06 (~42 min)</li>
+<li>Collapse i kompozycja: s07, s14, s08 (~30 min)</li>
+<li>Zgodność i integracje: s15, s16 (~27 min)</li>
+</ol>
+<p>Jeśli brakuje czasu, sceny s02, s07 i s10 dobrze działają jako praca własna uczestników (zadania modułu 5).</p>
+
+</main>
+</div>
+<script>if(matchMedia('(max-width:900px)').matches){var d=document.querySelector('.toc details');if(d)d.open=false}</script>
+</body>
+</html>

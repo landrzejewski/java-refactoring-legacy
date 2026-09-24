@@ -1,5 +1,6 @@
-// Generator stron HTML warsztatu CineLegacy z plików md/warsztat.
-// Styl (CSS) jest kopiowany z istniejącej strony "przyklady", więc wygląd jest identyczny.
+// Generator stron HTML warsztatu CineLegacy z plików md/warsztat (Java), md/warsztat-csharp
+// i md/warsztat-typescript. Styl (CSS) jest kopiowany z istniejącej strony "przyklady",
+// więc wygląd jest identyczny. Każda strona ma przełącznik języka (ta sama strona w innej wersji).
 //
 // Użycie (z katalogu głównego repozytorium):
 //   cd scripts/warsztat-html && npm ci && npm run build
@@ -12,13 +13,17 @@ import anchor from 'markdown-it-anchor';
 import hljs from 'highlight.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../src/main/resources');
-const MD = path.join(ROOT, 'md/warsztat');
-const HTML = path.join(ROOT, 'html/warsztat');
+const VARIANTS = [
+    { dir: 'warsztat', label: 'Java' },
+    { dir: 'warsztat-csharp', label: 'C#' },
+    { dir: 'warsztat-typescript', label: 'TypeScript' },
+];
 const TEMPLATE = path.join(ROOT, 'html/przyklady/04-podstawowe-refaktoryzacje-warsztat-praktyczny.html');
 
 const css = fs.readFileSync(TEMPLATE, 'utf8').match(/<style>([\s\S]*?)<\/style>/)[1]
     .replace('body.zadania{--kind:#1a7f37}',
-        'body.zadania{--kind:#1a7f37} body.warsztat{--kind:#c2570c} body.warsztat-zadania{--kind:#0f7b7b}');
+        'body.zadania{--kind:#1a7f37} body.warsztat{--kind:#c2570c} body.warsztat-zadania{--kind:#0f7b7b}')
+    + '.langs{margin-left:auto}.langs+.pager{margin-left:0}';
 
 const slugify = (s) => s.toLowerCase()
     .normalize('NFD').replace(/[̀-ͯ]/g, '')
@@ -76,8 +81,12 @@ function toc(tokens) {
         : '';
 }
 
-function topbar(kind, module) {
+function topbar(kind, module, variant) {
     const up = kind === 'intro' ? '..' : '../..';
+    const file = kind === 'intro' ? '00-cinelegacy.html' : `${kind}/${module}.html`;
+    const langs = '<div class="tabs langs" aria-label="Język">' + VARIANTS.map((v) =>
+        `<a class="tab${v === variant ? ' active' : ''}" href="${up}/${v.dir}/${file}">${v.label}</a>`).join('')
+        + '</div>';
     const intro = kind === 'intro' ? '00-cinelegacy.html' : '../00-cinelegacy.html';
     const link = (k, label) => {
         const href = kind === 'intro' ? `${k}/${module ?? MODULES[0]}.html`
@@ -97,10 +106,10 @@ function topbar(kind, module) {
     return `<header class="topbar"><a class="home" href="${up}/index.html">Materiały prowadzącego</a>`
         + `<div class="tabs"><a class="tab${kind === 'intro' ? ' active' : ''}" href="${intro}">Warsztat CineLegacy</a>`
         + link('zadania', 'Zadania') + link('przewodnik', 'Przewodnik') + '</div>'
-        + pager + '</header>';
+        + langs + pager + '</header>';
 }
 
-function page({ source, target, kind, module, titlePrefix }) {
+function page({ source, target, kind, module, titlePrefix, variant }) {
     const text = fs.readFileSync(source, 'utf8');
     if (/[–—]/.test(text)) {
         throw new Error(`długi myślnik w ${source}`);
@@ -108,6 +117,7 @@ function page({ source, target, kind, module, titlePrefix }) {
     const env = {};
     const tokens = md.parse(text, env);
     const h1 = text.match(/^# (.+)$/m)?.[1] ?? 'Warsztat CineLegacy';
+    const titleSuffix = variant.dir === 'warsztat' ? '' : ` (${variant.label})`;
     const nav = toc(tokens);
     const body = md.renderer.render(tokens, md.options, env);
     const bodyClass = kind === 'zadania' ? 'warsztat-zadania' : 'warsztat';
@@ -116,11 +126,11 @@ function page({ source, target, kind, module, titlePrefix }) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${escapeHtml(titlePrefix + h1)}</title>
+<title>${escapeHtml(titlePrefix + h1 + titleSuffix)}</title>
 <style>${css}</style>
 </head>
 <body class="${bodyClass}">
-${topbar(kind, module)}
+${topbar(kind, module, variant)}
 <div class="layout${nav ? '' : ' no-toc'}">
 ${nav}
 <main>
@@ -136,25 +146,35 @@ ${body}
     console.log('ok', path.relative(ROOT, target));
 }
 
-page({
-    source: path.join(MD, '00-cinelegacy.md'),
-    target: path.join(HTML, '00-cinelegacy.html'),
-    kind: 'intro',
-    titlePrefix: '',
-});
-for (const kind of ['przewodnik', 'zadania']) {
-    for (const module of MODULES) {
-        const source = path.join(MD, kind, `${module}.md`);
-        if (!fs.existsSync(source)) {
-            console.warn('BRAK', path.relative(ROOT, source));
-            continue;
+for (const variant of VARIANTS) {
+    const MD = path.join(ROOT, 'md', variant.dir);
+    const HTML = path.join(ROOT, 'html', variant.dir);
+    if (!fs.existsSync(MD)) {
+        console.warn('BRAK', path.relative(ROOT, MD));
+        continue;
+    }
+    page({
+        source: path.join(MD, '00-cinelegacy.md'),
+        target: path.join(HTML, '00-cinelegacy.html'),
+        kind: 'intro',
+        titlePrefix: '',
+        variant,
+    });
+    for (const kind of ['przewodnik', 'zadania']) {
+        for (const module of MODULES) {
+            const source = path.join(MD, kind, `${module}.md`);
+            if (!fs.existsSync(source)) {
+                console.warn('BRAK', path.relative(ROOT, source));
+                continue;
+            }
+            page({
+                source,
+                target: path.join(HTML, kind, `${module}.html`),
+                kind,
+                module,
+                titlePrefix: kind === 'przewodnik' ? 'Przewodnik: ' : 'Zadania: ',
+                variant,
+            });
         }
-        page({
-            source,
-            target: path.join(HTML, kind, `${module}.html`),
-            kind,
-            module,
-            titlePrefix: kind === 'przewodnik' ? 'Przewodnik: ' : 'Zadania: ',
-        });
     }
 }

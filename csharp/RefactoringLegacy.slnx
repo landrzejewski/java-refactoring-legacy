@@ -9,6 +9,7 @@
     <Project Path="src/Training.Module7/Training.Module7.csproj" />
     <Project Path="src/Training.Module8/Training.Module8.csproj" />
     <Project Path="src/Training.Patterns/Training.Patterns.csproj" />
+    <Project Path="src/Training.Workshop/Training.Workshop.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Training.Module1.Tests/Training.Module1.Tests.csproj" />
@@ -20,5 +21,6 @@
     <Project Path="tests/Training.Module7.Tests/Training.Module7.Tests.csproj" />
     <Project Path="tests/Training.Module8.Tests/Training.Module8.Tests.csproj" />
     <Project Path="tests/Training.Patterns.Tests/Training.Patterns.Tests.csproj" />
+    <Project Path="tests/Training.Workshop.Tests/Training.Workshop.Tests.csproj" />
   </Folder>
 </Solution>

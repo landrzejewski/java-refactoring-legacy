@@ -1,0 +1,10 @@
+import { RolloutPolicy } from './RolloutPolicy.js';
+
+/** Krok 1: router deleguje decyzję do jawnej polityki (domyślnie dotychczasowe ustawienia). */
+export class CheckoutRouter {
+  constructor(private readonly policy: RolloutPolicy = RolloutPolicy.current()) {}
+
+  useNewCheckout(email: string): boolean {
+    return this.policy.allows(email);
+  }
+}

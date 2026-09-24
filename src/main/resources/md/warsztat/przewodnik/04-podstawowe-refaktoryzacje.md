@@ -404,7 +404,7 @@ if (t.type().equals("S")) {
 
 ### Rozwiązanie i uzasadnienie
 
-`step3/OrderPricer`: czternaście prywatnych stałych, każda z nazwą roli. Trzy progi o wartości 10 mają trzy różne nazwy, bo zmieniają się z różnych powodów. Test obejmuje 9 i 10 biletów, 12:00 i rano, kasę i online.
+`step3/OrderPricer`: piętnaście prywatnych stałych, każda z nazwą roli. Trzy progi o wartości 10 mają trzy różne nazwy, bo zmieniają się z różnych powodów. Test obejmuje 9 i 10 biletów, 12:00 i rano, kasę i online.
 
 ### Pułapki
 

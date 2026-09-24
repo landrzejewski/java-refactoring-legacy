@@ -1,0 +1,10 @@
+# Scena S08: kod wariantów (Start, Step1..Step3) celowo zawiera ostrzeżenia kompilatora - to materiał
+# dla CompilerGate, nie niedoróbka. Build projektu (TreatWarningsAsErrors) ich tu nie egzekwuje,
+# tak jak Maven w Javie nie kompiluje tej sceny z -Werror; bramką jest CompilerGate w teście sceny.
+# CompilerGate kompiluje pliki w pamięci i tego pliku nie czyta.
+
+[{Start,Step1,Step2,Step3}/*.cs]
+dotnet_diagnostic.CS0162.severity = none
+dotnet_diagnostic.CS0618.severity = none
+dotnet_diagnostic.CS8600.severity = none
+dotnet_diagnostic.CS8602.severity = none

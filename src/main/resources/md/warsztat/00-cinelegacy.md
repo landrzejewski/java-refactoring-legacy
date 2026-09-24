@@ -4,6 +4,8 @@ CineLegacy to wymyślony, stary system kina. Obsługuje seanse, sale, miejsca, b
 
 Ten pakiet nie powtarza ćwiczeń z zakładek "Zadania" i "Przykłady" poszczególnych modułów. Uzupełnia je o jak najwięcej małych, uruchamialnych demonstracji na nowym kodzie.
 
+Warsztat ma trzy wersje o tych samych scenach i krokach: Java (ta strona), [C#](../warsztat-csharp/00-cinelegacy.html) i [TypeScript](../warsztat-typescript/00-cinelegacy.html). Skrypt prowadzącego wybiera wersję opcją `--lang java|cs|ts`.
+
 ## Jak zbudowana jest scena
 
 ```text

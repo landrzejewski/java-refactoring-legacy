@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Training.Workshop</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Roslyn: sceny m8 (bramka kompilatora, codemod) i testy kompilujące kod w pamięci -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.9.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Training.Workshop.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- m8/s10: próbki domeny dla bramki jakości - bramka kompiluje je w pamięci, projekt nie -->
+    <Compile Remove="M8/S10QualityGate/Sample/**/*.cs" />
+    <None Include="M8/S10QualityGate/Sample/**/*.cs" />
+  </ItemGroup>
+
+</Project>

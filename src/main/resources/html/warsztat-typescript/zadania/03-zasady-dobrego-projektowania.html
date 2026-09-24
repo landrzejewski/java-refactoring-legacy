@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zadania: Moduł 3. Zasady dobrego projektowania - warsztat CineLegacy (TypeScript): zadania (TypeScript)</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1d1f23;--muted:#5f6670;--line:#e3e5e8;--card:#ffffff;--accent:#2457c5;--accent-bg:#eef3fd;
+--code-bg:#f4f5f7;--note-bg:#fff7e6;--note-line:#e6a700;--th:#f1f3f6;
+--k:#b3246b;--s:#1a7f37;--c:#6e7781;--n:#0550ae;--t:#8250df;--f:#6639ba;--a:#953800;
+--kind:#2457c5}
+@media (prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3036;--card:#1c1f23;--accent:#7aa7ff;--accent-bg:#1e2a40;
+--code-bg:#1f2328;--note-bg:#2b2412;--note-line:#c99400;--th:#23272d;
+--k:#ff7b9c;--s:#7ee2a0;--c:#8b949e;--n:#79c0ff;--t:#d2a8ff;--f:#d2a8ff;--a:#ffa657}}
+body.zadania{--kind:#1a7f37} body.warsztat{--kind:#c2570c} body.warsztat-zadania{--kind:#0f7b7b} body.rozwiazania{--kind:#b3246b} body.przyklady{--kind:#2457c5}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.topbar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 24px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);border-top:3px solid var(--kind)}
+.topbar a{color:var(--fg);text-decoration:none}
+.home{font-weight:600}
+.tabs{display:flex;gap:4px}
+.tab{padding:4px 12px;border-radius:999px;font-size:15px;color:var(--muted)!important}
+.tab:hover{background:var(--code-bg)}
+.tab.active{background:var(--accent-bg);color:var(--accent)!important;font-weight:600}
+.pager{margin-left:auto;display:flex;gap:14px;font-size:15px}
+.pager a{color:var(--muted)}.pager a:hover{color:var(--accent)}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:48px;max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+.layout.no-toc{grid-template-columns:minmax(0,1fr);max-width:1000px}
+aside{position:sticky;top:72px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px}
+.toc-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;font-weight:600}
+.toc ul{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.toc li a{display:block;padding:3px 12px;color:var(--muted);text-decoration:none;line-height:1.35}
+.toc li.h3 a{padding-left:24px;font-size:13px}
+.toc li a:hover{color:var(--accent)}
+main{min-width:0;max-width:860px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 1.2rem;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:2.6rem 0 .8rem;padding-top:.6rem;border-top:1px solid var(--line)}
+h3{font-size:1.18rem;margin:2rem 0 .6rem}
+h4{font-size:1rem;margin:1.5rem 0 .5rem}
+h1 a,h2 a,h3 a,h4 a{color:inherit;text-decoration:none}
+h2 a:hover::after,h3 a:hover::after{content:" #";color:var(--muted)}
+p,ul,ol{margin:.6rem 0 1rem}
+li{margin:.25rem 0}
+li>ul,li>ol{margin:.2rem 0}
+a{color:var(--accent)}
+strong{font-weight:650}
+code{font:0.88em/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre.code{position:relative;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:1rem 0 1.4rem}
+pre.code code{background:none;padding:0;font-size:14px;line-height:1.55}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:6px;right:10px;font:11px ui-monospace,Menlo,monospace;color:var(--muted);text-transform:uppercase}
+.table-wrap{overflow-x:auto;margin:1rem 0 1.4rem;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--th);font-weight:600}
+tr:last-child td{border-bottom:none}
+blockquote{margin:1rem 0 1.4rem;padding:10px 16px;background:var(--note-bg);border-left:4px solid var(--note-line);border-radius:0 8px 8px 0}
+blockquote p{margin:.3rem 0}
+hr{border:none;border-top:1px solid var(--line);margin:2rem 0}
+hr+h2{border-top:none;margin-top:1.4rem}
+main p code,main li code,main td code{overflow-wrap:break-word}
+.toc summary{cursor:pointer;list-style:none}.toc summary::-webkit-details-marker{display:none}
+.hljs-keyword,.hljs-selector-tag,.hljs-built_in,.hljs-literal{color:var(--k)}
+.hljs-string,.hljs-regexp,.hljs-addition{color:var(--s)}
+.hljs-comment,.hljs-quote,.hljs-meta{color:var(--c);font-style:italic}
+.hljs-number,.hljs-symbol{color:var(--n)}
+.hljs-type,.hljs-class .hljs-title,.hljs-title.class_{color:var(--t)}
+.hljs-title,.hljs-title.function_,.hljs-section{color:var(--f)}
+.hljs-attr,.hljs-attribute,.hljs-variable,.hljs-params,.hljs-tag{color:var(--a)}
+.hljs-deletion{color:var(--k)}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:16px;padding:20px 16px 60px}
+aside{position:static;max-height:none;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--card)}
+.toc-title{margin:0}.toc details[open] .toc-title{margin-bottom:8px}.toc summary::after{content:" ▾"}
+body{font-size:16px}.topbar{padding:8px 16px}.pager{margin-left:0}h1{font-size:1.6rem}}
+@media print{.topbar,aside{display:none}.layout{display:block;padding:0}main{max-width:none}
+pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#000;font-size:12pt}}
+.langs{margin-left:auto}.langs+.pager{margin-left:0}</style>
+</head>
+<body class="warsztat-zadania">
+<header class="topbar"><a class="home" href="../../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../00-cinelegacy.html">Warsztat CineLegacy</a><a class="tab active" href="03-zasady-dobrego-projektowania.html">Zadania</a><a class="tab" href="../przewodnik/03-zasady-dobrego-projektowania.html">Przewodnik</a></div><div class="tabs langs" aria-label="Język"><a class="tab" href="../../warsztat/zadania/03-zasady-dobrego-projektowania.html">Java</a><a class="tab" href="../../warsztat-csharp/zadania/03-zasady-dobrego-projektowania.html">C#</a><a class="tab active" href="../../warsztat-typescript/zadania/03-zasady-dobrego-projektowania.html">TypeScript</a></div><div class="pager"><a href="04-podstawowe-refaktoryzacje.html" title="Następny moduł">04 &rarr;</a></div></header>
+<div class="layout">
+<aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#scena-s01-dry-jedna-wiedza-dwie-reprezentacje">Scena s01. DRY - jedna wiedza, dwie reprezentacje</a></li><li class="h2"><a href="#scena-s02-podobienstwo-to-nie-duplikacja">Scena s02. Podobieństwo to nie duplikacja</a></li><li class="h2"><a href="#scena-s03-falszywa-abstrakcja-z-flagami">Scena s03. Fałszywa abstrakcja z flagami</a></li><li class="h2"><a href="#scena-s04-dry-w-testach-i-niezalezna-wyrocznia">Scena s04. DRY w testach i niezależna wyrocznia</a></li><li class="h2"><a href="#scena-s05-kiss-zlozonosc-wprowadzona-kontra-istotna">Scena s05. KISS - złożoność wprowadzona kontra istotna</a></li><li class="h2"><a href="#scena-s06-yagni-silnik-regul-dla-dwoch-regul">Scena s06. YAGNI - silnik reguł dla dwóch reguł</a></li><li class="h2"><a href="#scena-s07-srp-raport-dla-dwoch-aktorow">Scena s07. SRP - raport dla dwóch aktorów</a></li><li class="h2"><a href="#scena-s08-ocp-na-wybranej-osi-formaty-seansu">Scena s08. OCP na wybranej osi - formaty seansu</a></li><li class="h2"><a href="#scena-s09-lsp-i-test-kontraktowy">Scena s09. LSP i test kontraktowy</a></li><li class="h2"><a href="#scena-s10-isp-z-perspektywy-klienta">Scena s10. ISP z perspektywy klienta</a></li><li class="h2"><a href="#scena-s11-dip-kierunek-zaleznosci-kontra-przeplyw-sterowania">Scena s11. DIP - kierunek zależności kontra przepływ sterowania</a></li><li class="h2"><a href="#scena-s12-clean-architecture-use-case-dane-na-granicy-composition-root">Scena s12. Clean Architecture - use case, dane na granicy, composition root</a></li><li class="h2"><a href="#scena-s13-automatyczna-ochrona-granicy-i-diagnostyka-spojnosci">Scena s13. Automatyczna ochrona granicy i diagnostyka spójności</a></li><li class="h2"><a href="#scena-s14-wzorzec-jako-decyzja-odwracalna">Scena s14. Wzorzec jako decyzja odwracalna</a></li><li class="h2"><a href="#scena-s15-inwarianty-w-modelu-domeny">Scena s15. Inwarianty w modelu domeny</a></li><li class="h2"><a href="#scena-s16-sprzezenie-protokolu-ukryta-kolejnosc-wywolan">Scena s16. Sprzężenie protokołu - ukryta kolejność wywołań</a></li></ul></details></nav></aside>
+<main>
+<h1>Moduł 3. Zasady dobrego projektowania - warsztat CineLegacy (TypeScript): zadania</h1>
+<p>Każda scena to mały fragment systemu kina CineLegacy z jednym problemem projektowym. Pracujesz wyłącznie w katalogu <code>start</code> danej sceny (<code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>sNN_.../<wbr>start</code>). Po każdej zmianie uruchamiaj test sceny - ma pozostać zielony (o ile zadanie nie mówi inaczej). Nie zaglądaj do katalogów <code>step1</code>, <code>step2</code>, ... przed końcem - to rozwiązania wzorcowe. Po zadaniu możesz porównać swoje rozwiązanie: <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>sNN 0 N</code>, a przywrócić stan wyjściowy: <code>scripts/<wbr>warsztat.sh --lang ts reset m3/<wbr>sNN</code>.</p>
+<p>Zasady:</p>
+<ul>
+<li>Małe kroki: jedna refaktoryzacja, jeden przebieg testu. Używaj refaktoryzacji VS Code tam, gdzie się da (⌃⇧R Refactor..., F2 Rename Symbol, ⌘. Quick Fix, przenoszenie plików w eksploratorze z &quot;Update imports&quot;). Ruchów, których VS Code nie ma (Inline Method, Extract Class, Change Signature, Introduce Parameter), dokonuj ręcznie, a kompilator (<code>npx tsc --noEmit</code> albo czerwone podkreślenia) niech wskaże miejsca do poprawy.</li>
+<li>Testy wchodzą do <code>start</code> tylko przez publiczne API wymienione w zadaniu (albo przez punkt wejścia: funkcję <code>confirmReservation()</code> w <code>Main.ts</code>, <code>reservationController()</code> w <code>CinemaApplication.ts</code>, <code>describe()</code> w <code>CinemaApp.ts</code> lub klasę <code>TicketDesk</code>). Jeśli zmieniasz konstruktory, popraw ten punkt wejścia.</li>
+<li>Kwoty to <code>Decimal</code> z decimal.js (w s12 - <code>Money</code>). Liczby domenowe: 2D 25.00, 3D 32.00, IMAX 40.00; zniżki STUDENT 25%, SENIOR 30%, CHILD 40%; seans przed 12:00 -5.00; VIP +10.00; okulary 3D +3.00; opłata rezerwacyjna online 2.00 za bilet; zwrot 100% / 50% / 0% minus 3.00.</li>
+</ul>
+<h2 id="scena-s01-dry-jedna-wiedza-dwie-reprezentacje" tabindex="-1"><a class="header-anchor" href="#scena-s01-dry-jedna-wiedza-dwie-reprezentacje"><span>Scena s01. DRY - jedna wiedza, dwie reprezentacje</span></a></h2>
+<p><strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>s01_dryknowledge/<wbr>start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s01</code></p>
+<p><strong>Zasada:</strong> DRY dotyczy wiedzy, nie tekstu: jedna reguła biznesowa powinna mieć jedną autorytatywną reprezentację, nawet jeśli jej kopie są napisane zupełnie inaczej.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Znajdź w <code>BoxOffice</code> wiedzę zapisaną dwa razy (choć tekst jest różny).</li>
+<li>Doprowadź do tego, żeby reguła ceny biletu miała jedną, nazwaną reprezentację.</li>
+<li>Nie zmieniaj sygnatur <code>sell</code> i <code>refund</code>.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> najpierw nadaj obu kopiom nazwy (⌃⇧R &gt; Extract to method in class), potem zastąp jedną drugą i pozwól testowi rozstrzygnąć, czy liczyły to samo.
+<strong>Gotowe, gdy:</strong> test zielony, zmiana zniżki studenckiej wymaga edycji jednego miejsca, a reguły zwrotu nie trafiły do klasy z ceną biletu.</p>
+<h2 id="scena-s02-podobienstwo-to-nie-duplikacja" tabindex="-1"><a class="header-anchor" href="#scena-s02-podobienstwo-to-nie-duplikacja"><span>Scena s02. Podobieństwo to nie duplikacja</span></a></h2>
+<p><strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>s02_similarity/<wbr>start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s02</code></p>
+<p><strong>Zasada:</strong> Podobny kod nie oznacza tej samej wiedzy - o duplikacji decyduje to, czy reguły zmieniają się razem i dla tego samego właściciela. Scalenie niezależnych reguł tworzy fałszywą zależność.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Oceń klasę <code>ServiceFee</code>: jaką wiedzę reprezentuje i kto jest właścicielem każdej z reguł?</li>
+<li>Rozdziel fałszywie scaloną wiedzę tak, żeby zmiana opłaty rezerwacyjnej nie mogła wpłynąć na zwroty.</li>
+<li>Nadaj kwotom nazwy w języku domeny.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> tymczasowe powtórzenie kodu jest dozwolone - zacznij od Inline Method (w VS Code ręcznie: wklej ciało <code>ServiceFee.of</code> w oba wywołania). Jeśli kompilator zgłosi porównanie stałych enuma bez części wspólnej (TS2367), to znak, że warunek jest martwy - uprość go.
+<strong>Gotowe, gdy:</strong> test zielony, pliku <code>ServiceFee.ts</code> (ani enuma <code>Kind</code>) nie ma, każda kwota jest stałą u swojego właściciela.</p>
+<h2 id="scena-s03-falszywa-abstrakcja-z-flagami" tabindex="-1"><a class="header-anchor" href="#scena-s03-falszywa-abstrakcja-z-flagami"><span>Scena s03. Fałszywa abstrakcja z flagami</span></a></h2>
+<p><strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>s03_falseabstraction/<wbr>start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s03</code></p>
+<p><strong>Zasada:</strong> Fałszywa abstrakcja łączy konteksty bez wspólnej wiedzy i rośnie przez kolejne flagi. Naprawia się ją, przenosząc kod z powrotem do kontekstów pod ochroną testów i wydzielając tylko potwierdzoną wiedzę.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Usuń metodę <code>Pricing.price</code> sterowaną flagami <code>boolean</code>.</li>
+<li>Zostaw w <code>TicketCounter</code> i <code>PassCounter</code> tylko tę logikę, która ich dotyczy.</li>
+<li>Zdecyduj, czy jest między nimi jakakolwiek wspólna wiedza do wydzielenia.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> Inline Method (ręcznie, stałe argumenty jako lokalne stałe z jawnym typem, np. <code>const pass: boolean = true</code>), potem ⌃⇧R &gt; Inline variable i ręczne uproszczenie martwych gałęzi.
+<strong>Gotowe, gdy:</strong> test zielony, żadna metoda nie przyjmuje flagi <code>boolean</code>, której wywołujący nie potrzebuje, a <code>PassCounter</code> nie wie nic o formatach.</p>
+<h2 id="scena-s04-dry-w-testach-i-niezalezna-wyrocznia" tabindex="-1"><a class="header-anchor" href="#scena-s04-dry-w-testach-i-niezalezna-wyrocznia"><span>Scena s04. DRY w testach i niezależna wyrocznia</span></a></h2>
+<p><strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>s04_drytests/<wbr>start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s04</code></p>
+<p><strong>Zasada:</strong> W testach warto współdzielić fabryki danych i helpery, ale oczekiwana wartość musi pochodzić z niezależnego źródła, a nie z algorytmu, który test sprawdza. Czytelne, nazwane przypadki (DAMP) są ważniejsze niż maksymalne DRY.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Przepisz <code>TicketPriceSpecs</code> tak, żeby każdy przypadek miał czytelną nazwę i jawne dane wejściowe (bez szyfru <code>&#x27;3D S 11&#x27;</code>).</li>
+<li>Spraw, żeby komunikat o błędzie mówił, który przypadek, jaka oczekiwana i jaka faktyczna cena.</li>
+<li>Usuń liczenie oczekiwanej ceny z taryfy - wpisz wartości policzone ręcznie z regulaminu.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> sprawdź się w teście: dla taryfy ze zniżką studencką 20% zamiast 25% (<code>Tariff.standard().withDiscount(&#x27;STUDENT&#x27;, 20)</code>) Twoja specyfikacja musi zgłosić dokładnie jeden problem.
+<strong>Gotowe, gdy:</strong> test zielony, <code>run</code> dla poprawnej taryfy zwraca pustą tablicę, a dla błędnej zgłasza przypadek studenta na porannym seansie 3D.</p>
+<h2 id="scena-s05-kiss-zlozonosc-wprowadzona-kontra-istotna" tabindex="-1"><a class="header-anchor" href="#scena-s05-kiss-zlozonosc-wprowadzona-kontra-istotna"><span>Scena s05. KISS - złożoność wprowadzona kontra istotna</span></a></h2>
+<p><strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>s05_kiss/<wbr>start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s05</code></p>
+<p><strong>Zasada:</strong> KISS to najmniej złożone rozwiązanie, które poprawnie spełnia wymagania: usuwamy złożoność wprowadzoną, a istotną zostawiamy i nazywamy. Krótszy kod nie zawsze jest prostszy.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Usuń dynamiczne wywołanie metody po nazwie (<code>Reflect.get</code>), które wybiera rodzaj miejsc po napisie.</li>
+<li>Zastąp wyrażenie regularne i tablicę numerów rzędów prostszym algorytmem.</li>
+<li>Zachowaj istotne reguły: co jest wolnym miejscem i od którego rzędu zaczyna się VIP.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> przed uproszczeniem przeczytaj przypadki testowe - jest wśród nich rząd z miejscem zablokowanym i przejściem.
+<strong>Gotowe, gdy:</strong> test zielony, VS Code nie wyszarza żadnej metody jako nieużywanej, a w klasie nie ma <code>Reflect</code>, rzutowań ani wyrażeń regularnych.</p>
+<h2 id="scena-s06-yagni-silnik-regul-dla-dwoch-regul" tabindex="-1"><a class="header-anchor" href="#scena-s06-yagni-silnik-regul-dla-dwoch-regul"><span>Scena s06. YAGNI - silnik reguł dla dwóch reguł</span></a></h2>
+<p><strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>s06_yagni/<wbr>start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s06</code></p>
+<p><strong>Zasada:</strong> YAGNI mówi, żeby nie budować mechanizmów dla przewidywanych wymagań, tylko dla aktualnych. Nie zabrania testów, refaktoryzacji ani czytelnych nazw.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Przejdź filtr decyzyjny: jakie aktualne wymaganie uzasadnia rejestr, konfigurację napisem, priorytety i kontekst <code>Map</code>?</li>
+<li>Uprość <code>TicketPricer</code> w kilku krokach, zachowując publiczne <code>new TicketPricer()</code> i <code>price(quote: TicketQuote)</code>.</li>
+<li>Zapisz w komentarzu dokumentacyjnym (<code>/<wbr>** ... */<wbr></code>), czego YAGNI nie zabrania i co świadomie zostawiasz.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> zacznij od elementu, którego nikt nie używa (konfiguracja napisem w parametrze domyślnym konstruktora), potem typowane dane, na końcu same reguły.
+<strong>Gotowe, gdy:</strong> test zielony, zostało najwyżej kilka nazwanych metod w jednej klasie, a literówka w nazwie reguły nie może przejść kompilacji.</p>
+<h2 id="scena-s07-srp-raport-dla-dwoch-aktorow" tabindex="-1"><a class="header-anchor" href="#scena-s07-srp-raport-dla-dwoch-aktorow"><span>Scena s07. SRP - raport dla dwóch aktorów</span></a></h2>
+<p><strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>s07_srp/<wbr>start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s07</code></p>
+<p><strong>Zasada:</strong> SRP oznacza jeden aktor i jeden powód zmiany dla modułu, a nie &quot;jedną rzecz&quot; czy jedną metodę na klasę.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Wskaż aktorów, dla których <code>DailyReport</code> się zmienia, i helper, który ich łączy.</li>
+<li>Podziel raport tak, żeby zmiana definicji &quot;hitu dnia&quot; nie mogła zmienić kwot księgowości.</li>
+<li>Zachowaj dokument co do znaku.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> komentarze w kodzie już nazywają aktorów. Wspólny helper rozdziel, zanim wydzielisz klasy.
+<strong>Gotowe, gdy:</strong> test zielony, każda sekcja jest w klasie swojego aktora (we własnym pliku), a <code>DailyReport</code> tylko składa wynik.</p>
+<h2 id="scena-s08-ocp-na-wybranej-osi-formaty-seansu" tabindex="-1"><a class="header-anchor" href="#scena-s08-ocp-na-wybranej-osi-formaty-seansu"><span>Scena s08. OCP na wybranej osi - formaty seansu</span></a></h2>
+<p><strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>s08_ocp/<wbr>start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s08</code></p>
+<p><strong>Zasada:</strong> OCP to możliwość rozszerzenia wybranego zachowania bez modyfikowania stabilnej części kodu. Zamyka się kod na jedną realną oś zmian, a nie każdy <code>switch</code> jest naruszeniem.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Usuń rozproszenie wiedzy o formatach po kilku <code>switch</code> na napisach.</li>
+<li>Doprowadź do stanu, w którym nowy format wymaga zmiany w jednym miejscu, a <code>ScreeningOffer</code> się nie zmienia.</li>
+<li>Dodaj format 4DX: cena 45.00, wymaga okularów 3D, etykieta &quot;4DX - ruchome fotele&quot;.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> formaty to dane, nie algorytmy. Enum TS nie ma pól, więc rozważ klasę <code>Format</code> z prywatnym konstruktorem i instancjami <code>static readonly</code> zamiast hierarchii klas. Etap pośredni: enum i <code>switch</code> z <code>assertNever</code> w <code>default</code>.
+<strong>Gotowe, gdy:</strong> test zielony, 4DX kosztuje 48.00 bez własnych okularów i 45.00 z własnymi, a dodanie 4DX nie zmieniło <code>ScreeningOffer</code>.</p>
+<h2 id="scena-s09-lsp-i-test-kontraktowy" tabindex="-1"><a class="header-anchor" href="#scena-s09-lsp-i-test-kontraktowy"><span>Scena s09. LSP i test kontraktowy</span></a></h2>
+<p><strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>s09_lsp/<wbr>start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s09</code></p>
+<p><strong>Zasada:</strong> LSP wymaga, by podtyp spełniał kontrakt typu bazowego: nie wzmacnia warunków wstępnych i nie osłabia końcowych. Sprawdza się to testem kontraktowym uruchamianym dla każdej implementacji.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Przeczytaj kontrakt <code>Hall.reserve</code> i test <code>S09ContractTest</code>. Który podtyp go łamie i dlaczego?</li>
+<li>Przebuduj typy tak, żeby sala archiwalna spełniała wszystkie kontrakty, które obiecuje.</li>
+<li>Zachowaj działanie kasy (<code>BoxOffice.sell</code>) i raportu (<code>OccupancyReport.describe</code>).</li>
+</ol>
+<p><strong>Podpowiedź:</strong> raport potrzebuje tylko odczytu planu miejsc. Wydziel interfejs, potem zastąp dziedziczenie delegacją (Quick Fix ⌘. &gt; Implement interface wygeneruje szkielety metod).
+<strong>Gotowe, gdy:</strong> test zielony, <code>ReadOnlyHall</code> nie rzuca <code>UnsupportedOperationError</code>, a próba przekazania jej do kasy nie kompiluje się.</p>
+<h2 id="scena-s10-isp-z-perspektywy-klienta" tabindex="-1"><a class="header-anchor" href="#scena-s10-isp-z-perspektywy-klienta"><span>Scena s10. ISP z perspektywy klienta</span></a></h2>
+<p><strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>s10_isp/<wbr>start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s10</code></p>
+<p><strong>Zasada:</strong> ISP mówi, że klient powinien zależeć tylko od metod, których używa, więc interfejsy projektuje się według ról klientów, a nie według implementacji.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Dla każdego klienta (<code>CashDesk</code>, <code>RevenueReport</code>, <code>ScheduleBoard</code>) wypisz metody <code>CinemaAdminService</code>, których naprawdę używa.</li>
+<li>Wprowadź interfejsy ról i przepnij klientów.</li>
+<li>Zdecyduj, co zrobić z grubym interfejsem i z metodą zmiany ceny.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> policz, ile metod musiałby mieć fake (literał obiektu) w teście kasy przed i po zmianie.
+<strong>Gotowe, gdy:</strong> test zielony, każdy klient zależy tylko od swojej roli, a fake kasy ma dwie metody.</p>
+<h2 id="scena-s11-dip-kierunek-zaleznosci-kontra-przeplyw-sterowania" tabindex="-1"><a class="header-anchor" href="#scena-s11-dip-kierunek-zaleznosci-kontra-przeplyw-sterowania"><span>Scena s11. DIP - kierunek zależności kontra przepływ sterowania</span></a></h2>
+<p><strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>s11_dip/<wbr>start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s11</code></p>
+<p><strong>Zasada:</strong> DIP dotyczy kierunku zależności źródłowych: szczegóły mają zależeć od polityki, a nie odwrotnie. Wstrzyknięcie konkretnej klasy przez konstruktor to dependency injection, ale jeszcze nie DIP.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Narysuj strzałki importów i wywołań między <code>app</code> i <code>infra</code>.</li>
+<li>Wstrzyknij zależność przez konstruktor i sprawdź, czy kierunek importu się zmienił.</li>
+<li>Wprowadź port nazwany potrzebą przypadku użycia i adapter w <code>infra</code>. Graf składaj w funkcji <code>confirmReservation()</code> w <code>Main.ts</code>.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> nie wydzielaj interfejsu z <code>SmtpMailSender</code> - najpierw wydziel metodę, która mówi, czego potrzebuje polityka.
+<strong>Gotowe, gdy:</strong> test zielony, żaden plik w <code>app</code> nie importuje z <code>infra</code> (także przez <code>import type</code>), a przypadek użycia da się przetestować literałem obiektu zamiast SMTP.</p>
+<h2 id="scena-s12-clean-architecture-use-case-dane-na-granicy-composition-root" tabindex="-1"><a class="header-anchor" href="#scena-s12-clean-architecture-use-case-dane-na-granicy-composition-root"><span>Scena s12. Clean Architecture - use case, dane na granicy, composition root</span></a></h2>
+<p><strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>s12_cleanarchitecture/<wbr>start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s12</code></p>
+<p><strong>Zasada:</strong> Polityka aplikacji nie powinna zależeć od mechanizmów (HTTP, baza, broker): potrzeby wnętrza wyrażają porty, szczegóły realizują adaptery, a graf składa jedno miejsce bez reguł biznesowych.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Wydziel przypadek użycia rezerwacji z kontrolera; wejście i wyjście jako proste klasy danych z polami <code>readonly</code>.</li>
+<li>Zastąp bezpośrednie użycie <code>RowStore</code> i <code>Outbox</code> portami zdefiniowanymi przez przypadek użycia i adapterami.</li>
+<li>Rozdziel kod na katalogi <code>app</code> i <code>adapter</code>, a składanie grafu przenieś do funkcji <code>reservationController</code> w <code>CinemaApplication.ts</code>.</li>
+<li>Napisz test przypadku użycia (vitest) na adapterach w pamięci, w tym przypadek: zapis się nie udał, więc nie ma powiadomienia.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> kolejność &quot;zapis, potem powiadomienie&quot; to decyzja protokołu - niech będzie jawna w przypadku użycia. Pliki przenoś w eksploratorze VS Code z &quot;Update imports&quot;.
+<strong>Gotowe, gdy:</strong> test zielony, <code>app</code> nie importuje <code>adapter</code> ani <code>RowStore</code>/<code>Outbox</code>, kontroler tylko tłumaczy żądanie i odpowiedź, a <code>CinemaApplication.ts</code> nie zawiera reguł biznesowych.</p>
+<h2 id="scena-s13-automatyczna-ochrona-granicy-i-diagnostyka-spojnosci" tabindex="-1"><a class="header-anchor" href="#scena-s13-automatyczna-ochrona-granicy-i-diagnostyka-spojnosci"><span>Scena s13. Automatyczna ochrona granicy i diagnostyka spójności</span></a></h2>
+<p><strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>s13_boundarycheck/<wbr>start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s13</code></p>
+<p><strong>Zasada:</strong> Spójność (elementy zmieniają się z jednego powodu) i kierunek zależności (domena nie zna technologii) to dwa niezależne wymiary. Reguły granic warto sprawdzać automatycznie, a metryki traktować jako sygnał, nie wyrocznię.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Uruchom test z logami (<code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s13</code>) i odczytaj z konsoli naruszenia granicy oraz wynik LCOM4 dla <code>ScreeningService</code>.</li>
+<li>Popraw spójność <code>ScreeningService</code>, a potem kierunek zależności, tak żeby katalog <code>domain</code> nie importował z <code>adapter</code> ani z <code>sql</code>.</li>
+<li>Zaproponuj silniejszą bramkę niż skan importów (dependency-cruiser, eslint z <code>no-restricted-imports</code> lub eslint-plugin-boundaries, pakiety workspace, project references) i porównaj koszt.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> spójność i kierunek zależności to dwa osobne kroki - sprawdź oba wskaźniki po każdym z nich.
+<strong>Gotowe, gdy:</strong> test zielony, lista naruszeń dla <code>start/<wbr>domain</code> jest pusta, a LCOM4 każdej klasy wynosi 1.</p>
+<h2 id="scena-s14-wzorzec-jako-decyzja-odwracalna" tabindex="-1"><a class="header-anchor" href="#scena-s14-wzorzec-jako-decyzja-odwracalna"><span>Scena s14. Wzorzec jako decyzja odwracalna</span></a></h2>
+<p><strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>s14_reversiblepattern/<wbr>start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s14</code></p>
+<p><strong>Zasada:</strong> Wzorzec projektowy to odpowiedź na konkretne siły, a nie kod na zapas - gdy siły znikają, wzorzec można usunąć. Refaktoryzacja od wzorca jest równie poprawna jak do wzorca.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Wprowadź Strategy dla dwóch istniejących modeli rozliczeń; dla modelu festiwalowego napisz Adapter do <code>FestivalTariffClient</code>.</li>
+<li>Umowy festiwalowe wygasły: usuń ten wariant (to świadoma zmiana zachowania).</li>
+<li>Oceń, czy wzorzec nadal jest potrzebny, i jeśli nie - usuń go.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> po każdym kroku test równoważności dla modelu procentowego musi być zielony. Sygnały nadmiaru wzorca: jedna implementacja, mapa z jednym wpisem.
+<strong>Gotowe, gdy:</strong> test zielony, rozliczenie procentowe daje te same kwoty co na początku, model FESTIVAL jest odrzucany, a w kodzie nie zostały nieużywane typy ani pliki.</p>
+<h2 id="scena-s15-inwarianty-w-modelu-domeny" tabindex="-1"><a class="header-anchor" href="#scena-s15-inwarianty-w-modelu-domeny"><span>Scena s15. Inwarianty w modelu domeny</span></a></h2>
+<p><strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>s15_invariants/<wbr>start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s15</code></p>
+<p><strong>Zasada:</strong> Inwariant to warunek, który obiekt domeny spełnia zawsze, niezależnie od ścieżki, którą powstał. Jego właścicielem powinien być sam model, a nie każdy serwis z osobna.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Sprawdź, ile ścieżek tworzy <code>Reservation</code> i które z nich walidują dane.</li>
+<li>Uczyń rezerwację niezmienną.</li>
+<li>Przenieś reguły poprawności do modelu tak, żeby nie dało się utworzyć złej rezerwacji żadną ścieżką.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> pola <code>readonly</code> jako właściwości parametrów konstruktora (<code>constructor(readonly email: string, ...)</code>) dają niezmienny obiekt tworzony jednym wywołaniem, a ciało konstruktora to naturalne miejsce na strażników.
+<strong>Gotowe, gdy:</strong> test zielony, <code>BookingService</code> nie zawiera już walidacji, a import wiersza <code>jan-kino.pl;0;-5.00</code> kończy się wyjątkiem.</p>
+<h2 id="scena-s16-sprzezenie-protokolu-ukryta-kolejnosc-wywolan" tabindex="-1"><a class="header-anchor" href="#scena-s16-sprzezenie-protokolu-ukryta-kolejnosc-wywolan"><span>Scena s16. Sprzężenie protokołu - ukryta kolejność wywołań</span></a></h2>
+<p><strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>s16_temporalcoupling/<wbr>start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s16</code></p>
+<p><strong>Zasada:</strong> Sprzężenie czasowe to ukryte wymaganie kolejności wywołań, którego nie widać w typach. Usuwa się je, zamieniając stan i kolejność na jawne, kompletne dane wejściowe.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Zakomentuj jedno z wywołań <code>select...</code> w <code>TicketDesk</code> i uruchom test - zobacz, gdzie i jak objawia się błąd. Cofnij zmianę.</li>
+<li>Usuń z <code>TicketPrinter</code> stan i wymagany protokół wywołań.</li>
+<li>Zadbaj, żeby niekompletne dane biletu były odrzucane w chwili ich utworzenia - także <code>null</code> spoza systemu typów (użyj <code>requireNonNull</code> z <code>src/<wbr>shared/<wbr>requireNonNull.ts</code>).</li>
+</ol>
+<p><strong>Podpowiedź:</strong> Change Signature, potem Introduce Parameter Object - w VS Code oba ręcznie, kompilator wskaże wywołania.
+<strong>Gotowe, gdy:</strong> test zielony, <code>TicketPrinter</code> nie ma pól, a nie da się wywołać <code>print</code> bez kompletu danych.</p>
+
+</main>
+</div>
+<script>if(matchMedia('(max-width:900px)').matches){var d=document.querySelector('.toc details');if(d)d.open=false}</script>
+</body>
+</html>

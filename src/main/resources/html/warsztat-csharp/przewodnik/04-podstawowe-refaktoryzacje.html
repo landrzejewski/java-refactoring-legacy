@@ -1,0 +1,1188 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Przewodnik: Moduł 4. Podstawowe refaktoryzacje - warsztat CineLegacy (C#): przewodnik prowadzącego (C#)</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1d1f23;--muted:#5f6670;--line:#e3e5e8;--card:#ffffff;--accent:#2457c5;--accent-bg:#eef3fd;
+--code-bg:#f4f5f7;--note-bg:#fff7e6;--note-line:#e6a700;--th:#f1f3f6;
+--k:#b3246b;--s:#1a7f37;--c:#6e7781;--n:#0550ae;--t:#8250df;--f:#6639ba;--a:#953800;
+--kind:#2457c5}
+@media (prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3036;--card:#1c1f23;--accent:#7aa7ff;--accent-bg:#1e2a40;
+--code-bg:#1f2328;--note-bg:#2b2412;--note-line:#c99400;--th:#23272d;
+--k:#ff7b9c;--s:#7ee2a0;--c:#8b949e;--n:#79c0ff;--t:#d2a8ff;--f:#d2a8ff;--a:#ffa657}}
+body.zadania{--kind:#1a7f37} body.warsztat{--kind:#c2570c} body.warsztat-zadania{--kind:#0f7b7b} body.rozwiazania{--kind:#b3246b} body.przyklady{--kind:#2457c5}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.topbar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 24px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);border-top:3px solid var(--kind)}
+.topbar a{color:var(--fg);text-decoration:none}
+.home{font-weight:600}
+.tabs{display:flex;gap:4px}
+.tab{padding:4px 12px;border-radius:999px;font-size:15px;color:var(--muted)!important}
+.tab:hover{background:var(--code-bg)}
+.tab.active{background:var(--accent-bg);color:var(--accent)!important;font-weight:600}
+.pager{margin-left:auto;display:flex;gap:14px;font-size:15px}
+.pager a{color:var(--muted)}.pager a:hover{color:var(--accent)}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:48px;max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+.layout.no-toc{grid-template-columns:minmax(0,1fr);max-width:1000px}
+aside{position:sticky;top:72px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px}
+.toc-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;font-weight:600}
+.toc ul{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.toc li a{display:block;padding:3px 12px;color:var(--muted);text-decoration:none;line-height:1.35}
+.toc li.h3 a{padding-left:24px;font-size:13px}
+.toc li a:hover{color:var(--accent)}
+main{min-width:0;max-width:860px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 1.2rem;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:2.6rem 0 .8rem;padding-top:.6rem;border-top:1px solid var(--line)}
+h3{font-size:1.18rem;margin:2rem 0 .6rem}
+h4{font-size:1rem;margin:1.5rem 0 .5rem}
+h1 a,h2 a,h3 a,h4 a{color:inherit;text-decoration:none}
+h2 a:hover::after,h3 a:hover::after{content:" #";color:var(--muted)}
+p,ul,ol{margin:.6rem 0 1rem}
+li{margin:.25rem 0}
+li>ul,li>ol{margin:.2rem 0}
+a{color:var(--accent)}
+strong{font-weight:650}
+code{font:0.88em/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre.code{position:relative;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:1rem 0 1.4rem}
+pre.code code{background:none;padding:0;font-size:14px;line-height:1.55}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:6px;right:10px;font:11px ui-monospace,Menlo,monospace;color:var(--muted);text-transform:uppercase}
+.table-wrap{overflow-x:auto;margin:1rem 0 1.4rem;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--th);font-weight:600}
+tr:last-child td{border-bottom:none}
+blockquote{margin:1rem 0 1.4rem;padding:10px 16px;background:var(--note-bg);border-left:4px solid var(--note-line);border-radius:0 8px 8px 0}
+blockquote p{margin:.3rem 0}
+hr{border:none;border-top:1px solid var(--line);margin:2rem 0}
+hr+h2{border-top:none;margin-top:1.4rem}
+main p code,main li code,main td code{overflow-wrap:break-word}
+.toc summary{cursor:pointer;list-style:none}.toc summary::-webkit-details-marker{display:none}
+.hljs-keyword,.hljs-selector-tag,.hljs-built_in,.hljs-literal{color:var(--k)}
+.hljs-string,.hljs-regexp,.hljs-addition{color:var(--s)}
+.hljs-comment,.hljs-quote,.hljs-meta{color:var(--c);font-style:italic}
+.hljs-number,.hljs-symbol{color:var(--n)}
+.hljs-type,.hljs-class .hljs-title,.hljs-title.class_{color:var(--t)}
+.hljs-title,.hljs-title.function_,.hljs-section{color:var(--f)}
+.hljs-attr,.hljs-attribute,.hljs-variable,.hljs-params,.hljs-tag{color:var(--a)}
+.hljs-deletion{color:var(--k)}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:16px;padding:20px 16px 60px}
+aside{position:static;max-height:none;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--card)}
+.toc-title{margin:0}.toc details[open] .toc-title{margin-bottom:8px}.toc summary::after{content:" ▾"}
+body{font-size:16px}.topbar{padding:8px 16px}.pager{margin-left:0}h1{font-size:1.6rem}}
+@media print{.topbar,aside{display:none}.layout{display:block;padding:0}main{max-width:none}
+pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#000;font-size:12pt}}
+.langs{margin-left:auto}.langs+.pager{margin-left:0}</style>
+</head>
+<body class="warsztat">
+<header class="topbar"><a class="home" href="../../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../00-cinelegacy.html">Warsztat CineLegacy</a><a class="tab" href="../zadania/04-podstawowe-refaktoryzacje.html">Zadania</a><a class="tab active" href="04-podstawowe-refaktoryzacje.html">Przewodnik</a></div><div class="tabs langs" aria-label="Język"><a class="tab" href="../../warsztat/przewodnik/04-podstawowe-refaktoryzacje.html">Java</a><a class="tab active" href="../../warsztat-csharp/przewodnik/04-podstawowe-refaktoryzacje.html">C#</a><a class="tab" href="../../warsztat-typescript/przewodnik/04-podstawowe-refaktoryzacje.html">TypeScript</a></div><div class="pager"><a href="03-zasady-dobrego-projektowania.html" title="Poprzedni moduł">&larr; 03</a><a href="05-refaktoryzacje-hierarchii-klas.html" title="Następny moduł">05 &rarr;</a></div></header>
+<div class="layout">
+<aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#jak-prowadzic-pokaz">Jak prowadzić pokaz</a></li><li class="h2"><a href="#mapa-scen">Mapa scen</a></li><li class="h2"><a href="#scena-s00-test-charakterystyki-przed-pierwsza-zmiana">Scena s00. Test charakterystyki przed pierwszą zmianą</a></li><li class="h3"><a href="#w-skrocie">W skrócie</a></li><li class="h3"><a href="#co-widzimy">Co widzimy</a></li><li class="h3"><a href="#krok-1-parameterize-constructor-wstrzykniety-timeprovider">Krok 1: Parameterize Constructor - wstrzyknięty TimeProvider</a></li><li class="h3"><a href="#krok-2-pierwsza-refaktoryzacja-pod-ochrona-testu">Krok 2: pierwsza refaktoryzacja pod ochroną testu</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali">Pytanie do sali</a></li><li class="h2"><a href="#scena-s01-rename-nazwy-ktore-zyja-poza-c">Scena s01. Rename - nazwy, które żyją poza C#</a></li><li class="h3"><a href="#w-skrocie-1">W skrócie</a></li><li class="h3"><a href="#co-widzimy-1">Co widzimy</a></li><li class="h3"><a href="#krok-1-rename-zmiennych-lokalnych-i-parametrow">Krok 1: Rename zmiennych lokalnych i parametrów</a></li><li class="h3"><a href="#krok-2-rename-metody-z-delegatem-dla-starej-nazwy">Krok 2: Rename metody z delegatem dla starej nazwy</a></li><li class="h3"><a href="#krok-3-rename-wlasciwosci-rekordu-po-odcieciu-kontraktu-csv">Krok 3: Rename właściwości rekordu po odcięciu kontraktu CSV</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-1">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-1">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-1">Pytanie do sali</a></li><li class="h2"><a href="#scena-s02-extract-variable-dla-zlozonego-wyrazenia-ceny">Scena s02. Extract Variable dla złożonego wyrażenia ceny</a></li><li class="h3"><a href="#w-skrocie-2">W skrócie</a></li><li class="h3"><a href="#co-widzimy-2">Co widzimy</a></li><li class="h3"><a href="#krok-1-extract-variable-dla-ceny-bazowej-i-znizki">Krok 1: Extract Variable dla ceny bazowej i zniżki</a></li><li class="h3"><a href="#krok-2-extract-variable-dla-warunkow">Krok 2: Extract Variable dla warunków</a></li><li class="h3"><a href="#krok-3-extract-variable-dla-kwot">Krok 3: Extract Variable dla kwot</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-2">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-2">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-2">Pytanie do sali</a></li><li class="h2"><a href="#scena-s03-stale-z-nazwa-zamiast-magicznych-liczb">Scena s03. Stałe z nazwą zamiast magicznych liczb</a></li><li class="h3"><a href="#w-skrocie-3">W skrócie</a></li><li class="h3"><a href="#co-widzimy-3">Co widzimy</a></li><li class="h3"><a href="#krok-1-extract-constant-dla-kwot-z-cennika">Krok 1: Extract Constant dla kwot z cennika</a></li><li class="h3"><a href="#krok-2-replace-magic-numbers-progi-regul">Krok 2: Replace Magic Numbers - progi reguł</a></li><li class="h3"><a href="#krok-3-extract-constant-dla-stawek-znizek">Krok 3: Extract Constant dla stawek zniżek</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-3">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-3">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-3">Pytanie do sali</a></li><li class="h2"><a href="#scena-s04-extract-method-przeplyw-danych-i-wiele-wyjsc">Scena s04. Extract Method - przepływ danych i wiele wyjść</a></li><li class="h3"><a href="#w-skrocie-4">W skrócie</a></li><li class="h3"><a href="#co-widzimy-4">Co widzimy</a></li><li class="h3"><a href="#krok-1-extract-method-dla-bloku-z-jednym-wyjsciem">Krok 1: Extract Method dla bloku z jednym wyjściem</a></li><li class="h3"><a href="#krok-2-split-loop-potem-dwa-razy-extract-method">Krok 2: Split Loop, potem dwa razy Extract Method</a></li><li class="h3"><a href="#krok-3-extract-method-dla-renderowania">Krok 3: Extract Method dla renderowania</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-4">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-4">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-4">Pytanie do sali</a></li><li class="h2"><a href="#scena-s05-inline-variable-liczba-i-moment-ewaluacji">Scena s05. Inline Variable - liczba i moment ewaluacji</a></li><li class="h3"><a href="#w-skrocie-5">W skrócie</a></li><li class="h3"><a href="#co-widzimy-5">Co widzimy</a></li><li class="h3"><a href="#krok-1-inline-variable-dla-czystego-wyrazenia-uzytego-raz">Krok 1: Inline Variable dla czystego wyrażenia użytego raz</a></li><li class="h3"><a href="#krok-2-inline-variable-ktory-czyta-zmienna-a-nie-zegar">Krok 2: Inline Variable, który czyta zmienną, a nie zegar</a></li><li class="h3"><a href="#krok-3-najpierw-rename-przeciazenia-potem-inline-price">Krok 3: najpierw Rename przeciążenia, potem Inline price</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-5">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-5">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-5">Pytanie do sali</a></li><li class="h2"><a href="#scena-s06-inline-method-i-nadpisanie-w-podklasie">Scena s06. Inline Method i nadpisanie w podklasie</a></li><li class="h3"><a href="#w-skrocie-6">W skrócie</a></li><li class="h3"><a href="#co-widzimy-6">Co widzimy</a></li><li class="h3"><a href="#krok-1-inline-method-trywialnego-delegata">Krok 1: Inline Method trywialnego delegata</a></li><li class="h3"><a href="#krok-2-inline-method-wywolujacego-hak-a-nie-samego-haka">Krok 2: Inline Method wywołującego hak, a nie samego haka</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-6">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-6">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-6">Pytanie do sali</a></li><li class="h2"><a href="#scena-s07-move-method-feature-envy-i-pulapka-przeciazenia">Scena s07. Move Method - Feature Envy i pułapka przeciążenia</a></li><li class="h3"><a href="#w-skrocie-7">W skrócie</a></li><li class="h3"><a href="#co-widzimy-7">Co widzimy</a></li><li class="h3"><a href="#krok-1-move-method-opis-seansu">Krok 1: Move Method - opis seansu</a></li><li class="h3"><a href="#krok-2-move-method-wolne-miejsca-bez-zmiany-typu-parametru">Krok 2: Move Method - wolne miejsca, bez zmiany typu parametru</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-7">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-7">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-7">Pytanie do sali</a></li><li class="h2"><a href="#scena-s08-move-field-prog-vip-nalezy-do-sali">Scena s08. Move Field - próg VIP należy do sali</a></li><li class="h3"><a href="#w-skrocie-8">W skrócie</a></li><li class="h3"><a href="#co-widzimy-8">Co widzimy</a></li><li class="h3"><a href="#krok-1-self-encapsulate-field">Krok 1: Self-Encapsulate Field</a></li><li class="h3"><a href="#krok-2-move-field-do-hall">Krok 2: Move Field do Hall</a></li><li class="h3"><a href="#krok-3-aktualizacja-odczytow-i-usuniecie-akcesora-przejsciowego">Krok 3: aktualizacja odczytów i usunięcie akcesora przejściowego</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-8">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-8">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-8">Pytanie do sali</a></li><li class="h2"><a href="#scena-s09-extract-class-klient-platnosc-i-klasa-worek">Scena s09. Extract Class - klient, płatność i klasa-worek</a></li><li class="h3"><a href="#w-skrocie-9">W skrócie</a></li><li class="h3"><a href="#co-widzimy-9">Co widzimy</a></li><li class="h3"><a href="#krok-1-extract-class-tylko-dane-zly-wynik-posredni">Krok 1: Extract Class - tylko dane (zły wynik pośredni)</a></li><li class="h3"><a href="#krok-2-move-method-zachowanie-idzie-za-danymi">Krok 2: Move Method - zachowanie idzie za danymi</a></li><li class="h3"><a href="#krok-3-extract-class-platnosc-od-razu-z-zachowaniem">Krok 3: Extract Class - płatność od razu z zachowaniem</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-9">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-9">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-9">Pytanie do sali</a></li><li class="h2"><a href="#scena-s10-encapsulate-field-status-ktory-kazdy-moze-nadpisac">Scena s10. Encapsulate Field - status, który każdy może nadpisać</a></li><li class="h3"><a href="#w-skrocie-10">W skrócie</a></li><li class="h3"><a href="#co-widzimy-10">Co widzimy</a></li><li class="h3"><a href="#krok-1-encapsulate-field">Krok 1: Encapsulate Field</a></li><li class="h3"><a href="#krok-2-operacje-domenowe-zamiast-settera">Krok 2: operacje domenowe zamiast settera</a></li><li class="h3"><a href="#krok-3-niezmiennik-w-operacjach-swiadoma-zmiana-zachowania">Krok 3: niezmiennik w operacjach (świadoma zmiana zachowania)</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-10">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-10">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-10">Pytanie do sali</a></li><li class="h2"><a href="#scena-s11-encapsulate-collection-trzy-kontrakty-listy-miejsc">Scena s11. Encapsulate Collection - trzy kontrakty listy miejsc</a></li><li class="h3"><a href="#w-skrocie-11">W skrócie</a></li><li class="h3"><a href="#co-widzimy-11">Co widzimy</a></li><li class="h3"><a href="#krok-1-operacje-w-wlascicielu-wlasciwosc-bez-zmiany-kontraktu">Krok 1: operacje w właścicielu, właściwość bez zmiany kontraktu</a></li><li class="h3"><a href="#krok-2-niemodyfikowalny-widok">Krok 2: niemodyfikowalny widok</a></li><li class="h3"><a href="#krok-3-migawka">Krok 3: migawka</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-11">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-11">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-11">Pytanie do sali</a></li><li class="h2"><a href="#scena-s12-encapsulate-conditional-czy-przysluguje-zwrot">Scena s12. Encapsulate Conditional - czy przysługuje zwrot</a></li><li class="h3"><a href="#w-skrocie-12">W skrócie</a></li><li class="h3"><a href="#co-widzimy-12">Co widzimy</a></li><li class="h3"><a href="#krok-1-extract-method-dla-najmniejszego-fragmentu">Krok 1: Extract Method dla najmniejszego fragmentu</a></li><li class="h3"><a href="#krok-2-encapsulate-conditional-caly-warunek">Krok 2: Encapsulate Conditional - cały warunek</a></li><li class="h3"><a href="#krok-3-encapsulate-conditional-dla-galezi">Krok 3: Encapsulate Conditional dla gałęzi</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-12">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-12">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-12">Pytanie do sali</a></li><li class="h2"><a href="#proponowana-kolejnosc-pokazu">Proponowana kolejność pokazu</a></li></ul></details></nav></aside>
+<main>
+<h1>Moduł 4. Podstawowe refaktoryzacje - warsztat CineLegacy (C#): przewodnik prowadzącego</h1>
+<p>Trzynaście krótkich scen w domenie kina pokazuje na żywo każdą technikę z modułu 4: od testu charakterystyki, przez Rename, Extract i Inline, Move Method i Move Field, Extract Class, aż po hermetyzację pól, kolekcji i warunków. Każda scena ma kod wyjściowy (<code>Start</code>), gotowe snapshoty po każdym kroku (<code>StepN</code>) i test, który po każdym ruchu w IDE ma być zielony. Tam, gdzie tematem jest pułapka semantyki, test ją dokumentuje: pokazuje, co by się zepsuło, i dlaczego bezpieczny krok wygląda inaczej.</p>
+<p>Kod portu C# leży w <code>csharp/<wbr>src/<wbr>Training.Workshop/<wbr>M4/<wbr>SNN.../<wbr>{Start,Step1,...}</code>, testy (xUnit) w <code>csharp/<wbr>tests/<wbr>Training.Workshop.Tests/<wbr>M4/<wbr>SNN.../<wbr></code>. Tam, gdzie C# ma inny mechanizm niż Java (<code>decimal</code> zamiast <code>BigDecimal</code>, <code>TimeProvider</code> zamiast <code>Clock</code>, właściwości zamiast getterów, <code>const</code> zamiast <code>static final</code>), scena używa idiomu C#, a akapit <strong>Różnica względem Javy</strong> mówi, co i dlaczego wygląda inaczej. Wspólne zasady portu: kwoty to <code>decimal</code> (literały <code>40.00m</code>, zaokrąglenie <code>Math.Round(x, 2, MidpointRounding.AwayFromZero)</code>), wydruki kwot i czasu są jawnie formatowane z <code>CultureInfo.InvariantCulture</code> (w C# konkatenacja <code>decimal</code> albo <code>DateTime</code> zależy od bieżącej kultury, w Javie <code>toString</code> nie), a wyjątek stanu to <code>InvalidOperationException</code>.</p>
+<p>Sceny nie powtarzają studium &quot;generator oferty wynajmu&quot; z zadań modułu 4 (w repozytorium w wersji Java, <code>pl.training.module4</code>). Tamto studium uczestnicy robią sami, a sceny poniżej służą do pokazu.</p>
+<h2 id="jak-prowadzic-pokaz" tabindex="-1"><a class="header-anchor" href="#jak-prowadzic-pokaz"><span>Jak prowadzić pokaz</span></a></h2>
+<pre class="code" data-lang="bash"><code class="hljs">scripts/warsztat.sh --lang cs list m4            <span class="hljs-comment"># sceny modułu i ich kroki</span>
+scripts/warsztat.sh --lang cs <span class="hljs-built_in">test</span> m4/s05        <span class="hljs-comment"># testy jednej sceny</span>
+scripts/warsztat.sh --lang cs <span class="hljs-built_in">test</span> m4            <span class="hljs-comment"># wszystkie sceny modułu (230 testów)</span>
+scripts/warsztat.sh --lang cs diff m4/s05 2 3    <span class="hljs-comment"># co zmienia krok 3 względem kroku 2 (0 = Start)</span>
+scripts/warsztat.sh --lang cs diff m4/s05 2 3 --word  <span class="hljs-comment"># to samo, zmiany podświetlone w obrębie linii</span>
+scripts/warsztat.sh --lang cs jump m4/s05 2      <span class="hljs-comment"># skopiuj Step2 do Start, gdy brakuje czasu</span>
+scripts/warsztat.sh --lang cs next m4/s05        <span class="hljs-comment"># następny krok do Start + podsumowanie zmian</span>
+scripts/warsztat.sh next                         <span class="hljs-comment"># kolejny krok tej samej sceny (język i scena zapamiętane)</span>
+scripts/warsztat.sh prev                         <span class="hljs-comment"># krok wstecz</span>
+scripts/warsztat.sh status                       <span class="hljs-comment"># który krok jest teraz w Start</span>
+scripts/warsztat.sh --lang cs reset m4/s05       <span class="hljs-comment"># przywróć Start po pokazie</span>
+</code></pre>
+<ul>
+<li>Zasada: <strong>jeden krok - jeden test - jedno zdanie komentarza.</strong> Ruch w Rider, uruchomienie testu sceny (ikona w gutterze przy klasie testu albo okno Unit Tests), zdanie z sekcji &quot;Co powiedzieć&quot;.</li>
+<li><strong>Krok po kroku bez numerów:</strong> <code>scripts/<wbr>warsztat.sh --lang cs next m4/<wbr>sNN</code> wstawia do <code>Start</code> gotowy następny krok i wypisuje, co się zmieniło. <code>prev</code> cofa o krok, <code>status</code> mówi, który krok jest teraz w <code>Start</code>. Skrypt pamięta język i ostatnią scenę, więc potem wystarczy samo <code>next</code>. Ręczne zmiany w <code>Start</code> zostają nadpisane - o to chodzi, gdy krok na żywo się rozjechał.</li>
+<li>Pracujesz zawsze w katalogu (namespace) <code>Start</code>. Snapshoty <code>StepN</code> są po to, żeby pokazać <code>diff</code> albo przeskoczyć (<code>next</code>, <code>jump</code>), gdy coś się rozjedzie.</li>
+<li>W scenach o pułapkach (s01, s02, s05, s06, s07) warto najpierw <strong>zrobić naiwny ruch na żywo</strong>, pokazać czerwony test, cofnąć (⌘Z) i dopiero wtedy wykonać krok z przewodnika.</li>
+<li>Sceny s10 i s11 zawierają kroki, które <strong>świadomie zmieniają zachowanie</strong>. Test ma dla nich osobne oczekiwania. Powiedz to na głos: to osobny commit, a nie refaktoryzacja.</li>
+<li>Skróty w Rider (keymap macOS w stylu IntelliJ): ⇧F6 Rename, ⌥⌘V Introduce Variable, ⌥⌘F Introduce Field, ⌥⌘P Introduce Parameter, ⌥⌘M Extract Method, ⌥⌘N Inline, F6 Move, ⌘F6 Change Signature, ⌘⌦ Safe Delete, ⌃T Refactor This (menu wszystkich refaktoryzacji dostępnych w miejscu kursora). Gdy nie pamiętasz nazwy ruchu, ⌃T i wybór z listy zawsze działa.</li>
+</ul>
+<h2 id="mapa-scen" tabindex="-1"><a class="header-anchor" href="#mapa-scen"><span>Mapa scen</span></a></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Scena</th>
+<th>Temat ze slajdów</th>
+<th>Kroki</th>
+<th>Namespace</th>
+<th>Czas</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>s00</td>
+<td>Test charakterystyki przed pierwszą zmianą; Test równoważności etapów</td>
+<td>2</td>
+<td><code>M4.S00Characterization</code></td>
+<td>~15 min</td>
+</tr>
+<tr>
+<td>s01</td>
+<td>Rename - cel i mechanika (nazwy poza C#)</td>
+<td>3</td>
+<td><code>M4.S01Rename</code></td>
+<td>~12 min</td>
+</tr>
+<tr>
+<td>s02</td>
+<td>Extract Variable i moment ewaluacji</td>
+<td>3</td>
+<td><code>M4.S02ExtractVariable</code></td>
+<td>~8 min</td>
+</tr>
+<tr>
+<td>s03</td>
+<td>Extract Constant i <code>const</code>/<code>readonly</code>; Replace Magic Numbers</td>
+<td>3</td>
+<td><code>M4.S03MagicNumbers</code></td>
+<td>~10 min</td>
+</tr>
+<tr>
+<td>s04</td>
+<td>Extract Method - przepływ danych, mechanika i trudne przypadki</td>
+<td>3</td>
+<td><code>M4.S04ExtractMethod</code></td>
+<td>~15 min</td>
+</tr>
+<tr>
+<td>s05</td>
+<td>Inline Variable i typ docelowy (liczba i moment ewaluacji)</td>
+<td>3</td>
+<td><code>M4.S05InlineVariable</code></td>
+<td>~12 min</td>
+</tr>
+<tr>
+<td>s06</td>
+<td>Inline Method i jego ryzyka</td>
+<td>2</td>
+<td><code>M4.S06InlineMethod</code></td>
+<td>~8 min</td>
+</tr>
+<tr>
+<td>s07</td>
+<td>Move Method - wybór właściciela, krok po kroku i ryzyka</td>
+<td>2</td>
+<td><code>M4.S07MoveMethod</code></td>
+<td>~10 min</td>
+</tr>
+<tr>
+<td>s08</td>
+<td>Move Field krok po kroku i ryzyka</td>
+<td>3</td>
+<td><code>M4.S08MoveField</code></td>
+<td>~10 min</td>
+</tr>
+<tr>
+<td>s09</td>
+<td>Extract Class - cel, mechanika i zły wynik</td>
+<td>3</td>
+<td><code>M4.S09ExtractClass</code></td>
+<td>~15 min</td>
+</tr>
+<tr>
+<td>s10</td>
+<td>Encapsulate Field</td>
+<td>3</td>
+<td><code>M4.S10EncapsulateField</code></td>
+<td>~10 min</td>
+</tr>
+<tr>
+<td>s11</td>
+<td>Encapsulate Collection; Trzy różne kontrakty kolekcji</td>
+<td>3</td>
+<td><code>M4.S11EncapsulateCollection</code></td>
+<td>~12 min</td>
+</tr>
+<tr>
+<td>s12</td>
+<td>Encapsulate Conditional</td>
+<td>3</td>
+<td><code>M4.S12EncapsulateConditional</code></td>
+<td>~8 min</td>
+</tr>
+</tbody>
+</table></div>
+<p>Pełne nazwy namespace zaczynają się od <code>Training.Workshop.</code>, katalogi to <code>csharp/<wbr>src/<wbr>Training.Workshop/<wbr>M4/<wbr>S00Characterization</code> itd.</p>
+<h2 id="scena-s00-test-charakterystyki-przed-pierwsza-zmiana" tabindex="-1"><a class="header-anchor" href="#scena-s00-test-charakterystyki-przed-pierwsza-zmiana"><span>Scena s00. Test charakterystyki przed pierwszą zmianą</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> Test charakterystyki przed pierwszą zmianą; Test równoważności etapów; Co ma pozostać niezmienione
+<strong>Namespace:</strong> <code>Training.Workshop.M4.S00Characterization</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s00</code>
+<strong>Czas:</strong> ~15 min</p>
+<h3 id="w-skrocie" tabindex="-1"><a class="header-anchor" href="#w-skrocie"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> <code>BookingConfirmation.Confirm</code> drukuje potwierdzenie bez żadnego testu, a w wydruku jest bieżący czas i kwoty zależne od bieżącej kultury (<code>CultureInfo.CurrentCulture</code>). Najpierw zapisujemy w teście pełny dokument, potem robimy szew na zegar i dopiero wtedy pierwszą ekstrakcję.</p>
+<p><strong>Zasada:</strong> Test charakterystyki zapisuje, co kod faktycznie robi, a nie co powinien robić - razem z dziwnymi regułami. Stosujemy go przed pierwszą zmianą kodu bez testów, a ten sam zestaw oczekiwań uruchamiamy na każdym etapie jako test równoważności. Nie mylić z testem, który liczy oczekiwania tym samym algorytmem co kod.</p>
+<p><strong>Efekt:</strong> Mamy deterministyczny test całego dokumentu, wstrzykiwany <code>TimeProvider</code> i wydzieloną metodę <code>TicketPrice</code>, a stary konstruktor dalej działa. Znaleziska (rabat od 11 biletów, kwoty zależne od kultury) zostają zapisane, ale niepoprawione, bo to osobne decyzje.</p>
+<p><strong>Różnica względem Javy:</strong> domyślne <code>Locale</code> to w C# <code>CultureInfo.CurrentCulture</code>, a zapach &quot;formatowanie bez Locale&quot; to <code>double.ToString(&quot;F2&quot;)</code> bez podanej kultury. Zamiast <code>Clock</code> jest <code>TimeProvider</code> (<code>TimeProvider.System</code> w produkcji, <code>FakeTimeProvider</code> z <code>Microsoft.Extensions.Time.Testing</code> w teście). Znacznik czasu port drukuje zawsze jako <code>yyyy-MM-ddTHH:mm:ss</code> (Java pomija sekundy, gdy są zerowe), a godzinę seansu jawnie jako <code>HH:mm</code>.</p>
+<h3 id="co-widzimy" tabindex="-1"><a class="header-anchor" href="#co-widzimy"><span>Co widzimy</span></a></h3>
+<p><code>BookingConfirmation.Confirm</code> drukuje potwierdzenie rezerwacji. Nie ma żadnego testu, a dokument czytają klienci i infolinia. Zanim cokolwiek zmienimy, zapisujemy, co kod <strong>robi</strong>. Na drodze stoją dwie rzeczy: bieżący czas w ostatniej linii i <code>ToString(&quot;F2&quot;)</code> bez kultury.</p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">if</span> (b.TicketTypes.Count &gt; <span class="hljs-number">10</span>)
+{
+    sum = sum * <span class="hljs-number">0.9</span>;
+}
+...
++ <span class="hljs-string">&quot;Do zaplaty: &quot;</span> + (sum + fee).ToString(<span class="hljs-string">&quot;F2&quot;</span>) + <span class="hljs-string">&quot;\n&quot;</span>
++ <span class="hljs-string">&quot;Wygenerowano: &quot;</span> + DateTime.Now.ToString(<span class="hljs-string">&quot;yyyy-MM-dd&#x27;T&#x27;HH:mm:ss&quot;</span>, CultureInfo.InvariantCulture) + <span class="hljs-string">&quot;\n&quot;</span>;
+</code></pre>
+<p>W tej scenie najważniejszy jest test <code>S00CharacterizationTest</code>. Powstaje w trzech ruchach (A, B, C), a kod <code>Start/<wbr>Step1/<wbr>Step2</code> tylko za nim nadąża.</p>
+<p><strong>Ruch A (na <code>Start</code>, przed krokiem 1):</strong> napisz <code>Assert.Equal(&quot;&quot;, new BookingConfirmation().Confirm(booking))</code>, uruchom i skopiuj rzeczywisty wynik z komunikatu błędu do oczekiwań. Test dalej jest czerwony, bo zmienia się sekunda. Dodaj &quot;scrubber&quot;, który maskuje linię z czasem (<code>Regex.Replace(document, &quot;Wygenerowano: .*\n&quot;, &quot;Wygenerowano: &lt;czas&gt;\n&quot;)</code>), i ustaw kulturę jawnie na czas wywołania (<code>InCulture(pl-PL, ...)</code>). Teraz test jest zielony i deterministyczny. Dopisz przypadki na obu bokach progów: 10 i 11 biletów, rano i wieczorem, kasa i online.</p>
+<p>W trakcie wychodzą dwa znaleziska, które test zapisuje, a nie poprawia:</p>
+<ul>
+<li>rabat grupowy działa od <strong>11</strong> biletów (<code>&gt; 10</code>), choć regulamin mówi &quot;10+&quot; - przypadek nazwany <code>ZASTANE: ...</code>,</li>
+<li>kwoty zależą od kultury serwera: na <code>pl-PL</code> jest <code>74,00</code>, na <code>en-US</code> <code>74.00</code> (test <code>FoundDuringCharacterizationAmountsDependOnServerLocale</code>).</li>
+</ul>
+<h3 id="krok-1-parameterize-constructor-wstrzykniety-timeprovider" tabindex="-1"><a class="header-anchor" href="#krok-1-parameterize-constructor-wstrzykniety-timeprovider"><span>Krok 1: Parameterize Constructor - wstrzyknięty TimeProvider</span></a></h3>
+<p><strong>W IDE:</strong> w <code>Confirm</code> zamień <code>DateTime.Now</code> na <code>TimeProvider.System.GetLocalNow().DateTime</code>, zaznacz <code>TimeProvider.System</code> i wykonaj Introduce Field (⌥⌘F, inicjalizacja w konstruktorze, nazwa <code>_clock</code>). Potem w konstruktorze na tym samym wyrażeniu Introduce Parameter (⌥⌘P), nazwa <code>clock</code>. Rider nie tworzy przy tym przeciążenia delegującego (w IntelliJ opcja &quot;Delegate via overloading method&quot;), więc konstruktor bezargumentowy <code>: this(TimeProvider.System)</code> dopisz ręcznie - to dwie linie.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> TimeProvider _clock;
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">BookingConfirmation</span>()
+    : <span class="hljs-title">this</span>(<span class="hljs-params">TimeProvider.System</span>)</span>
+{
+}
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">BookingConfirmation</span>(<span class="hljs-params">TimeProvider clock</span>)</span>
+{
+    _clock = clock;
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s00</code> - 15 testów zielonych, w tym <code>FromStep1TheWholeDocumentIsDeterministic</code> (z zatrzymanym <code>FakeTimeProvider</code> porównujemy także linię z czasem, bez scrubbera).
+<strong>Co powiedzieć:</strong> to minimalna zmiana, która robi szew dla testu. Stary konstruktor zostaje, więc produkcyjni klienci nie widzą różnicy. Scrubber był rusztowaniem i od tego kroku jest potrzebny tylko dla <code>Start</code>.
+<strong>Snapshot:</strong> <code>Step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m4/<wbr>s00 0 1</code></p>
+<h3 id="krok-2-pierwsza-refaktoryzacja-pod-ochrona-testu" tabindex="-1"><a class="header-anchor" href="#krok-2-pierwsza-refaktoryzacja-pod-ochrona-testu"><span>Krok 2: pierwsza refaktoryzacja pod ochroną testu</span></a></h3>
+<p><strong>W IDE:</strong> zaznacz ciało pętli od <code>double p;</code> do <code>p = p - 5.00; }</code>, Extract Method (⌥⌘M), nazwa <code>TicketPrice</code>. Rider wykryje dwa wejścia (<code>b</code>, <code>t</code>) i jedno wyjście. W pętli zostaje <code>sum = sum + TicketPrice(b, t);</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">foreach</span> (<span class="hljs-keyword">var</span> t <span class="hljs-keyword">in</span> b.TicketTypes)
+{
+    sum = sum + TicketPrice(b, t);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony - ten sam dokument, znak w znak.
+<strong>Co powiedzieć:</strong> kusi, żeby przy okazji zamienić <code>double</code> na <code>decimal</code>, dodać <code>CultureInfo.InvariantCulture</code> i poprawić próg grupy. Każda z tych rzeczy zmienia wydruk, więc to trzy osobne decyzje z wymaganiem, a nie refaktoryzacja.
+<strong>Snapshot:</strong> <code>Step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m4/<wbr>s00 1 2</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Test charakterystyki porównuje <strong>pełny dokument</strong>, a nie wybrane liczby, dla przypadków po obu stronach progów. Ten sam zestaw oczekiwań uruchamiamy na <code>Start</code>, <code>Step1</code> i <code>Step2</code>, co jest testem równoważności etapów. Oczekiwania zapisaliśmy raz, zatwierdzone przez człowieka, a nie liczone na nowo przez starą wersję kodu. Kod zmienia się minimalnie: szew na czas i jedna ekstrakcja.</p>
+<h3 id="pulapki" tabindex="-1"><a class="header-anchor" href="#pulapki"><span>Pułapki</span></a></h3>
+<ul>
+<li>Test, który wylicza oczekiwania tym samym algorytmem co kod (&quot;drugi raz to samo&quot;), niczego nie charakteryzuje.</li>
+<li>Test zależny od strefy czasowej, kultury albo bieżącej daty przejdzie na laptopie i padnie na CI. Tutaj <code>CultureInfo.CurrentCulture</code> (i <code>CurrentUICulture</code>) ustawiamy na czas wywołania i przywracamy w <code>finally</code>. Kultura płynie z kontekstem wykonania, więc równolegle uruchomione klasy testów xUnit sobie nie przeszkadzają, ale ustawienie jej &quot;na cały proces&quot; (<code>CultureInfo.DefaultThreadCurrentCulture</code>) już by przeszkadzało.</li>
+<li>&quot;Poprawienie&quot; znaleziska z charakterystyki w tym samym commicie co refaktoryzacja. Znalezisko zapisujemy (<code>ZASTANE: ...</code>), zgłaszamy i poprawiamy osobno.</li>
+<li>Brak sprawdzenia czułości testu. Zmień na chwilę <code>&gt; 10</code> na <code>&gt;= 10</code> w <code>Start</code> i zobacz, że test padnie. Potem cofnij.</li>
+</ul>
+<h3 id="pytanie-do-sali" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali"><span>Pytanie do sali</span></a></h3>
+<p>Znaleźliście w charakterystyce ewidentny błąd (rabat od 11 biletów). Kto decyduje, czy go poprawić, i jak powinien wyglądać commit z poprawką?</p>
+<h2 id="scena-s01-rename-nazwy-ktore-zyja-poza-c" tabindex="-1"><a class="header-anchor" href="#scena-s01-rename-nazwy-ktore-zyja-poza-c"><span>Scena s01. Rename - nazwy, które żyją poza C#</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> Rename - cel i mechanika; Co ma pozostać niezmienione (refleksja, konfiguracja)
+<strong>Namespace:</strong> <code>Training.Workshop.M4.S01Rename</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s01</code>
+<strong>Czas:</strong> ~12 min</p>
+<h3 id="w-skrocie-1" tabindex="-1"><a class="header-anchor" href="#w-skrocie-1"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> W <code>SalesReport</code> nazwy <code>Calc2</code>, <code>s</code>, <code>m</code>, <code>t</code> nic nie mówią, ale nazwa metody żyje w konfiguracji, a nazwy właściwości rekordu trafiają refleksją do nagłówka CSV. Zmieniamy nazwy od najbezpieczniejszych lokalnych do tych, które są kontraktem zewnętrznym.</p>
+<p><strong>Zasada:</strong> Rename nadaje nazwę opisującą rolę w kontekście, a nie typ ani implementację. Dla zmiennych lokalnych IDE robi to bezpiecznie, ale nazwa użyta w konfiguracji, refleksji, JSON czy ORM jest częścią API i wymaga strategii migracji. IDE nie widzi takich użyć, więc nie mylić operacji ⇧F6 z bezpieczną zmianą kontraktu.</p>
+<p><strong>Efekt:</strong> Kod czyta się po nazwach ról, a oba kontrakty zostają nietknięte: stara nazwa <code>Calc2</code> jako przestarzały delegat, nagłówek CSV jako jawna stała. Koszt to delegat, którego nie wolno usunąć, dopóki ktoś nie zmieni konfiguracji na serwerach.</p>
+<p><strong>Różnica względem Javy:</strong> metoda z konfiguracji nazywa się w C# <code>Calc2</code> (PascalCase), więc wpis to <code>report.method=Calc2</code>. Rekord <code>Line</code> ma w <code>Start</code>, <code>Step1</code> i <code>Step2</code> celowo właściwości <code>t</code>, <code>n</code>, <code>d</code> z małej litery (część zapachu), dzięki czemu nagłówek z refleksji (<code>GetProperties()</code>) jest taki sam jak w Javie: <code>t;n;d</code>. <code>@Deprecated</code> to <code>[Obsolete]</code>, a <code>Properties</code> to ręczne parsowanie <code>klucz=wartość</code>. <code>GetMethod</code> zwraca w C# <code>null</code> zamiast rzucać, więc <code>ReportJob</code> sam rzuca <code>MissingMethodException</code> i opakowuje go w <code>InvalidOperationException</code>.</p>
+<h3 id="co-widzimy-1" tabindex="-1"><a class="header-anchor" href="#co-widzimy-1"><span>Co widzimy</span></a></h3>
+<p><code>SalesReport.Calc2(IReadOnlyList&lt;Sale&gt; s, bool flag)</code> składa CSV dla dystrybutora: <code>m</code>, <code>x</code>, <code>l</code>, <code>b</code>, a wiersz to <code>Line(string t, int n, decimal d)</code>. Dwie nazwy żyją poza C#:</p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-comment">// ReportJob - w produkcji plik report.properties na serwerze</span>
+<span class="hljs-keyword">internal</span> <span class="hljs-keyword">const</span> <span class="hljs-built_in">string</span> Config = <span class="hljs-string">&quot;&quot;&quot;
+    report.method=Calc2
+    report.onlineOnly=true
+    &quot;&quot;&quot;</span>;
+...
+<span class="hljs-keyword">var</span> method = <span class="hljs-keyword">typeof</span>(SalesReport).GetMethod(name, [<span class="hljs-keyword">typeof</span>(IReadOnlyList&lt;Sale&gt;), <span class="hljs-keyword">typeof</span>(<span class="hljs-built_in">bool</span>)])
+    ?? <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> MissingMethodException(<span class="hljs-keyword">nameof</span>(SalesReport), name);
+
+<span class="hljs-comment">// SalesReport - nagłówek CSV liczony refleksją z nazw właściwości rekordu</span>
+<span class="hljs-keyword">return</span> <span class="hljs-built_in">string</span>.Join(<span class="hljs-string">&quot;;&quot;</span>, <span class="hljs-keyword">typeof</span>(Line).GetProperties().Select(p =&gt; p.Name));
+</code></pre>
+<h3 id="krok-1-rename-zmiennych-lokalnych-i-parametrow" tabindex="-1"><a class="header-anchor" href="#krok-1-rename-zmiennych-lokalnych-i-parametrow"><span>Krok 1: Rename zmiennych lokalnych i parametrów</span></a></h3>
+<p><strong>W IDE:</strong> kursor na <code>s</code>, ⇧F6, <code>sales</code>. Tak samo <code>flag</code> -&gt; <code>onlineOnly</code>, <code>m</code> -&gt; <code>linesByTitle</code>, <code>x</code> -&gt; <code>sale</code>, <code>l</code> -&gt; <code>previous</code> / <code>line</code>, <code>b</code> -&gt; <code>csv</code>, <code>v</code> -&gt; <code>values</code>, <code>c</code> i <code>p</code> -&gt; <code>property</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Calc2</span>(<span class="hljs-params">IReadOnlyList&lt;Sale&gt; sales, <span class="hljs-built_in">bool</span> onlineOnly</span>)</span>
+{
+    <span class="hljs-keyword">var</span> linesByTitle = <span class="hljs-keyword">new</span> SortedDictionary&lt;<span class="hljs-built_in">string</span>, Line&gt;(StringComparer.Ordinal);
+    <span class="hljs-keyword">foreach</span> (<span class="hljs-keyword">var</span> sale <span class="hljs-keyword">in</span> sales)
+    {
+        <span class="hljs-keyword">if</span> (onlineOnly &amp;&amp; !sale.Online)
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s01</code> - 14 testów zielonych.
+<strong>Co powiedzieć:</strong> zasięg lokalny, zero użyć poza metodą, więc IDE robi to w stu procentach bezpiecznie. Od tego zaczynamy każde porządkowanie, bo tanie nazwy ułatwiają następne kroki.
+<strong>Snapshot:</strong> <code>Step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m4/<wbr>s01 0 1</code></p>
+<h3 id="krok-2-rename-metody-z-delegatem-dla-starej-nazwy" tabindex="-1"><a class="header-anchor" href="#krok-2-rename-metody-z-delegatem-dla-starej-nazwy"><span>Krok 2: Rename metody z delegatem dla starej nazwy</span></a></h3>
+<p><strong>W IDE:</strong> najpierw na żywo naiwnie: ⇧F6 na <code>Calc2</code>, nazwa <code>RevenueCsv</code>, bez zmiany wystąpień w tekście (text occurrences). Uruchom test: <code>EveryStepRunsTheConfiguredJob</code> jest czerwony (<code>InvalidOperationException: Zadanie raportu nie działa: ...</code>, w środku <code>MissingMethodException</code> dla <code>Calc2</code>). IDE nie wie, że tekst w konfiguracji to nazwa metody. Cofnij (⌘Z). Teraz poprawnie: skopiuj metodę, zmień nazwę kopii na <code>RevenueCsv</code>, a ciało <code>Calc2</code> zamień na delegowanie i oznacz <code>[Obsolete]</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span></span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span> Stara nazwa z konfiguracji report.properties (report.method=Calc2).</span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span> Usunąć dopiero, gdy żaden serwer nie ma jej w konfiguracji.</span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;/summary&gt;</span></span>
+[<span class="hljs-meta">Obsolete(<span class="hljs-string">&quot;Użyj RevenueCsv - Calc2 zostaje tylko dla konfiguracji report.properties&quot;</span>)</span>]
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Calc2</span>(<span class="hljs-params">IReadOnlyList&lt;Sale&gt; sales, <span class="hljs-built_in">bool</span> onlineOnly</span>)</span>
+{
+    <span class="hljs-keyword">return</span> RevenueCsv(sales, onlineOnly);
+}
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">RevenueCsv</span>(<span class="hljs-params">IReadOnlyList&lt;Sale&gt; sales, <span class="hljs-built_in">bool</span> onlineOnly</span>)</span>
+{
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony, zadanie z konfiguracji działa. Test, który wciąż woła <code>Calc2</code> wprost, wyłącza ostrzeżenie kompilatora przez <code>#pragma warning disable CS0618</code> (odpowiednik <code>@SuppressWarnings(&quot;deprecation&quot;)</code>).
+<strong>Co powiedzieć:</strong> konfiguracja leży na serwerach, poza naszym repozytorium, więc nie zmienimy jej w tym samym commicie. Stara nazwa zostaje jako przestarzały delegat, dopóki ktoś nie zmieni konfiguracji wszędzie. To jest strategia migracji ze slajdu.
+<strong>Snapshot:</strong> <code>Step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m4/<wbr>s01 1 2</code></p>
+<h3 id="krok-3-rename-wlasciwosci-rekordu-po-odcieciu-kontraktu-csv" tabindex="-1"><a class="header-anchor" href="#krok-3-rename-wlasciwosci-rekordu-po-odcieciu-kontraktu-csv"><span>Krok 3: Rename właściwości rekordu po odcięciu kontraktu CSV</span></a></h3>
+<p><strong>W IDE:</strong> najpierw naiwnie: ⇧F6 na <code>t</code> w <code>Line</code>, <code>Title</code> (Rider zmienia parametr rekordu i wygenerowaną z niego właściwość). Test pokaże nagłówek <code>Title;n;d</code> zamiast <code>t;n;d</code>: plik dla dystrybutora właśnie się zmienił. Cofnij. Teraz poprawnie: najpierw zamień refleksyjne <code>Header()</code> i <code>Row()</code> na jawny <code>CsvHeader = &quot;t;n;d&quot;</code> i jawne składanie wiersza (test zielony), dopiero potem ⇧F6 na <code>t</code>, <code>n</code>, <code>d</code> -&gt; <code>Title</code>, <code>Tickets</code>, <code>Revenue</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span>Nagłówek uzgodniony z dystrybutorem - kontrakt zewnętrzny, NIE nazwy właściwości w C#.<span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-keyword">internal</span> <span class="hljs-keyword">const</span> <span class="hljs-built_in">string</span> CsvHeader = <span class="hljs-string">&quot;t;n;d&quot;</span>;
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">record</span> <span class="hljs-title">Line</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> Title, <span class="hljs-built_in">int</span> Tickets, <span class="hljs-built_in">decimal</span> Revenue</span>)</span>;
+
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Row</span>(<span class="hljs-params">Line line</span>)</span>
+{
+    <span class="hljs-keyword">return</span> line.Title + <span class="hljs-string">&quot;;&quot;</span> + line.Tickets + <span class="hljs-string">&quot;;&quot;</span> + line.Revenue.ToString(CultureInfo.InvariantCulture);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony, także <code>S01RenameLimitsTest.ReflectionTurnsCSharpNamesIntoTheCsvHeader</code>, który pokazuje, że refleksja na nowym rekordzie dałaby <code>Title;Tickets;Revenue</code>.
+<strong>Co powiedzieć:</strong> nazwa w C# i nazwa w kontrakcie zewnętrznym to dwie różne rzeczy. Dopóki są sklejone refleksją, każdy Rename jest zmianą API. Przy okazji: jawny wiersz formatuje kwotę z <code>InvariantCulture</code>, tak jak robiła to refleksja (<code>Convert.ToString(..., CultureInfo.InvariantCulture)</code>), inaczej na serwerze z <code>pl-PL</code> w pliku pojawiłby się przecinek.
+<strong>Snapshot:</strong> <code>Step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m4/<wbr>s01 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-1" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-1"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>Step3</code>: wszystkie nazwy mówią o roli (<code>RevenueCsv</code>, <code>onlineOnly</code>, <code>linesByTitle</code>, <code>Line.Revenue</code>), a dwa kontrakty zewnętrzne (nazwa metody w konfiguracji i nagłówek CSV) są zachowane jawnie: przez delegat i przez stałą. Oba testy równoważności (wywołanie z C# i zadanie z konfiguracji) są zielone na każdym etapie.</p>
+<h3 id="pulapki-1" tabindex="-1"><a class="header-anchor" href="#pulapki-1"><span>Pułapki</span></a></h3>
+<ul>
+<li>Poleganie na zmianie wystąpień w tekście (text occurrences) przy Rename w Rider. Czasem pomaga, ale nie widzi plików poza projektem (konfiguracja na serwerze, <code>appsettings.*.json</code> w innym repozytorium) ani nazw składanych dynamicznie (<code>&quot;Calc&quot; + version</code>).</li>
+<li>Inne miejsca, w których nazwa jest kontraktem: JSON (<code>System.Text.Json</code>, Newtonsoft), kolumny i tabele EF Core bez jawnego mapowania, wiązanie konfiguracji (<code>IConfiguration.Bind</code>, <code>IOptions&lt;T&gt;</code> wiążą po nazwach właściwości), widoki Razor, nazwy w DI rejestrowane po nazwie, logi parsowane przez monitoring. <code>nameof(...)</code> jest bezpieczne, bo Rename je zmienia, ale wtedy zmienia też tekst, który ktoś może czytać.</li>
+<li>Usunięcie delegatu <code>Calc2</code> &quot;bo nikt go nie woła&quot;. Find Usages go nie znajdzie, bo wołają go tylko refleksja i konfiguracja.</li>
+</ul>
+<h3 id="pytanie-do-sali-1" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-1"><span>Pytanie do sali</span></a></h3>
+<p>Jak w waszym systemie sprawdzić, czy nazwa klasy albo metody nie jest użyta w konfiguracji, bazie danych lub innym repozytorium?</p>
+<h2 id="scena-s02-extract-variable-dla-zlozonego-wyrazenia-ceny" tabindex="-1"><a class="header-anchor" href="#scena-s02-extract-variable-dla-zlozonego-wyrazenia-ceny"><span>Scena s02. Extract Variable dla złożonego wyrażenia ceny</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> Extract Variable i moment ewaluacji
+<strong>Namespace:</strong> <code>Training.Workshop.M4.S02ExtractVariable</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s02</code>
+<strong>Czas:</strong> ~8 min</p>
+<h3 id="w-skrocie-2" tabindex="-1"><a class="header-anchor" href="#w-skrocie-2"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> Cena biletu w <code>TicketPrice</code> to jedno długie wyrażenie z pięcioma ternary, którego nie da się przeczytać bez liczenia w głowie. Rozbijamy je na zmienne z nazwami z cennika: najpierw kwoty bazowe, potem warunki, na końcu dopłaty.</p>
+<p><strong>Zasada:</strong> Extract Variable nazywa znaczenie fragmentu wyrażenia, a nie jego składnię. Może jednak zmienić moment ewaluacji, więc trzeba uważać na wyrażenia z efektem, odczytem czasu albo wyjątkiem. Krótkie spięcie <code>&amp;&amp;</code> jest zachowaniem - nie wolno wydzielić prawej strony przed osłoną <code>!= null</code>.</p>
+<p><strong>Efekt:</strong> Ostatnia linia czyta się jak paragon, a kolejność działań i miejsce zaokrąglenia są takie same jak w <code>Start</code>. Liczby nadal są literałami, co zostawiamy na następną scenę.</p>
+<p><strong>Różnica względem Javy:</strong> rząd to <code>int?</code> (odpowiednik <code>Integer</code>). W C# porównanie <code>r.Row &gt;= 10</code> na <code>int?</code> jest &quot;podniesione&quot; (lifted operator) i dla <code>null</code> po prostu zwraca <code>false</code>, bez wyjątku. Dlatego kod sceny pisze osłonę jawnie, jak w Javie: <code>r.Row != null &amp;&amp; r.Row.Value &gt;= 10</code>. Pułapka w C# to wydzielenie <code>r.Row.Value &gt;= 10</code> przed osłoną: <code>.Value</code> na <code>null</code> rzuca <code>InvalidOperationException</code> (w Javie <code>NullPointerException</code> z unboxingu). Warto powiedzieć na sali, że idiomatyczne <code>r.Row &gt;= 10</code> jest w C# bezpieczne właśnie dzięki lifted operators.</p>
+<h3 id="co-widzimy-2" tabindex="-1"><a class="header-anchor" href="#co-widzimy-2"><span>Co widzimy</span></a></h3>
+<p>Cała cena biletu to jedno wyrażenie z pięcioma ternary. Żeby odpowiedzieć na pytanie &quot;skąd 32.00?&quot;, trzeba policzyć je w głowie. Uwaga na <code>Row</code>: to <code>int?</code>, a <code>null</code> oznacza wolną widownię.</p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">return</span> Math.Round((r.Format == <span class="hljs-number">3</span> ? <span class="hljs-number">40.00m</span>
+            : r.Format == <span class="hljs-number">2</span> ? <span class="hljs-number">32.00m</span> : <span class="hljs-number">25.00m</span>)
+        * (<span class="hljs-number">100</span> - (r.Type == <span class="hljs-string">&quot;S&quot;</span> ? <span class="hljs-number">25</span>
+            : r.Type == <span class="hljs-string">&quot;E&quot;</span> ? <span class="hljs-number">30</span> : r.Type == <span class="hljs-string">&quot;C&quot;</span> ? <span class="hljs-number">40</span> : <span class="hljs-number">0</span>))
+        / <span class="hljs-number">100</span>, <span class="hljs-number">2</span>, MidpointRounding.AwayFromZero)
+    - (r.Start &lt; <span class="hljs-keyword">new</span> TimeOnly(<span class="hljs-number">12</span>, <span class="hljs-number">0</span>)
+        ? <span class="hljs-number">5.00m</span> : <span class="hljs-number">0m</span>)
+    + (r.Row != <span class="hljs-literal">null</span> &amp;&amp; r.Row.Value &gt;= <span class="hljs-number">10</span> ? <span class="hljs-number">10.00m</span> : <span class="hljs-number">0m</span>)
+    + (r.Format == <span class="hljs-number">2</span> &amp;&amp; !r.OwnGlasses ? <span class="hljs-number">3.00m</span> : <span class="hljs-number">0m</span>);
+</code></pre>
+<h3 id="krok-1-extract-variable-dla-ceny-bazowej-i-znizki" tabindex="-1"><a class="header-anchor" href="#krok-1-extract-variable-dla-ceny-bazowej-i-znizki"><span>Krok 1: Extract Variable dla ceny bazowej i zniżki</span></a></h3>
+<p><strong>W IDE:</strong> zaznacz pierwszy nawias z ternary formatu, ⌥⌘V, <code>basePrice</code>. Potem zaznacz ternary typu biletu, ⌥⌘V, <code>discountPercent</code>. Na koniec zaznacz całe <code>Math.Round(basePrice * (100 - discountPercent) /<wbr> 100, ...)</code>, ⌥⌘V, <code>discountedPrice</code>. Jeśli Rider zaproponuje <code>var</code>, wybierz jawny typ - w tej scenie typy (<code>decimal</code>, <code>int</code>) pomagają czytać cennik.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-built_in">decimal</span> basePrice = r.Format == <span class="hljs-number">3</span> ? <span class="hljs-number">40.00m</span>
+    : r.Format == <span class="hljs-number">2</span> ? <span class="hljs-number">32.00m</span> : <span class="hljs-number">25.00m</span>;
+<span class="hljs-built_in">int</span> discountPercent = r.Type == <span class="hljs-string">&quot;S&quot;</span> ? <span class="hljs-number">25</span>
+    : r.Type == <span class="hljs-string">&quot;E&quot;</span> ? <span class="hljs-number">30</span> : r.Type == <span class="hljs-string">&quot;C&quot;</span> ? <span class="hljs-number">40</span> : <span class="hljs-number">0</span>;
+<span class="hljs-built_in">decimal</span> discountedPrice = Math.Round(basePrice * (<span class="hljs-number">100</span> - discountPercent) / <span class="hljs-number">100</span>,
+    <span class="hljs-number">2</span>, MidpointRounding.AwayFromZero);
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s02</code> - 25 testów zielonych.
+<strong>Co powiedzieć:</strong> zmienna nazywa pojęcie z cennika, a nie fragment składni. Wyrażenia są czyste, więc przesunięcie ich ewaluacji wcześniej niczego nie zmienia.
+<strong>Snapshot:</strong> <code>Step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m4/<wbr>s02 0 1</code></p>
+<h3 id="krok-2-extract-variable-dla-warunkow" tabindex="-1"><a class="header-anchor" href="#krok-2-extract-variable-dla-warunkow"><span>Krok 2: Extract Variable dla warunków</span></a></h3>
+<p><strong>W IDE:</strong> zaznacz <code>r.Start &lt; new TimeOnly(12, 0)</code>, ⌥⌘V, <code>morning</code>. Dla VIP zaznacz <strong>całe</strong> <code>r.Row != null &amp;&amp; r.Row.Value &gt;= 10</code>, ⌥⌘V, <code>vipSeat</code>. Potem <code>r.Format == 2 &amp;&amp; !r.OwnGlasses</code> -&gt; <code>needsGlasses</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-built_in">bool</span> morning = r.Start &lt; <span class="hljs-keyword">new</span> TimeOnly(<span class="hljs-number">12</span>, <span class="hljs-number">0</span>);
+<span class="hljs-built_in">bool</span> vipSeat = r.Row != <span class="hljs-literal">null</span> &amp;&amp; r.Row.Value &gt;= <span class="hljs-number">10</span>;
+<span class="hljs-built_in">bool</span> needsGlasses = r.Format == <span class="hljs-number">2</span> &amp;&amp; !r.OwnGlasses;
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony, także przypadki &quot;wolna widownia (Row = null)&quot;.
+<strong>Co powiedzieć:</strong> gdybyśmy wydzielili samo <code>r.Row.Value &gt;= 10</code>, zmienna policzyłaby się <strong>przed</strong> osłoną <code>!= null</code> i przy wolnej widowni poleciałby <code>InvalidOperationException</code> z <code>Nullable&lt;int&gt;.Value</code>. Krótkie spięcie jest zachowaniem. Pokazuje to test <code>ExtractingTheComparisonWithoutTheNullGuardThrows</code>.
+<strong>Snapshot:</strong> <code>Step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m4/<wbr>s02 1 2</code></p>
+<h3 id="krok-3-extract-variable-dla-kwot" tabindex="-1"><a class="header-anchor" href="#krok-3-extract-variable-dla-kwot"><span>Krok 3: Extract Variable dla kwot</span></a></h3>
+<p><strong>W IDE:</strong> zaznacz każde <code>warunek ? kwota : 0m</code>, ⌥⌘V: <code>morningReduction</code>, <code>vipSurcharge</code>, <code>glassesFee</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-built_in">decimal</span> morningReduction = morning ? <span class="hljs-number">5.00m</span> : <span class="hljs-number">0m</span>;
+<span class="hljs-built_in">decimal</span> vipSurcharge = vipSeat ? <span class="hljs-number">10.00m</span> : <span class="hljs-number">0m</span>;
+<span class="hljs-built_in">decimal</span> glassesFee = needsGlasses ? <span class="hljs-number">3.00m</span> : <span class="hljs-number">0m</span>;
+<span class="hljs-keyword">return</span> discountedPrice - morningReduction + vipSurcharge + glassesFee;
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> ostatnia linia czyta się jak paragon. Następny naturalny krok to Replace Magic Numbers (scena s03) albo Extract Method dla <code>basePrice</code> (scena s04).
+<strong>Snapshot:</strong> <code>Step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m4/<wbr>s02 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-2" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-2"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>Step3/<wbr>TicketPrice</code>: każda część ceny ma nazwę, kolejność operacji arytmetycznych i miejsce zaokrąglenia są takie same jak w <code>Start</code>. Test obejmuje obie strony progów (11:59 i 12:00, rząd 9 i 10) oraz <code>Row = null</code>.</p>
+<h3 id="pulapki-2" tabindex="-1"><a class="header-anchor" href="#pulapki-2"><span>Pułapki</span></a></h3>
+<ul>
+<li>Wydzielenie jednej strony <code>&amp;&amp;</code> / <code>||</code> przed osłoną (<code>null</code>, <code>is</code>, <code>Count &gt; 0</code>, <code>.Value</code> na <code>Nullable</code>).</li>
+<li>Scalenie dwóch identycznych wyrażeń w jedną zmienną, gdy wyrażenie ma efekt uboczny albo czyta czas. Wtedy zmienia się <strong>liczba</strong> ewaluacji (patrz s05).</li>
+<li>Nazwa opisująca składnię (<code>ternary1</code>, <code>tmp</code>) zamiast znaczenia.</li>
+</ul>
+<h3 id="pytanie-do-sali-2" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-2"><span>Pytanie do sali</span></a></h3>
+<p>Kiedy jedna zmienna <code>now = _clock.GetUtcNow()</code> zamiast dwóch odczytów zegara jest poprawką, a kiedy zmianą kontraktu?</p>
+<h2 id="scena-s03-stale-z-nazwa-zamiast-magicznych-liczb" tabindex="-1"><a class="header-anchor" href="#scena-s03-stale-z-nazwa-zamiast-magicznych-liczb"><span>Scena s03. Stałe z nazwą zamiast magicznych liczb</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> Extract Constant i <code>final</code> (w C#: <code>const</code> i <code>readonly</code>); Replace Magic Numbers with Named Constants
+<strong>Namespace:</strong> <code>Training.Workshop.M4.S03MagicNumbers</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s03</code>
+<strong>Czas:</strong> ~10 min</p>
+<h3 id="w-skrocie-3" tabindex="-1"><a class="header-anchor" href="#w-skrocie-3"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> <code>OrderPricer.Summary</code> jest pełen liczb bez nazw, a cztery dziesiątki oznaczają cztery różne decyzje biznesowe. Zamieniamy każdą liczbę na prywatną stałą z nazwą roli, osobno dla każdej reguły.</p>
+<p><strong>Zasada:</strong> Replace Magic Numbers usuwa ukrytą decyzję, a Extract Constant to mechanika tej zmiany. Nazwa opisuje rolę (<code>GroupMinTickets</code>), nie wartość (<code>Ten</code>), a dwa identyczne literały nie zawsze są tą samą wiedzą. Stała nie jest miejscem na konfigurację zmienianą bez wdrożenia, a <code>readonly</code> blokuje tylko przypisanie, nie zawartość.</p>
+<p><strong>Efekt:</strong> W metodzie nie ma żadnej liczby bez nazwy, a zmiana progu grupy nie przesunie już rzędu VIP. Piętnaście stałych pokazuje przy okazji, że cennik to osobna odpowiedzialność, którą jeszcze trzeba będzie przenieść.</p>
+<p><strong>Różnica względem Javy:</strong> <code>private static final BigDecimal</code> to w C# <code>private const decimal</code> - <code>decimal</code> może być stałą czasu kompilacji. Stałe mają nazwy w PascalCase (<code>BasePrice2D</code>, <code>VipFromRow</code>), a nie <code>UPPER_SNAKE_CASE</code>. <code>BigDecimal.TEN</code> to po prostu <code>10m</code>, a <code>divide(..., RoundingMode.DOWN)</code> to <code>decimal.Truncate</code>. Odpowiednikiem <code>final</code> na polu z listą jest <code>readonly</code>, a niemodyfikowalnej listy - <code>Array.AsReadOnly(...)</code>.</p>
+<h3 id="co-widzimy-3" tabindex="-1"><a class="header-anchor" href="#co-widzimy-3"><span>Co widzimy</span></a></h3>
+<p><code>OrderPricer.Summary</code> liczy bilety, opłatę online i punkty lojalnościowe. Liczby: 25.00, 32.00, 40.00, 0.25, 0.30, 0.40, 5.00, 12, 10, 10.00, 10, 0.90, 2.00 i 10 w dzieleniu przez punkty. Cztery &quot;dziesiątki&quot; oznaczają cztery różne decyzje biznesowe.</p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">if</span> (t.Row &gt;= <span class="hljs-number">10</span>)                                       <span class="hljs-comment">// od którego rzędu VIP</span>
+{
+    p = p + <span class="hljs-number">10.00m</span>;                                    <span class="hljs-comment">// dopłata VIP</span>
+}
+...
+<span class="hljs-keyword">if</span> (o.Tickets.Count &gt;= <span class="hljs-number">10</span>)                             <span class="hljs-comment">// próg grupy</span>
+{
+    tickets = tickets * <span class="hljs-number">0.90m</span>;
+}
+<span class="hljs-built_in">int</span> points = (<span class="hljs-built_in">int</span>)<span class="hljs-built_in">decimal</span>.Truncate(tickets / <span class="hljs-number">10</span>);      <span class="hljs-comment">// zł za punkt</span>
+</code></pre>
+<h3 id="krok-1-extract-constant-dla-kwot-z-cennika" tabindex="-1"><a class="header-anchor" href="#krok-1-extract-constant-dla-kwot-z-cennika"><span>Krok 1: Extract Constant dla kwot z cennika</span></a></h3>
+<p><strong>W IDE:</strong> zaznacz <code>25.00m</code>, Refactor This (⌃T) &gt; Introduce Field i zaznacz, że ma to być stała (<code>const</code>), nazwa <code>BasePrice2D</code>. Rider zapyta o zastąpienie wszystkich wystąpień, więc się zgódź, bo to ta sama wiedza. Tak samo <code>BasePrice3D</code>, <code>BasePriceImax</code>, <code>MorningReduction</code>, <code>VipSurcharge</code>, <code>OnlineFeePerTicket</code>, <code>NoFee</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">const</span> <span class="hljs-built_in">decimal</span> BasePrice2D = <span class="hljs-number">25.00m</span>;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">const</span> <span class="hljs-built_in">decimal</span> MorningReduction = <span class="hljs-number">5.00m</span>;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">const</span> <span class="hljs-built_in">decimal</span> VipSurcharge = <span class="hljs-number">10.00m</span>;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">const</span> <span class="hljs-built_in">decimal</span> OnlineFeePerTicket = <span class="hljs-number">2.00m</span>;
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s03</code> - 17 testów zielonych.
+<strong>Co powiedzieć:</strong> <code>decimal</code> jest typem wartościowym i może być <code>const</code>, więc to prawdziwa stała czasu kompilacji. Stała jest prywatna, bo ma jednego właściciela.
+<strong>Snapshot:</strong> <code>Step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m4/<wbr>s03 0 1</code></p>
+<h3 id="krok-2-replace-magic-numbers-progi-regul" tabindex="-1"><a class="header-anchor" href="#krok-2-replace-magic-numbers-progi-regul"><span>Krok 2: Replace Magic Numbers - progi reguł</span></a></h3>
+<p><strong>W IDE:</strong> zaznacz <code>10</code> w <code>t.Row &gt;= 10</code>, Introduce Field jako <code>const</code>, <code>VipFromRow</code>. <strong>Odmów</strong> zastąpienia wszystkich wystąpień, bo pozostałe dziesiątki to inna wiedza. Osobno: <code>GroupMinTickets</code>, <code>GroupPriceFactor</code>, <code>AmountPerLoyaltyPoint</code> (z <code>10</code> w <code>tickets /<wbr> 10</code>), <code>MorningEndsAtHour</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">const</span> <span class="hljs-built_in">int</span> MorningEndsAtHour = <span class="hljs-number">12</span>;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">const</span> <span class="hljs-built_in">int</span> VipFromRow = <span class="hljs-number">10</span>;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">const</span> <span class="hljs-built_in">int</span> GroupMinTickets = <span class="hljs-number">10</span>;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">const</span> <span class="hljs-built_in">decimal</span> GroupPriceFactor = <span class="hljs-number">0.90m</span>;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">const</span> <span class="hljs-built_in">decimal</span> AmountPerLoyaltyPoint = <span class="hljs-number">10m</span>;
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> jeśli dyrekcja zmieni próg grupy na 8, rząd VIP nie może się przesunąć razem z nim. Nazwa opisuje rolę (<code>GroupMinTickets</code>), a nie wartość (<code>Ten</code>). Extract Constant to mechanika, a Replace Magic Number to powód.
+<strong>Snapshot:</strong> <code>Step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m4/<wbr>s03 1 2</code></p>
+<h3 id="krok-3-extract-constant-dla-stawek-znizek" tabindex="-1"><a class="header-anchor" href="#krok-3-extract-constant-dla-stawek-znizek"><span>Krok 3: Extract Constant dla stawek zniżek</span></a></h3>
+<p><strong>W IDE:</strong> zaznacz <code>0.25m</code>, Introduce Field jako <code>const</code>, <code>StudentDiscount</code>. Tak samo <code>SeniorDiscount</code> i <code>ChildDiscount</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">if</span> (t.Type == <span class="hljs-string">&quot;S&quot;</span>)
+{
+    p = p * (<span class="hljs-number">1</span> - StudentDiscount);
+}
+<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (t.Type == <span class="hljs-string">&quot;E&quot;</span>)
+{
+    p = p * (<span class="hljs-number">1</span> - SeniorDiscount);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> w metodzie nie ma już żadnej liczby bez nazwy. Następny ruch (już nie w tej scenie) to przeniesienie cennika do własnej klasy, bo stałe pokazują, że to osobna odpowiedzialność.
+<strong>Snapshot:</strong> <code>Step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m4/<wbr>s03 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-3" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-3"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>Step3/<wbr>OrderPricer</code>: piętnaście prywatnych stałych, każda z nazwą roli. Trzy progi o wartości 10 mają trzy różne nazwy, bo zmieniają się z różnych powodów. Test obejmuje 9 i 10 biletów, 12:00 i rano, kasę i online.</p>
+<h3 id="pulapki-3" tabindex="-1"><a class="header-anchor" href="#pulapki-3"><span>Pułapki</span></a></h3>
+<ul>
+<li><code>readonly</code> blokuje tylko przypisanie. <code>readonly List&lt;string&gt;</code> z <code>[&quot;S&quot;, &quot;E&quot;, &quot;C&quot;]</code> każdy może zmodyfikować. Test <code>ReadonlyDoesNotMakeACollectionConstant</code> pokazuje to na liście typów zniżkowych, a <code>Array.AsReadOnly(...)</code> rzuca <code>NotSupportedException</code>.</li>
+<li><code>public const</code> to stała czasu kompilacji. Kompilator wkleja wartość do assembly klienta, więc po zmianie <code>VipFromRow</code> klient bez rekompilacji widzi starą wartość. <code>public static readonly</code> nie jest wklejany - dlatego stałe widoczne poza assembly, które mogą się zmienić, lepiej robić jako <code>static readonly</code>.</li>
+<li>Stała dla czegoś, co jest konfiguracją (ceny zmieniane bez wdrożenia). Wtedy miejsce jest w konfiguracji (<code>IOptions&lt;T&gt;</code>) albo w bazie, a nie w kodzie.</li>
+<li>Jedna stała <code>Ten</code> dla czterech reguł.</li>
+</ul>
+<h3 id="pytanie-do-sali-3" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-3"><span>Pytanie do sali</span></a></h3>
+<p>Które z tych stałych w prawdziwym kinie powinny być konfiguracją, a nie kodem? Po czym to poznać?</p>
+<h2 id="scena-s04-extract-method-przeplyw-danych-i-wiele-wyjsc" tabindex="-1"><a class="header-anchor" href="#scena-s04-extract-method-przeplyw-danych-i-wiele-wyjsc"><span>Scena s04. Extract Method - przepływ danych i wiele wyjść</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> Extract Method - cel i sygnały; Extract Method - analiza przepływu danych; Extract Method - mechanika i trudne przypadki
+<strong>Namespace:</strong> <code>Training.Workshop.M4.S04ExtractMethod</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s04</code>
+<strong>Czas:</strong> ~15 min</p>
+<h3 id="w-skrocie-4" tabindex="-1"><a class="header-anchor" href="#w-skrocie-4"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> <code>TicketSummary.Describe</code> liczy cenę, sumę i liczbę miejsc VIP, a potem składa dokument, i to wszystko w jednej metodzie z komentarzami zamiast nazw. Wydzielamy bloki do metod, a pętlę z dwoma wyjściami najpierw rozdzielamy przez Split Loop.</p>
+<p><strong>Zasada:</strong> Extract Method przenosi spójny fragment do metody, gdy nazwa wyrazi intencję lepiej niż szczegóły, a sama długość nie jest powodem. Kluczowa jest analiza przepływu danych: co wchodzi jako parametr, co wychodzi jako wynik. Gdy fragment ma kilka wyjść, dzielimy go albo tworzymy obiekt wyniku, a nie zwracamy tablicy, parametrów <code>out</code> czy mutowalnego holdera.</p>
+<p><strong>Efekt:</strong> Metoda publiczna czyta się jak spis treści, a obliczenia są oddzielone od renderowania, bez zmiany sygnatury ani formatu. Kosztem są dwa przejścia po liście rzędów, pomijalne wobec czytelności.</p>
+<p><strong>Różnica względem Javy:</strong> <code>base</code> to w C# słowo kluczowe, więc zmienna ceny bazowej nazywa się <code>@base</code>. Suma startuje od <code>0.00m</code> (a nie od <code>0m</code>), żeby puste zamówienie drukowało <code>0.00</code> tak jak <code>BigDecimal.setScale(2)</code> w Javie - <code>decimal</code> pamięta skalę literału. Inaczej niż IntelliJ, Rider nie odmawia ekstrakcji fragmentu z dwoma wyjściami: proponuje parametr <code>out</code> (albo krotkę), co omawiamy w kroku 2.</p>
+<h3 id="co-widzimy-4" tabindex="-1"><a class="header-anchor" href="#co-widzimy-4"><span>Co widzimy</span></a></h3>
+<p><code>TicketSummary.Describe</code> liczy cenę bazową, sumę i liczbę miejsc VIP, a na końcu składa dokument. Komentarze <code>/<wbr>/<wbr> cena bazowa formatu</code>, <code>/<wbr>/<wbr> suma i liczba miejsc VIP</code>, <code>/<wbr>/<wbr> dokument</code> to naturalne granice metod. Pętla ma jednak <strong>dwa wyjścia</strong>: <code>subtotal</code> i <code>vipSeats</code>.</p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-built_in">decimal</span> subtotal = <span class="hljs-number">0.00m</span>;
+<span class="hljs-built_in">int</span> vipSeats = <span class="hljs-number">0</span>;
+<span class="hljs-keyword">foreach</span> (<span class="hljs-keyword">var</span> row <span class="hljs-keyword">in</span> order.Rows)
+{
+    <span class="hljs-built_in">decimal</span> price = @base;
+    <span class="hljs-keyword">if</span> (row &gt;= <span class="hljs-number">10</span>)
+    {
+        price = price + <span class="hljs-number">10.00m</span>;
+        vipSeats++;
+    }
+    subtotal = subtotal + price;
+}
+subtotal = Math.Round(subtotal, <span class="hljs-number">2</span>, MidpointRounding.AwayFromZero);
+</code></pre>
+<h3 id="krok-1-extract-method-dla-bloku-z-jednym-wyjsciem" tabindex="-1"><a class="header-anchor" href="#krok-1-extract-method-dla-bloku-z-jednym-wyjsciem"><span>Krok 1: Extract Method dla bloku z jednym wyjściem</span></a></h3>
+<p><strong>W IDE:</strong> zaznacz blok pod <code>/<wbr>/<wbr> cena bazowa formatu</code> (od <code>decimal @base;</code> do końca <code>if</code> z porankiem), ⌥⌘M, nazwa <code>BasePrice</code>. Rider sam wykryje jedno wejście (<code>order</code>) i jedno wyjście (<code>@base</code>), które zostanie wartością zwracaną. Usuń zbędny komentarz.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-built_in">decimal</span> @base = BasePrice(order);
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s04</code> - 16 testów zielonych.
+<strong>Co powiedzieć:</strong> blok z jednym wyjściem to najprostszy przypadek, IDE robi to bezpiecznie. Komentarz stał się nazwą metody.
+<strong>Snapshot:</strong> <code>Step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m4/<wbr>s04 0 1</code></p>
+<h3 id="krok-2-split-loop-potem-dwa-razy-extract-method" tabindex="-1"><a class="header-anchor" href="#krok-2-split-loop-potem-dwa-razy-extract-method"><span>Krok 2: Split Loop, potem dwa razy Extract Method</span></a></h3>
+<p><strong>W IDE:</strong> spróbuj ⌥⌘M na pętli (razem z <code>Math.Round</code>). Rider pokaże, że fragment ma dwie wartości wyjściowe, i zaproponuje jedną jako wynik, a drugą jako parametr <code>out</code> (albo krotkę). To jest moment dydaktyczny: zamknij dialog. Ręcznie skopiuj pętlę (Split Loop) i z pierwszej kopii usuń <code>vipSeats</code>, a z drugiej <code>subtotal</code> i <code>price</code>. Uruchom test. Następnie na każdej pętli ⌥⌘M, nazwy <code>Subtotal</code> i <code>VipSeats</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-built_in">decimal</span> @base = BasePrice(order);
+<span class="hljs-built_in">decimal</span> subtotal = Subtotal(order, @base);
+<span class="hljs-built_in">int</span> vipSeats = VipSeats(order);
+</code></pre>
+<p><strong>Uruchom:</strong> test po Split Loop i po każdej ekstrakcji.
+<strong>Co powiedzieć:</strong> zamiast zwracać parę (record z dwoma polami, krotkę albo <code>out</code>) rozdzielamy odpowiedzialności. Dwa przejścia po liście to koszt pomijalny wobec czytelności. Jeśli wydajność miałaby znaczenie, mierzymy (np. BenchmarkDotNet), a nie zgadujemy.
+<strong>Snapshot:</strong> <code>Step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m4/<wbr>s04 1 2</code></p>
+<h3 id="krok-3-extract-method-dla-renderowania" tabindex="-1"><a class="header-anchor" href="#krok-3-extract-method-dla-renderowania"><span>Krok 3: Extract Method dla renderowania</span></a></h3>
+<p><strong>W IDE:</strong> zaznacz blok <code>/<wbr>/<wbr> dokument</code> i wykonaj ⌥⌘M, nazwa <code>Render</code>. Parametry: <code>order</code>, <code>subtotal</code>, <code>vipSeats</code>. Potem Inline Variable (⌥⌘N) dla <code>@base</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Describe</span>(<span class="hljs-params">Order order</span>)</span>
+{
+    <span class="hljs-built_in">decimal</span> subtotal = Subtotal(order, BasePrice(order));
+    <span class="hljs-built_in">int</span> vipSeats = VipSeats(order);
+    <span class="hljs-keyword">return</span> Render(order, subtotal, vipSeats);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> metoda publiczna czyta się jak spis treści. Obliczenia są oddzielone od prezentacji, więc przygotowaliśmy grunt pod Extract Class (scena s09).
+<strong>Snapshot:</strong> <code>Step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m4/<wbr>s04 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-4" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-4"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>Step3/<wbr>TicketSummary</code>: cztery prywatne metody, każda z jednym wyjściem. Nie zmieniliśmy sygnatury publicznej ani formatu dokumentu, co potwierdza test równoważności na czterech przypadkach (w tym zamówienie puste i same miejsca VIP).</p>
+<h3 id="pulapki-4" tabindex="-1"><a class="header-anchor" href="#pulapki-4"><span>Pułapki</span></a></h3>
+<ul>
+<li>Ekstrakcja bloku, który modyfikuje zmienną lokalną używaną dalej, bez zwrócenia jej wartości. IDE tego pilnuje, ręczne kopiowanie nie.</li>
+<li>Zwracanie tablicy <code>object[]</code>, mutowalnego &quot;holdera&quot; albo dorzucanie parametrów <code>out</code>/<code>ref</code> tylko po to, żeby wyciągnąć dwa wyniki. Rider zaproponuje <code>out</code> sam z siebie - to nie znaczy, że to dobry projekt.</li>
+<li>Nazwa metody opisująca &quot;jak&quot; (<code>LoopRows</code>) zamiast &quot;co&quot; (<code>VipSeats</code>).</li>
+</ul>
+<h3 id="pytanie-do-sali-4" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-4"><span>Pytanie do sali</span></a></h3>
+<p>Kiedy zamiast Split Loop lepiej zwrócić record (albo nazwaną krotkę) z dwoma polami?</p>
+<h2 id="scena-s05-inline-variable-liczba-i-moment-ewaluacji" tabindex="-1"><a class="header-anchor" href="#scena-s05-inline-variable-liczba-i-moment-ewaluacji"><span>Scena s05. Inline Variable - liczba i moment ewaluacji</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> Inline Variable i typ docelowy; Extract Variable i moment ewaluacji
+<strong>Namespace:</strong> <code>Training.Workshop.M4.S05InlineVariable</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s05</code>
+<strong>Czas:</strong> ~12 min</p>
+<h3 id="w-skrocie-5" tabindex="-1"><a class="header-anchor" href="#w-skrocie-5"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> <code>TicketIssuer.Issue</code> ma sześć zmiennych lokalnych, które wyglądają na zbędne, ale trzy z nich chronią pojedynczy efekt uboczny, pojedynczy odczyt zegara i wybór przeciążenia. Wklejamy tylko bezpieczne zmienne, a przy <code>price</code> najpierw usuwamy niejednoznaczność nazwą przeciążenia.</p>
+<p><strong>Zasada:</strong> Inline Variable usuwa zmienną, której nazwa nic nie wnosi, ale zmienia liczbę i moment ewaluacji inicjalizatora. Wyrażenie z efektem ubocznym albo odczytem czasu po wklejeniu wykona się tyle razy, ile jest użyć. Jawny typ zmiennej jest też typem docelowym, który wybiera przeciążenie - to nie jest ozdoba.</p>
+<p><strong>Efekt:</strong> Znikają <code>label</code>, <code>holdUntil</code> i <code>price</code>, a <code>number</code>, <code>issuedAt</code> i <code>code</code> zostają celowo i warto je opisać. Wynik jest identyczny, co potwierdza test z tykającym zegarem.</p>
+<p><strong>Różnica względem Javy:</strong> zegar to <code>TimeProvider</code>, odczyt to <code>_clock.GetUtcNow()</code> (zamiast <code>clock.instant()</code>), a chwila to <code>DateTimeOffset</code>. Tykający zegar w teście to ręczna podklasa <code>TimeProvider</code> z nadpisanym <code>GetUtcNow()</code> (<code>TickingClock</code>). Można by użyć <code>FakeTimeProvider.AutoAdvanceAmount</code>, ale jawny fake lepiej pokazuje, o co chodzi. Pułapka przeciążeń <code>Money(double)</code> / <code>Money(int)</code> działa w C# identycznie jak w Javie: argument <code>int</code> wybiera przeciążenie <code>int</code>.</p>
+<h3 id="co-widzimy-5" tabindex="-1"><a class="header-anchor" href="#co-widzimy-5"><span>Co widzimy</span></a></h3>
+<p><code>TicketIssuer.Issue</code> ma sześć zmiennych lokalnych. Wyglądają na zbędne, ale trzy z nich trzymają wynik, którego <strong>nie wolno</strong> obliczyć ponownie:</p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-built_in">int</span> number = NextNumber();                      <span class="hljs-comment">// efekt uboczny: każde wywołanie zużywa numer</span>
+DateTimeOffset issuedAt = _clock.GetUtcNow();   <span class="hljs-comment">// odczyt czasu: każde wywołanie to inna chwila</span>
+<span class="hljs-built_in">string</span> code = screeningCode + <span class="hljs-string">&quot;-&quot;</span> + number;
+<span class="hljs-built_in">double</span> price = BasePrice(format);               <span class="hljs-comment">// int -&gt; double: typ zmiennej wybiera przeciążenie Money</span>
+<span class="hljs-built_in">string</span> label = <span class="hljs-string">&quot;Bilet &quot;</span> + code + <span class="hljs-string">&quot;, cena &quot;</span> + Money(price)
+    + <span class="hljs-string">&quot;, oplata &quot;</span> + Money(OnlineFeeGrosze);
+DateTimeOffset holdUntil = issuedAt + Hold;
+<span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Ticket(code, label, issuedAt, holdUntil);
+</code></pre>
+<p><code>Money(double zloty)</code> i <code>Money(int grosze)</code> to dwa przeciążenia o tej samej nazwie i różnych jednostkach.</p>
+<p><strong>Pokaz pułapki (przed krokiem 1):</strong> ⌥⌘N na <code>number</code>, na <code>issuedAt</code> i na <code>price</code>. Kod się kompiluje, IDE nie protestuje, bo nie wie, że <code>NextNumber()</code> ma efekt uboczny, a <code>GetUtcNow()</code> zależy od czasu. Test równoważności jest czerwony: etykieta ma numer 2, a kod numer 1, rezerwacja trzyma o sekundę za długo (fake zegar tyka przy każdym odczycie), a cena 40 zł to &quot;0.40&quot;. Cofnij (⌘Z). Te same trzy objawy dokumentuje stale <code>S05InlineTrapTest</code>.</p>
+<h3 id="krok-1-inline-variable-dla-czystego-wyrazenia-uzytego-raz" tabindex="-1"><a class="header-anchor" href="#krok-1-inline-variable-dla-czystego-wyrazenia-uzytego-raz"><span>Krok 1: Inline Variable dla czystego wyrażenia użytego raz</span></a></h3>
+<p><strong>W IDE:</strong> kursor na <code>label</code>, ⌥⌘N.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Ticket(code,
+    <span class="hljs-string">&quot;Bilet &quot;</span> + code + <span class="hljs-string">&quot;, cena &quot;</span> + Money(price)
+        + <span class="hljs-string">&quot;, oplata &quot;</span> + Money(OnlineFeeGrosze),
+    issuedAt, holdUntil);
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s05</code> - 11 testów zielonych.
+<strong>Co powiedzieć:</strong> wyrażenie jest czyste i użyte raz, a nazwa parametru rekordu (<code>Label</code>) mówi to samo co zmienna. To podręcznikowy bezpieczny inline.
+<strong>Snapshot:</strong> <code>Step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m4/<wbr>s05 0 1</code></p>
+<h3 id="krok-2-inline-variable-ktory-czyta-zmienna-a-nie-zegar" tabindex="-1"><a class="header-anchor" href="#krok-2-inline-variable-ktory-czyta-zmienna-a-nie-zegar"><span>Krok 2: Inline Variable, który czyta zmienną, a nie zegar</span></a></h3>
+<p><strong>W IDE:</strong> kursor na <code>holdUntil</code>, ⌥⌘N.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Ticket(code, ..., issuedAt, issuedAt + Hold);
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> ten inline jest bezpieczny, bo inicjalizator czyta <strong>zmienną</strong> <code>issuedAt</code>, która zamroziła jeden odczyt zegara. Gdybyśmy wcześniej zrobili inline <code>issuedAt</code>, ten sam ruch dałby dwa różne odczyty czasu.
+<strong>Snapshot:</strong> <code>Step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m4/<wbr>s05 1 2</code></p>
+<h3 id="krok-3-najpierw-rename-przeciazenia-potem-inline-price" tabindex="-1"><a class="header-anchor" href="#krok-3-najpierw-rename-przeciazenia-potem-inline-price"><span>Krok 3: najpierw Rename przeciążenia, potem Inline <code>price</code></span></a></h3>
+<p><strong>W IDE:</strong> ⇧F6 na <code>Money(int grosze)</code>, nazwa <code>MoneyFromGrosze</code>. Teraz ⌥⌘N na <code>price</code>: jedyny kandydat to <code>Money(double)</code>, a <code>int</code> z <code>BasePrice(format)</code> zostanie niejawnie poszerzony do <code>double</code> tak jak wcześniej w zmiennej.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-string">&quot;Bilet &quot;</span> + code + <span class="hljs-string">&quot;, cena &quot;</span> + Money(BasePrice(format))
+    + <span class="hljs-string">&quot;, oplata &quot;</span> + MoneyFromGrosze(OnlineFeeGrosze)
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> typ zmiennej lokalnej to typ docelowy, który wybiera przeciążenie. Najpierw usuwamy niejednoznaczność nazwą, a dopiero potem inline. <code>number</code> i <code>issuedAt</code> zostają celowo i warto dopisać im komentarz albo nic nie ruszać.
+<strong>Snapshot:</strong> <code>Step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m4/<wbr>s05 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-5" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-5"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>Step3/<wbr>TicketIssuer</code>: zostały trzy zmienne (<code>number</code>, <code>issuedAt</code>, <code>code</code>), bo każda chroni pojedynczą ewaluację albo nazywa pojęcie. Zniknęły te, które nic nie wnosiły. Test równoważności używa ręcznego <code>TickingClock</code> (każdy odczyt +1 s), więc wykryłby każde podwójne czytanie zegara.</p>
+<h3 id="pulapki-5" tabindex="-1"><a class="header-anchor" href="#pulapki-5"><span>Pułapki</span></a></h3>
+<ul>
+<li>Inline zmiennej z inicjalizatorem, który ma efekt uboczny (<code>NextSequence()</code>, <code>enumerator.MoveNext()</code>, <code>queue.Dequeue()</code>), zmienia <strong>liczbę</strong> wywołań.</li>
+<li>Inline odczytu czasu, losowości albo I/O zmienia <strong>moment</strong> i liczbę odczytów, a test z zatrzymanym <code>FakeTimeProvider</code> tego nie wykryje. Dlatego zegar w teście tyka.</li>
+<li>Inline zmiennej o jawnym typie (<code>double</code>, <code>long</code>, <code>int?</code>) może wybrać inne przeciążenie albo dodać/usunąć konwersję na <code>Nullable</code>. Tak samo <code>var</code> w miejsce jawnego typu: <code>var price = BasePrice(format)</code> to już <code>int</code>.</li>
+<li>Lambda i typ docelowy: od C# 10 <code>var f = () =&gt; 42;</code> się kompiluje (typ naturalny <code>Func&lt;int&gt;</code>), ale ta sama lambda przypisana do <code>Expression&lt;Func&lt;int&gt;&gt;</code> jest drzewem wyrażeń, a nie delegatem. Inline takiej zmiennej do wywołania <code>Where</code> może przełączyć zapytanie z <code>IQueryable</code> (SQL w bazie) na <code>IEnumerable</code> (filtrowanie w pamięci) albo odwrotnie.</li>
+</ul>
+<h3 id="pytanie-do-sali-5" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-5"><span>Pytanie do sali</span></a></h3>
+<p>Jak w teście wykryć, że kod czyta zegar dwa razy, skoro zatrzymany <code>FakeTimeProvider</code> zawsze zwraca tę samą chwilę?</p>
+<h2 id="scena-s06-inline-method-i-nadpisanie-w-podklasie" tabindex="-1"><a class="header-anchor" href="#scena-s06-inline-method-i-nadpisanie-w-podklasie"><span>Scena s06. Inline Method i nadpisanie w podklasie</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> Inline Method i jego ryzyka
+<strong>Namespace:</strong> <code>Training.Workshop.M4.S06InlineMethod</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s06</code>
+<strong>Czas:</strong> ~8 min</p>
+<h3 id="w-skrocie-6" tabindex="-1"><a class="header-anchor" href="#w-skrocie-6"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> <code>TicketPricing</code> ma trzy małe metody: dwa prywatne pośredniki i chroniony hak <code>BookingFee()</code>, nadpisany w wersji internetowej. Wklejamy pośredniki, ale hak zostaje, bo wklejenie jego ciała zabiłoby nadpisanie.</p>
+<p><strong>Zasada:</strong> Inline Method usuwa pośrednictwo, które nie dodaje znaczenia, a najbezpieczniejszy jest prywatny, niepolimorficzny delegat z jednym wywołaniem. Wklejenie ciała metody nadpisywanej usuwa dynamiczną dyspozycję, a przy <code>lock</code> albo proxy znika blokada lub transakcja. Liczba linii nie przesądza - metoda z nazwą z domeny zostaje.</p>
+<p><strong>Efekt:</strong> <code>Total</code> wprost pokazuje &quot;cena + opłata&quot;, a kasa i internet liczą tak jak wcześniej. Hak <code>BookingFee()</code> zostaje, bo zachowanie podklasy jest częścią kontraktu klasy bazowej.</p>
+<p><strong>Różnica względem Javy:</strong> w C# metody domyślnie nie są wirtualne. Żeby podklasa mogła nadpisać hak, klasa bazowa deklaruje go jawnie jako <code>protected virtual decimal BookingFee()</code>, a <code>OnlineTicketPricing</code> jako <code>protected override</code>. Ryzyko z tej sceny dotyczy więc w C# metod <code>virtual</code>/<code>abstract</code>/<code>override</code> i implementacji interfejsów - zwykłą metodę niewirtualną można wkleić bez obaw o dyspozycję.</p>
+<h3 id="co-widzimy-6" tabindex="-1"><a class="header-anchor" href="#co-widzimy-6"><span>Co widzimy</span></a></h3>
+<p><code>TicketPricing</code> ma trzy małe metody, które &quot;wyglądają na trywialne&quot;: dwa prywatne pośredniki (<code>Base</code>, <code>AddFee</code>) i chroniony hak <code>BookingFee()</code>, nadpisany w <code>OnlineTicketPricing</code> (+2.00).</p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">decimal</span> <span class="hljs-title">Total</span>(<span class="hljs-params">Ticket ticket</span>)</span>
+{
+    <span class="hljs-keyword">return</span> AddFee(Price(ticket));
+}
+
+<span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span>Kasa nie pobiera opłaty rezerwacyjnej. Nadpisywane w OnlineTicketPricing.<span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">virtual</span> <span class="hljs-built_in">decimal</span> <span class="hljs-title">BookingFee</span>()      <span class="hljs-comment">// kasa: 0.00, OnlineTicketPricing: 2.00</span></span>
+{
+    <span class="hljs-keyword">return</span> <span class="hljs-number">0.00m</span>;
+}
+
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-built_in">decimal</span> <span class="hljs-title">Base</span>(<span class="hljs-params">Ticket ticket</span>)</span>
+{
+    <span class="hljs-keyword">return</span> BasePrice(ticket.Format);
+}
+</code></pre>
+<h3 id="krok-1-inline-method-trywialnego-delegata" tabindex="-1"><a class="header-anchor" href="#krok-1-inline-method-trywialnego-delegata"><span>Krok 1: Inline Method trywialnego delegata</span></a></h3>
+<p><strong>W IDE:</strong> kursor na <code>Base</code>, ⌥⌘N, wklej wszystkie wywołania i usuń metodę.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-built_in">decimal</span> price = BasePrice(ticket.Format);
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s06</code> - 19 testów zielonych (kasa i internet).
+<strong>Co powiedzieć:</strong> prywatny, niepolimorficzny delegat z jednym wywołaniem to najbezpieczniejszy możliwy inline. Nazwa <code>Base</code> nic nie dodawała do <code>BasePrice</code>.
+<strong>Snapshot:</strong> <code>Step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m4/<wbr>s06 0 1</code></p>
+<h3 id="krok-2-inline-method-wywolujacego-hak-a-nie-samego-haka" tabindex="-1"><a class="header-anchor" href="#krok-2-inline-method-wywolujacego-hak-a-nie-samego-haka"><span>Krok 2: Inline Method wywołującego hak, a nie samego haka</span></a></h3>
+<p><strong>W IDE:</strong> najpierw pokaż pułapkę: kursor na <code>BookingFee()</code> w klasie bazowej, ⌥⌘N. Rider ostrzeże, że metoda jest wirtualna i nadpisywana (albo nie zaproponuje inline). Ręczne wklejenie ciała dałoby <code>Price(ticket) + 0.00m</code> i internet sprzedawałby bez opłaty. Test <code>S06InlineOverriddenMethodTrapTest</code> pokazuje dokładnie ten wynik: <code>40.00</code> zamiast <code>42.00</code>. Zamknij dialog. Teraz poprawnie: kursor na <code>AddFee</code>, ⌥⌘N.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">decimal</span> <span class="hljs-title">Total</span>(<span class="hljs-params">Ticket ticket</span>)</span>
+{
+    <span class="hljs-keyword">return</span> Price(ticket) + BookingFee();
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony, <code>OnlineTotalsStayTheSame</code> nadal daje 42.00.
+<strong>Co powiedzieć:</strong> wklejamy <strong>wywołanie</strong> metody polimorficznej, więc dynamiczna dyspozycja zostaje. Wklejenie <strong>ciała</strong> metody nadpisywanej zabija nadpisanie po cichu, a podklasa kompiluje się dalej, z poprawnym <code>override</code>.
+<strong>Snapshot:</strong> <code>Step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m4/<wbr>s06 1 2</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-6" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-6"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>Step2/<wbr>TicketPricing</code>: bez pośredników, <code>Total</code> wprost pokazuje &quot;cena + opłata&quot;, a <code>BookingFee()</code> zostaje hakiem dla podklasy. Test równoważności uruchamia <strong>obie</strong> klasy, bo zachowanie podklasy jest częścią kontraktu klasy bazowej.</p>
+<h3 id="pulapki-6" tabindex="-1"><a class="header-anchor" href="#pulapki-6"><span>Pułapki</span></a></h3>
+<ul>
+<li>Inline metody wirtualnej (albo <code>abstract</code>, <code>override</code>) lub implementującej interfejs usuwa dynamiczną dyspozycję.</li>
+<li>Inline metody z ciałem w <code>lock (...)</code> albo oznaczonej <code>[MethodImpl(MethodImplOptions.Synchronized)]</code> usuwa blokadę. Inline metody wywoływanej przez proxy albo dekorator (interceptory Castle/DynamicProxy, filtry ASP.NET Core, atrybuty w rodzaju <code>[Authorize]</code> czy <code>[Transaction]</code> w bibliotekach AOP) usuwa transakcję albo autoryzację.</li>
+<li>Parametr użyty w ciele dwa razy, a w wywołaniu argument z efektem ubocznym: po inline efekt wykona się dwa razy (Rider zwykle wprowadza wtedy zmienną, a ręczne wklejanie tego nie zrobi).</li>
+<li>Liczba linii nie przesądza. Metoda o nazwie z domeny (<code>QualifiesForGroupDiscount</code>) zostaje, nawet jeśli ma jedną linię.</li>
+</ul>
+<h3 id="pytanie-do-sali-6" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-6"><span>Pytanie do sali</span></a></h3>
+<p>Jak test klasy bazowej ma &quot;wiedzieć&quot; o podklasach, które jeszcze nie istnieją albo są w innym projekcie?</p>
+<h2 id="scena-s07-move-method-feature-envy-i-pulapka-przeciazenia" tabindex="-1"><a class="header-anchor" href="#scena-s07-move-method-feature-envy-i-pulapka-przeciazenia"><span>Scena s07. Move Method - Feature Envy i pułapka przeciążenia</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> Move Method i Move Field - wybór właściciela; Move Method krok po kroku i ryzyka
+<strong>Namespace:</strong> <code>Training.Workshop.M4.S07MoveMethod</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s07</code>
+<strong>Czas:</strong> ~10 min</p>
+<h3 id="w-skrocie-7" tabindex="-1"><a class="header-anchor" href="#w-skrocie-7"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> <code>BookingPrinter</code> ma dwie metody, które używają wyłącznie danych <code>Screening</code>. Przenosimy je do seansu i zmieniamy im nazwy, ale typ parametru <code>int?</code> zostaje bez zmian.</p>
+<p><strong>Zasada:</strong> Move Method przenosi zachowanie do klasy, która ma jego dane i odpowiedzialność. Feature Envy to sygnał do analizy, a nie nakaz, bo metoda koordynująca kilka obiektów może zostać na miejscu. Przeniesienie zmienia kontekst typów, więc zmiana typu parametru przy okazji (<code>int?</code> na <code>int</code>) może po cichu wybrać inne przeciążenie, tu <code>Remove(int index)</code> zamiast <code>Remove(int? seat)</code>.</p>
+<p><strong>Efekt:</strong> <code>Screening</code> ma <code>Headline</code> i <code>FreeSeatsWithout</code>, a <code>BookingPrinter</code> tylko składa wydruk, który jest identyczny. Parametr <code>int?</code> wygląda na niekonsekwencję, więc jego powód zapisujemy w komentarzu dokumentacyjnym.</p>
+<p><strong>Różnica względem Javy:</strong> <code>List&lt;int&gt;</code> w C# nie ma pary przeciążeń <code>remove(int index)</code> / <code>remove(Object)</code> - jest <code>Remove(T item)</code> i osobne <code>RemoveAt(int index)</code>, więc javowa pułapka wprost nie istnieje. Scena używa stabilnego typu <code>SeatList</code> (&quot;lista miejsc ze starego API, port biblioteki z Javy&quot;) z dwoma przeciążeniami: <code>Remove(int index)</code> i <code>Remove(int? seat)</code>. Numer miejsca przychodzi jako <code>int?</code> (odpowiednik <code>Integer</code>). &quot;Posprzątanie&quot; parametru na <code>int</code> po przeniesieniu sprawia, że kompilator wybiera lepiej dopasowane <code>Remove(int index)</code> - usuwa zły element albo rzuca <code>ArgumentOutOfRangeException</code> (w Javie <code>IndexOutOfBoundsException</code>). Takie API w prawdziwych bibliotekach też się zdarza, a kompilator C# nie ostrzega.</p>
+<h3 id="co-widzimy-7" tabindex="-1"><a class="header-anchor" href="#co-widzimy-7"><span>Co widzimy</span></a></h3>
+<p><code>BookingPrinter</code> ma dwie metody, które używają <strong>wyłącznie</strong> danych <code>Screening</code>. <code>Print</code> koordynuje <code>Booking</code> i <code>Screening</code>, więc zostaje.</p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-built_in">string</span> <span class="hljs-title">ScreeningLine</span>(<span class="hljs-params">Screening s</span>)</span>
+{
+    <span class="hljs-built_in">string</span> format = s.Format <span class="hljs-keyword">switch</span> { ... };
+    <span class="hljs-keyword">return</span> s.Title + <span class="hljs-string">&quot; (&quot;</span> + format + <span class="hljs-string">&quot;), sala &quot;</span> + s.Hall + <span class="hljs-string">&quot;, &quot;</span>
+        + s.Start.ToString(<span class="hljs-string">&quot;yyyy-MM-dd HH:mm&quot;</span>, CultureInfo.InvariantCulture);
+}
+
+<span class="hljs-function"><span class="hljs-keyword">private</span> SeatList <span class="hljs-title">RemainingSeats</span>(<span class="hljs-params">Screening s, <span class="hljs-built_in">int</span>? seat</span>)</span>
+{
+    <span class="hljs-keyword">var</span> free = <span class="hljs-keyword">new</span> SeatList(s.FreeSeats);
+    free.Remove(seat);          <span class="hljs-comment">// int? -&gt; Remove(int? seat): usuń MIEJSCE o tym numerze</span>
+    <span class="hljs-keyword">return</span> free;
+}
+</code></pre>
+<h3 id="krok-1-move-method-opis-seansu" tabindex="-1"><a class="header-anchor" href="#krok-1-move-method-opis-seansu"><span>Krok 1: Move Method - opis seansu</span></a></h3>
+<p><strong>W IDE:</strong> kursor na <code>ScreeningLine</code>, F6 (Move Instance Method), wybierz cel: parametr <code>s</code> (typ <code>Screening</code>). Rider przeniesie metodę do rekordu i zamieni <code>s.Title</code> na <code>Title</code>. Potem ⇧F6 na przeniesionej metodzie: <code>Headline</code>, i zmień widoczność na <code>public</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-comment">// Screening</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Headline</span>()</span>
+{
+    <span class="hljs-built_in">string</span> formatName = Format <span class="hljs-keyword">switch</span> { ... };
+    <span class="hljs-keyword">return</span> Title + <span class="hljs-string">&quot; (&quot;</span> + formatName + <span class="hljs-string">&quot;), sala &quot;</span> + Hall + <span class="hljs-string">&quot;, &quot;</span> + ...;
+}
+<span class="hljs-comment">// BookingPrinter</span>
++ booking.Screening.Headline() + <span class="hljs-string">&quot;\n&quot;</span>
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s07</code> - 11 testów zielonych.
+<strong>Co powiedzieć:</strong> metoda poszła tam, gdzie są jej dane. Wybór właściciela jest decyzją, a nie automatem: <code>Print</code> też sięga do <code>Screening</code>, ale jej zadaniem jest złożenie wydruku z kilku obiektów.
+<strong>Snapshot:</strong> <code>Step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m4/<wbr>s07 0 1</code></p>
+<h3 id="krok-2-move-method-wolne-miejsca-bez-zmiany-typu-parametru" tabindex="-1"><a class="header-anchor" href="#krok-2-move-method-wolne-miejsca-bez-zmiany-typu-parametru"><span>Krok 2: Move Method - wolne miejsca, bez zmiany typu parametru</span></a></h3>
+<p><strong>W IDE:</strong> najpierw pokaż pułapkę: przenieś <code>RemainingSeats</code> (F6, cel <code>s</code>), a potem &quot;posprzątaj&quot; parametr <code>int? seat</code> na <code>int seat</code>, bo w <code>Screening</code> wszystkie numery są typu <code>int</code>. Kompiluje się (wywołanie w <code>BookingPrinter</code> dostaje <code>booking.Seat.Value</code> albo rzutowanie). Test jest czerwony: przy miejscu 1 zostało <code>[1, 3, 4, 5]</code>, a przy miejscu 8 poleciał <code>ArgumentOutOfRangeException</code>, bo teraz wołane jest <code>Remove(int index)</code>. Cofnij. Poprawnie: F6 bez zmiany typu, ⇧F6 na <code>FreeSeatsWithout</code>, a w komentarzu <code>&lt;summary&gt;</code> zapisz, dlaczego parametr to <code>int?</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span></span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span> Wolne miejsca bez wskazanego. Parametr MUSI zostać <span class="hljs-doctag">&lt;c&gt;</span>int?<span class="hljs-doctag">&lt;/c&gt;</span>: z <span class="hljs-doctag">&lt;c&gt;</span>int<span class="hljs-doctag">&lt;/c&gt;</span></span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span> wywołanie <span class="hljs-doctag">&lt;c&gt;</span>Remove<span class="hljs-doctag">&lt;/c&gt;</span> wybrałoby <span class="hljs-doctag">&lt;c&gt;</span>Remove(int index)<span class="hljs-doctag">&lt;/c&gt;</span> zamiast <span class="hljs-doctag">&lt;c&gt;</span>Remove(int? seat)<span class="hljs-doctag">&lt;/c&gt;</span>.</span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> SeatList <span class="hljs-title">FreeSeatsWithout</span>(<span class="hljs-params"><span class="hljs-built_in">int</span>? seat</span>)</span>
+{
+    <span class="hljs-keyword">var</span> free = <span class="hljs-keyword">new</span> SeatList(FreeSeats);
+    free.Remove(seat);
+    <span class="hljs-keyword">return</span> free;
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony. <code>S07OverloadTrapTest</code> dokumentuje oba wyniki pułapki (<code>NullableParameterRemovesTheSeatNumber</code>, <code>IntParameterRemovesTheElementAtIndex</code>).
+<strong>Co powiedzieć:</strong> przeniesienie metody zmienia kontekst typów: inne pola, inne typy, inne przeciążenia w zasięgu. Zwróć uwagę na trzeci przypadek testu: miejsce 2 na pozycji 2 <strong>nie</strong> odróżnia <code>Remove(int index)</code> od <code>Remove(int? seat)</code>. Jeden przypadek testowy to za mało.
+<strong>Snapshot:</strong> <code>Step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m4/<wbr>s07 1 2</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-7" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-7"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>Step2</code>: <code>Screening</code> ma zachowanie o seansie (<code>Headline</code>, <code>FreeSeatsWithout</code>), a <code>BookingPrinter</code> tylko składa wydruk. Wydruk jest identyczny dla trzech rezerwacji, w tym takich, gdzie numer miejsca różni się od indeksu.</p>
+<h3 id="pulapki-7" tabindex="-1"><a class="header-anchor" href="#pulapki-7"><span>Pułapki</span></a></h3>
+<ul>
+<li>Zmiana typu parametru &quot;przy okazji&quot; przenosin (<code>int?</code> -&gt; <code>int</code>, <code>IList&lt;T&gt;</code> -&gt; <code>IEnumerable&lt;T&gt;</code>, <code>long</code> -&gt; <code>int</code>) wybiera inne przeciążenie albo inną metodę rozszerzającą.</li>
+<li>Metoda przenoszona z klasy, która ma podklasy nadpisujące tę metodę (<code>override</code>). Nadpisania zostają w starym miejscu i przestają działać.</li>
+<li><code>lock (this)</code> albo <code>[MethodImpl(MethodImplOptions.Synchronized)]</code> po przeniesieniu blokuje <strong>inny obiekt</strong>.</li>
+<li>Publiczna metoda przeniesiona bez delegatu w starym miejscu psuje zewnętrznych klientów. Delegat może zostać jako fasada (z <code>[Obsolete]</code>).</li>
+</ul>
+<h3 id="pytanie-do-sali-7" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-7"><span>Pytanie do sali</span></a></h3>
+<p><code>Print</code> też używa głównie danych <code>Booking</code> i <code>Screening</code>. Dlaczego nie przenosimy jej do <code>Booking</code>?</p>
+<h2 id="scena-s08-move-field-prog-vip-nalezy-do-sali" tabindex="-1"><a class="header-anchor" href="#scena-s08-move-field-prog-vip-nalezy-do-sali"><span>Scena s08. Move Field - próg VIP należy do sali</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> Move Field krok po kroku i ryzyka; Move Method i Move Field - wybór właściciela
+<strong>Namespace:</strong> <code>Training.Workshop.M4.S08MoveField</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s08</code>
+<strong>Czas:</strong> ~10 min</p>
+<h3 id="w-skrocie-8" tabindex="-1"><a class="header-anchor" href="#w-skrocie-8"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> Próg VIP <code>VipFromRow</code> siedzi w seansie, choć jest cechą sali, więc dwa seanse w tej samej sali mogą się różnić. Przenosimy pole do <code>Hall</code> przez właściwość, a potem zamieniamy odczyty surowego progu na pytanie o regułę.</p>
+<p><strong>Zasada:</strong> Move Field przenosi stan do właściciela, a zaczyna się od Self-Encapsulate Field, żeby mieć jedno miejsce odczytu. Najpierw migrujemy odczyty, potem zapisy, bez okresu z dwiema zapisywalnymi kopiami (dual write). Find Usages nie pokaże użyć przez refleksję, ORM ani serializację.</p>
+<p><strong>Efekt:</strong> Próg VIP ma jednego właściciela i jedną regułę <code>Hall.IsVip</code>, a wycena miejsca się nie zmienia. Kosztem jest zmieniony konstruktor <code>Screening</code>, a w systemie z bazą danych także osobna migracja danych.</p>
+<p><strong>Różnica względem Javy:</strong> pole package-private to w C# <code>internal readonly int VipFromRow</code>. Self-Encapsulate Field w C# zamienia pole na właściwość o tej samej nazwie (<code>public int VipFromRow =&gt; _vipFromRow;</code>), więc w kroku 1 klient <code>SeatPricer</code> nie zmienia się w źródle (w Javie <code>screening.vipFromRow</code> -&gt; <code>screening.vipFromRow()</code>). To zgodność źródłowa, ale nie binarna: skompilowany wcześniej klient z innego assembly szukałby pola i dostałby <code>MissingFieldException</code>. Gettery <code>hall()</code>, <code>format()</code>, <code>name()</code> to właściwości <code>Hall</code>, <code>Format</code>, <code>Name</code>.</p>
+<h3 id="co-widzimy-8" tabindex="-1"><a class="header-anchor" href="#co-widzimy-8"><span>Co widzimy</span></a></h3>
+<p>Od którego rzędu zaczynają się miejsca VIP, to cecha <strong>sali</strong>, a pole <code>VipFromRow</code> siedzi w <strong>seansie</strong>. Każdy seans w tej samej sali niesie własną kopię i nic nie pilnuje zgodności. <code>SeatPricer</code> czyta pole bezpośrednio (<code>internal</code>).</p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">Screening</span>
+{
+    <span class="hljs-keyword">internal</span> <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">int</span> VipFromRow;
+    ...
+}
+<span class="hljs-comment">// SeatPricer</span>
+<span class="hljs-built_in">decimal</span> price = row &gt;= screening.VipFromRow ? @base + VipSurcharge : @base;
+</code></pre>
+<p><code>S08SingleSourceOfTruthTest.StartLetsScreeningsInOneHallDisagree</code> pokazuje, że w <code>Start</code> ten sam fotel w tej samej sali bywa VIP albo nie, zależnie od seansu.</p>
+<h3 id="krok-1-self-encapsulate-field" tabindex="-1"><a class="header-anchor" href="#krok-1-self-encapsulate-field"><span>Krok 1: Self-Encapsulate Field</span></a></h3>
+<p><strong>W IDE:</strong> kursor na <code>VipFromRow</code>, ⇧F6 na <code>_vipFromRow</code>, a potem Refactor This (⌃T) &gt; Encapsulate Field, właściwość tylko do odczytu o nazwie <code>VipFromRow</code>, z zamianą wszystkich użyć (także w <code>IsVip</code> i w <code>SeatPricer</code>) na właściwość. Zmień widoczność pola na <code>private</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">int</span> _vipFromRow;
+
+<span class="hljs-keyword">public</span> <span class="hljs-built_in">int</span> VipFromRow =&gt; _vipFromRow;
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">bool</span> <span class="hljs-title">IsVip</span>(<span class="hljs-params"><span class="hljs-built_in">int</span> row</span>)</span>
+{
+    <span class="hljs-keyword">return</span> row &gt;= VipFromRow;
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s08</code> - 14 testów zielonych.
+<strong>Co powiedzieć:</strong> teraz jest dokładnie jedno miejsce, w którym zmienimy źródło wartości. Bez tego kroku przeniesienie oznaczałoby poprawianie każdego odczytu ręcznie. W C# klienci nawet nie zauważyli zmiany w źródle, bo składnia odczytu pola i właściwości jest ta sama.
+<strong>Snapshot:</strong> <code>Step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m4/<wbr>s08 0 1</code></p>
+<h3 id="krok-2-move-field-do-hall" tabindex="-1"><a class="header-anchor" href="#krok-2-move-field-do-hall"><span>Krok 2: Move Field do Hall</span></a></h3>
+<p><strong>W IDE:</strong> dodaj parametr konstruktora i właściwość w <code>Hall</code> (Change Signature ⌘F6 na konstruktorze <code>Hall</code>, nowy parametr <code>int vipFromRow</code>, potem właściwość <code>public int VipFromRow { get; }</code> przypisana w konstruktorze). W <code>Screening</code> ciało właściwości zamień na <code>Hall.VipFromRow</code>, usuń pole i parametr konstruktora (⌘F6 na konstruktorze <code>Screening</code>, usuń <code>vipFromRow</code>). Miejsca tworzące seanse (tu: adaptery w teście) przekazują próg do sali.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-comment">// Hall</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">Hall</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> name, <span class="hljs-built_in">int</span> vipFromRow</span>)</span> { ... }
+<span class="hljs-keyword">public</span> <span class="hljs-built_in">int</span> VipFromRow { <span class="hljs-keyword">get</span>; }
+<span class="hljs-comment">// Screening</span>
+<span class="hljs-keyword">public</span> <span class="hljs-built_in">int</span> VipFromRow =&gt; Hall.VipFromRow;
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> przenosimy w jednym ruchu, bez okresu, w którym obie klasy mają zapisywalną kopię (dual write). Dwie kopie rozjadą się przy pierwszym wyjątku albo przy pierwszym zapomnianym zapisie.
+<strong>Snapshot:</strong> <code>Step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m4/<wbr>s08 1 2</code></p>
+<h3 id="krok-3-aktualizacja-odczytow-i-usuniecie-akcesora-przejsciowego" tabindex="-1"><a class="header-anchor" href="#krok-3-aktualizacja-odczytow-i-usuniecie-akcesora-przejsciowego"><span>Krok 3: aktualizacja odczytów i usunięcie akcesora przejściowego</span></a></h3>
+<p><strong>W IDE:</strong> w <code>Hall</code> dodaj <code>IsVip(int row)</code>. W <code>Screening.IsVip</code> zamień ciało na <code>Hall.IsVip(row)</code>. W <code>SeatPricer</code> zamień <code>row &gt;= screening.VipFromRow</code> na <code>screening.IsVip(row)</code> i wydziel zmienną <code>vip</code> (⌥⌘V, Rider zastąpi też drugie wywołanie w etykiecie). Na końcu Safe Delete (⌘⌦) na <code>Screening.VipFromRow</code>, a w <code>Hall</code> zamień właściwość z powrotem na prywatne pole <code>_vipFromRow</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-comment">// Hall</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">bool</span> <span class="hljs-title">IsVip</span>(<span class="hljs-params"><span class="hljs-built_in">int</span> row</span>)</span>
+{
+    <span class="hljs-keyword">return</span> row &gt;= _vipFromRow;
+}
+<span class="hljs-comment">// SeatPricer</span>
+<span class="hljs-built_in">bool</span> vip = screening.IsVip(row);
+<span class="hljs-built_in">decimal</span> price = vip ? @base + VipSurcharge : @base;
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony, także <code>AfterMoveFieldTheHallDecidesForEveryScreening</code>.
+<strong>Co powiedzieć:</strong> najpierw migrujemy odczyty, a stary akcesor usuwamy dopiero, gdy nikt go nie używa. Przy okazji klienci przestali porównywać surowy próg i pytają o regułę.
+<strong>Snapshot:</strong> <code>Step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m4/<wbr>s08 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-8" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-8"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>Step3</code>: próg VIP ma jednego właściciela (<code>Hall</code>) i jedną regułę (<code>Hall.IsVip</code>). Wycena miejsca jest identyczna na każdym etapie. Zmienił się sposób tworzenia seansu, bo konstruktor stracił parametr. W systemie z bazą danych to osobna migracja danych.</p>
+<h3 id="pulapki-8" tabindex="-1"><a class="header-anchor" href="#pulapki-8"><span>Pułapki</span></a></h3>
+<ul>
+<li>Pole używane przez refleksję, ORM (kolumna w tabeli seansów w mapowaniu EF Core), serializację albo <code>Equals</code>/<code>GetHashCode</code> (w rekordzie generowane automatycznie ze wszystkich pól). Find Usages tego nie pokaże.</li>
+<li>Utrata modyfikatorów przy przenoszeniu: <code>readonly</code>, <code>volatile</code>, <code>[NonSerialized]</code>, <code>[JsonIgnore]</code>.</li>
+<li>Migracja zapisów przed odczytami albo dwie zapisywalne kopie &quot;na chwilę&quot;.</li>
+<li>Seanse, które naprawdę miały różny próg w tej samej sali (np. inna konfiguracja foteli). Wtedy Move Field jest zmianą zachowania i trzeba najpierw sprawdzić dane.</li>
+</ul>
+<h3 id="pytanie-do-sali-8" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-8"><span>Pytanie do sali</span></a></h3>
+<p>Jak przeprowadzić ten Move Field, gdy <code>VipFromRow</code> jest kolumną w tabeli <code>screening</code> z milionem wierszy?</p>
+<h2 id="scena-s09-extract-class-klient-platnosc-i-klasa-worek" tabindex="-1"><a class="header-anchor" href="#scena-s09-extract-class-klient-platnosc-i-klasa-worek"><span>Scena s09. Extract Class - klient, płatność i klasa-worek</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> Extract Class - cel, mechanika i zły wynik
+<strong>Namespace:</strong> <code>Training.Workshop.M4.S09ExtractClass</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s09</code>
+<strong>Czas:</strong> ~15 min</p>
+<h3 id="w-skrocie-9" tabindex="-1"><a class="header-anchor" href="#w-skrocie-9"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> <code>Booking</code> ma siedem pól i trzy powody zmiany: dane klienta, płatność i samą rezerwację. Wydzielamy <code>Customer</code> i <code>Payment</code>, przy czym pierwszy krok celowo daje zły wynik, który potem naprawiamy przeniesieniem zachowania.</p>
+<p><strong>Zasada:</strong> Extract Class wydziela spójne pola i operacje z odrębnym powodem zmiany, a Move Field i Move Method to tylko mechanika tej decyzji. Zły wynik to klasa-worek: dane przeniesione, a logika dalej w źródle przez właściwości. Nowa klasa nie powinna trzymać referencji zwrotnej do źródła, bo powstaje cykl.</p>
+<p><strong>Efekt:</strong> <code>Booking</code> ma cztery pola i składa rezerwację z dwóch klas z własnym zachowaniem, a jego publiczne API działa jak wcześniej jako fasada. Delegaty <code>Pay</code>, <code>IsPaid</code> i <code>Contact</code> zostają w <code>Booking</code>, dopóki klienci nie zechcą wołać nowych klas wprost.</p>
+<p><strong>Różnica względem Javy:</strong> test struktury (<code>S09StructureTest</code>) porównuje nazwy pól bez prefiksu <code>_</code> (więc oczekiwane listy są jak w Javie: <code>amount</code>, <code>cardNumber</code>, ...) i pomija pola generowane przez kompilator. &quot;Zachowanie&quot; rekordu to publiczne metody poza akcesorami właściwości i metodami, które kompilator generuje dla rekordu (<code>Equals</code>, <code>GetHashCode</code>, <code>ToString</code>, <code>Deconstruct</code>, <code>&lt;Clone&gt;$</code>, operatory). Oczekiwana nazwa metody to <code>ContactLine</code>.</p>
+<h3 id="co-widzimy-9" tabindex="-1"><a class="header-anchor" href="#co-widzimy-9"><span>Co widzimy</span></a></h3>
+<p><code>Booking</code> ma siedem pól i trzy powody zmiany: dane klienta i ich formatowanie (e-mail, telefon), płatność (karta, status, maskowanie) oraz samą rezerwację (id, kwota).</p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">string</span> _customerName;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">string</span> _customerEmail;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">string</span> _customerPhone;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">decimal</span> _amount;
+<span class="hljs-keyword">private</span> <span class="hljs-built_in">string</span>? _cardNumber;
+<span class="hljs-keyword">private</span> <span class="hljs-built_in">string</span> _paymentStatus = <span class="hljs-string">&quot;NEW&quot;</span>;
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Contact</span>()</span>
+{
+    <span class="hljs-keyword">return</span> _customerName + <span class="hljs-string">&quot; &lt;&quot;</span> + _customerEmail.Trim().ToLowerInvariant() + <span class="hljs-string">&quot;&gt;, tel. &quot;</span>
+        + FormattedPhone();
+}
+</code></pre>
+<h3 id="krok-1-extract-class-tylko-dane-zly-wynik-posredni" tabindex="-1"><a class="header-anchor" href="#krok-1-extract-class-tylko-dane-zly-wynik-posredni"><span>Krok 1: Extract Class - tylko dane (zły wynik pośredni)</span></a></h3>
+<p><strong>W IDE:</strong> Refactor This (⌃T) &gt; Extract Class na <code>Booking</code>, zaznacz trzy pola <code>_customer*</code>, nazwa klasy <code>Customer</code>. Zamień wygenerowaną klasę na <code>public sealed record Customer(string Name, string Email, string Phone);</code> (ręcznie albo akcją kontekstową ⌥⏎ na klasie, jeśli Rider zaproponuje konwersję do rekordu). Konstruktor <code>Booking</code> tworzy <code>new Customer(...)</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">record</span> <span class="hljs-title">Customer</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> Name, <span class="hljs-built_in">string</span> Email, <span class="hljs-built_in">string</span> Phone</span>)</span>;
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Contact</span>()</span>
+{
+    <span class="hljs-keyword">return</span> _customer.Name + <span class="hljs-string">&quot; &lt;&quot;</span> + _customer.Email.Trim().ToLowerInvariant() + <span class="hljs-string">&quot;&gt;, tel. &quot;</span>
+        + FormattedPhone();
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s09</code> - 15 testów zielonych, także <code>Step1CustomerIsADataBagWithoutBehaviour</code>.
+<strong>Co powiedzieć:</strong> to jest <strong>zły wynik</strong>, jeśli się tu zatrzymamy. Mamy klasę-worek z właściwościami, a cała wiedza o kliencie nadal siedzi w <code>Booking</code>. Dane się przeniosły, odpowiedzialność nie. Test struktury to pokazuje: <code>Customer</code> nie ma ani jednej metody poza akcesorami i tym, co kompilator generuje dla rekordu.
+<strong>Snapshot:</strong> <code>Step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m4/<wbr>s09 0 1</code></p>
+<h3 id="krok-2-move-method-zachowanie-idzie-za-danymi" tabindex="-1"><a class="header-anchor" href="#krok-2-move-method-zachowanie-idzie-za-danymi"><span>Krok 2: Move Method - zachowanie idzie za danymi</span></a></h3>
+<p><strong>W IDE:</strong> w <code>Booking.Contact()</code> zaznacz treść <code>return</code>, Extract Method (⌥⌘M) z parametrem <code>customer</code>, nazwa <code>ContactLine</code>. Potem F6 (Move Instance Method) na <code>ContactLine</code> i <code>FormattedPhone</code>, cel <code>Customer</code>. <code>Booking.Contact()</code> zostaje jako delegat.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">record</span> <span class="hljs-title">Customer</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> Name, <span class="hljs-built_in">string</span> Email, <span class="hljs-built_in">string</span> Phone</span>)</span>
+{
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">ContactLine</span>()</span>
+    {
+        <span class="hljs-keyword">return</span> Name + <span class="hljs-string">&quot; &lt;&quot;</span> + Email.Trim().ToLowerInvariant() + <span class="hljs-string">&quot;&gt;, tel. &quot;</span> + FormattedPhone();
+    }
+}
+<span class="hljs-comment">// Booking</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Contact</span>()</span>
+{
+    <span class="hljs-keyword">return</span> _customer.ContactLine();
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> teraz <code>Customer</code> ma własną odpowiedzialność. Extract Class to decyzja projektowa, a Move Field i Move Method to mechanika jej realizacji.
+<strong>Snapshot:</strong> <code>Step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m4/<wbr>s09 1 2</code></p>
+<h3 id="krok-3-extract-class-platnosc-od-razu-z-zachowaniem" tabindex="-1"><a class="header-anchor" href="#krok-3-extract-class-platnosc-od-razu-z-zachowaniem"><span>Krok 3: Extract Class - płatność od razu z zachowaniem</span></a></h3>
+<p><strong>W IDE:</strong> utwórz klasę <code>Payment</code>, przenieś do niej pola <code>_cardNumber</code> i <code>_paymentStatus</code> (jako <code>_status</code>) oraz metody <code>Pay</code>, <code>IsPaid</code>, <code>MaskedCard</code> - Extract Class z zaznaczeniem pól <strong>i</strong> metod albo ręcznie. Metoda <code>Payment.PayWith(card, bookingId)</code> dostaje id jako <strong>wartość</strong>, bez referencji do <code>Booking</code>. W <code>Booking</code> zostają delegaty <code>Pay</code> i <code>IsPaid</code>, a <code>Summary</code> woła <code>_payment.Description()</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">Payment</span>
+{
+    <span class="hljs-keyword">private</span> <span class="hljs-built_in">string</span>? _cardNumber;
+    <span class="hljs-keyword">private</span> <span class="hljs-built_in">string</span> _status = <span class="hljs-string">&quot;NEW&quot;</span>;
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">PayWith</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> card, <span class="hljs-built_in">string</span> bookingId</span>)</span> { ... }
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">bool</span> <span class="hljs-title">IsPaid</span>()</span> { ... }
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Description</span>()</span>
+    {
+        <span class="hljs-keyword">return</span> IsPaid() ? <span class="hljs-string">&quot;oplacona karta &quot;</span> + MaskedCard() : <span class="hljs-string">&quot;oczekuje&quot;</span>;
+    }
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony, także druga płatność odrzucona z tym samym komunikatem i <code>Step3BookingComposesCustomerAndPayment</code>.
+<strong>Co powiedzieć:</strong> tym razem od razu przenosimy dane <strong>i</strong> zachowanie. <code>Payment</code> nie zna <code>Booking</code>, więc nie powstał cykl zależności. Publiczne API <code>Booking</code> się nie zmieniło, bo działa jako fasada.
+<strong>Snapshot:</strong> <code>Step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m4/<wbr>s09 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-9" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-9"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>Step3</code>: <code>Booking</code> ma cztery pola (<code>_id</code>, <code>_customer</code>, <code>_amount</code>, <code>_payment</code>) i składa rezerwację z dwóch spójnych części. Każda z nich ma jeden powód zmiany: formaty kontaktu, płatność i PCI. Podsumowanie i komunikaty błędów są identyczne na każdym etapie.</p>
+<h3 id="pulapki-9" tabindex="-1"><a class="header-anchor" href="#pulapki-9"><span>Pułapki</span></a></h3>
+<ul>
+<li><strong>Klasa-worek:</strong> przeniesione dane, logika w źródle przez właściwości (krok 1). Drugi rodzaj worka to jedna klasa <code>BookingDetails</code> na &quot;wszystko, co nie pasuje&quot;, bez spójności.</li>
+<li>Referencja zwrotna (<code>new Payment(this)</code>) tworzy cykl. Lepiej przekazać wartość albo wąski interfejs.</li>
+<li>Dwa źródła prawdy: pole zostawione w <code>Booking</code> &quot;na wszelki wypadek&quot; obok kopii w nowej klasie.</li>
+<li>Zmiana publicznego API przy okazji ekstrakcji (np. <code>booking.Payment.PayWith(...)</code> u klientów). To osobny krok.</li>
+</ul>
+<h3 id="pytanie-do-sali-9" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-9"><span>Pytanie do sali</span></a></h3>
+<p>Po czym na przeglądzie kodu rozpoznać, że wydzielona klasa jest workiem, a nie pojęciem?</p>
+<h2 id="scena-s10-encapsulate-field-status-ktory-kazdy-moze-nadpisac" tabindex="-1"><a class="header-anchor" href="#scena-s10-encapsulate-field-status-ktory-kazdy-moze-nadpisac"><span>Scena s10. Encapsulate Field - status, który każdy może nadpisać</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> Encapsulate Field
+<strong>Namespace:</strong> <code>Training.Workshop.M4.S10EncapsulateField</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s10</code>
+<strong>Czas:</strong> ~10 min</p>
+<h3 id="w-skrocie-10" tabindex="-1"><a class="header-anchor" href="#w-skrocie-10"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> Publiczne pole <code>Reservation.Status</code> pozwala każdemu wpisać dowolny status, także gościa na anulowaną rezerwację. Najpierw ukrywamy pole i zastępujemy setter operacjami domenowymi, a na końcu osobnym krokiem dodajemy pilnowanie przejść.</p>
+<p><strong>Zasada:</strong> Encapsulate Field daje dostęp do stanu tylko przez operacje właściciela, więc można kontrolować zmiany i pilnować niezmiennika. Migracja idzie przez trywialne akcesory, migrację klientów i zwężenie widoczności. Walidacja to już zmiana zachowania, więc dodajemy ją osobno, nie razem z getterem i setterem.</p>
+<p><strong>Efekt:</strong> Po kroku 2 pole jest prywatne, nie ma settera, a zachowanie jest identyczne. Krok 3 świadomie zmienia zachowanie: niedozwolone przejścia rzucają <code>InvalidOperationException</code> zamiast być cicho ignorowane, więc to osobny commit z decyzją biznesu.</p>
+<p><strong>Różnica względem Javy:</strong> Encapsulate Field w C# daje właściwość <code>Status { get; set; }</code> na prywatnym polu <code>_status</code>, więc w kroku 1 <code>BoxOffice</code> nie zmienia się w źródle (w Javie przepisanie na <code>getStatus()</code>/<code>setStatus(...)</code>). Krok 2 to właściwość tylko do odczytu <code>public string Status =&gt; _status;</code> (odpowiednik <code>status()</code>) i operacje domenowe jak w Javie. Test <code>StartFieldIsPublicFromStep1ItIsNot</code> sprawdza refleksją <code>GetField(&quot;Status&quot;)</code>: w <code>Start</code> to pole, od <code>Step1</code> właściwość.</p>
+<h3 id="co-widzimy-10" tabindex="-1"><a class="header-anchor" href="#co-widzimy-10"><span>Co widzimy</span></a></h3>
+<p><code>Reservation.Status</code> to publiczne pole. Reguły przejść (NEW -&gt; PAID -&gt; USED, NEW -&gt; EXPIRED, NEW/PAID -&gt; CANCELLED) pilnuje kasa, a <code>GuestEntry</code> po prostu przypisuje <code>&quot;USED&quot;</code>, także na rezerwację anulowaną.</p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">Reservation</span>
+{
+    <span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> Status = <span class="hljs-string">&quot;NEW&quot;</span>;
+}
+<span class="hljs-comment">// BoxOffice</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">GuestEntry</span>(<span class="hljs-params">Reservation r</span>)</span>
+{
+    r.Status = <span class="hljs-string">&quot;USED&quot;</span>;
+}
+</code></pre>
+<p>Test równoważności zapisuje dziwne zachowanie jako <code>ZASTANE: ...</code>: płatność po wygaśnięciu, druga płatność i wejście bez płatności są cicho ignorowane, a gość wchodzi na anulowaną rezerwację.</p>
+<h3 id="krok-1-encapsulate-field" tabindex="-1"><a class="header-anchor" href="#krok-1-encapsulate-field"><span>Krok 1: Encapsulate Field</span></a></h3>
+<p><strong>W IDE:</strong> kursor na <code>Status</code>, ⇧F6 na <code>_status</code>, potem Refactor This (⌃T) &gt; Encapsulate Field: właściwość <code>Status</code> z getterem i setterem, zamiana wszystkich użyć na właściwość, pole <code>private</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-built_in">string</span> _status = <span class="hljs-string">&quot;NEW&quot;</span>;
+
+<span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> Status
+{
+    <span class="hljs-keyword">get</span> =&gt; _status;
+    <span class="hljs-keyword">set</span> =&gt; _status = <span class="hljs-keyword">value</span>;
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s10</code> - 29 testów zielonych, także <code>StartFieldIsPublicFromStep1ItIsNot</code>.
+<strong>Co powiedzieć:</strong> trywialne akcesory na tym samym polu to czysta refaktoryzacja, bo setter przyjmuje wszystko jak wcześniej. Zysk jest taki, że każdy zapis przechodzi teraz przez jedno miejsce. W C# <code>BoxOffice</code> nawet się nie zmienił, bo <code>r.Status = &quot;PAID&quot;</code> wygląda tak samo dla pola i dla właściwości - dlatego od początku warto wystawiać właściwości, a nie pola.
+<strong>Snapshot:</strong> <code>Step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m4/<wbr>s10 0 1</code></p>
+<h3 id="krok-2-operacje-domenowe-zamiast-settera" tabindex="-1"><a class="header-anchor" href="#krok-2-operacje-domenowe-zamiast-settera"><span>Krok 2: operacje domenowe zamiast settera</span></a></h3>
+<p><strong>W IDE:</strong> w <code>BoxOffice.Pay</code> zaznacz ciało, Extract Method (⌥⌘M), potem F6 (Move Instance Method) do <code>Reservation</code> jako <code>Pay()</code>. Powtórz dla <code>CheckIn</code>, <code>Cancel</code>, <code>Expire</code>, a <code>GuestEntry</code> przenieś jako <code>AdmitGuestWithoutPayment()</code>. Na końcu ręcznie usuń setter (Remove Setting Method) - właściwość zostaje tylko do odczytu: <code>public string Status =&gt; _status;</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> Status =&gt; _status;
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Pay</span>()</span>
+{
+    <span class="hljs-keyword">if</span> (_status == <span class="hljs-string">&quot;NEW&quot;</span>)
+    {
+        _status = <span class="hljs-string">&quot;PAID&quot;</span>;
+    }
+}
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">AdmitGuestWithoutPayment</span>()</span>
+{
+    _status = <span class="hljs-string">&quot;USED&quot;</span>;
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony, bo warunki przepisaliśmy 1:1.
+<strong>Co powiedzieć:</strong> <code>Pay()</code> komunikuje dozwoloną zmianę lepiej niż <code>Status = &quot;PAID&quot;</code>. Obejście z <code>GuestEntry</code> ma teraz uczciwą nazwę i jest widoczne w API, a nie ukryte w przypisaniu.
+<strong>Snapshot:</strong> <code>Step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m4/<wbr>s10 1 2</code></p>
+<h3 id="krok-3-niezmiennik-w-operacjach-swiadoma-zmiana-zachowania" tabindex="-1"><a class="header-anchor" href="#krok-3-niezmiennik-w-operacjach-swiadoma-zmiana-zachowania"><span>Krok 3: niezmiennik w operacjach (świadoma zmiana zachowania)</span></a></h3>
+<p><strong>W IDE:</strong> ręcznie: prywatna <code>MoveTo(string target, params string[] allowedFrom)</code> rzuca <code>InvalidOperationException</code>, gdy przejście jest niedozwolone. Każda operacja deleguje do <code>MoveTo</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Pay</span>()</span>
+{
+    MoveTo(<span class="hljs-string">&quot;PAID&quot;</span>, <span class="hljs-string">&quot;NEW&quot;</span>);
+}
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">AdmitGuestWithoutPayment</span>()</span>
+{
+    MoveTo(<span class="hljs-string">&quot;USED&quot;</span>, <span class="hljs-string">&quot;NEW&quot;</span>, <span class="hljs-string">&quot;PAID&quot;</span>);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony, ale dla <code>Step3</code> z <strong>innymi oczekiwaniami</strong> (<code>Step3RejectsIllegalTransitions</code>): dozwolone ścieżki bez zmian, a przypadki <code>ZASTANE</code> kończą się <code>BLAD</code>.
+<strong>Co powiedzieć:</strong> to już nie jest refaktoryzacja. Zmieniają się akceptowane operacje i wyjątki, więc to osobny commit z wymaganiem od biznesu. Hermetyzacja z kroków 1-2 sprawiła, że ta zmiana dotyczy jednej klasy.
+<strong>Snapshot:</strong> <code>Step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m4/<wbr>s10 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-10" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-10"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>Step2</code> to koniec refaktoryzacji: pole prywatne, operacje domenowe i identyczne zachowanie. <code>Step3</code> to zatwierdzona zmiana kontraktu, którą test opisuje osobno. Kolejność ma znaczenie: najpierw hermetyzacja bez zmiany zachowania, potem reguła.</p>
+<h3 id="pulapki-10" tabindex="-1"><a class="header-anchor" href="#pulapki-10"><span>Pułapki</span></a></h3>
+<ul>
+<li>Walidacja dodana razem z getterem i setterem w jednym commicie. Nie da się wtedy odróżnić refaktoryzacji od zmiany zachowania.</li>
+<li>Setter, który zostaje &quot;na wszelki wypadek&quot; (także <code>private set</code> używany z wielu metod albo <code>init</code>, który pozwala ustawić dowolny status przy tworzeniu). Wtedy niezmiennik da się obejść tak samo jak przez publiczne pole.</li>
+<li>Pole <code>volatile</code> albo chronione blokadą. Semantyka pamięci nie przechodzi sama na właściwość.</li>
+<li>Zamiana pola na właściwość zmienia kontrakt binarny i refleksyjny: klient skompilowany z innym assembly, <code>GetField(...)</code>, a także serializatory, które domyślnie widzą tylko właściwości albo tylko pola.</li>
+<li>Frameworki, które zapisują pole refleksją (EF Core z mapowaniem na pole, deserializacja) i omijają operacje domenowe.</li>
+</ul>
+<h3 id="pytanie-do-sali-10" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-10"><span>Pytanie do sali</span></a></h3>
+<p>Kto w waszej organizacji decyduje, że &quot;gość na anulowaną rezerwację&quot; to błąd, a nie funkcja? Jak test ma to zapisać, zanim decyzja zapadnie?</p>
+<h2 id="scena-s11-encapsulate-collection-trzy-kontrakty-listy-miejsc" tabindex="-1"><a class="header-anchor" href="#scena-s11-encapsulate-collection-trzy-kontrakty-listy-miejsc"><span>Scena s11. Encapsulate Collection - trzy kontrakty listy miejsc</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> Encapsulate Collection; Trzy różne kontrakty kolekcji
+<strong>Namespace:</strong> <code>Training.Workshop.M4.S11EncapsulateCollection</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s11</code>
+<strong>Czas:</strong> ~12 min</p>
+<h3 id="w-skrocie-11" tabindex="-1"><a class="header-anchor" href="#w-skrocie-11"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> <code>Booking.Seats</code> to publiczna, mutowalna lista i każdy może zmienić miejsca z pominięciem właściciela. Przenosimy dodawanie i usuwanie do <code>Booking</code>, a potem zmieniamy właściwość na niemodyfikowalny widok i wreszcie na migawkę.</p>
+<p><strong>Zasada:</strong> Encapsulate Collection oddaje właścicielowi kontrolę nad członkostwem: odczyt przez kontrakt, zmiana przez <code>Add</code>/<code>Remove</code> lub polecenia. Widok (<code>AsReadOnly()</code>) i migawka (<code>ToImmutableList()</code>) to dwa różne kontrakty, bo tylko widok pokazuje późniejsze zmiany. Niemodyfikowalność nie chroni wnętrza elementów i nie daje bezpieczeństwa wątkowego.</p>
+<p><strong>Efekt:</strong> Kasa działa tak samo na każdym etapie, ale kroki 2 i 3 świadomie zmieniają kontrakt właściwości: klient nie może już modyfikować listy, a po kroku 3 nie widzi późniejszych zmian. Wybór między widokiem a migawką zależy od tego, czego potrzebują klienci.</p>
+<p><strong>Różnica względem Javy:</strong> <code>Collections.unmodifiableList</code> to w C# <code>_seats.AsReadOnly()</code> (żywy widok <code>ReadOnlyCollection&lt;T&gt;</code>), a <code>List.copyOf</code> to <code>_seats.ToImmutableList()</code> (migawka z <code>System.Collections.Immutable</code>). Od kroku 2 właściwość ma typ <code>IReadOnlyList&lt;Seat&gt;</code>, więc kompilator już blokuje <code>Add</code>. Test kontraktu sprawdza modyfikację przez rzutowanie na <code>ICollection&lt;Seat&gt;</code> (<code>NotSupportedException</code>), co pokazuje, że sam typ <code>IReadOnlyList</code> nad <code>List&lt;T&gt;</code> nie wystarczy: rzutowanie by przeszło i klient zmieniłby listę właściciela. Dlatego widok i migawka to opakowania. Świadomie nie użyto <code>.ToList()</code> jako migawki - to też kopia, ale po rzutowaniu klient mógłby ją zmieniać.</p>
+<h3 id="co-widzimy-11" tabindex="-1"><a class="header-anchor" href="#co-widzimy-11"><span>Co widzimy</span></a></h3>
+<p><code>Booking.Seats</code> to publiczna, mutowalna lista. <code>readonly</code> blokuje tylko przypisanie, więc każdy może dodać, usunąć albo wyczyścić miejsca z pominięciem właściciela.</p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">readonly</span> List&lt;Seat&gt; Seats = [];
+<span class="hljs-comment">// SeatDesk</span>
+booking.Seats.Add(seat);
+booking.Seats.Remove(seat);
+</code></pre>
+<h3 id="krok-1-operacje-w-wlascicielu-wlasciwosc-bez-zmiany-kontraktu" tabindex="-1"><a class="header-anchor" href="#krok-1-operacje-w-wlascicielu-wlasciwosc-bez-zmiany-kontraktu"><span>Krok 1: operacje w właścicielu, właściwość bez zmiany kontraktu</span></a></h3>
+<p><strong>W IDE:</strong> ⇧F6 na <code>Seats</code> -&gt; <code>_seats</code>, potem Encapsulate Field (⌃T) na <code>_seats</code>, właściwość <code>Seats</code> tylko do odczytu. Dodaj <code>AddSeat</code> i <code>RemoveSeat</code> w <code>Booking</code> i przepisz <code>SeatDesk</code> na te operacje (w <code>SeatDesk</code> zaznacz <code>booking.Seats.Add(seat)</code>, ⌥⌘M, F6 do <code>Booking</code>). Właściwość zwraca <strong>tę samą</strong> listę.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> List&lt;Seat&gt; _seats = [];
+
+<span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span>Przejściowo: żywa, MODYFIKOWALNA lista - dokładnie to, co dawało publiczne pole.<span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-keyword">public</span> List&lt;Seat&gt; Seats =&gt; _seats;
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">AddSeat</span>(<span class="hljs-params">Seat seat</span>)</span>
+{
+    _seats.Add(seat);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s11</code> - 16 testów zielonych, <code>Step1GetterStillReturnsTheSameAlias</code>: klient zmienia tak, widzi zmiany tak.
+<strong>Co powiedzieć:</strong> to faza przejściowa, która nadal jest czystą refaktoryzacją. Klient, który jeszcze modyfikuje listę przez właściwość, działa jak wcześniej, a my migrujemy klientów po kolei.
+<strong>Snapshot:</strong> <code>Step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m4/<wbr>s11 0 1</code></p>
+<h3 id="krok-2-niemodyfikowalny-widok" tabindex="-1"><a class="header-anchor" href="#krok-2-niemodyfikowalny-widok"><span>Krok 2: niemodyfikowalny widok</span></a></h3>
+<p><strong>W IDE:</strong> zmień typ właściwości na <code>IReadOnlyList&lt;Seat&gt;</code> i zwracaj <code>_seats.AsReadOnly()</code>. Kompilator od razu pokaże każdego klienta, który jeszcze woła <code>Seats.Add(...)</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span>Żywy widok tylko do odczytu.<span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-keyword">public</span> IReadOnlyList&lt;Seat&gt; Seats =&gt; _seats.AsReadOnly();
+</code></pre>
+<p><strong>Uruchom:</strong> test równoważności zielony (kasa używa już <code>AddSeat</code>/<code>RemoveSeat</code>). <code>S11CollectionContractTest</code> (<code>Step2AsReadOnlyIsAReadOnlyLiveView</code>): klient zmienia nie, widzi zmiany tak.
+<strong>Co powiedzieć:</strong> to pierwsza <strong>zmiana kontraktu</strong> właściwości. Jest bezpieczna dopiero wtedy, gdy żaden klient nie modyfikuje listy przez właściwość. Widok jest żywy, więc wcześniej pobrana lista pokaże miejsca dodane później.
+<strong>Snapshot:</strong> <code>Step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m4/<wbr>s11 1 2</code></p>
+<h3 id="krok-3-migawka" tabindex="-1"><a class="header-anchor" href="#krok-3-migawka"><span>Krok 3: migawka</span></a></h3>
+<p><strong>W IDE:</strong> we właściwości <code>return _seats.ToImmutableList();</code> (plus <code>using System.Collections.Immutable;</code>).
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span>Niemodyfikowalna kopia z chwili wywołania.<span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-keyword">public</span> IReadOnlyList&lt;Seat&gt; Seats =&gt; _seats.ToImmutableList();
+</code></pre>
+<p><strong>Uruchom:</strong> test równoważności zielony. <code>S11CollectionContractTest</code> (<code>Step3ToImmutableListIsASnapshot</code>): klient zmienia nie, widzi zmiany nie.
+<strong>Co powiedzieć:</strong> widok czy migawka to decyzja o kontrakcie, a nie szczegół implementacji. Klient, który trzymał listę i liczył, że &quot;sama się odświeży&quot;, po tym kroku widzi stare dane.
+<strong>Snapshot:</strong> <code>Step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m4/<wbr>s11 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-11" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-11"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Tabela ze slajdu jako test:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Wariant</th>
+<th style="text-align:center">Klient zmienia</th>
+<th style="text-align:center">Widzi późniejsze zmiany</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Start</code> (publiczne pole)</td>
+<td style="text-align:center">tak</td>
+<td style="text-align:center">tak</td>
+</tr>
+<tr>
+<td><code>Step1</code> (właściwość na tym samym polu)</td>
+<td style="text-align:center">tak</td>
+<td style="text-align:center">tak</td>
+</tr>
+<tr>
+<td><code>Step2</code> (<code>AsReadOnly()</code>)</td>
+<td style="text-align:center">nie</td>
+<td style="text-align:center">tak</td>
+</tr>
+<tr>
+<td><code>Step3</code> (<code>ToImmutableList()</code>)</td>
+<td style="text-align:center">nie</td>
+<td style="text-align:center">nie</td>
+</tr>
+</tbody>
+</table></div>
+<p>Wszystkie warianty dają ten sam wynik operacji kasy (<code>S11EquivalenceTest</code>), a różnią się kontraktem właściwości (<code>S11CollectionContractTest</code>). Który wariant jest rozwiązaniem, zależy od klientów: widok, gdy ktoś potrzebuje bieżącego stanu, a migawka, gdy wynik idzie dalej (raport, inny wątek).</p>
+<h3 id="pulapki-11" tabindex="-1"><a class="header-anchor" href="#pulapki-11"><span>Pułapki</span></a></h3>
+<ul>
+<li>Niemodyfikowalność blokuje członkostwo, a nie wnętrze elementów. Tu <code>Seat</code> jest niezmiennym rekordem, więc to wystarcza. Przy mutowalnych elementach nie wystarczy.</li>
+<li>Sam typ <code>IReadOnlyList&lt;T&gt;</code> to obietnica, a nie ochrona: zwrócenie <code>_seats</code> jako <code>IReadOnlyList&lt;Seat&gt;</code> pozwala klientowi zrzutować listę z powrotem na <code>List&lt;Seat&gt;</code> albo <code>ICollection&lt;Seat&gt;</code> i ją zmienić.</li>
+<li><code>ToImmutableList()</code> na liście, która już jest <code>ImmutableList&lt;T&gt;</code>, zwraca ten sam obiekt, a <code>AsReadOnly()</code> przy każdym wywołaniu tworzy nowe opakowanie - nie opieraj kontraktu na tożsamości. W odróżnieniu od javowego <code>List.copyOf</code> migawka w C# przyjmuje elementy <code>null</code>.</li>
+<li>Konstruktor przyjmujący listę z zewnątrz bez kopii zachowuje alias do listy klienta.</li>
+<li>Migawka nie daje bezpieczeństwa wątkowego samego właściciela: <code>ToImmutableList()</code> w trakcie <code>Add</code> z innego wątku może rzucić albo dać niespójny stan.</li>
+<li>Zmiana na zbiór (<code>HashSet&lt;T&gt;</code>) &quot;przy okazji&quot; zmienia zachowanie duplikatów. Test ma przypadek z tym samym miejscem dwa razy.</li>
+</ul>
+<h3 id="pytanie-do-sali-11" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-11"><span>Pytanie do sali</span></a></h3>
+<p>Który kontrakt wybierzecie dla listy miejsc, którą czyta ekran sali w kasie, a który dla listy wysyłanej w e-mailu z potwierdzeniem?</p>
+<h2 id="scena-s12-encapsulate-conditional-czy-przysluguje-zwrot" tabindex="-1"><a class="header-anchor" href="#scena-s12-encapsulate-conditional-czy-przysluguje-zwrot"><span>Scena s12. Encapsulate Conditional - czy przysługuje zwrot</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> Encapsulate Conditional
+<strong>Namespace:</strong> <code>Training.Workshop.M4.S12EncapsulateConditional</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s12</code>
+<strong>Czas:</strong> ~8 min</p>
+<h3 id="w-skrocie-12" tabindex="-1"><a class="header-anchor" href="#w-skrocie-12"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> Warunek zwrotu w <code>RefundCalculator.Refund</code> pyta o status, czas i prefiks promocji zamiast o regułę z regulaminu. Zamykamy kolejne fragmenty w predykaty z nazwami domenowymi, od najmniejszego do warunku gałęzi.</p>
+<p><strong>Zasada:</strong> Encapsulate Conditional zamienia pytanie o implementację na pytanie o znaczenie, czyli wydziela predykat z nazwą z domeny. Krótkie spięcie jest zachowaniem, więc osłona <code>null</code> idzie razem z testem, a kolejność warunków się nie zmienia. Nazwa <code>Is</code>/<code>Has</code> nie gwarantuje, że predykat jest czysty.</p>
+<p><strong>Efekt:</strong> <code>Refund</code> czyta się jak regulamin (<code>IsRefundable</code>, <code>CancelledAtLeast24hBefore</code>), a granica &quot;dokładnie 24 h&quot; jest opisana testem. Wyrażeń celowo nie upraszczamy, bo zamiana <code>!(a &gt; b)</code> na <code>a &lt; b</code> zgubiłaby ten przypadek.</p>
+<p><strong>Różnica względem Javy:</strong> <code>!now.plusHours(24).isAfter(start)</code> to w C# <code>!(now.AddHours(24) &gt; b.ScreeningStart)</code> - podwójne zaprzeczenie zostaje celowo, żeby scena miała co zamknąć w nazwie. <code>startsWith(&quot;FREE&quot;)</code> to <code>StartsWith(&quot;FREE&quot;, StringComparison.Ordinal)</code> (bez <code>Ordinal</code> porównanie zależałoby od kultury). Kwoty liczy wspólny typ <code>Money</code> (<code>Percent</code>, <code>Minus</code>, <code>Max</code>).</p>
+<h3 id="co-widzimy-12" tabindex="-1"><a class="header-anchor" href="#co-widzimy-12"><span>Co widzimy</span></a></h3>
+<p><code>RefundCalculator.Refund</code> liczy zwrot: 100% przy anulowaniu co najmniej 24 h przed seansem, 50% później, 0 po starcie, potrącenie 3.00 (nie poniżej zera). Warunek pyta o implementację, a nie o regułę:</p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">if</span> (b.Status == <span class="hljs-string">&quot;PAID&quot;</span> &amp;&amp; now &lt; b.ScreeningStart
+    &amp;&amp; !(b.Promo != <span class="hljs-literal">null</span> &amp;&amp; b.Promo.StartsWith(<span class="hljs-string">&quot;FREE&quot;</span>, StringComparison.Ordinal)))
+{
+    <span class="hljs-keyword">if</span> (!(now.AddHours(<span class="hljs-number">24</span>) &gt; b.ScreeningStart))
+    {
+        amount = b.Tickets;
+    }
+    <span class="hljs-keyword">else</span>
+    {
+        amount = b.Tickets.Percent(<span class="hljs-number">50</span>);
+    }
+}
+</code></pre>
+<h3 id="krok-1-extract-method-dla-najmniejszego-fragmentu" tabindex="-1"><a class="header-anchor" href="#krok-1-extract-method-dla-najmniejszego-fragmentu"><span>Krok 1: Extract Method dla najmniejszego fragmentu</span></a></h3>
+<p><strong>W IDE:</strong> zaznacz <code>b.Promo != null &amp;&amp; b.Promo.StartsWith(&quot;FREE&quot;, StringComparison.Ordinal)</code> (bez negacji i bez nawiasów), ⌥⌘M, nazwa <code>HasFreeTicketPromo</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">if</span> (b.Status == <span class="hljs-string">&quot;PAID&quot;</span> &amp;&amp; now &lt; b.ScreeningStart &amp;&amp; !HasFreeTicketPromo(b))
+
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-built_in">bool</span> <span class="hljs-title">HasFreeTicketPromo</span>(<span class="hljs-params">Booking b</span>)</span>
+{
+    <span class="hljs-keyword">return</span> b.Promo != <span class="hljs-literal">null</span> &amp;&amp; b.Promo.StartsWith(<span class="hljs-string">&quot;FREE&quot;</span>, StringComparison.Ordinal);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m4/<wbr>s12</code> - 28 testów zielonych.
+<strong>Co powiedzieć:</strong> osłona <code>!= null</code> idzie razem z testem prefiksu. Krótkie spięcie jest zachowaniem, co sprawdza przypadek z <code>Promo = null</code>.
+<strong>Snapshot:</strong> <code>Step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m4/<wbr>s12 0 1</code></p>
+<h3 id="krok-2-encapsulate-conditional-caly-warunek" tabindex="-1"><a class="header-anchor" href="#krok-2-encapsulate-conditional-caly-warunek"><span>Krok 2: Encapsulate Conditional - cały warunek</span></a></h3>
+<p><strong>W IDE:</strong> zaznacz cały warunek pierwszego <code>if</code>, ⌥⌘M, nazwa <code>IsRefundable</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">if</span> (IsRefundable(b, now))
+
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-built_in">bool</span> <span class="hljs-title">IsRefundable</span>(<span class="hljs-params">Booking b, DateTime now</span>)</span>
+{
+    <span class="hljs-keyword">return</span> b.Status == <span class="hljs-string">&quot;PAID&quot;</span> &amp;&amp; now &lt; b.ScreeningStart &amp;&amp; !HasFreeTicketPromo(b);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> <code>if</code> pyta teraz o regułę z regulaminu, a szczegóły (status, czas, promocja) mieszkają w jednym miejscu. Kolejność warunków w <code>&amp;&amp;</code> jest taka sama, więc wyjątki i krótkie spięcie też są te same.
+<strong>Snapshot:</strong> <code>Step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m4/<wbr>s12 1 2</code></p>
+<h3 id="krok-3-encapsulate-conditional-dla-galezi" tabindex="-1"><a class="header-anchor" href="#krok-3-encapsulate-conditional-dla-galezi"><span>Krok 3: Encapsulate Conditional dla gałęzi</span></a></h3>
+<p><strong>W IDE:</strong> zaznacz <code>!(now.AddHours(24) &gt; b.ScreeningStart)</code>, ⌥⌘M, nazwa <code>CancelledAtLeast24hBefore</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">if</span> (IsRefundable(b, now))
+{
+    <span class="hljs-keyword">if</span> (CancelledAtLeast24hBefore(b, now))
+    {
+        amount = b.Tickets;
+    }
+    <span class="hljs-keyword">else</span>
+    {
+        amount = b.Tickets.Percent(<span class="hljs-number">50</span>);
+    }
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony, także przypadek &quot;dokładnie 24 h przed&quot; (100%) i &quot;24 h minus minuta&quot; (50%).
+<strong>Co powiedzieć:</strong> podwójne zaprzeczenie zamknęliśmy w nazwie. Granicę (<code>&gt;=</code> 24 h) opisuje test, więc nikt jej nie &quot;poprawi&quot; przy okazji uproszczenia wyrażenia.
+<strong>Snapshot:</strong> <code>Step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m4/<wbr>s12 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-12" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-12"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>Step3/<wbr>RefundCalculator</code>: metoda publiczna czyta się jak regulamin (czy przysługuje zwrot, czy anulowano co najmniej 24 h przed), a predykaty mają nazwy z domeny. Test obejmuje granice czasu, statusy, promocje, <code>null</code> i dolną granicę kwoty.</p>
+<h3 id="pulapki-12" tabindex="-1"><a class="header-anchor" href="#pulapki-12"><span>Pułapki</span></a></h3>
+<ul>
+<li>Uproszczenie <code>!(now.AddHours(24) &gt; start)</code> do <code>now.AddHours(24) &lt; start</code> gubi przypadek &quot;dokładnie 24 h&quot;. Poprawna negacja to <code>&lt;=</code> - Rider ją zaproponuje (akcja kontekstowa ⌥⏎ na <code>!</code>), ale ręczne &quot;uproszczenie&quot; łatwo zrobić źle.</li>
+<li>Obliczenie prawej strony osłony wcześniej (np. <code>bool free = b.Promo.StartsWith(&quot;FREE&quot;, ...)</code> przed sprawdzeniem <code>null</code>). W C# z włączonymi nullable reference types kompilator ostrzeże (<code>CS8602</code>), ale ostrzeżenie to nie błąd, a <code>!</code> je ucisza.</li>
+<li>Nazwa <code>Is</code>/<code>Has</code> nie gwarantuje czystości. Predykat z efektem ubocznym (log, licznik, zapytanie do bazy) po ekstrakcji może zostać wywołany w innym miejscu albo inną liczbę razy.</li>
+<li>Przeniesienie predykatu do <code>Booking</code> jako następny krok ma sens, ale wymaga <code>TimeProvider</code> albo <code>now</code> jako parametru, bo sam rekord nie zna bieżącej chwili.</li>
+</ul>
+<h3 id="pytanie-do-sali-12" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-12"><span>Pytanie do sali</span></a></h3>
+<p>Czy <code>IsRefundable</code> powinno trafić do <code>Booking</code>? Co wtedy z parametrem <code>now</code>?</p>
+<h2 id="proponowana-kolejnosc-pokazu" tabindex="-1"><a class="header-anchor" href="#proponowana-kolejnosc-pokazu"><span>Proponowana kolejność pokazu</span></a></h2>
+<p><strong>Ścieżka krótka (~75 min):</strong> zasada &quot;najpierw test, potem ruch&quot; i pułapki semantyki.</p>
+<ol>
+<li>s00 Test charakterystyki (ruch A i krok 1, ~12 min)</li>
+<li>s01 Rename, tylko krok 2 i 3 z naiwnym ruchem na żywo (~8 min)</li>
+<li>s02 Extract Variable, krok 2 z osłoną <code>null</code> (~5 min)</li>
+<li>s04 Extract Method (~15 min)</li>
+<li>s05 Inline Variable, pokaz pułapki i krok 3 (~8 min)</li>
+<li>s06 Inline Method, krok 2 (~5 min)</li>
+<li>s07 Move Method, krok 2 (~6 min)</li>
+<li>s09 Extract Class, kroki 1 i 2 ze &quot;złym wynikiem&quot; (~10 min)</li>
+<li>s11 Encapsulate Collection, tabela kontraktów (~6 min)</li>
+</ol>
+<p><strong>Ścieżka pełna (~145 min):</strong> wszystkie sceny w kolejności numerów, s00-s12. Po s04 i po s09 zrób przerwę na pytania. Sceny s03, s08, s10 i s12 dobrze nadają się do zadania dla uczestników, jeśli brakuje czasu na pokaz (patrz plik zadań modułu 4).</p>
+
+</main>
+</div>
+<script>if(matchMedia('(max-width:900px)').matches){var d=document.querySelector('.toc details');if(d)d.open=false}</script>
+</body>
+</html>

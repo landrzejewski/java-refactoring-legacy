@@ -1,0 +1,1193 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Przewodnik: Moduł 3. Zasady dobrego projektowania - warsztat CineLegacy (TypeScript): przewodnik prowadzącego (TypeScript)</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1d1f23;--muted:#5f6670;--line:#e3e5e8;--card:#ffffff;--accent:#2457c5;--accent-bg:#eef3fd;
+--code-bg:#f4f5f7;--note-bg:#fff7e6;--note-line:#e6a700;--th:#f1f3f6;
+--k:#b3246b;--s:#1a7f37;--c:#6e7781;--n:#0550ae;--t:#8250df;--f:#6639ba;--a:#953800;
+--kind:#2457c5}
+@media (prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3036;--card:#1c1f23;--accent:#7aa7ff;--accent-bg:#1e2a40;
+--code-bg:#1f2328;--note-bg:#2b2412;--note-line:#c99400;--th:#23272d;
+--k:#ff7b9c;--s:#7ee2a0;--c:#8b949e;--n:#79c0ff;--t:#d2a8ff;--f:#d2a8ff;--a:#ffa657}}
+body.zadania{--kind:#1a7f37} body.warsztat{--kind:#c2570c} body.warsztat-zadania{--kind:#0f7b7b} body.rozwiazania{--kind:#b3246b} body.przyklady{--kind:#2457c5}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.topbar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 24px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);border-top:3px solid var(--kind)}
+.topbar a{color:var(--fg);text-decoration:none}
+.home{font-weight:600}
+.tabs{display:flex;gap:4px}
+.tab{padding:4px 12px;border-radius:999px;font-size:15px;color:var(--muted)!important}
+.tab:hover{background:var(--code-bg)}
+.tab.active{background:var(--accent-bg);color:var(--accent)!important;font-weight:600}
+.pager{margin-left:auto;display:flex;gap:14px;font-size:15px}
+.pager a{color:var(--muted)}.pager a:hover{color:var(--accent)}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:48px;max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+.layout.no-toc{grid-template-columns:minmax(0,1fr);max-width:1000px}
+aside{position:sticky;top:72px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px}
+.toc-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;font-weight:600}
+.toc ul{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.toc li a{display:block;padding:3px 12px;color:var(--muted);text-decoration:none;line-height:1.35}
+.toc li.h3 a{padding-left:24px;font-size:13px}
+.toc li a:hover{color:var(--accent)}
+main{min-width:0;max-width:860px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 1.2rem;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:2.6rem 0 .8rem;padding-top:.6rem;border-top:1px solid var(--line)}
+h3{font-size:1.18rem;margin:2rem 0 .6rem}
+h4{font-size:1rem;margin:1.5rem 0 .5rem}
+h1 a,h2 a,h3 a,h4 a{color:inherit;text-decoration:none}
+h2 a:hover::after,h3 a:hover::after{content:" #";color:var(--muted)}
+p,ul,ol{margin:.6rem 0 1rem}
+li{margin:.25rem 0}
+li>ul,li>ol{margin:.2rem 0}
+a{color:var(--accent)}
+strong{font-weight:650}
+code{font:0.88em/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre.code{position:relative;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:1rem 0 1.4rem}
+pre.code code{background:none;padding:0;font-size:14px;line-height:1.55}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:6px;right:10px;font:11px ui-monospace,Menlo,monospace;color:var(--muted);text-transform:uppercase}
+.table-wrap{overflow-x:auto;margin:1rem 0 1.4rem;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--th);font-weight:600}
+tr:last-child td{border-bottom:none}
+blockquote{margin:1rem 0 1.4rem;padding:10px 16px;background:var(--note-bg);border-left:4px solid var(--note-line);border-radius:0 8px 8px 0}
+blockquote p{margin:.3rem 0}
+hr{border:none;border-top:1px solid var(--line);margin:2rem 0}
+hr+h2{border-top:none;margin-top:1.4rem}
+main p code,main li code,main td code{overflow-wrap:break-word}
+.toc summary{cursor:pointer;list-style:none}.toc summary::-webkit-details-marker{display:none}
+.hljs-keyword,.hljs-selector-tag,.hljs-built_in,.hljs-literal{color:var(--k)}
+.hljs-string,.hljs-regexp,.hljs-addition{color:var(--s)}
+.hljs-comment,.hljs-quote,.hljs-meta{color:var(--c);font-style:italic}
+.hljs-number,.hljs-symbol{color:var(--n)}
+.hljs-type,.hljs-class .hljs-title,.hljs-title.class_{color:var(--t)}
+.hljs-title,.hljs-title.function_,.hljs-section{color:var(--f)}
+.hljs-attr,.hljs-attribute,.hljs-variable,.hljs-params,.hljs-tag{color:var(--a)}
+.hljs-deletion{color:var(--k)}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:16px;padding:20px 16px 60px}
+aside{position:static;max-height:none;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--card)}
+.toc-title{margin:0}.toc details[open] .toc-title{margin-bottom:8px}.toc summary::after{content:" ▾"}
+body{font-size:16px}.topbar{padding:8px 16px}.pager{margin-left:0}h1{font-size:1.6rem}}
+@media print{.topbar,aside{display:none}.layout{display:block;padding:0}main{max-width:none}
+pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#000;font-size:12pt}}
+.langs{margin-left:auto}.langs+.pager{margin-left:0}</style>
+</head>
+<body class="warsztat">
+<header class="topbar"><a class="home" href="../../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../00-cinelegacy.html">Warsztat CineLegacy</a><a class="tab" href="../zadania/03-zasady-dobrego-projektowania.html">Zadania</a><a class="tab active" href="03-zasady-dobrego-projektowania.html">Przewodnik</a></div><div class="tabs langs" aria-label="Język"><a class="tab" href="../../warsztat/przewodnik/03-zasady-dobrego-projektowania.html">Java</a><a class="tab" href="../../warsztat-csharp/przewodnik/03-zasady-dobrego-projektowania.html">C#</a><a class="tab active" href="../../warsztat-typescript/przewodnik/03-zasady-dobrego-projektowania.html">TypeScript</a></div><div class="pager"><a href="04-podstawowe-refaktoryzacje.html" title="Następny moduł">04 &rarr;</a></div></header>
+<div class="layout">
+<aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#jak-prowadzic-pokaz">Jak prowadzić pokaz</a></li><li class="h2"><a href="#mapa-scen">Mapa scen</a></li><li class="h2"><a href="#scena-s01-dry-jedna-wiedza-dwie-reprezentacje">Scena s01. DRY - jedna wiedza, dwie reprezentacje</a></li><li class="h3"><a href="#w-skrocie">W skrócie</a></li><li class="h3"><a href="#co-widzimy">Co widzimy</a></li><li class="h3"><a href="#krok-1-extract-method-nazwij-druga-kopie-wiedzy">Krok 1: Extract Method - nazwij drugą kopię wiedzy</a></li><li class="h3"><a href="#krok-2-extract-method-po-stronie-sprzedazy">Krok 2: Extract Method po stronie sprzedaży</a></li><li class="h3"><a href="#krok-3-substitute-algorithm-zwrot-korzysta-z-jednej-reguly">Krok 3: Substitute Algorithm - zwrot korzysta z jednej reguły</a></li><li class="h3"><a href="#krok-4-extract-class-autorytatywne-zrodlo-wiedzy">Krok 4: Extract Class - autorytatywne źródło wiedzy</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali">Pytanie do sali</a></li><li class="h2"><a href="#scena-s02-podobienstwo-to-nie-duplikacja">Scena s02. Podobieństwo to nie duplikacja</a></li><li class="h3"><a href="#w-skrocie-1">W skrócie</a></li><li class="h3"><a href="#co-widzimy-1">Co widzimy</a></li><li class="h3"><a href="#krok-1-inline-method-wspolny-kod-wraca-do-wywolujacych">Krok 1: Inline Method - wspólny kod wraca do wywołujących</a></li><li class="h3"><a href="#krok-2-simplify-usun-martwe-galezie">Krok 2: Simplify - usuń martwe gałęzie</a></li><li class="h3"><a href="#krok-3-extract-constant-u-wlasciciela-reguly">Krok 3: Extract Constant u właściciela reguły</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-1">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-1">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-1">Pytanie do sali</a></li><li class="h2"><a href="#scena-s03-falszywa-abstrakcja-z-flagami">Scena s03. Fałszywa abstrakcja z flagami</a></li><li class="h3"><a href="#w-skrocie-2">W skrócie</a></li><li class="h3"><a href="#co-widzimy-2">Co widzimy</a></li><li class="h3"><a href="#krok-1-inline-method-do-obu-wywolujacych">Krok 1: Inline Method do obu wywołujących</a></li><li class="h3"><a href="#krok-2-inline-variable-i-simplify-martwe-galezie-znikaja">Krok 2: Inline Variable i Simplify - martwe gałęzie znikają</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-2">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-2">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-2">Pytanie do sali</a></li><li class="h2"><a href="#scena-s04-dry-w-testach-i-niezalezna-wyrocznia">Scena s04. DRY w testach i niezależna wyrocznia</a></li><li class="h3"><a href="#w-skrocie-3">W skrócie</a></li><li class="h3"><a href="#co-widzimy-3">Co widzimy</a></li><li class="h3"><a href="#krok-1-damp-nazwane-przyklady-zamiast-szyfru">Krok 1: DAMP - nazwane przykłady zamiast szyfru</a></li><li class="h3"><a href="#krok-2-jawna-oczekiwana-wartosc-niezalezna-wyrocznia">Krok 2: Jawna oczekiwana wartość - niezależna wyrocznia</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-3">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-3">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-3">Pytanie do sali</a></li><li class="h2"><a href="#scena-s05-kiss-zlozonosc-wprowadzona-kontra-istotna">Scena s05. KISS - złożoność wprowadzona kontra istotna</a></li><li class="h3"><a href="#w-skrocie-4">W skrócie</a></li><li class="h3"><a href="#co-widzimy-4">Co widzimy</a></li><li class="h3"><a href="#krok-1-replace-parameter-with-explicit-methods">Krok 1: Replace Parameter with Explicit Methods</a></li><li class="h3"><a href="#krok-2-substitute-algorithm-zwykle-petle">Krok 2: Substitute Algorithm - zwykłe pętle</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-4">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-4">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-4">Pytanie do sali</a></li><li class="h2"><a href="#scena-s06-yagni-silnik-regul-dla-dwoch-regul">Scena s06. YAGNI - silnik reguł dla dwóch reguł</a></li><li class="h3"><a href="#w-skrocie-5">W skrócie</a></li><li class="h3"><a href="#co-widzimy-5">Co widzimy</a></li><li class="h3"><a href="#krok-1-inline-class-rejestr-pluginow-znika">Krok 1: Inline Class - rejestr pluginów znika</a></li><li class="h3"><a href="#krok-2-change-signature-typowane-dane-zamiast-mapy">Krok 2: Change Signature - typowane dane zamiast mapy</a></li><li class="h3"><a href="#krok-3-inline-class-dla-regul-usuniecie-interfejsu">Krok 3: Inline Class dla reguł, usunięcie interfejsu</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-5">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-5">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-5">Pytanie do sali</a></li><li class="h2"><a href="#scena-s07-srp-raport-dla-dwoch-aktorow">Scena s07. SRP - raport dla dwóch aktorów</a></li><li class="h3"><a href="#w-skrocie-6">W skrócie</a></li><li class="h3"><a href="#co-widzimy-6">Co widzimy</a></li><li class="h3"><a href="#krok-1-extract-method-wedlug-aktora">Krok 1: Extract Method według aktora</a></li><li class="h3"><a href="#krok-2-rozdziel-wspolny-helper-wedlug-aktora">Krok 2: Rozdziel wspólny helper według aktora</a></li><li class="h3"><a href="#krok-3-extract-class-klasa-na-aktora">Krok 3: Extract Class - klasa na aktora</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-6">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-6">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-6">Pytanie do sali</a></li><li class="h2"><a href="#scena-s08-ocp-na-wybranej-osi-formaty-seansu">Scena s08. OCP na wybranej osi - formaty seansu</a></li><li class="h3"><a href="#w-skrocie-7">W skrócie</a></li><li class="h3"><a href="#co-widzimy-7">Co widzimy</a></li><li class="h3"><a href="#krok-1-replace-type-code-with-enum">Krok 1: Replace Type Code with Enum</a></li><li class="h3"><a href="#krok-2-dane-zamiast-galezi-wiedza-przeniesiona-do-typu-format">Krok 2: Dane zamiast gałęzi - wiedza przeniesiona do typu Format</a></li><li class="h3"><a href="#krok-3-nowy-format-4dx-jedna-linia">Krok 3: Nowy format 4DX - jedna linia</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-7">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-7">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-7">Pytanie do sali</a></li><li class="h2"><a href="#scena-s09-lsp-i-test-kontraktowy">Scena s09. LSP i test kontraktowy</a></li><li class="h3"><a href="#w-skrocie-8">W skrócie</a></li><li class="h3"><a href="#co-widzimy-8">Co widzimy</a></li><li class="h3"><a href="#krok-1-extract-interface-rola-odczytu">Krok 1: Extract Interface - rola odczytu</a></li><li class="h3"><a href="#krok-2-replace-inheritance-with-delegation">Krok 2: Replace Inheritance with Delegation</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-8">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-8">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-8">Pytanie do sali</a></li><li class="h2"><a href="#scena-s10-isp-z-perspektywy-klienta">Scena s10. ISP z perspektywy klienta</a></li><li class="h3"><a href="#w-skrocie-9">W skrócie</a></li><li class="h3"><a href="#co-widzimy-9">Co widzimy</a></li><li class="h3"><a href="#krok-1-extract-interface-po-jednej-roli-na-klienta">Krok 1: Extract Interface - po jednej roli na klienta</a></li><li class="h3"><a href="#krok-2-usuniecie-grubego-interfejsu">Krok 2: Usunięcie grubego interfejsu</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-9">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-9">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-9">Pytanie do sali</a></li><li class="h2"><a href="#scena-s11-dip-kierunek-zaleznosci-kontra-przeplyw-sterowania">Scena s11. DIP - kierunek zależności kontra przepływ sterowania</a></li><li class="h3"><a href="#w-skrocie-10">W skrócie</a></li><li class="h3"><a href="#co-widzimy-10">Co widzimy</a></li><li class="h3"><a href="#krok-1-introduce-parameter-dependency-injection">Krok 1: Introduce Parameter - dependency injection</a></li><li class="h3"><a href="#krok-2-extract-method-nazwij-potrzebe-polityki">Krok 2: Extract Method - nazwij potrzebę polityki</a></li><li class="h3"><a href="#krok-3-port-po-stronie-polityki-adapter-w-infra">Krok 3: Port po stronie polityki, adapter w infra</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-10">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-10">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-10">Pytanie do sali</a></li><li class="h2"><a href="#scena-s12-clean-architecture-use-case-dane-na-granicy-composition-root">Scena s12. Clean Architecture - use case, dane na granicy, composition root</a></li><li class="h3"><a href="#w-skrocie-11">W skrócie</a></li><li class="h3"><a href="#co-widzimy-11">Co widzimy</a></li><li class="h3"><a href="#krok-1-extract-class-przypadek-uzycia-jako-jawna-orkiestracja">Krok 1: Extract Class - przypadek użycia jako jawna orkiestracja</a></li><li class="h3"><a href="#krok-2-porty-zdefiniowane-przez-potrzebe-adaptery">Krok 2: Porty zdefiniowane przez potrzebę, adaptery</a></li><li class="h3"><a href="#krok-3-move-granica-widoczna-w-katalogach">Krok 3: Move - granica widoczna w katalogach</a></li><li class="h3"><a href="#krok-4-composition-root">Krok 4: Composition root</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-11">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-11">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-11">Pytanie do sali</a></li><li class="h2"><a href="#scena-s13-automatyczna-ochrona-granicy-i-diagnostyka-spojnosci">Scena s13. Automatyczna ochrona granicy i diagnostyka spójności</a></li><li class="h3"><a href="#w-skrocie-12">W skrócie</a></li><li class="h3"><a href="#co-widzimy-12">Co widzimy</a></li><li class="h3"><a href="#krok-1-extract-class-spojnosc">Krok 1: Extract Class - spójność</a></li><li class="h3"><a href="#krok-2-move-do-adaptera">Krok 2: Move do adaptera</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-12">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-12">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-12">Pytanie do sali</a></li><li class="h2"><a href="#scena-s14-wzorzec-jako-decyzja-odwracalna">Scena s14. Wzorzec jako decyzja odwracalna</a></li><li class="h3"><a href="#w-skrocie-13">W skrócie</a></li><li class="h3"><a href="#co-widzimy-13">Co widzimy</a></li><li class="h3"><a href="#krok-1-replace-conditional-with-strategy-i-adapter-dla-obcego-klienta">Krok 1: Replace Conditional with Strategy (i Adapter dla obcego klienta)</a></li><li class="h3"><a href="#krok-2-wariant-znika-usuniecie-adaptera">Krok 2: Wariant znika - usunięcie adaptera</a></li><li class="h3"><a href="#krok-3-refaktoryzacja-od-wzorca">Krok 3: Refaktoryzacja od wzorca</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-13">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-13">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-13">Pytanie do sali</a></li><li class="h2"><a href="#scena-s15-inwarianty-w-modelu-domeny">Scena s15. Inwarianty w modelu domeny</a></li><li class="h3"><a href="#w-skrocie-14">W skrócie</a></li><li class="h3"><a href="#co-widzimy-14">Co widzimy</a></li><li class="h3"><a href="#krok-1-remove-setting-method-niezmienny-obiekt-z-konstruktorem">Krok 1: Remove Setting Method - niezmienny obiekt z konstruktorem</a></li><li class="h3"><a href="#krok-2-move-straznicy-do-konstruktora">Krok 2: Move - strażnicy do konstruktora</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-14">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-14">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-14">Pytanie do sali</a></li><li class="h2"><a href="#scena-s16-sprzezenie-protokolu-ukryta-kolejnosc-wywolan">Scena s16. Sprzężenie protokołu - ukryta kolejność wywołań</a></li><li class="h3"><a href="#w-skrocie-15">W skrócie</a></li><li class="h3"><a href="#co-widzimy-15">Co widzimy</a></li><li class="h3"><a href="#krok-1-change-signature-wszystko-czego-potrzeba-w-parametrach">Krok 1: Change Signature - wszystko, czego potrzeba, w parametrach</a></li><li class="h3"><a href="#krok-2-introduce-parameter-object">Krok 2: Introduce Parameter Object</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-15">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-15">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-15">Pytanie do sali</a></li><li class="h2"><a href="#proponowana-kolejnosc-pokazu">Proponowana kolejność pokazu</a></li></ul></details></nav></aside>
+<main>
+<h1>Moduł 3. Zasady dobrego projektowania - warsztat CineLegacy (TypeScript): przewodnik prowadzącego</h1>
+<p>Szesnaście małych scen w domenie kina CineLegacy pokazuje zasady z modułu 3 jako serie bezpiecznych zmian: DRY, KISS, YAGNI, SOLID, spójność i sprzężenie, granice Clean Architecture, wzorzec jako decyzja odwracalna oraz inwarianty modelu. Każda scena ma kod wyjściowy (<code>start</code>) z zapachem lub pułapką i kompletne snapshoty po każdym kroku (<code>step1</code>, <code>step2</code>, ...). Prowadzący pracuje na żywo w <code>start</code>, po każdym kroku uruchamia test sceny i porównuje wynik ze snapshotem.</p>
+<p>Sceny nie powielają ćwiczeń z <code>md/<wbr>zadania/<wbr>03-zasady-dobrego-projektowania.md</code> (studium wyceny dostawy w <code>typescript/<wbr>src/<wbr>module3</code>): tamte ćwiczą jeden duży przykład, tu każda zasada ma własną, kilkuminutową scenę.</p>
+<p>Port TypeScript: kod scen leży w <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>sNN_.../<wbr>{start,step1,...}</code>, testy vitest w <code>typescript/<wbr>test/<wbr>workshop/<wbr>m3/<wbr>sNN_.../<wbr></code>. Kwoty to <code>Decimal</code> z biblioteki decimal.js (odpowiednik <code>BigDecimal</code>). <code>Decimal</code> nie pamięta skali, więc tam, gdzie Java drukuje kwotę przez <code>toString()</code>, port drukuje <code>toFixed(2)</code>. Rekordy Javy to klasy z polami <code>readonly</code> w konstruktorze, a statyczne metody klas-punktów wejścia to funkcje modułu.</p>
+<h2 id="jak-prowadzic-pokaz" tabindex="-1"><a class="header-anchor" href="#jak-prowadzic-pokaz"><span>Jak prowadzić pokaz</span></a></h2>
+<pre class="code" data-lang="bash"><code class="hljs">scripts/warsztat.sh --lang ts list m3              <span class="hljs-comment"># lista scen i kroków modułu 3</span>
+scripts/warsztat.sh --lang ts <span class="hljs-built_in">test</span> m3/s01          <span class="hljs-comment"># testy jednej sceny (krótka nazwa wystarczy)</span>
+scripts/warsztat.sh --lang ts <span class="hljs-built_in">test</span> m3              <span class="hljs-comment"># wszystkie sceny modułu (238 testów)</span>
+scripts/warsztat.sh --lang ts diff m3/s01 0 1      <span class="hljs-comment"># co zmienia krok 1 względem start (0 = start)</span>
+scripts/warsztat.sh --lang ts diff m3/s01 0 1 --word  <span class="hljs-comment"># to samo, zmiany podświetlone w obrębie linii</span>
+scripts/warsztat.sh --lang ts jump m3/s12 3        <span class="hljs-comment"># przeskok: start = snapshot kroku 3</span>
+scripts/warsztat.sh --lang ts next m3/s12          <span class="hljs-comment"># następny krok do start + podsumowanie zmian</span>
+scripts/warsztat.sh next                           <span class="hljs-comment"># kolejny krok tej samej sceny (język i scena zapamiętane)</span>
+scripts/warsztat.sh prev                           <span class="hljs-comment"># krok wstecz</span>
+scripts/warsztat.sh status                         <span class="hljs-comment"># który krok jest teraz w start</span>
+scripts/warsztat.sh --lang ts reset m3/s12         <span class="hljs-comment"># przywrócenie start z repozytorium</span>
+</code></pre>
+<ul>
+<li>Zasada pokazu: <strong>jeden krok - jeden test - jedno zdanie komentarza</strong>. Nie łącz kroków, nawet jeśli IDE pozwala.</li>
+<li><strong>Krok po kroku bez numerów:</strong> <code>scripts/<wbr>warsztat.sh next</code> wstawia do <code>start</code> gotowy następny krok i wypisuje, co się zmieniło. <code>prev</code> cofa o krok, <code>status</code> mówi, który krok jest teraz w <code>start</code>. Skrypt pamięta język i ostatnią scenę, więc po pierwszym <code>--lang ts next m3/<wbr>sNN</code> wystarczy samo <code>next</code>. Ręczne zmiany w <code>start</code> zostają nadpisane - o to chodzi, gdy krok na żywo się rozjechał.</li>
+<li>Jeśli krok na żywo się nie uda albo brakuje czasu: <code>next</code> (albo <code>jump</code> do konkretnego snapshotu) i kontynuuj od następnego kroku. Po pokazie zawsze <code>reset</code>.</li>
+<li>Testy dotykają <code>start</code> wyłącznie przez API wspólne dla wszystkich kroków, więc kompilują się w każdym stanie pośrednim. Tam, gdzie refaktoryzacja zmienia konstruktory, scena ma punkt wejścia pełniący rolę composition root: funkcja <code>confirmReservation()</code> w <code>Main.ts</code> (s11), <code>reservationController()</code> w <code>CinemaApplication.ts</code> (s12), <code>describe()</code> w <code>CinemaApp.ts</code> (s13) oraz klasa <code>TicketDesk</code> (s16). VS Code nie ma refaktoryzacji Introduce Parameter ani Change Signature - te miejsca poprawiasz ręcznie, a kompilator (czerwone podkreślenia, <code>npx tsc --noEmit</code>) wskaże każde wywołanie do zmiany.</li>
+<li>Refaktoryzacje VS Code: menu Refactor... (⌃⇧R) daje m.in. Extract to method in class, Extract to function, Extract to constant, Inline variable, Move to a new file / Move to file. Rename Symbol to F2, Quick Fix ⌘., Go to Definition F12, Find All References ⇧⌥F12. Odpowiednika Safe Delete nie ma: przed usunięciem symbolu sprawdź Find All References, a po usunięciu - kompilator.</li>
+<li>Testy uruchamiasz skryptem (<code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>sNN</code>) albo z rozszerzenia Vitest w VS Code (ikona przy <code>describe</code>/<code>it</code>).</li>
+<li>Pułapki, których nie da się sprawdzić na edytowanym <code>start</code> (bo znikają po naprawie), testy dokumentują na kopii w kroku, który jeszcze ją ma (np. s04 krok 1, s09 krok 1, s15 krok 1).</li>
+<li>Test s13 czyta pliki źródłowe względem katalogu <code>typescript</code> - uruchamiaj go skryptem albo z katalogu <code>typescript</code> (tak działa vitest z konfiguracją projektu).</li>
+</ul>
+<h2 id="mapa-scen" tabindex="-1"><a class="header-anchor" href="#mapa-scen"><span>Mapa scen</span></a></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Scena</th>
+<th>Temat ze slajdów</th>
+<th>Kroki</th>
+<th>Katalog</th>
+<th>Czas</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>s01</td>
+<td>2.1 DRY dotyczy wiedzy</td>
+<td>4</td>
+<td><code>m3/<wbr>s01_dryknowledge</code></td>
+<td>~12 min</td>
+</tr>
+<tr>
+<td>s02</td>
+<td>2.2 Podobieństwo nie wystarcza</td>
+<td>3</td>
+<td><code>m3/<wbr>s02_similarity</code></td>
+<td>~10 min</td>
+</tr>
+<tr>
+<td>s03</td>
+<td>2.3 Fałszywa abstrakcja</td>
+<td>2</td>
+<td><code>m3/<wbr>s03_falseabstraction</code></td>
+<td>~8 min</td>
+</tr>
+<tr>
+<td>s04</td>
+<td>2.3 DRY w testach, niezależna wyrocznia</td>
+<td>2</td>
+<td><code>m3/<wbr>s04_drytests</code></td>
+<td>~10 min</td>
+</tr>
+<tr>
+<td>s05</td>
+<td>2.4-2.5 KISS: złożoność wprowadzona i istotna</td>
+<td>2</td>
+<td><code>m3/<wbr>s05_kiss</code></td>
+<td>~8 min</td>
+</tr>
+<tr>
+<td>s06</td>
+<td>2.6-2.7 YAGNI, 2.8 napięcia, 2.9 filtr decyzyjny</td>
+<td>3</td>
+<td><code>m3/<wbr>s06_yagni</code></td>
+<td>~12 min</td>
+</tr>
+<tr>
+<td>s07</td>
+<td>3.2 SRP: jeden aktor zmiany</td>
+<td>3</td>
+<td><code>m3/<wbr>s07_srp</code></td>
+<td>~12 min</td>
+</tr>
+<tr>
+<td>s08</td>
+<td>3.3 OCP: zamknięcie dla wybranej osi</td>
+<td>3</td>
+<td><code>m3/<wbr>s08_ocp</code></td>
+<td>~10 min</td>
+</tr>
+<tr>
+<td>s09</td>
+<td>3.4 LSP i test kontraktowy</td>
+<td>2</td>
+<td><code>m3/<wbr>s09_lsp</code></td>
+<td>~12 min</td>
+</tr>
+<tr>
+<td>s10</td>
+<td>3.5 ISP z perspektywy klienta</td>
+<td>2</td>
+<td><code>m3/<wbr>s10_isp</code></td>
+<td>~8 min</td>
+</tr>
+<tr>
+<td>s11</td>
+<td>3.6 DIP, 5.1-5.2 reguła zależności a przepływ sterowania</td>
+<td>3</td>
+<td><code>m3/<wbr>s11_dip</code></td>
+<td>~12 min</td>
+</tr>
+<tr>
+<td>s12</td>
+<td>5.3-5.6 przypadek użycia, dane na granicy, composition root</td>
+<td>4</td>
+<td><code>m3/<wbr>s12_cleanarchitecture</code></td>
+<td>~18 min</td>
+</tr>
+<tr>
+<td>s13</td>
+<td>4.4 diagnostyka spójności, lista kontrolna &quot;granica sprawdzana automatycznie&quot;</td>
+<td>2</td>
+<td><code>m3/<wbr>s13_boundarycheck</code></td>
+<td>~12 min</td>
+</tr>
+<tr>
+<td>s14</td>
+<td>6.1-6.4 Strategy i Adapter, wzorzec można usunąć</td>
+<td>3</td>
+<td><code>m3/<wbr>s14_reversiblepattern</code></td>
+<td>~12 min</td>
+</tr>
+<tr>
+<td>s15</td>
+<td>7.4 model domeny i inwarianty</td>
+<td>2</td>
+<td><code>m3/<wbr>s15_invariants</code></td>
+<td>~8 min</td>
+</tr>
+<tr>
+<td>s16</td>
+<td>4.4 sprzężenie protokołu i czasu</td>
+<td>2</td>
+<td><code>m3/<wbr>s16_temporalcoupling</code></td>
+<td>~6 min</td>
+</tr>
+</tbody>
+</table></div>
+<p>Katalogi są względne wobec <code>typescript/<wbr>src/<wbr>workshop/<wbr></code>, testy leżą w odpowiednim katalogu pod <code>typescript/<wbr>test/<wbr>workshop/<wbr></code>.</p>
+<h2 id="scena-s01-dry-jedna-wiedza-dwie-reprezentacje" tabindex="-1"><a class="header-anchor" href="#scena-s01-dry-jedna-wiedza-dwie-reprezentacje"><span>Scena s01. DRY - jedna wiedza, dwie reprezentacje</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 2.1 DRY dotyczy wiedzy; 2.8 Napięcia między zasadami (nazwanie potwierdzonej reguły)
+<strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>s01_dryknowledge</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s01</code> (<code>S01EquivalenceTest.test.ts</code>)
+<strong>Czas:</strong> ~12 min</p>
+<h3 id="w-skrocie" tabindex="-1"><a class="header-anchor" href="#w-skrocie"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> W <code>BoxOffice</code> reguła ceny biletu jest zapisana dwa razy - raz przy sprzedaży, raz przy zwrocie - różnym kodem. Nazywamy obie kopie, sprawdzamy testem, że liczą to samo, zostawiamy jedną i przenosimy ją do klasy <code>TicketPrice</code>.</p>
+<p><strong>Zasada:</strong> DRY mówi, że każda wiedza w systemie powinna mieć jedną autorytatywną reprezentację. Chodzi o wiedzę (regułę biznesową), a nie o podobny tekst: dwa różne fragmenty mogą kodować tę samą regułę, a dwa identyczne mogą być przypadkowo podobne.</p>
+<p><strong>Efekt:</strong> Zmiana zniżki studenckiej to teraz edycja jednego miejsca, a zwrot automatycznie używa aktualnego cennika. Reguły samego zwrotu zostają w <code>BoxOffice</code>, bo mają innego właściciela.</p>
+<h3 id="co-widzimy" tabindex="-1"><a class="header-anchor" href="#co-widzimy"><span>Co widzimy</span></a></h3>
+<p><code>BoxOffice</code> sprzedaje bilety i przyjmuje zwroty. Reguła ceny biletu (cena formatu, zniżka typu, seans poranny) jest zapisana dwa razy: w <code>sell</code> jako dwa <code>switch</code> i procent, w <code>refund</code> jako łańcuch <code>if</code> i mnożniki. Tekst jest inny, więc żaden detektor duplikatów nic nie znajdzie, ale wiedza jest ta sama. Zmiana zniżki studenckiej wymaga zgodnej edycji dwóch miejsc.</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-comment">// ile kosztował bilet</span>
+<span class="hljs-keyword">let</span> paid = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;25.00&#x27;</span>);
+<span class="hljs-keyword">if</span> (ticket.<span class="hljs-property">format</span> === <span class="hljs-string">&#x27;3D&#x27;</span>) {
+  paid = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;32.00&#x27;</span>);
+} <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (ticket.<span class="hljs-property">format</span> === <span class="hljs-string">&#x27;IMAX&#x27;</span>) {
+  paid = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;40.00&#x27;</span>);
+}
+<span class="hljs-keyword">if</span> (ticket.<span class="hljs-property">type</span> === <span class="hljs-string">&#x27;STUDENT&#x27;</span>) {
+  paid = paid.<span class="hljs-title function_">times</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;0.75&#x27;</span>));
+} <span class="hljs-comment">// ...SENIOR 0.70, CHILD 0.60, poranek -5.00</span>
+</code></pre>
+<h3 id="krok-1-extract-method-nazwij-druga-kopie-wiedzy" tabindex="-1"><a class="header-anchor" href="#krok-1-extract-method-nazwij-druga-kopie-wiedzy"><span>Krok 1: Extract Method - nazwij drugą kopię wiedzy</span></a></h3>
+<p><strong>W IDE:</strong> w <code>refund</code> zaznacz blok od <code>/<wbr>/<wbr> ile kosztował bilet</code> do końca <code>if</code> z porankiem, ⌃⇧R &gt; Extract to method in class 'BoxOffice', nazwa <code>paidFor</code>. VS Code utworzy metodę prywatną zwracającą <code>paid</code>. Usuń komentarz.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-title function_">refund</span>(<span class="hljs-attr">ticket</span>: <span class="hljs-title class_">Ticket</span>, <span class="hljs-attr">hoursBeforeStart</span>: <span class="hljs-built_in">number</span>): <span class="hljs-title class_">Decimal</span> {
+  <span class="hljs-keyword">const</span> paid = <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">paidFor</span>(ticket);
+  <span class="hljs-comment">// zwrot: &gt;= 24h 100%, &lt; 24h 50%, po starcie 0%; potrącenie 3.00</span>
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s01</code> - 25 testów zielonych (5 przypadków x 5 wariantów).
+<strong>Co powiedzieć:</strong> zanim scalimy wiedzę, musimy ją zobaczyć. Nazwa <code>paidFor</code> odpowiada na to samo pytanie co <code>sell</code>: ile kosztuje ten bilet?
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s01 0 1</code></p>
+<h3 id="krok-2-extract-method-po-stronie-sprzedazy" tabindex="-1"><a class="header-anchor" href="#krok-2-extract-method-po-stronie-sprzedazy"><span>Krok 2: Extract Method po stronie sprzedaży</span></a></h3>
+<p><strong>W IDE:</strong> w <code>sell</code> zaznacz całe ciało metody, ⌃⇧R &gt; Extract to method in class 'BoxOffice', nazwa <code>ticketPrice</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-title function_">sell</span>(<span class="hljs-attr">ticket</span>: <span class="hljs-title class_">Ticket</span>): <span class="hljs-title class_">Decimal</span> {
+  <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">ticketPrice</span>(ticket);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> teraz obie kopie reguły to dwie prywatne metody o identycznej sygnaturze. Widać, że jedna jest zbędna.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s01 1 2</code></p>
+<h3 id="krok-3-substitute-algorithm-zwrot-korzysta-z-jednej-reguly" tabindex="-1"><a class="header-anchor" href="#krok-3-substitute-algorithm-zwrot-korzysta-z-jednej-reguly"><span>Krok 3: Substitute Algorithm - zwrot korzysta z jednej reguły</span></a></h3>
+<p><strong>W IDE:</strong> w <code>refund</code> ręcznie zamień <code>this.paidFor(ticket)</code> na <code>this.ticketPrice(ticket)</code>, uruchom test, potem usuń <code>paidFor</code> (Find All References ⇧⌥F12 pokazuje zero użyć, a VS Code wyszarza nieużywaną prywatną metodę). Import <code>LocalTime</code> przestaje być potrzebny - usuń go (Quick Fix ⌘. &gt; Remove unused declaration albo Organize Imports ⇧⌥O).
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">const</span> paid = <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">ticketPrice</span>(ticket);
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony - to dowód, że obie kopie liczyły to samo dla wszystkich przypadków (w tym zniżki, poranek i zwrot po starcie).
+<strong>Co powiedzieć:</strong> Substitute Algorithm jest bezpieczny tylko pod testem równoważności. Gdyby kopie się rozjechały, test pokazałby, która reguła jest &quot;prawdziwa&quot; - i to byłaby rozmowa z biznesem, nie decyzja programisty.
+<strong>Snapshot:</strong> <code>step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s01 2 3</code></p>
+<h3 id="krok-4-extract-class-autorytatywne-zrodlo-wiedzy" tabindex="-1"><a class="header-anchor" href="#krok-4-extract-class-autorytatywne-zrodlo-wiedzy"><span>Krok 4: Extract Class - autorytatywne źródło wiedzy</span></a></h3>
+<p><strong>W IDE:</strong> VS Code nie ma Extract Class, więc ruch robimy ręcznie w małych krokach: utwórz plik <code>TicketPrice.ts</code> z klasą <code>TicketPrice</code> i metodą <code>of</code>, przenieś do niej ciało <code>ticketPrice</code> (wytnij i wklej), a w <code>BoxOffice</code> dodaj pole <code>private readonly ticketPrice = new TicketPrice()</code> i zamień wywołania na <code>this.ticketPrice.of(ticket)</code>. W nowej klasie ⌃⇧R &gt; Extract to method in class dla <code>basePrice</code> i <code>discountPercent</code>; dla <code>MORNING_DISCOUNT</code> Extract to constant (VS Code proponuje stałą modułu albo pole klasy - wybierz pole i dopisz <code>static readonly</code>). To samo w <code>BoxOffice</code> dla <code>REFUND_DEDUCTION</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">BoxOffice</span> {
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">readonly</span> <span class="hljs-variable constant_">REFUND_DEDUCTION</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;3.00&#x27;</span>);
+
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> ticketPrice = <span class="hljs-keyword">new</span> <span class="hljs-title class_">TicketPrice</span>();
+
+  <span class="hljs-title function_">sell</span>(<span class="hljs-attr">ticket</span>: <span class="hljs-title class_">Ticket</span>): <span class="hljs-title class_">Decimal</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">ticketPrice</span>.<span class="hljs-title function_">of</span>(ticket);
+  }
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> reguła ceny ma nazwę w języku problemu i jednego właściciela (cennik). <code>BoxOffice</code> zna już tylko własną wiedzę: regulamin zwrotów.
+<strong>Snapshot:</strong> <code>step4/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s01 3 4</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>step4/<wbr>TicketPrice.ts</code> to jedyna reprezentacja wiedzy &quot;ile kosztuje bilet&quot;. Scalenie było uzasadnione od razu, bez czekania na trzecią kopię: dwie kopie tej samej reguły to już ryzyko niezgodnej zmiany (slajd 2.8: reguła trzech pomaga czekać na kształt abstrakcji, ale nie definiuje DRY).</p>
+<h3 id="pulapki" tabindex="-1"><a class="header-anchor" href="#pulapki"><span>Pułapki</span></a></h3>
+<ul>
+<li>Szukanie duplikacji po tekście: żadne narzędzie nie znajdzie tej kopii, bo była inaczej napisana.</li>
+<li>Scalanie bez testu równoważności - jeśli kopie już się różniły, &quot;cicho&quot; zmieniamy zachowanie.</li>
+<li>Przeniesienie do <code>TicketPrice</code> także reguł zwrotu - to inna wiedza z innym właścicielem.</li>
+</ul>
+<h3 id="pytanie-do-sali" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali"><span>Pytanie do sali</span></a></h3>
+<p>Gdzie w waszym systemie ta sama reguła żyje w SQL, w kodzie i w dokumentacji jednocześnie? Co jest jej autorytatywnym źródłem?</p>
+<h2 id="scena-s02-podobienstwo-to-nie-duplikacja" tabindex="-1"><a class="header-anchor" href="#scena-s02-podobienstwo-to-nie-duplikacja"><span>Scena s02. Podobieństwo to nie duplikacja</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 2.2 Podobieństwo nie wystarcza; 2.3 Tymczasowe powtórzenie kodu bywa bezpiecznym etapem
+<strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>s02_similarity</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s02</code> (<code>S02EquivalenceTest.test.ts</code>)
+<strong>Czas:</strong> ~10 min</p>
+<h3 id="w-skrocie-1" tabindex="-1"><a class="header-anchor" href="#w-skrocie-1"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> Klasa <code>ServiceFee</code> scala opłatę rezerwacyjną online i potrącenie przy zwrocie tylko dlatego, że obie wyglądają jak &quot;kwota razy liczba sztuk&quot;. Wklejamy wspólny kod z powrotem do obu wywołujących, usuwamy martwe gałęzie i dajemy każdej kwocie stałą u jej właściciela.</p>
+<p><strong>Zasada:</strong> Podobny kod to jeszcze nie ta sama wiedza - rozstrzyga pytanie, czy dwie reguły zmieniają się razem i z tego samego powodu. Wspólna metoda dla niezależnych reguł tworzy fałszywą zależność, a chwilowe powtórzenie kodu jest bezpiecznym etapem ich rozdzielania.</p>
+<p><strong>Efekt:</strong> Marketing może zmienić opłatę rezerwacyjną bez ryzyka dla regulaminu zwrotów, a parametr <code>units = 1</code> znika. Płacimy za to dwiema podobnie wyglądającymi linijkami, co jest w porządku, bo kodują różną wiedzę.</p>
+<p><strong>Różnica względem Javy:</strong> zagnieżdżony <code>ServiceFee.Kind</code> to w porcie osobny eksportowany enum <code>Kind</code> w pliku <code>ServiceFee.ts</code>. Po kroku 1 plik zawiera już tylko enum. We wstawionych argumentach kroku 1 stoi rzutowanie <code>(Kind.REFUND as Kind)</code> - bez niego kompilator TS sam zgłasza porównanie stałych, które nie mają części wspólnej (TS2367), i krok by się nie kompilował. Krok 2 usuwa rzutowanie razem z warunkiem.</p>
+<h3 id="co-widzimy-1" tabindex="-1"><a class="header-anchor" href="#co-widzimy-1"><span>Co widzimy</span></a></h3>
+<p>Ktoś &quot;zDRYował&quot; dwie reguły, bo wyglądały tak samo (&quot;stała kwota razy liczba sztuk&quot;): opłatę rezerwacyjną online (2.00 za bilet, właściciel: sprzedaż online i marketing) i potrącenie przy zwrocie (3.00 za zwrot, właściciel: regulamin zwrotów). Powstała wspólna metoda z przełącznikiem, a <code>RefundDesk</code> musi podać <code>units = 1</code>, choć ten parametr pasuje tylko drugiej regule.</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">static</span> <span class="hljs-title function_">of</span>(<span class="hljs-attr">kind</span>: <span class="hljs-title class_">Kind</span>, <span class="hljs-attr">units</span>: <span class="hljs-built_in">number</span>): <span class="hljs-title class_">Decimal</span> {
+  <span class="hljs-keyword">const</span> perUnit = kind === <span class="hljs-title class_">Kind</span>.<span class="hljs-property">ONLINE_BOOKING</span> ? <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;2.00&#x27;</span>) : <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;3.00&#x27;</span>);
+  <span class="hljs-keyword">return</span> perUnit.<span class="hljs-title function_">times</span>(units).<span class="hljs-title function_">toDecimalPlaces</span>(<span class="hljs-number">2</span>, <span class="hljs-title class_">Decimal</span>.<span class="hljs-property">ROUND_HALF_UP</span>);
+}
+</code></pre>
+<h3 id="krok-1-inline-method-wspolny-kod-wraca-do-wywolujacych" tabindex="-1"><a class="header-anchor" href="#krok-1-inline-method-wspolny-kod-wraca-do-wywolujacych"><span>Krok 1: Inline Method - wspólny kod wraca do wywołujących</span></a></h3>
+<p><strong>W IDE:</strong> VS Code nie ma Inline Method (jest tylko Inline variable), więc wklejamy ręcznie: skopiuj ciało <code>ServiceFee.of</code> w miejsce każdego wywołania, podstaw argumenty (<code>kind</code> -&gt; <code>Kind.ONLINE_BOOKING as Kind</code> / <code>Kind.REFUND as Kind</code>, <code>units</code> -&gt; <code>ticketPrices.length</code> / <code>1</code>), potem usuń klasę <code>ServiceFee</code>. Zostaje samo <code>enum Kind</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-comment">// &quot;as Kind&quot; - wstawiony argument; bez rzutowania kompilator sam zauważy stały warunek</span>
+<span class="hljs-keyword">const</span> perUnit = (<span class="hljs-title class_">Kind</span>.<span class="hljs-property">REFUND</span> <span class="hljs-keyword">as</span> <span class="hljs-title class_">Kind</span>) === <span class="hljs-title class_">Kind</span>.<span class="hljs-property">ONLINE_BOOKING</span>
+  ? <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;2.00&#x27;</span>) : <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;3.00&#x27;</span>);
+<span class="hljs-keyword">const</span> fee = perUnit.<span class="hljs-title function_">times</span>(<span class="hljs-number">1</span>).<span class="hljs-title function_">toDecimalPlaces</span>(<span class="hljs-number">2</span>, <span class="hljs-title class_">Decimal</span>.<span class="hljs-property">ROUND_HALF_UP</span>);
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s02</code> - 16 testów zielonych.
+<strong>Co powiedzieć:</strong> chwilowo mamy więcej powtórzonego kodu - i to jest w porządku. Powtórzenie kodu to bezpieczny etap rozdzielania fałszywie scalonej wiedzy.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s02 0 1</code></p>
+<h3 id="krok-2-simplify-usun-martwe-galezie" tabindex="-1"><a class="header-anchor" href="#krok-2-simplify-usun-martwe-galezie"><span>Krok 2: Simplify - usuń martwe gałęzie</span></a></h3>
+<p><strong>W IDE:</strong> ręcznie: warunek porównujący stałe enuma jest zawsze prawdziwy (<code>OnlineCheckout</code>) albo zawsze fałszywy (<code>RefundDesk</code>) - zostaw właściwą gałąź, usuń rzutowanie, mnożenie przez 1 i zbędne <code>toDecimalPlaces</code>. Gdy nikt nie importuje już <code>Kind</code> (⇧⌥F12), usuń plik <code>ServiceFee.ts</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">return</span> <span class="hljs-title class_">Decimal</span>.<span class="hljs-title function_">max</span>(share.<span class="hljs-title function_">minus</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;3.00&#x27;</span>)), <span class="hljs-number">0</span>);
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> po uproszczeniu widać, że obie reguły nie miały ze sobą nic wspólnego poza kształtem wyrażenia.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s02 1 2</code></p>
+<h3 id="krok-3-extract-constant-u-wlasciciela-reguly" tabindex="-1"><a class="header-anchor" href="#krok-3-extract-constant-u-wlasciciela-reguly"><span>Krok 3: Extract Constant u właściciela reguły</span></a></h3>
+<p><strong>W IDE:</strong> ⌃⇧R &gt; Extract to constant na <code>new Decimal(&#x27;2.00&#x27;)</code> w <code>OnlineCheckout</code> (nazwa <code>BOOKING_FEE_PER_TICKET</code>) i na <code>new Decimal(&#x27;3.00&#x27;)</code> w <code>RefundDesk</code> (nazwa <code>REFUND_DEDUCTION</code>); w obu przypadkach jako pole <code>private static readonly</code> klasy.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">readonly</span> <span class="hljs-variable constant_">BOOKING_FEE_PER_TICKET</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;2.00&#x27;</span>);  <span class="hljs-comment">// OnlineCheckout</span>
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">readonly</span> <span class="hljs-variable constant_">REFUND_DEDUCTION</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;3.00&#x27;</span>);        <span class="hljs-comment">// RefundDesk</span>
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> każda stała ma nazwę w języku domeny i mieszka u swojego właściciela. Marketing może znieść opłatę rezerwacyjną w promocji, nie dotykając regulaminu zwrotów.
+<strong>Snapshot:</strong> <code>step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s02 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-1" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-1"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Dwie reguły, dwie stałe, dwóch właścicieli. Kod jest podobny, wiedza niezależna - zgodnie z tabelą ze slajdu 2.2 (&quot;dwa konteksty mają dziś podobną regułę: może być przypadkowe; ustal relację reguł&quot;).</p>
+<h3 id="pulapki-1" tabindex="-1"><a class="header-anchor" href="#pulapki-1"><span>Pułapki</span></a></h3>
+<ul>
+<li>Wspólna metoda dla niezależnych reguł tworzy fałszywą zależność: zmiana jednej grozi zmianą drugiej.</li>
+<li>Parametr, który ma sens tylko dla jednego wywołującego (<code>units = 1</code>), to sygnał fałszywej abstrakcji.</li>
+<li>Odwrotny błąd: rozdzielenie reguły, która naprawdę jest jedna (s01).</li>
+</ul>
+<h3 id="pytanie-do-sali-1" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-1"><span>Pytanie do sali</span></a></h3>
+<p>Jakie pytanie zadać biznesowi, żeby rozstrzygnąć, czy dwie podobne reguły to jedna wiedza? (Podpowiedź: &quot;czy zmieniają się razem i z tego samego powodu?&quot;)</p>
+<h2 id="scena-s03-falszywa-abstrakcja-z-flagami" tabindex="-1"><a class="header-anchor" href="#scena-s03-falszywa-abstrakcja-z-flagami"><span>Scena s03. Fałszywa abstrakcja z flagami</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 2.3 Fałszywa abstrakcja: zabezpiecz testami, przenieś kod z powrotem, wydziel tylko potwierdzoną wiedzę
+<strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>s03_falseabstraction</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s03</code> (<code>S03EquivalenceTest.test.ts</code>)
+<strong>Czas:</strong> ~8 min</p>
+<h3 id="w-skrocie-2" tabindex="-1"><a class="header-anchor" href="#w-skrocie-2"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> <code>Pricing.price</code> obsługuje bilety i karnety przez pięć parametrów, w tym flagi <code>boolean</code>, z których każdy wywołujący potrzebuje tylko części. Cofamy abstrakcję do obu kas, upraszczamy martwe gałęzie i sprawdzamy, czy zostało coś wspólnego.</p>
+<p><strong>Zasada:</strong> Fałszywa abstrakcja to wspólny kod, który łączy konteksty bez wspólnej wiedzy i rośnie przez kolejne flagi. Kolejność naprawy: zabezpiecz testami, przenieś kod z powrotem do kontekstów, a wydziel tylko tę wiedzę, która się potwierdzi.</p>
+<p><strong>Efekt:</strong> Zostają dwie proste klasy, a <code>PassCounter</code> nie wie nic o formatach i okularach. Wspólnej wiedzy nie było wcale, więc świadomie niczego nowego nie wydzielamy.</p>
+<h3 id="co-widzimy-2" tabindex="-1"><a class="header-anchor" href="#co-widzimy-2"><span>Co widzimy</span></a></h3>
+<p><code>Pricing.price</code> wycenia bilety i karnety (reguła sceny: karnet to 20.00 za wejście na seans 2D), sterowana flagami <code>boolean</code>. Kasa biletowa podaje <code>quantity = 1</code> i <code>pass = false</code>, kasa karnetów podaje format, poranek i okulary &quot;na wszelki wypadek&quot;.</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-title function_">price</span>(<span class="hljs-attr">format</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">quantity</span>: <span class="hljs-built_in">number</span>, <span class="hljs-attr">pass</span>: <span class="hljs-built_in">boolean</span>,
+  <span class="hljs-attr">morning</span>: <span class="hljs-built_in">boolean</span>, <span class="hljs-attr">ownGlasses</span>: <span class="hljs-built_in">boolean</span>): <span class="hljs-title class_">Decimal</span> {
+  <span class="hljs-keyword">let</span> <span class="hljs-attr">unit</span>: <span class="hljs-title class_">Decimal</span>;
+  <span class="hljs-keyword">if</span> (pass) {
+    unit = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;20.00&#x27;</span>);
+  } <span class="hljs-keyword">else</span> { <span class="hljs-comment">/* format, poranek */</span> }
+  <span class="hljs-keyword">if</span> (format === <span class="hljs-string">&#x27;3D&#x27;</span> &amp;&amp; !ownGlasses &amp;&amp; !pass) { <span class="hljs-comment">/* okulary */</span> }
+</code></pre>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">pricing</span>.<span class="hljs-title function_">price</span>(<span class="hljs-string">&#x27;2D&#x27;</span>, entries, <span class="hljs-literal">true</span>, <span class="hljs-literal">false</span>, <span class="hljs-literal">true</span>);   <span class="hljs-comment">// PassCounter</span>
+</code></pre>
+<h3 id="krok-1-inline-method-do-obu-wywolujacych" tabindex="-1"><a class="header-anchor" href="#krok-1-inline-method-do-obu-wywolujacych"><span>Krok 1: Inline Method do obu wywołujących</span></a></h3>
+<p><strong>W IDE:</strong> ręcznie (VS Code nie ma Inline Method): skopiuj ciało <code>Pricing.price</code> do <code>TicketCounter.ticket</code> i <code>PassCounter.pass</code>, a stałe argumenty zapisz jako lokalne stałe na początku metody (<code>const pass: boolean = false;</code>) - tak samo wygląda wynik Inline Method w IntelliJ. Usuń klasę <code>Pricing</code> i pole <code>pricing</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-title function_">ticket</span>(<span class="hljs-attr">format</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">morning</span>: <span class="hljs-built_in">boolean</span>, <span class="hljs-attr">ownGlasses</span>: <span class="hljs-built_in">boolean</span>): <span class="hljs-title class_">Decimal</span> {
+  <span class="hljs-keyword">const</span> <span class="hljs-attr">pass</span>: <span class="hljs-built_in">boolean</span> = <span class="hljs-literal">false</span>;
+  <span class="hljs-keyword">let</span> <span class="hljs-attr">unit</span>: <span class="hljs-title class_">Decimal</span>;
+  <span class="hljs-keyword">if</span> (pass) {
+</code></pre>
+<p><strong>Różnica względem Javy:</strong> stałe flagi mają jawny typ (<code>const format: string = &#x27;2D&#x27;</code>, <code>const pass: boolean = true</code>). Bez niego TS zawęziłby je do typów literałowych i odrzucił &quot;martwe&quot; gałęzie <code>switch</code>/<code>if</code> jako błędy porównania, więc krok by się nie kompilował. Adnotacje znikają w kroku 2 razem z flagami.</p>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s03</code> - 18 testów zielonych.
+<strong>Co powiedzieć:</strong> najpierw cofamy abstrakcję, dopiero potem myślimy, czy jest w tym kodzie coś naprawdę wspólnego.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s03 0 1</code></p>
+<h3 id="krok-2-inline-variable-i-simplify-martwe-galezie-znikaja" tabindex="-1"><a class="header-anchor" href="#krok-2-inline-variable-i-simplify-martwe-galezie-znikaja"><span>Krok 2: Inline Variable i Simplify - martwe gałęzie znikają</span></a></h3>
+<p><strong>W IDE:</strong> ⌃⇧R &gt; Inline variable na <code>pass</code>, <code>morning</code>, <code>ownGlasses</code>, <code>format</code> w <code>PassCounter</code> (i na <code>pass</code> w <code>TicketCounter</code>), potem ręcznie uprość warunki ze stałymi (<code>if (true)</code>, <code>!true</code>) i usuń martwe gałęzie. Na koniec ⌃⇧R &gt; Extract to constant dla stałych kwot (pola <code>private static readonly</code>).
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-title function_">pass</span>(<span class="hljs-attr">entries</span>: <span class="hljs-built_in">number</span>): <span class="hljs-title class_">Decimal</span> {
+  <span class="hljs-keyword">return</span> <span class="hljs-title class_">PassCounter</span>.<span class="hljs-property">PRICE_PER_ENTRY</span>.<span class="hljs-title function_">times</span>(entries);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> po rozdzieleniu okazuje się, że wspólnej wiedzy nie ma wcale - karnet nie wie nic o formatach i okularach. Nie wydzielamy nic nowego.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s03 1 2</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-2" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-2"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Dwie proste klasy zamiast jednej metody z pięcioma parametrami. Kolejność z slajdu 2.3: testy (tu równoważności) - kod z powrotem do kontekstów - wydzielenie tylko potwierdzonej wiedzy (tu: żadnej).</p>
+<h3 id="pulapki-2" tabindex="-1"><a class="header-anchor" href="#pulapki-2"><span>Pułapki</span></a></h3>
+<ul>
+<li>Dokładanie kolejnej flagi do fałszywej abstrakcji &quot;bo już jest wspólna metoda&quot;.</li>
+<li>Rozdzielanie bez testów: przy flagach łatwo pomylić kolejność argumentów <code>boolean</code>.</li>
+</ul>
+<h3 id="pytanie-do-sali-2" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-2"><span>Pytanie do sali</span></a></h3>
+<p>Ile flag <code>boolean</code> ma najdłuższa metoda w waszym projekcie? Ilu wywołujących używa każdej kombinacji?</p>
+<h2 id="scena-s04-dry-w-testach-i-niezalezna-wyrocznia" tabindex="-1"><a class="header-anchor" href="#scena-s04-dry-w-testach-i-niezalezna-wyrocznia"><span>Scena s04. DRY w testach i niezależna wyrocznia</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 2.3 DRY w testach: wspólne fabryki danych tak, liczenie oczekiwanej wartości algorytmem produkcyjnym nie
+<strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>s04_drytests</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s04</code> (<code>S04SpecsTest.test.ts</code>)
+<strong>Czas:</strong> ~10 min</p>
+<h3 id="w-skrocie-3" tabindex="-1"><a class="header-anchor" href="#w-skrocie-3"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> Specyfikacja cen <code>TicketPriceSpecs</code> ma przypadki zaszyfrowane w napisach i liczy oczekiwaną cenę tym samym wzorem co produkcja. Najpierw nadajemy przypadkom czytelne nazwy, potem zastępujemy wyliczanie oczekiwania kwotami policzonymi ręcznie z regulaminu.</p>
+<p><strong>Zasada:</strong> DRY w testach obejmuje fabryki danych i wspólne helpery, ale nie oczekiwaną wartość: test liczący ją algorytmem produkcyjnym traci niezależną wyrocznię. DAMP oznacza, że każdy przypadek czyta się jak zdanie z regulaminu, nawet kosztem pewnego powtórzenia.</p>
+<p><strong>Efekt:</strong> Specyfikacja łapie błędną zniżkę studencką i mówi, który przypadek, jaka kwota oczekiwana i jaka faktyczna. Koszt: przy zmianie cennika kwoty w przykładach trzeba przeliczyć ręcznie - i to jest zamierzone.</p>
+<p><strong>Różnica względem Javy:</strong> mapy taryfy to <code>ReadonlyMap</code>, a brak klucza (w Javie NPE) port zapisuje jako <code>get(...)!</code>. Poza tym scena jest wierną kopią.</p>
+<h3 id="co-widzimy-3" tabindex="-1"><a class="header-anchor" href="#co-widzimy-3"><span>Co widzimy</span></a></h3>
+<p>Kod produkcyjny sceny (<code>Tariff</code>, <code>TicketPrice</code>) jest stabilny. Refaktoryzujemy specyfikację cen <code>TicketPriceSpecs</code> - w projekcie byłby to plik testowy vitest, tu leży w <code>src</code>, żeby działał mechanizm start/stepN. Metoda <code>run</code> zwraca listę niespełnionych przypadków. Start jest &quot;maksymalnie DRY&quot;: przypadki zaszyfrowane w stringach, a oczekiwana cena liczona z tej samej taryfy i tym samym wzorem co produkcja.</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">readonly</span> <span class="hljs-variable constant_">SPECS</span> = <span class="hljs-title class_">Object</span>.<span class="hljs-title function_">freeze</span>([<span class="hljs-string">&#x27;IMAX N 20&#x27;</span>, <span class="hljs-string">&#x27;3D S 11&#x27;</span>, <span class="hljs-string">&#x27;2D E 18&#x27;</span>, <span class="hljs-string">&#x27;2D C 10&#x27;</span>]);
+...
+<span class="hljs-keyword">const</span> base = price.<span class="hljs-title function_">tariff</span>().<span class="hljs-property">basePrices</span>.<span class="hljs-title function_">get</span>(format)!;
+<span class="hljs-keyword">const</span> expected = base.<span class="hljs-title function_">minus</span>(discount)
+  .<span class="hljs-title function_">minus</span>(start.<span class="hljs-property">hour</span> &lt; <span class="hljs-number">12</span> ? <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;5.00&#x27;</span>) : <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-number">0</span>));
+</code></pre>
+<h3 id="krok-1-damp-nazwane-przyklady-zamiast-szyfru" tabindex="-1"><a class="header-anchor" href="#krok-1-damp-nazwane-przyklady-zamiast-szyfru"><span>Krok 1: DAMP - nazwane przykłady zamiast szyfru</span></a></h3>
+<p><strong>W IDE:</strong> ręcznie: zamień pętlę po <code>SPECS</code> na cztery wywołania <code>this.check(price, &#x27;student na porannym 3D&#x27;, &#x27;3D&#x27;, &#x27;STUDENT&#x27;, LocalTime.of(11, 0), failures)</code>. Usuń parsowanie stringa. Wyliczenie oczekiwania wydziel (⌃⇧R &gt; Extract to method in class) jako <code>expectedFromTariff</code>. Komunikat błędu: nazwa przykładu, oczekiwana i faktyczna cena (<code>toFixed(2)</code>).
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-variable language_">this</span>.<span class="hljs-title function_">check</span>(price, <span class="hljs-string">&#x27;student na porannym 3D&#x27;</span>, <span class="hljs-string">&#x27;3D&#x27;</span>, <span class="hljs-string">&#x27;STUDENT&#x27;</span>, <span class="hljs-title class_">LocalTime</span>.<span class="hljs-title function_">of</span>(<span class="hljs-number">11</span>, <span class="hljs-number">0</span>), failures);
+...
+<span class="hljs-keyword">const</span> expected = <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">expectedFromTariff</span>(price.<span class="hljs-title function_">tariff</span>(), format, <span class="hljs-keyword">type</span>, start);
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s04</code> - 5 testów zielonych; test <code>step1IsReadableButStillBlindToTheBug</code> pokazuje, że z błędną taryfą (zniżka studencka 20% zamiast 25%) krok 1 nadal nic nie zgłasza.
+<strong>Co powiedzieć:</strong> czytelność poprawiona, ale test wciąż jest kopią algorytmu. Jeśli algorytm jest zły, test jest zły tak samo.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s04 0 1</code></p>
+<h3 id="krok-2-jawna-oczekiwana-wartosc-niezalezna-wyrocznia" tabindex="-1"><a class="header-anchor" href="#krok-2-jawna-oczekiwana-wartosc-niezalezna-wyrocznia"><span>Krok 2: Jawna oczekiwana wartość - niezależna wyrocznia</span></a></h3>
+<p><strong>W IDE:</strong> VS Code nie ma Change Signature, więc ręcznie: dodaj do <code>check</code> parametr <code>expected: string</code> (przed <code>failures</code>), kompilator wskaże cztery wywołania - wpisz w nich ręcznie policzone kwoty (40.00, 19.00, 17.50, 10.00). Usuń <code>expectedFromTariff</code> (po zmianie nie ma już odwołań) i import <code>Tariff</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-variable language_">this</span>.<span class="hljs-title function_">check</span>(price, <span class="hljs-string">&#x27;student na porannym 3D&#x27;</span>, <span class="hljs-string">&#x27;3D&#x27;</span>, <span class="hljs-string">&#x27;STUDENT&#x27;</span>, <span class="hljs-title class_">LocalTime</span>.<span class="hljs-title function_">of</span>(<span class="hljs-number">11</span>, <span class="hljs-number">0</span>), <span class="hljs-string">&#x27;19.00&#x27;</span>, failures);
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; <code>step2CatchesBrokenStudentDiscount</code> pokazuje komunikat <code>student na porannym 3D: oczekiwano 19.00, jest 20.60</code>.
+<strong>Co powiedzieć:</strong> wspólny helper <code>check</code> zostaje - współdzielenie fabryki przypadku i formatu komunikatu to dobre DRY w testach. Wyrocznia musi być niezależna od kodu, który sprawdza.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s04 1 2</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-3" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-3"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>DAMP (Descriptive And Meaningful Phrases): każdy przypadek czyta się jak zdanie z regulaminu, oczekiwanie pochodzi z regulaminu, nie z taryfy. Kwoty policz na sali: 32.00 - 25% = 24.00, rano -5.00 = 19.00.</p>
+<h3 id="pulapki-3" tabindex="-1"><a class="header-anchor" href="#pulapki-3"><span>Pułapki</span></a></h3>
+<ul>
+<li>&quot;Test sprawdza, czy kod robi to, co robi&quot; - oczekiwanie liczone kodem produkcyjnym lub jego kopią.</li>
+<li>Przesadne DRY w testach: jeden parametryzowany helper z szyfrem zamiast czytelnych przykładów (w vitest: <code>it.each</code> z tablicą nieopisanych krotek).</li>
+<li>Odwrotna skrajność: kopiowanie całego przygotowania danych w każdym teście zamiast fabryki.</li>
+</ul>
+<h3 id="pytanie-do-sali-3" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-3"><span>Pytanie do sali</span></a></h3>
+<p>W którym waszym teście oczekiwana wartość jest wyliczana, a nie wpisana? Co by się stało, gdyby wzór był zły?</p>
+<h2 id="scena-s05-kiss-zlozonosc-wprowadzona-kontra-istotna" tabindex="-1"><a class="header-anchor" href="#scena-s05-kiss-zlozonosc-wprowadzona-kontra-istotna"><span>Scena s05. KISS - złożoność wprowadzona kontra istotna</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 2.4-2.5 KISS: prostota po poprawności; ukryty przepływ przez refleksję
+<strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>s05_kiss</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s05</code> (<code>S05EquivalenceTest.test.ts</code>)
+<strong>Czas:</strong> ~8 min</p>
+<h3 id="w-skrocie-4" tabindex="-1"><a class="header-anchor" href="#w-skrocie-4"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> <code>SeatCounter</code> wybiera rodzaj miejsc napisem i dynamicznym wywołaniem metody po nazwie, a wolne miejsca liczy wyrażeniem regularnym. Zastępujemy to dwiema jawnymi metodami i zwykłą pętlą po znakach.</p>
+<p><strong>Zasada:</strong> KISS to najmniej złożone rozwiązanie, które poprawnie realizuje aktualne wymagania. Celuje w złożoność wprowadzoną (refleksja, sprytne mechanizmy), a złożoność istotną zostawia, tylko ją nazywa - nie myl go z najmniejszą liczbą linii.</p>
+<p><strong>Efekt:</strong> Literówka w rodzaju miejsc nie przejdzie kompilacji, a Find All References znów pokazuje przepływ. Reguły istotne, jak miejsce zablokowane czy początek strefy VIP, zostają i pilnuje ich test.</p>
+<p><strong>Różnica względem Javy:</strong> refleksję (<code>getDeclaredMethod(kind + &quot;Rows&quot;)</code>) zastępuje dynamiczne wywołanie po nazwie: <code>Reflect.get(this, `${kind}Rows`)</code>. Zapach jest ten sam - nazwa metody w napisie, metody wierszy wyglądają na nieużywane, literówka wybucha w runtime (<code>IllegalStateError</code>). Strumienie z Javy to operacje na tablicach (<code>Array.from</code>, <code>filter</code>, <code>map</code>), a regex z nazwaną grupą zostaje (<code>matchAll</code>).</p>
+<h3 id="co-widzimy-4" tabindex="-1"><a class="header-anchor" href="#co-widzimy-4"><span>Co widzimy</span></a></h3>
+<p><code>SeatCounter</code> liczy wolne miejsca w sali (<code>&#x27;.&#x27;</code> wolne, <code>&#x27;X&#x27;</code> zajęte, <code>&#x27;B&#x27;</code> zablokowane, <code>&#x27; &#x27;</code> przejście) oraz wolne miejsca VIP. Rodzaj miejsc wybierany jest stringiem i wywołaniem dynamicznym, a liczenie idzie przez wyrażenie regularne z nazwaną grupą. VS Code wyszarza <code>allRows</code> i <code>vipRows</code> jako nieużywane (declared but never read).</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">const</span> <span class="hljs-attr">rows</span>: <span class="hljs-built_in">unknown</span> = <span class="hljs-title class_">Reflect</span>.<span class="hljs-title function_">get</span>(<span class="hljs-variable language_">this</span>, <span class="hljs-string">`<span class="hljs-subst">${kind}</span>Rows`</span>);
+<span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> rows !== <span class="hljs-string">&#x27;function&#x27;</span>) {
+  <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateError</span>(<span class="hljs-string">`nieznany rodzaj miejsc: <span class="hljs-subst">${kind}</span>`</span>);
+}
+<span class="hljs-keyword">const</span> selected = (rows <span class="hljs-title function_">as</span> (<span class="hljs-attr">hall</span>: <span class="hljs-title class_">Hall</span>) =&gt; <span class="hljs-title class_">Iterable</span>&lt;<span class="hljs-built_in">string</span>&gt;).<span class="hljs-title function_">call</span>(<span class="hljs-variable language_">this</span>, hall);
+<span class="hljs-keyword">return</span> [...selected]
+  .<span class="hljs-title function_">flatMap</span>(<span class="hljs-function">(<span class="hljs-params">row</span>) =&gt;</span> [...row.<span class="hljs-title function_">matchAll</span>(<span class="hljs-title class_">SeatCounter</span>.<span class="hljs-property">FREE</span>)].<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">m</span>) =&gt;</span> m.<span class="hljs-property">groups</span>?.[<span class="hljs-string">&#x27;seat&#x27;</span>]))
+  .<span class="hljs-property">length</span>;
+</code></pre>
+<h3 id="krok-1-replace-parameter-with-explicit-methods" tabindex="-1"><a class="header-anchor" href="#krok-1-replace-parameter-with-explicit-methods"><span>Krok 1: Replace Parameter with Explicit Methods</span></a></h3>
+<p><strong>W IDE:</strong> ręcznie: zamiast <code>this.free(hall, &#x27;all&#x27;)</code> i <code>this.free(hall, &#x27;vip&#x27;)</code> utwórz <code>freeSeats(hall)</code> i <code>freeVipSeats(hall)</code>, które wołają wspólne <code>countFree(rows: Iterable&lt;string&gt;)</code>. Usuń <code>free</code> z <code>Reflect.get</code>, rzutowaniem i <code>IllegalStateError</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-title function_">summary</span>(<span class="hljs-attr">hall</span>: <span class="hljs-title class_">Hall</span>): <span class="hljs-built_in">string</span> {
+  <span class="hljs-keyword">return</span> <span class="hljs-string">`wolne: <span class="hljs-subst">${<span class="hljs-variable language_">this</span>.freeSeats(hall)}</span>, wolne VIP: <span class="hljs-subst">${<span class="hljs-variable language_">this</span>.freeVipSeats(hall)}</span>`</span>;
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s05</code> - 12 testów zielonych.
+<strong>Co powiedzieć:</strong> literówka w <code>&#x27;vip&#x27;</code> wybuchała dopiero w runtime; teraz nie przejdzie kompilacji. Przepływ widać w IDE (⇧⌥F12 Find All References znów działa, F12 prowadzi do definicji).
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s05 0 1</code></p>
+<h3 id="krok-2-substitute-algorithm-zwykle-petle" tabindex="-1"><a class="header-anchor" href="#krok-2-substitute-algorithm-zwykle-petle"><span>Krok 2: Substitute Algorithm - zwykłe pętle</span></a></h3>
+<p><strong>W IDE:</strong> ręcznie zastąp tablicę numerów rzędów przez <code>slice</code> od pierwszego rzędu VIP (indeks obcięty do zakresu przez <code>Math.min(Math.max(...))</code>), a regex przez pętlę po znakach porównującą ze stałą <code>FREE = &#x27;.&#x27;</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-title function_">freeIn</span>(<span class="hljs-attr">rows</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">string</span>[]): <span class="hljs-built_in">number</span> {
+  <span class="hljs-keyword">let</span> free = <span class="hljs-number">0</span>;
+  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> row <span class="hljs-keyword">of</span> rows) {
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> seat <span class="hljs-keyword">of</span> row) {
+      <span class="hljs-keyword">if</span> (seat === <span class="hljs-title class_">SeatCounter</span>.<span class="hljs-property">FREE</span>) {
+        free++;
+      }
+    }
+  }
+  <span class="hljs-keyword">return</span> free;
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony, także dla rzędu z <code>&#x27;B&#x27;</code> i przejściem.
+<strong>Co powiedzieć:</strong> złożoność istotna zostaje (co to jest wolne miejsce, od którego rzędu VIP, obcięcie <code>vipFromRow</code> do zakresu), ale jest nazwana. Zniknęła tylko złożoność wprowadzona.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s05 1 2</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-4" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-4"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>KISS to najmniej złożone rozwiązanie, które <strong>poprawnie</strong> realizuje wymagania. Test z zablokowanym miejscem i przejściem pilnuje, że uproszczenie nie zgubiło przypadku.</p>
+<h3 id="pulapki-4" tabindex="-1"><a class="header-anchor" href="#pulapki-4"><span>Pułapki</span></a></h3>
+<ul>
+<li>Uproszczenie, które pomija przypadek brzegowy (np. <code>&#x27;B&#x27;</code> liczone jako wolne) - &quot;prostsze, ale błędne&quot;.</li>
+<li>Mylenie KISS z najmniejszą liczbą linii: jednolinijkowy regex jest krótszy, ale trudniejszy.</li>
+</ul>
+<h3 id="pytanie-do-sali-4" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-4"><span>Pytanie do sali</span></a></h3>
+<p>Jaki &quot;sprytny&quot; mechanizm (dynamiczne wywołania po nazwie, dekoratory, konwencje nazw plików) w waszym kodzie ukrywa przepływ sterowania? Czy daje coś, czego nie da zwykłe wywołanie?</p>
+<h2 id="scena-s06-yagni-silnik-regul-dla-dwoch-regul" tabindex="-1"><a class="header-anchor" href="#scena-s06-yagni-silnik-regul-dla-dwoch-regul"><span>Scena s06. YAGNI - silnik reguł dla dwóch reguł</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 2.6-2.7 YAGNI i czego nie zabrania; 2.8 Napięcia (ogólny silnik hipotetycznych taryf); 2.9 Filtr decyzyjny
+<strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>s06_yagni</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s06</code> (<code>S06EquivalenceTest.test.ts</code>)
+<strong>Czas:</strong> ~12 min</p>
+<h3 id="w-skrocie-5" tabindex="-1"><a class="header-anchor" href="#w-skrocie-5"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> <code>TicketPricer</code> to silnik z rejestrem pluginów, konfiguracją napisem i kontekstem <code>Map</code> - dla dokładnie dwóch reguł. W trzech krokach usuwamy rejestr, zastępujemy mapę typowanymi danymi i wklejamy reguły do jednej klasy.</p>
+<p><strong>Zasada:</strong> YAGNI mówi, żeby nie budować zdolności potrzebnej tylko dla przewidywanego wymagania. Nie zabrania testów, refaktoryzacji ani nazwanych metod - to one pozwalają bezpiecznie odłożyć abstrakcję do chwili, gdy pojawi się realna potrzeba.</p>
+<p><strong>Efekt:</strong> Z pięciu typów zostaje jedna klasa z dwiema nazwanymi regułami, a literówka w nazwie reguły nie skompiluje się. Gdy przyjdzie trzecia reguła z innym właścicielem, abstrakcję trzeba będzie wprowadzić ponownie.</p>
+<p><strong>Różnica względem Javy:</strong> kontekst <code>Map&lt;String, Object&gt;</code> to <code>ReadonlyMap&lt;string, unknown&gt;</code> z rzutowaniami <code>as LocalTime</code> / <code>as number</code> - te same &quot;rzutowania z mapy&quot;, które znikają w kroku 2. Dwa konstruktory <code>TicketPricer</code> z Javy to jeden konstruktor z parametrami domyślnymi, a <code>Supplier&lt;PricingRule&gt;</code> to funkcja <code>() =&gt; PricingRule</code>.</p>
+<h3 id="co-widzimy-5" tabindex="-1"><a class="header-anchor" href="#co-widzimy-5"><span>Co widzimy</span></a></h3>
+<p><code>TicketPricer</code> to spekulatywny silnik: rejestr pluginów, konfiguracja napisem <code>&#x27;morning,vip&#x27;</code>, priorytety i kontekst <code>Map&lt;string, unknown&gt;</code>. Obsługuje dokładnie dwie reguły (poranek -5.00, VIP +10.00), które nie zależą od kolejności.</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">const</span> context = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Map</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">unknown</span>&gt;();
+context.<span class="hljs-title function_">set</span>(<span class="hljs-string">&#x27;start&#x27;</span>, quote.<span class="hljs-property">start</span>);
+context.<span class="hljs-title function_">set</span>(<span class="hljs-string">&#x27;row&#x27;</span>, quote.<span class="hljs-property">row</span>);
+...
+<span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> rule <span class="hljs-keyword">of</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">registry</span>.<span class="hljs-title function_">resolve</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">activeRules</span>)) {
+  <span class="hljs-keyword">if</span> (rule.<span class="hljs-title function_">appliesTo</span>(context)) {
+    price = rule.<span class="hljs-title function_">apply</span>(context, price);
+  }
+}
+</code></pre>
+<p>Na żywo: zmień w konstruktorze wartość domyślną <code>&#x27;morning,vip&#x27;</code> na <code>&#x27;morning,vlp&#x27;</code> i uruchom test - błąd konfiguracji wychodzi dopiero w runtime (<code>IllegalArgumentError: brak reguly: vlp</code>). Cofnij zmianę.</p>
+<h3 id="krok-1-inline-class-rejestr-pluginow-znika" tabindex="-1"><a class="header-anchor" href="#krok-1-inline-class-rejestr-pluginow-znika"><span>Krok 1: Inline Class - rejestr pluginów znika</span></a></h3>
+<p><strong>W IDE:</strong> w <code>TicketPricer</code> zastąp parametry konstruktora <code>registry</code> i <code>activeRules</code> polem z listą <code>Object.freeze([new MorningRule(), new VipRule()])</code> (ręcznie, konstruktor usuń). Usuń <code>RuleRegistry.ts</code> i metodę <code>priority()</code> z interfejsu i obu reguł (była potrzebna tylko do sortowania) - przed usunięciem sprawdź ⇧⌥F12.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">rules</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-title class_">PricingRule</span>[] = <span class="hljs-title class_">Object</span>.<span class="hljs-title function_">freeze</span>([<span class="hljs-keyword">new</span> <span class="hljs-title class_">MorningRule</span>(), <span class="hljs-keyword">new</span> <span class="hljs-title class_">VipRule</span>()]);
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s06</code> - 16 testów zielonych.
+<strong>Co powiedzieć:</strong> konfiguracja napisem nie miała żadnego klienta. Teraz literówka w nazwie reguły nie skompiluje się.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s06 0 1</code></p>
+<h3 id="krok-2-change-signature-typowane-dane-zamiast-mapy" tabindex="-1"><a class="header-anchor" href="#krok-2-change-signature-typowane-dane-zamiast-mapy"><span>Krok 2: Change Signature - typowane dane zamiast mapy</span></a></h3>
+<p><strong>W IDE:</strong> ręcznie (VS Code nie ma Change Signature): w <code>PricingRule.appliesTo</code> zmień typ parametru z <code>ReadonlyMap&lt;string, unknown&gt;</code> na <code>TicketQuote</code>, z <code>apply</code> usuń parametr kontekstu. Kompilator wskaże obie implementacje i wywołania - popraw je (rzutowania znikają) i usuń budowanie mapy w <code>TicketPricer</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-title function_">appliesTo</span>(<span class="hljs-attr">quote</span>: <span class="hljs-title class_">TicketQuote</span>): <span class="hljs-built_in">boolean</span> {
+  <span class="hljs-keyword">return</span> quote.<span class="hljs-property">row</span> &gt;= quote.<span class="hljs-property">vipFromRow</span>;
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> generyczny kontekst to typowa spekulacja &quot;reguła może potrzebować czegokolwiek&quot;. Kompilator znów pilnuje nazw pól.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s06 1 2</code></p>
+<h3 id="krok-3-inline-class-dla-regul-usuniecie-interfejsu" tabindex="-1"><a class="header-anchor" href="#krok-3-inline-class-dla-regul-usuniecie-interfejsu"><span>Krok 3: Inline Class dla reguł, usunięcie interfejsu</span></a></h3>
+<p><strong>W IDE:</strong> ręcznie: dwa <code>if</code> w <code>price</code> z metodami <code>isMorning</code> i <code>isVip</code> (ciała z <code>appliesTo</code> obu reguł, ⌃⇧R &gt; Extract to method in class). Usuń <code>MorningRule.ts</code>, <code>VipRule.ts</code> i <code>PricingRule.ts</code>. Stałe przez ⌃⇧R &gt; Extract to constant (pola <code>private static readonly</code>).
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-title function_">price</span>(<span class="hljs-attr">quote</span>: <span class="hljs-title class_">TicketQuote</span>): <span class="hljs-title class_">Decimal</span> {
+  <span class="hljs-keyword">let</span> price = <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">basePrice</span>(quote.<span class="hljs-property">format</span>);
+  <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-title function_">isMorning</span>(quote)) {
+    price = price.<span class="hljs-title function_">minus</span>(<span class="hljs-title class_">TicketPricer</span>.<span class="hljs-property">MORNING_DISCOUNT</span>);
+  }
+  <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-title function_">isVip</span>(quote)) {
+    price = price.<span class="hljs-title function_">plus</span>(<span class="hljs-title class_">TicketPricer</span>.<span class="hljs-property">VIP_SURCHARGE</span>);
+  }
+  <span class="hljs-keyword">return</span> price;
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> YAGNI nie zabrania testów, nazwanych metod ani szwu testowego - cena liczona jest z danych wejściowych, bez zegara i stanu statycznego, więc każdą regułę łatwo sprawdzić. Gdy pojawi się trzecia reguła z innym właścicielem, wydzielimy abstrakcję wtedy.
+<strong>Snapshot:</strong> <code>step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s06 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-5" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-5"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Przejdź z salą filtr ze slajdu 2.9: aktualne wymaganie (2 reguły), nazwa w języku problemu (brak: &quot;plugin&quot;, &quot;registry&quot;), czy upraszcza aktualny przypadek (nie), koszt usunięcia (niski - pokazaliśmy). Z pięciu typów została jedna klasa.</p>
+<h3 id="pulapki-5" tabindex="-1"><a class="header-anchor" href="#pulapki-5"><span>Pułapki</span></a></h3>
+<ul>
+<li>&quot;YAGNI, więc bez testów&quot; - odwrotnie: testy i małe kroki pozwalają bezpiecznie odraczać decyzje.</li>
+<li>Usunięcie abstrakcji, która chroni aktualną, realną granicę (np. port do bazy) - to nie spekulacja.</li>
+</ul>
+<h3 id="pytanie-do-sali-5" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-5"><span>Pytanie do sali</span></a></h3>
+<p>Który mechanizm rozszerzeń w waszym systemie ma dziś jedną albo dwie implementacje? Jaki sygnał powiedziałby, że czas go wprowadzić ponownie?</p>
+<h2 id="scena-s07-srp-raport-dla-dwoch-aktorow" tabindex="-1"><a class="header-anchor" href="#scena-s07-srp-raport-dla-dwoch-aktorow"><span>Scena s07. SRP - raport dla dwóch aktorów</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 3.2 SRP: jeden aktor zmiany; 3.7 Błędne uproszczenia SOLID (&quot;klasa robi jedną rzecz&quot;)
+<strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>s07_srp</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s07</code> (<code>S07EquivalenceTest.test.ts</code>)
+<strong>Czas:</strong> ~12 min</p>
+<h3 id="w-skrocie-6" tabindex="-1"><a class="header-anchor" href="#w-skrocie-6"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> <code>DailyReport</code> składa raport dla księgowości i marketingu, a wspólny helper <code>revenue</code> sprawia, że zmiana dla jednego aktora cicho zmienia kwoty drugiego. Wydzielamy sekcje, rozdzielamy helper i tworzymy klasę na każdego aktora.</p>
+<p><strong>Zasada:</strong> SRP mówi, że moduł powinien odpowiadać przed jednym aktorem, czyli mieć jeden powód zmiany. To nie jest &quot;klasa robi jedną rzecz&quot; ani jedna metoda na klasę - klasa może mieć kilka metod, jeśli wszystkie zmieniają się dla tego samego aktora.</p>
+<p><strong>Efekt:</strong> Zmiana definicji hitu dotyka tylko <code>MarketingSection</code>, a zmiana stawki VAT tylko <code>AccountingSection</code>. Koszt: dwie identyczne dziś formuły, powtórzone świadomie, bo to kod, a nie wspólna wiedza.</p>
+<p><strong>Różnica względem Javy:</strong> <code>StringBuilder</code> to konkatenacja <code>out += ...</code>, a <code>TreeMap.merge</code> to zwykła <code>Map</code> plus sortowanie wpisów po tytule przed wyborem hitu (kolejność alfabetyczna rozstrzyga remis tak samo jak w Javie).</p>
+<h3 id="co-widzimy-6" tabindex="-1"><a class="header-anchor" href="#co-widzimy-6"><span>Co widzimy</span></a></h3>
+<p><code>DailyReport.render</code> składa raport dla księgowości (przychód brutto i netto wg VAT 8% i 23%) i dla marketingu (hit dnia, liczba biletów). Obie części korzystają ze wspólnego helpera <code>revenue</code>. Gdy marketing poprosi &quot;hit dnia licz bez baru&quot;, poprawka helpera po cichu zmieni też &quot;Razem brutto&quot; dla księgowości.</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-title function_">revenue</span>(<span class="hljs-attr">sale</span>: <span class="hljs-title class_">Sale</span>): <span class="hljs-title class_">Decimal</span> {
+  <span class="hljs-keyword">return</span> sale.<span class="hljs-property">ticketRevenue</span>.<span class="hljs-title function_">plus</span>(sale.<span class="hljs-property">barRevenue</span>);
+}
+...
+total = total.<span class="hljs-title function_">plus</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-title function_">revenue</span>(sale));                                                          <span class="hljs-comment">// księgowość</span>
+byTitle.<span class="hljs-title function_">set</span>(sale.<span class="hljs-property">title</span>, (byTitle.<span class="hljs-title function_">get</span>(sale.<span class="hljs-property">title</span>) ?? <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-number">0</span>)).<span class="hljs-title function_">plus</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-title function_">revenue</span>(sale)));  <span class="hljs-comment">// marketing</span>
+</code></pre>
+<h3 id="krok-1-extract-method-wedlug-aktora" tabindex="-1"><a class="header-anchor" href="#krok-1-extract-method-wedlug-aktora"><span>Krok 1: Extract Method według aktora</span></a></h3>
+<p><strong>W IDE:</strong> zaznacz blok pod <code>/<wbr>/<wbr> księgowość</code>, ⌃⇧R &gt; Extract to method in class, nazwa <code>accountingSection</code> (niech zwraca <code>string</code> i ma własną zmienną <code>out</code>); to samo dla <code>/<wbr>/<wbr> marketing</code> jako <code>marketingSection</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-title function_">render</span>(<span class="hljs-attr">sales</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-title class_">Sale</span>[]): <span class="hljs-built_in">string</span> {
+  <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">accountingSection</span>(sales) + <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">marketingSection</span>(sales);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s07</code> - 12 testów zielonych (w tym remis tytułów i dzień bez sprzedaży).
+<strong>Co powiedzieć:</strong> komentarze nazywały aktorów - teraz nazywają je metody. Helper <code>revenue</code> nadal wiąże oba światy.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s07 0 1</code></p>
+<h3 id="krok-2-rozdziel-wspolny-helper-wedlug-aktora" tabindex="-1"><a class="header-anchor" href="#krok-2-rozdziel-wspolny-helper-wedlug-aktora"><span>Krok 2: Rozdziel wspólny helper według aktora</span></a></h3>
+<p><strong>W IDE:</strong> skopiuj <code>revenue</code> (⇧⌥↓ duplikuje zaznaczone linie), nazwij kopię <code>popularity</code>, w <code>marketingSection</code> użyj <code>popularity</code>. Dodaj komentarz dokumentacyjny (<code>/<wbr>** ... */<wbr></code>) z właścicielem każdej metody.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-comment">/** Księgowość: przychód brutto seansu. */</span>
+<span class="hljs-keyword">private</span> <span class="hljs-title function_">revenue</span>(<span class="hljs-attr">sale</span>: <span class="hljs-title class_">Sale</span>): <span class="hljs-title class_">Decimal</span> { ... }
+
+<span class="hljs-comment">/** Marketing: miara popularności filmu (dziś: bilety + bar). */</span>
+<span class="hljs-keyword">private</span> <span class="hljs-title function_">popularity</span>(<span class="hljs-attr">sale</span>: <span class="hljs-title class_">Sale</span>): <span class="hljs-title class_">Decimal</span> { ... }
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> świadomie powtarzamy kod, nie wiedzę - dziś formuły są równe przypadkiem. To lekcja z s02 w kontekście SRP.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s07 1 2</code></p>
+<h3 id="krok-3-extract-class-klasa-na-aktora" tabindex="-1"><a class="header-anchor" href="#krok-3-extract-class-klasa-na-aktora"><span>Krok 3: Extract Class - klasa na aktora</span></a></h3>
+<p><strong>W IDE:</strong> VS Code nie ma Extract Class (Extract Delegate), więc ręcznie: utwórz <code>AccountingSection.ts</code> i przenieś do niej <code>accountingSection</code> (jako <code>render</code>), <code>revenue</code> i <code>net</code>; utwórz <code>MarketingSection.ts</code> z <code>marketingSection</code> (jako <code>render</code>) i <code>popularity</code>. W <code>DailyReport</code> zostaw dwa pola i delegowanie. Zaznaczone metody możesz też przenieść przez Move to a new file, ale trafią do pliku jako funkcje - i tak trzeba je potem opakować w klasę.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">DailyReport</span> {
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> accounting = <span class="hljs-keyword">new</span> <span class="hljs-title class_">AccountingSection</span>();
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> marketing = <span class="hljs-keyword">new</span> <span class="hljs-title class_">MarketingSection</span>();
+
+  <span class="hljs-title function_">render</span>(<span class="hljs-attr">sales</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-title class_">Sale</span>[]): <span class="hljs-built_in">string</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">accounting</span>.<span class="hljs-title function_">render</span>(sales) + <span class="hljs-variable language_">this</span>.<span class="hljs-property">marketing</span>.<span class="hljs-title function_">render</span>(sales);
+  }
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony - dokument identyczny co do znaku.
+<strong>Co powiedzieć:</strong> <code>DailyReport</code> koordynuje, ale nie zna polityk. Zmiana definicji hitu dotyka tylko <code>MarketingSection</code>, zmiana stawki VAT tylko <code>AccountingSection</code>.
+<strong>Snapshot:</strong> <code>step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s07 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-6" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-6"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Odpowiedzialność = aktor i jego powód zmiany, nie &quot;jedna rzecz&quot;. <code>AccountingSection</code> ma trzy metody i to jest w porządku: wszystkie zmieniają się dla księgowości. Obie sekcje są eksportowane (w Javie byłyby package-private) - TypeScript nie ma widoczności pakietowej, więc granicę &quot;tylko dla <code>DailyReport</code>&quot; wyznacza tu konwencja, a w większym projekcie reguła importów (jak w s13).</p>
+<h3 id="pulapki-6" tabindex="-1"><a class="header-anchor" href="#pulapki-6"><span>Pułapki</span></a></h3>
+<ul>
+<li>Dzielenie na klasy &quot;po jednej metodzie&quot; zamiast według aktora.</li>
+<li>Zostawienie wspólnego helpera między nowymi klasami (np. w module <code>reportUtils.ts</code>) - powrót do problemu.</li>
+</ul>
+<h3 id="pytanie-do-sali-6" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-6"><span>Pytanie do sali</span></a></h3>
+<p>Kto w waszej organizacji zgłasza zmiany do największej klasy w systemie? Ilu to różnych aktorów?</p>
+<h2 id="scena-s08-ocp-na-wybranej-osi-formaty-seansu" tabindex="-1"><a class="header-anchor" href="#scena-s08-ocp-na-wybranej-osi-formaty-seansu"><span>Scena s08. OCP na wybranej osi - formaty seansu</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 3.3 OCP: zamknięcie dla wybranej osi; nie każdy <code>switch</code> narusza OCP
+<strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>s08_ocp</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s08</code> (<code>S08EquivalenceTest.test.ts</code>, <code>S08NewFormatTest.test.ts</code>)
+<strong>Czas:</strong> ~10 min</p>
+<h3 id="w-skrocie-7" tabindex="-1"><a class="header-anchor" href="#w-skrocie-7"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> Wiedza o formatach seansu jest rozsiana po trzech <code>switch</code> na napisach, więc nowy format wymaga edycji wielu miejsc. Zamieniamy napisy na enum, przenosimy do typu <code>Format</code> dane formatów i dodajemy 4DX jedną linią.</p>
+<p><strong>Zasada:</strong> OCP to możliwość rozszerzenia wybranego zachowania bez modyfikowania stabilnej części. Zamyka się kod na jedną, realnie rosnącą oś zmian, nie na wszystkie naraz, a nie każdy <code>switch</code> łamie OCP - wyczerpujący <code>switch</code> na enumie (z <code>assertNever</code> zamiast <code>default</code>) bywa dobrym modelem zamkniętego zbioru.</p>
+<p><strong>Efekt:</strong> Dodanie formatu to zmiana tylko w <code>Format</code>, a <code>ScreeningOffer</code> nie zmienia się ani o znak. Na inne osie, na przykład nową dopłatę, klasa nadal nie jest zamknięta - i nie musi.</p>
+<p><strong>Różnica względem Javy:</strong> w kroku 1 enum TS ma wartości-kody (<code>TWO_D = &#x27;2D&#x27;</code>) i osobną funkcję <code>parseFormat</code>, a <code>switch</code> bez <code>default</code> z Javy to <code>default: return assertNever(format)</code> - efekt ten sam: nowa wartość enuma to błąd kompilacji w każdym <code>switch</code>. Enum TS nie może mieć pól, więc w krokach 2-3 <code>Format</code> jest klasą z instancjami statycznymi i prywatnym konstruktorem, który sam dopisuje instancję do listy <code>ALL</code> (odpowiednik <code>values()</code>) - nowy format to nadal jedna linia.</p>
+<h3 id="co-widzimy-7" tabindex="-1"><a class="header-anchor" href="#co-widzimy-7"><span>Co widzimy</span></a></h3>
+<p>Wiedza o formatach (2D, 3D, IMAX) jest rozsiana po trzech <code>switch</code> na stringu: cena bazowa, okulary 3D, etykieta. Kino kupuje salę 4DX - trzeba edytować każdy <code>switch</code>, a zapomniany trafi do <code>default</code>.</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">let</span> <span class="hljs-attr">glasses</span>: <span class="hljs-title class_">Decimal</span>;
+<span class="hljs-keyword">switch</span> (format) {
+  <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;3D&#x27;</span>: glasses = ownGlasses ? <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-number">0</span>) : <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;3.00&#x27;</span>); <span class="hljs-keyword">break</span>;
+  <span class="hljs-attr">default</span>: glasses = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-number">0</span>);
+}
+</code></pre>
+<h3 id="krok-1-replace-type-code-with-enum" tabindex="-1"><a class="header-anchor" href="#krok-1-replace-type-code-with-enum"><span>Krok 1: Replace Type Code with Enum</span></a></h3>
+<p><strong>W IDE:</strong> utwórz <code>Format.ts</code> z <code>enum Format { TWO_D = &#x27;2D&#x27;, THREE_D = &#x27;3D&#x27;, IMAX = &#x27;IMAX&#x27; }</code> i funkcją <code>parseFormat(code)</code>; w <code>ScreeningOffer</code> przełącz <code>switch</code> na enum, a <code>default</code> zastąp <code>return assertNever(format)</code> (z <code>shared/<wbr>assertNever.ts</code>).
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">switch</span> (format) {
+  <span class="hljs-keyword">case</span> <span class="hljs-title class_">Format</span>.<span class="hljs-property">THREE_D</span>: glasses = ownGlasses ? <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-number">0</span>) : <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;3.00&#x27;</span>); <span class="hljs-keyword">break</span>;
+  <span class="hljs-keyword">case</span> <span class="hljs-title class_">Format</span>.<span class="hljs-property">TWO_D</span>:
+  <span class="hljs-keyword">case</span> <span class="hljs-title class_">Format</span>.<span class="hljs-property">IMAX</span>: glasses = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-number">0</span>); <span class="hljs-keyword">break</span>;
+  <span class="hljs-attr">default</span>: <span class="hljs-keyword">return</span> <span class="hljs-title function_">assertNever</span>(format);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s08</code> - 18 testów zielonych.
+<strong>Co powiedzieć:</strong> to jeszcze nie OCP, ale już bezpieczny, zamknięty zbiór: nowa wartość enuma to błąd kompilacji w każdym <code>switch</code>, który jej nie obsłuży (<code>assertNever</code> przyjmuje tylko typ <code>never</code>). Dla małego, stabilnego zbioru to często wystarcza.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s08 0 1</code></p>
+<h3 id="krok-2-dane-zamiast-galezi-wiedza-przeniesiona-do-typu-format" tabindex="-1"><a class="header-anchor" href="#krok-2-dane-zamiast-galezi-wiedza-przeniesiona-do-typu-format"><span>Krok 2: Dane zamiast gałęzi - wiedza przeniesiona do typu <code>Format</code></span></a></h3>
+<p><strong>W IDE:</strong> ręcznie zamień enum na klasę <code>Format</code> z prywatnym konstruktorem i polami <code>basePrice</code>, <code>needsGlasses</code>, <code>label</code>; wartości to <code>static readonly TWO_D = new Format(&#x27;2D&#x27;, new Decimal(&#x27;25.00&#x27;), false, &#x27;2D&#x27;)</code> itd., a <code>parseFormat</code> staje się <code>Format.parse</code>. W <code>ScreeningOffer</code> zastąp każdy <code>switch</code> odczytem pola (Replace Conditional with Polymorphism w wersji &quot;dane&quot;).
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-title function_">price</span>(<span class="hljs-attr">code</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">ownGlasses</span>: <span class="hljs-built_in">boolean</span>): <span class="hljs-title class_">Decimal</span> {
+  <span class="hljs-keyword">const</span> format = <span class="hljs-title class_">Format</span>.<span class="hljs-title function_">parse</span>(code);
+  <span class="hljs-keyword">const</span> glasses = format.<span class="hljs-property">needsGlasses</span> &amp;&amp; !ownGlasses ? <span class="hljs-title class_">ScreeningOffer</span>.<span class="hljs-property">GLASSES</span> : <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-number">0</span>);
+  <span class="hljs-keyword">return</span> format.<span class="hljs-property">basePrice</span>.<span class="hljs-title function_">plus</span>(glasses);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> <code>ScreeningOffer</code> jest zamknięta na oś &quot;format seansu&quot;. Nie jest zamknięta na inne osie (nowa dopłata za fotel premium ją zmieni) - i nie musi.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s08 1 2</code></p>
+<h3 id="krok-3-nowy-format-4dx-jedna-linia" tabindex="-1"><a class="header-anchor" href="#krok-3-nowy-format-4dx-jedna-linia"><span>Krok 3: Nowy format 4DX - jedna linia</span></a></h3>
+<p><strong>W IDE:</strong> w <code>Format</code> dopisz <code>static readonly FOUR_DX = new Format(&#x27;4DX&#x27;, new Decimal(&#x27;45.00&#x27;), true, &#x27;4DX - ruchome fotele&#x27;);</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">static</span> <span class="hljs-keyword">readonly</span> <span class="hljs-variable constant_">IMAX</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Format</span>(<span class="hljs-string">&#x27;IMAX&#x27;</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;40.00&#x27;</span>), <span class="hljs-literal">false</span>, <span class="hljs-string">&#x27;IMAX - ekran laserowy&#x27;</span>);
+<span class="hljs-keyword">static</span> <span class="hljs-keyword">readonly</span> <span class="hljs-variable constant_">FOUR_DX</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Format</span>(<span class="hljs-string">&#x27;4DX&#x27;</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(<span class="hljs-string">&#x27;45.00&#x27;</span>), <span class="hljs-literal">true</span>, <span class="hljs-string">&#x27;4DX - ruchome fotele&#x27;</span>);
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; <code>S08NewFormatTest</code> sprawdza 4DX: 48.00 bez własnych okularów, 45.00 z własnymi.
+<strong>Co powiedzieć:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s08 2 3</code> pokazuje zmianę tylko w <code>Format</code> - <code>ScreeningOffer</code> nie zmieniła się ani o znak. To jest OCP: rozszerzenie wybranego zachowania bez modyfikacji stabilnej części.
+<strong>Snapshot:</strong> <code>step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s08 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-7" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-7"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Formaty to dane, więc typ z polami (w Javie enum, w TS klasa z instancjami statycznymi) jest prostszy niż hierarchia klas. Polimorfizm klas opłaciłby się, gdyby formaty miały różne algorytmy (np. dynamiczną cenę 4DX), a nie różne liczby.</p>
+<h3 id="pulapki-7" tabindex="-1"><a class="header-anchor" href="#pulapki-7"><span>Pułapki</span></a></h3>
+<ul>
+<li>&quot;Każdy <code>switch</code> łamie OCP&quot; - wyczerpujący <code>switch</code> na enumie (albo unii literałów) z <code>assertNever</code> to często dobry model zamkniętego zbioru.</li>
+<li>Próba zamknięcia klasy na wszystkie osie naraz: interfejsy dla dopłat, formatów, typów biletów &quot;na zapas&quot;.</li>
+</ul>
+<h3 id="pytanie-do-sali-7" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-7"><span>Pytanie do sali</span></a></h3>
+<p>Która oś zmian w waszym systemie rośnie najszybciej? Czy kod jest zamknięty właśnie na nią?</p>
+<h2 id="scena-s09-lsp-i-test-kontraktowy" tabindex="-1"><a class="header-anchor" href="#scena-s09-lsp-i-test-kontraktowy"><span>Scena s09. LSP i test kontraktowy</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 3.4 LSP: substytucja behawioralna; <code>UnsupportedOperationException</code> nie zawsze łamie LSP - ocena zaczyna się od kontraktu
+<strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>s09_lsp</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s09</code> (<code>S09ContractTest.test.ts</code>, <code>S09EquivalenceTest.test.ts</code>)
+<strong>Czas:</strong> ~12 min</p>
+<h3 id="w-skrocie-8" tabindex="-1"><a class="header-anchor" href="#w-skrocie-8"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> <code>ReadOnlyHall</code> dziedziczy po <code>Hall</code>, ale na <code>reserve</code> rzuca wyjątek, więc łamie kontrakt sali bazowej. Wydzielamy interfejs odczytu <code>SeatMap</code> i zastępujemy dziedziczenie delegacją.</p>
+<p><strong>Zasada:</strong> LSP wymaga, by podtyp dało się podstawić za typ bazowy bez zmiany zachowania: nie może wzmacniać warunków wstępnych ani osłabiać końcowych. Kompilator tego nie sprawdzi, dlatego ten sam test kontraktowy uruchamia się dla każdej implementacji, a <code>UnsupportedOperationError</code> (odpowiednik <code>UnsupportedOperationException</code>) ocenia się względem kontraktu typu bazowego.</p>
+<p><strong>Efekt:</strong> Sala archiwalna spełnia tylko kontrakt odczytu, który naprawdę obiecuje, a przekazanie jej do kasy kończy się błędem kompilacji zamiast wyjątkiem w runtime. Test daje dowody zgodności dla sprawdzonych stanów, nie formalny dowód.</p>
+<p><strong>Różnica względem Javy:</strong> TypeScript nie ma <code>final</code> ani chronionego przeciążenia konstruktora. W <code>start</code> i kroku 1 <code>Hall</code> ma jeden konstruktor <code>Hall(capacity, alreadyTaken = [])</code> z drugim parametrem &quot;dla podklas&quot;; w kroku 2 parametr znika, a &quot;final&quot; jest zapisane w dokumentacji klasy (<code>@sealed</code>). Typowanie strukturalne działa na korzyść lekcji: w kroku 2 <code>ReadOnlyHall</code> nie ma <code>reserve</code>, więc kompilator nie pozwala przekazać jej do kasy ani dodać do listy sal w teście kontraktowym. W <code>S09ContractTest</code> sale z każdego kroku pasują strukturalnie do widoku testu <code>HallUnderTest</code> bez adapterów - adapter <code>readOnly(...)</code> potrzebny jest tylko sali archiwalnej z kroku 2.</p>
+<h3 id="co-widzimy-8" tabindex="-1"><a class="header-anchor" href="#co-widzimy-8"><span>Co widzimy</span></a></h3>
+<p><code>Hall</code> ma udokumentowany kontrakt <code>reserve</code>: wolne miejsce zostaje zajęte, <code>freeSeats()</code> maleje o 1, zajęte miejsce daje <code>IllegalStateError</code>. Kontrakt nie przewiduje odmowy. <code>ReadOnlyHall extends Hall</code> (plan zamkniętego seansu dla raportów) nadpisuje <code>reserve</code> rzucając <code>UnsupportedOperationError</code> - wzmacnia warunek wstępny do &quot;nigdy&quot;.</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ReadOnlyHall</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_ inherited__">Hall</span> {
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-attr">capacity</span>: <span class="hljs-built_in">number</span>, <span class="hljs-attr">taken</span>: <span class="hljs-title class_">Iterable</span>&lt;<span class="hljs-built_in">number</span>&gt;</span>) {
+    <span class="hljs-variable language_">super</span>(capacity, taken);
+  }
+
+  <span class="hljs-keyword">override</span> <span class="hljs-title function_">reserve</span>(<span class="hljs-attr">_seat</span>: <span class="hljs-built_in">number</span>): <span class="hljs-built_in">void</span> {
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">UnsupportedOperationError</span>(<span class="hljs-string">&#x27;sala archiwalna - tylko do odczytu&#x27;</span>);
+  }
+}
+</code></pre>
+<p>Pokaż <code>S09ContractTest</code>: ten sam zestaw sprawdzeń (<code>obeysReserveContract</code>) uruchamiany dla każdej implementacji. <code>readOnlyHallAsSubclassBreaksTheReserveContract</code> dokumentuje, że sala archiwalna go łamie.</p>
+<h3 id="krok-1-extract-interface-rola-odczytu" tabindex="-1"><a class="header-anchor" href="#krok-1-extract-interface-rola-odczytu"><span>Krok 1: Extract Interface - rola odczytu</span></a></h3>
+<p><strong>W IDE:</strong> VS Code nie wydziela interfejsu z klasy, więc ręcznie: utwórz <code>SeatMap.ts</code> z metodami <code>isFree</code>, <code>freeSeats</code>, <code>capacity</code> (skopiuj sygnatury z <code>Hall</code>), dopisz <code>implements SeatMap</code> w <code>Hall</code>, a w <code>OccupancyReport.describe</code> zmień typ parametru na <code>SeatMap</code> (to, co w IntelliJ robi opcja &quot;Use interface where possible&quot;).
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">export</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">SeatMap</span> {
+  <span class="hljs-title function_">isFree</span>(<span class="hljs-attr">seat</span>: <span class="hljs-built_in">number</span>): <span class="hljs-built_in">boolean</span>;
+
+  <span class="hljs-title function_">freeSeats</span>(): <span class="hljs-built_in">number</span>;
+
+  <span class="hljs-title function_">capacity</span>(): <span class="hljs-built_in">number</span>;
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s09</code> - 13 testów zielonych; kontrakt odczytu (<code>everySeatMapObeysTheReadContract</code>) spełniają obie sale.
+<strong>Co powiedzieć:</strong> sala archiwalna jest doskonałym <code>SeatMap</code> - problemem nie jest ona, tylko dziedziczenie po typie, którego kontraktu nie spełnia.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s09 0 1</code></p>
+<h3 id="krok-2-replace-inheritance-with-delegation" tabindex="-1"><a class="header-anchor" href="#krok-2-replace-inheritance-with-delegation"><span>Krok 2: Replace Inheritance with Delegation</span></a></h3>
+<p><strong>W IDE:</strong> ręcznie: w <code>ReadOnlyHall</code> zmień <code>extends Hall</code> na <code>implements SeatMap</code>, dodaj pole <code>snapshot: Hall</code> i trzy metody delegujące (Quick Fix ⌘. &gt; Implement interface 'SeatMap' wygeneruje ich szkielety). Konstruktor rezerwuje zajęte miejsca w prywatnej kopii. Usuń nadpisane <code>reserve</code>. W <code>Hall</code> usuń drugi parametr konstruktora i dopisz w dokumentacji klasy, że jest zamknięta na dziedziczenie (<code>@sealed</code>).
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ReadOnlyHall</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">SeatMap</span> {
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">snapshot</span>: <span class="hljs-title class_">Hall</span>;
+
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-attr">capacity</span>: <span class="hljs-built_in">number</span>, <span class="hljs-attr">taken</span>: <span class="hljs-title class_">Iterable</span>&lt;<span class="hljs-built_in">number</span>&gt;</span>) {
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">snapshot</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Hall</span>(capacity);
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> seat <span class="hljs-keyword">of</span> taken) {
+      <span class="hljs-variable language_">this</span>.<span class="hljs-property">snapshot</span>.<span class="hljs-title function_">reserve</span>(seat);
+    }
+  }
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony. Spróbuj na żywo przekazać <code>ReadOnlyHall</code> do <code>BoxOffice.sell</code> - kompilator odmówi (brak <code>reserve</code>, a prywatne pola <code>Hall</code> i tak nie pozwalają podstawić innej klasy).
+<strong>Co powiedzieć:</strong> zamiast wyjątku w runtime mamy błąd kompilacji. Test kontraktowy <code>Hall</code> nie ma już komu się nie udać, bo sala archiwalna nie obiecuje rezerwacji.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s09 1 2</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-8" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-8"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Dwie role, dwa kontrakty, dwa testy kontraktowe. Test daje dowody zgodności dla sprawdzonych stanów, nie formalny dowód LSP. Alternatywa równie poprawna: osłabić kontrakt bazowy (np. <code>canReserve(): boolean</code> w kontrakcie) - wtedy <code>UnsupportedOperationError</code> przestaje łamać LSP, ale każdy klient musi obsłużyć odmowę.</p>
+<h3 id="pulapki-8" tabindex="-1"><a class="header-anchor" href="#pulapki-8"><span>Pułapki</span></a></h3>
+<ul>
+<li>&quot;Kompiluje się, więc jest podstawialne&quot; - kompilator nie sprawdza kontraktów domenowych (a przy typowaniu strukturalnym przepuści każdy obiekt o pasującym kształcie).</li>
+<li>Test kontraktowy uruchamiany tylko dla jednej implementacji.</li>
+<li><code>instanceof ReadOnlyHall</code> w kasie jako &quot;naprawa&quot;.</li>
+</ul>
+<h3 id="pytanie-do-sali-8" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-8"><span>Pytanie do sali</span></a></h3>
+<p>Które wasze klasy nadpisują metodę bazową tylko po to, żeby rzucić wyjątek? Jaki jest kontrakt typu bazowego i gdzie jest zapisany?</p>
+<h2 id="scena-s10-isp-z-perspektywy-klienta" tabindex="-1"><a class="header-anchor" href="#scena-s10-isp-z-perspektywy-klienta"><span>Scena s10. ISP z perspektywy klienta</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 3.5 ISP: interfejs według ról klientów; 4.2 Interfejs nie usuwa sprzężenia
+<strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>s10_isp</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s10</code> (<code>S10EquivalenceTest.test.ts</code>, <code>S10ClientFakeTest.test.ts</code>)
+<strong>Czas:</strong> ~8 min</p>
+<h3 id="w-skrocie-9" tabindex="-1"><a class="header-anchor" href="#w-skrocie-9"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> Gruby <code>CinemaAdminService</code> ma osiem metod, a każdy klient używa dwóch lub trzech - fake kasy musi implementować wszystkie. Wydzielamy interfejsy ról według klientów i usuwamy gruby interfejs.</p>
+<p><strong>Zasada:</strong> ISP mówi, że klient nie powinien zależeć od metod, których nie używa, więc interfejsy projektuje się według ról klientów. To nie znaczy &quot;jedna metoda na interfejs&quot; - rola może mieć kilka metod, jeśli jest spójna.</p>
+<p><strong>Efekt:</strong> Kasa zależy tylko od <code>TicketSales</code>, a jej fake ma dwie metody zamiast ośmiu. Sprzężenie z zapleczem nie znika - staje się zależnością od węższego, stabilniejszego kontraktu.</p>
+<p><strong>Różnica względem Javy:</strong> &quot;zmiana sygnatury wymusza rekompilację kasy&quot; to w TS &quot;zmiana sygnatury dotyka kasy&quot; - ponowne sprawdzenie typów i przebieg jej testów. Harmonogram (<code>TreeMap&lt;LocalTime, String&gt;</code>) to <code>Map&lt;string, string&gt;</code> z kluczem &quot;HH:mm&quot; i sortowaniem kluczy. Fake w <code>S10ClientFakeTest</code> to literał obiektu typu <code>CinemaAdminService</code> - kompilator wymaga wszystkich ośmiu metod, tak jak klasa anonimowa w Javie.</p>
+<h3 id="co-widzimy-9" tabindex="-1"><a class="header-anchor" href="#co-widzimy-9"><span>Co widzimy</span></a></h3>
+<p>Gruby <code>CinemaAdminService</code> ma osiem metod. Kasa używa dwóch (<code>sellTicket</code>, <code>refundTicket</code>), raport dwóch, tablica seansów trzech, zmianę ceny woła tylko konfiguracja. Fake do testu kasy musi implementować wszystkie osiem.</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">export</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">CinemaAdminService</span> {
+  <span class="hljs-title function_">sellTicket</span>(<span class="hljs-attr">title</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">seat</span>: <span class="hljs-built_in">number</span>): <span class="hljs-built_in">string</span>;
+  <span class="hljs-title function_">refundTicket</span>(<span class="hljs-attr">ticketId</span>: <span class="hljs-built_in">string</span>): <span class="hljs-built_in">string</span>;
+  <span class="hljs-title function_">dailyRevenue</span>(): <span class="hljs-title class_">Decimal</span>;
+  <span class="hljs-title function_">ticketsSold</span>(<span class="hljs-attr">title</span>: <span class="hljs-built_in">string</span>): <span class="hljs-built_in">number</span>;
+  <span class="hljs-title function_">scheduleScreening</span>(<span class="hljs-attr">title</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">start</span>: <span class="hljs-title class_">LocalTime</span>): <span class="hljs-built_in">void</span>;
+  <span class="hljs-title function_">cancelScreening</span>(<span class="hljs-attr">title</span>: <span class="hljs-built_in">string</span>): <span class="hljs-built_in">void</span>;
+  <span class="hljs-title function_">screenings</span>(): <span class="hljs-built_in">string</span>[];
+  <span class="hljs-title function_">updateTicketPrice</span>(<span class="hljs-attr">price</span>: <span class="hljs-title class_">Decimal</span>): <span class="hljs-built_in">void</span>;
+}
+</code></pre>
+<h3 id="krok-1-extract-interface-po-jednej-roli-na-klienta" tabindex="-1"><a class="header-anchor" href="#krok-1-extract-interface-po-jednej-roli-na-klienta"><span>Krok 1: Extract Interface - po jednej roli na klienta</span></a></h3>
+<p><strong>W IDE:</strong> ręcznie utwórz trzy interfejsy: <code>TicketSales</code>, <code>SalesFigures</code>, <code>ScreeningSchedule</code> - przenieś do nich sygnatury z <code>CinemaAdminService</code> (wytnij i wklej), a gruby interfejs niech je rozszerza (<code>extends TicketSales, SalesFigures, ScreeningSchedule</code>). W każdym kliencie zmień typ parametru konstruktora (<code>private readonly backOffice</code>) na jego rolę.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">export</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">CinemaAdminService</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">TicketSales</span>, <span class="hljs-title class_">SalesFigures</span>, <span class="hljs-title class_">ScreeningSchedule</span> {
+  <span class="hljs-title function_">updateTicketPrice</span>(<span class="hljs-attr">price</span>: <span class="hljs-title class_">Decimal</span>): <span class="hljs-built_in">void</span>;
+}
+</code></pre>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">CashDesk</span> {
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">backOffice</span>: <span class="hljs-title class_">TicketSales</span></span>) {}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s10</code> - 8 testów zielonych; <code>S10ClientFakeTest</code> porównuje fake grubego interfejsu (8 metod) z fake roli (2 metody).
+<strong>Co powiedzieć:</strong> role nazwaliśmy z perspektywy klienta, nie implementacji. Zmiana harmonogramu nie dotyka już kasy.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s10 0 1</code></p>
+<h3 id="krok-2-usuniecie-grubego-interfejsu" tabindex="-1"><a class="header-anchor" href="#krok-2-usuniecie-grubego-interfejsu"><span>Krok 2: Usunięcie grubego interfejsu</span></a></h3>
+<p><strong>W IDE:</strong> w <code>InMemoryBackOffice</code> zmień <code>implements CinemaAdminService</code> na <code>implements TicketSales, SalesFigures, ScreeningSchedule</code> (<code>updateTicketPrice</code> zostaje zwykłą metodą klasy). ⇧⌥F12 na <code>CinemaAdminService</code> - gdy nie ma już użyć, usuń plik.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">InMemoryBackOffice</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">TicketSales</span>, <span class="hljs-title class_">SalesFigures</span>, <span class="hljs-title class_">ScreeningSchedule</span> {
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> zmiana ceny nie dostała interfejsu - jej jedynym klientem jest konfiguracja, więc interfejs niczego by nie chronił.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s10 1 2</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-9" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-9"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Trzy spójne role, jedna implementacja. Interfejs nie usunął sprzężenia kasy z zapleczem - zastąpił je sprzężeniem z węższym, stabilniejszym kontraktem. W TS widać to jeszcze wyraźniej: przy typowaniu strukturalnym kasa przyjmie dowolny obiekt z dwiema metodami roli, niezależnie od tego, czy ktoś napisał <code>implements</code>.</p>
+<h3 id="pulapki-9" tabindex="-1"><a class="header-anchor" href="#pulapki-9"><span>Pułapki</span></a></h3>
+<ul>
+<li>ISP jako &quot;jedna metoda na interfejs&quot; - <code>TicketSales</code> ma dwie metody, bo to jedna spójna rola.</li>
+<li>Interfejs dla każdej klasy &quot;bo mock&quot; - łatwość mockowania nie dowodzi dobrego projektu.</li>
+</ul>
+<h3 id="pytanie-do-sali-9" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-9"><span>Pytanie do sali</span></a></h3>
+<p>Który wasz przypadek użycia dostaje gruby typ (generyczne repozytorium, cały klient ORM, cały serwis), a używa jednej metody?</p>
+<h2 id="scena-s11-dip-kierunek-zaleznosci-kontra-przeplyw-sterowania" tabindex="-1"><a class="header-anchor" href="#scena-s11-dip-kierunek-zaleznosci-kontra-przeplyw-sterowania"><span>Scena s11. DIP - kierunek zależności kontra przepływ sterowania</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 3.6 DIP i DIP to nie dependency injection; 5.1-5.2 Reguła zależności a przepływ sterowania
+<strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>s11_dip</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s11</code> (<code>S11EquivalenceTest.test.ts</code>, <code>S11DependencyDirectionTest.test.ts</code>)
+<strong>Czas:</strong> ~12 min</p>
+<h3 id="w-skrocie-10" tabindex="-1"><a class="header-anchor" href="#w-skrocie-10"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> Przypadek użycia <code>ConfirmReservation</code> sam tworzy klienta SMTP i zna protokół, więc import i wywołania biegną <code>app -&gt; infra</code>. Wstrzykujemy zależność, nazywamy potrzebę polityki i wprowadzamy port <code>CustomerNotifier</code> z adapterem w <code>infra</code>.</p>
+<p><strong>Zasada:</strong> DIP mówi, że zależności źródłowe mają wskazywać od szczegółów ku polityce i abstrakcjom, a port nazywa potrzebę klienta, nie kształt technologii. DIP to nie dependency injection: wstrzyknięcie konkretnej klasy przez konstruktor wciąż wiąże politykę ze szczegółem.</p>
+<p><strong>Efekt:</strong> Sterowanie nadal płynie do <code>infra</code>, ale import odwrócił się na <code>infra -&gt; app</code>, a politykę da się przetestować literałem obiektu. Wystarczyła ręczna funkcja <code>confirmReservation()</code> w <code>Main.ts</code> jako composition root, bez kontenera DI.</p>
+<p><strong>Różnica względem Javy:</strong> <code>S11DependencyDirectionTest</code> zamiast refleksji po typach pól czyta importy pliku <code>app/<wbr>ConfirmReservation.ts</code> i sprawdza, czy któryś zaczyna się od <code>../<wbr>infra/<wbr></code> (liczy się też <code>import type</code>). <code>isAssignableFrom</code> zastępuje przypisanie adaptera do typu portu (sprawdza kompilator) oraz sprawdzenie, że plik adaptera importuje <code>../<wbr>app/<wbr>CustomerNotifier.js</code> - to kierunek zależności źródłowej <code>infra -&gt; app</code>. Fake portu to literał obiektu zamiast lambdy.</p>
+<h3 id="co-widzimy-10" tabindex="-1"><a class="header-anchor" href="#co-widzimy-10"><span>Co widzimy</span></a></h3>
+<p>Przypadek użycia <code>app/<wbr>ConfirmReservation</code> sam tworzy klienta <code>infra/<wbr>SmtpMailSender</code>, składa nagłówki MIME i interpretuje kody SMTP. Import i przepływ sterowania biegną w tę samą stronę: <code>app -&gt; infra</code>. <code>Main.ts</code> to composition root wariantu - test woła tylko funkcję <code>confirmReservation()</code>.</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> mail = <span class="hljs-keyword">new</span> <span class="hljs-title class_">SmtpMailSender</span>(<span class="hljs-string">&#x27;smtp.kino.pl&#x27;</span>, <span class="hljs-number">25</span>);
+...
+<span class="hljs-keyword">const</span> mime = <span class="hljs-string">`To: <span class="hljs-subst">${reservation.email}</span>\r\nSubject: Rezerwacja\r\n\r\n<span class="hljs-subst">${message}</span>`</span>;
+<span class="hljs-keyword">const</span> reply = <span class="hljs-variable language_">this</span>.<span class="hljs-property">mail</span>.<span class="hljs-title function_">send</span>(reservation.<span class="hljs-property">email</span>, mime);
+<span class="hljs-keyword">if</span> (!reply.<span class="hljs-title function_">startsWith</span>(<span class="hljs-string">&#x27;250&#x27;</span>)) {
+  <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateError</span>(<span class="hljs-string">`SMTP odrzucil: <span class="hljs-subst">${reply}</span>`</span>);
+}
+</code></pre>
+<h3 id="krok-1-introduce-parameter-dependency-injection" tabindex="-1"><a class="header-anchor" href="#krok-1-introduce-parameter-dependency-injection"><span>Krok 1: Introduce Parameter - dependency injection</span></a></h3>
+<p><strong>W IDE:</strong> VS Code nie ma Introduce Parameter, więc ręcznie: zamień pole <code>mail</code> na właściwość parametru konstruktora <code>constructor(private readonly mail: SmtpMailSender) {}</code>, a <code>new SmtpMailSender(&#x27;smtp.kino.pl&#x27;, 25)</code> przenieś do <code>Main.ts</code> (kompilator wskaże to wywołanie). Import w <code>ConfirmReservation</code> staje się <code>import type</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ConfirmReservation</span> {
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">mail</span>: <span class="hljs-title class_">SmtpMailSender</span></span>) {}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s11</code> - 18 testów zielonych.
+<strong>Co powiedzieć:</strong> to jest DI, ale jeszcze nie DIP - <code>import type { SmtpMailSender } from &#x27;../<wbr>infra/<wbr>SmtpMailSender.js&#x27;</code> nadal stoi w polityce. Test <code>step1AndStep2PolicyDependsOnInfrastructure</code> to potwierdza. <code>import type</code> znika po kompilacji, ale zależność źródłowa zostaje: zmiana API <code>SmtpMailSender</code> psuje politykę.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s11 0 1</code></p>
+<h3 id="krok-2-extract-method-nazwij-potrzebe-polityki" tabindex="-1"><a class="header-anchor" href="#krok-2-extract-method-nazwij-potrzebe-polityki"><span>Krok 2: Extract Method - nazwij potrzebę polityki</span></a></h3>
+<p><strong>W IDE:</strong> zaznacz składanie MIME, <code>send</code> i sprawdzenie kodu, ⌃⇧R &gt; Extract to method in class, nazwa <code>notifyCustomer</code>; parametry nazwij <code>email</code> i <code>message</code> (F2).
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-variable language_">this</span>.<span class="hljs-title function_">notifyCustomer</span>(reservation.<span class="hljs-property">email</span>, message);
+<span class="hljs-keyword">return</span> <span class="hljs-string">`potwierdzono: <span class="hljs-subst">${reservation.email}</span>`</span>;
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> tak wygląda port, zanim stanie się interfejsem: potrzeba nazwana w języku problemu (&quot;powiadom klienta&quot;), a cała technologia w jednym miejscu. Nie wydzielamy interfejsu z <code>SmtpMailSender</code> - dostalibyśmy port <code>send(to, mime)</code>, czyli kształt technologii, nie potrzeby.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s11 1 2</code></p>
+<h3 id="krok-3-port-po-stronie-polityki-adapter-w-infra" tabindex="-1"><a class="header-anchor" href="#krok-3-port-po-stronie-polityki-adapter-w-infra"><span>Krok 3: Port po stronie polityki, adapter w infra</span></a></h3>
+<p><strong>W IDE:</strong> utwórz w <code>app</code> interfejs <code>CustomerNotifier</code> z metodą <code>notifyCustomer(email, message)</code>. Utwórz <code>infra/<wbr>SmtpCustomerNotifier.ts</code> z klasą <code>SmtpCustomerNotifier implements CustomerNotifier</code> i przenieś do niej metodę <code>notifyCustomer</code> (wytnij i wklej; VS Code nie przenosi metod między klasami). W <code>ConfirmReservation</code> parametr konstruktora -&gt; <code>notifier: CustomerNotifier</code>. W <code>Main.ts</code> złóż <code>new ConfirmReservation(new SmtpCustomerNotifier(new SmtpMailSender(...)))</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">export</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">CustomerNotifier</span> {           <span class="hljs-comment">// app</span>
+  <span class="hljs-title function_">notifyCustomer</span>(<span class="hljs-attr">email</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">message</span>: <span class="hljs-built_in">string</span>): <span class="hljs-built_in">void</span>;
+}
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">SmtpCustomerNotifier</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">CustomerNotifier</span> {   <span class="hljs-comment">// infra</span>
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; <code>stepsSendTheSameMimeMessage</code> potwierdza identyczny MIME, <code>step3PolicyIsTestableWithAHandWrittenFake</code> testuje politykę literałem obiektu <code>{ notifyCustomer: (email, message) =&gt; ... }</code>.
+<strong>Co powiedzieć:</strong> sterowanie nadal płynie <code>app -&gt; infra</code> (confirm woła notifier), ale zależność źródłowa odwróciła się: <code>infra -&gt; app</code>. To jest DIP.
+<strong>Snapshot:</strong> <code>step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s11 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-10" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-10"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Port należy do strony formułującej potrzebę. Adapter tłumaczy kody SMTP na błąd kontraktu (<code>IllegalStateError</code>), więc polityka nie zna protokołu. Kontener DI nie był potrzebny - wystarczyła ręczna funkcja w <code>Main.ts</code>.</p>
+<h3 id="pulapki-10" tabindex="-1"><a class="header-anchor" href="#pulapki-10"><span>Pułapki</span></a></h3>
+<ul>
+<li>&quot;Mamy kontener DI (InversifyJS, NestJS), więc mamy DIP&quot; - krok 1 pokazuje, że nie.</li>
+<li>Port odbijający API technologii (<code>send(host, port, mime)</code>) - wymiana kanału na SMS i tak zmieni politykę.</li>
+<li>Błąd lub typ technologii (np. błąd sterownika bazy) w sygnaturze portu.</li>
+</ul>
+<h3 id="pytanie-do-sali-10" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-10"><span>Pytanie do sali</span></a></h3>
+<p>Narysujcie strzałki importów i strzałki wywołań dla jednego waszego przypadku użycia. W którym miejscu biegną w tę samą stronę przez granicę?</p>
+<h2 id="scena-s12-clean-architecture-use-case-dane-na-granicy-composition-root" tabindex="-1"><a class="header-anchor" href="#scena-s12-clean-architecture-use-case-dane-na-granicy-composition-root"><span>Scena s12. Clean Architecture - use case, dane na granicy, composition root</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 5.3 Elementy praktyczne; 5.4 Dane na granicy i composition root; 5.5-5.6 Kręgi to nie szablon; 7.8 Protokół efektów
+<strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>s12_cleanarchitecture</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s12</code> (<code>S12EquivalenceTest.test.ts</code>, <code>S12UseCaseTest.test.ts</code>)
+<strong>Czas:</strong> ~18 min</p>
+<h3 id="w-skrocie-11" tabindex="-1"><a class="header-anchor" href="#w-skrocie-11"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> <code>ReservationController</code> parsuje żądanie, liczy cenę, zapisuje wiersz i publikuje komunikat w jednej metodzie. W czterech krokach wydzielamy przypadek użycia, porty z adapterami, katalogi <code>app</code> i <code>adapter</code> oraz composition root.</p>
+<p><strong>Zasada:</strong> Clean Architecture to zasada, że polityka (przypadki użycia) nie zależy od mechanizmów: porty należą do strony formułującej potrzebę, granicę przekraczają proste obiekty danych, a composition root składa graf bez reguł biznesowych. Liczy się kierunek importów, a nie nazwy czterech folderów.</p>
+<p><strong>Efekt:</strong> Przypadek użycia testujemy bez HTTP i bazy, a kolejność zapis-powiadomienie jest jawną decyzją protokołu. Koszt to siedem typów więcej, uzasadniony dwoma realnymi efektami zewnętrznymi.</p>
+<p><strong>Różnica względem Javy:</strong> kwoty są typu <code>Money</code> (a nie <code>Decimal</code>), bo trafiają do wiersza bazy i komunikatu przez <code>toString()</code> - <code>Money</code> drukuje zawsze dwa miejsca po przecinku, jak <code>BigDecimal</code> w Javie. Wiersz <code>Object[]</code> to <code>readonly unknown[]</code>, rekordy to klasy z polami <code>readonly</code>, a <code>CinemaApplication</code> to moduł z funkcją <code>reservationController(db, outbox)</code>. Łapanie <code>IllegalArgumentException</code>/<code>IllegalStateException</code> to <code>instanceof IllegalArgumentError</code>/<code>IllegalStateError</code> z ponownym rzuceniem pozostałych błędów. Porty w <code>S12UseCaseTest</code> implementują literały obiektów zamiast lambd.</p>
+<h3 id="co-widzimy-11" tabindex="-1"><a class="header-anchor" href="#co-widzimy-11"><span>Co widzimy</span></a></h3>
+<p><code>ReservationController</code> obsługuje żądanie &quot;HTTP&quot; (<code>ReadonlyMap&lt;string, string&gt;</code>) i robi wszystko: parsuje parametry, liczy cenę (format + VIP), zapisuje wiersz <code>unknown[]</code> w <code>RowStore</code>, publikuje komunikat w <code>Outbox</code>, buduje odpowiedź. <code>RowStore</code> i <code>Outbox</code> to stabilny &quot;świat zewnętrzny&quot; sceny. Test wchodzi przez <code>reservationController(db, outbox)</code> z <code>CinemaApplication.ts</code> i porównuje odpowiedź, zapisane wiersze i komunikaty.</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">let</span> <span class="hljs-attr">id</span>: <span class="hljs-built_in">string</span>;
+<span class="hljs-keyword">try</span> {
+  id = <span class="hljs-variable language_">this</span>.<span class="hljs-property">db</span>.<span class="hljs-title function_">insert</span>([email, format, rows.<span class="hljs-property">length</span>, total]);
+} <span class="hljs-keyword">catch</span> (error) {
+  <span class="hljs-keyword">if</span> (error <span class="hljs-keyword">instanceof</span> <span class="hljs-title class_">IllegalStateError</span>) {
+    <span class="hljs-keyword">return</span> <span class="hljs-string">`503 <span class="hljs-subst">${error.message}</span>`</span>;
+  }
+  <span class="hljs-keyword">throw</span> error;
+}
+<span class="hljs-variable language_">this</span>.<span class="hljs-property">outbox</span>.<span class="hljs-title function_">publish</span>(<span class="hljs-string">&#x27;reservation-created&#x27;</span>, <span class="hljs-string">`<span class="hljs-subst">${id}</span>;<span class="hljs-subst">${email}</span>;<span class="hljs-subst">${total.toString()}</span>`</span>);
+<span class="hljs-keyword">return</span> <span class="hljs-string">`201 <span class="hljs-subst">${id}</span> <span class="hljs-subst">${total.toString()}</span>`</span>;
+</code></pre>
+<h3 id="krok-1-extract-class-przypadek-uzycia-jako-jawna-orkiestracja" tabindex="-1"><a class="header-anchor" href="#krok-1-extract-class-przypadek-uzycia-jako-jawna-orkiestracja"><span>Krok 1: Extract Class - przypadek użycia jako jawna orkiestracja</span></a></h3>
+<p><strong>W IDE:</strong> utwórz klasy danych <code>BookSeatsCommand(email, format, rows)</code> i <code>Booking(id, total)</code> (pola <code>readonly</code>, odpowiedniki rekordów). Zaznacz w kontrolerze wycenę, zapis i publikację, ⌃⇧R &gt; Extract to method in class, nazwa <code>execute</code>, potem przenieś metodę ręcznie do nowej klasy <code>BookSeats</code> w pliku <code>BookSeats.ts</code> (wycenę wydziel w niej jako <code>price</code>). Kontroler mapuje błędy: <code>IllegalArgumentError</code> -&gt; 400, <code>IllegalStateError</code> -&gt; 503.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-title function_">execute</span>(<span class="hljs-attr">command</span>: <span class="hljs-title class_">BookSeatsCommand</span>): <span class="hljs-title class_">Booking</span> {
+  <span class="hljs-keyword">if</span> (command.<span class="hljs-property">rows</span>.<span class="hljs-property">length</span> === <span class="hljs-number">0</span>) {
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentError</span>(<span class="hljs-string">&#x27;brak miejsc&#x27;</span>);
+  }
+  <span class="hljs-keyword">const</span> total = <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">price</span>(command);
+  <span class="hljs-keyword">const</span> id = <span class="hljs-variable language_">this</span>.<span class="hljs-property">db</span>.<span class="hljs-title function_">insert</span>([command.<span class="hljs-property">email</span>, command.<span class="hljs-property">format</span>, command.<span class="hljs-property">rows</span>.<span class="hljs-property">length</span>, total]);
+  <span class="hljs-variable language_">this</span>.<span class="hljs-property">outbox</span>.<span class="hljs-title function_">publish</span>(<span class="hljs-string">&#x27;reservation-created&#x27;</span>, <span class="hljs-string">`<span class="hljs-subst">${id}</span>;<span class="hljs-subst">${command.email}</span>;<span class="hljs-subst">${total.toString()}</span>`</span>);
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Booking</span>(id, total);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s12</code> - 22 testy zielone.
+<strong>Co powiedzieć:</strong> przypadek użycia czyta się jak scenariusz: wyceń, zapisz, powiadom. Granicę przekraczają proste obiekty danych, nie <code>Map</code> z HTTP. Wciąż zna jednak kolumny tabeli i temat komunikatu.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s12 0 1</code></p>
+<h3 id="krok-2-porty-zdefiniowane-przez-potrzebe-adaptery" tabindex="-1"><a class="header-anchor" href="#krok-2-porty-zdefiniowane-przez-potrzebe-adaptery"><span>Krok 2: Porty zdefiniowane przez potrzebę, adaptery</span></a></h3>
+<p><strong>W IDE:</strong> utwórz <code>NewReservation</code> (klasa danych), porty <code>ReservationStore.save(reservation)</code> i <code>BookingNotifier.reservationCreated(id, reservation)</code>. Przenieś ręcznie mapowanie na <code>unknown[]</code> do <code>RowStoreReservationStore</code>, publikację do <code>OutboxBookingNotifier</code>. <code>BookSeats</code> przyjmuje porty w konstruktorze.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">const</span> id = <span class="hljs-variable language_">this</span>.<span class="hljs-property">store</span>.<span class="hljs-title function_">save</span>(reservation);
+<span class="hljs-variable language_">this</span>.<span class="hljs-property">notifier</span>.<span class="hljs-title function_">reservationCreated</span>(id, reservation);
+<span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Booking</span>(id, reservation.<span class="hljs-property">total</span>);
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony, także przypadek &quot;baza niedostępna - brak powiadomienia&quot;.
+<strong>Co powiedzieć:</strong> kolejność zapis -&gt; powiadomienie to decyzja protokołu: błąd zapisu oznacza brak powiadomienia. Kolejność nie daje atomowości - w systemie rozproszonym potrzebny byłby outbox transakcyjny.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s12 1 2</code></p>
+<h3 id="krok-3-move-granica-widoczna-w-katalogach" tabindex="-1"><a class="header-anchor" href="#krok-3-move-granica-widoczna-w-katalogach"><span>Krok 3: Move - granica widoczna w katalogach</span></a></h3>
+<p><strong>W IDE:</strong> w eksploratorze VS Code przeciągnij <code>BookSeats.ts</code>, <code>BookSeatsCommand.ts</code>, <code>Booking.ts</code>, <code>NewReservation.ts</code>, <code>ReservationStore.ts</code>, <code>BookingNotifier.ts</code> do nowego katalogu <code>app</code>, a kontroler i oba adaptery do <code>adapter</code>. Na pytanie &quot;Update imports?&quot; odpowiedz &quot;Yes&quot; - VS Code poprawi ścieżki importów (także w <code>CinemaApplication.ts</code>).
+<strong>Po:</strong></p>
+<pre class="code" data-lang="text"><code class="hljs">step3/app/       BookSeats, BookSeatsCommand, Booking, NewReservation, ReservationStore, BookingNotifier
+step3/adapter/   ReservationController, RowStoreReservationStore, OutboxBookingNotifier
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony.
+<strong>Co powiedzieć:</strong> <code>app</code> nie importuje niczego z <code>adapter</code>; adaptery importują <code>app</code>. Nazwy katalogów są drugorzędne - liczy się kierunek importów.
+<strong>Snapshot:</strong> <code>step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s12 2 3</code></p>
+<h3 id="krok-4-composition-root" tabindex="-1"><a class="header-anchor" href="#krok-4-composition-root"><span>Krok 4: Composition root</span></a></h3>
+<p><strong>W IDE:</strong> ręcznie (bez Introduce Parameter): w kontrolerze zamień tworzenie <code>new BookSeats(...)</code> w konstruktorze na parametr <code>private readonly bookSeats: BookSeats</code>, a składanie grafu przenieś do funkcji <code>reservationController</code> w <code>CinemaApplication.ts</code> (kompilator wskaże to wywołanie). Parametry <code>db</code> i <code>outbox</code> znikają z konstruktora kontrolera.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">export</span> <span class="hljs-keyword">function</span> <span class="hljs-title function_">reservationController</span>(<span class="hljs-params"><span class="hljs-attr">db</span>: <span class="hljs-title class_">RowStore</span>, <span class="hljs-attr">outbox</span>: <span class="hljs-title class_">Outbox</span></span>): <span class="hljs-title class_">ReservationController</span> {
+  <span class="hljs-keyword">const</span> bookSeats = <span class="hljs-keyword">new</span> <span class="hljs-title class_">BookSeats</span>(
+    <span class="hljs-keyword">new</span> <span class="hljs-title class_">RowStoreReservationStore</span>(db), <span class="hljs-keyword">new</span> <span class="hljs-title class_">OutboxBookingNotifier</span>(outbox));
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ReservationController</span>(bookSeats);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; pokaż <code>S12UseCaseTest</code>: przypadek użycia z literałami obiektów zamiast adapterów, w tym <code>doesNotNotifyWhenSavingFails</code>.
+<strong>Co powiedzieć:</strong> composition root zna wszystkie konkrety i nie zawiera reguł biznesowych. Podmiana bazy to zmiana tylko tutaj. Kontener DI nie jest potrzebny.
+<strong>Snapshot:</strong> <code>step4/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s12 3 4</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-11" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-11"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Przypadek użycia testowany bez HTTP i bazy, adaptery wymienialne w jednym miejscu, dane na granicy jako proste klasy danych. Koszt: siedem typów więcej. Uzasadnia go to, że dwa efekty zewnętrzne i protokół ich kolejności już istnieją (slajd 7.10).</p>
+<h3 id="pulapki-11" tabindex="-1"><a class="header-anchor" href="#pulapki-11"><span>Pułapki</span></a></h3>
+<ul>
+<li>Kopiowanie szablonu czterech folderów bez sprawdzenia kierunku importów.</li>
+<li>Osobny model na każdej granicy &quot;bo tak trzeba&quot; - <code>NewReservation</code> ma sens, bo oddziela semantykę od <code>unknown[]</code>.</li>
+<li>Reguły biznesowe w composition root albo w kontrolerze (np. walidacja miejsc w kontrolerze).</li>
+</ul>
+<h3 id="pytanie-do-sali-11" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-11"><span>Pytanie do sali</span></a></h3>
+<p>Czy wasz przypadek użycia da się uruchomić w teście bez frameworka webowego (Express, NestJS) i bazy? Co trzeba by przenieść, żeby się dało?</p>
+<h2 id="scena-s13-automatyczna-ochrona-granicy-i-diagnostyka-spojnosci" tabindex="-1"><a class="header-anchor" href="#scena-s13-automatyczna-ochrona-granicy-i-diagnostyka-spojnosci"><span>Scena s13. Automatyczna ochrona granicy i diagnostyka spójności</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 4.4 Diagnostyka spójności i sprzężenia; 4.1-4.3 Spójność, sprzężenie, koszt wydzielenia; lista kontrolna &quot;reguła sprawdzana automatycznie&quot;
+<strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>s13_boundarycheck</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s13</code> (<code>S13ArchitectureTest.test.ts</code>, <code>S13EquivalenceTest.test.ts</code>, <code>S13ToolsTest.test.ts</code>)
+<strong>Czas:</strong> ~12 min</p>
+<h3 id="w-skrocie-12" tabindex="-1"><a class="header-anchor" href="#w-skrocie-12"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> Klasa domeny <code>ScreeningService</code> miesza politykę cenową z mapowaniem na wiersz bazy i importuje adapter oraz typ sterownika bazy (<code>sql/<wbr>Timestamp</code>). Wydzielamy maper, przenosimy go do adaptera, a narzędzia <code>BoundaryRule</code> i <code>CohesionProbe</code> mierzą efekt po każdym kroku.</p>
+<p><strong>Zasada:</strong> Spójny moduł zmienia się z jednego powodu, a reguła zależności mówi, że domena nie importuje technologii - to dwa niezależne wymiary. Regułę architektury warto sprawdzać automatycznie przy każdym buildzie, a metryki takie jak LCOM4 traktować jako sygnał do rozmowy, nie wyrocznię.</p>
+<p><strong>Efekt:</strong> Domena jest wolna od <code>sql</code> i typów adaptera, a każda klasa ma LCOM4 równe 1. Skan importów jest słabą bramką - dynamiczne <code>import()</code> przejdzie, więc silniejsze są dependency-cruiser, eslint z regułami granic, osobne pakiety workspace lub project references.</p>
+<p><strong>Różnica względem Javy (adaptacja):</strong> zakazana technologia <code>java.sql.Timestamp</code> to w porcie stabilny plik sceny <code>sql/<wbr>Timestamp.ts</code> (&quot;typ sterownika bazy&quot;, ten sam format <code>2026-10-02 20:00:00.0</code>). <code>BoundaryRule</code> skanuje pliki <code>.ts</code> i zgłasza ścieżki importów (<code>import</code>/<code>export ... from</code>, także <code>import type</code>) zawierające zakazany fragment; reguła sceny to <code>new BoundaryRule(&#x27;/<wbr>sql/<wbr>&#x27;, &#x27;/<wbr>adapter/<wbr>&#x27;)</code>, a naruszenia mają format <code>ScreeningRowMapper.ts: ../<wbr>../<wbr>sql/<wbr>Timestamp.js</code>. <code>CohesionProbe</code> rozpoznaje pola klasy i właściwości parametrów konstruktora (<code>private readonly x</code>). Odpowiednikiem Javowego &quot;importu statycznego, który łatwo przeoczyć&quot; jest <code>import type</code> - stąd test narzędzia <code>boundaryRuleReportsForbiddenImportsIncludingTypeOnly</code>. Zamiast ArchUnit, JPMS i modułów Maven omawiamy dependency-cruiser, eslint (<code>no-restricted-imports</code>, eslint-plugin-boundaries), pakiety workspace i project references.</p>
+<h3 id="co-widzimy-12" tabindex="-1"><a class="header-anchor" href="#co-widzimy-12"><span>Co widzimy</span></a></h3>
+<p>Dwa narzędzia bez bibliotek w katalogu sceny: <code>BoundaryRule</code> (skanuje pliki <code>.ts</code> w katalogu i zgłasza zakazane importy) oraz <code>CohesionProbe</code> (LCOM4: liczba grup metod połączonych wspólnym polem lub wywołaniem). Klasa domeny <code>ScreeningService</code> miesza politykę cenową z mapowaniem na wiersz bazy - importuje adapter i <code>sql</code>.</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">import</span> { <span class="hljs-title class_">Timestamp</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../../sql/Timestamp.js&#x27;</span>;
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">ScreeningRow</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../adapter/ScreeningRow.js&#x27;</span>;
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">Screening</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./Screening.js&#x27;</span>;
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ScreeningService</span> {
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params">
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">basePrice</span>: <span class="hljs-title class_">Decimal</span>,
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">morningDiscount</span>: <span class="hljs-title class_">Decimal</span>,
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">table</span>: <span class="hljs-built_in">string</span>,
+  </span>) {}
+</code></pre>
+<p>Uruchom test z logami (<code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s13</code> - skrypt uruchamia vitest z <code>--reporter=verbose</code>, więc widać <code>console.log</code> także z zielonych testów) i pokaż wyjście: <code>s13 start - naruszenia granicy: [ScreeningService.ts: ../<wbr>../<wbr>sql/<wbr>Timestamp.js, ScreeningService.ts: ../<wbr>adapter/<wbr>ScreeningRow.js]</code> i <code>s13 start - LCOM4 ScreeningService: Result[lcom4=2, groups=[fromRow, toRow, isMorning, price]]</code>. Test startu działa jak &quot;zamrożone naruszenia&quot; (baseline znanych naruszeń w dependency-cruiser, FreezingArchRule w ArchUnit): znane są tolerowane, każde nowe jest czerwone.</p>
+<h3 id="krok-1-extract-class-spojnosc" tabindex="-1"><a class="header-anchor" href="#krok-1-extract-class-spojnosc"><span>Krok 1: Extract Class - spójność</span></a></h3>
+<p><strong>W IDE:</strong> ręcznie (VS Code nie ma Extract Class): utwórz <code>domain/<wbr>ScreeningRowMapper.ts</code> i przenieś do niego <code>toRow</code>, <code>fromRow</code> oraz parametr <code>table</code>; importy <code>Timestamp</code>, <code>ScreeningRow</code> i <code>IllegalArgumentError</code> idą razem z kodem (Quick Fix ⌘. &gt; Add all missing imports). Popraw <code>CinemaApp.ts</code> (composition root), żeby tworzył obie klasy.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ScreeningRowMapper</span> {    <span class="hljs-comment">// wciąż w domain</span>
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">table</span>: <span class="hljs-built_in">string</span></span>) {}
+
+  <span class="hljs-title function_">toRow</span>(<span class="hljs-attr">screening</span>: <span class="hljs-title class_">Screening</span>): <span class="hljs-title class_">ScreeningRow</span> { ... }
+
+  <span class="hljs-title function_">fromRow</span>(<span class="hljs-attr">row</span>: <span class="hljs-title class_">ScreeningRow</span>): <span class="hljs-title class_">Screening</span> { ... }
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s13</code> - 13 testów zielonych; LCOM4 obu klas = 1, ale <code>step1StillViolatesTheBoundaryButOnlyInTheMapper</code> pokazuje, że naruszenie granicy tylko się przeniosło.
+<strong>Co powiedzieć:</strong> spójność i kierunek zależności to dwa różne wymiary. Wydzielenie klasy nie naprawia granicy.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s13 0 1</code></p>
+<h3 id="krok-2-move-do-adaptera" tabindex="-1"><a class="header-anchor" href="#krok-2-move-do-adaptera"><span>Krok 2: Move do adaptera</span></a></h3>
+<p><strong>W IDE:</strong> w eksploratorze przeciągnij <code>ScreeningRowMapper.ts</code> z <code>domain</code> do <code>adapter</code> i zgódź się na &quot;Update imports&quot;. VS Code poprawi ścieżki w maperze (<code>../<wbr>domain/<wbr>Screening.js</code>, <code>./<wbr>ScreeningRow.js</code>) i w <code>CinemaApp.ts</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">import</span> { <span class="hljs-title class_">Timestamp</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../../sql/Timestamp.js&#x27;</span>;
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">Screening</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../domain/Screening.js&#x27;</span>;
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">ScreeningRow</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./ScreeningRow.js&#x27;</span>;
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; <code>step2DomainIsFreeOfTechnology</code> - lista naruszeń pusta.
+<strong>Co powiedzieć:</strong> zależność biegnie teraz <code>adapter -&gt; domain</code>. Reguła jest sprawdzana automatycznie przy każdym buildzie, a nie tylko na code review.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s13 1 2</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-12" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-12"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Domena bez <code>sql</code> i bez typów adaptera, każda klasa opisuje jedno pojęcie. <code>S13ToolsTest</code> sprawdza same narzędzia na stałych próbkach kodu.</p>
+<h3 id="pulapki-12" tabindex="-1"><a class="header-anchor" href="#pulapki-12"><span>Pułapki</span></a></h3>
+<ul>
+<li><code>BoundaryRule</code> widzi tylko instrukcje <code>import</code>/<code>export ... from</code> - dynamiczne <code>import()</code> czy <code>require</code> przejdą. Silniejsze bramki: dependency-cruiser, eslint (<code>no-restricted-imports</code>, eslint-plugin-boundaries), osobne pakiety workspace z jawnymi zależnościami w <code>package.json</code>, project references w <code>tsconfig</code>, reguły w CI. Porównajcie ich siłę.</li>
+<li>LCOM4 to heurystyka na źródle (pola klasy i właściwości parametrów konstruktora, składowe wcięte o 2 spacje) - sygnał do rozmowy, nie wyrocznia. Mała klasa nie musi być spójna, duża może być nierozdzielnym pojęciem.</li>
+<li>Wydzielenie klasy dodaje współpracownika i kontrakt - porównuj koszt zmiany przed i po (slajd 4.3).</li>
+</ul>
+<h3 id="pytanie-do-sali-12" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-12"><span>Pytanie do sali</span></a></h3>
+<p>Która reguła architektury w waszym projekcie istnieje tylko w głowach lub na wiki? Jak najtaniej zamienić ją w test?</p>
+<h2 id="scena-s14-wzorzec-jako-decyzja-odwracalna" tabindex="-1"><a class="header-anchor" href="#scena-s14-wzorzec-jako-decyzja-odwracalna"><span>Scena s14. Wzorzec jako decyzja odwracalna</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 6.1-6.2 Wzorzec i refaktoryzacja w jego kierunku; 6.3 Strategy i Adapter; 6.4 Wzorzec można usunąć
+<strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>s14_reversiblepattern</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s14</code> (<code>S14EquivalenceTest.test.ts</code>, <code>S14FestivalVariantTest.test.ts</code>)
+<strong>Czas:</strong> ~12 min</p>
+<h3 id="w-skrocie-13" tabindex="-1"><a class="header-anchor" href="#w-skrocie-13"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> Rozliczenie z dystrybutorem ma dwa modele w jednym <code>switch</code>, w tym festiwalowy z obcego systemu w groszach. Wprowadzamy Strategy z Adapterem, a gdy umowy festiwalowe wygasają, usuwamy wariant i cały wzorzec.</p>
+<p><strong>Zasada:</strong> Wzorzec to odpowiedź na konkretne siły (tu: dwa istniejące warianty i obcy interfejs), a nie kod do skopiowania. Strategy opłaca się dla rodziny wymiennych algorytmów, Adapter dla realnego tłumaczenia obcego modelu, a refaktoryzacja od wzorca jest równie poprawna jak do niego.</p>
+<p><strong>Efekt:</strong> Zachowanie świadomie się zmienia: umowy FESTIVAL są teraz odrzucane, a model procentowy liczy tak samo na każdym etapie. Zostaje prosta metoda bez interfejsu i mapy, którą w razie potrzeby rozbudujemy tymi samymi krokami w przód.</p>
+<p><strong>Różnica względem Javy:</strong> grosze to <code>number</code> (w Javie <code>long</code>), a konwersja <code>BigDecimal.valueOf(cents, 2)</code> to <code>new Decimal(cents).dividedBy(100)</code>.</p>
+<h3 id="co-widzimy-13" tabindex="-1"><a class="header-anchor" href="#co-widzimy-13"><span>Co widzimy</span></a></h3>
+<p>Rozliczenie z dystrybutorem ma dwa istniejące modele: procentowy (tydzień 1: 50%, 2: 40%, dalej 35%, minimalna gwarancja 500.00) i festiwalowy (stawka z obcego systemu <code>FestivalTariffClient</code>, w groszach jako liczba całkowita). Oba siedzą w jednym <code>switch</code>, konwersja jednostek jest wpleciona w logikę rozliczeń.</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;FESTIVAL&#x27;</span>: {
+  <span class="hljs-keyword">const</span> cents = <span class="hljs-variable language_">this</span>.<span class="hljs-property">festival</span>.<span class="hljs-title function_">weeklyFeeInCents</span>(deal.<span class="hljs-property">title</span>, week);
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(cents).<span class="hljs-title function_">dividedBy</span>(<span class="hljs-number">100</span>);
+}
+</code></pre>
+<h3 id="krok-1-replace-conditional-with-strategy-i-adapter-dla-obcego-klienta" tabindex="-1"><a class="header-anchor" href="#krok-1-replace-conditional-with-strategy-i-adapter-dla-obcego-klienta"><span>Krok 1: Replace Conditional with Strategy (i Adapter dla obcego klienta)</span></a></h3>
+<p><strong>W IDE:</strong> utwórz interfejs <code>SettlementModel</code> z metodą <code>payout(deal, week, ticketRevenue)</code>. Każdą gałąź <code>switch</code> wydziel (⌃⇧R &gt; Extract to method in class) i przenieś ręcznie do klasy: <code>PercentageModel</code> i <code>FestivalFeeAdapter</code> (opakowuje <code>FestivalTariffClient</code>, konwertuje grosze). <code>DistributorSettlement</code> wybiera model z mapy.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">models</span>: <span class="hljs-title class_">ReadonlyMap</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-title class_">SettlementModel</span>&gt; = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Map</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-title class_">SettlementModel</span>&gt;([
+  [<span class="hljs-string">&#x27;PERCENT&#x27;</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">PercentageModel</span>()],
+  [<span class="hljs-string">&#x27;FESTIVAL&#x27;</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">FestivalFeeAdapter</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">FestivalTariffClient</span>())],
+]);
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s14</code> - 18 testów zielonych; <code>step1AdapterPaysTheFestivalFeeConvertedFromCents</code> sprawdza 300.00 i 150.00.
+<strong>Co powiedzieć:</strong> uzasadnienie to dwa <strong>istniejące</strong> warianty z różnymi właścicielami i obcy interfejs. Adapter ma realną pracę (konwersja jednostek), nie jest pustym przekazaniem 1:1.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s14 0 1</code></p>
+<h3 id="krok-2-wariant-znika-usuniecie-adaptera" tabindex="-1"><a class="header-anchor" href="#krok-2-wariant-znika-usuniecie-adaptera"><span>Krok 2: Wariant znika - usunięcie adaptera</span></a></h3>
+<p><strong>W IDE:</strong> umowy festiwalowe wygasły. Usuń wpis <code>&#x27;FESTIVAL&#x27;</code> z mapy, potem plik <code>FestivalFeeAdapter.ts</code> (⇧⌥F12 potwierdza brak użyć) i niepotrzebny import <code>FestivalTariffClient</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">models</span>: <span class="hljs-title class_">ReadonlyMap</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-title class_">SettlementModel</span>&gt; = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Map</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-title class_">SettlementModel</span>&gt;([
+  [<span class="hljs-string">&#x27;PERCENT&#x27;</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">PercentageModel</span>()],
+]);
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; <code>afterTheVariantIsGoneFestivalDealsAreRejected</code> - to świadoma zmiana zachowania, dlatego sprawdzana osobno, a nie testem równoważności.
+<strong>Co powiedzieć:</strong> zostaje Strategy z jedną implementacją i mapą z jednym wpisem - klasyczny sygnał nadmiaru wzorca ze slajdu 6.4.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s14 1 2</code></p>
+<h3 id="krok-3-refaktoryzacja-od-wzorca" tabindex="-1"><a class="header-anchor" href="#krok-3-refaktoryzacja-od-wzorca"><span>Krok 3: Refaktoryzacja od wzorca</span></a></h3>
+<p><strong>W IDE:</strong> ręcznie (VS Code nie ma Inline Method): wklej ciało <code>PercentageModel.payout</code> w miejsce wywołania w <code>DistributorSettlement.payout</code>, wybór z mapy zastąp warunkiem <code>deal.model !== &#x27;PERCENT&#x27;</code>, usuń mapę oraz pliki <code>PercentageModel.ts</code> i <code>SettlementModel.ts</code>. Stałą <code>MINIMUM_GUARANTEE</code> przenieś do <code>DistributorSettlement</code> jako <code>private static readonly</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-title function_">payout</span>(<span class="hljs-attr">deal</span>: <span class="hljs-title class_">Deal</span>, <span class="hljs-attr">week</span>: <span class="hljs-built_in">number</span>, <span class="hljs-attr">ticketRevenue</span>: <span class="hljs-title class_">Decimal</span>): <span class="hljs-title class_">Decimal</span> {
+  <span class="hljs-keyword">if</span> (deal.<span class="hljs-property">model</span> !== <span class="hljs-string">&#x27;PERCENT&#x27;</span>) {
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentError</span>(<span class="hljs-string">`nieznany model: <span class="hljs-subst">${deal.model}</span>`</span>);
+  }
+  <span class="hljs-keyword">const</span> percent = week === <span class="hljs-number">1</span> ? <span class="hljs-number">50</span> : week === <span class="hljs-number">2</span> ? <span class="hljs-number">40</span> : <span class="hljs-number">35</span>;
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony - model procentowy rozlicza się tak samo przed wzorcem, ze wzorcem i po jego usunięciu.
+<strong>Co powiedzieć:</strong> refaktoryzacja od wzorca jest równie poprawna jak do wzorca. Gdy wróci drugi model, przywrócimy Strategy tymi samymi krokami w przód.
+<strong>Snapshot:</strong> <code>step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s14 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-13" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-13"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Wzorzec był odpowiedzią na konkretne siły (dwa warianty, obcy interfejs). Gdy siły zniknęły, zniknął też wzorzec. Test równoważności chroni oba kierunki.</p>
+<h3 id="pulapki-13" tabindex="-1"><a class="header-anchor" href="#pulapki-13"><span>Pułapki</span></a></h3>
+<ul>
+<li>Zostawienie interfejsu &quot;bo może wróci&quot; - to YAGNI w drugą stronę (s06).</li>
+<li>Adapter, który tylko przekazuje wywołania 1:1 bez tłumaczenia modelu, błędów czy jednostek.</li>
+<li>Dopasowanie obcego klienta na siłę do kontraktu, którego obietnic nie spełnia (np. determinizm albo synchroniczność przy wywołaniu sieciowym - w TS klient sieciowy zwróciłby <code>Promise</code>).</li>
+</ul>
+<h3 id="pytanie-do-sali-13" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-13"><span>Pytanie do sali</span></a></h3>
+<p>Który wzorzec w waszym kodzie przeżył powód, dla którego go wprowadzono? Co by kosztowało jego usunięcie?</p>
+<h2 id="scena-s15-inwarianty-w-modelu-domeny" tabindex="-1"><a class="header-anchor" href="#scena-s15-inwarianty-w-modelu-domeny"><span>Scena s15. Inwarianty w modelu domeny</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 7.4 Model domeny i DRY (obiekty pilnują inwariantów); 4.3 Dobry moduł ukrywa decyzję
+<strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>s15_invariants</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s15</code> (<code>S15InvariantsTest.test.ts</code>)
+<strong>Czas:</strong> ~8 min</p>
+<h3 id="w-skrocie-14" tabindex="-1"><a class="header-anchor" href="#w-skrocie-14"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> <code>Reservation</code> to anemiczna klasa z publicznymi, zmiennymi polami, walidację robi tylko <code>BookingService</code>, więc import pliku partnera tworzy niepoprawne rezerwacje. Zamieniamy klasę na niezmienny obiekt z polami <code>readonly</code> i przenosimy strażników do jego konstruktora.</p>
+<p><strong>Zasada:</strong> Inwariant to warunek, który obiekt spełnia przez całe życie, a jego naturalnym właścicielem jest sam model domeny. Pilnują go konstruktor i niezmienność, a nie każdy serwis z osobna; reguły wymagające danych spoza obiektu należą do przypadku użycia.</p>
+<p><strong>Efekt:</strong> Złej rezerwacji nie da się utworzyć żadną ścieżką - import stał się chroniony, choć go nie zmienialiśmy. Zachowanie importu świadomie się zmienia: błędny wiersz kończy się teraz wyjątkiem.</p>
+<p><strong>Różnica względem Javy:</strong> JavaBean z getterami i setterami to w porcie klasa z publicznymi, zmiennymi polami (<code>email!: string</code>, <code>seats = 0</code>, <code>total!: Decimal</code>) - idiomatyczny w TS model anemiczny. Krok 1 (&quot;Remove Setting Method + record&quot;) to pola <code>readonly</code> jako właściwości parametrów konstruktora, a kompaktowy konstruktor rekordu to zwykłe ciało konstruktora. Sprawdzenie <code>email == null</code> odpada, bo typ <code>string</code> w trybie <code>strict</code> wyklucza <code>null</code>; <code>signum() &lt; 0</code> to <code>lessThan(0)</code>.</p>
+<h3 id="co-widzimy-14" tabindex="-1"><a class="header-anchor" href="#co-widzimy-14"><span>Co widzimy</span></a></h3>
+<p><code>Reservation</code> to anemiczna klasa z publicznymi polami. Walidację (e-mail z <code>@</code>, co najmniej jedno miejsce, kwota nieujemna) robi tylko <code>BookingService</code>. <code>ReservationImport</code> (plik partnera <code>email;miejsca;kwota</code>) tworzy model z pominięciem walidacji - i przepuszcza <code>jan-kino.pl;0;-5.00</code>.</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">const</span> reservation = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Reservation</span>();
+reservation.<span class="hljs-property">email</span> = email;
+reservation.<span class="hljs-property">seats</span> = <span class="hljs-title class_">Number</span>.<span class="hljs-built_in">parseInt</span>(seats, <span class="hljs-number">10</span>);
+reservation.<span class="hljs-property">total</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Decimal</span>(total);
+</code></pre>
+<h3 id="krok-1-remove-setting-method-niezmienny-obiekt-z-konstruktorem" tabindex="-1"><a class="header-anchor" href="#krok-1-remove-setting-method-niezmienny-obiekt-z-konstruktorem"><span>Krok 1: Remove Setting Method - niezmienny obiekt z konstruktorem</span></a></h3>
+<p><strong>W IDE:</strong> ręcznie (VS Code nie ma &quot;Convert to record&quot;): w <code>Reservation</code> zastąp trzy pola konstruktorem <code>constructor(readonly email: string, readonly seats: number, readonly total: Decimal) {}</code>. Kompilator wskaże oba serwisy - w każdym zastąp przypisania pól jednym wywołaniem <code>new Reservation(email, seats, total)</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Reservation</span> {
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-keyword">readonly</span> <span class="hljs-attr">email</span>: <span class="hljs-built_in">string</span>, <span class="hljs-keyword">readonly</span> <span class="hljs-attr">seats</span>: <span class="hljs-built_in">number</span>, <span class="hljs-keyword">readonly</span> <span class="hljs-attr">total</span>: <span class="hljs-title class_">Decimal</span></span>) {}
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s15</code> - 17 testów zielonych; <code>importWithoutInvariantsCreatesInvalidReservation</code> pokazuje, że import wciąż tworzy złą rezerwację.
+<strong>Co powiedzieć:</strong> obiekt jest niezmienny i powstaje w całości w jednym wywołaniu - to warunek, żeby w ogóle dało się pilnować inwariantów.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s15 0 1</code></p>
+<h3 id="krok-2-move-straznicy-do-konstruktora" tabindex="-1"><a class="header-anchor" href="#krok-2-move-straznicy-do-konstruktora"><span>Krok 2: Move - strażnicy do konstruktora</span></a></h3>
+<p><strong>W IDE:</strong> wytnij trzy <code>if</code> z <code>BookingService.book</code> i wklej do ciała konstruktora <code>Reservation</code> (dodaj pusty blok <code>{}</code> konstruktora i import <code>IllegalArgumentError</code>).
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Reservation</span> {
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-keyword">readonly</span> <span class="hljs-attr">email</span>: <span class="hljs-built_in">string</span>, <span class="hljs-keyword">readonly</span> <span class="hljs-attr">seats</span>: <span class="hljs-built_in">number</span>, <span class="hljs-keyword">readonly</span> <span class="hljs-attr">total</span>: <span class="hljs-title class_">Decimal</span></span>) {
+    <span class="hljs-keyword">if</span> (!email.<span class="hljs-title function_">includes</span>(<span class="hljs-string">&#x27;@&#x27;</span>)) {
+      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentError</span>(<span class="hljs-string">`niepoprawny email: <span class="hljs-subst">${email}</span>`</span>);
+    }
+    <span class="hljs-comment">// ... miejsca, kwota</span>
+  }
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; ścieżka przez serwis daje te same komunikaty, a <code>step2ImportCannotCreateInvalidReservation</code> pokazuje, że import jest chroniony, choć go nie zmienialiśmy.
+<strong>Co powiedzieć:</strong> inwariant ma jednego właściciela - model. To też DRY: reguła poprawności rezerwacji istnieje w jednym miejscu.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s15 1 2</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-14" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-14"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Nie da się utworzyć rezerwacji w złym stanie, niezależnie od ścieżki (kasa, online, import). Serwis tylko koordynuje.</p>
+<h3 id="pulapki-14" tabindex="-1"><a class="header-anchor" href="#pulapki-14"><span>Pułapki</span></a></h3>
+<ul>
+<li>Walidacja w schemacie DTO frameworka (np. dekoratory class-validator, schemat zod na wejściu HTTP) zamiast w modelu - omija ją każda ścieżka bez frameworka.</li>
+<li>Inwarianty, które wymagają danych spoza obiektu (np. dostępność miejsca) - to reguła przypadku użycia, nie konstruktora.</li>
+</ul>
+<h3 id="pytanie-do-sali-14" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-14"><span>Pytanie do sali</span></a></h3>
+<p>Ile ścieżek tworzy wasz najważniejszy obiekt domeny? Czy wszystkie przechodzą przez tę samą walidację?</p>
+<h2 id="scena-s16-sprzezenie-protokolu-ukryta-kolejnosc-wywolan" tabindex="-1"><a class="header-anchor" href="#scena-s16-sprzezenie-protokolu-ukryta-kolejnosc-wywolan"><span>Scena s16. Sprzężenie protokołu - ukryta kolejność wywołań</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 4.4 &quot;Czy wywołania wymagają ukrytej kolejności?&quot; - sprzężenie protokołu lub czasu
+<strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>s16_temporalcoupling</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s16</code> (<code>S16EquivalenceTest.test.ts</code>)
+<strong>Czas:</strong> ~6 min</p>
+<h3 id="w-skrocie-15" tabindex="-1"><a class="header-anchor" href="#w-skrocie-15"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> <code>TicketPrinter</code> wymaga wywołania trzech setterów przed <code>print</code>, czego nie widać w typach - pominięcie kończy się <code>TypeError</code>. Przenosimy dane do parametrów <code>print</code>, a potem do obiektu <code>TicketRequest</code> z walidacją.</p>
+<p><strong>Zasada:</strong> Sprzężenie czasowe (protokołu) to ukryte wymaganie kolejności wywołań, o którym klient musi wiedzieć poza typami. Naprawia się je, zamieniając stan i kolejność na jawne dane wejściowe, które kompilator i konstruktor mogą sprawdzić.</p>
+<p><strong>Efekt:</strong> Drukarka jest bezstanowa i bezpieczna do współdzielenia, a niekompletne dane są odrzucane w chwili tworzenia żądania. Klient zamiast trzech wywołań buduje jeden obiekt.</p>
+<p><strong>Różnica względem Javy:</strong> pola drukarki w <code>start</code> mają typ <code>T | undefined</code>, a <code>print</code> &quot;odpakowuje&quot; je operatorem <code>!</code> - zapomniane wywołanie daje <code>TypeError</code> (odpowiednik NPE). <code>Objects.requireNonNull</code> to funkcja <code>requireNonNull</code> z <code>shared/<wbr>requireNonNull.ts</code> (rzuca <code>NullPointerError</code>); test przekazuje <code>null as unknown as string</code>, czyli <code>null</code> spoza systemu typów (np. z JSON-a). &quot;Bezpieczna współbieżnie&quot; w jednowątkowym JS znaczy: bezpieczna przy współdzieleniu jednej drukarki przez dwie kasy i przy przeplataniu wywołań asynchronicznych.</p>
+<h3 id="co-widzimy-15" tabindex="-1"><a class="header-anchor" href="#co-widzimy-15"><span>Co widzimy</span></a></h3>
+<p><code>TicketPrinter</code> wymaga wywołania <code>selectScreening</code>, <code>selectSeat</code> i <code>forBuyer</code> przed <code>print</code>. Nic w typach tego nie mówi: zapomniane wywołanie to <code>TypeError</code> w <code>print</code>, a drukarka współdzielona przez dwie kasy miesza dane klientów. <code>TicketDesk</code> (klient) zna ten protokół.</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-variable language_">this</span>.<span class="hljs-property">printer</span>.<span class="hljs-title function_">selectScreening</span>(screening);
+<span class="hljs-variable language_">this</span>.<span class="hljs-property">printer</span>.<span class="hljs-title function_">selectSeat</span>(seat);
+<span class="hljs-variable language_">this</span>.<span class="hljs-property">printer</span>.<span class="hljs-title function_">forBuyer</span>(buyer);
+<span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">printer</span>.<span class="hljs-title function_">print</span>();
+</code></pre>
+<p>Na żywo: w <code>TicketDesk</code> zakomentuj <code>selectSeat</code> i uruchom test - <code>TypeError: Cannot read properties of undefined (reading &#x27;toFixed&#x27;)</code>. Cofnij.</p>
+<h3 id="krok-1-change-signature-wszystko-czego-potrzeba-w-parametrach" tabindex="-1"><a class="header-anchor" href="#krok-1-change-signature-wszystko-czego-potrzeba-w-parametrach"><span>Krok 1: Change Signature - wszystko, czego potrzeba, w parametrach</span></a></h3>
+<p><strong>W IDE:</strong> ręcznie (VS Code nie ma Change Signature): dodaj do <code>print</code> parametry <code>screening: Screening</code>, <code>seat: number</code>, <code>buyer: string</code> i użyj ich w ciele zamiast pól (bez <code>!</code>). Usuń pola i trzy settery; w <code>TicketDesk</code> usuń trzy wywołania i przekaż dane do <code>print</code> - kompilator wskaże każde miejsce.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-title function_">print</span>(<span class="hljs-attr">screening</span>: <span class="hljs-title class_">Screening</span>, <span class="hljs-attr">seat</span>: <span class="hljs-built_in">number</span>, <span class="hljs-attr">buyer</span>: <span class="hljs-built_in">string</span>): <span class="hljs-built_in">string</span> {
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s16</code> - 7 testów zielonych.
+<strong>Co powiedzieć:</strong> protokół &quot;najpierw ustaw, potem drukuj&quot; stał się kontraktem sprawdzanym przez kompilator. Drukarka jest bezstanowa, więc bezpieczna do współdzielenia.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s16 0 1</code></p>
+<h3 id="krok-2-introduce-parameter-object" tabindex="-1"><a class="header-anchor" href="#krok-2-introduce-parameter-object"><span>Krok 2: Introduce Parameter Object</span></a></h3>
+<p><strong>W IDE:</strong> ręcznie (VS Code nie ma Introduce Parameter Object): utwórz klasę <code>TicketRequest(screening, seat, buyer)</code> z polami <code>readonly</code>, w konstruktorze <code>requireNonNull</code> dla seansu i kupującego. <code>print</code> przyjmuje <code>request: TicketRequest</code>, <code>TicketDesk</code> buduje żądanie.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">TicketRequest</span> {
+  <span class="hljs-keyword">readonly</span> <span class="hljs-attr">screening</span>: <span class="hljs-title class_">Screening</span>;
+  <span class="hljs-keyword">readonly</span> <span class="hljs-attr">buyer</span>: <span class="hljs-built_in">string</span>;
+
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-attr">screening</span>: <span class="hljs-title class_">Screening</span>, <span class="hljs-keyword">readonly</span> <span class="hljs-attr">seat</span>: <span class="hljs-built_in">number</span>, <span class="hljs-attr">buyer</span>: <span class="hljs-built_in">string</span></span>) {
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">screening</span> = <span class="hljs-title function_">requireNonNull</span>(screening, <span class="hljs-string">&#x27;screening&#x27;</span>);
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">buyer</span> = <span class="hljs-title function_">requireNonNull</span>(buyer, <span class="hljs-string">&#x27;buyer&#x27;</span>);
+  }
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; <code>step2RejectsIncompleteRequestAtCreation</code> - niekompletne żądanie jest odrzucane przy tworzeniu, a nie w <code>print</code>.
+<strong>Co powiedzieć:</strong> błąd wychodzi tam, gdzie powstał, a nie trzy wywołania dalej. W TS kompilator już pilnuje kompletu argumentów; <code>requireNonNull</code> chroni przed danymi spoza systemu typów.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s16 1 2</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-15" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-15"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Sprzężenie czasowe zamienione na zależność od danych. To samo dotyczy protokołów efektów (s12): kolejność, która ma znaczenie, powinna być jawna i przetestowana.</p>
+<h3 id="pulapki-15" tabindex="-1"><a class="header-anchor" href="#pulapki-15"><span>Pułapki</span></a></h3>
+<ul>
+<li>Metoda <code>init()</code> wymagana przed użyciem obiektu - ten sam zapach w innej formie (w TS często z polami oznaczonymi <code>!</code>).</li>
+<li>Builder bez walidacji w <code>build()</code> - przenosi problem, nie usuwa go.</li>
+</ul>
+<h3 id="pytanie-do-sali-15" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-15"><span>Pytanie do sali</span></a></h3>
+<p>Które API w waszym systemie wymaga &quot;najpierw X, potem Y&quot;? Jak klient ma się o tym dowiedzieć?</p>
+<h2 id="proponowana-kolejnosc-pokazu" tabindex="-1"><a class="header-anchor" href="#proponowana-kolejnosc-pokazu"><span>Proponowana kolejność pokazu</span></a></h2>
+<p><strong>Ścieżka krótka (~85 min):</strong> s01 (DRY) -&gt; s02 (podobieństwo) -&gt; s06 (YAGNI) -&gt; s07 (SRP) -&gt; s09 (LSP) -&gt; s11 (DIP) -&gt; s14 (wzorzec odwracalny). Z s12 pokaż tylko <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s12 3 4</code> i <code>S12UseCaseTest</code> (5 min), jeśli zostanie czas.</p>
+<p><strong>Ścieżka pełna (~170 min, z przerwą):</strong></p>
+<ol>
+<li>DRY, KISS, YAGNI: s01, s02, s03, s04, s05, s06 (~60 min) - na koniec filtr decyzyjny ze slajdu 2.9 na przykładzie s06.</li>
+<li>SOLID: s07, s08, s09, s10, s11 (~55 min).</li>
+<li>Spójność, sprzężenie, granice: s15, s16, s13, s12 (~45 min).</li>
+<li>Wzorce: s14 (~12 min) jako podsumowanie - wzorzec to kierunek serii refaktoryzacji, który można odwrócić.</li>
+</ol>
+<p>Sceny s12 i s13 dobrze łączyć: po s12 zapytaj, jak upewnić się, że <code>app</code> nigdy nie zaimportuje <code>adapter</code>, i przejdź do s13.</p>
+
+</main>
+</div>
+<script>if(matchMedia('(max-width:900px)').matches){var d=document.querySelector('.toc details');if(d)d.open=false}</script>
+</body>
+</html>

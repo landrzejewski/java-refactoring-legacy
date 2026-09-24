@@ -16,5 +16,9 @@
     "sourceMap": true,
     "noEmit": true
   },
-  "include": ["src", "test", "vitest.config.ts"]
+  "include": ["src", "test", "vitest.config.ts"],
+  "exclude": [
+    "src/workshop/m8/s10_qualitygate/sample",
+    "test/workshop/m8/s10_qualitygate/sample"
+  ]
 }
