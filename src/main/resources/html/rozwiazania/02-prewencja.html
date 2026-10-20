@@ -1,0 +1,1018 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rozwiązania: Moduł 2. Prewencja - rozwiązania dla prowadzącego</title>
+<style>:root{--bg:#fbfbfa;--fg:#1d1f23;--muted:#5f6670;--line:#e3e5e8;--card:#ffffff;--accent:#2457c5;--accent-bg:#eef3fd;
+--code-bg:#f4f5f7;--note-bg:#fff7e6;--note-line:#e6a700;--th:#f1f3f6;
+--k:#b3246b;--s:#1a7f37;--c:#6e7781;--n:#0550ae;--t:#8250df;--f:#6639ba;--a:#953800;
+--kind:#2457c5}
+@media (prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3036;--card:#1c1f23;--accent:#7aa7ff;--accent-bg:#1e2a40;
+--code-bg:#1f2328;--note-bg:#2b2412;--note-line:#c99400;--th:#23272d;
+--k:#ff7b9c;--s:#7ee2a0;--c:#8b949e;--n:#79c0ff;--t:#d2a8ff;--f:#d2a8ff;--a:#ffa657}}
+body.zadania{--kind:#1a7f37} body.warsztat{--kind:#c2570c} body.warsztat-zadania{--kind:#0f7b7b} body.rozwiazania{--kind:#b3246b} body.przyklady{--kind:#2457c5}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.topbar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 24px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);border-top:3px solid var(--kind)}
+.topbar a{color:var(--fg);text-decoration:none}
+.home{font-weight:600}
+.tabs{display:flex;gap:4px}
+.tab{padding:4px 12px;border-radius:999px;font-size:15px;color:var(--muted)!important}
+.tab:hover{background:var(--code-bg)}
+.tab.active{background:var(--accent-bg);color:var(--accent)!important;font-weight:600}
+.pager{margin-left:auto;display:flex;gap:14px;font-size:15px}
+.pager a{color:var(--muted)}.pager a:hover{color:var(--accent)}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:48px;max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+.layout.no-toc{grid-template-columns:minmax(0,1fr);max-width:1000px}
+aside{position:sticky;top:72px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px}
+.toc-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;font-weight:600}
+.toc ul{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.toc li a{display:block;padding:3px 12px;color:var(--muted);text-decoration:none;line-height:1.35}
+.toc li.h3 a{padding-left:24px;font-size:13px}
+.toc li a:hover{color:var(--accent)}
+main{min-width:0;max-width:860px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 1.2rem;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:2.6rem 0 .8rem;padding-top:.6rem;border-top:1px solid var(--line)}
+h3{font-size:1.18rem;margin:2rem 0 .6rem}
+h4{font-size:1rem;margin:1.5rem 0 .5rem}
+h1 a,h2 a,h3 a,h4 a{color:inherit;text-decoration:none}
+h2 a:hover::after,h3 a:hover::after{content:" #";color:var(--muted)}
+p,ul,ol{margin:.6rem 0 1rem}
+li{margin:.25rem 0}
+li>ul,li>ol{margin:.2rem 0}
+a{color:var(--accent)}
+strong{font-weight:650}
+code{font:0.88em/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre.code{position:relative;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:1rem 0 1.4rem}
+pre.code code{background:none;padding:0;font-size:14px;line-height:1.55}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:6px;right:10px;font:11px ui-monospace,Menlo,monospace;color:var(--muted);text-transform:uppercase}
+.table-wrap{overflow-x:auto;margin:1rem 0 1.4rem;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--th);font-weight:600}
+tr:last-child td{border-bottom:none}
+blockquote{margin:1rem 0 1.4rem;padding:10px 16px;background:var(--note-bg);border-left:4px solid var(--note-line);border-radius:0 8px 8px 0}
+blockquote p{margin:.3rem 0}
+hr{border:none;border-top:1px solid var(--line);margin:2rem 0}
+hr+h2{border-top:none;margin-top:1.4rem}
+main p code,main li code,main td code{overflow-wrap:break-word}
+.toc summary{cursor:pointer;list-style:none}.toc summary::-webkit-details-marker{display:none}
+.hljs-keyword,.hljs-selector-tag,.hljs-built_in,.hljs-literal{color:var(--k)}
+.hljs-string,.hljs-regexp,.hljs-addition{color:var(--s)}
+.hljs-comment,.hljs-quote,.hljs-meta{color:var(--c);font-style:italic}
+.hljs-number,.hljs-symbol{color:var(--n)}
+.hljs-type,.hljs-class .hljs-title,.hljs-title.class_{color:var(--t)}
+.hljs-title,.hljs-title.function_,.hljs-section{color:var(--f)}
+.hljs-attr,.hljs-attribute,.hljs-variable,.hljs-params,.hljs-tag{color:var(--a)}
+.hljs-deletion{color:var(--k)}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:16px;padding:20px 16px 60px}
+aside{position:static;max-height:none;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--card)}
+.toc-title{margin:0}.toc details[open] .toc-title{margin-bottom:8px}.toc summary::after{content:" ▾"}
+body{font-size:16px}.topbar{padding:8px 16px}.pager{margin-left:0}h1{font-size:1.6rem}}
+@media print{.topbar,aside{display:none}.layout{display:block;padding:0}main{max-width:none}
+pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#000;font-size:12pt}}
+.langs{margin-left:auto}.langs+.pager{margin-left:0}
+.langs{margin-left:auto}.langs+.pager{margin-left:0}</style>
+</head>
+<body class="rozwiazania">
+<header class="topbar"><a class="home" href="../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../slajdy/02-prewencja-slajdy.html">Slajdy</a><a class="tab" href="../zadania/02-prewencja.html">Zadania</a><a class="tab" href="../przyklady/02-prewencja.html">Przykłady</a><a class="tab active" href="02-prewencja.html">Rozwiązania</a></div><div class="pager"><a href="01-wprowadzenie.html" title="Poprzedni moduł">&larr; 01</a><a href="03-testowanie-a-bezpieczenstwo.html" title="Następny moduł">03 &rarr;</a></div></header>
+<div class="layout">
+<aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#aktywnosc-21-zmapuj-swoje-petle">Aktywność 2.1: Zmapuj swoje pętle</a></li><li class="h3"><a href="#rozwiazanie">Rozwiązanie</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji">Pytania do dyskusji</a></li><li class="h2"><a href="#aktywnosc-22-drzwi-jedno-czy-dwukierunkowe">Aktywność 2.2: Drzwi jedno- czy dwukierunkowe?</a></li><li class="h3"><a href="#rozwiazanie-1">Rozwiązanie</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow-1">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji-1">Pytania do dyskusji</a></li><li class="h2"><a href="#aktywnosc-23-napraw-izoluj-czy-zaakceptuj">Aktywność 2.3: Napraw, izoluj czy zaakceptuj?</a></li><li class="h3"><a href="#rozwiazanie-2">Rozwiązanie</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow-2">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji-2">Pytania do dyskusji</a></li><li class="h2"><a href="#cwiczenie-1-petle-informacji-zwrotnej-i-bramka-w-legacy">Ćwiczenie 1: Pętle informacji zwrotnej i bramka w legacy</a></li><li class="h3"><a href="#krok-1-problemy-z-czesci-a">Krok 1: problemy z części A</a></li><li class="h3"><a href="#krok-2-trzy-ruchy-z-miernikami">Krok 2: trzy ruchy z miernikami</a></li><li class="h3"><a href="#krok-3-pomiar-w-czesci-b">Krok 3: pomiar w części B</a></li><li class="h3"><a href="#krok-4-eksperyment-z-polityka">Krok 4: eksperyment z polityką</a></li><li class="h3"><a href="#krok-5-regula-bramki">Krok 5: reguła bramki</a></li><li class="h3"><a href="#kod-referencyjny">Kod referencyjny</a></li><li class="h3"><a href="#weryfikacja-kryteriow-akceptacji">Weryfikacja kryteriów akceptacji</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow-3">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji-3">Pytania do dyskusji</a></li><li class="h2"><a href="#cwiczenie-2-decyzje-teraz-pozniej-czy-nigdy">Ćwiczenie 2: Decyzje teraz, później czy nigdy</a></li><li class="h3"><a href="#krok-1-tabela-decyzji">Krok 1: tabela decyzji</a></li><li class="h3"><a href="#krok-2-przykladowy-adr-dla-sytuacji-5">Krok 2: przykładowy ADR dla sytuacji 5</a></li><li class="h3"><a href="#kod-referencyjny-1">Kod referencyjny</a></li><li class="h3"><a href="#weryfikacja-kryteriow-akceptacji-1">Weryfikacja kryteriów akceptacji</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow-4">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji-4">Pytania do dyskusji</a></li><li class="h2"><a href="#cwiczenie-3-projekt-jako-hamulec-degradacji">Ćwiczenie 3: Projekt jako hamulec degradacji</a></li><li class="h3"><a href="#krok-1-aktorzy-zmiany">Krok 1: aktorzy zmiany</a></li><li class="h3"><a href="#krok-2-decyzja-o-awarii-zapisu">Krok 2: decyzja o awarii zapisu</a></li><li class="h3"><a href="#kroki-3-7-przebieg-odniesiony-do-kodu-referencyjnego">Kroki 3-7: przebieg odniesiony do kodu referencyjnego</a></li><li class="h3"><a href="#krok-8-automatyczna-ochrona-granicy">Krok 8: automatyczna ochrona granicy</a></li><li class="h3"><a href="#kod-referencyjny-2">Kod referencyjny</a></li><li class="h3"><a href="#weryfikacja-kryteriow-akceptacji-2">Weryfikacja kryteriów akceptacji</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow-5">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji-5">Pytania do dyskusji</a></li><li class="h2"><a href="#cwiczenie-4-boy-scout-i-seria-zmian-gotowych-do-przegladu">Ćwiczenie 4: Boy Scout i seria zmian gotowych do przeglądu</a></li><li class="h3"><a href="#krok-1-zestaw-1-testy-charakteryzujace">Krok 1: zestaw 1 - testy charakteryzujące</a></li><li class="h3"><a href="#krok-2-zestaw-2-boy-scout-bez-zmiany-zachowania">Krok 2: zestaw 2 - Boy Scout bez zmiany zachowania</a></li><li class="h3"><a href="#krok-3-zestaw-3-zmiana-zachowania">Krok 3: zestaw 3 - zmiana zachowania</a></li><li class="h3"><a href="#krok-4-przykladowy-opis-zestawu-2">Krok 4: przykładowy opis zestawu 2</a></li><li class="h3"><a href="#kod-referencyjny-3">Kod referencyjny</a></li><li class="h3"><a href="#weryfikacja-kryteriow-akceptacji-3">Weryfikacja kryteriów akceptacji</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow-6">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji-6">Pytania do dyskusji</a></li><li class="h2"><a href="#sprawdzenie-wiedzy-odpowiedzi">Sprawdzenie wiedzy - odpowiedzi</a></li></ul></details></nav></aside>
+<main>
+<h1>Moduł 2. Prewencja - rozwiązania dla prowadzącego</h1>
+<p>Materiał wyłącznie dla prowadzącego. Numeracja i nazwy odpowiadają plikowi zadań (<code>src/<wbr>main/<wbr>resources/<wbr>md/<wbr>zadania/<wbr>02-prewencja.md</code>), a odwołania do slajdów - plikowi <code>src/<wbr>main/<wbr>resources/<wbr>md/<wbr>slides/<wbr>02-prewencja-slajdy.md</code>.</p>
+<p>Kod referencyjny znajduje się w <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr></code>: stan „po” wyceny dostawy w pakietach <code>domain</code>, <code>application</code>, <code>adapter</code> oraz w <code>Module2Examples.java</code>, wersja „przed” w <code>legacy/<wbr>LegacyDeliveryQuoteService.java</code>; lokalna poprawa w <code>boyscout/<wbr>before</code> i <code>boyscout/<wbr>after</code>; model ADR w <code>documentation</code>; kompilator w pamięci w <code>tooling</code>. Szczegółowy przewodnik po kodzie: <code>src/<wbr>main/<wbr>resources/<wbr>md/<wbr>przyklady/<wbr>02-prewencja.md</code>.</p>
+<p>Część zadań ma charakter projektowy i nie istnieje jedno poprawne rozwiązanie. Poniższe odpowiedzi pokazują produkt spełniający kryteria akceptacji. Prace uczestników oceniaj według kryteriów i listy kontrolnej prewencji (ostatni slajd przed podsumowaniem), a nie według zgodności z tym wzorcem.</p>
+<hr>
+<h2 id="aktywnosc-21-zmapuj-swoje-petle" tabindex="-1"><a class="header-anchor" href="#aktywnosc-21-zmapuj-swoje-petle"><span>Aktywność 2.1: Zmapuj swoje pętle</span></a></h2>
+<h3 id="rozwiazanie" tabindex="-1"><a class="header-anchor" href="#rozwiazanie"><span>Rozwiązanie</span></a></h3>
+<p>Aktywność nie ma jednej odpowiedzi. Dobra odpowiedź zawiera liczby i przykład przesunięcia, np.:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Pętla</th>
+<th>Czas</th>
+<th>Przykład</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>kompilacja w IDE</td>
+<td>1-3 s</td>
+<td>-</td>
+</tr>
+<tr>
+<td>szybkie testy modułu</td>
+<td>20 s</td>
+<td>-</td>
+</tr>
+<tr>
+<td>pełny build lokalny</td>
+<td>6 min</td>
+<td>uruchamiany rzadko, więc testy modułu też rzadko</td>
+</tr>
+<tr>
+<td>CI</td>
+<td>25 min</td>
+<td>-</td>
+</tr>
+<tr>
+<td>przegląd kodu</td>
+<td>1-2 dni</td>
+<td>wykrył błędną nazwę pola w JSON</td>
+</tr>
+<tr>
+<td>produkcja</td>
+<td>tydzień</td>
+<td>-</td>
+</tr>
+</tbody>
+</table></div>
+<p>Przesunięcie: błędną nazwę pola w JSON złapałby test serializacji kontraktu w pętli szybkich testów (sekundy zamiast dni).</p>
+<h3 id="typowe-bledy-uczestnikow" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>odpowiedzi jakościowe („CI jest wolne”) zamiast czasu,</li>
+<li>pominięcie przeglądu kodu jako pętli informacji zwrotnej,</li>
+<li>przesunięcie „wszystkiego do testów jednostkowych”, także problemów, które wymagają realnej technologii.</li>
+</ul>
+<h3 id="pytania-do-dyskusji" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>Która pętla jest u Was najczęściej pomijana, bo „trwa za długo”?</li>
+<li>Ile zmian zwykle ląduje między przyczyną błędu a sygnałem w najwolniejszej pętli?</li>
+</ul>
+<hr>
+<h2 id="aktywnosc-22-drzwi-jedno-czy-dwukierunkowe" tabindex="-1"><a class="header-anchor" href="#aktywnosc-22-drzwi-jedno-czy-dwukierunkowe"><span>Aktywność 2.2: Drzwi jedno- czy dwukierunkowe?</span></a></h2>
+<h3 id="rozwiazanie-1" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-1"><span>Rozwiązanie</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Decyzja</th>
+<th>Drzwi</th>
+<th>Uzasadnienie</th>
+<th>Mechanizm odwracalności</th>
+<th>ADR</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. nazwa pakietu <code>pricing</code> na <code>tariffs</code></td>
+<td>dwukierunkowe</td>
+<td>wszyscy konsumenci w repozytorium; IDE i kompilator przeprowadzą zmianę</td>
+<td>-</td>
+<td>nie</td>
+</tr>
+<tr>
+<td>2. format nocnego pliku dla partnera</td>
+<td>jednokierunkowe</td>
+<td>zewnętrzny konsument wdroży parser; zmiana wymaga koordynacji</td>
+<td>wersja formatu w nagłówku pliku, okres równoległego generowania dwóch wersji, test kontraktowy formatu</td>
+<td>tak</td>
+</tr>
+<tr>
+<td>3. biblioteka PDF w jednym adapterze</td>
+<td>dwukierunkowe</td>
+<td>biblioteka zamknięta za adapterem; wymiana dotyka jednej klasy</td>
+<td>adapter i test wyniku (np. tekst wyciągnięty z PDF)</td>
+<td>nie</td>
+</tr>
+<tr>
+<td>4. usunięcie kolumny z historią zamówień</td>
+<td>jednokierunkowe</td>
+<td>utrata danych historycznych; raporty i audyt mogą z nich korzystać</td>
+<td>expand and contract: najpierw przestać pisać, archiwum lub kopia, usunięcie po zamknięciu okna wycofania</td>
+<td>tak</td>
+</tr>
+<tr>
+<td>5. <code>PricingRule</code> „na pluginy”</td>
+<td>dwukierunkowe, ale z kosztem</td>
+<td>da się usunąć, dopóki nikt spoza repozytorium nie implementuje interfejsu; po publikacji staje się jednokierunkowe</td>
+<td>nie publikować interfejsu, nie budować bez wymagania (YAGNI)</td>
+<td>nie (zamiast ADR: nie budować)</td>
+</tr>
+<tr>
+<td>6. <code>double</code> na <code>BigDecimal</code> w publicznym DTO</td>
+<td>jednokierunkowe</td>
+<td>kompatybilność źródłowa i binarna klientów biblioteki</td>
+<td>nowe pole lub nowy typ obok starego, oznaczenie starego jako przestarzałe, okres przejściowy</td>
+<td>tak</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="typowe-bledy-uczestnikow-1" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow-1"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>uznanie zmiany nazwy pakietu za ryzykowną „bo dużo plików” (liczba plików nie przesądza o odwracalności),</li>
+<li>pominięcie danych przy decyzji 4 („kolumna jest nieużywana” - przez kogo?),</li>
+<li>uznanie decyzji 5 za neutralną; koszt utrzymania istnieje od pierwszego dnia, a odwracalność znika po publikacji.</li>
+</ul>
+<h3 id="pytania-do-dyskusji-1" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji-1"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>Która z Waszych ostatnich decyzji była jednokierunkowa tylko dlatego, że brakowało testów?</li>
+<li>Czy decyzja 2 może stać się dwukierunkowa bez udziału partnera?</li>
+</ul>
+<hr>
+<h2 id="aktywnosc-23-napraw-izoluj-czy-zaakceptuj" tabindex="-1"><a class="header-anchor" href="#aktywnosc-23-napraw-izoluj-czy-zaakceptuj"><span>Aktywność 2.3: Napraw, izoluj czy zaakceptuj?</span></a></h2>
+<h3 id="rozwiazanie-2" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-2"><span>Rozwiązanie</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Problem</th>
+<th>Reakcja</th>
+<th>Uzasadnienie</th>
+<th>Właściciel</th>
+<th>Sygnał ponownej oceny</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. SDK przewoźnika: grosze jako <code>long</code>, własne wyjątki</td>
+<td>izolować</td>
+<td>nie kontrolujemy SDK; adapter tłumaczy jednostki i błędy na pojęcia domeny, a reszta kodu widzi tylko port</td>
+<td>właściciel integracji z przewoźnikiem</td>
+<td>nowa wersja SDK, druga integracja z innym przewoźnikiem</td>
+</tr>
+<tr>
+<td>2. raporty roczne do wycofania za 4 miesiące</td>
+<td>zaakceptować (tolerować)</td>
+<td>krótki horyzont, brak planowanych zmian</td>
+<td>właściciel produktu raportów</td>
+<td>przesunięcie terminu wycofania albo zaplanowana zmiana raportu</td>
+</tr>
+<tr>
+<td>3. reguła VIP w trzech miejscach, pięć zmian w planie</td>
+<td>naprawić</td>
+<td>potwierdzone odsetki i wysoka ekspozycja</td>
+<td>właściciel modułu wyceny</td>
+<td>- (przed następną zmianą rabatu)</td>
+</tr>
+<tr>
+<td>4. 10 ostrzeżeń <code>auxiliaryclass</code> w niezmienianym module</td>
+<td>zaakceptować (stan bazowy)</td>
+<td>ryzyko niskie; wpis do stanu bazowego, który może tylko maleć</td>
+<td>właściciel jakości builda</td>
+<td>pierwsza zmiana w module albo termin przeglądu stanu bazowego</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="typowe-bledy-uczestnikow-2" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow-2"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>„zaakceptować” bez właściciela i sygnału (to ignorowanie),</li>
+<li>„naprawić” SDK dostawcy (nie da się) albo opakowanie, które przepuszcza typy SDK do domeny,</li>
+<li>refaktoryzacja modułu raportów „bo ma najgorszą metrykę” (por. moduł 1, Ćwiczenie 3).</li>
+</ul>
+<h3 id="pytania-do-dyskusji-2" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji-2"><span>Pytania do dyskusji</span></a></h3>
+<p>Co odróżnia stan bazowy ostrzeżeń od „wiecznego baseline”? (Stan bazowy ma właściciela, może tylko maleć i ma termin przeglądu.)</p>
+<hr>
+<h2 id="cwiczenie-1-petle-informacji-zwrotnej-i-bramka-w-legacy" tabindex="-1"><a class="header-anchor" href="#cwiczenie-1-petle-informacji-zwrotnej-i-bramka-w-legacy"><span>Ćwiczenie 1: Pętle informacji zwrotnej i bramka w legacy</span></a></h2>
+<blockquote>
+<p>Rozwiązanie opracowane na podstawie kodu referencyjnego. Wyniki pomiaru zależą od JDK i stanu repozytorium - uczestnicy muszą zmierzyć sami.</p>
+</blockquote>
+<h3 id="krok-1-problemy-z-czesci-a" tabindex="-1"><a class="header-anchor" href="#krok-1-problemy-z-czesci-a"><span>Krok 1: problemy z części A</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Problem</th>
+<th>Wykryto w</th>
+<th>Najszybsza możliwa pętla</th>
+<th>Mechanizm</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. literówka w nazwie reguły w konfiguracji</td>
+<td>produkcja</td>
+<td>kompilator</td>
+<td>typ (enum, stała, rejestr w kodzie) zamiast napisu; ewentualnie szybki test ładujący konfigurację przy starcie</td>
+</tr>
+<tr>
+<td>2. <code>ClassCastException</code> z surowego typu</td>
+<td>ręczna regresja</td>
+<td>kompilator</td>
+<td><code>-Xlint:rawtypes,unchecked</code> z bramką „brak nowych naruszeń”</td>
+</tr>
+<tr>
+<td>3. błędne zaokrąglenie ceny grupowej</td>
+<td>klient (produkcja)</td>
+<td>szybkie testy obszaru</td>
+<td>test reguły z wartościami granicznymi i jawną wyrocznią, uruchamiany lokalnie w sekundach</td>
+</tr>
+<tr>
+<td>4. spór o zależność <code>pricing</code> -&gt; mail</td>
+<td>przegląd kodu (3 dni)</td>
+<td>build (test architektury) albo rozmowa przed pracą</td>
+<td>ADR z regułą i test reguły zależności w każdym buildzie</td>
+</tr>
+<tr>
+<td>5. regresja formatu po „sprzątaniu” w PR z funkcją</td>
+<td>przegląd / produkcja</td>
+<td>szybkie testy + struktura zestawów zmian</td>
+<td>test charakteryzujący formatu i osobny zestaw zmian dla refaktoryzacji (Boy Scout bez zmiany zachowania)</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="krok-2-trzy-ruchy-z-miernikami" tabindex="-1"><a class="header-anchor" href="#krok-2-trzy-ruchy-z-miernikami"><span>Krok 2: trzy ruchy z miernikami</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Ruch</th>
+<th>Uzasadnienie</th>
+<th>Miernik wyniku</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>wydzielić szybki zestaw testów logiki (bez kontekstu aplikacji i bazy), uruchamiany lokalnie i w CI przed scaleniem</td>
+<td>dziś testy biegną tylko w CI po scaleniu, 25 minut</td>
+<td>czas od zapisu pliku do wyniku testów obszaru (cel: sekundy); liczba regresji wykrytych dopiero po scaleniu</td>
+</tr>
+<tr>
+<td>bramka kompilatora i reguł architektury w każdym buildzie, ze stanem bazowym</td>
+<td>problemy 1, 2 i 4 są wykrywalne statycznie</td>
+<td>liczba nowych ostrzeżeń w gałęzi głównej (cel: zero); liczba sporów architektonicznych w przeglądzie</td>
+</tr>
+<tr>
+<td>małe zestawy zmian (jedna intencja, limit orientacyjny, refaktoryzacja osobno)</td>
+<td>PR po 900 linii czekają 2 dni i ukrywają zmiany zachowania</td>
+<td>mediana czasu oczekiwania na przegląd; odsetek PR wracających z <code>BLOCKER</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Odrzucone jako miernik: „liczba napisanych testów”, „procent pokrycia” - to mierniki aktywności.</p>
+<h3 id="krok-3-pomiar-w-czesci-b" tabindex="-1"><a class="header-anchor" href="#krok-3-pomiar-w-czesci-b"><span>Krok 3: pomiar w części B</span></a></h3>
+<p>Polecenia:</p>
+<pre class="code" data-lang="bash"><code class="hljs">java -version
+mvn -v
+javac --release 25 -Xlint:all -d &lt;tmp&gt; $(find src/main/java -name <span class="hljs-string">&#x27;*.java&#x27;</span>)
+</code></pre>
+<p>Wynik zmierzony przy przygotowaniu materiału (JDK 26 z <code>--release 25</code>; na innym JDK liczby mogą się różnić):</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Kategoria</th>
+<th>Liczba</th>
+<th>Gdzie</th>
+<th>Klasyfikacja</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>auxiliaryclass</code></td>
+<td>10</td>
+<td><code>pl/<wbr>training/<wbr>module1</code> (klasy pomocnicze z <code>LegacyOrderService.java</code> i <code>RiskClassifier.java</code> używane spoza pliku)</td>
+<td>prawdziwy problem o niskim ryzyku, świadomie zaakceptowany w materiale szkoleniowym</td>
+</tr>
+<tr>
+<td><code>rawtypes</code>, <code>unchecked</code>, <code>deprecation</code>, <code>fallthrough</code></td>
+<td>13</td>
+<td><code>pl/<wbr>training/<wbr>workshop/<wbr>m2/<wbr>s03_compilergate</code> (<code>start</code>, <code>step1</code>, <code>step2</code>) i <code>pl/<wbr>training/<wbr>workshop/<wbr>m2/<wbr>s04_qualitygate/<wbr>sample/<wbr>dirty</code></td>
+<td>celowe naruszenia - materiał scen warsztatu o bramkach</td>
+</tr>
+<tr>
+<td><code>this-escape</code></td>
+<td>1</td>
+<td>jeden przykład w innym module szkolenia</td>
+<td>do oceny przez właściciela modułu</td>
+</tr>
+</tbody>
+</table></div>
+<p>Wniosek: przy obecnym <code>pom.xml</code> włączenie <code>-Xlint:all -Werror</code> zablokowałoby build z powodu 24 historycznych ostrzeżeń, choć żadne nie jest związane z bieżącą pracą. Dodatkowo <code>pom.xml</code> ustala <code>--release 25</code>, ale nie gwarantuje JDK 25 - CI powinno jawnie kontrolować JDK (Maven Toolchains, obraz CI z przypiętym JDK, <code>maven-enforcer-plugin</code>).</p>
+<h3 id="krok-4-eksperyment-z-polityka" tabindex="-1"><a class="header-anchor" href="#krok-4-eksperyment-z-polityka"><span>Krok 4: eksperyment z polityką</span></a></h3>
+<p>Dla źródła z <code>List names</code> (surowy typ):</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Polityka</th>
+<th><code>successful()</code></th>
+<th>Diagnostyki</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ALLOW_WARNINGS</code></td>
+<td><code>true</code></td>
+<td><code>WARNING compiler.warn.raw.class.use</code></td>
+</tr>
+<tr>
+<td><code>TREAT_WARNINGS_AS_ERRORS</code></td>
+<td><code>false</code></td>
+<td><code>WARNING compiler.warn.raw.class.use</code> oraz <code>ERROR compiler.err.warnings.and.werror</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Dokładnie to sprawdzają <code>reportsRawTypeByKindAndCompilerCodeWithoutRejectingSource</code> i <code>rejectsTheSameRawTypeWhenWarningsAreErrors</code>. Ostrzeżenie jest tym samym sygnałem, polityka decyduje, czy blokuje.</p>
+<h3 id="krok-5-regula-bramki" tabindex="-1"><a class="header-anchor" href="#krok-5-regula-bramki"><span>Krok 5: reguła bramki</span></a></h3>
+<ul>
+<li><strong>Blokuje od razu:</strong> każde nowe ostrzeżenie kategorii <code>rawtypes</code>, <code>unchecked</code>, <code>deprecation</code>, <code>fallthrough</code> i pozostałych poza stanem bazowym.</li>
+<li><strong>Stan bazowy:</strong> plik w repozytorium (np. <code>quality/<wbr>baseline/<wbr>javac-warnings.txt</code>, lista <code>plik:kategoria:liczba</code>), zmieniany tylko przez przegląd właściciela jakości (CODEOWNERS); może tylko maleć.</li>
+<li><strong>Celowe naruszenia materiału warsztatu</strong> są wpisane do stanu bazowego z uzasadnieniem („materiał sceny o bramkach”) - to zaakceptowane ryzyko, nie wynik fałszywie dodatni.</li>
+<li>Gdy stan bazowy obejmuje tylko jedną kategorię w jednym miejscu, prostsza bramka to <code>-Xlint:all,-auxiliaryclass -Werror</code> z komentarzem (właściciel, termin przeglądu); przy celowych naruszeniach w wielu pakietach potrzebne jest porównanie ze stanem bazowym (ratchet).</li>
+</ul>
+<pre class="code" data-lang="xml"><code class="hljs"><span class="hljs-tag">&lt;<span class="hljs-name">compilerArgs</span>&gt;</span>
+    <span class="hljs-comment">&lt;!-- auxiliaryclass: stan bazowy module1, wlasciciel: zespol szkolenia, przeglad: &lt;data&gt; --&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">arg</span>&gt;</span>-Xlint:all,-auxiliaryclass<span class="hljs-tag">&lt;/<span class="hljs-name">arg</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">arg</span>&gt;</span>-Werror<span class="hljs-tag">&lt;/<span class="hljs-name">arg</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">compilerArgs</span>&gt;</span>
+</code></pre>
+<h3 id="kod-referencyjny" tabindex="-1"><a class="header-anchor" href="#kod-referencyjny"><span>Kod referencyjny</span></a></h3>
+<ul>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>tooling/<wbr>InMemoryJavaCompiler.java</code>, <code>WarningPolicy.java</code>, <code>CompilationResult.java</code>, <code>CompilationDiagnostic.java</code>,</li>
+<li><code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>tooling/<wbr>InMemoryJavaCompilerTest.java</code>,</li>
+<li>sceny warsztatu <code>m2/<wbr>s03_compilergate</code> (usuwanie ostrzeżeń po jednej kategorii) i <code>m2/<wbr>s04_qualitygate</code> (bramka jako kod) pokazują ten sam temat na żywo.</li>
+</ul>
+<h3 id="weryfikacja-kryteriow-akceptacji" tabindex="-1"><a class="header-anchor" href="#weryfikacja-kryteriow-akceptacji"><span>Weryfikacja kryteriów akceptacji</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Kryterium</th>
+<th>Dowód w pracy</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>szybsza pętla i mechanizm dla każdego problemu</td>
+<td>tabela z kroku 1, mechanizm inny niż „więcej testów”</td>
+</tr>
+<tr>
+<td>mierniki wyniku</td>
+<td>czas od commita do sygnału, problemy wykryte po scaleniu</td>
+</tr>
+<tr>
+<td>pomiar bez zmian w kodzie</td>
+<td>polecenia <code>javac</code> z katalogiem tymczasowym, <code>git status</code> czysty</td>
+</tr>
+<tr>
+<td>bramka nie blokuje historycznymi naruszeniami</td>
+<td>stan bazowy albo wąskie wyłączenie kategorii z właścicielem</td>
+</tr>
+<tr>
+<td>stan bazowy nie rośnie</td>
+<td>zasada „tylko maleje” i właściciel zmian pliku</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="typowe-bledy-uczestnikow-3" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow-3"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>„włączamy <code>-Werror</code> od jutra” bez pomiaru, co blokuje cały zespół,</li>
+<li><code>@SuppressWarnings(&quot;all&quot;)</code> albo wyłączenie reguły dla całego pakietu,</li>
+<li>uznanie <code>maven.compiler.release=25</code> za dowód, że build działa na JDK 25,</li>
+<li>stan bazowy, który może rosnąć („dopiszemy nowe naruszenie do baseline”),</li>
+<li>brak rozróżnienia „narzędzie się myli” od „wiemy, ale akceptujemy”,</li>
+<li>przesunięcie sporu architektonicznego (problem 4) do „lepszego przeglądu” zamiast do reguły sprawdzanej automatycznie.</li>
+</ul>
+<h3 id="pytania-do-dyskusji-3" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji-3"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>Co jest lepsze: wyłączyć kategorię <code>auxiliaryclass</code> czy od razu przenieść klasy pomocnicze do osobnych plików? Kto o tym decyduje?</li>
+<li>Czy testy sprawdzające kody <code>javac</code> (<code>compiler.warn.raw.class.use</code>) to dobra praktyka? Co się stanie przy zmianie JDK?</li>
+<li>Które sprawdzenia uruchomilibyście lokalnie przed commitem, a które tylko w CI?</li>
+</ul>
+<hr>
+<h2 id="cwiczenie-2-decyzje-teraz-pozniej-czy-nigdy" tabindex="-1"><a class="header-anchor" href="#cwiczenie-2-decyzje-teraz-pozniej-czy-nigdy"><span>Ćwiczenie 2: Decyzje teraz, później czy nigdy</span></a></h2>
+<h3 id="krok-1-tabela-decyzji" tabindex="-1"><a class="header-anchor" href="#krok-1-tabela-decyzji"><span>Krok 1: tabela decyzji</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Nr</th>
+<th>Decyzja</th>
+<th>Drzwi</th>
+<th>Wiedza, właściciel, powód zmiany</th>
+<th>Najprostsze rozwiązanie na dziś</th>
+<th>Sygnał ponownej oceny</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>teraz</strong> - scalić</td>
+<td>dwukierunkowe</td>
+<td>stawka opłaty paliwowej i sposób jej doliczenia z zaokrągleniem <code>HALF_UP</code>; właściciel polityki cenowej, zmiana cen paliwa</td>
+<td>jeden typ <code>FuelSurcharge</code> wstrzykiwany do obu polityk</td>
+<td>biznes wprowadza różne stawki dla różnych metod (wiedza przestaje być wspólna)</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>nie scalać</strong> - pozostawić lokalnie</td>
+<td>dwukierunkowe</td>
+<td>dwa różne limity: maksymalna masa przesyłki i obciążenie magazynu; inni właściciele</td>
+<td>dwie nazwane stałe w swoich kontekstach</td>
+<td>właściciel potwierdzi, że oba limity wynikają z jednej reguły (np. przepisu)</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>nie budować</strong></td>
+<td>po publikacji jednokierunkowe</td>
+<td>przewidywana możliwość taryf partnerów; brak właściciela wymagania</td>
+<td>brak mechanizmu; polityki kompilowane razem z aplikacją</td>
+<td>zatwierdzone wymaganie z opisem, kto i jak definiuje taryfy</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>teraz, najwęższe rozszerzenie</strong></td>
+<td>dwukierunkowe</td>
+<td>nowy algorytm trzeciej metody; właściciel polityki cenowej, termin 3 tygodnie</td>
+<td>kolejna implementacja <code>DeliveryPricePolicy</code>, wartość enuma i rejestracja w composition root; bez pluginów</td>
+<td>nowy wariant nie spełnia kontraktu polityk (np. wycena sieciowa - wtedy osobny port)</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>teraz</strong> (ostatni odpowiedzialny moment wypada w tym sprincie)</td>
+<td>jednokierunkowe</td>
+<td>kontrakt danych z partnerem; właściciel integracji i partner</td>
+<td>jawny, wersjonowany format, opis i test kontraktowy; ADR</td>
+<td>partner zgłasza potrzebę zmiany albo pojawia się drugi odbiorca pliku</td>
+</tr>
+<tr>
+<td>6</td>
+<td><strong>odłożyć wybór na koniec, ale za adapterem</strong></td>
+<td>dwukierunkowe</td>
+<td>sposób generowania PDF; właściciel komunikacji z klientem</td>
+<td>najprostsza biblioteka spełniająca wymagania, zamknięta w jednym adapterze, z testem wyniku</td>
+<td>wymagania dostępności, podpisu lub wydajności, których biblioteka nie spełnia</td>
+</tr>
+</tbody>
+</table></div>
+<p>Komentarz do sytuacji 5: format jest jednokierunkowy, bo partner wdroży parser. Odkładanie decyzji „do kwartału” jest błędem - ostatni odpowiedzialny moment wypada, zanim partner zacznie implementację. Prewencja polega na wersji formatu w nagłówku i teście kontraktowym, które zmniejszają koszt przyszłej zmiany.</p>
+<p><strong>Interfejs <code>Surcharge</code></strong> (często pojawia się przy sytuacji 1): obecnie niepotrzebny. <code>FuelSurcharge</code> jest jedną stabilną regułą, a żadna granica ani drugi wariant nie wymaga podmiany. Utworzenie interfejsu wyłącznie dla mockowania zwiększyłoby liczbę pojęć bez nowej semantyki.</p>
+<h3 id="krok-2-przykladowy-adr-dla-sytuacji-5" tabindex="-1"><a class="header-anchor" href="#krok-2-przykladowy-adr-dla-sytuacji-5"><span>Krok 2: przykładowy ADR dla sytuacji 5</span></a></h3>
+<pre class="code" data-lang="markdown"><code class="hljs"><span class="hljs-section"># ADR-0012: Wersjonowany plik CSV z ofertami dla partnera logistycznego</span>
+
+<span class="hljs-section">## Status</span>
+
+Zaakceptowana
+
+<span class="hljs-section">## Kontekst</span>
+
+Partner logistyczny będzie co noc pobierał oferty dostaw. Parser po jego stronie
+powstanie w ciągu kwartału i nie będzie często zmieniany, więc format pliku jest
+kontraktem trudnym do zmiany. Kwoty muszą zachować skalę 2 bez błędów zaokrągleń.
+
+<span class="hljs-section">## Decyzja</span>
+
+Generujemy plik CSV (UTF-8, separator średnik) z nagłówkiem <span class="hljs-code">`format-version=1`</span>.
+Kwoty zapisujemy jako tekst dziesiętny ze skalą 2, masy w kilogramach ze skalą 2.
+Adapter eksportu jest jedynym miejscem znającym format.
+
+<span class="hljs-section">## Rozważone opcje</span>
+
+<span class="hljs-bullet">1.</span> <span class="hljs-strong">**CSV z wersją w nagłówku**</span>: prosty dla partnera, wersja pozwala wprowadzić v2 równolegle.
+<span class="hljs-bullet">2.</span> <span class="hljs-strong">**JSON Lines ze schematem**</span>: bogatszy typowo, ale partner nie ma dziś parsera JSON.
+<span class="hljs-bullet">3.</span> <span class="hljs-strong">**Bezpośredni dostęp partnera do naszej bazy**</span>: najszybszy start, ale wiąże partnera z naszym schematem na stałe.
+
+<span class="hljs-section">## Konsekwencje</span>
+
+<span class="hljs-bullet">-</span> <span class="hljs-strong">**Pozytywna**</span>: zmiana formatu jest możliwa przez okres równoległego generowania v1 i v2.
+<span class="hljs-bullet">-</span> <span class="hljs-strong">**Pozytywna**</span>: nasz model domeny może się zmieniać bez wpływu na partnera.
+<span class="hljs-bullet">-</span> <span class="hljs-strong">**Negatywna**</span>: utrzymujemy test kontraktowy i opis formatu jako część dokumentacji żywej.
+
+<span class="hljs-section">## Metoda weryfikacji</span>
+
+Test kontraktowy porównuje wygenerowany plik z przykładem uzgodnionym z partnerem;
+partner uruchamia swój parser na tym samym przykładzie przed wdrożeniem.
+</code></pre>
+<p>Odpowiedź na pytanie 4: przy zmianie kierunku ten ADR dostaje status „Zastąpiona” z odwołaniem do nowego ADR; nie edytuje się go wstecz.</p>
+<h3 id="kod-referencyjny-1" tabindex="-1"><a class="header-anchor" href="#kod-referencyjny-1"><span>Kod referencyjny</span></a></h3>
+<ul>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>domain/<wbr>FuelSurcharge.java</code> - sytuacja 1,</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>domain/<wbr>DeliveryPricePolicy.java</code> i <code>DeliveryPriceCalculator.java</code> - sytuacja 4 (najwęższe rozszerzenie bez pluginów),</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>documentation/<wbr>DecisionRecord.java</code> i <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>documentation/<wbr>DecisionRecordMarkdownRendererTest.java</code> - wzór struktury ADR (pełny oczekiwany dokument w teście).</li>
+</ul>
+<h3 id="weryfikacja-kryteriow-akceptacji-1" tabindex="-1"><a class="header-anchor" href="#weryfikacja-kryteriow-akceptacji-1"><span>Weryfikacja kryteriów akceptacji</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Kryterium</th>
+<th>Jak sprawdzić</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>decyzja odwołuje się do wiedzy i właściciela</td>
+<td>kolumna „Wiedza, właściciel” wypełniona przed kolumną „Decyzja”</td>
+</tr>
+<tr>
+<td>przyszłe wymaganie oddzielone od zatwierdzonego</td>
+<td>sytuacje 3 i 4 mają różne decyzje</td>
+</tr>
+<tr>
+<td>moment wygaśnięcia opcji</td>
+<td>sytuacja 5: przed rozpoczęciem implementacji parsera przez partnera</td>
+</tr>
+<tr>
+<td>ADR z dwiema opcjami i kosztem</td>
+<td>sekcje „Rozważone opcje” i „Konsekwencje” zawierają negatywną konsekwencję</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="typowe-bledy-uczestnikow-4" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow-4"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>scalanie sytuacji 2 „bo to ta sama liczba”,</li>
+<li>traktowanie sytuacji 4 jako uzasadnienia pluginów albo rejestru ładowanego refleksją,</li>
+<li>odkładanie sytuacji 5 („ustalimy, gdy partner zacznie”) - opcja wygasa wcześniej,</li>
+<li>ADR dla sytuacji 6 albo dla zmiany nazwy - dokumentuje się decyzje o trwałym wpływie,</li>
+<li>ADR bez negatywnych konsekwencji albo z jedną opcją („nie było alternatywy”).</li>
+</ul>
+<h3 id="pytania-do-dyskusji-4" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji-4"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>Po czym poznać, że dwie reprezentacje to ta sama wiedza? Kogo o to zapytać?</li>
+<li>Czy reguła trzech pomogłaby w sytuacji 1? (Nie: dwie reprezentacje potwierdzonej reguły mogą wymagać natychmiastowej centralizacji.)</li>
+<li>Co zrobić, gdy zespół chce złamać regułę z ADR dla jednego przypadku: wyjątek czy nowy ADR?</li>
+</ul>
+<hr>
+<h2 id="cwiczenie-3-projekt-jako-hamulec-degradacji" tabindex="-1"><a class="header-anchor" href="#cwiczenie-3-projekt-jako-hamulec-degradacji"><span>Ćwiczenie 3: Projekt jako hamulec degradacji</span></a></h2>
+<h3 id="krok-1-aktorzy-zmiany" tabindex="-1"><a class="header-anchor" href="#krok-1-aktorzy-zmiany"><span>Krok 1: aktorzy zmiany</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Obszar</th>
+<th>Aktor zmiany</th>
+<th>Właściwa odpowiedzialność</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>cennik i opłata paliwowa</td>
+<td>właściciel polityki cenowej</td>
+<td>domena</td>
+</tr>
+<tr>
+<td>zapis wyceny</td>
+<td>właściciel danych i operacji</td>
+<td>adapter realizujący port aplikacji</td>
+</tr>
+<tr>
+<td>treść i kanał komunikatu</td>
+<td>właściciel komunikacji z klientem</td>
+<td>adapter powiadomień</td>
+</tr>
+<tr>
+<td>kolejność utworzenia, zapisu i powiadomienia</td>
+<td>właściciel procesu aplikacyjnego</td>
+<td>przypadek użycia</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="krok-2-decyzja-o-awarii-zapisu" tabindex="-1"><a class="header-anchor" href="#krok-2-decyzja-o-awarii-zapisu"><span>Krok 2: decyzja o awarii zapisu</span></a></h3>
+<p>Kod referencyjny przyjmuje, że po nieudanym zapisie <strong>nie</strong> wolno wysłać powiadomienia. Tę odpowiedź podaj uczestnikom, gdy o nią zapytają. Jeśli właściciel procesu wybierze inną semantykę, test i implementację zmienia się świadomie - to nowa decyzja zachowania, a nie część refaktoryzacji (w legacy zapis nie mógł zawieść).</p>
+<h3 id="kroki-3-7-przebieg-odniesiony-do-kodu-referencyjnego" tabindex="-1"><a class="header-anchor" href="#kroki-3-7-przebieg-odniesiony-do-kodu-referencyjnego"><span>Kroki 3-7: przebieg odniesiony do kodu referencyjnego</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Krok</th>
+<th>Wynik w projekcie</th>
+<th>Chroniona oś zmiany</th>
+<th>Dodany koszt</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3. opłata paliwowa</td>
+<td><code>domain/<wbr>FuelSurcharge.java</code></td>
+<td>zmiana stawki w jednym miejscu (DRY)</td>
+<td>nowy typ domenowy, walidacja stawki <code>0..1</code></td>
+</tr>
+<tr>
+<td>4. kontrakt i pierwszy wariant</td>
+<td><code>domain/<wbr>DeliveryPricePolicy.java</code>, <code>domain/<wbr>StandardDeliveryPricePolicy.java</code>; testy charakterystyki zielone</td>
+<td>niezależne cenniki (SRP, OCP)</td>
+<td>kontrakt do utrzymania</td>
+</tr>
+<tr>
+<td>4. drugi wariant i wybór</td>
+<td><code>domain/<wbr>ExpressDeliveryPricePolicy.java</code>, <code>domain/<wbr>DeliveryPriceCalculator.java</code></td>
+<td>wybór wariantu w jednym miejscu</td>
+<td>rejestracja w kalkulatorze</td>
+</tr>
+<tr>
+<td>5. test kontraktowy</td>
+<td><code>domain/<wbr>DeliveryPricePolicyContractTest.java</code></td>
+<td>substytucja polityk (LSP)</td>
+<td>lista implementacji w teście do utrzymania</td>
+</tr>
+<tr>
+<td>6. porty i test awarii</td>
+<td><code>application/<wbr>QuoteRepository.java</code>, <code>application/<wbr>QuoteNotifier.java</code>, <code>CreateDeliveryQuoteTest.doesNotNotifyWhenSavingFails</code></td>
+<td>przypadek użycia zna tylko potrzebne role (ISP, DIP); uzgodniony protokół</td>
+<td>dwa kontrakty, test do utrzymania</td>
+</tr>
+<tr>
+<td>7. adaptery i składanie</td>
+<td><code>adapter/<wbr>InMemoryQuoteRepository.java</code>, <code>adapter/<wbr>ConsoleQuoteNotifier.java</code>, <code>Module2Examples.java</code></td>
+<td>wymiana mechanizmu zapisu i kanału bez edycji przypadku użycia; wybór konkretów w jednym miejscu (KISS, YAGNI: bez kontenera)</td>
+<td>klasy adapterów, w realnym systemie testy integracyjne</td>
+</tr>
+</tbody>
+</table></div>
+<p>Rdzeń przypadku użycia po zmianie (<code>application/<wbr>CreateDeliveryQuote.java</code>):</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">DeliveryQuote</span> <span class="hljs-variable">quote</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">DeliveryQuote</span>(
+        command.customerEmail(),
+        command.method(),
+        command.parcel(),
+        priceCalculator.priceFor(command.method(), command.parcel()));
+
+repository.save(quote);
+notifier.quoteCreated(quote);
+<span class="hljs-keyword">return</span> quote;
+</code></pre>
+<p>Porównanie wyniku programu przed i po: dwie identyczne linie <code>Quote ready ... 17.28</code>, <code>Legacy and refactored prices equal: true</code>, <code>Stored quotes: 1</code>.</p>
+<h3 id="krok-8-automatyczna-ochrona-granicy" tabindex="-1"><a class="header-anchor" href="#krok-8-automatyczna-ochrona-granicy"><span>Krok 8: automatyczna ochrona granicy</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Wariant</th>
+<th>Siła gwarancji</th>
+<th>Koszt utrzymania</th>
+<th>Komunikat o błędzie</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>skan importów w CI (<code>grep</code>)</td>
+<td>najsłabsza: nie widzi pełnych nazw w kodzie, importów z <code>*</code>, refleksji; fałszywe alarmy w komentarzach</td>
+<td>bardzo niski</td>
+<td>surowy wynik narzędzia, ścieżka i linia</td>
+</tr>
+<tr>
+<td>test JUnit skanujący pliki źródłowe</td>
+<td>jak wyżej, ale w <code>mvn verify</code></td>
+<td>niski, bez nowych zależności</td>
+<td>własny, czytelny komunikat asercji</td>
+</tr>
+<tr>
+<td>narzędzie do testów architektury (np. ArchUnit)</td>
+<td>reguły na poziomie typów w kodzie bajtowym</td>
+<td>średni: nowa zależność testowa</td>
+<td>bardzo czytelny, wskazuje klasę i zależność</td>
+</tr>
+<tr>
+<td>osobne moduły Maven</td>
+<td>kompilator odrzuca import</td>
+<td>wysoki: restrukturyzacja projektu</td>
+<td>błąd kompilacji „package does not exist”</td>
+</tr>
+<tr>
+<td>JPMS</td>
+<td>silna granica widoczności</td>
+<td>średni do wysokiego: <code>module-info.java</code>, eksporty</td>
+<td>błąd kompilacji o widoczności</td>
+</tr>
+</tbody>
+</table></div>
+<p>Przykładowy test bez nowych zależności (szkic):</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-meta">@Test</span>
+<span class="hljs-type">void</span> <span class="hljs-title function_">innerPackagesDoNotImportAdapters</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> IOException {
+    <span class="hljs-keyword">for</span> (String pkg : List.of(<span class="hljs-string">&quot;application&quot;</span>, <span class="hljs-string">&quot;domain&quot;</span>)) {
+        <span class="hljs-type">Path</span> <span class="hljs-variable">dir</span> <span class="hljs-operator">=</span> Path.of(<span class="hljs-string">&quot;src/main/java/pl/training/module2&quot;</span>, pkg);
+        <span class="hljs-keyword">try</span> (<span class="hljs-type">Stream</span>&lt;Path&gt; <span class="hljs-variable">files</span> <span class="hljs-operator">=</span> Files.walk(dir)) {
+            files.filter(p -&gt; p.toString().endsWith(<span class="hljs-string">&quot;.java&quot;</span>)).forEach(p -&gt;
+                assertFalse(read(p).contains(<span class="hljs-string">&quot;import pl.training.module2.adapter&quot;</span>),
+                        () -&gt; p + <span class="hljs-string">&quot; imports adapter&quot;</span>));
+        }
+    }
+}
+</code></pre>
+<p>(<code>read</code> to pomocnicze <code>Files.readString</code> z obsługą <code>IOException</code>.) Test nie wykryje użycia w pełni kwalifikowanej nazwy bez importu - to przykład słabości kontroli tekstowej. Należy dobrać siłę mechanizmu do znaczenia granicy.</p>
+<p>Uzupełnienie dla szybszych par: adapter <code>BufferingQuoteNotifier</code> w pakiecie <code>adapter</code>, który zapisuje komunikaty w buforze (kopia przez <code>List.copyOf</code>) i jest podmieniany <strong>wyłącznie</strong> w composition root. <code>git diff --stat</code> nie pokazuje wtedy zmian w <code>application/<wbr></code> ani <code>domain/<wbr></code>. Uwaga: po podmianie druga linia <code>Quote ready ...</code> znika ze standardowego wyjścia, a <code>Module2ExamplesTest</code> tego nie wykryje (tylko <code>assertDoesNotThrow</code>) - to świadoma zmiana zachowania programu demonstracyjnego.</p>
+<h3 id="kod-referencyjny-2" tabindex="-1"><a class="header-anchor" href="#kod-referencyjny-2"><span>Kod referencyjny</span></a></h3>
+<ul>
+<li>stan „przed”: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>legacy/<wbr>LegacyDeliveryQuoteService.java</code>,</li>
+<li>stan „po”: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>domain/<wbr></code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>application/<wbr></code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>adapter/<wbr></code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>Module2Examples.java</code>,</li>
+<li>testy: <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>domain/<wbr>DeliveryPriceCalculatorTest.java</code>, <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>domain/<wbr>DeliveryPricePolicyContractTest.java</code>, <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>application/<wbr>CreateDeliveryQuoteTest.java</code>, <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>adapter/<wbr>InMemoryQuoteRepositoryTest.java</code>.</li>
+</ul>
+<h3 id="weryfikacja-kryteriow-akceptacji-2" tabindex="-1"><a class="header-anchor" href="#weryfikacja-kryteriow-akceptacji-2"><span>Weryfikacja kryteriów akceptacji</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Kryterium</th>
+<th>Dowód w kodzie referencyjnym</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>17.28</code> / <code>31.32</code> dla 3 kg</td>
+<td><code>DeliveryPriceCalculatorTest.delegatesToPolicySelectedByShippingMethod</code></td>
+</tr>
+<tr>
+<td>przypadek użycia nie importuje adapterów</td>
+<td><code>grep -r &quot;import pl.training.module2.adapter&quot; src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>application</code> - brak wyników</td>
+</tr>
+<tr>
+<td>jedna reprezentacja <code>0.08</code></td>
+<td>stawka tworzona raz w <code>Module2Examples</code> i wstrzykiwana do obu polityk</td>
+</tr>
+<tr>
+<td>wspólny test kontraktowy</td>
+<td><code>DeliveryPricePolicyContractTest.everyPolicyObeysTheSubstitutionContract</code></td>
+</tr>
+<tr>
+<td>brak powiadomienia po awarii zapisu</td>
+<td><code>CreateDeliveryQuoteTest.doesNotNotifyWhenSavingFails</code></td>
+</tr>
+<tr>
+<td><code>mvn verify</code> zielony</td>
+<td>wynik builda</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="typowe-bledy-uczestnikow-5" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow-5"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>wydzielanie wszystkiego naraz, bez uruchamiania testów po pierwszym wariancie,</li>
+<li>scalanie cenników STANDARD i EXPRESS w jedną sparametryzowaną metodę <code>basePrice(base, rate, weight)</code> (fałszywa abstrakcja),</li>
+<li>stała <code>0.08</code> w każdej polityce (dwie reprezentacje wiedzy nadal istnieją),</li>
+<li>port nazwany technologią (<code>JdbcQuoteRepository</code> jako interfejs) albo ogólny <code>CrudRepository</code> w aplikacji,</li>
+<li>interfejs dla <code>DeliveryPriceCalculator</code> „bo DIP” (w referencji świadomie go nie ma),</li>
+<li>utrata formatu komunikatu przy przenoszeniu do adaptera (test charakterystyki tego nie wykryje; wykryje porównanie wyjścia programu),</li>
+<li>pominięcie decyzji z kroku 2 i traktowanie kolejności <code>save</code>/<code>quoteCreated</code> jako oczywistej,</li>
+<li>mylenie przepływu sterowania z zależnością źródłową („przypadek użycia woła adapter, więc łamie regułę”).</li>
+</ul>
+<h3 id="pytania-do-dyskusji-5" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji-5"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>Która zmiana była refaktoryzacją, a która nową decyzją zachowania (awaria zapisu)?</li>
+<li>Czy przy jednej metodzie dostawy Strategy byłaby uzasadniona? (Nie - to byłaby spekulacja; por. YAGNI i ostatni odpowiedzialny moment.)</li>
+<li>Jak ten podział zmienia koszt piątej kolejnej zmiany cennika w porównaniu z wersją zastaną?</li>
+<li>Jaka siła kontroli granicy jest adekwatna dla tego projektu, a jaka dla systemu z wieloma zespołami?</li>
+</ul>
+<hr>
+<h2 id="cwiczenie-4-boy-scout-i-seria-zmian-gotowych-do-przegladu" tabindex="-1"><a class="header-anchor" href="#cwiczenie-4-boy-scout-i-seria-zmian-gotowych-do-przegladu"><span>Ćwiczenie 4: Boy Scout i seria zmian gotowych do przeglądu</span></a></h2>
+<blockquote>
+<p>Rozwiązanie opracowane na podstawie kodu referencyjnego. Nowa reguła raportu (<code>Failed: n/<wbr>m</code>) jest wymaganiem wymyślonym na potrzeby ćwiczenia i nie ma odpowiednika w kodzie referencyjnym; kod referencyjny obejmuje kroki 1-3.</p>
+</blockquote>
+<h3 id="krok-1-zestaw-1-testy-charakteryzujace" tabindex="-1"><a class="header-anchor" href="#krok-1-zestaw-1-testy-charakteryzujace"><span>Krok 1: zestaw 1 - testy charakteryzujące</span></a></h3>
+<p>Commit: <code>Characterize ReleaseSummaryFormatter output and validation order</code>. Zawartość: wyłącznie testy, bez zmian w kodzie produkcyjnym.</p>
+<ul>
+<li>wynik dla sukcesu, porażki i przypadku mieszanego, w tym <code>releaseId</code> ze spacjami (<code>&quot; release-3 &quot;</code> -&gt; <code>Release release-3</code>),</li>
+<li>niezależny orakl tekstu, np.:</li>
+</ul>
+<pre class="code" data-lang="text"><code class="hljs">Release release-42
+[OK] test: deployed
+[ERROR] production: timeout
+Successful: 1/2
+</code></pre>
+<ul>
+<li>brak końcowego znaku nowej linii po ostatnim wierszu,</li>
+<li>walidacja i jej kolejność (typ i komunikat):</li>
+</ul>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Wejście</th>
+<th>Wyjątek</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>releaseId = null</code></td>
+<td><code>NullPointerException(&quot;releaseId&quot;)</code></td>
+</tr>
+<tr>
+<td><code>results = null</code></td>
+<td><code>NullPointerException(&quot;results&quot;)</code></td>
+</tr>
+<tr>
+<td><code>releaseId = &quot;   &quot;</code></td>
+<td><code>IllegalArgumentException(&quot;releaseId must not be blank&quot;)</code></td>
+</tr>
+<tr>
+<td><code>results = List.of()</code></td>
+<td><code>IllegalArgumentException(&quot;results must not be empty&quot;)</code></td>
+</tr>
+<tr>
+<td>lista z elementem <code>null</code></td>
+<td><code>NullPointerException(&quot;result&quot;)</code></td>
+</tr>
+<tr>
+<td><code>(&quot; &quot;, null)</code></td>
+<td><code>NullPointerException(&quot;results&quot;)</code> - kontrole null przed kontrolą pustego napisu</td>
+</tr>
+</tbody>
+</table></div>
+<p>Decyzje o testach (do zapisania w opisie):</p>
+<ul>
+<li>zachowanie zamierzone: format wierszy, licznik sukcesów, <code>strip</code> identyfikatora, komunikaty walidacji (klienci mogą na nich polegać),</li>
+<li>zachowanie potencjalnie przypadkowe: dokładna kolejność kontroli dla kombinacji błędów. Utrwalamy ją, bo refaktoryzacja ma być czysta, ale zaznaczamy w opisie, że test <code>(&quot; &quot;, null)</code> chroni kolejność, a nie wymaganie biznesowe.</li>
+</ul>
+<h3 id="krok-2-zestaw-2-boy-scout-bez-zmiany-zachowania" tabindex="-1"><a class="header-anchor" href="#krok-2-zestaw-2-boy-scout-bez-zmiany-zachowania"><span>Krok 2: zestaw 2 - Boy Scout bez zmiany zachowania</span></a></h3>
+<p>Seria małych commitów w jednym zestawie (lub kilka zestawów):</p>
+<ol>
+<li><code>Rename local variables in ReleaseSummaryFormatter</code> (<code>s</code> -&gt; <code>summary</code>, <code>n</code> -&gt; <code>successfulDeployments</code>, <code>r</code> -&gt; <code>result</code>) - zmiana IDE,</li>
+<li><code>Extract validation into validate()</code> - bez zmiany kolejności kontroli,</li>
+<li><code>Extract formatResult() to remove duplicated line format</code>,</li>
+<li><code>Build summary with StringBuilder</code>.</li>
+</ol>
+<p>Wynik odpowiada <code>boyscout/<wbr>after/<wbr>ReleaseSummaryFormatter.java</code>. Po każdym commicie: kompilacja, testy z zestawu 1, przegląd diffu. Opcjonalny zestaw mechaniczny (formatowanie pliku) jako osobny commit bez ręcznych zmian, najlepiej przed zestawem 2.</p>
+<h3 id="krok-3-zestaw-3-zmiana-zachowania" tabindex="-1"><a class="header-anchor" href="#krok-3-zestaw-3-zmiana-zachowania"><span>Krok 3: zestaw 3 - zmiana zachowania</span></a></h3>
+<p>Commit: <code>Show failed deployment count in release summary</code>.</p>
+<ul>
+<li>zmiana ostatniego wiersza na <code>Successful: 1/<wbr>2, Failed: 1/<wbr>2</code>,</li>
+<li>aktualizacja orakla w teście z zestawu 1 (świadoma zmiana oczekiwania, widoczna w diffie jako jedyna zmiana testu),</li>
+<li>nowy test dla przypadków brzegowych (same sukcesy: <code>Failed: 0/<wbr>n</code>, same porażki),</li>
+<li>testy walidacji bez zmian (dowód, że kontrakt wejścia nie został naruszony).</li>
+</ul>
+<h3 id="krok-4-przykladowy-opis-zestawu-2" tabindex="-1"><a class="header-anchor" href="#krok-4-przykladowy-opis-zestawu-2"><span>Krok 4: przykładowy opis zestawu 2</span></a></h3>
+<pre class="code" data-lang="markdown"><code class="hljs"><span class="hljs-section">## Dlaczego</span>
+Klasa ReleaseSummaryFormatter jest trudna do zmiany: nazwy s/n/r, powielony
+format wiersza, konkatenacja w pętli. Przygotowuje grunt pod zmianę formatu
+podsumowania (osobny PR).
+
+<span class="hljs-section">## Co zmienia / czego nie zmienia</span>
+Zmienia: nazwy lokalne, wydzielone validate() i formatResult(), StringBuilder.
+Nie zmienia: sygnatury format(...), tekstu wyniku, walidacji, kolejności kontroli.
+
+<span class="hljs-section">## Zachowywany kontrakt</span>
+Tekst raportu i typy/komunikaty wyjątków, w tym kolejność kontroli
+(test dla wejścia (&quot; &quot;, null)).
+
+<span class="hljs-section">## Dowody</span>
+<span class="hljs-bullet">-</span> mvn test -Dtest=&#x27;pl.training.module2.exercise4.<span class="hljs-strong">**&#x27;: wszystkie testy zielone
+  (testy charakteryzujące z PR #1 bez zmian)
+- diff testów: brak zmian
+
+## Wdrożenie i wycofanie
+Brak zmiany zachowania; zwykłe wdrożenie. Wycofanie: revert PR.
+
+## Kolejność czytania
+1. testy (niezmienione) 2. validate() 3. formatResult() 4. format()
+</span></code></pre>
+<p>Kolejność czytania dla recenzenta całej serii: zestaw 1 (testy, czyli kontrakt), zestaw 2 (struktura, testy bez zmian), zestaw 3 (zmiana orakla i nowa reguła).</p>
+<p>Przykładowe komentarze z przeglądu (do omówienia, jeśli zostanie czas):</p>
+<ul>
+<li><code>BLOCKER</code>: „W <code>validate()</code> sprawdzenie <code>releaseId.isBlank()</code> jest przed <code>requireNonNull(results)</code>. Dla wejścia <code>(&quot; &quot;, null)</code> klient dostanie teraz <code>IllegalArgumentException</code> zamiast <code>NullPointerException</code>. To zmiana kontraktu w PR oznaczonym jako refaktoryzacja. Proszę przywrócić kolejność albo przenieść zmianę do osobnego PR z uzasadnieniem.”</li>
+<li><code>SUGGESTION</code>: „<code>formatResult</code> mogłoby przyjmować etykietę jako parametr, ale przy dwóch statusach obecna wersja jest czytelniejsza. Zostawiam do decyzji autora.”</li>
+<li><code>NIT</code>: „Nazwa testu <code>test1</code> nie mówi, co chroni. Może <code>preservesValidationOrderForBlankIdAndNullResults</code>?”</li>
+</ul>
+<h3 id="kod-referencyjny-3" tabindex="-1"><a class="header-anchor" href="#kod-referencyjny-3"><span>Kod referencyjny</span></a></h3>
+<ul>
+<li>wejście: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>boyscout/<wbr>before/<wbr>ReleaseSummaryFormatter.java</code>,</li>
+<li>wzór refaktoryzacji bez zmiany zachowania: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>boyscout/<wbr>after/<wbr>ReleaseSummaryFormatter.java</code>,</li>
+<li>wzór testów równoważności i orakla: <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>boyscout/<wbr>BoyScoutEquivalenceTest.java</code>.</li>
+</ul>
+<h3 id="weryfikacja-kryteriow-akceptacji-3" tabindex="-1"><a class="header-anchor" href="#weryfikacja-kryteriow-akceptacji-3"><span>Weryfikacja kryteriów akceptacji</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Kryterium</th>
+<th>Jak sprawdzić</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>jedna główna intencja na zestaw</td>
+<td>każdy zestaw da się nazwać jednym słowem: testy charakteryzujące, refaktoryzacja, zmiana zachowania</td>
+</tr>
+<tr>
+<td>system działa po każdym kroku</td>
+<td><code>git checkout</code> dowolnego commita kompiluje się i przechodzi testy</td>
+</tr>
+<tr>
+<td>testy nie utrwalają bezkrytycznie przypadkowego zachowania</td>
+<td>decyzja zamierzone kontra przypadkowe w opisie zestawu 1</td>
+</tr>
+<tr>
+<td>zmiany mechaniczne i ręczne rozdzielone</td>
+<td>formatowanie i rename z IDE w osobnych commitach</td>
+</tr>
+<tr>
+<td>opis pozwala odtworzyć weryfikację</td>
+<td>konkretne polecenia, a nie „testy przeszły”</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="typowe-bledy-uczestnikow-6" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow-6"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>zestaw 1 zawiera już pierwsze zmiany w kodzie produkcyjnym („tylko nazwy”),</li>
+<li>refaktoryzacja „przy okazji” dodaje walidację (np. odrzucanie pustego <code>environment</code> w formaterze, choć robi to już <code>DeploymentResult</code>) albo zmienia kolejność kontroli,</li>
+<li>zmiana orakla testu i zmiana formatu w zestawie oznaczonym jako refaktoryzacja,</li>
+<li>testy porównujące tylko „nie rzuca wyjątku” albo tylko <code>contains(&quot;Successful&quot;)</code>, bez pełnego tekstu,</li>
+<li>test różnicowy starej i nowej wersji bez niezależnego orakla,</li>
+<li>przeformatowanie całego pliku razem z logiką.</li>
+</ul>
+<h3 id="pytania-do-dyskusji-6" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji-6"><span>Pytania do dyskusji</span></a></h3>
+<ol>
+<li>Kiedy mała zmiana nazwy może zostać w zestawie ze zmianą zachowania? (Wyjątek dla bardzo małego lokalnego uporządkowania, nazwanego w opisie.)</li>
+<li>Czy kolejność kontroli walidacji dla kombinacji błędów jest kontraktem? Kto o tym decyduje?</li>
+<li>Pięćset linii automatycznego rename kontra trzydzieści linii zmieniających schemat, regułę i uprawnienia: co jest „mniejszą” zmianą?</li>
+</ol>
+<hr>
+<h2 id="sprawdzenie-wiedzy-odpowiedzi" tabindex="-1"><a class="header-anchor" href="#sprawdzenie-wiedzy-odpowiedzi"><span>Sprawdzenie wiedzy - odpowiedzi</span></a></h2>
+<ol>
+<li><strong>Dlaczego problem złapany w pętli kompilatora jest tańszy niż w przeglądzie kodu?</strong> Sygnał przychodzi po sekundach, gdy autor ma pełny kontekst, a między przyczyną i sygnałem jest jedna mała zmiana. W przeglądzie sygnał przychodzi po godzinach lub dniach, z wieloma zmianami naraz, często do innej osoby.</li>
+<li><strong>Dlaczego nagłe włączenie <code>-Werror</code> w dużym legacy jest złym pomysłem?</strong> Historyczne ostrzeżenia zablokują wszystkich, niezależnie od bieżącej pracy. Zamiast tego: pomiar, stan bazowy, bramka „brak nowych naruszeń” i stopniowa redukcja.</li>
+<li><strong>Czym jest ostatni odpowiedzialny moment?</strong> To chwila, po której brak decyzji eliminuje ważną opcję. Odkładanie w nieskończoność ignoruje moment wygaśnięcia opcji i pozwala, żeby decyzja zapadła sama przez zaniechanie.</li>
+<li><strong>Jak testy i granice zamieniają decyzje jednokierunkowe w dwukierunkowe?</strong> Testy pozwalają szybko wykryć skutki cofnięcia, a granica (interfejs, adapter, wersjonowany format) ogranicza promień zmiany do jednego miejsca. Dzięki temu cofnięcie decyzji jest tanie.</li>
+<li><strong>Czy YAGNI zabrania pisania testów dla aktualnego zachowania?</strong> Nie. Testy aktualnego zachowania wspierają bezpieczną zmianę i właśnie dzięki nim można odkładać spekulacyjne decyzje o abstrakcji.</li>
+<li><strong>Kiedy decyzja zasługuje na ADR?</strong> Gdy ma trwały wpływ na architekturę i jest trudna do cofnięcia (granica modułu, format kontraktu, własność danych). Przy zmianie kierunku stary ADR oznacza się jako zastąpiony i tworzy nowy.</li>
+<li><strong>Czym różni się akceptacja problemu od jego ignorowania?</strong> Akceptacja jest jawną decyzją z właścicielem, uzasadnieniem i sygnałem ponownej oceny, zapisaną w rejestrze. Ignorowanie nie ma żadnego z tych elementów.</li>
+<li><strong>Na czym polega kwarantanna problemu za granicą?</strong> Obcy model, jednostki i błędy są tłumaczone w jednym miejscu (adapterze), a reszta kodu widzi tylko własny port i własne typy. Kierunkiem refaktoryzacji jest Anti-Corruption Layer (moduł 5).</li>
+<li><strong>Co mówią prawa Lehmana?</strong> Że używany system musi się zmieniać, a jego złożoność i postrzegana jakość pogarszają się, jeśli nie wykonuje się jawnej pracy nad ich utrzymaniem. Nie mówią, że degradacja jest nieunikniona w każdym tempie ani że jest winą konkretnych osób; to obserwacje empiryczne, nie prawa fizyki.</li>
+<li><strong>Jak teoria rozbitych okien przekłada się na zasady pracy?</strong> Widoczne zaniedbania (ignorowane ostrzeżenia, czerwone testy, zakomentowany kod) obniżają standard kolejnych zmian. Stąd zero tolerancji dla nowych naruszeń, jawne oznaczanie starych i szybkie naprawianie czerwonych testów.</li>
+<li><strong>Co jest przedmiotem DRY?</strong> Wiedza i decyzje systemu. Podobny tekst może reprezentować różną wiedzę.</li>
+<li><strong>Dlaczego <code>@Autowired</code> nie dowodzi DIP?</strong> Wstrzyknięcie zależności opisuje sposób dostarczenia obiektu. DIP dotyczy kierunku zależności źródłowej i własności abstrakcji; wstrzyknięcie konkretnej klasy nadal wiąże politykę ze szczegółem.</li>
+<li><strong>Czy przepływ sterowania z przypadku użycia do adaptera łamie regułę zależności?</strong> Nie. Adapter jest wywoływany w czasie wykonania, ale źródłowo zależy od portu zdefiniowanego wewnątrz.</li>
+<li><strong>Czym różni się Boy Scout Rule od „sprzątania przy okazji” zmieniającego zachowanie?</strong> Boy Scout to mała, lokalna, weryfikowalna poprawa struktury dotykanego kodu bez zmiany zachowania. Zmiana reguły, walidacji lub wyniku to decyzja biznesowa i osobny zestaw zmian.</li>
+<li><strong>Dlaczego refaktoryzacji nie łączy się ze zmianą zachowania w jednym zestawie zmian?</strong> Bo wymagają innych dowodów: refaktoryzację dowodzą niezmienione testy, zmianę zachowania - nowy test i świadomie zmieniony orakl. Po połączeniu recenzent nie odróżni ruchu mechanicznego od nowej reguły, a wycofanie jednego oznacza wycofanie obu.</li>
+</ol>
+
+</main>
+</div>
+<script>if(matchMedia('(max-width:900px)').matches){var d=document.querySelector('.toc details');if(d)d.open=false}</script>
+</body>
+</html>

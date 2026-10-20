@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rozwiązania: Moduł 5. Refaktoryzacja do wzorców - rozwiązania dla prowadzącego</title>
+<style>:root{--bg:#fbfbfa;--fg:#1d1f23;--muted:#5f6670;--line:#e3e5e8;--card:#ffffff;--accent:#2457c5;--accent-bg:#eef3fd;
+--code-bg:#f4f5f7;--note-bg:#fff7e6;--note-line:#e6a700;--th:#f1f3f6;
+--k:#b3246b;--s:#1a7f37;--c:#6e7781;--n:#0550ae;--t:#8250df;--f:#6639ba;--a:#953800;
+--kind:#2457c5}
+@media (prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3036;--card:#1c1f23;--accent:#7aa7ff;--accent-bg:#1e2a40;
+--code-bg:#1f2328;--note-bg:#2b2412;--note-line:#c99400;--th:#23272d;
+--k:#ff7b9c;--s:#7ee2a0;--c:#8b949e;--n:#79c0ff;--t:#d2a8ff;--f:#d2a8ff;--a:#ffa657}}
+body.zadania{--kind:#1a7f37} body.warsztat{--kind:#c2570c} body.warsztat-zadania{--kind:#0f7b7b} body.rozwiazania{--kind:#b3246b} body.przyklady{--kind:#2457c5}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.topbar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 24px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);border-top:3px solid var(--kind)}
+.topbar a{color:var(--fg);text-decoration:none}
+.home{font-weight:600}
+.tabs{display:flex;gap:4px}
+.tab{padding:4px 12px;border-radius:999px;font-size:15px;color:var(--muted)!important}
+.tab:hover{background:var(--code-bg)}
+.tab.active{background:var(--accent-bg);color:var(--accent)!important;font-weight:600}
+.pager{margin-left:auto;display:flex;gap:14px;font-size:15px}
+.pager a{color:var(--muted)}.pager a:hover{color:var(--accent)}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:48px;max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+.layout.no-toc{grid-template-columns:minmax(0,1fr);max-width:1000px}
+aside{position:sticky;top:72px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px}
+.toc-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;font-weight:600}
+.toc ul{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.toc li a{display:block;padding:3px 12px;color:var(--muted);text-decoration:none;line-height:1.35}
+.toc li.h3 a{padding-left:24px;font-size:13px}
+.toc li a:hover{color:var(--accent)}
+main{min-width:0;max-width:860px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 1.2rem;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:2.6rem 0 .8rem;padding-top:.6rem;border-top:1px solid var(--line)}
+h3{font-size:1.18rem;margin:2rem 0 .6rem}
+h4{font-size:1rem;margin:1.5rem 0 .5rem}
+h1 a,h2 a,h3 a,h4 a{color:inherit;text-decoration:none}
+h2 a:hover::after,h3 a:hover::after{content:" #";color:var(--muted)}
+p,ul,ol{margin:.6rem 0 1rem}
+li{margin:.25rem 0}
+li>ul,li>ol{margin:.2rem 0}
+a{color:var(--accent)}
+strong{font-weight:650}
+code{font:0.88em/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre.code{position:relative;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:1rem 0 1.4rem}
+pre.code code{background:none;padding:0;font-size:14px;line-height:1.55}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:6px;right:10px;font:11px ui-monospace,Menlo,monospace;color:var(--muted);text-transform:uppercase}
+.table-wrap{overflow-x:auto;margin:1rem 0 1.4rem;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--th);font-weight:600}
+tr:last-child td{border-bottom:none}
+blockquote{margin:1rem 0 1.4rem;padding:10px 16px;background:var(--note-bg);border-left:4px solid var(--note-line);border-radius:0 8px 8px 0}
+blockquote p{margin:.3rem 0}
+hr{border:none;border-top:1px solid var(--line);margin:2rem 0}
+hr+h2{border-top:none;margin-top:1.4rem}
+main p code,main li code,main td code{overflow-wrap:break-word}
+.toc summary{cursor:pointer;list-style:none}.toc summary::-webkit-details-marker{display:none}
+.hljs-keyword,.hljs-selector-tag,.hljs-built_in,.hljs-literal{color:var(--k)}
+.hljs-string,.hljs-regexp,.hljs-addition{color:var(--s)}
+.hljs-comment,.hljs-quote,.hljs-meta{color:var(--c);font-style:italic}
+.hljs-number,.hljs-symbol{color:var(--n)}
+.hljs-type,.hljs-class .hljs-title,.hljs-title.class_{color:var(--t)}
+.hljs-title,.hljs-title.function_,.hljs-section{color:var(--f)}
+.hljs-attr,.hljs-attribute,.hljs-variable,.hljs-params,.hljs-tag{color:var(--a)}
+.hljs-deletion{color:var(--k)}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:16px;padding:20px 16px 60px}
+aside{position:static;max-height:none;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--card)}
+.toc-title{margin:0}.toc details[open] .toc-title{margin-bottom:8px}.toc summary::after{content:" ▾"}
+body{font-size:16px}.topbar{padding:8px 16px}.pager{margin-left:0}h1{font-size:1.6rem}}
+@media print{.topbar,aside{display:none}.layout{display:block;padding:0}main{max-width:none}
+pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#000;font-size:12pt}}
+.langs{margin-left:auto}.langs+.pager{margin-left:0}
+.langs{margin-left:auto}.langs+.pager{margin-left:0}</style>
+</head>
+<body class="rozwiazania">
+<header class="topbar"><a class="home" href="../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../slajdy/05-refaktoryzacja-do-wzorcow-slajdy.html">Slajdy</a><a class="tab" href="../zadania/05-refaktoryzacja-do-wzorcow.html">Zadania</a><a class="tab" href="../przyklady/05-refaktoryzacja-do-wzorcow.html">Przykłady</a><a class="tab active" href="05-refaktoryzacja-do-wzorcow.html">Rozwiązania</a></div><div class="pager"><a href="04-wzorce-projektowe.html" title="Poprzedni moduł">&larr; 04</a><a href="06-podsumowanie.html" title="Następny moduł">06 &rarr;</a></div></header>
+<div class="layout">
+<aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#cwiczenie-1-usuniecie-zbednego-wzorca">Ćwiczenie 1: usunięcie zbędnego wzorca</a></li><li class="h3"><a href="#kod-referencyjny">Kod referencyjny</a></li><li class="h3"><a href="#czesc-a-ocena-posrednika">Część A: ocena pośrednika</a></li><li class="h3"><a href="#czesc-b-inline-singleton">Część B: Inline Singleton</a></li><li class="h3"><a href="#weryfikacja-kryteriow-akceptacji">Weryfikacja kryteriów akceptacji</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji">Pytania do dyskusji</a></li><li class="h2"><a href="#cwiczenie-2-command-strategy-czy-state">Ćwiczenie 2: Command, Strategy czy State</a></li><li class="h3"><a href="#kod-referencyjny-1">Kod referencyjny</a></li><li class="h3"><a href="#krok-1-2-przypisanie-osi-i-uzasadnienie">Krok 1-2: przypisanie osi i uzasadnienie</a></li><li class="h3"><a href="#krok-3-test-rownowaznosci">Krok 3: test równoważności</a></li><li class="h3"><a href="#krok-4-6-sekwencja-commitow">Krok 4-6: sekwencja commitów</a></li><li class="h3"><a href="#krok-7-przesuniecie-momentu-bledu">Krok 7: przesunięcie momentu błędu</a></li><li class="h3"><a href="#odpowiedz-polecenie-restart">Odpowiedź: polecenie restart</a></li><li class="h3"><a href="#weryfikacja-kryteriow-akceptacji-1">Weryfikacja kryteriów akceptacji</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow-1">Typowe błędy uczestników</a></li><li class="h3"><a href="#rozszerzenie-cztery-osie-w-osobnych-klasach">Rozszerzenie: cztery osie w osobnych klasach</a></li><li class="h3"><a href="#pytania-do-dyskusji-1">Pytania do dyskusji</a></li><li class="h2"><a href="#cwiczenie-3-template-method-strategy-chain-czy-decorator">Ćwiczenie 3: Template Method → Strategy, Chain czy Decorator</a></li><li class="h3"><a href="#kod-referencyjny-2">Kod referencyjny</a></li><li class="h3"><a href="#czesc-a-tabela-hakow">Część A: tabela haków</a></li><li class="h3"><a href="#czesc-b-lancuch-zatwierdzania">Część B: łańcuch zatwierdzania</a></li><li class="h3"><a href="#czesc-c-audyt-decyzji">Część C: audyt decyzji</a></li><li class="h3"><a href="#weryfikacja-kryteriow-akceptacji-2">Weryfikacja kryteriów akceptacji</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow-2">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji-2">Pytania do dyskusji</a></li><li class="h2"><a href="#cwiczenie-4-granice-adapter-boundary-object-facade-acl">Ćwiczenie 4: granice - Adapter, Boundary Object, Facade, ACL</a></li><li class="h3"><a href="#kod-referencyjny-3">Kod referencyjny</a></li><li class="h3"><a href="#tabela-granic-oczekiwany-produkt">Tabela granic (oczekiwany produkt)</a></li><li class="h3"><a href="#czesc-a-boundary-object">Część A: Boundary Object</a></li><li class="h3"><a href="#czesc-b-facade">Część B: Facade</a></li><li class="h3"><a href="#czesc-c-anti-corruption-layer">Część C: Anti-Corruption Layer</a></li><li class="h3"><a href="#weryfikacja-kryteriow-akceptacji-3">Weryfikacja kryteriów akceptacji</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow-3">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji-3">Pytania do dyskusji</a></li><li class="h2"><a href="#cwiczenia-dodatkowe">Ćwiczenia dodatkowe</a></li><li class="h3"><a href="#d1-state-observer-i-decorator">D1: State, Observer i Decorator</a></li><li class="h3"><a href="#d2-rodzina-refaktoryzacji-composite">D2: rodzina refaktoryzacji Composite</a></li><li class="h3"><a href="#d3-mediator">D3: Mediator</a></li><li class="h2"><a href="#odpowiedzi-do-pytan-sprawdzajacych">Odpowiedzi do pytań sprawdzających</a></li></ul></details></nav></aside>
+<main>
+<h1>Moduł 5. Refaktoryzacja do wzorców - rozwiązania dla prowadzącego</h1>
+<p>Numeracja i nazwy zadań są zgodne z plikiem zadań. Ścieżki Javy są względne względem katalogu repozytorium. Kod referencyjny leży w pakietach <code>after</code> w <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr></code>, testy referencyjne w <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr></code>.</p>
+<p>Rozwiązania ćwiczeń zostały opracowane na podstawie kodu referencyjnego i slajdów modułu. Kod referencyjny jest jednym poprawnym wynikiem - dopuszczalne są inne struktury, jeśli spełniają kryteria akceptacji, a zespół potrafi wskazać, który test chroni każdą decyzję.</p>
+<hr>
+<h2 id="cwiczenie-1-usuniecie-zbednego-wzorca" tabindex="-1"><a class="header-anchor" href="#cwiczenie-1-usuniecie-zbednego-wzorca"><span>Ćwiczenie 1: usunięcie zbędnego wzorca</span></a></h2>
+<h3 id="kod-referencyjny" tabindex="-1"><a class="header-anchor" href="#kod-referencyjny"><span>Kod referencyjny</span></a></h3>
+<ul>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>middleman/<wbr>after/<wbr>ReleaseDashboard.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>middleman/<wbr>after/<wbr>DeploymentRegistry.java</code>,</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>inlinesingleton/<wbr>after/<wbr>FeatureFlags.java</code>, <code>RolloutService.java</code>, <code>RolloutCompositionRoot.java</code>,</li>
+<li>testy: <code>MiddleManEquivalenceTest</code>, <code>InlineSingletonEquivalenceTest</code>.</li>
+</ul>
+<h3 id="czesc-a-ocena-posrednika" tabindex="-1"><a class="header-anchor" href="#czesc-a-ocena-posrednika"><span>Część A: ocena pośrednika</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Punkt</th>
+<th>Ocena dla <code>ReleaseService</code></th>
+<th>Uzasadnienie</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>autoryzacja</td>
+<td>nie</td>
+<td>brak sprawdzeń uprawnień</td>
+</tr>
+<tr>
+<td>transakcje</td>
+<td>nie</td>
+<td>brak granicy transakcji, rejestr to mapa w pamięci</td>
+</tr>
+<tr>
+<td>telemetria, logowanie</td>
+<td>nie</td>
+<td>brak</td>
+</tr>
+<tr>
+<td>retry, timeout</td>
+<td>nie</td>
+<td>brak</td>
+</tr>
+<tr>
+<td>translacja błędów</td>
+<td>nie</td>
+<td>wyjątki rejestru przechodzą bez zmian</td>
+</tr>
+<tr>
+<td>cache</td>
+<td>nie</td>
+<td>brak</td>
+</tr>
+<tr>
+<td>granica modułu</td>
+<td>nie wiadomo, do sprawdzenia</td>
+<td>czy <code>ReleaseService</code> jest publicznym API modułu dla innych zespołów?</td>
+</tr>
+</tbody>
+</table></div>
+<p>Wniosek: pośrednik nie realizuje żadnej odpowiedzialności, więc można go usunąć. Jeśli odpowiedź na ostatni punkt brzmiałaby &quot;tak&quot;, sensownym wynikiem jest pozostawienie go jako fasady modułu albo okres zgodności z forwarderami oznaczonymi <code>@Deprecated</code>.</p>
+<p>Sekwencja:</p>
+<ol>
+<li>Test charakterystyki (wzorzec: <code>MiddleManEquivalenceTest</code>): <code>UNKNOWN</code> dla nieznanego identyfikatora, aktualizacja, nadpisanie, render; identyfikator <code>null</code>, pusty, <code>&quot;  \t&quot;</code> (komunikat <code>deploymentId must not be blank</code>); <code>null</code> jako status (<code>status must not be null</code>, stan bez zmian).</li>
+<li>Przepięcie <code>ReleaseDashboard</code> na <code>DeploymentRegistry</code> (zmiana parametru konstruktora i wywołania w <code>render</code>).</li>
+<li>Migracja pozostałych klientów (tu tylko testy i <code>Module5Examples</code>).</li>
+<li>Safe Delete <code>ReleaseService</code> w osobnym commicie.</li>
+</ol>
+<p>Element kontraktu, który się zmienia: komunikat <code>requireNonNull</code> w konstruktorze dashboardu (<code>releaseService must not be null</code> → <code>registry must not be null</code>). Zmienia się też sama sygnatura konstruktora - dla klientów spoza repozytorium to zmiana łamiąca.</p>
+<h3 id="czesc-b-inline-singleton" tabindex="-1"><a class="header-anchor" href="#czesc-b-inline-singleton"><span>Część B: Inline Singleton</span></a></h3>
+<p>Test pokazujący współdzielony stan (wzorzec: <code>legacySingletonLeaksStateBetweenUsers</code>):</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-meta">@Test</span>
+<span class="hljs-meta">@ResourceLock(&quot;LegacyFeatureFlags&quot;)</span>
+<span class="hljs-type">void</span> <span class="hljs-title function_">legacySingletonLeaksStateBetweenUsers</span><span class="hljs-params">()</span> {
+    <span class="hljs-type">var</span> <span class="hljs-variable">first</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">LegacyRolloutService</span>();
+    <span class="hljs-type">var</span> <span class="hljs-variable">second</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">LegacyRolloutService</span>();
+    <span class="hljs-keyword">try</span> {
+        LegacyFeatureFlags.getInstance().enable(<span class="hljs-string">&quot;canary&quot;</span>);
+        assertEquals(<span class="hljs-string">&quot;rel-1: 10% -&gt; 50% -&gt; 100%&quot;</span>, second.plan(<span class="hljs-string">&quot;rel-1&quot;</span>));
+        assertEquals(first.plan(<span class="hljs-string">&quot;rel-1&quot;</span>), second.plan(<span class="hljs-string">&quot;rel-1&quot;</span>));
+    } <span class="hljs-keyword">finally</span> {
+        LegacyFeatureFlags.getInstance().reset();
+    }
+}
+</code></pre>
+<p>Sprzątanie wymaga <code>reset()</code> w <code>finally</code> i blokady zasobu przy testach równoległych. To jest właściwa obserwacja do zapisania: koszt globalnego stanu widać w testach.</p>
+<p>Sekwencja:</p>
+<ol>
+<li><code>FeatureFlags</code> jako niezmienny rekord (<code>Set.copyOf</code> w konstruktorze kompaktowym), fabryki <code>of(...)</code> i <code>parse(config)</code>.</li>
+<li>Nowa klasa <code>RolloutService(FeatureFlags flags)</code> obok <code>LegacyRolloutService</code>; klientów przepinamy pojedynczo, a stara klasa zostaje do końca migracji (<code>LegacyFeatureFlags</code> nie udostępnia listy flag, więc nie da się z niego zrobić migawki - stąd nowa klasa zamiast konstruktora przejściowego).</li>
+<li><code>RolloutCompositionRoot.create(flagsConfig)</code> jako jedyne miejsce tworzenia.</li>
+<li>Usunięcie <code>LegacyRolloutService</code> po migracji klientów; <code>LegacyFeatureFlags</code> zostaje, dopóki inne moduły z niego korzystają.</li>
+</ol>
+<p>Test równoważności: dla każdej kombinacji flag (pusta, <code>canary</code>, <code>dark-launch</code>, obie, nieznana) ustaw stan singletonu, porównaj plan legacy z planem serwisu z <code>new FeatureFlags(combination)</code> (<code>planIsTheSameForEveryFlagCombination</code>).</p>
+<p>Odpowiedź na pytanie 5: nie w pełni. Wersja legacy pozwala zmienić flagi w trakcie działania (<code>enable</code>, <code>disable</code>) i serwis od razu to zobaczy; wersja <code>after</code> ma flagi niezmienne od startu. Pytanie do właściciela: &quot;Czy ktoś przełącza flagi w locie (konsola administracyjna, skrypt, inny moduł)?&quot; Jeśli tak - potrzebny jest jawny port źródła flag (np. interfejs <code>FeatureFlagSource</code> czytany przy każdym <code>plan</code>), a nie powrót do singletonu.</p>
+<h3 id="weryfikacja-kryteriow-akceptacji" tabindex="-1"><a class="header-anchor" href="#weryfikacja-kryteriow-akceptacji"><span>Weryfikacja kryteriów akceptacji</span></a></h3>
+<ul>
+<li>ocena pośrednika: tabela powyżej, przed pierwszym ruchem,</li>
+<li>identyczne renderowanie i walidacja: <code>validationRemainsAtTheRegistryBoundary</code>,</li>
+<li>migracja jednym klientem naraz i osobny commit na Safe Delete,</li>
+<li>jawna zależność: konstruktor <code>RolloutService(FeatureFlags)</code>,</li>
+<li>testy bez <code>reset()</code>: <code>servicesWithDifferentFlagsCanCoexistWithoutSharedState</code>,</li>
+<li>nazwana zmiana kontraktu: notatka o przełączaniu w locie.</li>
+</ul>
+<h3 id="typowe-bledy-uczestnikow" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>Usunięcie pośrednika bez sprawdzenia, czy nie jest publicznym API modułu.</li>
+<li>Usunięcie <code>ReleaseService</code> w tym samym kroku co przepięcie klienta (brak punktu przywracania).</li>
+<li>Zastąpienie singletonu statyczną metodą fabrykującą, która nadal zwraca współdzieloną mutowalną instancję.</li>
+<li><code>FeatureFlags</code> z mutowalnym <code>HashSet</code> przekazanym z zewnątrz (brak kopii defensywnej).</li>
+<li>Przeniesienie <code>getInstance()</code> do konstruktora serwisu i ogłoszenie sukcesu (zależność nadal ukryta, tylko w innym miejscu).</li>
+<li>Pominięcie pytania o przełączanie flag w locie.</li>
+</ul>
+<h3 id="pytania-do-dyskusji" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>Kiedy pośrednik z jedną linią jest wartościowy? (fasada modułu, adapter biblioteki zewnętrznej, seam testowy, miejsce na przyszłą autoryzację - ale tylko z realnym wymaganiem).</li>
+<li>Czy kontener DI z zakresem singleton to nadal Singleton? (cykl życia tak, ale zależność jest jawna i wymienialna w testach).</li>
+<li>Scena s22: co zrobić z regułą <code>freeSeats</code> → <code>0</code> przed usunięciem <code>CinemaFacade</code>? (przenieść do klienta albo do katalogu, osobnym krokiem, z testem).</li>
+</ul>
+<hr>
+<h2 id="cwiczenie-2-command-strategy-czy-state" tabindex="-1"><a class="header-anchor" href="#cwiczenie-2-command-strategy-czy-state"><span>Ćwiczenie 2: Command, Strategy czy State</span></a></h2>
+<h3 id="kod-referencyjny-1" tabindex="-1"><a class="header-anchor" href="#kod-referencyjny-1"><span>Kod referencyjny</span></a></h3>
+<ul>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>variability/<wbr>after/<wbr>SupportCostPolicy.java</code> - Strategy,</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>variability/<wbr>after/<wbr>OperatorCommand.java</code>, <code>CommandConsole.java</code>, <code>Cluster.java</code> - Command,</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>variability/<wbr>after/<wbr>ReleaseLifecycle.java</code> - State,</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>variability/<wbr>after/<wbr>ReleaseConsole.java</code> - kontekst,</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>variability/<wbr>after/<wbr>package-info.java</code> - kryterium wyboru,</li>
+<li>test: <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>VariabilityEquivalenceTest.java</code>.</li>
+</ul>
+<h3 id="krok-1-2-przypisanie-osi-i-uzasadnienie" tabindex="-1"><a class="header-anchor" href="#krok-1-2-przypisanie-osi-i-uzasadnienie"><span>Krok 1-2: przypisanie osi i uzasadnienie</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Oś</th>
+<th>Kto wybiera wariant i kiedy</th>
+<th>Mechanizm</th>
+<th>Uzasadnienie</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>(a) koszt wsparcia</td>
+<td>klient, raz, przy tworzeniu konsoli</td>
+<td>Strategy</td>
+<td>Stabilna rodzina wymiennych algorytmów; taryfa nie zmienia się w czasie życia obiektu, więc wybór przy konstrukcji jest równoważny wyborowi przy każdym wywołaniu.</td>
+</tr>
+<tr>
+<td>(b) polecenia operatora</td>
+<td>nadawca, przy każdym żądaniu</td>
+<td>Command</td>
+<td>Żądanie trzeba kolejkować, logować i cofać, więc musi być obiektem, który wie, jak się wykonać i cofnąć.</td>
+</tr>
+<tr>
+<td>(c) cykl życia wydania</td>
+<td>nikt z zewnątrz, obiekt sam po operacji</td>
+<td>State</td>
+<td>Zachowanie <code>advance</code>, <code>rollback</code>, <code>banner</code> zależy od bieżącego stanu, który zmienia się w wyniku operacji obiektu.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Uwaga do osi (a): wybór taryfy w konstruktorze jest równoważny, bo <code>tier</code> w legacy jest polem <code>final</code>. Gdyby taryfa była czytana z konfiguracji przy każdym wywołaniu, przeniesienie wyboru do konstruktora zamroziłoby decyzję (slajd 6.4).</p>
+<h3 id="krok-3-test-rownowaznosci" tabindex="-1"><a class="header-anchor" href="#krok-3-test-rownowaznosci"><span>Krok 3: test równoważności</span></a></h3>
+<p>Wzorzec: <code>VariabilityEquivalenceTest</code>. Najważniejsze elementy:</p>
+<ul>
+<li>taryfy: <code>@EnumSource(CustomerTier.class)</code>, godziny 0, 1, 10, 33, 100 (dla <code>ENTERPRISE</code> 33 × 60 = 1980 &lt; 2000, a 100 × 60 = 6000 &gt; 2000 - obie strony <code>Math.max</code>), komunikat <code>hours must not be negative</code>,</li>
+<li>polecenia: <code>scale-up</code>, <code>maintenance</code>, <code>scale-down</code>, <code>scale-down</code>, potem dwa cofnięcia; dosłowny log jako niezależne oczekiwanie:</li>
+</ul>
+<pre class="code" data-lang="text"><code class="hljs">scale-up -&gt; instances=3, maintenance=off
+maintenance -&gt; instances=3, maintenance=on
+scale-down -&gt; instances=2, maintenance=on
+scale-down -&gt; instances=1, maintenance=on
+undo scale-down -&gt; instances=2, maintenance=on
+undo scale-down -&gt; instances=3, maintenance=on
+</code></pre>
+<ul>
+<li>awarie: <code>submit(&quot;reboot&quot;)</code> (<code>unknown action: reboot</code>), <code>undoLast()</code> bez historii (<code>nothing to undo</code>), dwa <code>scale-down</code> od dwóch instancji (<code>cannot scale below one instance</code>); po każdej awarii porównujemy klasę wyjątku, komunikat, status i log (pomocnik <code>assertSameFailure</code>),</li>
+<li>cykl życia: PLANNED → DEPLOYING → LIVE, <code>advance</code> w LIVE (wyjątek), <code>rollback</code> z LIVE, <code>rollback</code> i <code>advance</code> w ROLLED_BACK (wyjątki), <code>rollback</code> w PLANNED (wyjątek); po każdym kroku status i banner.</li>
+</ul>
+<h3 id="krok-4-6-sekwencja-commitow" tabindex="-1"><a class="header-anchor" href="#krok-4-6-sekwencja-commitow"><span>Krok 4-6: sekwencja commitów</span></a></h3>
+<ol>
+<li>Test równoważności (bez zmian w kodzie produkcyjnym).</li>
+<li>Strategy: interfejs <code>SupportCostPolicy</code> z jedną metodą <code>cost(int hours)</code>; stałe lub klasy dla trzech taryf; fabryka <code>forTier</code>; <code>ReleaseConsole</code> dostaje politykę w konstruktorze, walidacja <code>hours &lt; 0</code> zostaje w kontekście.</li>
+<li>Command, krok a: <code>OperatorCommand</code> z <code>name</code>, <code>execute(Cluster)</code>, <code>undo(Cluster)</code>; <code>Cluster</code> jako odbiorca (stan instancji i trybu serwisowego, reguła &quot;nie mniej niż jedna instancja&quot;).</li>
+<li>Command, krok b: kolejka i historia przechowują polecenia zamiast napisów; <code>runQueued</code> i <code>undoLast</code> wołają <code>execute</code> i <code>undo</code> bez <code>switch</code>. Fabryka <code>byName</code> jako jedyne miejsce mapowania nazwy na polecenie.</li>
+<li>State: prywatny enum stanów z domyślnymi <code>advance</code> i <code>rollback</code> rzucającymi wyjątek z dotychczasowym komunikatem; banner jako dane stanu; kontekst przypisuje <code>state = state.advance()</code>.</li>
+<li>Usunięcie starych pól i <code>switch</code> z kontekstu.</li>
+</ol>
+<h3 id="krok-7-przesuniecie-momentu-bledu" tabindex="-1"><a class="header-anchor" href="#krok-7-przesuniecie-momentu-bledu"><span>Krok 7: przesunięcie momentu błędu</span></a></h3>
+<p>W obu wersjach nieznana akcja jest odrzucana przy <code>submit</code> (legacy: sprawdzenie <code>ACTIONS.contains</code>, <code>after</code>: <code>OperatorCommand.byName</code>). Gałąź <code>default</code> w <code>runQueued</code> i <code>undoLast</code> legacy jest nieosiągalna. Gdyby uczestnik przeniósł tworzenie polecenia do <code>runQueued</code>, błąd przesunąłby się w czasie (po zakolejkowaniu i wykonaniu wcześniejszych poleceń) - to byłaby zmiana zachowania wykryta przez <code>commandAxisPreservesFailures</code>.</p>
+<h3 id="odpowiedz-polecenie-restart" tabindex="-1"><a class="header-anchor" href="#odpowiedz-polecenie-restart"><span>Odpowiedź: polecenie <code>restart</code></span></a></h3>
+<ul>
+<li>legacy: trzy miejsca w jednej klasie - zbiór <code>ACTIONS</code>, <code>switch</code> w <code>runQueued</code>, <code>switch</code> w <code>undoLast</code> (oraz ewentualnie nowe pole stanu),</li>
+<li><code>after</code>: nowy rekord w <code>OperatorCommand</code> (wykonanie i cofnięcie obok siebie) i jeden wpis w <code>byName</code>; <code>CommandConsole</code> i <code>ReleaseConsole</code> bez zmian.</li>
+</ul>
+<h3 id="weryfikacja-kryteriow-akceptacji-1" tabindex="-1"><a class="header-anchor" href="#weryfikacja-kryteriow-akceptacji-1"><span>Weryfikacja kryteriów akceptacji</span></a></h3>
+<ul>
+<li>brak kombinatorycznej hierarchii: trzy niezależne mechanizmy złożone w <code>ReleaseConsole</code>,</li>
+<li>stan nie jest strategią: <code>ReleaseLifecycle</code> nie ma publicznego konstruktora z wariantem, stan zmienia sam obiekt,</li>
+<li>polecenia bezstanowe (rekordy bez pól); polecenie, które rzuciło, nie trafia do historii (<code>history.push</code> po <code>execute</code>),</li>
+<li>jedno miejsce mapowania: <code>SupportCostPolicy.forTier</code>, <code>OperatorCommand.byName</code>,</li>
+<li>test porównuje wynik, komunikaty, status i log oraz zawiera dosłowny log.</li>
+</ul>
+<h3 id="typowe-bledy-uczestnikow-1" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow-1"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>Strategy dla cyklu życia (&quot;bo to też <code>switch</code>&quot;). Pytanie kontrolne: kto zmienia wariant i kiedy?</li>
+<li>State dla taryfy (taryfa nie zmienia się w wyniku operacji).</li>
+<li>Polecenie przechowujące liczbę instancji sprzed wykonania jako pole współdzielonej instancji (stan poprzedniego żądania).</li>
+<li>Cofnięcie zaimplementowane jako osobny <code>switch</code> w konsoli (Command bez korzyści).</li>
+<li>Pusta domyślna implementacja <code>advance</code> w stanie zamiast wyjątku.</li>
+<li>Przeniesienie walidacji godzin do każdej strategii.</li>
+<li>Usunięcie <code>switch</code> przed migracją wszystkich miejsc tworzenia.</li>
+<li>Porównanie tylko wyniku, bez logu i stanu po błędzie.</li>
+</ul>
+<h3 id="rozszerzenie-cztery-osie-w-osobnych-klasach" tabindex="-1"><a class="header-anchor" href="#rozszerzenie-cztery-osie-w-osobnych-klasach"><span>Rozszerzenie: cztery osie w osobnych klasach</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Klasa</th>
+<th>Mechanizm</th>
+<th>Kod referencyjny</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>LegacyDeploymentCostCalculator</code> (tryb kosztu)</td>
+<td>Strategy</td>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>strategy/<wbr>after/<wbr></code></td>
+</tr>
+<tr>
+<td><code>LegacyDeploymentStep</code> (rodzaj kroku)</td>
+<td>polimorfizm podtypów</td>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>polymorphism/<wbr>after/<wbr></code></td>
+</tr>
+<tr>
+<td><code>LegacyRelease</code> (stan wydania)</td>
+<td>State</td>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>state/<wbr>after/<wbr>Release.java</code></td>
+</tr>
+<tr>
+<td><code>LegacyDeploymentDispatcher</code> (akcja operatora)</td>
+<td>Command (rejestr)</td>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>command/<wbr>after/<wbr></code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Różnica względem <code>LegacyReleaseConsole</code>: rodzaj kroku jest trwały przez całe życie obiektu i niesie własne dane (<code>command</code>, <code>approver</code>), więc to polimorfizm, nie Strategy. Komendy w <code>command/<wbr>after</code> nie mają cofania - rejestr zastępuje dyspozytor, ale korzyść jest mniejsza niż w <code>variability</code>.</p>
+<h3 id="pytania-do-dyskusji-1" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji-1"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>Czy dla trzech taryf Strategy się opłaca? (tak, jeśli taryfy zmieniają się niezależnie lub klient dostarcza własną; nie, jeśli są stałe i lokalne - wtedy <code>switch</code> jest czytelny).</li>
+<li>Co się stanie, gdy dodamy nową wartość do <code>CustomerTier</code>? (błąd kompilacji w wyczerpującym <code>switch</code> w <code>forTier</code> - dobra wiadomość).</li>
+<li>Czy <code>undo</code> po nieudanym <code>scale-down</code> powinno coś cofać? (nie - polecenie nie trafiło do historii; zmiana tej reguły to zmiana zachowania).</li>
+</ul>
+<hr>
+<h2 id="cwiczenie-3-template-method-strategy-chain-czy-decorator" tabindex="-1"><a class="header-anchor" href="#cwiczenie-3-template-method-strategy-chain-czy-decorator"><span>Ćwiczenie 3: Template Method → Strategy, Chain czy Decorator</span></a></h2>
+<h3 id="kod-referencyjny-2" tabindex="-1"><a class="header-anchor" href="#kod-referencyjny-2"><span>Kod referencyjny</span></a></h3>
+<ul>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>templatetostrategy/<wbr>after/<wbr>ReleaseNotesExporter.java</code>, <code>NotesFormat.java</code>, <code>MarkdownFormat.java</code>, <code>HtmlFormat.java</code>, <code>ContentSelection.java</code>,</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>chain/<wbr>after/<wbr>ApprovalHandler.java</code>, <code>ApprovalRouter.java</code> i ogniwa <code>SizeLimitHandler.java</code>, <code>AutomaticApprovalHandler.java</code>, <code>TeamLeadHandler.java</code>, <code>ReleaseManagerHandler.java</code>, <code>ChangeAdvisoryBoardHandler.java</code>,</li>
+<li>testy: <code>TemplateToStrategyEquivalenceTest</code>, <code>ChainEquivalenceTest</code>.</li>
+</ul>
+<h3 id="czesc-a-tabela-hakow" tabindex="-1"><a class="header-anchor" href="#czesc-a-tabela-hakow"><span>Część A: tabela haków</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Hak</th>
+<th>Oś</th>
+<th>Nowe miejsce</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>header(version)</code></td>
+<td>format (znaczniki) <strong>i</strong> zakres (tytuł <code>Changelog</code>/<code>Highlights</code>)</td>
+<td><code>NotesFormat.header(title, version)</code> + <code>ContentSelection.title()</code></td>
+</tr>
+<tr>
+<td><code>include(entry)</code></td>
+<td>zakres treści</td>
+<td><code>ContentSelection.filter</code> / <code>includes(entry)</code></td>
+</tr>
+<tr>
+<td><code>formatEntry(entry)</code></td>
+<td>format</td>
+<td><code>NotesFormat.entry(entry)</code></td>
+</tr>
+<tr>
+<td><code>footer()</code></td>
+<td>format</td>
+<td><code>NotesFormat.footer()</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Kluczowa obserwacja: hak <code>header</code> mieszał dwie osie, bo tytuł był stałą w kodzie podklasy. Stąd nowa sygnatura z parametrem <code>title</code>.</p>
+<p>Sekwencja:</p>
+<ol>
+<li>Test parametryzowany dla czterech podklas (wzorzec: <code>everySubclassCombinationHasAnEquivalentComposition</code>) z wpisami <code>Blue-green deployments</code>, <code>Retry &lt;flaky&gt; health check</code> (FIX), <code>Drop v1 API &amp; legacy tokens</code> (BREAKING) oraz z pustą listą; dosłowne oczekiwanie dla HTML Highlights (<code>htmlHighlightsKeepEscapingAndFiltering</code>).</li>
+<li>Extract Interface <code>NotesFormat</code> i rekord <code>ContentSelection</code>; implementacje <code>MarkdownFormat</code>, <code>HtmlFormat</code> (z jedną kopią <code>escape</code>), stałe <code>CHANGELOG</code> i <code>HIGHLIGHTS</code>.</li>
+<li>Przejściowo: podklasy legacy delegują haki do strategii (test nadal zielony).</li>
+<li>Klasa finalna <code>ReleaseNotesExporter(format, selection)</code> ze szkieletem <code>export</code>.</li>
+<li>Migracja miejsc tworzenia, usunięcie podklas.</li>
+<li>Nowa kombinacja: <code>new ContentSelection(&quot;Breaking changes&quot;, entry -&gt; entry.kind() == Kind.BREAKING)</code> z <code>MarkdownFormat</code> (<code>newCombinationNeedsNoNewSubclass</code>).</li>
+</ol>
+<p>Ucieczka znaków: <code>HtmlFormat</code> ucieka wersję i opis wpisu, ale nie tytuł - legacy też nie uciekało tytułu (był literałem). Uciekanie tytułu &quot;na wszelki wypadek&quot; byłoby zmianą wyniku dla tytułów z <code>&amp;</code> - poprawną, ale osobną decyzją.</p>
+<h3 id="czesc-b-lancuch-zatwierdzania" tabindex="-1"><a class="header-anchor" href="#czesc-b-lancuch-zatwierdzania"><span>Część B: łańcuch zatwierdzania</span></a></h3>
+<p>Liczba przypadków: 9 rozmiarów × 3 ryzyka × 2 środowiska = 54 (<code>chainPreservesEveryLegacyRoutingDecision</code> liczy porównania i sprawdza tę liczbę).</p>
+<p>Gałąź zależna od wcześniejszych: <code>RELEASE_MANAGER</code> z warunkiem <code>risk != HIGH || !production</code>. Sama w sobie przyjęłaby także małe zmiany o niskim ryzyku - jest poprawna tylko dlatego, że wcześniej obsłużono <code>AUTOMATIC</code> i <code>TEAM_LEAD</code>. Podobnie <code>CHANGE_ADVISORY_BOARD</code> (<code>linesChanged &lt;= 2000</code>) przyjąłby każdą małą zmianę.</p>
+<p>Żądanie zmieniające wynik po przestawieniu <code>TEAM_LEAD</code> i <code>RELEASE_MANAGER</code>: <code>new ChangeRequest(&quot;CR-1&quot;, 300, Risk.MEDIUM, true)</code> - przed: <code>TEAM_LEAD</code> (<code>moderate change</code>), po przestawieniu: <code>RELEASE_MANAGER</code>. Kontrolna mutacja w <code>ApprovalRouter.standard()</code> daje czerwony test na siatce.</p>
+<p>Sekwencja:</p>
+<ol>
+<li>Test na siatce i test osiągalności każdego zatwierdzającego (<code>everyApproverIsReachable</code>).</li>
+<li>Extract Method dla każdej gałęzi w <code>LegacyApprovalRouter</code> (warunek i decyzja).</li>
+<li>Abstrakcyjne ogniwo <code>ApprovalHandler</code>: <code>handle</code>, chronione <code>passOn</code>, koniec łańcucha w <code>passOn</code> (<code>no approver for &lt;id&gt;</code>), składanie przez <code>then(next)</code>.</li>
+<li>Pierwsze ogniwo <code>SizeLimitHandler</code>; router: ogniwo + reszta starej metody jako ogniwo przejściowe. Test.</li>
+<li>Kolejne ogniwa po jednym, test po każdym.</li>
+<li>Złożenie w <code>ApprovalRouter.standard()</code>; usunięcie <code>if/<wbr>else</code>.</li>
+</ol>
+<p>Uwaga o końcu łańcucha: zmiany wysokiego ryzyka na produkcji powyżej 2000 linii przechodzą przez <code>ChangeAdvisoryBoardHandler</code> i &quot;spadają&quot; z końca łańcucha jako <code>REJECTED</code> - dokładnie jak <code>else</code> w legacy. Testy <code>endOfTheChainRejectsUnhandledRequests</code> i <code>exactlyOneHandlerHandlesTheRequest</code> używają ogniw liczących wywołania.</p>
+<h3 id="czesc-c-audyt-decyzji" tabindex="-1"><a class="header-anchor" href="#czesc-c-audyt-decyzji"><span>Część C: audyt decyzji</span></a></h3>
+<p>Rekomendacja: <strong>Decorator</strong> wokół <code>ApprovalRouter</code> (albo wokół pierwszego ogniwa), np. <code>AuditedApprovalRouter</code>, który woła rdzeń i zapisuje każdą decyzję. Uzasadnienie:</p>
+<ul>
+<li>audyt musi pracować dla <strong>każdego</strong> żądania i każdej decyzji, niezależnie od tego, które ogniwo obsłużyło żądanie,</li>
+<li>w łańcuchu pracuje zwykle jedno ogniwo; ogniwo audytu na początku musiałoby zawsze przekazywać dalej i dopiero po powrocie zapisywać wynik - czyli zachowywałoby się jak dekorator przebrany za ogniwo,</li>
+<li>ogniwo audytu na końcu nie zobaczy decyzji podjętych wcześniej.</li>
+</ul>
+<p>Do zapisania: polityka błędu audytu (czy awaria zapisu blokuje decyzję) - analogicznie do <code>AuditedDeploymentRunner</code>.</p>
+<h3 id="weryfikacja-kryteriow-akceptacji-2" tabindex="-1"><a class="header-anchor" href="#weryfikacja-kryteriow-akceptacji-2"><span>Weryfikacja kryteriów akceptacji</span></a></h3>
+<ul>
+<li>N + M klas: dwa formaty i dwa zakresy jako cztery obiekty, nie cztery podklasy; <code>ReleaseNotesExporter</code> jest <code>final</code> (<code>exporterIsClosedForInheritance</code>),</li>
+<li>ucieczka znaków jak w legacy: test HTML Highlights,</li>
+<li>dokładnie jedno ogniwo i decyzja na końcu łańcucha: testy z <code>CountingHandler</code>,</li>
+<li>kolejność w jednym wyrażeniu: <code>ApprovalRouter.standard()</code>,</li>
+<li>siatka granic i niezależne oczekiwania: 54 przypadki i <code>everyApproverIsReachable</code>.</li>
+</ul>
+<h3 id="typowe-bledy-uczestnikow-2" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow-2"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>Przeniesienie tytułu do <code>NotesFormat</code> (tytuł należy do zakresu - dla nowej kombinacji trzeba by tworzyć nowy format).</li>
+<li>Dwie kopie <code>escape</code> pozostawione po zmianie.</li>
+<li>Strategia formatu z metodą <code>export</code> zawierającą pętlę (szkielet rozjeżdża się między formatami).</li>
+<li>Ogniwa łańcucha napisane jako niezależne predykaty z pełnymi warunkami &quot;na wszelki wypadek&quot; - niby bezpieczniej, ale zmienia to semantykę przy przestawianiu i duplikuje progi.</li>
+<li><code>null</code> zamiast decyzji na końcu łańcucha.</li>
+<li>Test łańcucha tylko dla &quot;typowych&quot; wartości, bez granic 50/51, 500/501, 2000/2001, 5000/5001.</li>
+<li>Audyt jako ogniwo łańcucha.</li>
+</ul>
+<h3 id="pytania-do-dyskusji-2" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji-2"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>Kiedy zostawilibyście Template Method? (jedna oś, stabilny szkielet, potrzebny dostęp do chronionego stanu - przykład <code>templatemethod</code>).</li>
+<li>Czy łańcuch na pięć reguł się opłaca? (gdy są różne procesy zatwierdzania lub reguły zmieniają się niezależnie; inaczej czytelna metoda z testem jest prostsza).</li>
+<li>Jak zapisać zależność od kolejności, żeby nikt jej przypadkiem nie złamał? (nazwy ogniw, komentarz przy złożeniu, test na siatce, ewentualnie ogniwa z jawnymi warunkami wstępnymi w testach).</li>
+</ul>
+<hr>
+<h2 id="cwiczenie-4-granice-adapter-boundary-object-facade-acl" tabindex="-1"><a class="header-anchor" href="#cwiczenie-4-granice-adapter-boundary-object-facade-acl"><span>Ćwiczenie 4: granice - Adapter, Boundary Object, Facade, ACL</span></a></h2>
+<h3 id="kod-referencyjny-3" tabindex="-1"><a class="header-anchor" href="#kod-referencyjny-3"><span>Kod referencyjny</span></a></h3>
+<ul>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>boundaryobject/<wbr>after/<wbr>BuildReport.java</code>, <code>BuildReportMapper.java</code>, <code>BuildReports.java</code>, <code>CiBuildReportsAdapter.java</code>, <code>ReleaseGate.java</code>,</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>facade/<wbr>after/<wbr>ReleasePublishingFacade.java</code>, <code>ReleaseCli.java</code>, <code>ReleaseScheduler.java</code> (podsystemy pakietowo-prywatne),</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>anticorruptionlayer/<wbr>after/<wbr>Environment.java</code>, <code>EnvironmentDirectory.java</code>, <code>DeploymentPlanner.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>anticorruptionlayer/<wbr>after/<wbr>acl/<wbr>CmdbEnvironmentDirectory.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>anticorruptionlayer/<wbr>after/<wbr>acl/<wbr>CmdbTranslator.java</code>,</li>
+<li>testy: <code>BoundaryObjectEquivalenceTest</code>, <code>FacadeEquivalenceTest</code>, <code>AntiCorruptionLayerEquivalenceTest</code>.</li>
+</ul>
+<h3 id="tabela-granic-oczekiwany-produkt" tabindex="-1"><a class="header-anchor" href="#tabela-granic-oczekiwany-produkt"><span>Tabela granic (oczekiwany produkt)</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Granica</th>
+<th>Mechanizm</th>
+<th>Uzasadnienie</th>
+<th>Przesunięcia błędów</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ładunek CI w regule wydania</td>
+<td>Adapter + Boundary Object</td>
+<td>obcy format danych wchodzi do domeny; trzeba go zwalidować raz, na granicy</td>
+<td>brak klucza: <code>NullPointerException</code> w domenie → <code>invalid CI payload: missing &lt;klucz&gt;</code>; wartość nieliczbowa: <code>NumberFormatException</code> → <code>invalid CI payload: ...</code>; pokrycie 120: dawniej akceptowane, teraz odrzucane</td>
+</tr>
+<tr>
+<td>dwóch klientów orkiestruje podsystemy</td>
+<td>Facade</td>
+<td>ta sama wiedza o kolejności i walidacji w dwóch miejscach</td>
+<td><code>null</code> środowiska: <code>NullPointerException</code> bez komunikatu → <code>NullPointerException(&quot;environment&quot;)</code></td>
+</tr>
+<tr>
+<td>kody CMDB w regułach planowania</td>
+<td>Anti-Corruption Layer</td>
+<td>dwa różne modele; domena ma mówić własnym językiem</td>
+<td>nieznany kod: dawniej pomijany lub nieistotny → <code>unknown CMDB environment code</code>; zła data w rekordzie nieaktywnym: dawniej bez znaczenia → <code>invalid CMDB date</code></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="czesc-a-boundary-object" tabindex="-1"><a class="header-anchor" href="#czesc-a-boundary-object"><span>Część A: Boundary Object</span></a></h3>
+<ul>
+<li>Poprawne ładunki (wzorzec: <code>domainDecisionsAreTheSameForEveryValidPayload</code>): <code>SUCCESS</code>/82.5/0, <code>&quot; success &quot;</code>/80/0 z sha wielkimi i małymi literami, 79.9 (granica pokrycia), <code>FAILED</code>/3, <code>running</code>/0. Wynik <code>canRelease</code> w kolejności identyfikatorów: <code>true, true, false, false, false</code>; <code>summary</code> np. <code>build-1 [a1b2c3d] SUCCESS coverage=82.5% failed=0</code>.</li>
+<li>Dziś: brak klucza <code>failed</code> → <code>NullPointerException</code> z <code>payload.get(&quot;failed&quot;).trim()</code> w środku reguły; <code>coverage = &quot;eighty&quot;</code> → <code>NumberFormatException</code> w domenie.</li>
+<li>Po zmianie: <code>BuildReportMapper.fromPayload</code> łapie <code>IllegalArgumentException</code> (także <code>NumberFormatException</code>, która jest jej podklasą) i rzuca <code>IllegalArgumentException(&quot;invalid CI payload: &quot; + przyczyna, przyczyna)</code>.</li>
+<li>Decyzja: dla danych niepoprawnych to <strong>zmiana kontraktu</strong>. Akceptowalna i zwykle pożądana, ale trzeba ją nazwać, sprawdzić, czy ktoś łapał <code>NumberFormatException</code> wyżej, i zatwierdzić osobno. Przypadek pokrycia 120 jest najciekawszy: legacy pozwalało wydać build z nielogicznym raportem, nowa wersja go odrzuca - to zmiana reguły biznesowej, a nie tylko komunikatu.</li>
+</ul>
+<h3 id="czesc-b-facade" tabindex="-1"><a class="header-anchor" href="#czesc-b-facade"><span>Część B: Facade</span></a></h3>
+<ul>
+<li>Test efektów (wzorzec: <code>cliProducesTheSameEffectsInTheSameOrder</code>): dla <code>publish(&quot;rel-42&quot;, &quot; PROD &quot;)</code> lista <code>stored rel-42.jar</code>, <code>rendered rel-42/<wbr>prod.yaml</code>, <code>queued rel-42.jar with rel-42/<wbr>prod.yaml</code>, <code>announced rel-42 on prod</code>.</li>
+<li>Brak efektów przy błędnym żądaniu: <code>qa</code> (<code>unknown environment: qa</code>) i <code>&quot; &quot;</code> (<code>releaseId must not be blank</code>) - <code>invalidRequestsAreRejectedBeforeAnySideEffect</code>.</li>
+<li>Różnice kontraktów klientów: scheduler nie walidował środowiska (stałe <code>staging</code>), a CLI tak; po zmianie oba przechodzą przez walidację fasady - dla <code>staging</code> bez różnicy wyniku. <code>null</code> środowiska: różny komunikat (patrz tabela).</li>
+<li>Pusty identyfikator w środku listy schedulera: w obu wersjach wcześniejsze wydania są już opublikowane (efekty zostają), a pętla przerywa się wyjątkiem. Warto to utrwalić testem.</li>
+<li>Zawężenie widoczności podsystemów (osobny commit, <code>subsystemsAreHiddenBehindTheFacade</code>) może zepsuć: klientów spoza pakietu, testy w innych pakietach, konfigurację DI tworzącą podsystemy refleksyjnie.</li>
+<li>Czego fasada nie daje: atomowości (awaria <code>enqueue</code> zostawia zapisany artefakt i wyrenderowaną konfigurację), retry, transakcji rozproszonej. Kompensacja to nowe zachowanie.</li>
+</ul>
+<h3 id="czesc-c-anti-corruption-layer" tabindex="-1"><a class="header-anchor" href="#czesc-c-anti-corruption-layer"><span>Część C: Anti-Corruption Layer</span></a></h3>
+<ul>
+<li>Reguły w języku biznesu: &quot;cele canary to aktywne środowiska poza produkcją, alfabetycznie&quot;, &quot;nieświeże to aktywne środowiska bez wdrożenia od 30 dni&quot;, &quot;środowisko jest produkcyjne, jeśli ma poziom produkcja&quot;. Potrzebny model: <code>Environment(name, tier, active, lastDeployment)</code> z <code>Tier { PRODUCTION, TEST, DEVELOPMENT }</code>.</li>
+<li>Test równoważności (wzorzec: <code>planningRulesGiveTheSameAnswersThroughTheAcl</code>): sześć rekordów, w tym wyłączony (<code>0</code>) i wycofany (<code>9</code>); oczekiwania <code>[dev-1, test-a, test-b]</code> dla canary i <code>[dev-1, test-b]</code> dla nieświeżych przy dacie 2026-10-20.</li>
+<li>Nieznany kod środowiska (np. <code>Q</code>), rekord aktywny:
+<ul>
+<li>legacy: <code>canaryTargets</code> pomija go po cichu, <code>isProduction</code> zwraca <code>false</code>, <code>staleEnvironments</code> może go zwrócić (kod nie ma znaczenia),</li>
+<li>po zmianie: każda metoda planera rzuca <code>IllegalArgumentException(&quot;unknown CMDB environment code: Q&quot;)</code>, bo tłumaczenie jest zachłanne (<code>all()</code> tłumaczy wszystkie rekordy).</li>
+</ul>
+</li>
+<li>Niepoprawna data w rekordzie nieaktywnym:
+<ul>
+<li>legacy: bez znaczenia (filtr <code>statFlg == 1</code> przed parsowaniem, <code>canaryTargets</code> i <code>isProduction</code> w ogóle nie parsują daty),</li>
+<li>po zmianie: <code>IllegalArgumentException(&quot;invalid CMDB date: ...&quot;)</code> dla każdej metody.</li>
+</ul>
+</li>
+<li>Decyzja do zapisania (przykładowe opcje): (1) akceptujemy - dane niepoprawne zatrzymują planowanie, bo lepiej nie wdrażać na podstawie śmieci; (2) tłumacz pomija i loguje niepoprawne rekordy - bliżej legacy, ale ukrywa problem; (3) kwarantanna rekordów z raportem. Opcja (2) jest najbliższa czystej refaktoryzacji, ale nawet ona zmienia <code>staleEnvironments</code> dla nieznanego kodu. Kod referencyjny wybiera (1) i utrwala ją testem <code>unknownLegacyDataIsRejectedInsideTheAcl</code>.</li>
+</ul>
+<h3 id="weryfikacja-kryteriow-akceptacji-3" tabindex="-1"><a class="header-anchor" href="#weryfikacja-kryteriow-akceptacji-3"><span>Weryfikacja kryteriów akceptacji</span></a></h3>
+<ul>
+<li>domena bez szczegółów obcych systemów: <code>ReleaseGate</code> operuje na <code>BuildReport</code>, <code>DeploymentPlanner</code> na <code>Environment</code>, klienci publikacji znają tylko fasadę (<code>domainCanBeTestedWithoutAnyLegacyType</code>, <code>subsystemsAreHiddenBehindTheFacade</code>),</li>
+<li>równoważność dla danych poprawnych: trzy testy równoważności,</li>
+<li>nazwane przesunięcia błędów: tabela granic,</li>
+<li>kolejność i walidacja przed pierwszym efektem: <code>invalidRequestsAreRejectedBeforeAnySideEffect</code>,</li>
+<li>domena testowalna bez typów CMDB: port zastąpiony lambdą.</li>
+</ul>
+<h3 id="typowe-bledy-uczestnikow-3" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow-3"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li><code>BuildReport</code> z polami <code>String</code> &quot;żeby było prościej&quot; (obiekt graniczny bez typów i niezmienników to DTO z inną nazwą).</li>
+<li>Mapper publiczny i używany w domenie (wiedza o formacie znowu wycieka).</li>
+<li>Opakowanie wyjątku bez przyczyny (<code>new IllegalArgumentException(message)</code> bez <code>cause</code>).</li>
+<li>Fasada z osobnymi metodami <code>upload</code>, <code>render</code>, <code>enqueue</code>, <code>announce</code> (to Middle Man, nie strażnik kolejności).</li>
+<li>Zawężenie widoczności podsystemów w tym samym kroku co wydzielenie fasady.</li>
+<li>ACL, w którym <code>LegacyCmdbRecord</code> jest polem <code>Environment</code> &quot;na wszelki wypadek&quot;.</li>
+<li>Tłumaczenie kodów w planerze (<code>&quot;P&quot;.equals(...)</code>) mimo wprowadzenia modelu - tłumacz istnieje, ale reguły go omijają.</li>
+<li>Brak decyzji dla danych niepoprawnych - test równoważności na poprawnych danych daje fałszywe poczucie bezpieczeństwa.</li>
+</ul>
+<h3 id="pytania-do-dyskusji-3" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji-3"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>Kto powinien zdecydować, co robić z niepoprawnym rekordem CMDB? (właściciel procesu planowania, nie programista w trakcie refaktoryzacji).</li>
+<li>Czy fasada powinna należeć do zespołu podsystemów, czy do zespołu klientów? (zależy, czyją wiedzę chroni; ACL zwykle należy do zespołu domeny).</li>
+<li>Jak ACL pomaga w Strangler Fig? (nowy rejestr środowisk to nowa implementacja <code>EnvironmentDirectory</code>; domena i testy domeny bez zmian).</li>
+</ul>
+<hr>
+<h2 id="cwiczenia-dodatkowe" tabindex="-1"><a class="header-anchor" href="#cwiczenia-dodatkowe"><span>Ćwiczenia dodatkowe</span></a></h2>
+<h3 id="d1-state-observer-i-decorator" tabindex="-1"><a class="header-anchor" href="#d1-state-observer-i-decorator"><span>D1: State, Observer i Decorator</span></a></h3>
+<p>Kod referencyjny pokazuje trzy wzorce osobno: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>state/<wbr>after/<wbr>Release.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>decorator/<wbr>after/<wbr>AuditedDeploymentRunner.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>observer/<wbr>after/<wbr>ReleasePublisher.java</code>; testy <code>StateEquivalenceTest</code>, <code>DecoratorEquivalenceTest</code>, <code>ObserverContractTest</code>. Połączenie (w tym wybór kolejności) jest właściwym produktem ćwiczenia.</p>
+<ul>
+<li>Audyt jako dekoracja operacji (<code>AuditedDeploymentRunner</code> wokół rdzenia wdrożenia), nie część obiektu stanu: stany są bezstanowymi stałymi enumu i nie powinny wykonywać efektów. Powiadomienie po udanym wdrożeniu to osobne zdarzenie publikowane przez Observer. Audyt jako listener traci wpisy <code>start</code> i <code>failure</code>, więc nie jest równoważny z legacy.</li>
+<li>Przykładowa kolejność dla sukcesu: <code>audit: start:&lt;id&gt;</code> → rdzeń → <code>APPROVED -&gt; DEPLOYED</code> → <code>audit: success:&lt;id&gt;</code> → publikacja do listenerów w kolejności rejestracji. Dla awarii rdzenia: <code>start</code>, wyjątek, stan bez zmian, <code>failure:&lt;id&gt;:&lt;Typ&gt;</code>, ten sam wyjątek dalej, brak publikacji. Inne kolejności (stan przed efektem, outbox) są dopuszczalne, jeśli jawnie zatwierdzone.</li>
+<li>Listener usuwający inną subskrypcję: przy <code>CopyOnWriteArrayList</code> usunięty listener jest jeszcze wywołany w bieżącej publikacji, ale nie w następnej (wzorzec: <code>unsubscriptionDuringPublicationAffectsTheNextSnapshot</code>, wynik <code>first:one</code>, <code>later:one</code>, <code>first:two</code>).</li>
+<li>Fail-fast: pierwszy wyjątek przerywa publikację, propagowany bez opakowania (<code>usesFailFastExceptionPolicy</code>). W chwili wyjątku listenera stan jest już <code>DEPLOYED</code> - do udokumentowania.</li>
+<li>Awaria audytu <code>failure</code> zasłania wyjątek rdzenia - kod referencyjny tego nie rozwiązuje; decyzja (<code>addSuppressed</code>, kanał awaryjny) musi być jawna. Podwójne <code>close()</code> uchwytu: brak błędu i brak usunięcia cudzej rejestracji (<code>duplicateRegistrationsRemainIndependentSubscriptions</code>).</li>
+<li>Typowe błędy: publikacja pod <code>synchronized</code>, <code>ExecutorService</code> &quot;dla wydajności&quot;, wyrejestrowanie przez <code>remove(listener)</code> zamiast uchwytu, dane wydania w polu enumu stanu.</li>
+</ul>
+<h3 id="d2-rodzina-refaktoryzacji-composite" tabindex="-1"><a class="header-anchor" href="#d2-rodzina-refaktoryzacji-composite"><span>D2: rodzina refaktoryzacji Composite</span></a></h3>
+<p>Kod referencyjny: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>composite/<wbr>after/<wbr></code> (<code>PlanComponent</code>, <code>DeploymentTask</code>, <code>DeploymentGroup</code>, <code>LegacyPathPlanMapper</code>, <code>PlanExecutor</code>, <code>PlanBuilder</code>, <code>PlanVisitor</code>, <code>TotalMinutesVisitor</code>), test <code>CompositeRefactoringsTest</code>.</p>
+<ul>
+<li>Charakterystyka <code>LegacyPathPlan</code>: separator <code>/<wbr></code> bez maskowania; ścieżka pusta, biała, z <code>/<wbr></code> na początku lub końcu, z <code>/<wbr>/<wbr></code> albo białym segmentem jest niepoprawna (<code>invalid path: ...</code>); zadanie musi mieć rodzica; minuty nieujemne; suma przez <code>Math.addExact</code>; <code>taskNamesBelow</code> w kolejności listy wejściowej.</li>
+<li>Mapper z jawnym <code>rootName</code>: wpis spoza korzenia, konflikt zadanie/grupa i dane niezgodne z przejściem w głąb (<code>a/<wbr>first</code>, <code>b/<wbr>second</code>, <code>a/<wbr>third</code>) to błędy - grupowanie zmieniłoby kolejność. Alternatywy (sortowanie, pole kolejności) to zmiany zachowania.</li>
+<li><code>PlanExecutor.execute(PlanComponent)</code> zastępuje <code>execute</code> i <code>executeAll</code> (preorder, pusta grupa daje pustą listę).</li>
+<li><code>PlanBuilder</code>: jednorazowy (<code>builder has already been used</code>, sprawdzane przed walidacją argumentów), dziecko budowane synchronicznie, wynik niemutowalny.</li>
+<li><code>collectTasks</code> tylko dopisuje i może zostawić wynik częściowy; <code>TotalMinutesVisitor</code> sumuje przez <code>Math.addExact</code> i podwójną dyspozycję, bez <code>instanceof</code>.</li>
+<li>Przypadki brzegowe: <code>emptyCompositeHasNeutralBehavior</code>, <code>bothAccumulationImplementationsDetectOverflow</code>; głęboka struktura i współdzielone poddrzewo nie mają testu w kodzie referencyjnym - uczestnicy powinni zapisać decyzję (limit głębokości, DAG liczony dla każdej ścieżki).</li>
+<li>Typowe błędy: drzewo budowane ręcznie w teście zamiast przez mapper, ciche sortowanie, rekord grupy bez <code>List.copyOf</code>, Transparent Composite z <code>add</code> na liściu, zwykłe <code>+</code> zamiast <code>Math.addExact</code>.</li>
+</ul>
+<h3 id="d3-mediator" tabindex="-1"><a class="header-anchor" href="#d3-mediator"><span>D3: Mediator</span></a></h3>
+<p>Kod referencyjny: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module5/<wbr>mediator/<wbr>after/<wbr>ReleaseFormMediator.java</code>, <code>FormMediator.java</code> i komponenty; test <code>MediatorEquivalenceTest</code>.</p>
+<ul>
+<li>Zależności przed: <code>VersionField</code> zna <code>ApproverPicker</code>, <code>PublishButton</code>, <code>StatusLabel</code>; <code>ApproverPicker</code> zna <code>VersionField</code>, <code>PublishButton</code>, <code>StatusLabel</code>; <code>PublishButton</code> zna <code>VersionField</code>, <code>ApproverPicker</code>, <code>StatusLabel</code>. Logika etykiety (<code>enter version</code>, <code>choose approver</code>, <code>ready to publish</code>) jest skopiowana w <code>VersionField.type</code> i <code>ApproverPicker.choose</code>.</li>
+<li>Sekwencja zdarzeń w teście referencyjnym: <code>choose:early</code> (ignorowane - picker wyłączony), <code>type:1.2</code> (niepoprawna wersja), <code>type:1.2.0</code>, <code>choose:anna</code>, <code>type:oops</code> (czyści wybór), <code>click</code> (ignorowane), <code>type:1.3.0</code>, <code>choose:bob</code>, <code>click</code> (publikacja i blokada), <code>type:2.0.0</code>, <code>choose:carol</code>, <code>click</code> (wszystkie ignorowane). Ostatnia migawka: <code>FormState(&quot;1.3.0&quot;, false, false, &quot;bob&quot;, false, &quot;published 1.3.0&quot;)</code>.</li>
+<li>Kontrolna mutacja: usunięcie <code>approverPicker.clear()</code> w <code>versionChanged</code> zostawia wybór <code>anna</code> po <code>type:oops</code>, a po <code>type:1.3.0</code> przycisk staje się aktywny bez nowego wyboru - test migawek po każdym zdarzeniu to wykrywa. Uwaga: samo przeniesienie <code>clear()</code> za <code>refresh()</code> jest nieobserwowalne (dla niepoprawnej wersji <code>refresh()</code> nie zależy od wyboru) - jeśli zespół zgłosi, że &quot;mutacja przeżyła&quot;, to poprawna obserwacja, a nie dziura w teście.</li>
+<li>Metody <code>setEnabled</code>, <code>clear</code>, <code>lock</code>, <code>setText</code> są pakietowo-prywatne i nie wołają mediatora (brak reentrancji).</li>
+<li><code>componentsKnowOnlyTheMediator</code> sprawdza refleksyjnie typy pól komponentów.</li>
+</ul>
+<hr>
+<h2 id="odpowiedzi-do-pytan-sprawdzajacych" tabindex="-1"><a class="header-anchor" href="#odpowiedzi-do-pytan-sprawdzajacych"><span>Odpowiedzi do pytań sprawdzających</span></a></h2>
+<ol>
+<li>
+<p><strong>Jakie sygnały wskazują, że wzorzec w kodzie należy usunąć, a nie rozbudować?</strong>
+Jedna implementacja od dawna, interfejs powtarzający API jednej klasy, fabryka z jednym konstruktorem, implementacje rzucające <code>UnsupportedOperationException</code>, pośrednik przekazujący wywołania 1:1, globalna instancja ukrywająca zależność, a także sytuacja, w której nowy wariant nadal wymaga zmian w wielu miejscach.</p>
+</li>
+<li>
+<p><strong>Co trzeba sprawdzić przed usunięciem pośrednika (Remove Middle Man)?</strong>
+Czy pośrednik nie realizuje autoryzacji, transakcji, telemetrii, retry, translacji błędów ani cache, i czy nie jest publiczną granicą modułu. Potem migracja jednego klienta naraz i osobne usunięcie klasy.</p>
+</li>
+<li>
+<p><strong>Dlaczego Inline Singleton może być zmianą kontraktu, a nie czystą refaktoryzacją?</strong>
+Mutowalny singleton pozwala zmieniać stan w trakcie działania i natychmiast widzą to wszyscy klienci. Niezmienna wartość przekazana przez konstruktor tego nie pozwala. Zmienia się też cykl życia i liczba instancji.</p>
+</li>
+<li>
+<p><strong>Kto wybiera wariant i kiedy - w Strategy, w Command i w State?</strong>
+Strategy: klient, zwykle raz (przy konstrukcji). Command: nadawca żądania, przy każdym wywołaniu; żądanie jest obiektem, bo trzeba je kolejkować, logować lub cofać. State: nikt z zewnątrz - obiekt sam zmienia wariant w wyniku przejść.</p>
+</li>
+<li>
+<p><strong>Dlaczego wybór strategii w konstruktorze może zmienić zachowanie?</strong>
+Zamraża decyzję wcześniej niż dawny warunek odczytywany przy każdym wywołaniu (np. zmienna konfiguracja) i przesuwa moment błędu dla <code>null</code> z wywołania do konstrukcji.</p>
+</li>
+<li>
+<p><strong>Kiedy mapy komend nie można uznać za równoważną łańcuchowi warunków?</strong>
+Gdy predykaty się nakładają, liczy się ich kolejność albo wybór nie jest pojedynczym, rozłącznym kluczem. Wtedy właściwym kierunkiem jest raczej Chain of Responsibility.</p>
+</li>
+<li>
+<p><strong>Po czym poznać, że haki Template Method niosą więcej niż jedną oś zmienności?</strong>
+Liczba podklas rośnie jak iloczyn wariantów (N × M), kod haków jest kopiowany między podklasami, a haki dają się pogrupować według niezależnych powodów zmiany (np. format i zakres treści).</p>
+</li>
+<li>
+<p><strong>Co traci kod klienta po zastąpieniu podklas delegacją?</strong>
+Typ podklasy (<code>instanceof</code>, wstrzykiwanie po typie), dostęp strategii do chronionego stanu bazy, odziedziczone metody i monitor <code>synchronized</code>. Zyskuje wymienność i składanie osi.</p>
+</li>
+<li>
+<p><strong>Dlaczego ogniwa łańcucha zatwierdzania nie są od siebie niezależne?</strong>
+Warunek ogniwa zakłada, że wcześniejsze ogniwa odmówiły obsługi (np. <code>RELEASE_MANAGER</code> przyjąłby też małe zmiany). Przestawienie ogniw zmienia wynik, więc kolejność jest regułą biznesową.</p>
+</li>
+<li>
+<p><strong>Czym różni się Chain of Responsibility od Decoratora? Gdzie umieścisz audyt decyzji?</strong>
+W Decoratorze pracują wszystkie warstwy i każda zawsze deleguje do opakowanego obiektu; w łańcuchu zwykle pracuje jedno ogniwo, a przekazanie dalej następuje tylko, gdy ogniwo nie obsłuży żądania. Audyt decyzji musi działać dla każdego żądania, więc to Decorator wokół routera.</p>
+</li>
+<li>
+<p><strong>Co tłumaczy Adapter, a co Boundary Object?</strong>
+Adapter tłumaczy interfejs (wywołania, nazwy, protokół, błędy) na kontrakt klienta. Boundary Object tłumaczy dane: zamienia surowy format na niezmienny, zwalidowany obiekt z niezmiennikami. Zwykle adapter zwraca obiekt graniczny.</p>
+</li>
+<li>
+<p><strong>Jak walidacja na granicy zmienia zachowanie dla danych niepoprawnych?</strong>
+Zmienia typ i moment błędu (np. <code>NumberFormatException</code> w domenie → <code>IllegalArgumentException</code> na granicy) i może odrzucać dane, które dawniej przechodziły (pokrycie 120, nieznany kod CMDB). To zmiana kontraktu do nazwania i zatwierdzenia.</p>
+</li>
+<li>
+<p><strong>Czym różni się Facade od Anti-Corruption Layer?</strong>
+Fasada upraszcza interfejs podsystemu, zostając w tym samym modelu. ACL tłumaczy między dwoma różnymi modelami, aby obcy model nie przeciekał do języka domeny; często używa fasady lub adaptera w środku i należy do zespołu domeny.</p>
+</li>
+<li>
+<p><strong>Kiedy fasada staje się Middle Manem, a kiedy God Class?</strong>
+Middle Manem - gdy tylko przekazuje wywołania 1:1, bez reguł kolejności i walidacji. God Class - gdy zbiera wszystkie operacje wszystkich podsystemów zamiast jednej spójnej operacji.</p>
+</li>
+<li>
+<p><strong>Czym różni się Observer od Mediatora?</strong>
+Observer rozsyła zdarzenie do niezależnych odbiorców, a reguły reakcji są rozproszone w odbiorcach. Mediator skupia reguły współpracy wielu komponentów w jednym koordynatorze; komponenty znają tylko mediator. Mediator często używa Observera jako mechanizmu powiadomień.</p>
+</li>
+<li>
+<p><strong>Kiedy <code>switch</code> z dopasowaniem wzorców po typie <code>sealed</code> jest lepszy od Visitora?</strong>
+Gdy operacji jest niewiele, zestaw typów jest zamknięty (<code>sealed</code>) i zależy nam na wyczerpującym sprawdzeniu przez kompilator bez podwójnej dyspozycji i metod <code>accept</code>. Visitor zostaje dla wielu operacji na stabilnych typach, zwłaszcza gdy operacje dodają różne zespoły.</p>
+</li>
+<li>
+<p><strong>Czego nie widzi automatyczny Rename w IDE?</strong>
+Użyć dynamicznych i tekstowych: refleksji, konfiguracji, szablonów, nazw serializowanych (JSON, kolumny, nagłówki CSV), skryptów i konsumentów spoza repozytorium.</p>
+</li>
+<li>
+<p><strong>Kiedy prosty <code>switch</code> jest lepszy od wzorca?</strong>
+Gdy warunek jest mały, lokalny, stabilny, z zamkniętym zestawem wariantów, i czytelniejszy niż dodatkowe typy. Wzorzec ma sens, gdy jego zysk widać w najbliższych zmianach.</p>
+</li>
+</ol>
+
+</main>
+</div>
+<script>if(matchMedia('(max-width:900px)').matches){var d=document.querySelector('.toc details');if(d)d.open=false}</script>
+</body>
+</html>

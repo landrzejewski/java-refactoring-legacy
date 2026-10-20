@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
-# Narzędzie prowadzącego do pokazów na żywo - warsztat CineLegacy (moduły 3-8).
+# Narzędzie prowadzącego do pokazów na żywo - warsztat CineLegacy (moduły 2, 3 i 5).
 #
-#   scripts/warsztat.sh list [m6]              lista scen i kroków
-#   scripts/warsztat.sh test m6/s08            testy jednej sceny (albo całego modułu: m6)
-#   scripts/warsztat.sh reset m6/s08           przywraca pakiet start do wersji z repozytorium
-#   scripts/warsztat.sh jump m6/s08 2          kopiuje step2 do start (przeskok w pokazie)
-#   scripts/warsztat.sh next [m6/s08]          następny krok do start (bez sceny: ostatnio używana)
-#   scripts/warsztat.sh prev [m6/s08]          poprzedni krok do start
-#   scripts/warsztat.sh status [m6/s08]        który krok jest teraz w start
-#   scripts/warsztat.sh diff m6/s08 1 2        co zmienia krok 2 względem kroku 1 (0 = start), w kolorach
-#   scripts/warsztat.sh diff m6/s08 1 2 --word ten sam diff, ale zmiany podświetlone w obrębie linii
-#   scripts/warsztat.sh html                   generuje HTML z md/warsztat* (wymaga Node.js)
+#   scripts/warsztat.sh list [m5]              lista scen i kroków
+#   scripts/warsztat.sh test m5/s08            testy jednej sceny (albo całego modułu: m5)
+#   scripts/warsztat.sh reset m5/s08           przywraca pakiet start do wersji z repozytorium
+#   scripts/warsztat.sh jump m5/s08 2          kopiuje step2 do start (przeskok w pokazie)
+#   scripts/warsztat.sh next [m5/s08]          następny krok do start (bez sceny: ostatnio używana)
+#   scripts/warsztat.sh prev [m5/s08]          poprzedni krok do start
+#   scripts/warsztat.sh status [m5/s08]        który krok jest teraz w start
+#   scripts/warsztat.sh diff m5/s08 1 2        co zmienia krok 2 względem kroku 1 (0 = start), w kolorach
+#   scripts/warsztat.sh diff m5/s08 1 2 --word ten sam diff, ale zmiany podświetlone w obrębie linii
+#   scripts/warsztat.sh html                   generuje HTML wszystkich materiałów z md (wymaga Node.js)
 #
-# Język: --lang java|cs|ts przed komendą (np. scripts/warsztat.sh --lang cs test m6/s08)
+# Język: --lang java|cs|ts przed komendą (np. scripts/warsztat.sh --lang cs test m5/s08)
 # albo zmienna WARSZTAT_LANG. Bez nich: ostatnio używany język, a na początku java.
-# Scenę można podać krótko (m6/s08) albo pełną nazwą pakietu (m6/s08_state).
+# Scenę można podać krótko (m5/s08) albo pełną nazwą pakietu (m5/s08_state).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -54,7 +54,7 @@ case "$LANGUAGE" in
     *) die "nieznany język $LANGUAGE (java, cs, ts)" ;;
 esac
 
-# Katalog modułu i wzorzec sceny: java/ts m6/s08*, C# M6/S08* (s08_state -> S08State).
+# Katalog modułu i wzorzec sceny: java/ts m5/s08*, C# M5/S08* (s08_state -> S08State).
 module_name() {
     if [ "$LANGUAGE" = cs ]; then capitalize "$1"; else echo "$1"; fi
 }
@@ -65,7 +65,7 @@ scene_pattern() {
 
 scene_dir() {
     local module="${1%%/*}" scene="${1#*/}"
-    [ "$module" != "$1" ] || die "podaj scenę jako mN/sNN, np. m6/s08"
+    [ "$module" != "$1" ] || die "podaj scenę jako mN/sNN, np. m5/s08"
     local match
     match=$(find "$MAIN/$(module_name "$module")" -maxdepth 1 -type d -name "$(scene_pattern "$scene")" 2>/dev/null \
         | sort | head -1)
@@ -102,7 +102,7 @@ scene_arg() {
     if [ -z "$scene" ] && [ "$(state_value lang)" = "$LANGUAGE" ]; then
         scene=$(state_value scene)
     fi
-    [ -n "$scene" ] || die "podaj scenę (np. m6/s08) - nie ma jeszcze ostatnio używanej ($LANGUAGE)"
+    [ -n "$scene" ] || die "podaj scenę (np. m5/s08) - nie ma jeszcze ostatnio używanej ($LANGUAGE)"
     echo "$scene"
 }
 

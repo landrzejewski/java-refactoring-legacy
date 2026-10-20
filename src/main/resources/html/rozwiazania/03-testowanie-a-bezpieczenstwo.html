@@ -1,0 +1,695 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rozwiązania: Moduł 3. Testowanie a bezpieczeństwo - rozwiązania dla prowadzącego</title>
+<style>:root{--bg:#fbfbfa;--fg:#1d1f23;--muted:#5f6670;--line:#e3e5e8;--card:#ffffff;--accent:#2457c5;--accent-bg:#eef3fd;
+--code-bg:#f4f5f7;--note-bg:#fff7e6;--note-line:#e6a700;--th:#f1f3f6;
+--k:#b3246b;--s:#1a7f37;--c:#6e7781;--n:#0550ae;--t:#8250df;--f:#6639ba;--a:#953800;
+--kind:#2457c5}
+@media (prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3036;--card:#1c1f23;--accent:#7aa7ff;--accent-bg:#1e2a40;
+--code-bg:#1f2328;--note-bg:#2b2412;--note-line:#c99400;--th:#23272d;
+--k:#ff7b9c;--s:#7ee2a0;--c:#8b949e;--n:#79c0ff;--t:#d2a8ff;--f:#d2a8ff;--a:#ffa657}}
+body.zadania{--kind:#1a7f37} body.warsztat{--kind:#c2570c} body.warsztat-zadania{--kind:#0f7b7b} body.rozwiazania{--kind:#b3246b} body.przyklady{--kind:#2457c5}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.topbar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 24px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);border-top:3px solid var(--kind)}
+.topbar a{color:var(--fg);text-decoration:none}
+.home{font-weight:600}
+.tabs{display:flex;gap:4px}
+.tab{padding:4px 12px;border-radius:999px;font-size:15px;color:var(--muted)!important}
+.tab:hover{background:var(--code-bg)}
+.tab.active{background:var(--accent-bg);color:var(--accent)!important;font-weight:600}
+.pager{margin-left:auto;display:flex;gap:14px;font-size:15px}
+.pager a{color:var(--muted)}.pager a:hover{color:var(--accent)}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:48px;max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+.layout.no-toc{grid-template-columns:minmax(0,1fr);max-width:1000px}
+aside{position:sticky;top:72px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px}
+.toc-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;font-weight:600}
+.toc ul{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.toc li a{display:block;padding:3px 12px;color:var(--muted);text-decoration:none;line-height:1.35}
+.toc li.h3 a{padding-left:24px;font-size:13px}
+.toc li a:hover{color:var(--accent)}
+main{min-width:0;max-width:860px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 1.2rem;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:2.6rem 0 .8rem;padding-top:.6rem;border-top:1px solid var(--line)}
+h3{font-size:1.18rem;margin:2rem 0 .6rem}
+h4{font-size:1rem;margin:1.5rem 0 .5rem}
+h1 a,h2 a,h3 a,h4 a{color:inherit;text-decoration:none}
+h2 a:hover::after,h3 a:hover::after{content:" #";color:var(--muted)}
+p,ul,ol{margin:.6rem 0 1rem}
+li{margin:.25rem 0}
+li>ul,li>ol{margin:.2rem 0}
+a{color:var(--accent)}
+strong{font-weight:650}
+code{font:0.88em/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre.code{position:relative;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:1rem 0 1.4rem}
+pre.code code{background:none;padding:0;font-size:14px;line-height:1.55}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:6px;right:10px;font:11px ui-monospace,Menlo,monospace;color:var(--muted);text-transform:uppercase}
+.table-wrap{overflow-x:auto;margin:1rem 0 1.4rem;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--th);font-weight:600}
+tr:last-child td{border-bottom:none}
+blockquote{margin:1rem 0 1.4rem;padding:10px 16px;background:var(--note-bg);border-left:4px solid var(--note-line);border-radius:0 8px 8px 0}
+blockquote p{margin:.3rem 0}
+hr{border:none;border-top:1px solid var(--line);margin:2rem 0}
+hr+h2{border-top:none;margin-top:1.4rem}
+main p code,main li code,main td code{overflow-wrap:break-word}
+.toc summary{cursor:pointer;list-style:none}.toc summary::-webkit-details-marker{display:none}
+.hljs-keyword,.hljs-selector-tag,.hljs-built_in,.hljs-literal{color:var(--k)}
+.hljs-string,.hljs-regexp,.hljs-addition{color:var(--s)}
+.hljs-comment,.hljs-quote,.hljs-meta{color:var(--c);font-style:italic}
+.hljs-number,.hljs-symbol{color:var(--n)}
+.hljs-type,.hljs-class .hljs-title,.hljs-title.class_{color:var(--t)}
+.hljs-title,.hljs-title.function_,.hljs-section{color:var(--f)}
+.hljs-attr,.hljs-attribute,.hljs-variable,.hljs-params,.hljs-tag{color:var(--a)}
+.hljs-deletion{color:var(--k)}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:16px;padding:20px 16px 60px}
+aside{position:static;max-height:none;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--card)}
+.toc-title{margin:0}.toc details[open] .toc-title{margin-bottom:8px}.toc summary::after{content:" ▾"}
+body{font-size:16px}.topbar{padding:8px 16px}.pager{margin-left:0}h1{font-size:1.6rem}}
+@media print{.topbar,aside{display:none}.layout{display:block;padding:0}main{max-width:none}
+pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#000;font-size:12pt}}
+.langs{margin-left:auto}.langs+.pager{margin-left:0}
+.langs{margin-left:auto}.langs+.pager{margin-left:0}</style>
+</head>
+<body class="rozwiazania">
+<header class="topbar"><a class="home" href="../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../slajdy/03-testowanie-a-bezpieczenstwo-slajdy.html">Slajdy</a><a class="tab" href="../zadania/03-testowanie-a-bezpieczenstwo.html">Zadania</a><a class="tab" href="../przyklady/03-testowanie-a-bezpieczenstwo.html">Przykłady</a><a class="tab active" href="03-testowanie-a-bezpieczenstwo.html">Rozwiązania</a></div><div class="pager"><a href="02-prewencja.html" title="Poprzedni moduł">&larr; 02</a><a href="04-wzorce-projektowe.html" title="Następny moduł">04 &rarr;</a></div></header>
+<div class="layout">
+<aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#aktywnosc-18-zaprojektuj-portfel">Aktywność 1.8: Zaprojektuj portfel</a></li><li class="h2"><a href="#aktywnosc-27-nazwij-role">Aktywność 2.7: Nazwij rolę</a></li><li class="h2"><a href="#aktywnosc-37-raport-bez-celu">Aktywność 3.7: Raport bez celu</a></li><li class="h2"><a href="#aktywnosc-420-pierwsza-siec-bez-testow">Aktywność 4.20: Pierwsza sieć bez testów</a></li><li class="h2"><a href="#cwiczenie-1-charakterystyka-i-refaktoryzacja-formatera">Ćwiczenie 1: Charakterystyka i refaktoryzacja formatera</a></li><li class="h3"><a href="#krok-1-widoczne-reguly">Krok 1: widoczne reguły</a></li><li class="h3"><a href="#krok-3-macierz-przypadkow">Krok 3: macierz przypadków</a></li><li class="h3"><a href="#krok-4-kontrolna-mutacja">Krok 4: kontrolna mutacja</a></li><li class="h3"><a href="#krok-5-kontrakt-a-zastane-zachowanie">Krok 5: kontrakt a zastane zachowanie</a></li><li class="h3"><a href="#kroki-6-7-sekwencja-transformacji-47">Kroki 6-7: sekwencja transformacji (4.7)</a></li><li class="h3"><a href="#kod-referencyjny">Kod referencyjny</a></li><li class="h3"><a href="#krok-8-porownanie-implementacji">Krok 8: porównanie implementacji</a></li><li class="h3"><a href="#krok-9-przeglad-roznicy">Krok 9: przegląd różnicy</a></li><li class="h3"><a href="#weryfikacja-kryteriow-akceptacji">Weryfikacja kryteriów akceptacji</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji">Pytania do dyskusji</a></li><li class="h2"><a href="#cwiczenie-2-obiekty-zastepcze-i-pokrycie">Ćwiczenie 2: Obiekty zastępcze i pokrycie</a></li><li class="h3"><a href="#czesc-a-role-obiektow-zastepczych">Część A: role obiektów zastępczych</a></li><li class="h3"><a href="#czesc-b-raport-pokrycia">Część B: raport pokrycia</a></li><li class="h3"><a href="#kod-referencyjny-1">Kod referencyjny</a></li><li class="h3"><a href="#weryfikacja-kryteriow-akceptacji-1">Weryfikacja kryteriów akceptacji</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow-1">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji-1">Pytania do dyskusji</a></li><li class="h2"><a href="#cwiczenie-3-wprowadzenie-szwu">Ćwiczenie 3: Wprowadzenie szwu</a></li><li class="h3"><a href="#kroki-1-2-analiza">Kroki 1-2: analiza</a></li><li class="h3"><a href="#kroki-3-4-minimalny-szew">Kroki 3-4: minimalny szew</a></li><li class="h3"><a href="#kroki-5-6-jawne-zaleznosci">Kroki 5-6: jawne zależności</a></li><li class="h3"><a href="#kod-referencyjny-2">Kod referencyjny</a></li><li class="h3"><a href="#krok-7-punkty-aktywacji">Krok 7: punkty aktywacji</a></li><li class="h3"><a href="#krok-8-test-rzeczywistego-adaptera">Krok 8: test rzeczywistego adaptera</a></li><li class="h3"><a href="#usuniecie-rozwiazania-przejsciowego">Usunięcie rozwiązania przejściowego</a></li><li class="h3"><a href="#weryfikacja-kryteriow-akceptacji-2">Weryfikacja kryteriów akceptacji</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow-2">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji-2">Pytania do dyskusji</a></li><li class="h2"><a href="#cwiczenie-4-rownolegla-weryfikacja-i-jej-granice">Ćwiczenie 4: Równoległa weryfikacja i jej granice</a></li><li class="h3"><a href="#krok-1-wynik-module3examples">Krok 1: wynik Module3Examples</a></li><li class="h3"><a href="#krok-2-kontrolna-mutacja-w-kandydacie">Krok 2: kontrolna mutacja w kandydacie</a></li><li class="h3"><a href="#krok-3-zdarzenie-w-trybie-verify">Krok 3: zdarzenie w trybie VERIFY</a></li><li class="h3"><a href="#krok-4-klasyfikacja-operacji">Krok 4: klasyfikacja operacji</a></li><li class="h3"><a href="#krok-5-warunki-produkcyjne">Krok 5: warunki produkcyjne</a></li><li class="h3"><a href="#kod-referencyjny-3">Kod referencyjny</a></li><li class="h3"><a href="#weryfikacja-kryteriow-akceptacji-3">Weryfikacja kryteriów akceptacji</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow-3">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji-3">Pytania do dyskusji</a></li><li class="h2"><a href="#sprawdzenie-wiedzy-odpowiedzi">Sprawdzenie wiedzy: odpowiedzi</a></li></ul></details></nav></aside>
+<main>
+<h1>Moduł 3. Testowanie a bezpieczeństwo - rozwiązania dla prowadzącego</h1>
+<p>Numeracja i nazwy odpowiadają plikowi zadań <code>src/<wbr>main/<wbr>resources/<wbr>md/<wbr>zadania/<wbr>03-testowanie-a-bezpieczenstwo.md</code>. Kod referencyjny znajduje się w <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module3</code> i <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module3</code>; szczegółowy przewodnik po nim: <code>src/<wbr>main/<wbr>resources/<wbr>md/<wbr>przyklady/<wbr>03-testowanie-a-bezpieczenstwo.md</code>. Numery sekcji w nawiasach odnoszą się do slajdów modułu.</p>
+<p>Myśl przewodnia do powtarzania przy każdym omówieniu: test jest dowodem tylko dla tego, co obserwuje. Zanim zaufasz sieci bezpieczeństwa, sprawdź jej czułość kontrolną mutacją i nazwij, czego nie widzi.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Zadanie</th>
+<th>Kod referencyjny (wersja docelowa)</th>
+<th>Testy chroniące zachowanie</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ćwiczenie 1</td>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module3/<wbr>InvoiceFormatter.java</code></td>
+<td><code>LegacyInvoiceFormatterCharacterizationTest</code>, <code>FormatterEquivalenceTest</code></td>
+</tr>
+<tr>
+<td>Ćwiczenie 2A</td>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module3/<wbr>OrderPlacementService.java</code></td>
+<td><code>OrderPlacementServiceTest</code></td>
+</tr>
+<tr>
+<td>Ćwiczenie 2B</td>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module3/<wbr>DeliveryFee.java</code></td>
+<td><code>DeliveryFeeLineCoverageTest</code> (celowo niepełny)</td>
+</tr>
+<tr>
+<td>Ćwiczenie 3</td>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module3/<wbr>SeamedReminderService.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module3/<wbr>ReminderService.java</code></td>
+<td><code>SeamedReminderServiceTest</code>, <code>ReminderServiceTest</code></td>
+</tr>
+<tr>
+<td>Ćwiczenie 4</td>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module3/<wbr>incremental/<wbr>MigratingPricingEngine.java</code></td>
+<td><code>incremental/<wbr>PricingEngineContractTest</code>, <code>incremental/<wbr>MigratingPricingEngineTest</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>(Testy leżą w <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module3/<wbr></code>.)</p>
+<hr>
+<h2 id="aktywnosc-18-zaprojektuj-portfel" tabindex="-1"><a class="header-anchor" href="#aktywnosc-18-zaprojektuj-portfel"><span>Aktywność 1.8: Zaprojektuj portfel</span></a></h2>
+<blockquote>
+<p>Rozwiązanie opracowane na podstawie kodu referencyjnego, nie pochodzi wprost ze slajdów.</p>
+</blockquote>
+<p>Przykładowy minimalny portfel:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Wykrywane ryzyko</th>
+<th>Rzeczywiste zależności</th>
+<th>Oczekiwany czas</th>
+<th>Miejsce w procesie</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>testy reguły naliczania opłaty (przykłady i wartości tuż po obu stronach granicy)</td>
+<td>regresja wartości granicznej</td>
+<td>tylko logika domenowa, bez bazy i brokera</td>
+<td>milisekundy</td>
+<td>etap 1: po każdym kroku lokalnie</td>
+</tr>
+<tr>
+<td>wąski test integracyjny repozytorium z rzeczywistym PostgreSQL (np. kontener testowy)</td>
+<td>mapowanie <code>BigDecimal</code> (precyzja, skala, zaokrąglenie kolumny <code>numeric</code>)</td>
+<td>rzeczywista baza i rzeczywisty mechanizm mapowania</td>
+<td>sekundy</td>
+<td>etap 1-3: przy zmianie adaptera lokalnie, zawsze w CI</td>
+</tr>
+<tr>
+<td>test kontraktu lub serializacji komunikatu (zgodność ze schematem uzgodnionym z konsumentem)</td>
+<td>niezgodny schemat komunikatu</td>
+<td>rzeczywisty serializer i schemat; broker niepotrzebny</td>
+<td>milisekundy do sekund</td>
+<td>etap 1-3: razem z testami modułu i w CI</td>
+</tr>
+<tr>
+<td>opcjonalnie jeden test komponentowy lub systemowy ścieżki &quot;nalicz, zapisz, opublikuj&quot;</td>
+<td>poprawne połączenie elementów, konfiguracja, kolejność zapisu i publikacji (jeśli jest kontraktem)</td>
+<td>aplikacja, baza, broker lub jego wiarygodny odpowiednik</td>
+<td>kilka do kilkudziesięciu sekund</td>
+<td>etap 4: przed scaleniem lub w nocnym przebiegu</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Kluczowe tezy do omówienia:</strong></p>
+<ul>
+<li>Każda z trzech historycznych regresji ma test na najniższym poziomie, który nadal zachowuje mechanizm awarii (1.7).</li>
+<li>Mapowania <code>BigDecimal</code> nie sprawdzi mock ani repozytorium w pamięci (2.5). Potrzebna jest rzeczywista technologia.</li>
+<li>Schematu komunikatu nie sprawdzi test logiki; potrzebny jest test kontraktu.</li>
+<li>Szybki test adaptera może działać w pierwszym etapie razem z testami logiki - etykieta &quot;integracyjny&quot; nie powinna opóźniać informacji (1.7).</li>
+<li>Brak uniwersalnej proporcji 70/20/10 (1.5). Liczy się to, jakie ryzyko test wykrywa.</li>
+</ul>
+<p><strong>Typowe błędy:</strong> opis portfela samymi etykietami (&quot;unit, integracyjne, e2e&quot;); mockowanie bazy w teście, który ma wykryć błąd mapowania; test end-to-end jako jedyna ochrona schematu komunikatu.</p>
+<p><strong>Pytania do dyskusji:</strong> Który z tych testów jest najdroższy w utrzymaniu? Czy test systemowy jest tu w ogóle potrzebny, skoro trzy ryzyka są pokryte niżej?</p>
+<hr>
+<h2 id="aktywnosc-27-nazwij-role" tabindex="-1"><a class="header-anchor" href="#aktywnosc-27-nazwij-role"><span>Aktywność 2.7: Nazwij rolę</span></a></h2>
+<blockquote>
+<p>Rozwiązanie opracowane na podstawie kodu referencyjnego, nie pochodzi wprost ze slajdów.</p>
+</blockquote>
+<ol>
+<li><strong><code>publisherStub = event -&gt; {}</code></strong> to stub, a nie dummy. Metoda <code>publish</code> jest rzeczywiście wywoływana w trakcie <code>place</code>, a pusta odpowiedź pozwala scenariuszowi przejść dalej. Dummy (2.1) nigdy nie byłby użyty; bezpieczny dummy rzuciłby wyjątek przy pierwszym wywołaniu, żeby test nie kłamał. Nazwa zmiennej nie rozstrzyga roli - rozstrzyga użycie.</li>
+<li><strong>Podwójne obciążenie karty:</strong> żaden obiekt w <code>placesOrderUsingStubFakeAndSpy</code> go nie wykryje. <code>paymentStub</code> zwraca <code>AUTH-7</code> przy każdym wywołaniu i nie liczy wywołań; wynik i stan repozytorium wyglądałyby tak samo. Wykrywa to dopiero <code>paymentMock</code> w <code>verifiesPaymentProtocolUsingMock</code> (<code>verify()</code> sprawdza dokładnie jedno wywołanie).</li>
+<li><strong>Łamanie reguły „nie mockuj tego, czego nie posiadasz”:</strong> gdyby test zamiast portu <code>PaymentGateway</code> (naszego interfejsu w języku domeny) zastępował bezpośrednio klienta SDK operatora płatności albo klienta HTTP i programował jego odpowiedzi (kody statusu, nagłówki, format JSON). Wtedy test utrwala nasze wyobrażenie o cudzym API, a zmiana biblioteki psuje testy logiki. Poprawnie: port mockujemy w testach logiki, a adapter do operatora sprawdzamy wąskim testem integracyjnym z sandboxem lub testem kontraktu (2.6).</li>
+</ol>
+<p><strong>Typowe błędy:</strong> klasyfikacja <code>publisherStub</code> jako dummy, bo &quot;nic nie robi&quot;; przekonanie, że <code>paymentStub</code> wykryje podwójne obciążenie, bo &quot;jest bramką płatności&quot;; mylenie reguły z zakazem wszelkich obiektów zastępczych dla płatności.</p>
+<hr>
+<h2 id="aktywnosc-37-raport-bez-celu" tabindex="-1"><a class="header-anchor" href="#aktywnosc-37-raport-bez-celu"><span>Aktywność 3.7: Raport bez celu</span></a></h2>
+<blockquote>
+<p>Rozwiązanie opracowane na podstawie kodu referencyjnego, nie pochodzi wprost ze slajdów.</p>
+</blockquote>
+<ol>
+<li>
+<p><strong>Niewykonana gałąź:</strong> fałszywa strona warunku <code>if (premium)</code> w <code>DeliveryFee.fee</code>, czyli klient bez statusu premium. JaCoCo pokazuje wszystkie linie metody jako wykonane, ale na linii <code>if</code> sygnalizuje &quot;1 of 2 branches missed&quot;. Dodatkowo niepokryty jest prywatny konstruktor (w kodzie bajtowym to metoda), co nie stanowi ryzyka.</p>
+</li>
+<li>
+<p><strong>Test uruchamiający gałąź:</strong> wywołanie <code>DeliveryFee.fee(false)</code>.</p>
+</li>
+<li>
+<p><strong>Asercja wykrywająca zmianę <code>100</code> na <code>200</code>:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-meta">@Test</span>
+<span class="hljs-type">void</span> <span class="hljs-title function_">standardCustomerPaysDeliveryFee</span><span class="hljs-params">()</span> {
+    assertEquals(<span class="hljs-number">100</span>, DeliveryFee.fee(<span class="hljs-literal">false</span>));
+}
+</code></pre>
+<p>Test bez asercji albo sprawdzający tylko brak wyjątku podniesie pokrycie gałęzi, ale nie wykryje zmiany wartości.</p>
+</li>
+<li>
+<p><strong>Czy globalne pokrycie z innych klas pomoże?</strong> Nie. Żaden inny test nie wywołuje <code>DeliveryFee</code>, więc wzrost średniej dla całego projektu nie zmienia ochrony tej reguły. Ryzyko zmniejsza wyłącznie test wykonujący brakującą gałąź z asercją na wartość biznesową. Mierzenie całego systemu jedną średnią to jedno z nadużyć z 3.4-3.5.</p>
+</li>
+</ol>
+<p><strong>Kod referencyjny:</strong> <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module3/<wbr>DeliveryFee.java</code>, <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module3/<wbr>DeliveryFeeLineCoverageTest.java</code> (celowo bez testu dla <code>false</code>).</p>
+<p><strong>Typowe błędy:</strong> uznanie 100% pokrycia linii za pełną ochronę; propozycja testu <code>fee(false)</code> bez asercji; szukanie raportu przed uruchomieniem <code>verify</code> (raport powstaje w fazie <code>verify</code>, w <code>target/<wbr>site/<wbr>jacoco</code>).</p>
+<hr>
+<h2 id="aktywnosc-420-pierwsza-siec-bez-testow" tabindex="-1"><a class="header-anchor" href="#aktywnosc-420-pierwsza-siec-bez-testow"><span>Aktywność 4.20: Pierwsza sieć bez testów</span></a></h2>
+<blockquote>
+<p>Rozwiązanie opracowane na podstawie kodu warsztatu (<code>pl.training.workshop.m3.s02_breakdependencies</code>), nie pochodzi wprost ze slajdów.</p>
+</blockquote>
+<ol>
+<li><strong>Obserwacja bez zmiany kodu:</strong> praktycznie żadna w teście - konstruktor <code>LegacyDatabase</code> rzuca wyjątek poza serwerownią, więc <code>run()</code> nie da się uruchomić. Można czytać kod, logi produkcyjne i tabelę &quot;przypomniane&quot; w bazie (obserwacja produkcji jako dowód, 1.1), ale nie da się napisać testu charakteryzującego. To jest sytuacja z drugiego wiersza tabeli 4.1: najpierw szew, potem test.</li>
+<li><strong>Pierwszy ruch IDE:</strong> Extract Interface na <code>LegacyDatabase</code> (np. <code>BookingStore</code> z dwiema używanymi metodami) i Parameterize Constructor z zachowanym konstruktorem bezargumentowym. Nie wolno zmienić <strong>czasu życia i momentu tworzenia</strong> połączenia: stary kod otwiera bazę przy każdym <code>run()</code>, więc konstruktor domyślny powinien przekazać fabrykę (<code>this(LegacyDatabase::new)</code>), a nie gotowy obiekt (<code>this(new LegacyDatabase())</code>). Ten drugi wariant przenosi wyjątek do konstruktora i zmienia zachowanie.</li>
+<li><strong>Notatki po scratch refactoringu:</strong> ukryte wejścia (bieżący czas, stan bazy), efekty i ich kolejność (mail, potem oznaczenie rezerwacji), granica 2 godzin i jej strona (<code>&lt;=</code> czy <code>&lt;</code>), przypadki &quot;już przypomniane&quot; i &quot;seans już się zaczął&quot;, trzy kandydatów na szwy (baza, zegar, mailer), lista przypadków do pierwszego testu (90, 120, 121 minut). Kod ze scratch refactoringu wyrzucamy (4.17).</li>
+<li><strong>Dlaczego nie shadow:</strong> zadanie ma wyłącznie efekty uboczne (mail, zapis &quot;przypomniane&quot;). Podwójne wykonanie wysłałoby klientowi dwa maile i dwukrotnie zmieniło stan bazy (4.19). Shadow nadaje się dla czystych obliczeń, a tu nie ma czego porównać bez zamiany efektów w dane.</li>
+</ol>
+<p><strong>Kolejność pierwszych ruchów:</strong> szew na bazę (fabryka) → szew na zegar (<code>Clock</code> jako zależność konstruktora) → szew na mailer (najpierw Subclass and Override, potem interfejs funkcyjny) → pierwszy test → reguła SMS w osobnym kroku. Tę sekwencję pokazuje scena s02 warsztatu.</p>
+<p><strong>Typowe błędy:</strong> &quot;najpierw napiszę test E2E na produkcyjnej bazie&quot;; dodanie reguły SMS razem z wprowadzaniem szwów; interfejs <code>BookingStore</code> ze wszystkimi metodami <code>LegacyDatabase</code>.</p>
+<hr>
+<h2 id="cwiczenie-1-charakterystyka-i-refaktoryzacja-formatera" tabindex="-1"><a class="header-anchor" href="#cwiczenie-1-charakterystyka-i-refaktoryzacja-formatera"><span>Ćwiczenie 1: Charakterystyka i refaktoryzacja formatera</span></a></h2>
+<h3 id="krok-1-widoczne-reguly" tabindex="-1"><a class="header-anchor" href="#krok-1-widoczne-reguly"><span>Krok 1: widoczne reguły</span></a></h3>
+<ul>
+<li>nagłówek <code>INVOICE</code>,</li>
+<li>klient zapisany wielkimi literami (<code>Locale.ROOT</code>) po usunięciu skrajnych spacji,</li>
+<li>tekst <code>UNKNOWN</code> dla klienta <code>null</code>,</li>
+<li>zachowanie kolejności pozycji wejściowych,</li>
+<li>wiersz pozycji w formacie <code>SKU x ilość = wartość</code>,</li>
+<li>mnożenie ceny jednostkowej przez liczbę sztuk,</li>
+<li>prezentacja wartości z dwoma miejscami i <code>HALF_UP</code>,</li>
+<li>suma częściowa liczona z wartości przed zaokrągleniem prezentacji,</li>
+<li>podatek 23 procent zaokrąglany do dwóch miejsc,</li>
+<li>suma całkowita z części niezaokrąglonej i podatku zaokrąglonego,</li>
+<li>końcowy znak nowego wiersza.</li>
+</ul>
+<h3 id="krok-3-macierz-przypadkow" tabindex="-1"><a class="header-anchor" href="#krok-3-macierz-przypadkow"><span>Krok 3: macierz przypadków</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Obserwacja</th>
+<th>Stan w <code>LegacyInvoiceFormatterCharacterizationTest</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>pusta lista pozycji</td>
+<td>zabezpieczona w <code>documentsCurrentFallbackForMissingCustomer</code></td>
+</tr>
+<tr>
+<td>klient <code>null</code></td>
+<td>zabezpieczona w tym samym teście (jeden test obejmuje oba przypadki)</td>
+</tr>
+<tr>
+<td>usuwanie spacji i wielkie litery</td>
+<td>zabezpieczona w <code>documentsCurrentFormattingAndRounding</code></td>
+</tr>
+<tr>
+<td>wiele pozycji, zaokrąglenie podatku</td>
+<td>zabezpieczona w <code>documentsCurrentFormattingAndRounding</code> (Tax 10.35 z 10.3454)</td>
+</tr>
+<tr>
+<td>cena wymagająca zaokrąglenia przy prezentacji wiersza</td>
+<td>brak, do dodania</td>
+</tr>
+<tr>
+<td>suma dokładnych wartości różna od sumy wartości prezentowanych</td>
+<td>brak, do dodania</td>
+</tr>
+</tbody>
+</table></div>
+<p>Uzupełniający przypadek może zawierać dwie pozycje o cenie <code>0.005</code> i liczbie sztuk <code>1</code>. Każdy wiersz jest prezentowany jako <code>0.01</code>, natomiast suma częściowa liczona z wartości dokładnych wynosi <code>0.01</code>, a nie <code>0.02</code>. Taki przypadek precyzyjnie ujawnia kolejność zaokrągleń.</p>
+<p>Przykładowy test (oczekiwane wartości policzone dla zastanego kodu: subtotal 0.010, podatek 0.0023 zaokrąglony do 0.00, suma 0.01):</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-meta">@Test</span>
+<span class="hljs-type">void</span> <span class="hljs-title function_">documentsSubtotalCalculatedFromUnroundedLineValues</span><span class="hljs-params">()</span> {
+    <span class="hljs-type">List</span>&lt;InvoiceLine&gt; <span class="hljs-variable">lines</span> <span class="hljs-operator">=</span> List.of(
+            <span class="hljs-keyword">new</span> <span class="hljs-title class_">InvoiceLine</span>(<span class="hljs-string">&quot;A&quot;</span>, <span class="hljs-number">1</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;0.005&quot;</span>)),
+            <span class="hljs-keyword">new</span> <span class="hljs-title class_">InvoiceLine</span>(<span class="hljs-string">&quot;B&quot;</span>, <span class="hljs-number">1</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;0.005&quot;</span>)));
+
+    <span class="hljs-type">String</span> <span class="hljs-variable">result</span> <span class="hljs-operator">=</span> formatter.format(<span class="hljs-string">&quot;x&quot;</span>, lines);
+
+    assertEquals(String.join(<span class="hljs-string">&quot;\n&quot;</span>,
+            <span class="hljs-string">&quot;INVOICE&quot;</span>, <span class="hljs-string">&quot;Customer: X&quot;</span>,
+            <span class="hljs-string">&quot;A x 1 = 0.01&quot;</span>, <span class="hljs-string">&quot;B x 1 = 0.01&quot;</span>,
+            <span class="hljs-string">&quot;Subtotal: 0.01&quot;</span>, <span class="hljs-string">&quot;Tax: 0.00&quot;</span>, <span class="hljs-string">&quot;Total: 0.01&quot;</span>, <span class="hljs-string">&quot;&quot;</span>), result);
+}
+</code></pre>
+<blockquote>
+<p>Kod powyższego testu opracowano na podstawie kodu referencyjnego.</p>
+</blockquote>
+<p>Przypadek &quot;cena wymagająca zaokrąglenia&quot; można pokryć np. pozycją <code>19.995 x 1</code> (prezentacja <code>20.00</code>). Zmiana z <code>19.995</code> na prezentowane <code>20.00</code> w jednej pozycji nie oznacza, że do sumy częściowej należy dodać <code>20.00</code>. Zastany kod dodaje dokładną wartość pozycji przed jej prezentacją. Zmiana tej kolejności jest zmianą zachowania i wymaga osobnej decyzji.</p>
+<h3 id="krok-4-kontrolna-mutacja" tabindex="-1"><a class="header-anchor" href="#krok-4-kontrolna-mutacja"><span>Krok 4: kontrolna mutacja</span></a></h3>
+<p>Mutacja &quot;sumuj wartości zaokrąglone&quot; (w pętli <code>subtotal = subtotal.add(lineTotal.setScale(2, RoundingMode.HALF_UP))</code>) musi spowodować porażkę testu <code>documentsSubtotalCalculatedFromUnroundedLineValues</code> (Subtotal <code>0.02</code> zamiast <code>0.01</code>). Istniejące dwa testy charakteryzujące pozostają przy tej mutacji zielone - to dowód, że brakowało przypadku. Druga przydatna mutacja: usunięcie <code>trim()</code> (pada <code>documentsCurrentFormattingAndRounding</code>).</p>
+<h3 id="krok-5-kontrakt-a-zastane-zachowanie" tabindex="-1"><a class="header-anchor" href="#krok-5-kontrakt-a-zastane-zachowanie"><span>Krok 5: kontrakt a zastane zachowanie</span></a></h3>
+<p>Nie wszystkie reguły muszą być poprawnym wymaganiem. Kolejność momentów zaokrągleń może być zastanym zachowaniem o istotnym wpływie finansowym i wymaga potwierdzenia domenowego przed zmianą. Podobnie <code>UNKNOWN</code> dla braku klienta: test go utrwala, ale nie nadaje mu statusu wymagania (4.9 opisuje, jak postąpić, gdy właściciel produktu zażąda wyjątku).</p>
+<h3 id="kroki-6-7-sekwencja-transformacji-47" tabindex="-1"><a class="header-anchor" href="#kroki-6-7-sekwencja-transformacji-47"><span>Kroki 6-7: sekwencja transformacji (4.7)</span></a></h3>
+<ol>
+<li>Uruchomić testy charakteryzujące i zapisać zieloną bazę.</li>
+<li>Wyodrębnić <code>displayedCustomer</code> (Extract Method) i uruchomić testy.</li>
+<li>Wyodrębnić <code>lineTotal</code> i uruchomić testy.</li>
+<li>Wyodrębnić wspólną regułę <code>money</code> i uruchomić testy.</li>
+<li>Wyodrębnić <code>calculateSubtotal</code> i uruchomić testy.</li>
+<li>Wyodrębnić <code>appendLines</code> i uruchomić testy.</li>
+<li>Nazwać stawkę jako <code>TAX_RATE</code> (Extract Constant) i uruchomić testy.</li>
+<li>Uruchomić pełny zestaw testów i obejrzeć różnicę.</li>
+</ol>
+<p>Każdy krok ma jedną intencję. Gdy po wydzieleniu <code>money</code> zmieni się wynik, zakres poszukiwania przyczyny jest niewielki.</p>
+<h3 id="kod-referencyjny" tabindex="-1"><a class="header-anchor" href="#kod-referencyjny"><span>Kod referencyjny</span></a></h3>
+<p><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module3/<wbr>InvoiceFormatter.java</code> (stan końcowy). Zwróć uwagę uczestników, że <code>calculateSubtotal</code> sumuje <code>lineTotal(line)</code> (wartości dokładne), a <code>money</code> stosowane jest dopiero do prezentacji, podatku i sumy.</p>
+<p><code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module3/<wbr>FormatterEquivalenceTest.java</code> - test parametryzowany porównujący <code>LegacyInvoiceFormatter</code> i <code>InvoiceFormatter</code> dla trzech zestawów danych (pusta lista, klient <code>null</code> z jedną pozycją, klient <code>vip</code> z pozycjami <code>0.10</code> i <code>19.995</code>).</p>
+<h3 id="krok-8-porownanie-implementacji" tabindex="-1"><a class="header-anchor" href="#krok-8-porownanie-implementacji"><span>Krok 8: porównanie implementacji</span></a></h3>
+<p>Stałe oczekiwania i test różnicowy się uzupełniają:</p>
+<ul>
+<li>stałe oczekiwanie jest niezależne od dalszego działania starej klasy,</li>
+<li>porównanie implementacji łatwo rozszerzyć o wiele zestawów danych,</li>
+<li>żaden mechanizm nie dowodzi równoważności dla wszystkich możliwych wejść,</li>
+<li>oba mogą utrwalić historyczny defekt, jeżeli oczekiwania nie zostaną przejrzane.</li>
+</ul>
+<p>Ograniczenia testu różnicowego (4.8): potwierdza zgodność tylko dla wykonanych danych; nie wykryje defektu obecnego w obu wersjach; stara implementacja nie jest niezależną specyfikacją; efekty uboczne mogą uniemożliwiać podwójne wykonanie; różnica wydajności wymaga osobnego pomiaru. Po usunięciu klasy legacy test różnicowy znika, dlatego stałe, przejrzane oczekiwania trzeba przenieść na nową klasę.</p>
+<p>Warto pokazać: dane z <code>FormatterEquivalenceTest</code> nie wykrywają mutacji &quot;sumuj wartości zaokrąglone&quot; (dla <code>0.30</code> i <code>39.990</code> obie sumy dają <code>40.29</code>). Wykrywa ją dopiero przypadek z dwiema pozycjami <code>0.005</code>.</p>
+<h3 id="krok-9-przeglad-roznicy" tabindex="-1"><a class="header-anchor" href="#krok-9-przeglad-roznicy"><span>Krok 9: przegląd różnicy</span></a></h3>
+<p>Przykłady zmian, których cel ćwiczenia nie wymagał i które należy wskazać lub wycofać: masowe przeformatowanie pliku, zmiana nazw niezwiązanych z celem, dodanie walidacji <code>null</code> dla <code>lines</code>, zmiana <code>HALF_UP</code>, &quot;poprawienie&quot; kolejności zaokrągleń, dodanie waluty, zmiana komunikatu <code>UNKNOWN</code>.</p>
+<h3 id="weryfikacja-kryteriow-akceptacji" tabindex="-1"><a class="header-anchor" href="#weryfikacja-kryteriow-akceptacji"><span>Weryfikacja kryteriów akceptacji</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Kryterium</th>
+<th>Jak sprawdzić</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>wszystkie testy zielone</td>
+<td><code>mvn test -Dtest=&#x27;pl.training.module3.**&#x27;</code></td>
+</tr>
+<tr>
+<td>nowe testy czułe na mutację</td>
+<td>mutacja &quot;sumuj zaokrąglone&quot; czerwieni test z dwiema pozycjami <code>0.005</code></td>
+</tr>
+<tr>
+<td>jedna intencja na transformację</td>
+<td>historia commitów lub lista kroków odpowiada sekwencji z 4.7</td>
+</tr>
+<tr>
+<td>zgodność starej i nowej wersji</td>
+<td>test parametryzowany uczestnika zielony, z co najmniej jednym przypadkiem <code>0.005</code></td>
+</tr>
+<tr>
+<td>znane ograniczenia dowodu</td>
+<td>uczestnik wymienia: tylko wykonane dane, wspólny defekt, test znika z klasą legacy</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="typowe-bledy-uczestnikow" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>Wszystkie wydzielenia w jednej edycji, testy uruchomione dopiero na końcu.</li>
+<li>Zamiana sumowania na sumę wartości zaokrąglonych &quot;bo tak prościej&quot; - zmiana zachowania finansowego.</li>
+<li>Aktualizacja oczekiwania w teście, gdy ten padł, bez zrozumienia przyczyny.</li>
+<li>Nowy test charakteryzujący bez kontrolnej mutacji - zielony, ale nikt nie wie, co chroni.</li>
+<li>Użycie <code>toUpperCase()</code> bez <code>Locale.ROOT</code> przy przepisywaniu normalizacji klienta.</li>
+<li>Zgubienie końcowego <code>\n</code> przy przebudowie <code>StringBuilder</code>.</li>
+<li>Traktowanie zielonego testu różnicowego jako dowodu równoważności dla wszystkich danych.</li>
+</ul>
+<h3 id="pytania-do-dyskusji" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>Który z testów zostawicie po usunięciu <code>LegacyInvoiceFormatter</code>?</li>
+<li>Co zrobicie, jeśli księgowość stwierdzi, że subtotal powinien być sumą wartości prezentowanych? (tryb funkcjonalny, 4.9)</li>
+<li>Które reguły potwierdzilibyście z domeną przed przemianowaniem testów z <code>documents...</code> na język wymagań?</li>
+<li>Kiedy zamiast kilku testów charakteryzujących lepszy byłby jeden golden master na wielu fakturach? (4.5)</li>
+</ul>
+<hr>
+<h2 id="cwiczenie-2-obiekty-zastepcze-i-pokrycie" tabindex="-1"><a class="header-anchor" href="#cwiczenie-2-obiekty-zastepcze-i-pokrycie"><span>Ćwiczenie 2: Obiekty zastępcze i pokrycie</span></a></h2>
+<h3 id="czesc-a-role-obiektow-zastepczych" tabindex="-1"><a class="header-anchor" href="#czesc-a-role-obiektow-zastepczych"><span>Część A: role obiektów zastępczych</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Współpracownik</th>
+<th>Rola i rodzaj weryfikacji</th>
+<th>Może wykryć</th>
+<th>Nie może wykryć</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>catalogStub</code></td>
+<td>stub (pośrednie wejście); wynik usługi i zapisany stan pośrednio potwierdzają użycie ceny</td>
+<td>pominięcie ceny albo błędne mnożenie jej przez liczbę sztuk</td>
+<td>błędne wyszukiwanie SKU w rzeczywistym katalogu</td>
+</tr>
+<tr>
+<td><code>paymentStub</code></td>
+<td>stub; wynik i stan repozytorium potwierdzają propagację identyfikatora autoryzacji</td>
+<td>zgubienie lub zmianę identyfikatora zwróconego przez bramkę</td>
+<td>błędny token, kwotę wywołania, liczbę wywołań i integrację z operatorem płatności</td>
+</tr>
+<tr>
+<td><code>repositoryFake</code></td>
+<td>fake; weryfikacja stanu przez pomocniczą metodę <code>find</code></td>
+<td>zapis niepoprawnego <code>OrderDraft</code> albo brak zapisu</td>
+<td>błędny SQL, mapowanie, ograniczenia i semantykę transakcji</td>
+</tr>
+<tr>
+<td><code>publisherSpy</code></td>
+<td>spy (pośrednie wyjście); test weryfikuje zarejestrowaną interakcję i jej dane</td>
+<td>brak zdarzenia, złą liczbę zdarzeń albo błędną treść</td>
+<td>serializację, dostarczenie i konfigurację rzeczywistego brokera</td>
+</tr>
+<tr>
+<td><code>paymentMock</code></td>
+<td>mock; weryfikacja zachowania: token, kwota i liczba wywołań</td>
+<td>niepoprawny protokół obciążenia, w tym wielokrotne wywołanie</td>
+<td>zachowanie produkcyjnej bramki i poprawność całego procesu rozliczenia</td>
+</tr>
+<tr>
+<td><code>publisherStub</code></td>
+<td>stub bez odpowiedzi; test nie weryfikuje publikacji</td>
+<td>umożliwia wykonanie ścieżki, ale sam nie wykrywa braku publikacji</td>
+<td>wszystkie defekty protokołu i integracji publikatora</td>
+</tr>
+</tbody>
+</table></div>
+<p>Nazwa <code>stub</code> jest właściwsza dla <code>publisherStub</code> niż <code>dummy</code>, ponieważ metoda <code>publish</code> rzeczywiście zostaje wywołana (Aktywność 2.7). W drugim teście <code>catalogStub</code> i <code>repositoryFake</code> pełnią te same role co w pierwszym, ale test nie sprawdza ich skutków.</p>
+<p><strong>Pytanie 2 (stan, wynik, interakcja):</strong> pierwszy test weryfikuje głównie wynik (<code>total</code>, <code>authorizationId</code>) i stan (<code>repositoryFake.find</code>), a interakcję tylko przez listę zdarzeń spy - to przeważnie weryfikacja stanu. Drugi test weryfikuje zachowanie (protokół płatności). Jest to uzasadnione, bo liczba obciążeń jest częścią kontraktu (płatność nie może zostać pobrana dwukrotnie, 1.2, 2.2).</p>
+<p><strong>Pytanie 5 (kandydat do wspólnego testu kontraktu):</strong> <code>InMemoryOrderRepository</code>. Nie wykryje błędnego SQL, ograniczeń bazy, mapowania <code>BigDecimal</code>, izolacji transakcji ani zachowania generatora identyfikatorów. Produkcyjny adapter wymaga wąskiego testu integracyjnego. <code>find</code> jest metodą pomocniczą wyłącznie klasy <code>InMemoryOrderRepository</code>, a nie częścią <code>OrderRepository</code>, więc nie da się uruchomić identycznego testu odczytu przez sam publiczny interfejs. Wspólny kontrakt może opisywać wyłącznie obserwowalne elementy wspólne, np. semantykę zwracanego identyfikatora (unikalność kolejnych wartości). Sprawdzenie trwałego zapisu wymaga jawnego mechanizmu obserwacji właściwego dla środowiska testowego, np. zapytania kontrolnego do rzeczywistej bazy. Nie należy dodawać metody odczytu do interfejsu produkcyjnego wyłącznie po to, aby ujednolicić testy.</p>
+<p><strong>Kolejność zapisu i publikacji:</strong> jest warta sprawdzania tylko wtedy, gdy wynika z mechanizmu niezawodności, np. zdarzenie może zostać opublikowane dopiero po trwałym zapisie albo oba działania są koordynowane przez outbox. Sama obecna kolejność wywołań w kodzie nie uzasadnia kruchego testu interakcji.</p>
+<h3 id="czesc-b-raport-pokrycia" tabindex="-1"><a class="header-anchor" href="#czesc-b-raport-pokrycia"><span>Część B: raport pokrycia</span></a></h3>
+<ul>
+<li><strong>Linie a gałęzie:</strong> <code>DeliveryFeeLineCoverageTest</code> wywołuje tylko <code>fee(true)</code>. Wszystkie linie <code>fee</code> są wykonane (przypisanie <code>100</code>, warunek, przypisanie <code>0</code>, <code>return</code>), ale warunek <code>if (premium)</code> miał tylko wynik <code>true</code>. Pokrycie gałęzi pokazuje 1 z 2, pokrycie linii 100%.</li>
+<li><strong>Test brakującej gałęzi:</strong> wywołanie <code>DeliveryFee.fee(false)</code> z asercją oczekującą dokładnie <code>100</code> (kod testu jak w Aktywności 3.7). Kontrolna mutacja <code>100</code> na <code>200</code> musi spowodować porażkę.</li>
+<li><strong>Test zwiększający pokrycie bez ochrony:</strong> test bez asercji albo z asercją sprawdzającą tylko brak wyjątku (np. <code>assertDoesNotThrow(() -&gt; DeliveryFee.fee(false))</code>) podniesie pokrycie, lecz nie wykryje zmiany <code>100</code> na <code>200</code>. W pakiecie podobny charakter ma <code>Module3ExamplesTest</code> (<code>assertDoesNotThrow</code> dla całego <code>main</code>): podnosi pokrycie wielu klas, nie chroniąc żadnej reguły.</li>
+<li><strong>Rozsądne użycie progu:</strong> próg może blokować znaczący spadek pokrycia zmienianego pakietu i kierować uwagę na nowe, nieprzetestowane gałęzie. Nadal potrzebny jest przegląd ryzyka, asercji i wyłączeń. Globalny procent nie powinien pozwalać, aby dobrze pokryty kod banalny ukrywał brak ochrony reguły krytycznej. Uzupełnieniem może być test mutacyjny, którego wynik też wymaga interpretacji (3.4-3.5).</li>
+</ul>
+<h3 id="kod-referencyjny-1" tabindex="-1"><a class="header-anchor" href="#kod-referencyjny-1"><span>Kod referencyjny</span></a></h3>
+<ul>
+<li><code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module3/<wbr>OrderPlacementServiceTest.java</code> - klasy pomocnicze <code>InMemoryOrderRepository</code>, <code>RecordingEventPublisher</code>, <code>ExpectingPaymentGateway</code>.</li>
+<li><code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module3/<wbr>DeliveryFeeLineCoverageTest.java</code> - celowo bez testu dla <code>false</code>; test uczestnika dopisuje się obok.</li>
+</ul>
+<h3 id="weryfikacja-kryteriow-akceptacji-1" tabindex="-1"><a class="header-anchor" href="#weryfikacja-kryteriow-akceptacji-1"><span>Weryfikacja kryteriów akceptacji</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Kryterium</th>
+<th>Jak sprawdzić</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>role według użycia</td>
+<td><code>publisherStub</code> sklasyfikowany jako stub, <code>paymentStub</code> jako stub (nie mock)</td>
+</tr>
+<tr>
+<td>granice obiektów zastępczych</td>
+<td>kolumna &quot;nie może wykryć&quot; wypełniona dla każdego wiersza, fake bez SQL i transakcji</td>
+</tr>
+<tr>
+<td>interakcja uzasadniona kontraktem</td>
+<td>uzasadnienie mocka odwołuje się do jednego obciążenia, a nie do &quot;tak jest w kodzie&quot;</td>
+</tr>
+<tr>
+<td>asercja na wartość biznesową</td>
+<td>mutacja <code>100</code> na <code>200</code> czerwieni nowy test</td>
+</tr>
+<tr>
+<td>pokrycie nie jako jeden procent</td>
+<td>wniosek mówi o obszarze zmiany i sile asercji</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="typowe-bledy-uczestnikow-1" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow-1"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>Nazywanie każdego obiektu zastępczego &quot;mockiem&quot;.</li>
+<li>Klasyfikacja <code>publisherStub</code> jako dummy.</li>
+<li>Twierdzenie, że <code>repositoryFake</code> &quot;testuje repozytorium&quot;.</li>
+<li>Proponowanie dodania <code>find</code> do <code>OrderRepository</code> dla wygody testów.</li>
+<li>Uzasadnianie testu kolejności save/publish kolejnością linii w kodzie.</li>
+<li>Test <code>fee(false)</code> bez asercji albo z asercją <code>assertNotNull</code>.</li>
+</ul>
+<h3 id="pytania-do-dyskusji-1" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji-1"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>Który test przeżyje zmianę wewnętrznej kolejności obliczeń w <code>place</code>, a który nie?</li>
+<li>Czy w pierwszym teście wykrylibyśmy podwójne obciążenie karty? (nie, <code>paymentStub</code> nie liczy wywołań)</li>
+<li>Czego nie mierzy raport pokrycia? (siły asercji, zgodności z wymaganiem, reprezentatywności danych, kombinacji ścieżek, 3.4-3.5)</li>
+<li>Ile testów w Waszym projekcie weryfikuje interakcje z wewnętrznymi klasami, a nie z portami?</li>
+</ul>
+<hr>
+<h2 id="cwiczenie-3-wprowadzenie-szwu" tabindex="-1"><a class="header-anchor" href="#cwiczenie-3-wprowadzenie-szwu"><span>Ćwiczenie 3: Wprowadzenie szwu</span></a></h2>
+<h3 id="kroki-1-2-analiza" tabindex="-1"><a class="header-anchor" href="#kroki-1-2-analiza"><span>Kroki 1-2: analiza</span></a></h3>
+<ul>
+<li><strong>Niedeterministyczne wejście:</strong> globalne źródło czasu <code>LocalDate.now(ZoneOffset.UTC)</code> uniemożliwia kontrolowanie pośredniego wejścia. Potrzebny stub albo fake zegara (<code>Clock.fixed</code>).</li>
+<li><strong>Efekt trudny do obserwacji:</strong> bezpośrednie użycie <code>System.out.printf</code> - efekt nie jest reprezentowany przez port. Potrzebny spy, który zarejestruje wysłane wiadomości.</li>
+<li><strong>Górna granica:</strong> <code>today + 7</code> włącznie (<code>isAfter</code> zwraca <code>false</code> dla dokładnie +7).</li>
+<li><strong>Brak dolnej granicy:</strong> wiadomość jest wysyłana również dla daty dzisiejszej i dat przeszłych.</li>
+</ul>
+<p>Istotne przypadki:</p>
+<ul>
+<li>data odnowienia dokładnie siedem dni po dzisiejszej dacie: wiadomość ma zostać wysłana,</li>
+<li>data odnowienia osiem dni po dzisiejszej dacie: wiadomość nie ma zostać wysłana,</li>
+<li>data odnowienia w przeszłości: wiadomość również zostaje wysłana, ponieważ zastana reguła nie ma dolnej granicy.</li>
+</ul>
+<p>Jeżeli wymaganie domenowe definiuje przedział od dnia dzisiejszego do siedmiu dni włącznie, dodanie warunku odrzucającego daty przeszłe będzie osobną zmianą funkcjonalną. Nie należy wprowadzać go po cichu podczas rozrywania zależności.</p>
+<h3 id="kroki-3-4-minimalny-szew" tabindex="-1"><a class="header-anchor" href="#kroki-3-4-minimalny-szew"><span>Kroki 3-4: minimalny szew</span></a></h3>
+<p>Technika: Subclass and Override Method (Feathers). W IDE: zaznacz <code>LocalDate.now(ZoneOffset.UTC)</code>, Extract Method z widocznością <code>protected</code> (<code>currentDate</code>), to samo dla <code>System.out.printf(...)</code> (<code>sendMessage</code>), usuń <code>final</code> z klasy. Koszty: rozszerzenie powierzchni dziedziczenia tylko dla testów, sprzężenie testu z metodami chronionymi, zachęta do hierarchii bez znaczenia domenowego, brak jawnego portu. Zdjęcie <code>final</code> jest refaktoryzacją tylko dla typu wewnętrznego z konsumentami pod kontrolą.</p>
+<h3 id="kroki-5-6-jawne-zaleznosci" tabindex="-1"><a class="header-anchor" href="#kroki-5-6-jawne-zaleznosci"><span>Kroki 5-6: jawne zależności</span></a></h3>
+<p>Techniki: Parameterize Constructor i Extract Interface. <code>ReminderGateway</code> jest portem w języku domeny (2.6), więc zastąpienie go w teście nie łamie reguły „nie mockuj tego, czego nie posiadasz”. Testy przenoszą się z podklasy na <code>Clock.fixed</code> i spy <code>RecordingReminderGateway</code>; nazwy zmieniają się z <code>documents...</code> na <code>preserves...</code>, bo zachowanie jest teraz świadomie utrzymane.</p>
+<h3 id="kod-referencyjny-2" tabindex="-1"><a class="header-anchor" href="#kod-referencyjny-2"><span>Kod referencyjny</span></a></h3>
+<ul>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module3/<wbr>SeamedReminderService.java</code> (klasa bez <code>final</code>, metody <code>protected currentDate()</code> i <code>protected sendMessage(email, renewalDate)</code>) oraz <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module3/<wbr>SeamedReminderServiceTest.java</code> z podklasą <code>TestableReminderService</code>. Testy dla dziś = 2026-08-30: <code>sendsReminderForRenewalExactlySevenDaysAway</code> (2026-09-06, wysyłka), <code>doesNotSendReminderMoreThanSevenDaysBeforeRenewal</code> (2026-09-07, brak), <code>documentsCurrentBehaviorForPastRenewalDate</code> (2026-08-29, wysyłka).</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module3/<wbr>ReminderService.java</code> (konstruktor <code>ReminderService(Clock clock, ReminderGateway reminderGateway)</code>, interfejs <code>ReminderGateway</code>) oraz <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module3/<wbr>ReminderServiceTest.java</code> (<code>Clock.fixed(Instant.parse(&quot;2026-08-30T10:00:00Z&quot;), ZoneOffset.UTC)</code> i spy <code>RecordingReminderGateway</code>).</li>
+</ul>
+<h3 id="krok-7-punkty-aktywacji" tabindex="-1"><a class="header-anchor" href="#krok-7-punkty-aktywacji"><span>Krok 7: punkty aktywacji</span></a></h3>
+<ul>
+<li>Szew przejściowy: <code>SeamedReminderService</code> tworzy minimalny szew przez <code>currentDate</code> i <code>sendMessage</code>. Punktem aktywacji jest utworzenie <code>TestableReminderService</code>, a dynamiczne wiązanie wybiera nadpisane metody.</li>
+<li>Projekt docelowy: <code>ReminderService</code> zastępuje dziedziczenie przekazanymi zależnościami. Punktem aktywacji jest wyrażenie <code>new ReminderService(...)</code>, a jego argumenty wybierają zachowanie. Test przekazuje <code>Clock.fixed</code> oraz <code>RecordingReminderGateway</code>. Produkcja przekaże zegar systemowy z jawną strefą (tu UTC, aby zachować zachowanie wersji legacy) i rzeczywisty adapter komunikacyjny.</li>
+</ul>
+<h3 id="krok-8-test-rzeczywistego-adaptera" tabindex="-1"><a class="header-anchor" href="#krok-8-test-rzeczywistego-adaptera"><span>Krok 8: test rzeczywistego adaptera</span></a></h3>
+<p>Test jednostkowy usługi nie potwierdzi, że adapter poprawnie serializuje komunikat, uwierzytelnia się, obsługuje odpowiedzi ani ponowienia. Te ryzyka należy sprawdzić wąskim testem integracyjnym z rzeczywistą technologią lub środowiskiem o zgodnym kontrakcie.</p>
+<h3 id="usuniecie-rozwiazania-przejsciowego" tabindex="-1"><a class="header-anchor" href="#usuniecie-rozwiazania-przejsciowego"><span>Usunięcie rozwiązania przejściowego</span></a></h3>
+<p>Rozwiązanie przejściowe można usunąć po przeniesieniu wywołań produkcyjnych i testów na <code>ReminderService</code>. Usunięcie powinno być osobnym, małym krokiem (Safe Delete), po którym ponownie uruchamiany jest pełny zestaw testów. Pełna kolejność: 4.15 (nazwij zachowanie i punkty uruchomienia oraz obserwacji, wprowadź najmniejszy szew i zabezpiecz testami, przenieś wybór do jawnego punktu aktywacji, dodaj test adaptera, usuń konstrukcję przejściową).</p>
+<h3 id="weryfikacja-kryteriow-akceptacji-2" tabindex="-1"><a class="header-anchor" href="#weryfikacja-kryteriow-akceptacji-2"><span>Weryfikacja kryteriów akceptacji</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Kryterium</th>
+<th>Jak sprawdzić</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>test niezależny od daty i wyjścia</td>
+<td>brak <code>LocalDate.now()</code> i przechwytywania <code>System.out</code> w testach; test zielony po zmianie daty systemowej</td>
+</tr>
+<tr>
+<td>granica 7 dni po obu stronach, data przeszła scharakteryzowana</td>
+<td>trzy testy: +7 (wysyłka), +8 (brak), przeszłość (wysyłka, nazwa <code>documents...</code> lub <code>preserves...</code>)</td>
+</tr>
+<tr>
+<td>kod domenowy nie tworzy adaptera</td>
+<td>brak <code>new</code> konkretnego adaptera w klasie docelowej; zależności w konstruktorze</td>
+</tr>
+<tr>
+<td>przejściowe odróżnione od docelowego</td>
+<td>szew przejściowy oznaczony (komentarz, nazwa, zadanie do usunięcia)</td>
+</tr>
+<tr>
+<td>test adaptera nazwany</td>
+<td>uczestnik wymienia serializację, uwierzytelnienie, ponowienia</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="typowe-bledy-uczestnikow-2" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow-2"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>&quot;Poprawienie&quot; reguły przez dodanie dolnej granicy w trakcie wprowadzania szwu.</li>
+<li>Testy liczone względem <code>LocalDate.now()</code> (niedeterministyczne w okolicach północy i niezgodne ze strefą UTC).</li>
+<li>Przechwytywanie <code>System.out</code> zamiast wprowadzenia portu.</li>
+<li>Przekazanie w produkcji <code>Clock.systemDefaultZone()</code> zamiast zegara UTC - cicha zmiana zachowania.</li>
+<li>Interfejs <code>ReminderGateway</code> dodany, ale kod domenowy dalej tworzy konkretny adapter przez <code>new</code> (interfejs bez punktu aktywacji nie jest użytecznym szwem, 4.10).</li>
+<li>Pozostawienie <code>SeamedReminderService</code> bez decyzji o jego losie.</li>
+</ul>
+<h3 id="pytania-do-dyskusji-2" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji-2"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>Kiedy Subclass and Override Method może zostać na stałe?</li>
+<li>Jaki test wykryłby pomyłkę strefy czasowej w zegarze produkcyjnym?</li>
+<li>Które z problemów tej klasy to separacja, a które obserwacja? (4.10)</li>
+</ul>
+<hr>
+<h2 id="cwiczenie-4-rownolegla-weryfikacja-i-jej-granice" tabindex="-1"><a class="header-anchor" href="#cwiczenie-4-rownolegla-weryfikacja-i-jej-granice"><span>Ćwiczenie 4: Równoległa weryfikacja i jej granice</span></a></h2>
+<blockquote>
+<p>Rozwiązanie opracowane na podstawie kodu referencyjnego, nie pochodzi wprost ze slajdów.</p>
+</blockquote>
+<h3 id="krok-1-wynik-module3examples" tabindex="-1"><a class="header-anchor" href="#krok-1-wynik-module3examples"><span>Krok 1: wynik <code>Module3Examples</code></span></a></h3>
+<p><code>Parallel verification: 53.97/<wbr>Agreement</code>. Pierwsza część to cena, którą dostał klient (<code>19.99 x 3</code> z rabatem <code>0.10</code>: brutto <code>59.97</code>, rabat <code>6.00</code>, netto <code>53.97</code>), czyli wynik legacy - w trybie <code>VERIFY</code> zawsze autorytatywny. Druga część to typ zdarzenia raportu: obie implementacje dały ten sam wynik.</p>
+<h3 id="krok-2-kontrolna-mutacja-w-kandydacie" tabindex="-1"><a class="header-anchor" href="#krok-2-kontrolna-mutacja-w-kandydacie"><span>Krok 2: kontrolna mutacja w kandydacie</span></a></h3>
+<p>Po usunięciu <code>.setScale(MONEY_SCALE, ROUNDING)</code> przy rabacie kandydat zaokrągla dopiero wynik końcowy (w <code>PriceQuote</code>). Zawodzi <code>PricingEngineContractTest.everyProductionImplementationCalculatesCanonicalExamples</code> w wariancie kandydata: dla <code>0.01 x 1</code> z rabatem <code>0.5</code> oczekiwane <code>0.01</code>, kandydat zwraca <code>0.00</code> (rabat <code>0.005</code> nie jest już zaokrąglany do <code>0.00</code> przed odejmowaniem). <code>MigratingPricingEngineTest</code> pozostaje zielony, bo testuje router na stubach i spy (liczniki wywołań, sztuczne wyniki), a nie prawdziwą implementację kandydata. <code>Module3ExamplesTest</code> też jest zielony - sprawdza tylko brak wyjątku.</p>
+<p>Wniosek: test kontraktowy chroni <strong>obliczenie</strong> (niezależne oczekiwania dla obu implementacji), test routera chroni <strong>protokół migracji</strong> (kto jest wołany, co jest zwracane, co raportowane). To dwa różne elementy portfela.</p>
+<h3 id="krok-3-zdarzenie-w-trybie-verify" tabindex="-1"><a class="header-anchor" href="#krok-3-zdarzenie-w-trybie-verify"><span>Krok 3: zdarzenie w trybie <code>VERIFY</code></span></a></h3>
+<p>Router zgłosiłby <code>Divergence(request, legacy = 0.01, candidate = 0.00)</code>, a klient dostałby <code>0.01</code> - wynik legacy. Rozbieżność jest widoczna w raporcie, ale nie dotyka klienta.</p>
+<h3 id="krok-4-klasyfikacja-operacji" tabindex="-1"><a class="header-anchor" href="#krok-4-klasyfikacja-operacji"><span>Krok 4: klasyfikacja operacji</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Operacja</th>
+<th>Shadow (podwójne wykonanie)</th>
+<th>Co porównać zamiast wykonania</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>wycena biletu</td>
+<td>tak - czyste obliczenie</td>
+<td>wynik obu implementacji (<code>Agreement</code> / <code>Divergence</code>)</td>
+</tr>
+<tr>
+<td>obciążenie karty</td>
+<td>nie - drugie obciążenie klienta</td>
+<td>kwotę i token, które kandydat <strong>zamierza</strong> obciążyć (plan jako dane)</td>
+</tr>
+<tr>
+<td>mail z potwierdzeniem</td>
+<td>nie - klient dostaje dwa maile</td>
+<td>adresata i treść zaplanowanego maila</td>
+</tr>
+<tr>
+<td>nadanie kolejnego numeru rezerwacji</td>
+<td>nie - sekwencja to stan współdzielony; kandydat &quot;zużyje&quot; numer</td>
+<td>regułę formatu numeru albo numer wyliczony bez inkrementacji licznika</td>
+</tr>
+<tr>
+<td>zapis audytu</td>
+<td>nie - podwójny wpis zafałszuje audyt</td>
+<td>treść wpisu, który kandydat by zapisał</td>
+</tr>
+</tbody>
+</table></div>
+<p>Wspólna technika: efekty zamieniamy w dane (opis &quot;co zrobić&quot;), które da się porównać i wykonać tylko raz. Pokazuje to scena s05 warsztatu (<code>RecordingEffects</code>, potem <code>BookingPlanner</code> zwracający <code>BookingPlan</code>).</p>
+<h3 id="krok-5-warunki-produkcyjne" tabindex="-1"><a class="header-anchor" href="#krok-5-warunki-produkcyjne"><span>Krok 5: warunki produkcyjne</span></a></h3>
+<p>Dowolne dwa z: izolacja wykonania kandydata od ścieżki odpowiedzi (asynchronicznie lub poza wątkiem żądania), timeout i bulkhead dla kandydata, limit kopiowanego ruchu (próbkowanie), monitoring kanału raportowania (awaria reportera jest połykana, więc brak zdarzeń nie oznacza zgodności), jawny właściciel i kryterium zakończenia trybu <code>VERIFY</code>.</p>
+<h3 id="kod-referencyjny-3" tabindex="-1"><a class="header-anchor" href="#kod-referencyjny-3"><span>Kod referencyjny</span></a></h3>
+<ul>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module3/<wbr>incremental/<wbr>MigratingPricingEngine.java</code> - metoda <code>verify</code>, <code>tryToReport</code>.</li>
+<li><code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module3/<wbr>incremental/<wbr>PricingEngineContractTest.java</code>, <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module3/<wbr>incremental/<wbr>MigratingPricingEngineTest.java</code>.</li>
+</ul>
+<h3 id="weryfikacja-kryteriow-akceptacji-3" tabindex="-1"><a class="header-anchor" href="#weryfikacja-kryteriow-akceptacji-3"><span>Weryfikacja kryteriów akceptacji</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Kryterium</th>
+<th>Jak sprawdzić</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>odróżnienie testu kontraktowego od testu routera</td>
+<td>uczestnik wskazuje, który test padł po mutacji i dlaczego drugi nie</td>
+</tr>
+<tr>
+<td>klient zawsze dostaje wynik legacy</td>
+<td>odpowiedź na krok 3 (<code>0.01</code>), wzmianka o <code>CandidateFailure</code></td>
+</tr>
+<tr>
+<td>sposób porównania efektów bez wykonania</td>
+<td>tabela z kroku 4 ma kolumnę &quot;co porównać&quot; dla każdej operacji z efektem</td>
+</tr>
+<tr>
+<td>zgodność to nie poprawność</td>
+<td>uczestnik podaje przykład wspólnego błędu (np. obie wersje źle zaokrąglają)</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="typowe-bledy-uczestnikow-3" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow-3"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>Oczekiwanie, że <code>MigratingPricingEngineTest</code> wykryje błąd obliczenia kandydata.</li>
+<li>Przekonanie, że w trybie <code>VERIFY</code> klient dostaje wynik kandydata, &quot;jeśli jest zgodny&quot;.</li>
+<li>Uznanie numeru rezerwacji za czyste obliczenie.</li>
+<li>Traktowanie braku zdarzeń <code>Divergence</code> jako dowodu zgodności bez sprawdzenia, czy reporter działa.</li>
+</ul>
+<h3 id="pytania-do-dyskusji-3" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji-3"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>Ile zgodnych porównań i z jakiego okresu wystarczy, żeby przełączyć na <code>CANDIDATE</code>? Kto o tym decyduje?</li>
+<li>Jak w Waszym systemie zamienić efekt uboczny w dane, żeby go porównać?</li>
+</ul>
+<hr>
+<h2 id="sprawdzenie-wiedzy-odpowiedzi" tabindex="-1"><a class="header-anchor" href="#sprawdzenie-wiedzy-odpowiedzi"><span>Sprawdzenie wiedzy: odpowiedzi</span></a></h2>
+<ol>
+<li><strong>Co dokładnie oznacza zielony zestaw testów?</strong> Żaden wykonany test nie wykrył różnicy w sprawdzanych obserwacjach. Nie jest to dowód braku wszystkich regresji.</li>
+<li><strong>Dlaczego piramida testów nie narzuca uniwersalnych proporcji?</strong> Koszt i wartość testu zależą od architektury, technologii i ryzyka. Ważniejsze są właściwości testów (zakres, realizm, szybkość, determinizm, wykrywane ryzyko) niż arbitralna liczba.</li>
+<li><strong>Czym punkt zmiany różni się od punktu testowania?</strong> Punkt zmiany to miejsce modyfikacji kodu, punkt testowania - miejsce, z którego da się uruchomić zachowanie i zobaczyć jego efekt. W legacy często testujemy szerzej niż zmieniamy.</li>
+<li><strong>Czym stub różni się od mocka, a spy od fake?</strong> Stub dostarcza odpowiedzi (pośrednie wejście). Mock zawiera oczekiwania dotyczące interakcji i sam je weryfikuje. Spy rejestruje wywołania do późniejszej asercji w teście. Fake to uproszczona, ale działająca implementacja (np. repozytorium w pamięci).</li>
+<li><strong>Kiedy weryfikacja zachowania (interakcji) jest uzasadniona?</strong> Gdy interakcja jest kontraktem (jedno obciążenie, publikacja po zatwierdzeniu transakcji, idempotencja) albo gdy efekt na granicy systemu nie zostawia stanu do odczytu. Domyślnie weryfikujemy stan i wynik.</li>
+<li><strong>Co oznacza reguła „nie mockuj tego, czego nie posiadasz” i co robić zamiast tego?</strong> Nie zastępujemy w testach cudzego API, bo utrwalamy własne wyobrażenie o nim. Zamiast tego definiujemy własny wąski port w języku domeny, zastępujemy go w testach logiki, a adapter do cudzego API sprawdzamy testem integracyjnym lub kontraktowym.</li>
+<li><strong>Jakie ryzyko pozostaje po zastąpieniu bazy implementacją działającą w pamięci?</strong> Test nie sprawdza między innymi zapytań, mapowania, ograniczeń, transakcji i zachowania rzeczywistego silnika.</li>
+<li><strong>Co pokazuje pokrycie gałęzi, czego może nie pokazać pokrycie linii?</strong> Pokazuje, czy wykonano różne wyniki warunków. Wszystkie linie mogą zostać wykonane mimo pominięcia jednej strony decyzji (przykład: <code>DeliveryFee</code>, <code>DiscountPolicy</code>).</li>
+<li><strong>Dlaczego test charakteryzujący nie dowodzi poprawności wymagania?</strong> Zapisuje obserwowany wynik, który może być historycznym defektem lub przypadkowym szczegółem.</li>
+<li><strong>Kiedy golden master przestaje chronić?</strong> Gdy plik oczekiwany jest aktualizowany bez czytania różnicy, gdy niedeterminizm (czas, losowość, kolejność) nie został znormalizowany i test &quot;miga&quot;, albo gdy scenariusz nie zawiera przypadku, który zmieniamy.</li>
+<li><strong>Czym różni się seam od punktu aktywacji?</strong> Seam jest miejscem możliwej zmiany zachowania, a punkt aktywacji jest miejscem wyboru konkretnego wariantu.</li>
+<li><strong>Które ruchy automatów IDE są bezpieczne bez testów i kiedy przestają takie być?</strong> Rename lokalnych i prywatnych elementów, Extract Variable i Extract Method, Inline Variable czystego wyrażenia, Extract Interface i Introduce Parameter z delegacją, Safe Delete. Przestają być bezpieczne przy refleksji, serializacji, konfiguracji tekstowej, zewnętrznych konsumentach, efektach ubocznych w wyrażeniu i zmianie momentu tworzenia zależności.</li>
+<li><strong>Co jest produktem scratch refactoringu?</strong> Zrozumienie zapisane poza kodem: reguły, ukryte wejścia, efekty, punkty zmiany, kandydaci na szwy i przypadki do testu charakteryzującego. Sam kod jest wyrzucany.</li>
+<li><strong>Dlaczego tryb shadow jest bezpieczny tylko dla czystych obliczeń?</strong> Bo obie implementacje wykonują się naprawdę: efekty uboczne (płatność, mail, zapis, zdarzenie, sekwencja) zostałyby wykonane dwukrotnie. Efekty trzeba zamienić w dane i porównywać zamiast wykonywać.</li>
+</ol>
+
+</main>
+</div>
+<script>if(matchMedia('(max-width:900px)').matches){var d=document.querySelector('.toc details');if(d)d.open=false}</script>
+</body>
+</html>

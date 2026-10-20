@@ -1,12 +1,13 @@
 {
   "name": "warsztat-html",
   "private": true,
-  "description": "Generator stron HTML warsztatu CineLegacy z src/main/resources/md/warsztat",
+  "description": "Generator stron HTML materiałów szkolenia (md -> html, slajdy przez Marp CLI)",
   "type": "module",
   "scripts": {
     "build": "node build.mjs"
   },
   "dependencies": {
+    "@marp-team/marp-cli": "4.5.1",
     "highlight.js": "^11.12.0",
     "markdown-it": "^15.0.2",
     "markdown-it-anchor": "^10.0.0"

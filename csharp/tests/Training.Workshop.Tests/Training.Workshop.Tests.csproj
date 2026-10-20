@@ -28,9 +28,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- m8/s10: testy próbek dla bramki jakości - bramka kompiluje i uruchamia je w pamięci, projekt nie -->
-    <Compile Remove="M8/S10QualityGate/Sample/**/*.cs" />
-    <None Include="M8/S10QualityGate/Sample/**/*.cs" />
+    <!-- m2/s04: testy próbek dla bramki jakości - bramka kompiluje i uruchamia je w pamięci, projekt nie -->
+    <Compile Remove="M2/S04QualityGate/Sample/**/*.cs" />
+    <None Include="M2/S04QualityGate/Sample/**/*.cs" />
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,3188 @@
+# Moduł 5. Refaktoryzacja do wzorców - warsztat CineLegacy (C#): przewodnik prowadzącego
+
+Trzydzieści dwie małe sceny w domenie kina CineLegacy. Każda pokazuje jedną refaktoryzację do wzorca (albo od wzorca) ze slajdów modułu 5: od pytania "czy zawsze warto?" i usuwania zbędnych wzorców, przez ryzyka zmiany kontraktu i automaty IDE, po wybór między podobnymi wzorcami (Command, Strategy, State; Strategy i Template Method; Chain of Responsibility i Decorator), granice systemu (Adapter, Boundary Object, Facade, Anti-Corruption Layer) oraz Builder, Observer, Mediator i Visitor. Każda scena ma kod wyjściowy `Start` z zapachem lub pułapką i gotowe snapshoty `StepN` po każdym ruchu, więc w dowolnym momencie można przeskoczyć do kolejnego kroku. Test równoważności pilnuje, że wzorzec wprowadzamy bez zmiany obserwowalnego zachowania, a tam, gdzie zachowanie celowo się zmienia (moment wyboru strategii, nowy niezmiennik buildera, wygaszony wariant, naprawiony błąd skopiowanej orkiestracji, zaostrzona walidacja na granicy), osobny test to dokumentuje.
+
+Port C# żyje w `csharp/src/Training.Workshop/M5/SNN.../{Start,Step1,...}` (testy xUnit w `csharp/tests/Training.Workshop.Tests/M5/SNN.../`), pracujemy w JetBrains Rider (keymap macOS zgodny z IntelliJ: ⇧F6 Rename, ⌥⌘M Extract Method, ⌥⌘V Introduce Variable, ⌥⌘C Introduce Constant, ⌥⌘P Introduce Parameter, ⌥⌘N Inline, F6 Move, ⌘F6 Change Signature, ⌘⌦ Safe Delete, ⌥⌘T Surround With, ⌥F7 Find Usages, ⌥⏎ akcje kontekstowe, ⌃T Refactor This). Projekt ma `TreatWarningsAsErrors` (`csharp/Directory.Build.props`), więc każde ostrzeżenie kompilatora (np. niewyczerpujący `switch`, wywołanie metody `[Obsolete]`, pole nieustawione w konstruktorze przy włączonym nullable) zatrzymuje build - kilka scen korzysta z tego świadomie.
+
+## Jak prowadzić pokaz
+
+```bash
+scripts/warsztat.sh --lang cs list m5              # sceny i kroki modułu 5
+scripts/warsztat.sh --lang cs test m5/s08          # testy jednej sceny
+scripts/warsztat.sh --lang cs test m5              # wszystkie sceny modułu (845 testów)
+scripts/warsztat.sh --lang cs diff m5/s08 1 2      # co zmienia krok 2 względem kroku 1 (0 = Start)
+scripts/warsztat.sh --lang cs diff m5/s08 1 2 --word  # to samo, zmiany podświetlone w obrębie linii
+scripts/warsztat.sh --lang cs jump m5/s08 2        # kopiuje Step2 do Start (przeskok, gdy brakuje czasu)
+scripts/warsztat.sh --lang cs next m5/s08          # następny krok do Start + podsumowanie zmian
+scripts/warsztat.sh next                           # kolejny krok tej samej sceny (język i scena zapamiętane)
+scripts/warsztat.sh prev                           # krok wstecz
+scripts/warsztat.sh status                         # który krok jest teraz w Start
+scripts/warsztat.sh --lang cs reset m5/s08         # przywraca Start z repozytorium
+```
+
+- Zasada: **jeden krok - jeden test - jedno zdanie komentarza**. Po każdym ruchu w IDE uruchamiamy test sceny (z gutter przy klasie testu, z okna Unit Tests albo skryptem); zielony pasek jest dowodem, że wzorzec nie zmienił kontraktu.
+- **Krok po kroku bez numerów:** `scripts/warsztat.sh --lang cs next m5/sNN` wstawia do `Start` gotowy następny krok i wypisuje, co się zmieniło. `prev` cofa o krok, `status` mówi, który krok jest teraz w `Start`. Skrypt pamięta język i ostatnią scenę, więc potem wystarczy samo `next`. Ręczne zmiany w `Start` zostają nadpisane - o to chodzi, gdy krok na żywo się rozjechał.
+- Pracujemy na namespace `Start` sceny (np. `Training.Workshop.M5.S08State.Start`). Gdy coś pójdzie nie tak, `next` (albo `jump` do właściwego kroku), a po scenie `reset`.
+- Test równoważności przechodzi przez `Start` i wszystkie kroki (xUnit `[Theory]` z wariantami `start`, `step1`...). Jeśli uczestnicy pracują równolegle, to ten sam test jest ich kryterium ukończenia.
+- Testy wołają sceny przez stabilne punkty wejścia (klient w rodzaju `PriceBoard`, `CancellationDesk`, `PaymentServices`, `Reports`, `Cinema`, `PaymentModule`, `SettlementModule` albo zachowany konstruktor), dzięki czemu `jump` do dowolnego kroku kompiluje się i przechodzi. Testy dokumentujące pułapkę samego `Start` (s11, s17, s30) po `jump` kończą się bez sprawdzeń i są zielone - xUnit 2 nie ma odpowiednika `assumeTrue` z JUnit (w Javie te testy są "aborted"), więc test sam wykrywa refleksją, że `Start` nie ma już pułapki, i wychodzi wcześniej. To zamierzone.
+- Motyw przewodni modułu: **najpierw kontrakt, potem diagram klas**. W każdej scenie zaczynamy od pytania "co jest obserwowalne?" (wyjątek, kolejność efektów, moment wyboru, format trwały, typ i moment błędu na granicy). Sekcja 5 slajdów ("Refaktoryzacja a testowanie") nie ma osobnej sceny - ćwiczy ją każda scena: test równoważności przed pierwszym ruchem, test różnicowy w s10, testy struktury w s26-s32.
+
+## Mapa scen
+
+Kolejność wierszy odpowiada sekcjom slajdów, numery scen zostają bez zmian (przestrzenie nazw i skrypt).
+
+| Scena | Temat ze slajdów | Kroki | Namespace | Czas |
+| --- | --- | --- | --- | --- |
+| s20 | 1.2. Najpierw rodzaj zmienności; mapa decyzji, lista kontrolna | 3 | `M5.S20DecisionMap` | ~12 min |
+| s21 | 2.1. Refaktoryzacja od wzorca; 2.2. Kierunki odwrotne | 3 | `M5.S21ReversiblePattern` | ~12 min |
+| s22 | 2.3. Remove Middle Man | 3 | `M5.S22MiddleMan` | ~8 min |
+| s23 | 3.1. Refaktoryzacja a zmiana kontraktu; 3.2. Co trzeba zachować | 3 | `M5.S23ContractChange` | ~10 min |
+| s24 | 4.1. Co daje IDE; 4.2. Rename - mechanika i granice | 3 | `M5.S24Rename` | ~12 min |
+| s25 | 4.3-4.4. Extract Method - przepływ danych, mechanika | 3 | `M5.S25ExtractMethod` | ~15 min |
+| s26 | 6.1-6.3, 6.8. Command, Strategy czy State - trzy osie w jednej klasie | 3 | `M5.S26Variability` | ~15 min |
+| s01 | 6.4. Strategy - intencja, sekwencja, ryzyka | 3 | `M5.S01Strategy` | ~12 min |
+| s08 | 6.5-6.6. State - tabela przejść, kolejność efektów | 3 | `M5.S08State` | ~15 min |
+| s15 | 6.7. Command - rejestr i ograniczenia | 3 | `M5.S15Command` | ~12 min |
+| s27 | 7.3-7.6. Template Method z dwiema osiami → Strategy | 3 | `M5.S27TemplateToStrategy` | ~12 min |
+| s16 | 7.1-7.2. Apply Template Method | 2 | `M5.S16TemplateMethod` | ~8 min |
+| s28 | 8.3-8.6. Chain of Responsibility czy Decorator | 3 | `M5.S28Chain` | ~12 min |
+| s07 | 8.1-8.2. Move Embellishment to Decorator; przezroczystość | 3 | `M5.S07Decorator` | ~12 min |
+| s14 | 9.1-9.2. Unify Interfaces with Adapter | 3 | `M5.S14Adapter` | ~12 min |
+| s29 | 9.3-9.6. Boundary Object; Adapter czy Boundary Object | 3 | `M5.S29BoundaryObject` | ~12 min |
+| s04 | 10.1-10.2. Factory - Encapsulate Classes with Factory | 3 | `M5.S04EncapsulateFactory` | ~10 min |
+| s05 | 10.2-10.3. Factory - Extract Factory Class, strażnik spójności | 3 | `M5.S05ExtractFactory` | ~10 min |
+| s30 | 11.1-11.3. Facade jako strażnik kolejności i spójności | 3 | `M5.S30Facade` | ~12 min |
+| s31 | 12.1-12.4. Facade a Anti-Corruption Layer | 3 | `M5.S31AntiCorruptionLayer` | ~12 min |
+| s06 | 13.1-13.2. Encapsulate Composite with Builder | 3 | `M5.S06Builder` | ~12 min |
+| s09 | 14.1-14.2. Replace Hard-coded Notifications with Observer | 3 | `M5.S09Observer` | ~15 min |
+| s32 | 15.1-15.4. Mediator; Observer czy Mediator | 3 | `M5.S32Mediator` | ~12 min |
+| s19 | 16.1-16.2. Visitor i macierz zmian | 3 | `M5.S19Visitor` | ~12 min |
+| s02 | 17.1. Replace Conditional with Polymorphism | 3 | `M5.S02Polymorphism` | ~12 min |
+| s03 | 17.2. Replace Type Code with Class | 3 | `M5.S03TypeCode` | ~12 min |
+| s10 | 17.3. Replace Implicit Tree with Composite; mapper | 3 | `M5.S10ImplicitTree` | ~15 min |
+| s11 | 17.3-17.4. Safe vs Transparent Composite | 2 | `M5.S11SafeComposite` | ~8 min |
+| s12 | 17.4. Replace One/Many Distinctions with Composite | 3 | `M5.S12OneMany` | ~10 min |
+| s13 | 17.4. Extract Composite | 2 | `M5.S13ExtractComposite` | ~8 min |
+| s18 | 17.5. Move Accumulation to Collecting Parameter | 3 | `M5.S18CollectingParameter` | ~8 min |
+| s17 | 17.6. Limit Instantiation with Singleton (odwrotnie: 2.4-2.5) | 3 | `M5.S17Singleton` | ~10 min |
+
+Pełne namespace mają prefiks `Training.Workshop.` (np. `Training.Workshop.M5.S01Strategy`), katalogi to `csharp/src/Training.Workshop/M5/S01Strategy` itd. Liczby domeny (ceny formatów, zniżki, VIP, okulary, opłata online, punkty lojalnościowe, zwroty, VAT) są wspólne dla całego warsztatu. Wartości spoza wspólnej listy (program "tydzień studenta" 50%, ubezpieczenie biletu 4.00, "tani wtorek" -30%, weekend +2.00, ceny premier i maratonów, limity zatwierdzania zwrotów 100.00 i 1000.00, autoryzacja częściowa terminala do 300.00, voucher KINO10) są przykładowe i opisane w komentarzach XML (`/// <summary>`) sceny.
+
+Konwencje portu, które wracają w wielu scenach: interfejsy mają prefiks `I` (`IDiscountPolicy`, `IPricedTicket`, `IPaymentListener`, `IDeskCommand`, `IReportFormat`, `IRefundHandler`, `IPaymentTerminal`, `IFilmLicenses`, `ISelectionMediator`...), gettery z Javy są właściwościami (`Name`, `Price`, `Minutes`), wyjątki to `ArgumentException` (Java `IllegalArgumentException`), `InvalidOperationException` (`IllegalStateException`) i `NotSupportedException` (`UnsupportedOperationException`), `Optional<T>` to typ dopuszczający `null` (`RefundDecision?`, `FilmLicense?`), a parametr `base` nazywa się `basePrice`, bo `base` to słowo kluczowe C#. Tam, gdzie Java przekazuje lambdę jako implementację interfejsu, C# potrzebuje klasy (lambda pasuje tylko do typu delegata) - w porcie i w testach są to małe prywatne klasy. Widoczność pakietowa to `internal`, ale warsztat jest jednym projektem, więc tam, gdzie scena ukrywa typy (s30, s31), granicę pilnuje test refleksji. Wyniki tekstowe (kwoty, daty, statusy) są takie same jak w wersji Java. Tam, gdzie scena odbiega od Javy, akapit **Różnica względem Javy** mówi, co i dlaczego wygląda inaczej.
+
+## Wybór scen na 3-dniowe szkolenie
+
+Wszystkie sceny razem to ponad 6 h samego pokazu (około 370 min) - więcej, niż mieści moduł (ok. 6 h razem z wykładem i ćwiczeniami ze slajdów). Na szkoleniu 3-dniowym pokazujemy **rdzeń: 11 scen, około 2 h 20 min**, po jednej scenie z kluczowych sekcji slajdów, w kolejności agendy:
+
+1. s20 mapa decyzji (12 min) - ustawia pytanie "jaki rodzaj zmienności?" na cały moduł.
+2. s21 wzorzec jako decyzja odwracalna (12 min) - refaktoryzacja od wzorca; wprowadzenie do Ćwiczenia 1.
+3. s23 zmiana kontraktu (10 min) - "przy okazji" zmienia dwie rzeczy naraz.
+4. s25 Extract Method (15 min) - przepływ danych i moment, w którym IDE proponuje parametr `out` albo krotkę.
+5. s26 pulpit kasjera (15 min) - Command, Strategy i State w jednej klasie; wariant Ćwiczenia 2.
+6. s27 raporty sprzedaży (12 min) - Template Method z dwiema osiami → Strategy; wariant Ćwiczenia 3A.
+7. s28 zatwierdzanie zwrotów (12 min) - Chain of Responsibility a Decorator; wariant Ćwiczenia 3B-C.
+8. s29 odpowiedź terminala (12 min) - Adapter i Boundary Object; wariant Ćwiczenia 4A.
+9. s30 zakup w sklepie i w kasie (12 min) - Facade i świadoma naprawa błędu kopii; wariant Ćwiczenia 4B.
+10. s31 licencje dystrybutora (12 min) - Facade a ACL; wariant Ćwiczenia 4C.
+11. s32 ekran wyboru miejsc (12 min) - Mediator i ryzyko God Mediator.
+
+**Sceny opcjonalne**, gdy grupa pracuje szybciej albo pyta o konkretny wzorzec: s22 i s17 (od wzorca: Remove Middle Man, Singleton i jego odwrotność), s24 (Rename i nazwy poza C#), s01, s08 i s15 (każdy z trzech wzorców sekcji 6 osobno, w szczegółach), s16 (klasyczny Template Method), s07 (Decorator), s14 (Adapter), s04 i s05 (jeden blok "Factory" z porównaniem obu refaktoryzacji), s06 (Builder), s09 (Observer, dobry kontrast do s32), s19 (Visitor). Sceny z sekcji 17 "Pozostałe refaktoryzacje do wzorców" (s02, s03, s10-s13, s18) zostawiamy do samodzielnej pracy w parach albo jako zadanie domowe - s11 i s13 mają po 2 kroki i dobrze sprawdzają się jako krótkie ćwiczenie. Na podsumowanie wróć do s20 i poproś salę o przypisanie każdej pokazanej sceny do wiersza mapy decyzji.
+
+## Scena s01. Replace Conditional Logic with Strategy - polityka zniżek
+
+**Temat ze slajdów:** 6.1. Kto wybiera wariant i kiedy?; 6.4. Strategy - intencja, sekwencja, ryzyka
+**Namespace:** `Training.Workshop.M5.S01Strategy` · **Test:** `scripts/warsztat.sh --lang cs test m5/s01` (`S01EquivalenceTest`, `S01SolutionTest`)
+**Czas:** ~12 min
+
+### W skrócie
+
+**Co robimy:** `TicketPricer` wybiera zniżkę łańcuchem `if` po nazwie programu kina, wymieszanym z walidacją ceny. Wprowadzamy interfejs `IDiscountPolicy` najpierw jako strategię przejściową, przenosimy każdy program do osobnej klasy, a wybór programu trafia do `DiscountPrograms` i konstruktora.
+
+**Zasada:** Strategy zamyka wymienne warianty tego samego obliczenia za wspólnym interfejsem, gdy wariant wybiera się niezależnie od klasy obiektu. Wspólna walidacja zostaje w kontekście, a strategie są bezstanowe. Samo `if` nie uzasadnia wzorca - przy prostym, stabilnym warunku interfejs pogarsza czytelność.
+
+**Efekt:** Nowy program zniżek to nowa strategia (mała klasa) i jeden wpis w `switch`, bez zmiany `TicketPricer`. Zachowanie świadomie się zmienia: wybór w konstruktorze zamraża decyzję, więc nieznany program zgłasza się teraz przed ujemną ceną.
+
+**Różnica względem Javy:** w Javie strategia przejściowa z kroku 1 to lambda `(b, type) -> legacyDiscount(b, type, program)`. Interfejs C# nie przyjmuje lambdy, więc strategią przejściową jest prywatna klasa zagnieżdżona `LegacyPolicy(program)` (primary constructor). Z tego samego powodu nowy program w `S01SolutionTest` to prywatna klasa `BlackFridayDiscount`, a nie lambda. Ruch i wniosek ("kontekst bez zmian") są te same.
+
+### Co widzimy
+
+`TicketPricer.Price(basePrice, ticketType, program)` wybiera algorytm zniżki łańcuchem `if` po nazwie programu skonfigurowanego w kinie (STANDARD, STUDENT_WEEK, PREMIERE). W tej samej metodzie jest walidacja ceny i programu. Algorytm jest wybierany niezależnie od klasy obiektu - to klasyczny kandydat na Strategy.
+
+```csharp
+if (program == "PREMIERE")
+{
+    discount = Money.Zero;
+}
+else if (program == "STUDENT_WEEK" && ticketType == "S")
+{
+    discount = basePrice.Percent(50);
+}
+else if (program == "STANDARD" || program == "STUDENT_WEEK")
+{
+    var percent = ticketType switch { "N" => 0, "S" => 25, ... };
+    discount = basePrice.Percent(percent);
+}
+else
+{
+    throw new ArgumentException("unknown program: " + program);
+}
+```
+
+Klientem jest `PriceBoard.PriceFor(request)` - przez niego woła test. Test równoważności to **tabela decyzji**: każda gałąź, typ nieznany, program nieznany i `null`. Zwróć uwagę na przypadek "PREMIERE nie sprawdza typu" - Start przyjmuje typ `X` bez błędu i refaktoryzacja musi to zachować.
+
+### Krok 1: Extract Interface + strategia przejściowa
+
+**W IDE:** utwórz interfejs `IDiscountPolicy` z metodą `Money Discount(Money basePrice, string ticketType)`. Zaznacz łańcuch `if`, ⌥⌘M, nazwa `LegacyDiscount` (parametry `basePrice`, `ticketType`, `program`, zwracane `Money`). Dopisz prywatną klasę zagnieżdżoną `LegacyPolicy(string program) : IDiscountPolicy`, która deleguje do `LegacyDiscount`, i wywołaj ją w `Price`.
+**Po:**
+
+```csharp
+IDiscountPolicy policy = new LegacyPolicy(program);
+return basePrice.Minus(policy.Discount(basePrice, ticketType));
+...
+private sealed class LegacyPolicy(string program) : IDiscountPolicy
+{
+    public Money Discount(Money basePrice, string ticketType) => LegacyDiscount(basePrice, ticketType, program);
+}
+```
+
+**Uruchom:** `scripts/warsztat.sh --lang cs test m5/s01` - zielone.
+**Co powiedzieć:** pierwszy commit jest mały i odwracalny: kontrakt strategii istnieje, ale deleguje do starego kodu. Nie zaczynamy od tworzenia wszystkich klas wzorca.
+**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s01 0 1`
+
+### Krok 2: przeniesienie gałęzi do strategii
+
+**W IDE:** dla każdej gałęzi osobno: nowa klasa implementująca `IDiscountPolicy` (⌥⏎ na nazwie interfejsu w deklaracji klasy - Implement missing members), ciało skopiowane z gałęzi, test. Kolejno `StandardDiscount`, `PremiereDiscount`, `StudentWeekDiscount` (ta ostatnia deleguje nie-studentów do `StandardDiscount`). Na koniec `LegacyDiscount` zastąp metodą `PolicyFor(program)` ze switch expression.
+**Po:**
+
+```csharp
+return program switch
+{
+    "STANDARD" => new StandardDiscount(),
+    "STUDENT_WEEK" => new StudentWeekDiscount(new StandardDiscount()),
+    "PREMIERE" => new PremiereDiscount(),
+    _ => throw new ArgumentException("unknown program: " + program),
+};
+```
+
+**Uruchom:** test po każdej przeniesionej gałęzi.
+**Co powiedzieć:** walidacja zostaje w kontekście, strategie są bezstanowe. `switch` nie zniknął - przeniósł się w jedno miejsce wyboru, a to jest w porządku.
+**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s01 1 2`
+
+### Krok 3: wybór strategii w korzeniu kompozycji
+
+**W IDE:** przenieś `PolicyFor` (Move F6) do nowej statycznej klasy `DiscountPrograms` jako `ForName`, instancje strategii jako pola `static readonly` (współdzielone). Change Signature (⌘F6) na `TicketPricer`: strategia w konstruktorze, `Price(basePrice, ticketType)` bez programu. Popraw klienta `PriceBoard`.
+**Po:**
+
+```csharp
+return new TicketPricer(DiscountPrograms.ForName(request.Program))
+    .Price(request.Base, request.TicketType);
+```
+
+**Uruchom:** test zielony; `S01SolutionTest` pokazuje nowy program zniżek (`BlackFridayDiscount`) bez zmiany kontekstu.
+**Co powiedzieć:** wybór w konstruktorze **zamraża decyzję** i przesuwa moment błędu: w Start ujemna cena zgłaszała się przed nieznanym programem, teraz jest odwrotnie. To dokumentuje test `ChoosingInConstructorMovesTheUnknownProgramErrorEarlier` - taka zmiana wymaga świadomej zgody, nie jest "za darmo".
+**Snapshot:** `Step3/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s01 2 3`
+
+### Rozwiązanie i uzasadnienie
+
+`Step3`: `TicketPricer` zna tylko `IDiscountPolicy`, a nazwy programów zna `DiscountPrograms`. Nowy program zniżek to nowa strategia i wpis w jednym `switch`. Kontekst trzyma wspólną walidację.
+
+### Pułapki
+
+- `Func<Money, string, Money>` zamiast własnego interfejsu - działa, ale gubi nazwę pojęcia i nazwy parametrów w kontrakcie.
+- Strategia z polami zmienianymi podczas liczenia, a potem współdzielona między wątkami.
+- Porównywanie strategii-delegatów przez `==` - lambda nie ma stabilnej tożsamości, każde wyrażenie może dać nowy obiekt delegata.
+- Zamknięcie punktu rozszerzeń (np. klasa bazowa z konstruktorem `private protected` zamiast interfejsu) - punkt rozszerzeń ma być otwarty.
+
+### Pytanie do sali
+
+Czy przy dwóch programach i jednym `if` Strategy nadal byłaby uzasadniona? Co musiałoby się zmieniać, żeby tak?
+
+## Scena s02. Replace Conditional with Polymorphism - rodzaj seansu
+
+**Temat ze slajdów:** 17.1. Replace Conditional with Polymorphism; 6.8. Typowe pomyłki przy wyborze
+**Namespace:** `Training.Workshop.M5.S02Polymorphism` · **Test:** `scripts/warsztat.sh --lang cs test m5/s02` (`S02EquivalenceTest`, `S02SolutionTest`)
+**Czas:** ~12 min
+
+### W skrócie
+
+**Co robimy:** `Screening` ma pole `_kind` i ten sam `switch` w trzech metodach, a pole `_value` znaczy raz minuty filmu, raz liczbę filmów. Wydzielamy podtyp dla każdego rodzaju seansu po kolei, aż zostaje zamknięta hierarchia rekordów z nazwanymi danymi.
+
+**Zasada:** Replace Conditional with Polymorphism przenosi zachowanie zależne od rodzaju do podtypów, gdy selektor opisuje trwały rodzaj obiektu. Jeśli rodzaj zmienia się w czasie życia obiektu, to State, a jeśli algorytm wybiera klient - Strategy. Zaczynamy od znalezienia wszystkich miejsc tworzenia i deserializacji.
+
+**Efekt:** Switche w zachowaniu znikają, zostaje jeden w `FromRow`, gdzie należy wiedza o konstrukcji, a dane mają jednoznaczne nazwy. Hierarchia jest zamknięta w assembly, ale kompilator C# nie sprawdza wyczerpania `switch` po typach - listę rodzajów pilnuje test.
+
+**Różnica względem Javy:** C# nie ma `sealed ... permits` ani `sealed interface`. W krokach 1-2 hierarchię zamyka konstruktor bazy `private protected` (podklasy tylko w tym assembly), a podklasy są `sealed` z konstruktorami `internal`. Krok 3 to `abstract record Screening` z konstruktorem `private protected` i trzy `sealed record`. Switch po typach bez ramienia `_` daje ostrzeżenie CS8509 (przy `TreatWarningsAsErrors` - błąd), więc w `S02SolutionTest.ClientSwitchIsExhaustiveWithoutDefault` klient ma ramię `_ => throw new UnreachableException(...)`, a sygnał "nowy rodzaj psuje kompilację" zastępuje asercja refleksyjna: nieabstrakcyjne podtypy `Screening` to dokładnie Marathon, Premiere, Regular. Z tego samego powodu (CS8524) switche po enumie `Kind` w Start i kroku 1 mają ramię `_ => throw new ArgumentOutOfRangeException(...)`.
+
+### Co widzimy
+
+`Screening` ma pole `_kind` (Regular, Premiere, Marathon) i ten sam `switch` w trzech metodach: `Label()`, `DurationMinutes()`, `Price()`. Pole `_value` znaczy raz "minuty filmu", raz "liczba filmów". Rodzaj seansu jest **trwałą cechą obiektu** - nie zmienia się w czasie życia, więc to nie State, a klient go nie wybiera, więc to nie Strategy.
+
+```csharp
+public int DurationMinutes()
+{
+    return _kind switch
+    {
+        Kind.Regular => 20 + _value,
+        Kind.Premiere => 30 + _value,
+        Kind.Marathon => _value * 120 + (_value - 1) * 15,
+        _ => throw new ArgumentOutOfRangeException(nameof(_kind)),
+    };
+}
+```
+
+Tworzenie jest w jednym miejscu: `Screening.FromRow(ScreeningRow)` (mapowanie wiersza z bazy). Zawsze najpierw szukamy miejsc tworzenia i deserializacji (Find Usages ⌥F7 na konstruktorze).
+
+### Krok 1: Extract Subclass dla jednej gałęzi
+
+**W IDE:** usuń `sealed` z `Screening`, konstruktor zmień na `private protected`, trzy metody oznacz `virtual`. Utwórz `MarathonScreening : Screening` z polem `_films`, nadpisz trzy metody (⌘N Generate > Overriding Members) i skopiuj do nich gałęzie `Kind.Marathon`. W `FromRow` twórz podklasę dla "MARATHON". W bazie gałęzie `Kind.Marathon` rzucają `InvalidOperationException`.
+**Po:**
+
+```csharp
+"MARATHON" => new MarathonScreening(row.Title, row.Value),
+```
+
+**Uruchom:** `scripts/warsztat.sh --lang cs test m5/s02` - zielone.
+**Co powiedzieć:** jedna gałąź naraz, jeden test kontraktowy dla wszystkich rodzajów. Martwa gałąź rzuca wyjątek zamiast po cichu liczyć bzdury.
+**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s02 0 1`
+
+### Krok 2: pozostałe podklasy, baza abstrakcyjna
+
+**W IDE:** powtórz ruch dla Regular i Premiere. Potem metody bazy jako `abstract`, usuń pole `_kind` i enum `Kind` (Safe Delete ⌘⌦). Jedynym `switch` zostaje `FromRow`.
+**Po:**
+
+```csharp
+public abstract class Screening
+{
+    private protected Screening(string title) { ... }
+    public abstract int DurationMinutes();
+```
+
+**Uruchom:** test zielony.
+**Co powiedzieć:** `switch` w miejscu tworzenia jest właściwy - to jest wiedza o konstrukcji. Znikają za to switche w zachowaniu.
+**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s02 1 2`
+
+### Krok 3: forma C# - abstrakcyjny rekord i zapieczętowane rekordy
+
+**W IDE:** zamień klasę bazową na `abstract record Screening` z konstruktorem `private protected`, statycznym `FromRow` i abstrakcyjną właściwością `Title`, a podklasy na `sealed record` (ręcznie - rekord pozycyjny w miejscu klasy z polami). `_value` znika - każdy rekord ma nazwane dane (`Runtime`, `Films`).
+**Po:**
+
+```csharp
+public sealed record MarathonScreening(string Title, int Films) : Screening
+{
+    public override string Title { get; } = Title;
+    public override int DurationMinutes() { return Films * 120 + (Films - 1) * 15; }
+```
+
+**Uruchom:** test zielony; `S02SolutionTest` zawiera `switch` klienta z ramieniem `_ => throw new UnreachableException(...)` i asercję listy podtypów.
+**Co powiedzieć:** zamknięty zestaw rodzajów daje w Javie kontrolę kompilatora, a w C# tylko częściową: konstruktor `private protected` nie wpuści podtypów spoza assembly, ale nowy rodzaj w tym assembly nie zepsuje kompilacji żadnego `switch` - wyjdzie jako `UnreachableException` w runtime albo jako czerwony test listy rodzajów. Koszt jest więc inny niż w Javie: mniej pilnowania przez kompilator, za to nowy rodzaj nie psuje kodu poza modułem.
+**Snapshot:** `Step3/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s02 2 3`
+
+### Rozwiązanie i uzasadnienie
+
+Trzy rekordy z własnymi danymi i zachowaniem. Znaczenie pól jest jednoznaczne, a test kontraktowy przechodzi przez wszystkie rodzaje, łącznie z nieznanym rodzajem w danych.
+
+### Pułapki
+
+- Pominięcie miejsc tworzenia (ORM, deserializator JSON, fabryka w innym projekcie) - obiekt powstanie jako zły podtyp albo wcale.
+- Wywołanie metody wirtualnej z konstruktora bazy - podklasa widzi pola, których jej konstruktor jeszcze nie ustawił.
+- Składowe `static` nie są polimorficzne - "nadpisanie" stałej w podklasie (`new`) nic nie daje przy wywołaniu przez typ bazowy.
+
+### Pytanie do sali
+
+Seans może zmienić się z "premiery" w "zwykły" po tygodniu. Czy to nadal polimorfizm, czy już State?
+
+## Scena s03. Replace Type Code with Class - format jako typ
+
+**Temat ze slajdów:** 17.2. Replace Type Code with Class
+**Namespace:** `Training.Workshop.M5.S03TypeCode` · **Test:** `scripts/warsztat.sh --lang cs test m5/s03` (`S03EquivalenceTest`, `S03SolutionTest`)
+**Czas:** ~12 min
+
+### W skrócie
+
+**Co robimy:** Format seansu jest surowym `int` z CSV, a wiedza o kodach jest rozsiana po trzech metodach. Zamieniamy liczbę na enum `Format` tuż po odczycie, przenosimy do jego rozszerzeń etykietę, cenę i okulary, a tłumaczenie kodu trwałego zamykamy w mapperze `FormatCodes`.
+
+**Zasada:** Replace Type Code with Class zastępuje prymitywny kod typem, który przejmuje walidację, normalizację i operacje pojęcia - co nie oznacza automatycznie hierarchii podklas. Enum wystarcza dla małego, zamkniętego zestawu, klasa jest lepsza przy aliasach i kodach zewnętrznych. Na granicy trwałości zostaje stabilny kod, nigdy `(int)format` ani `ToString()`.
+
+**Efekt:** Poza mapperem żaden kod nie operuje na liczbach 1, 2, 3, a zapis CSV jest bez zmian. Zmiana formatu trwałego (np. na kody tekstowe) dotknie tylko mappera, ale to osobna decyzja, nie część tej refaktoryzacji.
+
+**Różnica względem Javy:** enum C# nie ma pól ani metod. `Format` to zwykły `enum Format { TwoD, ThreeD, Imax }`, a operacje typu są w bloku członków rozszerzeń C# 14 (`extension(Format format)` w statycznej klasie `FormatExtensions`): w kroku 1 `format.Code` i statyczne `Format.FromCode(int)`, w kroku 2 właściwości `Label`, `BasePrice`, `RequiresGlasses` (jeden `switch` na operację zamiast danych w konstruktorach stałych), w kroku 3 mapowanie w `FormatCodes` na `Dictionary<Format, int>` zamiast `EnumMap`. Odpowiednikiem pułapki `ordinal()` jest `(int)format`. Przypadek "kod nie jest liczbą": `int.Parse` rzuca `FormatException`, które nie dziedziczy po `ArgumentException`; oczekiwany tekst to komunikat .NET `ERROR: The input string 'x' was not in a correct format.`.
+
+### Co widzimy
+
+Format seansu jest surowym `int` (1=2D, 2=3D, 3=IMAX) czytanym z CSV `Diuna;3`. Wiedza o kodzie jest w trzech metodach, a `NeedsGlasses` w ogóle nie waliduje kodu. Plik CSV musi nadal przechowywać `int` - to jest **granica trwałości**.
+
+```csharp
+private static Money BasePrice(int formatCode)
+{
+    return formatCode switch
+    {
+        Format2D => Money.Of("25.00"),
+        ...
+        _ => throw new ArgumentException("unknown format code: " + formatCode),
+    };
+}
+```
+
+### Krok 1: nowy typ i konwersja na granicy
+
+**W IDE:** utwórz `enum Format { TwoD, ThreeD, Imax }` i obok statyczną klasę `FormatExtensions` z blokiem `extension(Format format)`: właściwość `Code` (jawne przypisanie 1, 2, 3) i statyczne `FromCode(int)` rzucające ten sam wyjątek co Start. W `Describe` zamień `int` na `Format` zaraz po odczycie; Change Signature (⌘F6) metod prywatnych na `Format`. Do CSV zapisuj `format.Code`.
+**Po:**
+
+```csharp
+var format = Format.FromCode(int.Parse(parts[1].Trim(), CultureInfo.InvariantCulture));
+```
+
+**Uruchom:** `scripts/warsztat.sh --lang cs test m5/s03` - zielone, łącznie z "nieznany kod" i "kod nie jest liczbą".
+**Co powiedzieć:** enum wystarcza, bo zestaw jest mały i zamknięty. Trwały kod to jawne przypisanie, nigdy `(int)format` ani `ToString()`.
+**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s03 0 1`
+
+### Krok 2: Move Method do typu
+
+**W IDE:** przenieś `Label`, `BasePrice`, `NeedsGlasses` do bloku rozszerzeń jako właściwości `Label`, `BasePrice`, `RequiresGlasses` (ręcznie - wytnij `switch` z `ScreeningCsv` i wklej jako ciało właściwości). Klient pyta obiekt zamiast wykonywać `switch`.
+**Po:**
+
+```csharp
+extension(Format format)
+{
+    public string Label => format switch
+    {
+        Format.TwoD => "2D",
+        Format.ThreeD => "3D",
+        Format.Imax => "IMAX",
+        _ => throw new ArgumentOutOfRangeException(nameof(format)),
+    };
+```
+
+**Uruchom:** test zielony.
+**Co powiedzieć:** nowy typ przejmuje walidację, normalizację i operacje pojęcia. Nie oznacza to automatycznie hierarchii klas. W C# "typ z operacjami" to enum plus członkowie rozszerzeń - wywołanie `format.Label` wygląda jak właściwość typu.
+**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s03 1 2`
+
+### Krok 3: mapper migracyjny na granicy trwałości
+
+**W IDE:** utwórz statyczną klasę `FormatCodes` z `FromCode`/`ToCode` (słownik `Dictionary<Format, int>` jako `IReadOnlyDictionary`), usuń `Code` i `FromCode` z rozszerzeń. `ScreeningCsv` rozmawia z mapperem, reszta kodu wyłącznie z `Format`.
+**Po:**
+
+```csharp
+var format = FormatCodes.FromCode(int.Parse(parts[1].Trim(), CultureInfo.InvariantCulture));
+... + "|csv=" + title + ";" + FormatCodes.ToCode(format);
+```
+
+**Uruchom:** test zielony; `S03SolutionTest.PersistentCodeIsNotTheOrdinal` sprawdza, że `(int)Format.Imax` to 2, a kod trwały to 3.
+**Co powiedzieć:** gdy kiedyś przejdziemy na kody tekstowe ("IMAX" w bazie), zmieni się tylko mapper - może przez pewien czas czytać oba formaty. Zmiana formatu trwałego to osobna decyzja, nie część tej refaktoryzacji.
+**Snapshot:** `Step3/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s03 2 3`
+
+### Rozwiązanie i uzasadnienie
+
+Typ domenowy bez wiedzy o bazie plus mapper na granicy. Enum, bo zestaw jest zamknięty. Klasę z prywatnym konstruktorem i instancjami statycznymi (jak `DeploymentZone` ze slajdów, a w tym porcie `Format` ze sceny s20) wybralibyśmy przy aliasach, kodach zewnętrznych albo gdy lista wartości pochodzi z konfiguracji.
+
+### Pułapki
+
+- Zapis `(int)format` do bazy - dodanie wartości w środku enuma przestawia dane.
+- Zapis `ToString()` (nazwy stałej) - ktoś ją "upiększy" przy Rename i CSV przestanie się wczytywać.
+- Zmiana komunikatu wyjątku przy nieznanym kodzie - to też obserwowalne zachowanie (logi, monitoring).
+
+### Pytanie do sali
+
+Kiedy wybralibyście klasę zamiast enuma dla formatu? Co w domenie kina mogłoby to wymusić?
+
+## Scena s04. Encapsulate Classes with Factory - bilety
+
+**Temat ze slajdów:** 10.1. Factory - publiczna granica tworzenia; 10.2. Factory - intencja, procedura, pułapki
+**Namespace:** `Training.Workshop.M5.S04EncapsulateFactory` · **Test:** `scripts/warsztat.sh --lang cs test m5/s04` (`S04EquivalenceTest`, `S04SolutionTest`)
+**Czas:** ~10 min
+
+### W skrócie
+
+**Co robimy:** `BoxOffice` tworzy `StandardTicket` i `VipTicket` przez `new` i sam zna regułę VIP (rząd 10+). Przekierowujemy tworzenie do metod fabryki `Tickets`, przenosimy tam regułę wyboru biletu, a na końcu chowamy klasy konkretne w fabryce jako typy prywatne.
+
+**Zasada:** Encapsulate Classes with Factory ukrywa klasy konkretne za publiczną granicą tworzenia, gdy klient potrzebuje tylko wspólnego interfejsu. Tworzenie przekierowujemy pojedynczo, a widoczność ograniczamy dopiero na końcu. Nie mylić z Extract Factory Class, która wydziela tworzenie z klasy o innej odpowiedzialności.
+
+**Efekt:** Publiczne zostają tylko `ITicket` i `Tickets`, więc nowy rodzaj biletu nie zmienia żadnego klienta. Ryzykiem zostają miejsca tworzenia, których kompilator nie widzi (refleksja, DI, deserializacja), a w bibliotece publicznej potrzebny byłby etap `[Obsolete]`.
+
+**Różnica względem Javy:** podpakiet `tickets` to namespace `Ticketing` (namespace `...Tickets` kolidowałby z klasą fabryki `Tickets`). W kroku 3 Java odbiera klasom `public` i zostają package-private. W C# `internal` nie ukryłby ich przed `BoxOffice` (to samo assembly), więc klasy konkretne stają się prywatnymi rekordami zagnieżdżonymi w `public static partial class Tickets` - każdy nadal we własnym pliku (`StandardTicket.cs`, `VipTicket.cs`). `S04SolutionTest` sprawdza refleksją `IsNestedPrivate` dla biletów i `IsPublic` dla `Tickets` i `ITicket`.
+
+### Co widzimy
+
+`BoxOffice` (inny namespace niż bilety) tworzy `StandardTicket` i `VipTicket` przez `new` w dwóch miejscach i zna regułę VIP (rząd 10+). Klasy biletów są publiczne, choć klient potrzebuje tylko interfejsu `ITicket`.
+
+```csharp
+tickets.Add(row >= 10
+    ? new VipTicket(title, basePrice, row)
+    : new StandardTicket(title, basePrice, row));
+```
+
+### Krok 1: metody tworzące
+
+**W IDE:** w namespace `Ticketing` utwórz statyczną klasę `Tickets` ze statycznymi `Standard(...)` i `Vip(...)` zwracającymi `ITicket`. Zastąp każde `new` w `BoxOffice` wywołaniem metody tworzącej - Find Usages (⌥F7) na konstruktorach pokaże wszystkie miejsca, a zamianę robimy ręcznie (to dwa miejsca).
+**Po:**
+
+```csharp
+return Tickets.Vip(title, basePrice, row);
+```
+
+**Uruchom:** `scripts/warsztat.sh --lang cs test m5/s04` - zielone.
+**Co powiedzieć:** przekierowujemy tworzenie pojedynczo; klient nie używa już klas konkretnych.
+**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s04 0 1`
+
+### Krok 2: decyzja do fabryki
+
+**W IDE:** przenieś warunek `row >= 10` do `Tickets.ForSeat(title, basePrice, row)`, stałą nazwij `VipFromRow` (Introduce Field jako `const` albo ręcznie). `SellAll` woła `Sell`.
+**Po:**
+
+```csharp
+public ITicket Sell(string title, Money basePrice, int row)
+{
+    return Tickets.ForSeat(title, basePrice, row);
+}
+```
+
+**Uruchom:** test zielony.
+**Co powiedzieć:** reguła "który bilet" jest teraz w jednym miejscu - to właściwy dom dla `if` o konstrukcji.
+**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s04 1 2`
+
+### Krok 3: ograniczenie widoczności
+
+**W IDE:** oznacz `Tickets` jako `public static partial class`, a w plikach `StandardTicket.cs` i `VipTicket.cs` owiń bilety tą samą klasą częściową i zamień je na `private sealed record`. Rider podkreśli każde użycie spoza fabryki - to inwentaryzacja, którą robi za nas kompilator.
+**Po:**
+
+```csharp
+public static partial class Tickets
+{
+    private sealed record VipTicket(string Title, Money Base, int Row) : ITicket { ... }
+}
+```
+
+**Uruchom:** test zielony; `S04SolutionTest` sprawdza widoczność refleksją.
+**Co powiedzieć:** widoczność ograniczamy na końcu, gdy wszyscy klienci już przeszli. W bibliotece publicznej potrzebny byłby etap `[Obsolete]`. W C# `internal` to granica assembly, nie namespace - dlatego ukrywamy typy w samej fabryce.
+**Snapshot:** `Step3/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s04 2 3`
+
+### Rozwiązanie i uzasadnienie
+
+Publiczne są tylko `ITicket` i `Tickets`. Nowy rodzaj biletu (np. miejsce dla osoby na wózku) nie zmienia żadnego klienta.
+
+### Pułapki
+
+- Zapomniane miejsca tworzenia: refleksja, kontener DI, deserializacja JSON wymagająca publicznego konstruktora.
+- Fabryka rosnąca w globalny rejestr wszystkiego ("ServiceLocator").
+- Fabryka tworząca warianty z wyprzedzeniem - kosztowne efekty uruchamiane wcześniej niż w starej gałęzi.
+
+### Pytanie do sali
+
+Co się zmienia, jeśli klasy biletów są używane przez ORM (np. Entity Framework)?
+
+## Scena s05. Extract Factory Class - tworzenie rezerwacji
+
+**Temat ze slajdów:** 10.2. Factory - intencja, procedura, pułapki (Extract Factory Class); 10.3. Fabryka jako strażnik spójności
+**Namespace:** `Training.Workshop.M5.S05ExtractFactory` · **Test:** `scripts/warsztat.sh --lang cs test m5/s05` (`S05EquivalenceTest`, `S05SolutionTest`)
+**Czas:** ~10 min
+
+### W skrócie
+
+**Co robimy:** `ReservationService` pilnuje zajętości miejsc, ale też buduje rezerwacje (numer, opłata online, termin ważności), i to w dwóch kopiach. Wyciągamy tworzenie do metody, potem do klasy `ReservationFactory`, a na końcu przekazujemy fabrykę do serwisu przez konstruktor.
+
+**Zasada:** Extract Factory Class wydziela wiedzę o tworzeniu obiektów z klasy, która ma inną główną odpowiedzialność. Fabryka to zwykła zależność wstrzykiwana konstruktorem, a nie globalny rejestr ani zestaw metod statycznych. Kolejność efektów przy tworzeniu (tu: numer pobierany przed walidacją kanału) jest częścią kontraktu.
+
+**Efekt:** Fabryka wie, jak powstaje rezerwacja, serwis wie, kiedy wolno ją utworzyć, i każdą da się testować osobno. "Spalanie" numeru przy błędnym kanale zostaje celowo - jego naprawa byłaby zmianą zachowania.
+
+**Różnica względem Javy:** `Clock` to w porcie `TimeProvider`, czas lokalny `_clock.GetLocalNow().DateTime` (w testach `FakeTimeProvider` w strefie UTC). W oczekiwanym wyniku scenariusza nazwy wyjątków są z .NET: `InvalidOperationException: seat taken: A1` i `ArgumentException: unknown channel: ...` zamiast `IllegalStateException`/`IllegalArgumentException`.
+
+### Co widzimy
+
+`ReservationService` pilnuje zajętości miejsc, ale też buduje rezerwację: numer z licznika, opłata online 2.00 za bilet, termin ważności 15 minut. Ta wiedza jest skopiowana w `Reserve` i `ReserveGroup`. Subtelność: numer jest pobierany **przed** walidacją kanału - błędny kanał "spala" numer.
+
+```csharp
+_sequence++;
+var id = "R" + _sequence;
+if (channel != "ONLINE" && channel != "BOX_OFFICE")
+{
+    throw new ArgumentException("unknown channel: " + channel);
+}
+```
+
+Test to scenariusz kilku rezerwacji na jednym serwisie: zajęte miejsce nie zużywa numeru, nieznany kanał zużywa.
+
+### Krok 1: Extract Method dla tworzenia
+
+**W IDE:** w `Reserve` zaznacz blok od `_sequence++` do `new Reservation(...)`, ⌥⌘M, nazwa `NewReservation`. W `ReserveGroup` zastąp duplikat wywołaniem `NewReservation("ONLINE", email, seats)`. Pętlę zajętości wyciągnij do `RequireFree`.
+**Po:**
+
+```csharp
+RequireFree(seats);
+var reservation = NewReservation(channel, email, seats);
+_takenSeats.UnionWith(seats);
+```
+
+**Uruchom:** `scripts/warsztat.sh --lang cs test m5/s05` - zielone.
+**Co powiedzieć:** kolejność efektów zostaje: najpierw sprawdzenie miejsc, potem numer, potem walidacja kanału. Gdybyśmy przy okazji "poprawili" kolejność, test to wychwyci.
+**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s05 0 1`
+
+### Krok 2: Extract Class - ReservationFactory
+
+**W IDE:** Refactor This (⌃T) > Extract Class dla `NewReservation` razem z polami `_clock` i `_sequence` (albo Move F6 do nowej klasy); w fabryce metoda nazywa się `Create`. Serwis tworzy fabrykę w swoim konstruktorze - sygnatura konstruktora bez zmian.
+**Po:**
+
+```csharp
+public ReservationService(TimeProvider clock)
+{
+    _factory = new ReservationFactory(clock);
+}
+```
+
+**Uruchom:** test zielony.
+**Co powiedzieć:** klienci serwisu niczego nie zauważyli. Serwis ma jedną odpowiedzialność: dostępność miejsc.
+**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s05 1 2`
+
+### Krok 3: fabryka jako zależność
+
+**W IDE:** dodaj konstruktor `ReservationService(ReservationFactory factory)`; dotychczasowy `ReservationService(TimeProvider)` zamień na delegację `: this(new ReservationFactory(clock))`, żeby nie ruszać klientów.
+**Po:**
+
+```csharp
+public ReservationService(TimeProvider clock)
+    : this(new ReservationFactory(clock))
+{
+}
+
+public ReservationService(ReservationFactory factory) { ... }
+```
+
+**Uruchom:** test zielony; `S05SolutionTest` testuje fabrykę osobno i pokazuje współdzieloną numerację.
+**Co powiedzieć:** fabryka to zwykła zależność wstrzykiwana konstruktorem, nie globalny rejestr. Dwie usługi z jedną fabryką dzielą numerację - to decyzja korzenia kompozycji.
+**Snapshot:** `Step3/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s05 2 3`
+
+### Rozwiązanie i uzasadnienie
+
+`ReservationFactory` wie, jak powstaje rezerwacja (numer, opłata, termin), `ReservationService` wie, kiedy wolno ją utworzyć. Każdą da się testować osobno.
+
+### Pułapki
+
+- "Naprawienie" spalania numerów w ramach refaktoryzacji - to zmiana zachowania (luki w numeracji mogą być wymagane przez księgowość albo przez nią zabronione).
+- Zegar pobierany przez `DateTime.Now` bez `TimeProvider` - fabryka staje się nietestowalna.
+- Fabryka ze statycznymi metodami i statycznym licznikiem - wraca globalny stan.
+
+### Pytanie do sali
+
+Czy numeracja rezerwacji powinna należeć do fabryki, czy do repozytorium? Co przemawia za każdą opcją?
+
+## Scena s06. Encapsulate Composite with Builder - repertuar dnia
+
+**Temat ze slajdów:** 13.1. Encapsulate Composite with Builder; 13.2. Builder - kiedy i ryzyka
+**Namespace:** `Training.Workshop.M5.S06Builder` · **Test:** `scripts/warsztat.sh --lang cs test m5/s06` (`S06EquivalenceTest`, `S06SolutionTest`)
+**Czas:** ~12 min
+
+### W skrócie
+
+**Co robimy:** `WeekendPlanner` składa drzewo dzień - sala - seans ręcznie z `new` i `Add`, a węzły są mutowalne. Wprowadzamy `ScheduleBuilder`: najpierw z bieżącą salą, potem z niemutowalnymi rekordami i jednorazowym `Build()`, na końcu z zagnieżdżoną lambdą dla każdej sali.
+
+**Zasada:** Encapsulate Composite with Builder ukrywa budowę drzewa za API, które mówi "co" zbudować, a nie "jak". Jest uzasadniony, gdy budowa jest wieloetapowa i ma własne niezmienniki (kolejność, pusta grupa, unikalność nazw). Builder jest jednorazowy, a lambda gałęzi wykonuje się synchronicznie dokładnie raz.
+
+**Efekt:** Wcięcia kodu planera odpowiadają poziomom repertuaru, a gotowego drzewa nie da się zmodyfikować. Unikalność nazw sal to świadomie dodany nowy niezmiennik - Start pozwalał na duplikaty, więc dla błędnych danych zachowanie się zmienia.
+
+**Różnica względem Javy:** `LocalDate`/`LocalTime` to `DateOnly`/`TimeOnly`, a dzień tygodnia w wydruku to nazwa enuma .NET (`2026-10-03 Saturday` zamiast `SATURDAY`). W kroku 2 `LinkedHashMap` to `OrderedDictionary<string, List<Screening>>` (.NET 9+), a niemutowalność rekordów daje kopia `ToList().AsReadOnly()` w inicjatorze właściwości (`S06SolutionTest.BuiltTreeIsImmutable` rzutuje listy na `ICollection<T>` i oczekuje `NotSupportedException` przy `Clear()`). W kroku 3 `Consumer<HallBuilder>` to `Action<HallBuilder>`, a konstruktor `HallBuilder` jest `internal`, bo klasa zewnętrzna C# nie widzi prywatnych składowych klasy zagnieżdżonej.
+
+### Co widzimy
+
+`WeekendPlanner.Plan(date)` buduje drzewo dzień - sala - seans ręcznie: dużo `new` i `Add`, a o `day.Add(hall2)` łatwo zapomnieć. Kod nie przypomina kształtu repertuaru, a węzły są mutowalne.
+
+```csharp
+var hall2 = new Hall("Sala 2");
+if (weekend)
+{
+    hall2.Add(new Screening("Kraina Lodu", new TimeOnly(10, 0)));
+}
+hall2.Add(new Screening("Amator", new TimeOnly(17, 30)));
+day.Add(hall2);
+```
+
+### Krok 1: klasyczny Builder z bieżącym węzłem
+
+**W IDE:** utwórz `ScheduleBuilder` z metodami `Hall(name)`, `Screening(title, hour, minute)` i `Build()`; builder pamięta bieżącą salę. Przepisz planera na wywołania buildera. Drzewo bez zmian.
+**Po:**
+
+```csharp
+var builder = new ScheduleBuilder(date)
+    .Hall("Sala 1")
+    .Screening("Diuna", 18, 0)
+    .Screening("Diuna", 21, 0)
+    .Hall("Sala 2");
+```
+
+**Uruchom:** `scripts/warsztat.sh --lang cs test m5/s06` - zielone (sobota i piątek z pustą salą VIP).
+**Co powiedzieć:** klient mówi "co" zbudować. Seans przed salą to teraz jawny błąd (`screening without hall`).
+**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s06 0 1`
+
+### Krok 2: niemutowalne drzewo, builder jednorazowy
+
+**W IDE:** węzły zamień na rekordy z kopią listy w inicjatorze właściwości (usuń `Add`). Builder zbiera dane w `OrderedDictionary` i tworzy rekordy w `Build()`; drugie `Build()` rzuca `InvalidOperationException`.
+**Po:**
+
+```csharp
+public sealed record Hall(string Name, IReadOnlyList<Screening> Screenings)
+{
+    public IReadOnlyList<Screening> Screenings { get; } = Screenings.ToList().AsReadOnly();
+```
+
+**Uruchom:** test zielony; `S06SolutionTest` sprawdza jednorazowość i niemutowalność.
+**Co powiedzieć:** gdy builder jest jedyną drogą budowy, drzewo może stać się niemutowalne. Unikalność nazw sal to **nowy niezmiennik** - Start pozwalał na duplikaty. Taką regułę zatwierdzamy świadomie, bo zmienia zachowanie dla błędnych danych.
+**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s06 1 2`
+
+### Krok 3: zagnieżdżony builder z lambdą
+
+**W IDE:** `Hall(name, Action<HallBuilder>)` zamiast "bieżącej sali"; zagnieżdżona klasa `HallBuilder` z `Screening(...)`, statyczne wejście `ScheduleBuilder.Day(date)`. Przepisz planera.
+**Po:**
+
+```csharp
+return ScheduleBuilder.Day(date)
+    .Hall("Sala 1", hall => hall
+        .Screening("Diuna", 18, 0)
+        .Screening("Diuna", 21, 0))
+    .Hall("Sala 2", hall => { ... })
+    .Build();
+```
+
+**Uruchom:** test zielony.
+**Co powiedzieć:** wcięcia kodu odpowiadają poziomom drzewa, a ukryty stan "bieżąca sala" zniknął. Kontrakt lambdy: synchroniczna, wywołana dokładnie raz.
+**Snapshot:** `Step3/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s06 2 3`
+
+### Rozwiązanie i uzasadnienie
+
+Builder jest uzasadniony, bo budowa drzewa jest wieloetapowa i ma niezmienniki (kolejność sal, pusta sala dozwolona, unikalne nazwy). Wynik jest niemutowalny.
+
+### Pułapki
+
+- Builder wielokrotnego użytku, którego `Build()` zwraca wewnętrzną listę - kolejne wywołania zmieniają już zwrócone drzewo.
+- Lambda zapamiętana i wywołana później (odroczenie) - zmienia kolejność i wynik.
+- Współdzielone poddrzewo (DAG) - liczy się tyle razy, ile ścieżek do niego prowadzi.
+
+### Pytanie do sali
+
+Czy pusta sala w repertuarze to poprawny stan, czy błąd? Kto powinien o tym zdecydować - builder czy model?
+
+## Scena s07. Move Embellishment to Decorator - dodatki do biletu
+
+**Temat ze slajdów:** 8.1. Move Embellishment to Decorator; 8.2. Decorator - wyjątki, migracja, przezroczystość
+**Namespace:** `Training.Workshop.M5.S07Decorator` · **Test:** `scripts/warsztat.sh --lang cs test m5/s07` (`S07EquivalenceTest`, `S07SolutionTest`)
+**Czas:** ~12 min
+
+### W skrócie
+
+**Co robimy:** `Ticket` ma flagi `_vip`, `_glasses`, `_insurance` i te same `if` w `Price()` i `Description()`. Wydzielamy interfejs `IPricedTicket` i przenosimy każdy dodatek do dekoratora, zaczynając od ubezpieczenia, a łańcuch składamy w `TicketAssembler`.
+
+**Zasada:** Move Embellishment to Decorator przenosi opcjonalny dodatek wokół rdzenia do obiektu, który ma ten sam kontrakt i deleguje do środka. Kolejność owijania jest zachowaniem, więc składa się ją w jednym miejscu. Dekorator nie jest przezroczysty dla `is`, `GetType()`, tożsamości i `Equals`.
+
+**Efekt:** Rdzeń biletu nie ma flag, a nowy dodatek to nowa klasa i linia w assemblerze. Kosztem jest utrata pytania o typ: kto chce wiedzieć, czy bilet jest VIP, potrzebuje osobnego API zamiast `is VipSeat`.
+
+**Różnica względem Javy:** merytorycznie brak. Interfejs to `IPricedTicket`, dekoratory i rdzeń z kroku 3 to `sealed record`, `instanceof` to `is` (nazwa testu `InstanceofSeesOnlyTheOutermostDecorator` zachowana z Javy).
+
+### Co widzimy
+
+`Ticket` ma flagi `_vip`, `_glasses`, `_insurance` i te same `if` w `Price()` i `Description()`. Większość biletów nie ma żadnego dodatku, a każdy nowy dodatek to kolejne pole. Opis ma ustaloną kolejność: VIP, okulary, ubezpieczenie.
+
+```csharp
+return _title + " " + _format
+    + (_vip ? " +VIP" : "")
+    + (_glasses ? " +okulary 3D" : "")
+    + (_insurance ? " +ubezpieczenie" : "");
+```
+
+### Krok 1: Extract Interface
+
+**W IDE:** Refactor This (⌃T) > Extract Interface na `Ticket` - `IPricedTicket` z `Price()` i `Description()`. `TicketAssembler.Assemble` zwraca interfejs.
+**Po:**
+
+```csharp
+public IPricedTicket Assemble(TicketOrder order)
+{
+    return new Ticket(order);
+}
+```
+
+**Uruchom:** `scripts/warsztat.sh --lang cs test m5/s07` - zielone.
+**Co powiedzieć:** wąski kontrakt, który spełnią i rdzeń, i dekoratory. Składanie w jednym miejscu (assembler).
+**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s07 0 1`
+
+### Krok 2: pierwszy dodatek jako dekorator
+
+**W IDE:** rekord `Insurance(IPricedTicket Inner) : IPricedTicket` dodający 4.00 i " +ubezpieczenie". Usuń flagę z `Ticket` (Safe Delete ⌘⌦), w assemblerze owiń, gdy `order.Insurance`.
+**Po:**
+
+```csharp
+IPricedTicket ticket = new Ticket(order);
+if (order.Insurance)
+{
+    ticket = new Insurance(ticket);
+}
+```
+
+**Uruchom:** test zielony.
+**Co powiedzieć:** zaczynamy od ubezpieczenia, bo w opisie jest **ostatnie** - dekorator dopisuje się na końcu. Gdybyśmy zaczęli od VIP, opis zmieniłby kolejność i test "wszystkie dodatki" by to złapał. Kolejność dekoratorów jest kontraktem.
+**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s07 1 2`
+
+### Krok 3: pozostałe dodatki, czysty rdzeń
+
+**W IDE:** `VipSeat` i `Glasses3D` jako dekoratory, rdzeń jako rekord `Ticket(Title, Format, Base)`. Decyzja "czy okulary potrzebne" (3D i brak własnych) zostaje w assemblerze.
+**Po:**
+
+```csharp
+if (order.Vip) { ticket = new VipSeat(ticket); }
+if (order.Format == "3D" && !order.OwnGlasses) { ticket = new Glasses3D(ticket); }
+if (order.Insurance) { ticket = new Insurance(ticket); }
+```
+
+**Uruchom:** test zielony; `S07SolutionTest` dokumentuje granice przezroczystości.
+**Co powiedzieć:** `ticket is VipSeat` zwraca `false`, gdy VIP jest owinięty ubezpieczeniem. `Equals` rdzenia i udekorowanego biletu też się różni (rekordy porównują typ i pola). Kto pyta o typ albo tożsamość, potrzebuje innego API (np. `Features`).
+**Snapshot:** `Step3/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s07 2 3`
+
+### Rozwiązanie i uzasadnienie
+
+Rdzeń bez flag, trzy dekoratory z tym samym kontraktem, łańcuch składany w jednej fabryce w ustalonej kolejności.
+
+### Pułapki
+
+- Ślepe delegowanie `Equals` do `Inner` - łamie symetrię (`core.Equals(vip)` różne od `vip.Equals(core)`).
+- Kod sprawdzający `GetType()`, `is`, robiący `lock` na obiekcie albo serializujący go - dekorator nie jest przezroczysty.
+- Dekorator z efektem ubocznym (audyt), którego błąd zasłania błąd rdzenia.
+
+### Pytanie do sali
+
+Kasa chce wydrukować "Miejsce VIP" na bilecie. Jak to zrobić, nie używając `is VipSeat`?
+
+## Scena s08. Replace State-Altering Conditionals with State - status rezerwacji
+
+**Temat ze slajdów:** 6.5. State - tabela przejść przed hierarchią; 6.6. State - kolejność przejścia i efektów
+**Namespace:** `Training.Workshop.M5.S08State` · **Test:** `scripts/warsztat.sh --lang cs test m5/s08` (`S08EquivalenceTest`)
+**Czas:** ~15 min
+
+### W skrócie
+
+**Co robimy:** `Reservation` w każdej operacji sprawdza i zmienia pole `_status`, więc reguły przejść są rozsiane po metodach. Zaczynamy od tabeli przejść w teście, zastępujemy pole obiektem stanu i przenosimy `Pay`, `Use`, `Expire`, `Cancel` do stanów po jednej akcji.
+
+**Zasada:** State pasuje, gdy zachowanie operacji zależy od bieżącego stanu obiektu i zmienia się razem z przejściami. Kontekst deleguje do obiektu stanu, a niedozwolone przejście domyślnie rzuca wyjątek - pusta metoda po cichu zmieniłaby zachowanie. Od Strategy różni się tym, że stan zmienia się w czasie życia obiektu, zwykle na skutek jego własnych operacji.
+
+**Efekt:** Tabelę przejść da się przeczytać z kodu stanów, a `Reservation` tylko deleguje i przechowuje dane. Kolejność "obciążenie - zmiana stanu - efekt" zostaje jak w Start, więc awaria bramki nadal zostawia rezerwację w stanie New.
+
+**Różnica względem Javy:** Java używa prywatnego `sealed interface ReservationState` i stanów jako enumów (`NewState.INSTANCE`, `ClosedState.USED/EXPIRED/CANCELLED`). C# nie ma `sealed interface`, a enum nie ma metod, więc stan to prywatny interfejs zagnieżdżony `IReservationState`, a stany to prywatne klasy `sealed` z instancjami `static readonly` (`NewState.Instance`, `PaidState.Instance`, jedna klasa `ClosedState(Status)` z trzema instancjami `Used`, `Expired`, `Cancelled`). Domyślne metody Javy to domyślne implementacje metod interfejsu (C# 8+) - są widoczne tylko przez typ interfejsu, dlatego pole `_state` ma typ `IReservationState`. Statusy są w PascalCase, więc komunikaty brzmią np. `cannot pay in New`.
+
+### Co widzimy
+
+`Reservation` ma pole `_status` i w każdej operacji (`Pay`, `Use`, `Expire`, `Cancel`) warunki sprawdzające i zmieniające status. Reguły przejść New -> Paid -> Used, New -> Expired, New/Paid -> Cancelled są rozsiane po metodach. `Pay` najpierw obciąża bramkę, potem zmienia stan: gdy bramka rzuci wyjątek, rezerwacja zostaje New.
+
+```csharp
+public void Cancel()
+{
+    if (_status == Status.New)
+    {
+        _status = Status.Cancelled;
+        _effects.Add("seats released");
+    }
+    else if (_status == Status.Paid)
+    {
+        _status = Status.Cancelled;
+        _effects.Add("refund");
+        _effects.Add("seats released");
+    }
+    else
+    {
+        throw new InvalidOperationException("cannot cancel in " + _status);
+    }
+}
+```
+
+**Najpierw tabela przejść.** `S08EquivalenceTest` zawiera tabelę 5 stanów x 4 akcje (20 wierszy) plus przypadek awarii bramki. Każdy wiersz sprawdza status końcowy, efekty w kolejności i komunikat wyjątku. Pokaż ją na rzutniku przed pierwszym ruchem.
+
+### Krok 1: obiekt stanu zamiast pola status
+
+**W IDE:** utwórz prywatny interfejs zagnieżdżony `IReservationState` z właściwością `Status` i stany jako prywatne klasy z instancjami `static readonly` (`NewState.Instance`, `PaidState.Instance`, `ClosedState.Used/Expired/Cancelled`). Pole `_status` zastąp polem `_state`; warunki porównują `_state.Status`. Efekty i zmianę stanu wyciągnij do `Charge()`, `MoveTo(...)`, `Record(...)` (⌥⌘M).
+**Po:**
+
+```csharp
+private IReservationState _state = NewState.Instance;
+...
+Charge();
+MoveTo(PaidState.Instance);
+Record("charged");
+```
+
+**Uruchom:** `scripts/warsztat.sh --lang cs test m5/s08` - 84 testy zielone.
+**Co powiedzieć:** stany końcowe to jedna klasa `ClosedState` z trzema instancjami - wszystkie zachowują się tak samo (każde przejście jest błędem).
+**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s08 0 1`
+
+### Krok 2: Pay i Use do stanów
+
+**W IDE:** w interfejsie stanu dodaj domyślne implementacje `void Pay(Reservation reservation) => throw Invalid("pay");` (i `Use`) oraz prywatną metodę interfejsu `Invalid(action)`. W `NewState` zaimplementuj `Pay`, w `PaidState` - `Use`, przenosząc ciała gałęzi. Kontekst deleguje: `_state.Pay(this)`.
+**Po:**
+
+```csharp
+public void Pay(Reservation reservation)
+{
+    reservation.Charge();
+    reservation.MoveTo(PaidState.Instance);
+    reservation.Record("charged");
+}
+```
+
+**Uruchom:** test zielony.
+**Co powiedzieć:** domyślna metoda **rzuca wyjątek**, nie jest pusta - pusta metoda po cichu zmieniłaby zachowanie niedozwolonych przejść. Kolejność "obciążenie - zmiana stanu - efekt" zostaje dokładnie jak w Start; test awarii bramki to pilnuje. Stany są zagnieżdżone w `Reservation`, więc widzą jej prywatne `Charge`, `MoveTo`, `Record` - interfejs publiczny kontekstu się nie zmienia.
+**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s08 1 2`
+
+### Krok 3: Expire i Cancel do stanów
+
+**W IDE:** ten sam ruch dla `Expire` i `Cancel`. Warunek `if/else if` w `Cancel` rozkłada się na dwa stany: New (zwolnienie miejsc) i Paid (zwrot i zwolnienie).
+**Po:**
+
+```csharp
+public void Cancel()
+{
+    _state.Cancel(this);
+}
+```
+
+**Uruchom:** test zielony.
+**Co powiedzieć:** tabelę przejść da się teraz przeczytać z kodu stanów. Stany są bezstanowymi instancjami współdzielonymi, dane zostają w `Reservation`.
+**Snapshot:** `Step3/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s08 2 3`
+
+### Rozwiązanie i uzasadnienie
+
+Kontekst tylko deleguje. Każdy stan implementuje wyłącznie dozwolone przejścia, reszta rzuca wyjątek z tym samym komunikatem co Start, a stan po błędzie się nie zmienia.
+
+### Pułapki
+
+- Zmiana stanu przed efektem zewnętrznym (albo odwrotnie) "przy okazji" - to inna semantyka przy awarii.
+- `volatile` na polu stanu nie daje atomowości przejścia przy współbieżnych `Pay` i `Cancel`.
+- Przy dwóch stanach i jednej akcji `switch` bywa czytelniejszy niż hierarchia.
+- Kilka niezależnych osi stanu (płatność, obecność) w jednej hierarchii - eksplozja klas.
+
+### Pytanie do sali
+
+Czym różni się State od Strategy, skoro oba to "obiekt, któremu delegujemy"?
+
+## Scena s09. Replace Hard-coded Notifications with Observer - po opłaceniu
+
+**Temat ze slajdów:** 14.1. Replace Hard-coded Notifications with Observer; 14.2. Observer - kontrakt i migracja
+**Namespace:** `Training.Workshop.M5.S09Observer` · **Test:** `scripts/warsztat.sh --lang cs test m5/s09` (`S09EquivalenceTest`, `S09SolutionTest`)
+**Czas:** ~15 min
+
+### W skrócie
+
+**Co robimy:** `PaymentService.Confirm` po zapisaniu opłaty na sztywno wysyła mail, SMS i nalicza punkty lojalnościowe. Wprowadzamy zdarzenie `ReservationPaid`, zamieniamy trzech odbiorców na implementacje `IPaymentListener`, a subskrypcje przenosimy do korzenia kompozycji `PaymentServices`.
+
+**Zasada:** Observer odwraca zależność: publikujący zna tylko interfejs odbiorcy, a odbiorcy są do niego rejestrowani z zewnątrz. Kontrakt musi być jawny - synchroniczność, kolejność, polityka błędów (tu fail-fast) i wyrejestrowanie. Dodanie nowych odbiorców to rozszerzenie zachowania, a nie część refaktoryzacji.
+
+**Efekt:** Serwis nie zna `IMailer`, `ISmsGateway` ani `ILoyaltyProgram`, a odbiorcy są wołani w kolejności subskrypcji jak w Start. Zostaje ta sama semantyka błędów: awaria SMS przerywa naliczanie punktów, a jej zmiana byłaby osobną decyzją.
+
+**Różnica względem Javy:** w kroku 3 `Subscription extends AutoCloseable` to `ISubscription : IDisposable` (idempotentne `Dispose()` przez `Interlocked.CompareExchange`), a `CopyOnWriteArrayList` to pole `ImmutableList<Registration>` aktualizowane `ImmutableInterlocked.Update` - iteracja idzie po migawce, jak w Javie. Porty mają prefiks `I` (`IMailer`, `ISmsGateway`, `ILoyaltyProgram`). W testach lambdy Javy zastąpiły małe klasy: jedna klasa `Ports` implementuje trzy porty, a odbiorcy w `S09SolutionTest` to klasa `Listener(Action<ReservationPaid>)`. Parametr `event` nazywa się `paidEvent` (`event` to słowo kluczowe C#).
+
+### Co widzimy
+
+Serwis powstaje w korzeniu kompozycji `PaymentServices.Standard(mailer, sms, loyalty)`. `PaymentService.Confirm` zapisuje opłatę, a potem na sztywno wysyła mail, SMS i nalicza punkty lojalnościowe (1 pkt za pełne 10.00). Semantyka do zachowania: **kolejność** mail - SMS - punkty i **fail-fast**: wyjątek w SMS przerywa, punkty nie są naliczone, ale opłata jest już zapisana.
+
+```csharp
+_paid.Add(payment.ReservationId);
+_mailer.Send(payment.Email, "Potwierdzenie platnosci " + ...);
+_sms.Send(payment.Phone, "Oplacono " + payment.ReservationId);
+_loyalty.AddPoints(payment.Email, (int)payment.Amount.Amount / 10);
+```
+
+Test używa fake'ów zapisujących do wspólnego logu i sprawdza kolejność oraz awarie w mailu i SMS.
+
+### Krok 1: zdarzenie i Extract Method
+
+**W IDE:** utwórz rekord `ReservationPaid`. Zaznacz trzy powiadomienia, ⌥⌘M `NotifyPaid(paidEvent)`.
+**Po:**
+
+```csharp
+_paid.Add(payment.ReservationId);
+NotifyPaid(new ReservationPaid(
+    payment.ReservationId, payment.Email, payment.Phone, payment.Amount));
+```
+
+**Uruchom:** `scripts/warsztat.sh --lang cs test m5/s09` - zielone.
+**Co powiedzieć:** zdarzenie to fakt z danymi potrzebnymi odbiorcom. Jeszcze nic nie jest dynamiczne.
+**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s09 0 1`
+
+### Krok 2: odbiorcy jako obserwatorzy
+
+**W IDE:** interfejs `IPaymentListener.OnPaid(paidEvent)` i trzy rekordy: `MailConfirmation`, `SmsConfirmation`, `LoyaltyPoints` (każdy z ciałem jednej linii z `NotifyPaid`). Serwis tworzy listę (wyrażenie kolekcji) w konstruktorze w starej kolejności; `NotifyPaid` to pętla **bez** `try/catch`.
+**Po:**
+
+```csharp
+foreach (var listener in _listeners)
+{
+    listener.OnPaid(paidEvent);
+}
+```
+
+**Uruchom:** test zielony.
+**Co powiedzieć:** konstruktor bez zmian, relacja wciąż "ci sami trzej odbiorcy" - to nadal czysta refaktoryzacja.
+**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s09 1 2`
+
+### Krok 3: Subscribe i korzeń kompozycji
+
+**W IDE:** `Subscribe(listener)` zwracające `ISubscription` (idempotentne `Dispose()`), pole `ImmutableList<Registration>` rejestracji. Konstruktor serwisu staje się bezargumentowy, a subskrypcje przenosimy do istniejącego `PaymentServices.Standard(...)`.
+**Po:**
+
+```csharp
+var service = new PaymentService();
+service.Subscribe(new MailConfirmation(mailer));
+service.Subscribe(new SmsConfirmation(sms));
+service.Subscribe(new LoyaltyPoints(loyalty));
+```
+
+**Uruchom:** test zielony; `S09SolutionTest` pokazuje podwójną subskrypcję, idempotentne wyrejestrowanie i nowego odbiorcę.
+**Co powiedzieć:** `Registration` jest klasą, nie rekordem - rekord z tym samym odbiorcą byłby równy (`Equals`) i `Remove` usunąłby cudzą rejestrację. Dodanie czwartego odbiorcy (push) to już **rozszerzenie** zachowania, zatwierdzane osobno.
+**Snapshot:** `Step3/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s09 2 3`
+
+### Rozwiązanie i uzasadnienie
+
+Serwis zna tylko `IPaymentListener`. Kontrakt jest jawny: synchronicznie, w kolejności subskrypcji, fail-fast, iteracja po migawce.
+
+### Pułapki
+
+- "Przy okazji" dodany `try/catch` wokół każdego odbiorcy - zmienia politykę błędów (punkty naliczone mimo awarii SMS).
+- Asynchroniczne powiadamianie (`Task.Run`, kolejka) - inny wątek, inna transakcja, inna kolejność.
+- Odbiorca usunięty w trakcie publikacji może być jeszcze wywołany w bieżącej (migawka).
+- Subskrypcja bez `Dispose()` trzyma przy życiu graf obiektów (klasyczny wyciek przez zdarzenia w .NET).
+
+### Pytanie do sali
+
+Czy błąd wysyłki SMS powinien przerywać naliczanie punktów? Kto o tym decyduje i gdzie to zapisać?
+
+## Scena s10. Replace Implicit Tree with Composite - zestawy baru
+
+**Temat ze slajdów:** 17.3. Replace Implicit Tree with Composite; 5.2. Test równoważności przed i po
+**Namespace:** `Training.Workshop.M5.S10ImplicitTree` · **Test:** `scripts/warsztat.sh --lang cs test m5/s10` (`S10DifferentialTest`, `S10EquivalenceTest`)
+**Czas:** ~15 min
+
+### W skrócie
+
+**Co robimy:** Zestaw combo to zagnieżdżona lista, w której pierwszy element jest nazwą, a `BarMenu` powtarza testy `is` i rzutowania. Budujemy obok jawny Composite (`Product`, `Combo`) z mapperem ze starego formatu, a potem przenosimy na niego `Price` i `Render` po jednej operacji.
+
+**Zasada:** Replace Implicit Tree with Composite zamienia drzewo ukryte w konwencji danych na jawne typy liścia i węzła. Mapper tłumaczy stary format i zgłasza błąd dla danych, których nie da się wiernie odwzorować. Stara i nowa reprezentacja żyją obok siebie, a test różnicowy potwierdza zgodność, ale nie zastępuje niezależnych oczekiwań.
+
+**Efekt:** `BarMenu` nie ma testów `is` ani rzutowań, a komunikaty błędów zostają jak w Start. Format trwały (zagnieżdżone listy) się nie zmienia - jego zmiana to osobna decyzja z osobnym testem.
+
+**Różnica względem Javy:** stary format `List<?>` to `IReadOnlyList<object>` (w testach tablice `object[]` i wyrażenia kolekcji), `instanceof` i `switch` po typie to `is` i switch expression. `MenuItem` to interfejs `IMenuItem` z właściwościami `Name` i `Price` - rekord `Product(string Name, Money Price)` spełnia go wprost, a `Combo.Price` to właściwość licząca sumę. Interfejs nie jest zamknięty (C# nie ma `sealed interface`). `S10DifferentialTest` używa `new Random(42)` z .NET, które daje inne drzewa niż `java.util.Random(42)` - test jest różnicowy (Start kontra nowy kod), więc to bez znaczenia.
+
+### Co widzimy
+
+Zestaw combo to zagnieżdżona lista: pierwszy element to nazwa, kolejne to `"nazwa=cena"` albo podlisty. `BarMenu.Price` i `BarMenu.Render` powtarzają `is` i rzutowania, a `Render` dla każdego węzła liczy cenę od nowa.
+
+```csharp
+["Zestaw Duo", "Popcorn L=18.00",
+    new object[] { "Napoje", "Cola 0.5=9.00", "Cola 0.5=9.00" }, "Nachos=14.00"]
+```
+
+Testy: `S10EquivalenceTest` (niezależne oczekiwania policzone ręcznie, także błędy) i `S10DifferentialTest` (500 losowych drzew ze stałym ziarnem - stara reprezentacja kontra nowa).
+
+### Krok 1: Composite i mapper obok starego kodu
+
+**W IDE:** utwórz interfejs `IMenuItem` z rekordami `Product` i `Combo` oraz statyczną klasę `MenuMapper.FromNested(IReadOnlyList<object>)`. `BarMenu` bez zmian. Uruchom test różnicowy - porównuje stary kod z drzewem z mappera.
+**Po:**
+
+```csharp
+items.Add(element switch
+{
+    string product => Product(product),
+    IReadOnlyList<object> nested => FromNested(nested),
+    _ => throw new ArgumentException("unsupported element: " + element),
+});
+```
+
+**Uruchom:** `scripts/warsztat.sh --lang cs test m5/s10` - zielone, w tym `CompositeFromMapperMatchesLegacyAlready`.
+**Co powiedzieć:** obie reprezentacje żyją obok siebie. Mapper zachowuje komunikaty błędów starego kodu - to też obserwowalne zachowanie.
+**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s10 0 1`
+
+### Krok 2: Price na Composite
+
+**W IDE:** ciało `BarMenu.Price` zastąp `MenuMapper.FromNested(combo).Price`. Usuń nieużywane `RequireName` (Safe Delete ⌘⌦).
+**Po:**
+
+```csharp
+public Money Price(IReadOnlyList<object> combo)
+{
+    return MenuMapper.FromNested(combo).Price;
+}
+```
+
+**Uruchom:** test zielony.
+**Co powiedzieć:** jedna operacja naraz; `Render` wciąż jest stary i działa, bo woła nowe `Price`.
+**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s10 1 2`
+
+### Krok 3: Render na Composite
+
+**W IDE:** `Render` deleguje do `Combo.Render(0, text)`; stara rekurencja z `is` do usunięcia (Safe Delete).
+**Po:**
+
+```csharp
+var text = new StringBuilder();
+MenuMapper.FromNested(combo).Render(0, text);
+return text.ToString();
+```
+
+**Uruchom:** test zielony, test różnicowy `FinalBarMenuMatchesLegacy` zielony.
+**Co powiedzieć:** format trwały (zagnieżdżone listy) zostaje. Jego zmiana na JSON czy tabelę w bazie to osobna decyzja z osobnym testem.
+**Snapshot:** `Step3/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s10 2 3`
+
+### Rozwiązanie i uzasadnienie
+
+Jawne drzewo z typami zamiast konwencji "pierwszy element to nazwa". Test różnicowy daje szerokie pokrycie, a niezależne oczekiwania chronią przed sytuacją, w której oba warianty mylą się tak samo.
+
+### Pułapki
+
+- Test różnicowy jako jedyny test - jeśli stary kod ma błąd, nowy go wiernie powtórzy.
+- Brak limitu głębokości dla danych niezaufanych - `StackOverflowException`, którego w .NET nie da się złapać (proces kończy działanie).
+- Cykl w danych (lista zawierająca samą siebie) - nieskończona rekurencja w obu wersjach.
+
+### Pytanie do sali
+
+Co zrobić, gdy mapper natrafi na dane, których nie da się wiernie odwzorować w drzewie?
+
+## Scena s11. Transparent vs Safe Composite - add() na liściu
+
+**Temat ze slajdów:** 17.3. Replace Implicit Tree with Composite; 17.4. Jeden lub wiele i Extract Composite (Safe i Transparent Composite)
+**Namespace:** `Training.Workshop.M5.S11SafeComposite` · **Test:** `scripts/warsztat.sh --lang cs test m5/s11` (`S11EquivalenceTest`, `S11SolutionTest`)
+**Czas:** ~8 min
+
+### W skrócie
+
+**Co robimy:** W Transparent Composite `Add()` jest we wspólnym `MenuComponent`, więc wywołanie go na produkcie kompiluje się i wybucha dopiero w runtime. Przesuwamy `Add` i `Children` w dół do `Combo` (Safe Composite), a potem pokazujemy niemutowalne drzewo z rekordów bez `Add`.
+
+**Zasada:** Transparent Composite trzyma zarządzanie dziećmi we wspólnym typie, więc liść musi rzucić wyjątek albo nic nie robić. Safe Composite trzyma je tylko w węźle, dzięki czemu błąd przenosi się do kompilacji, ale klient musi wiedzieć, czy ma w ręku węzeł. Gdy drzewo powstaje raz, dylemat znika, bo `Add` nie jest potrzebne nigdzie.
+
+**Efekt:** Dodanie dziecka do produktu przestaje się kompilować, a `MenuComponent` nie ma już `Add` ani `Children`. Kosztem jest dokładniejsze typowanie zmiennych w katalogu - rzutowanie `(Combo)` w kliencie oznaczałoby powrót do problemu.
+
+**Różnica względem Javy:** krok 2 w Javie to `sealed interface MenuComponent` + rekordy. W C# `MenuComponent` jest `abstract record` z konstruktorem `private protected` (podtypy tylko w tym projekcie), a `Product` i `Combo` to `sealed record`; nazwa typu zostaje `MenuComponent` jak w Start. `S11SolutionTest` sprawdza refleksją brak `Add(MenuComponent)` na `Product` i brak właściwości `Children` na `MenuComponent`. Test pułapki Start (`TransparentCompositeFailsAtRuntime`) po `jump` kończy się bez sprawdzeń (zamiast `assumeTrue`).
+
+### Co widzimy
+
+Transparent Composite: `Add()` i `Children` są we wspólnej klasie abstrakcyjnej `MenuComponent`, liść `Product` dziedziczy `Add()`, które rzuca `NotSupportedException`. Klient typuje wszystko jako `MenuComponent` i nic go nie chroni przed `nachos.Add(sauce)`.
+
+```csharp
+public virtual void Add(MenuComponent child)
+{
+    throw new NotSupportedException("cannot add to " + Name);
+}
+```
+
+### Krok 1: Safe Composite - Push Members Down
+
+**W IDE:** Refactor This (⌃T) > Push Members Down na `Add` i `Children` z `MenuComponent` do `Combo`. Rider pokaże konflikty w `ComboCatalog` - zmień typ zmiennych z `MenuComponent` na `Combo` tam, gdzie dodajemy dzieci. `Describe()` staje się `virtual`, a `Combo` nadpisuje go i rozszerza opis o dzieci.
+**Po:**
+
+```csharp
+var combo = new Combo("Zestaw Rodzinny");
+combo.Add(new Product("Popcorn XL", "24.00"));
+```
+
+**Uruchom:** `scripts/warsztat.sh --lang cs test m5/s11` - zielone; `S11SolutionTest` pokazuje, że `Product` nie ma już `Add`.
+**Co powiedzieć:** błąd przeniósł się z runtime do kompilacji. Ceną jest to, że klient musi wiedzieć, czy ma w ręku węzeł.
+**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s11 0 1`
+
+### Krok 2: niemutowalny Composite w C# - abstrakcyjny rekord
+
+**W IDE:** `abstract record MenuComponent` z konstruktorem `private protected`, rekordy `Product` i `Combo(name, children)` z `Combo.Of(name, params MenuComponent[])`. Katalog zapisany deklaratywnie.
+**Po:**
+
+```csharp
+"duo" => Combo.Of("Zestaw Duo",
+    new Product("Popcorn L", "18.00"),
+    new Product("Cola", "9.00"),
+    new Product("Cola", "9.00")),
+```
+
+**Uruchom:** test zielony.
+**Co powiedzieć:** gdy drzewo powstaje raz, `Add()` nie jest potrzebne nigdzie - dylemat Safe/Transparent znika. Lista dzieci to kopia `ToList().AsReadOnly()`, więc nawet rzutowanie na `ICollection<T>` nie pozwoli jej zmienić.
+**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s11 1 2`
+
+### Rozwiązanie i uzasadnienie
+
+Safe Composite, gdy drzewo jest modyfikowane; niemutowalny Composite, gdy jest budowane raz (wtedy budowę przejmuje Builder albo fabryka - scena s06).
+
+### Pułapki
+
+- Transparent Composite z domyślnym pustym `Add()` (bez wyjątku) - dziecko po cichu ginie.
+- Rzutowanie `(Combo)component` w kliencie zamiast poprawienia typów - Safe Composite w przebraniu Transparent.
+
+### Pytanie do sali
+
+Kiedy Transparent Composite jest lepszym wyborem mimo ryzyka błędu w runtime?
+
+## Scena s12. Replace One/Many Distinctions with Composite - zwroty
+
+**Temat ze slajdów:** 17.4. Jeden lub wiele i Extract Composite (Replace One/Many Distinctions with Composite)
+**Namespace:** `Training.Workshop.M5.S12OneMany` · **Test:** `scripts/warsztat.sh --lang cs test m5/s12` (`S12EquivalenceTest`, `S12SolutionTest`)
+**Czas:** ~10 min
+
+### W skrócie
+
+**Co robimy:** `RefundService` ma osobne `Refund` i `RefundAll` z regułą zwrotu zapisaną dwa razy, a `CancellationDesk` sam wybiera między nimi. Najpierw usuwamy duplikację reguły, potem wprowadzamy wspólny kontrakt `IRefundable` z liściem i grupą, a stare metody usuwamy po etapie `[Obsolete]`.
+
+**Zasada:** Replace One/Many Distinctions with Composite zastępuje dwie ścieżki API - dla jednego elementu i dla wielu - jednym kontraktem, w którym grupa też jest elementem. Nie wolno przy tym zmienić kolejności przetwarzania, wyniku dla pustej grupy ani liczby efektów naliczanych raz na wywołanie.
+
+**Efekt:** Jest jedna metoda `Refund(IRefundable)`, reguła biletu żyje w liściu, suma w węźle, a klient nie ma już `if`. Potrącenie 3.00 zostaje w serwisie i nadal jest naliczane raz na zwrot, a nie raz na bilet.
+
+**Różnica względem Javy:** `sealed interface Refundable` to zwykły interfejs `IRefundable` (bez zamknięcia hierarchii). `@Deprecated` to `[Obsolete]` - przy `TreatWarningsAsErrors` każde wywołanie przestarzałej metody (ostrzeżenie CS0618) zatrzymuje build, dlatego w kroku 2 klient przechodzi na nowy kontrakt od razu, a test delegacji (`DeprecatedWrappersInStep2DelegateToTheNewContract`) wyłącza CS0618 przez `#pragma`. `Duration.toHours() >= 24` to `TimeSpan.TotalHours >= 24`; w `RefundAll` w Start jest rzutowanie na `long`, żeby zachować "trochę inny" zapis reguły.
+
+### Co widzimy
+
+`RefundService` ma `Refund(ticket, now)` i `RefundAll(tickets, now)`, a klient `CancellationDesk` sam wybiera jedną z nich (`if (tickets.Count == 1)`). Reguła zwrotu (>= 24h 100%, < 24h 50%, po starcie 0) jest napisana dwa razy, trochę inaczej. Potrącenie 3.00 jest naliczane raz na zwrot i nie schodzi poniżej 0.
+
+```csharp
+foreach (var ticket in tickets)
+{
+    if (now < ticket.ShowStart)
+    {
+        var hours = (long)(ticket.ShowStart - now).TotalHours;
+        total = total.Plus(hours >= 24 ? ticket.Price : ticket.Price.Percent(50));
+    }
+}
+```
+
+Test obejmuje granicę dokładnie 24h, 23h59m, bilet po starcie, listę i pustą listę.
+
+### Krok 1: Extract Method na wspólnej regule
+
+**W IDE:** w `Refund` zaznacz wyliczenie kwoty, ⌥⌘M `TicketShare(ticket, now)`. W `RefundAll` zastąp ciało pętli wywołaniem `TicketShare`.
+**Po:**
+
+```csharp
+total = total.Plus(TicketShare(ticket, now));
+```
+
+**Uruchom:** `scripts/warsztat.sh --lang cs test m5/s12` - zielone.
+**Co powiedzieć:** zanim wprowadzimy wzorzec, usuwamy duplikację reguły. Test granicy 24h potwierdza, że obie wersje były równoważne.
+**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s12 0 1`
+
+### Krok 2: Composite i jeden kontrakt
+
+**W IDE:** interfejs `IRefundable` z `RefundableAmount(now)`, liść `SingleTicket` (reguła z `TicketShare`), węzeł `TicketGroup` (suma, `TicketGroup.Of(tickets)`). Nowa metoda `Refund(IRefundable, now)`; stare metody jako delegacje z `[Obsolete]`. `CancellationDesk` przechodzi na nowy kontrakt (na razie wciąż wybiera `SingleTicket` albo `TicketGroup`).
+**Po:**
+
+```csharp
+public Money Refund(IRefundable refundable, DateTime now)
+{
+    return refundable.RefundableAmount(now).Minus(Fee).Max(Money.Zero);
+}
+```
+
+**Uruchom:** test zielony.
+**Co powiedzieć:** potrącenie jest w jednym miejscu i naliczane raz na wywołanie - tak jak w obu starych metodach. `[Obsolete]` przy ostrzeżeniach traktowanych jak błędy działa jak twarda bramka: nikt nowy nie wywoła starego API.
+**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s12 1 2`
+
+### Krok 3: usunięcie starych metod
+
+**W IDE:** po migracji klientów Safe Delete (⌘⌦) na `Refund(TicketData, ...)` i `RefundAll`. W `CancellationDesk` usuń `if` - klient zawsze buduje `TicketGroup.Of(tickets)`, także z jednego biletu.
+**Po:**
+
+```csharp
+return _service.Refund(TicketGroup.Of(tickets), now);
+```
+
+**Uruchom:** test zielony; `S12SolutionTest` pokazuje zagnieżdżone grupy.
+**Co powiedzieć:** rozróżnienie "jeden/wiele" zniknęło z API. Grupa jednego biletu daje ten sam wynik co bilet.
+**Snapshot:** `Step3/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s12 2 3`
+
+### Rozwiązanie i uzasadnienie
+
+Jeden kontrakt `Refund(IRefundable)`, reguła biletu w liściu, suma w węźle. Stare API usunięte dopiero po etapie `[Obsolete]`.
+
+### Pułapki
+
+- Potrącenie przeniesione do liścia - wtedy lista biletów płaci 3.00 za każdy bilet (zmiana zachowania).
+- Zmiana kolejności przetwarzania albo liczby transakcji przy przejściu na Composite.
+- Pusta grupa - trzeba jawnie ustalić wynik (tu 0.00, jak w Start).
+
+### Pytanie do sali
+
+Co, jeśli biznes chce potrącenia za każdą rezerwację, a jedna grupa obejmuje kilka rezerwacji?
+
+## Scena s13. Extract Composite - kontenery programu
+
+**Temat ze slajdów:** 17.4. Jeden lub wiele i Extract Composite (Extract Composite)
+**Namespace:** `Training.Workshop.M5.S13ExtractComposite` · **Test:** `scripts/warsztat.sh --lang cs test m5/s13` (`S13EquivalenceTest`, `S13SolutionTest`)
+**Czas:** ~8 min
+
+### W skrócie
+
+**Co robimy:** `Marathon` i `ShortsBlock` powielają obsługę dzieci - listę, `Add`, kopię `Children`, sumę minut i opis. Wydzielamy nadklasę `CompositeProgramItem` i podciągamy do niej to, co naprawdę wspólne, a regułę czasu zostawiamy w podklasach.
+
+**Zasada:** Extract Composite wydziela wspólną nadklasę dla kilku kontenerów, które powielają zarządzanie dziećmi. Podobne pętle mogą znaczyć co innego, więc przed podciągnięciem porównujemy kontrakty, a nie tekst. Nowe reguły, np. wykrywanie cykli, to osobna zmiana zachowania.
+
+**Efekt:** Lista dzieci, `Add` i szkielet opisu są w jednym miejscu, a podklasy mają po kilkanaście linii. `Minutes` zostaje w podklasach, bo tylko maraton dolicza przerwy - podciągnięcie go do bazy zmieniłoby wynik.
+
+**Różnica względem Javy:** metody `final` z Javy to w C# zwykłe metody niewirtualne (w C# metody są domyślnie niewirtualne, więc podklasa i tak nie może ich nadpisać). `Objects.requireNonNull` to `ArgumentNullException.ThrowIfNull` (test oczekuje `ArgumentNullException`). `Minutes` jest abstrakcyjną właściwością bazy, a interfejs to `IProgramItem`.
+
+### Co widzimy
+
+`Marathon` i `ShortsBlock` powielają obsługę dzieci: lista, `Add` z kontrolą `null`, `Children` jako kopia, suma minut, opis. Różnią się tylko regułą czasu: maraton dodaje 15 minut przerwy między pozycjami.
+
+```csharp
+return _children.Count == 0 ? 0 : total + 15 * (_children.Count - 1);
+```
+
+### Krok 1: Extract Superclass
+
+**W IDE:** na `Marathon` Refactor This (⌃T) > Extract Superclass: `CompositeProgramItem`, zaznacz pole `_children`, `Add`, `Children`. Potem `ShortsBlock : CompositeProgramItem` i usuń jego kopie (Pull Members Up już nie trzeba - są w bazie).
+**Po:**
+
+```csharp
+public abstract class CompositeProgramItem : IProgramItem
+{
+    private readonly List<IProgramItem> _children = [];
+    public void Add(IProgramItem child) { ... }
+```
+
+**Uruchom:** `scripts/warsztat.sh --lang cs test m5/s13` - zielone.
+**Co powiedzieć:** kontrakt dzieci (brak `null`, kopia listy) jest teraz w jednym miejscu dla wszystkich kontenerów.
+**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s13 0 1`
+
+### Krok 2: Pull Up sumy i opisu
+
+**W IDE:** Pull Members Up dla `ChildrenMinutes()` (`protected`, niewirtualna) i `Describe()` jako szablon z hookiem `protected abstract string Label()`. Nazwa kontenera trafia do konstruktora bazy. Podklasy zostają z regułą czasu i etykietą.
+**Po:**
+
+```csharp
+public override int Minutes
+{
+    get
+    {
+        var count = Children.Count;
+        return count == 0 ? 0 : ChildrenMinutes() + 15 * (count - 1);
+    }
+}
+```
+
+**Uruchom:** test zielony.
+**Co powiedzieć:** podobne pętle mogą znaczyć co innego. Tu suma jest wspólna, ale przerwy nie - dlatego `Minutes` zostaje w podklasach.
+**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s13 1 2`
+
+### Rozwiązanie i uzasadnienie
+
+`CompositeProgramItem` z pełną obsługą dzieci i szkieletem opisu; `Marathon` i `ShortsBlock` po kilkanaście linii.
+
+### Pułapki
+
+- Podciągnięcie całego `Minutes` do bazy - maraton traci przerwy.
+- Wykrywanie cykli (maraton zawierający sam siebie) to osobna zmiana zachowania, nie część Extract Composite.
+
+### Pytanie do sali
+
+Trzeci kontener "blok z przerwą na reklamy co drugi film" - czy nadal pasuje do tej nadklasy?
+
+## Scena s14. Unify Interfaces with Adapter - dwie bramki płatności
+
+**Temat ze slajdów:** 9.1. Unify Interfaces with Adapter; 9.2. Adapter - co naprawdę trzeba przetłumaczyć
+**Namespace:** `Training.Workshop.M5.S14Adapter` · **Test:** `scripts/warsztat.sh --lang cs test m5/s14` (`S14EquivalenceTest`, `S14SolutionTest`)
+**Czas:** ~12 min
+
+### W skrócie
+
+**Co robimy:** `CheckoutService.Pay` mówi dwoma językami: dla starej bramki składa XML w groszach, dla nowej woła REST w złotych i łapie wyjątek odmowy. Wydzielamy obie gałęzie do metod o jednej sygnaturze, przenosimy je do adapterów interfejsu `IPaymentGateway`, a serwis wybiera bramkę ze słownika.
+
+**Zasada:** Unify Interfaces with Adapter tłumaczy obcy interfejs na preferowany kontrakt klienta, tak żeby klient zależał tylko od niego. Adapter tłumaczy nazwy, jednostki, format i sposób zgłaszania błędów, ale nie udaje, że semantyka jest identyczna. Jeśli wystarczy Rename Method, adapter jest zbędny.
+
+**Efekt:** Logika serwisu zna tylko `IPaymentGateway` i da się ją testować fake'iem, a trzeci dostawca to nowy adapter i wpis w słowniku. Stary konstruktor zostaje jako jedyne miejsce znające biblioteki bramek - docelowo do przeniesienia do korzenia kompozycji.
+
+**Różnica względem Javy:** komponent rekordu `PaymentResult.accepted()` kolidowałby w C# z fabryką `Accepted(...)`, więc właściwość nazywa się `IsAccepted` (fabryki `Accepted`/`Declined` bez zmian). Metody "bibliotek" `XmlPayGateway.Submit` i `RestPayClient.Charge` są `virtual`, bo `S14SolutionTest` nadpisuje `Submit` w podklasie nagrywającej (w Javie metody są domyślnie wirtualne). `Map.copyOf` to kopia `Dictionary` wystawiona jako `IReadOnlyDictionary`, a grosze liczy `decimal.ToInt64(amount.Amount * 100)`.
+
+### Co widzimy
+
+`CheckoutService.Pay(provider, reservationId, amount)` mówi dwoma językami: dla starej bramki składa XML z kwotą w **groszach** i parsuje atrybuty odpowiedzi, dla nowej woła API REST w **złotych** i łapie wyjątek odmowy. "Biblioteki" bramek (`XmlPayGateway`, `RestPayClient`) są w namespace sceny i ich nie zmieniamy.
+
+```csharp
+var grosze = decimal.ToInt64(amount.Amount * 100);
+var request = "<charge ref='" + reservationId + "' amount='" + grosze + "'/>";
+```
+
+### Krok 1: Extract Method z jednolitą sygnaturą
+
+**W IDE:** każdą gałąź ⌥⌘M: `PayWithXml(reservationId, amount)` i `PayWithRest(reservationId, amount)`, obie zwracają `PaymentResult`.
+**Po:**
+
+```csharp
+if (provider == "XML")
+{
+    return PayWithXml(reservationId, amount);
+}
+else if (provider == "REST")
+{
+    return PayWithRest(reservationId, amount);
+}
+```
+
+**Uruchom:** `scripts/warsztat.sh --lang cs test m5/s14` - zielone.
+**Co powiedzieć:** identyczna sygnatura dwóch metod to gotowy kontrakt adaptera.
+**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s14 0 1`
+
+### Krok 2: interfejs i dwa adaptery
+
+**W IDE:** interfejs `IPaymentGateway.Pay(reservationId, amount)`. Move (F6) `PayWithXml` do `XmlPayAdapter` i `PayWithRest` do `RestPayAdapter` (razem z pomocniczym `Attribute`). Konstruktor serwisu bez zmian - tworzy adaptery.
+**Po:**
+
+```csharp
+public CheckoutService(XmlPayGateway xml, RestPayClient rest)
+{
+    _xml = new XmlPayAdapter(xml);
+    _rest = new RestPayAdapter(rest);
+}
+```
+
+**Uruchom:** test zielony; `S14SolutionTest.XmlAdapterSendsAmountInGrosze` sprawdza, że do starej bramki idzie `amount='4000'`.
+**Co powiedzieć:** adapter tłumaczy jednostki (złote - grosze), format i sposób zgłaszania odmowy (atrybut kontra wyjątek). Nie udaje, że semantyka jest taka sama.
+**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s14 1 2`
+
+### Krok 3: serwis zależy tylko od interfejsu
+
+**W IDE:** nowy konstruktor `CheckoutService(IReadOnlyDictionary<string, IPaymentGateway> gateways)` (kopia do nowego `Dictionary`); stary konstruktor deleguje do niego (`: this(...)`) ze standardowym zestawem adapterów. `if` zastąp wyszukaniem w słowniku; nieznany dostawca - ten sam wyjątek.
+**Po:**
+
+```csharp
+if (!_gateways.TryGetValue(provider, out var gateway))
+{
+    throw new ArgumentException("unknown provider: " + provider);
+}
+return gateway.Pay(reservationId, amount);
+```
+
+**Uruchom:** test zielony.
+**Co powiedzieć:** logika serwisu zna tylko `IPaymentGateway` i da się ją testować fake'iem (`CheckoutWorksWithAnyGateway`). Stary konstruktor to jedyne miejsce, które jeszcze zna biblioteki bramek - docelowo przeniesiemy go do korzenia kompozycji. Trzeci dostawca to nowy adapter i wpis w słowniku.
+**Snapshot:** `Step3/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s14 2 3`
+
+### Rozwiązanie i uzasadnienie
+
+Preferowany kontrakt kina (`IPaymentGateway`, `PaymentResult`) i dwa adaptery. Granica 500.00 włącznie działa tak samo w obu bramkach - test to sprawdza.
+
+### Pułapki
+
+- Podobna sygnatura, inny kontrakt: jednostki, zaokrąglenia, strefa czasowa, kodowanie znaków.
+- Mapowanie wyjątku bez zachowania przyczyny (`InnerException`) - trudna diagnoza w produkcji.
+- Adapter wołający `Dispose()` na zasobie, którego nie jest właścicielem.
+- Adapter tam, gdzie wystarczyłby Rename Method.
+
+### Pytanie do sali
+
+Stara bramka zwraca `status='ERROR'` przy błędnym XML. Jak to zamapować - na odmowę czy wyjątek? Kto decyduje?
+
+## Scena s15. Replace Conditional Dispatcher with Command - konsola kasjera
+
+**Temat ze slajdów:** 6.7. Command - rejestr i ograniczenia
+**Namespace:** `Training.Workshop.M5.S15Command` · **Test:** `scripts/warsztat.sh --lang cs test m5/s15` (`S15EquivalenceTest`, `S15SolutionTest`)
+**Czas:** ~12 min
+
+### W skrócie
+
+**Co robimy:** `CashierConsole.Handle` to łańcuch `if` po nazwie komendy z pełną logiką i zmianą stanu kasy w każdej gałęzi. Wydzielamy gałęzie do metod o wspólnej sygnaturze, zamieniamy je na bezstanowe komendy działające na `Till`, a łańcuch `if` zastępujemy słownikiem komend.
+
+**Zasada:** Replace Conditional Dispatcher with Command zamienia każdą gałąź dyspozytora w obiekt komendy, a wybór gałęzi w wyszukanie w rejestrze. Słownik jest równoważny warunkom tylko wtedy, gdy klucze są rozłączne i zachowana jest normalizacja. Command nie daje automatycznie asynchroniczności, retry ani undo.
+
+**Efekt:** Dodanie komendy to nowa klasa i wpis w słowniku, bez zmiany `Handle`. Komendy nie trzymają danych żądania, więc można je bezpiecznie współdzielić, a `sell` i `SELL` nadal działają tak samo.
+
+**Różnica względem Javy:** `@FunctionalInterface ConsoleCommand` to interfejs `IConsoleCommand` (nowa komenda HELLO w `S15SolutionTest` to prywatna klasa `HelloCommand` zamiast lambdy). `toUpperCase(Locale.ROOT)` to `ToUpperInvariant()`, `strip()` to `Trim()`, a `matches("\\d+")` to `Regex.IsMatch(..., "^[0-9]+$")` (tylko cyfry ASCII, jak w Javie). Metody `Till` package-private są `internal` (`Cash` i `Tickets` jako właściwości).
+
+### Co widzimy
+
+`CashierConsole.Handle(line)` to łańcuch `if (command == "SELL")` z pełną logiką i modyfikacją stanu kasy w każdej gałęzi. Nazwa komendy jest normalizowana `ToUpperInvariant()` - `sell` i `SELL` działają tak samo.
+
+```csharp
+if (command == "SELL")
+{
+    var sell = args.Split(' ', 2);
+    ...
+}
+else if (command == "REFUND")
+{
+    ...
+}
+else if (command == "REPORT")
+```
+
+Test to sesja poleceń: sprzedaż, zwrot, raport oraz błędne polecenia, które nie zmieniają stanu.
+
+### Krok 1: Extract Method dla gałęzi
+
+**W IDE:** ciało każdej gałęzi ⌥⌘M: `Sell(args)`, `Refund(args)`, `Report(args)` - ta sama sygnatura, także gdy `args` nie jest używane.
+**Po:**
+
+```csharp
+if (command == "SELL")
+{
+    return Sell(args);
+}
+```
+
+**Uruchom:** `scripts/warsztat.sh --lang cs test m5/s15` - zielone.
+**Co powiedzieć:** jednolita sygnatura przygotowuje interfejs komendy.
+**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s15 0 1`
+
+### Krok 2: komendy jako obiekty, stan w Till
+
+**W IDE:** Extract Class `Till` (pola `_cash`, `_tickets` i cennik). Interfejs `IConsoleCommand.Execute(args, till)`, klasy `SellCommand`, `RefundCommand`, `ReportCommand` z ciałami metod. Dyspozytor `if` jeszcze zostaje.
+**Po:**
+
+```csharp
+if (command == "SELL")
+{
+    return _sell.Execute(args, _till);
+}
+```
+
+**Uruchom:** test zielony.
+**Co powiedzieć:** komendy są bezstanowe - dane żądania to argument, stan kasy to argument. Współdzielona komenda ze stanem poprzedniego żądania to błąd czekający na drugi wątek.
+**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s15 1 2`
+
+### Krok 3: rejestr zamiast warunku
+
+**W IDE:** `IReadOnlyDictionary<string, IConsoleCommand>` w konstruktorze (domyślnym, delegującym przez `: this(...)`, i wstrzykiwanym), `Handle` wyszukuje komendę po znormalizowanym kluczu.
+**Po:**
+
+```csharp
+if (!_commands.TryGetValue(parts[0].ToUpperInvariant(), out var command))
+{
+    return "Nieznana komenda: " + parts[0];
+}
+```
+
+**Uruchom:** test zielony; `S15SolutionTest` dodaje komendę bez zmiany dyspozytora.
+**Co powiedzieć:** słownik jest równoważny warunkom, bo klucze są **rozłączne** i normalizacja została zachowana. Przy nakładających się predykatach (`StartsWith`) kolejność `if` byłaby częścią kontraktu i słownik by go zgubił.
+**Snapshot:** `Step3/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s15 2 3`
+
+### Rozwiązanie i uzasadnienie
+
+Dyspozytor bez wiedzy o komendach, komendy bezstanowe, stan w `Till`. Nowa komenda to nowa klasa i wpis w słowniku.
+
+### Pułapki
+
+- Zgubiona normalizacja klucza - `sell 1 Diuna` nagle "nieznana komenda" (albo `ToUpper()` zależne od kultury, np. tureckie "i").
+- Command traktowany jako darmowa asynchroniczność, retry albo undo - to osobne decyzje (idempotencja, kompensacja).
+- Brak sprawdzenia kompletności rejestru przy starcie aplikacji.
+
+### Pytanie do sali
+
+Jak dodalibyście `UNDO` dla ostatniej sprzedaży? Czego wymaga to od komend?
+
+## Scena s16. Form Template Method - raporty CSV i HTML
+
+**Temat ze slajdów:** 7.1. Apply Template Method; 7.2. Template Method - sekwencja i ryzyka
+**Namespace:** `Training.Workshop.M5.S16TemplateMethod` · **Test:** `scripts/warsztat.sh --lang cs test m5/s16` (`S16EquivalenceTest`, `S16SolutionTest`)
+**Czas:** ~8 min
+
+### W skrócie
+
+**Co robimy:** `CsvSalesReport` i `HtmlSalesReport` mają ten sam szkielet (sortowanie, nagłówek, wiersze z sumą, stopka), ale napisany trochę inaczej. Wydzielamy różnice do metod `Header`, `Row`, `Footer`, doprowadzamy `Render` do identycznej postaci i podciągamy go do nadklasy `SalesReport` jako metodę niewirtualną.
+
+**Zasada:** Form Template Method umieszcza wspólną sekwencję kroków w metodzie bazowej, a zmienne kroki w metodach nadpisywanych przez podklasy. Stosuje się ją, gdy kolejność kroków jest stała i różnią się tylko szczegóły. Przy wielu hookach albo zmiennej kolejności lepsza jest kompozycja lub Strategy.
+
+**Efekt:** Sortowanie i sumowanie są w jednym miejscu, a nowy format (np. Markdown) to trzy metody. Niewirtualny `Render` chroni kolejność kroków, ale w opublikowanej bibliotece odebranie `virtual` nadpisywanej metodzie złamałoby klientów.
+
+**Różnica względem Javy:** Java dodaje `final` do `render`. W C# metody są domyślnie niewirtualne, więc `Render` w bazie po prostu nie jest `virtual` - to odpowiednik `final`, a `S16SolutionTest.TemplateMethodIsFinal` sprawdza `MethodInfo.IsVirtual == false`. Sortowanie idzie przez `OrderBy` (stabilne, jak `List.sort` w Javie; `List<T>.Sort` w .NET nie jest stabilne), godzina to `TimeOnly.ToString("HH:mm", CultureInfo.InvariantCulture)`. W kroku 1 `Header`, `Row`, `Footer` są prywatne statyczne, a nowy format Markdown w teście to prywatna podklasa zamiast klasy anonimowej.
+
+### Co widzimy
+
+`CsvSalesReport` i `HtmlSalesReport` mają ten sam szkielet: sortowanie po godzinie, nagłówek, wiersze z sumowaniem, stopka. Napisane trochę inaczej (`OrderBy(...).ToList()` kontra `foreach` wprost po `OrderBy`, inne nazwy zmiennych), więc duplikacja nie rzuca się w oczy. Różnice to formatowanie i escapowanie (`;` w CSV, `&` w HTML).
+
+### Krok 1: Extract Method na różnicach
+
+**W IDE:** w obu klasach ⌥⌘M dla nagłówka, wiersza i stopki: `Header()`, `Row(Sale)`, `Footer(int tickets, Money total)`. Przepisz `Render` HTML na ten sam kształt co CSV (nazwy zmiennych, sortowanie).
+**Po:**
+
+```csharp
+var text = new StringBuilder(Header());
+foreach (var sale in sorted)
+{
+    text.Append(Row(sale));
+    ...
+}
+return text.Append(Footer(tickets, total)).ToString();
+```
+
+**Uruchom:** `scripts/warsztat.sh --lang cs test m5/s16` - zielone.
+**Co powiedzieć:** ujednolicamy sygnatury po kroku, aż `Render` obu klas będzie identyczny znak w znak.
+**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s16 0 1`
+
+### Krok 2: Extract Superclass + Pull Up Render
+
+**W IDE:** Refactor This (⌃T) > Extract Superclass `SalesReport` z CSV, zaznacz `Render` i trzy metody jako abstrakcyjne (`protected abstract`). W HTML `: SalesReport`, usuń kopię `Render`, a `Header/Row/Footer` oznacz `protected override`. `Render` zostaw bez `virtual`.
+**Po:**
+
+```csharp
+public string Render(IReadOnlyList<Sale> sales) { ... }
+protected abstract string Header();
+protected abstract string Row(Sale sale);
+protected abstract string Footer(int tickets, Money total);
+```
+
+**Uruchom:** test zielony; `S16SolutionTest` sprawdza, że `Render` nie jest wirtualny, i dodaje format Markdown trzema metodami.
+**Co powiedzieć:** niewirtualny szablon chroni kolejność kroków. W opublikowanej bibliotece odebranie `virtual` (albo `sealed override`) nadpisywanej metodzie łamie klientów.
+**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s16 1 2`
+
+### Rozwiązanie i uzasadnienie
+
+Szkielet raz, w bazie; podklasy to czyste formatowanie. Pusta sprzedaż daje nagłówek i sumę 0.00 w obu formatach.
+
+### Pułapki
+
+- Hook opcjonalny (`virtual`) z domyślną implementacją, która nie pasuje do wszystkich podklas.
+- Wywołanie hooka z konstruktora bazy - podklasa widzi pola, których jej konstruktor jeszcze nie ustawił.
+- Wiele hooków i zmienna kolejność - wtedy lepsza kompozycja lub Strategy.
+
+### Pytanie do sali
+
+Raport PDF potrzebuje stronicowania co 30 wierszy. Czy to jeszcze Template Method?
+
+## Scena s17. Limit Instantiation with Singleton - cennik
+
+**Temat ze slajdów:** 17.6. Limit Instantiation with Singleton; 2.4-2.5. Inline Singleton (kierunek odwrotny)
+**Namespace:** `Training.Workshop.M5.S17Singleton` · **Test:** `scripts/warsztat.sh --lang cs test m5/s17` (`S17EquivalenceTest`, `S17SolutionTest`)
+**Czas:** ~10 min
+
+### W skrócie
+
+**Co robimy:** `TicketDesk` przy każdej wycenie tworzy nowy `PriceList` i parsuje taryfę, choć cennik jest niemutowalny. Po pomiarze ograniczamy go do jednej instancji (najpierw `GetInstance()`, potem statyczna właściwość `Instance`), a na końcu ukrywamy za interfejsem `ITariff` wstrzykiwanym do `TicketDesk`.
+
+**Zasada:** Limit Instantiation with Singleton to decyzja o cyklu życia: jedna instancja jest bezpieczna tylko wtedy, gdy obiekt jest niemutowalny, a instancje równoważne. Statyczna właściwość tylko do odczytu daje bezpieczną wątkowo, jednokrotną inicjalizację (gwarantuje ją CLR), ale oznacza jedną instancję na `AssemblyLoadContext`, nie na proces. Odwrotny ruch, Inline Singleton, jest równie ważny, gdy globalny dostęp szkodzi testom.
+
+**Efekt:** Cennik powstaje raz, a `TicketDesk` zależy od kontraktu i da się go przetestować z innym cennikiem bez globalnego stanu. Globalna instancja zostaje tylko w domyślnym konstruktorze, a dodanie do niej mutowalnego stanu byłoby najgorszym wariantem.
+
+**Różnica względem Javy:** krok 2 w Javie to singleton jako `enum` (język gwarantuje jedną instancję na loader klas). W C# odpowiednikiem jest idiomatyczna statyczna właściwość `public static PriceList Instance { get; } = new();` z prywatnym konstruktorem - CLR inicjalizuje typ raz i bezpiecznie wątkowo (jedna instancja na `AssemblyLoadContext`, analogicznie do "na loader klas"). Niemodyfikowalna mapa to `FrozenDictionary`, licznik w Start to `Interlocked.Increment` zamiast `AtomicInteger`. Oba testy sceny są w kolekcji xUnit `Legacy`, bo xUnit uruchamia klasy równolegle, a Start zmienia statyczny licznik mierzony w `StartCreatesAPriceListForEveryQuote`. Cennik promocyjny w teście to prywatna klasa `PromoTariff` zamiast lambdy, a test pomiaru po `jump` kończy się bez sprawdzeń.
+
+### Co widzimy
+
+`TicketDesk.Quote` przy każdym wywołaniu robi `new PriceList()`, a konstruktor parsuje taryfę. Cennik jest niemutowalny, więc instancje są równoważne. `S17SolutionTest` najpierw **mierzy**: trzy wyceny to trzy utworzone cenniki.
+
+```csharp
+var price = new PriceList().BasePrice(format);
+```
+
+### Krok 1: klasyczny Singleton
+
+**W IDE:** prywatny konstruktor, `private static readonly PriceList Instance = new();`, `GetInstance()`. Licznik z pomiaru usuń. Klient woła `PriceList.GetInstance()`.
+**Po:**
+
+```csharp
+var price = PriceList.GetInstance().BasePrice(format);
+```
+
+**Uruchom:** `scripts/warsztat.sh --lang cs test m5/s17` - zielone.
+**Co powiedzieć:** Singleton to decyzja o cyklu życia - bezpieczna tylko dlatego, że obiekt jest niemutowalny i udowodniliśmy równoważność instancji.
+**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s17 0 1`
+
+### Krok 2: Singleton jako statyczna właściwość tylko do odczytu
+
+**W IDE:** zamień pole i `GetInstance()` na `public static PriceList Instance { get; } = new();`, słownik cen zbuduj raz i zamroź (`ToFrozenDictionary()`).
+**Po:**
+
+```csharp
+var price = PriceList.Instance.BasePrice(format);
+```
+
+**Uruchom:** test zielony.
+**Co powiedzieć:** CLR daje bezpieczną publikację i jednokrotną inicjalizację bez `lock`. Ale to **jedna instancja na `AssemblyLoadContext`**, nie "jedna na proces", a prywatny konstruktor nie chroni przed refleksją (`Activator.CreateInstance(type, nonPublic: true)`) - inaczej niż enum w Javie.
+**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s17 1 2`
+
+### Krok 3: wstrzyknięcie zamiast globalnego dostępu
+
+**W IDE:** Refactor This (⌃T) > Extract Interface `ITariff` z `PriceList`; `TicketDesk(ITariff)` plus konstruktor bezargumentowy `: this(PriceList.Instance)`.
+**Po:**
+
+```csharp
+public TicketDesk()
+    : this(PriceList.Instance)
+{
+}
+```
+
+**Uruchom:** test zielony; `InjectedTariffNeedsNoGlobalState` używa cennika promocyjnego `PromoTariff`.
+**Co powiedzieć:** o jednej instancji decyduje korzeń kompozycji, a klient zależy od kontraktu. Gdyby ktoś dodał do singletona `SetPromo(...)`, testy zaczęłyby wpływać na siebie nawzajem - mutowalny globalny stan to najgorszy wariant.
+**Snapshot:** `Step3/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s17 2 3`
+
+### Rozwiązanie i uzasadnienie
+
+Jedna instancja cennika (statyczna właściwość `Instance`), ale ukryta za interfejsem i wstrzykiwana. Odwrotna transformacja (Inline Singleton) jest równie ważna - gdy globalny dostęp szkodzi testom, wracamy do jawnej zależności. W aplikacji z kontenerem DI ten sam efekt daje rejestracja `AddSingleton<ITariff, PriceList>()`.
+
+### Pułapki
+
+- Singleton z mutowalnym stanem (promocje, cache) - testy zależne od kolejności (a w xUnit także od równoległości klas testowych).
+- Ręcznie pisany leniwy singleton z podwójnym sprawdzaniem zamiast `Lazy<T>` albo inicjalizacji statycznej.
+- Singleton "bo tak wygodniej" bez pomiaru kosztu tworzenia.
+
+### Pytanie do sali
+
+Cennik ma się zmieniać o północy bez restartu. Co wtedy z singletonem?
+
+## Scena s18. Move Accumulation to Collecting Parameter - ostrzeżenia walidacji
+
+**Temat ze slajdów:** 17.5. Collecting Parameter
+**Namespace:** `Training.Workshop.M5.S18CollectingParameter` · **Test:** `scripts/warsztat.sh --lang cs test m5/s18` (`S18EquivalenceTest`)
+**Czas:** ~8 min
+
+### W skrócie
+
+**Co robimy:** `ReservationValidator` skleja ostrzeżenia w `string`, a każda metoda pomocnicza dopisuje własny separator. Zamieniamy sklejanie na listę, potem przekazujemy akumulator do metod `Check...`, a na końcu zawężamy go do klasy `Warnings`.
+
+**Zasada:** Collecting Parameter polega na tym, że metody dopisują wyniki do przekazanego akumulatora, zamiast zwracać fragmenty do sklejenia. Właścicielem kolekcji jest wywołujący, trzeba ustalić, czy metoda czyści, czy dopisuje, a wynik częściowy po wyjątku jest częścią kontraktu. Dobry akumulator ma wąski typ, a nie ogólną mutowalną kolekcję.
+
+**Efekt:** Separator i format wyniku są w jednym miejscu, a metody pomocnicze mogą tylko dopisać ostrzeżenie. Treść, kolejność i separator ostrzeżeń są dokładnie takie jak w Start.
+
+**Różnica względem Javy:** brak istotnych. E-mail jest `string?`, `isBlank()` to `string.IsNullOrWhiteSpace`, `addAll` w kroku 1 to `AddRange`, a obcięcie separatora w Start to zakres `warnings[..^2]`.
+
+### Co widzimy
+
+`ReservationValidator.Validate` skleja ostrzeżenia w `string`: każda metoda pomocnicza zwraca fragment zakończony `"; "`, a na końcu obcinamy dwa znaki. Łatwo zgubić separator.
+
+```csharp
+warnings += CheckEmail(draft.Email);
+warnings += CheckSeats(draft.Seats);
+...
+return warnings.Length == 0 ? "OK" : warnings[..^2];
+```
+
+Test sprawdza treść, kolejność i separator, w tym duplikaty miejsc zgłaszane jeden raz.
+
+### Krok 1: lista zamiast sklejania
+
+**W IDE:** metody pomocnicze zwracają `IReadOnlyList<string>` bez separatora, `Validate` robi `AddRange` i `string.Join("; ", ...)`.
+**Po:**
+
+```csharp
+warnings.AddRange(CheckEmail(draft.Email));
+warnings.AddRange(CheckSeats(draft.Seats));
+```
+
+**Uruchom:** `scripts/warsztat.sh --lang cs test m5/s18` - zielone.
+**Co powiedzieć:** separator dokłada teraz jedno miejsce. Metody wciąż tworzą własne listy.
+**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s18 0 1`
+
+### Krok 2: Collecting Parameter
+
+**W IDE:** Change Signature (⌘F6) - dodaj parametr `List<string> warnings`, zmień zwracany typ na `void`, zamień `return [x]` na `warnings.Add(x)`. Warunek czasu seansu wyciągnij do `CheckShowTime(draft, warnings)` (⌥⌘M).
+**Po:**
+
+```csharp
+CheckEmail(draft.Email, warnings);
+CheckSeats(draft.Seats, warnings);
+CheckShowTime(draft, warnings);
+```
+
+**Uruchom:** test zielony.
+**Co powiedzieć:** metody dopisują do przekazanego akumulatora. Właścicielem kolekcji jest `Validate` - tworzy ją i decyduje o formacie.
+**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s18 1 2`
+
+### Krok 3: wąski typ parametru
+
+**W IDE:** klasa `Warnings` z `Add` i `Summary()`; zmień typ parametru `List<string>` na `Warnings` w każdej metodzie `Check...` (Change Signature ⌘F6 albo ręcznie - Rider nie ma odpowiednika Type Migration z IntelliJ, ale po zmianie typu w `Validate` kompilator wskaże resztę).
+**Po:**
+
+```csharp
+var warnings = new Warnings();
+...
+return warnings.Summary();
+```
+
+**Uruchom:** test zielony.
+**Co powiedzieć:** metoda pomocnicza może tylko dopisać - nie wyczyści ani nie przestawi cudzych ostrzeżeń.
+**Snapshot:** `Step3/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s18 2 3`
+
+### Rozwiązanie i uzasadnienie
+
+Każda reguła to metoda `Check...(..., Warnings)`, format wyniku w jednym miejscu, akumulator o wąskim API.
+
+### Pułapki
+
+- Ogólny mutowalny słownik jako parametr zbierający - ukrywa, kto co zapisuje.
+- Niejasne, czy metoda czyści akumulator, czy dopisuje.
+- Wyjątek w połowie zbierania zostawia wynik częściowy - to część kontraktu, trzeba go ustalić.
+
+### Pytanie do sali
+
+Czy `Warnings` powinno pozwalać na poziomy (błąd kontra ostrzeżenie)? Jak to zmieni kontrakt?
+
+## Scena s19. Visitor i macierz zmian - pozycje zamówienia
+
+**Temat ze slajdów:** 16.1. Visitor i macierz zmian; 16.2. Do i od Visitora
+**Namespace:** `Training.Workshop.M5.S19Visitor` · **Test:** `scripts/warsztat.sh --lang cs test m5/s19` (`S19EquivalenceTest`, `S19SolutionTest`)
+**Czas:** ~12 min
+
+### W skrócie
+
+**Co robimy:** `ReceiptPrinter` ma trzy operacje na pozycjach zamówienia, każda z łańcuchem testów `is` zakończonym wyjątkiem w runtime. Zamieniamy je na klasyczne Visitory, a potem pokazujemy alternatywę C#: switch expression po typach z wzorcami pozycyjnymi - i jej granice.
+
+**Zasada:** Visitor przenosi operacje na strukturze do osobnych klas, a element wybiera właściwą metodę przez double dispatch. Macierz zmian mówi, kiedy go stosować: nowa operacja jest tania, nowy rodzaj elementu wymaga zmiany wszystkich Visitorów. W Javie 25 tę samą kontrolę kompilatora daje wyczerpujący `switch` po `sealed`; C# nie ma zamkniętych hierarchii, więc switch po typach wymaga ramienia `_`, a nowy rodzaj pozycji wychodzi dopiero w runtime - w C# argument za Visitorem jest mocniejszy.
+
+**Efekt:** W kodzie nie ma łańcuchów `is`. W wersji z Visitorem pozycja bez obsługi to błąd kompilacji zamiast awarii na kasie, w wersji ze switch expression - `UnreachableException` z nazwą typu. Obie formy są poprawne - wybór zależy od tego, czy częściej dochodzą operacje, czy rodzaje pozycji, i od tego, ile kontroli kompilatora potrzebujemy.
+
+**Różnica względem Javy:** krok 3 w Javie to `sealed interface` + wyczerpujący `switch` bez `default`, w którym kompilator pilnuje nowych typów. C# 14 nie ma zamkniętych hierarchii ani sprawdzania wyczerpania dla wzorców typów - switch expression bez `_` daje ostrzeżenie CS8509 (przy `TreatWarningsAsErrors` błąd). Krok 3 w porcie to więc switch expression po typach (w linii paragonu wzorce pozycyjne, odpowiednik record patterns) z ramieniem `_ => throw new UnreachableException(...)`, a `IOrderItem` jest zwykłym interfejsem znacznikowym. Test Javy `newOperationIsANewSwitchInJava25` nazywa się `NewOperationIsANewSwitchExpression`. Generyczne `accept` to `TResult Accept<TResult>(IOrderItemVisitor<TResult> visitor)`, a interfejs Visitora jest kowariantny (`out TResult`).
+
+### Co widzimy
+
+Pozycje zamówienia: bilet (VAT 8%), produkt baru (VAT 23%), voucher (pomniejsza kwotę, bez VAT). `ReceiptPrinter` ma trzy operacje - linia paragonu, kwota, VAT - każda z łańcuchem `is` zakończonym wyjątkiem w runtime. Nowy rodzaj pozycji kompiluje się bez błędu i wybucha na kasie.
+
+```csharp
+if (item is TicketItem ticket)
+{
+    return VatOf(ticket.Price, 8);
+}
+else if (item is SnackItem snack)
+{
+    return VatOf(snack.Price, 23);
+}
+else if (item is VoucherItem)
+{
+    return Money.Zero;
+}
+throw new ArgumentException("unknown item: " + item);
+```
+
+### Krok 1: Accept + pierwszy Visitor
+
+**W IDE:** interfejs `IOrderItemVisitor<out TResult>` z `VisitTicket/VisitSnack/VisitVoucher`, metoda `Accept<TResult>` w `IOrderItem` i rekordach. Operację "linia paragonu" przenieś do `ReceiptLineVisitor`.
+**Po:**
+
+```csharp
+text.Append(item.Accept(_lines)).Append('\n');
+```
+
+**Uruchom:** `scripts/warsztat.sh --lang cs test m5/s19` - zielone.
+**Co powiedzieć:** double dispatch - element wybiera metodę odwiedzającego. Brak metody dla typu to błąd kompilacji.
+**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s19 0 1`
+
+### Krok 2: pozostałe operacje jako Visitory
+
+**W IDE:** `AmountVisitor` i `VatVisitor`, usuń łańcuchy `is`.
+**Po:**
+
+```csharp
+total = total.Plus(item.Accept(_amounts));
+vat = vat.Plus(item.Accept(_vats));
+```
+
+**Uruchom:** test zielony; `S19SolutionTest.NewOperationIsANewVisitor` dodaje operację "grupa VAT" jako nowy Visitor.
+**Co powiedzieć:** macierz zmian: nowa operacja - nowa klasa, tanio; nowy rodzaj pozycji - zmiana interfejsu i **wszystkich** Visitorów. W C# to jedyna z form tej sceny, w której kompilator pilnuje kompletności.
+**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s19 1 2`
+
+### Krok 3: alternatywa C# - switch expression po typach
+
+**W IDE:** usuń `Accept` i Visitory, `IOrderItem` zostaje pustym interfejsem, operacje jako switch expression po typach z ramieniem `_ => throw new UnreachableException(...)` (z wzorcami pozycyjnymi w linii paragonu).
+**Po:**
+
+```csharp
+internal static Money Vat(IOrderItem item) => item switch
+{
+    TicketItem ticket => VatOf(ticket.Price, 8),
+    SnackItem snack => VatOf(snack.Price, 23),
+    VoucherItem => Money.Zero,
+    _ => throw new UnreachableException("unknown item: " + item),
+};
+```
+
+**Uruchom:** test zielony.
+**Co powiedzieć:** każda operacja w jednym miejscu, bez ceremonii `Accept/Visit`, ale **bez** kontroli kompilatora: nowy rodzaj pozycji skompiluje się i wyjdzie jako `UnreachableException` na kasie. W Javie 25 ta forma daje tę samą kontrolę co Visitor, w C# - nie. Visitor ma w C# sens zawsze, gdy nowe rodzaje mają psuć kompilację, a także gdy odwiedzający ma stan i logikę przejścia struktury.
+**Snapshot:** `Step3/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s19 2 3`
+
+### Rozwiązanie i uzasadnienie
+
+Dwie poprawne formy docelowe: klasyczny Visitor (`Step2`) i switch expression po typach (`Step3`). Macierz zmian:
+
+| Częsta zmiana | Naturalniejszy kierunek |
+| --- | --- |
+| nowe operacje, stabilne rodzaje pozycji | Visitor (w C# jedyna forma z kontrolą kompilatora) albo switch expression po typach |
+| nowe rodzaje pozycji, stabilne operacje | metody polimorficzne w pozycjach |
+| jedna prosta akumulacja | Collecting Parameter (scena s18) |
+
+### Pułapki
+
+- Ramię `_`, które po cichu zwraca wartość domyślną zamiast rzucać `UnreachableException` - nowy typ pozycji przejdzie niezauważony.
+- VAT zaokrąglany per pozycja kontra od sumy - różne wyniki, trzeba zachować sposób ze Start.
+- Visitor dla hierarchii, do której ciągle dochodzą typy - każdy nowy typ dotyka wszystkich Visitorów.
+
+### Pytanie do sali
+
+Dochodzi pozycja "karta podarunkowa" i operacja "eksport do księgowości". Która forma przyjmie te zmiany taniej?
+
+## Scena s20. Mapa decyzji - jedna tabela, dwie struktury docelowe
+
+**Temat ze slajdów:** 1.2. Najpierw rodzaj zmienności; Mapa decyzji (1/3-3/3); Lista kontrolna
+**Namespace:** `Training.Workshop.M5.S20DecisionMap` · **Test:** `scripts/warsztat.sh --lang cs test m5/s20` (`S20EquivalenceTest`, `S20SolutionTest`)
+**Czas:** ~12 min
+
+### W skrócie
+
+**Co robimy:** `ShowPricing` ma tabelę cen 3x3 wpisaną w zagnieżdżone warunki, w których splecione są format i reguła dnia. Najpierw rozplatamy dwie osie, a potem z tego samego punktu budujemy dwie alternatywy: Strategy dla reguły dnia albo typ formatu z zachowaniem.
+
+**Zasada:** Wzorzec wybieramy według rodzaju zmienności, a nie kształtu kodu - ten sam `switch` może sygnalizować różne problemy. Pytamy, która oś zmienia się częściej, i tam budujemy punkt rozszerzenia. Gdy tego nie wiemy, zostajemy przy prostej strukturze bez nowych typów.
+
+**Efekt:** Obie ścieżki są behawioralnie równoważne, a różnią się kosztem przyszłej zmiany: A tanio przyjmuje nowe akcje dniowe, B nowe formaty. Reguła zależna od obu osi naraz łamie założenie niezależności i wtedy tabela może być lepsza niż wzorzec.
+
+**Różnica względem Javy:** `@FunctionalInterface DayPolicy` to delegat `DayPolicy(Money basePrice)` - Strategy jako delegat; stałe `DayPolicies.CheapTuesday`, `Weekend`, `Regular` to lambdy jak w Javie, a kalendarz to `Func<DayOfWeek, DayPolicy>`. `enum Format` z polami i zachowaniem to `sealed class Format` z instancjami statycznymi `TwoD`, `ThreeD`, `Imax` i prywatnym konstruktorem (enum C# nie ma pól ani metod). `DayOfWeek` pochodzi z `System` (wartości PascalCase), a test parsuje wejście "MONDAY 2D" przez `Enum.Parse<DayOfWeek>(..., ignoreCase: true)`, więc oczekiwane teksty są identyczne jak w Javie.
+
+### Co widzimy
+
+`ShowPricing.Price(day, format)` ma tabelę cen 3x3 wpisaną w zagnieżdżone warunki. Dwie osie zmienności - format i reguła dnia ("tani wtorek" -30%, weekend +2.00) - są splecione.
+
+```csharp
+if (format == "2D")
+{
+    return Money.Of(day == DayOfWeek.Tuesday ? "17.50" : weekend ? "27.00" : "25.00");
+}
+else if (format == "3D")
+{
+    return Money.Of(day == DayOfWeek.Tuesday ? "22.40" : weekend ? "34.00" : "32.00");
+} ...
+```
+
+Ta scena ma **dwie ścieżki**: krok 1 jest wspólny, krok 2 to ścieżka A (Strategy dla reguły dnia), krok 3 to ścieżka B (typ formatu z zachowaniem) - budowana od kroku 1, nie od kroku 2. Test równoważności sprawdza pełną tabelę dla obu ścieżek.
+
+### Krok 1: rozplecenie osi (wspólny)
+
+**W IDE:** zauważ, że tabela to dwie niezależne reguły. ⌥⌘M `BasePrice(format)` ze switch expression po formacie i `AdjustForDay(day, basePrice)` ze switch expression po dniu. `Price` = złożenie.
+**Po:**
+
+```csharp
+public Money Price(DayOfWeek day, string format)
+{
+    return AdjustForDay(day, BasePrice(format));
+}
+```
+
+**Uruchom:** `scripts/warsztat.sh --lang cs test m5/s20` - zielone (9 cen i nieznany format).
+**Co powiedzieć:** to jest moment decyzji. Ten sam `switch` może sygnalizować różne problemy - pytamy, **która oś zmienia się częściej**.
+**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s20 0 1`
+
+### Krok 2: ścieżka A - zmienia się reguła dnia (Strategy)
+
+**W IDE:** delegat `DayPolicy(Money basePrice)`, statyczna klasa `DayPolicies` ze stałymi `CheapTuesday`, `Weekend`, `Regular` i kalendarzem `DayPolicies.Standard(day)`. `ShowPricing` dostaje kalendarz `Func<DayOfWeek, DayPolicy>` w konstruktorze (domyślnie standardowy). Format zostaje prostym `switch`.
+**Po:**
+
+```csharp
+return _calendar(day)(BasePrice(format));
+```
+
+**Uruchom:** test zielony; `PathAMakesANewDayCampaignCheap` dodaje "środę seniora" bez dotykania formatów.
+**Co powiedzieć:** wybierz tę ścieżkę, gdy marketing co miesiąc zmienia akcje dniowe, a formaty są stabilne. Zestaw polityk jest otwarty i wstrzykiwany. Tu delegat jest naturalniejszy niż interfejs z s01: polityka to jedna funkcja bez nazwanych wariantów w konfiguracji.
+**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s20 1 2`
+
+### Krok 3: ścieżka B - zmienia się zestaw formatów (typ z zachowaniem)
+
+**W IDE:** pokaż alternatywę od kroku 1: `sealed class Format` z instancjami statycznymi, ceną bazową i metodą `PriceOn(day)`, `Format.Of(code)` z tym samym wyjątkiem. `ShowPricing` deleguje. Reguła dnia zostaje zwykłym `switch` w typie.
+**Po:**
+
+```csharp
+public Money Price(DayOfWeek day, string format)
+{
+    return Format.Of(format).PriceOn(day);
+}
+```
+
+**Uruchom:** test zielony.
+**Co powiedzieć:** wybierz tę ścieżkę, gdy dochodzą formaty (4DX, ScreenX) z własnymi wyjątkami od reguł, a kalendarz jest stabilny. Porównaj `scripts/warsztat.sh --lang cs diff m5/s20 1 3` z `diff m5/s20 1 2`.
+**Snapshot:** `Step3/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s20 1 3` (alternatywa dla kroku 2; `diff 2 3` pokazuje zamianę ścieżki)
+
+### Rozwiązanie i uzasadnienie
+
+Kryterium wyboru: **rodzaj zmienności, nie kształt kodu**.
+
+| Co zmienia się często | Struktura | Co jest tanie |
+| --- | --- | --- |
+| reguły dnia, kampanie, kalendarz | Strategy (ścieżka A) | nowa polityka, wymiana kalendarza w teście |
+| formaty i ich wyjątki | typ z zachowaniem (ścieżka B) | nowy format w jednym miejscu |
+| nic, tabela stabilna | krok 1 wystarczy | czytelność bez nowych typów |
+
+Obie ścieżki są równoważne behawioralnie - test to potwierdza. Różnią się kosztem **przyszłej** zmiany. Gdy nie wiemy, która oś będzie się zmieniać, zostajemy na kroku 1.
+
+### Pułapki
+
+- Wybór wzorca "bo ładniej" bez historii zmian (git log, backlog) - zgadujemy przyszłość.
+- Obie ścieżki naraz (Strategy dnia w typie formatu) - podwójna ceremonia dla dwóch stabilnych osi.
+- Reguła zależna od obu osi naraz ("IMAX we wtorek bez zniżki") - łamie założenie niezależności z kroku 1; wtedy tabela może być lepsza niż wzorzec.
+
+### Pytanie do sali
+
+Biznes zapowiada "IMAX we wtorek bez zniżki". Która ścieżka przyjmie to łatwiej i dlaczego?
+
+## Scena s21. Wzorzec jako decyzja odwracalna - rozliczenie z dystrybutorem
+
+**Temat ze slajdów:** 2.1. Refaktoryzacja od wzorca; 2.2. Kierunki odwrotne; 1.4. Kiedy wzorzec się nie opłaca
+**Namespace:** `Training.Workshop.M5.S21ReversiblePattern` · **Test:** `scripts/warsztat.sh --lang cs test m5/s21` (`S21EquivalenceTest`, `S21FestivalVariantTest`)
+**Czas:** ~12 min
+
+### W skrócie
+
+**Co robimy:** Rozliczenie z dystrybutorem ma dwa modele w jednym `switch`, w tym festiwalowy z obcego systemu w groszach. Wprowadzamy Strategy z Adapterem, a gdy umowy festiwalowe wygasają, usuwamy wariant i cały wzorzec.
+
+**Zasada:** Wzorzec to odpowiedź na konkretne siły (tu: dwa istniejące warianty i obcy interfejs), a nie kod do skopiowania. Strategy opłaca się dla rodziny wymiennych algorytmów, Adapter dla realnego tłumaczenia obcego modelu, a refaktoryzacja od wzorca jest równie poprawna jak do niego.
+
+**Efekt:** Zachowanie świadomie się zmienia: umowy FESTIVAL są teraz odrzucane, a model procentowy liczy tak samo na każdym etapie. Zostaje prosta metoda bez interfejsu i słownika, którą w razie potrzeby rozbudujemy tymi samymi krokami w przód.
+
+**Różnica względem Javy:** mapa modeli to `IReadOnlyDictionary<string, ISettlementModel>` z inicjatorem, a brak modelu wykrywa `TryGetValue`. W Start `switch` z blokami to instrukcja `switch` z `case ...: { ... return ...; }`.
+
+### Co widzimy
+
+Rozliczenie z dystrybutorem ma dwa istniejące modele: procentowy (tydzień 1: 50%, 2: 40%, dalej 35%, minimalna gwarancja 500.00) i festiwalowy (stawka z obcego systemu `FestivalTariffClient`, w groszach jako `long`). Oba siedzą w jednym `switch`, konwersja jednostek jest wpleciona w logikę rozliczeń.
+
+```csharp
+case "FESTIVAL":
+{
+    var cents = _festival.WeeklyFeeInCents(deal.Title, week);
+    return cents / 100m;
+}
+```
+
+### Krok 1: Replace Conditional with Strategy (i Adapter dla obcego klienta)
+
+**W IDE:** utwórz interfejs `ISettlementModel.Payout(deal, week, ticketRevenue)`. Każdą gałąź `switch` przenieś (⌥⌘M, potem ⌃T > Extract Class) do klasy: `PercentageModel` i `FestivalFeeAdapter` (opakowuje `FestivalTariffClient`, konwertuje grosze). `DistributorSettlement` wybiera model ze słownika.
+**Po:**
+
+```csharp
+private readonly IReadOnlyDictionary<string, ISettlementModel> _models = new Dictionary<string, ISettlementModel>
+{
+    ["PERCENT"] = new PercentageModel(),
+    ["FESTIVAL"] = new FestivalFeeAdapter(new FestivalTariffClient()),
+};
+```
+
+**Uruchom:** `scripts/warsztat.sh --lang cs test m5/s21` - 18 testów zielonych; `Step1AdapterPaysTheFestivalFeeConvertedFromCents` sprawdza 300.00 i 150.00.
+**Co powiedzieć:** uzasadnienie to dwa **istniejące** warianty z różnymi właścicielami i obcy interfejs. Adapter ma realną pracę (konwersja jednostek), nie jest pustym przekazaniem 1:1.
+**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s21 0 1`
+
+### Krok 2: Wariant znika - Safe Delete adaptera
+
+**W IDE:** umowy festiwalowe wygasły. Usuń wpis `"FESTIVAL"` ze słownika, Safe Delete (⌘⌦) na `FestivalFeeAdapter`.
+**Po:**
+
+```csharp
+private readonly IReadOnlyDictionary<string, ISettlementModel> _models = new Dictionary<string, ISettlementModel>
+{
+    ["PERCENT"] = new PercentageModel(),
+};
+```
+
+**Uruchom:** test zielony; `AfterTheVariantIsGoneFestivalDealsAreRejected` - to świadoma zmiana zachowania, dlatego sprawdzana osobno, a nie testem równoważności.
+**Co powiedzieć:** zostaje Strategy z jedną implementacją i słownikiem z jednym wpisem - klasyczny sygnał nadmiaru wzorca ze slajdu 2.1.
+**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s21 1 2`
+
+### Krok 3: Refaktoryzacja od wzorca
+
+**W IDE:** ⌥⌘N (Inline Method) na `PercentageModel.Payout` w miejscu wywołania (albo ręcznie wklej ciało), usuń słownik, Safe Delete na `PercentageModel` i `ISettlementModel`. Przenieś stałą `MinimumGuarantee` do `DistributorSettlement` (F6 na stałej albo ręcznie).
+**Po:**
+
+```csharp
+public decimal Payout(Deal deal, int week, decimal ticketRevenue)
+{
+    if (deal.Model != "PERCENT")
+    {
+        throw new ArgumentException("nieznany model: " + deal.Model);
+    }
+    var percent = week == 1 ? 50 : week == 2 ? 40 : 35;
+```
+
+**Uruchom:** test zielony - model procentowy rozlicza się tak samo przed wzorcem, ze wzorcem i po jego usunięciu.
+**Co powiedzieć:** refaktoryzacja od wzorca jest równie poprawna jak do wzorca. Gdy wróci drugi model, przywrócimy Strategy tymi samymi krokami w przód.
+**Snapshot:** `Step3/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s21 2 3`
+
+### Rozwiązanie i uzasadnienie
+
+Wzorzec był odpowiedzią na konkretne siły (dwa warianty, obcy interfejs). Gdy siły zniknęły, zniknął też wzorzec. Test równoważności chroni oba kierunki.
+
+### Pułapki
+
+- Zostawienie interfejsu "bo może wróci" - to YAGNI w drugą stronę (moduł 2, scena s01).
+- Adapter, który tylko przekazuje wywołania 1:1 bez tłumaczenia modelu, błędów czy jednostek.
+- Dopasowanie obcego klienta na siłę do kontraktu, którego obietnic nie spełnia (np. determinizm przy wywołaniu sieciowym).
+
+### Pytanie do sali
+
+Który wzorzec w waszym kodzie przeżył powód, dla którego go wprowadzono? Co by kosztowało jego usunięcie?
+
+## Scena s22. Remove Middle Man - fasada kina
+
+**Temat ze slajdów:** 2.3. Remove Middle Man; 2.2. Kierunki odwrotne
+**Namespace:** `Training.Workshop.M5.S22MiddleMan` · **Test:** `scripts/warsztat.sh --lang cs test m5/s22` (`S22EquivalenceTest`)
+**Czas:** ~8 min
+
+### W skrócie
+
+**Co robimy:** `CinemaFacade` prawie wszystko deleguje 1:1 do `ScreeningCatalog`, ale w `FreeSeats` po cichu zamienia nieznany seans na 0 wolnych miejsc. Przenosimy to tłumaczenie do `SeatBadge`, migrujemy obu klientów do katalogu po jednym i usuwamy fasadę.
+
+**Zasada:** Remove Middle Man usuwa pośrednika, który tylko przekazuje wywołania dalej, i pozwala klientom rozmawiać bezpośrednio z właściwym obiektem - ruch odwrotny to Hide Delegate. Najpierw sprawdzamy, czy pośrednik nie robi czegoś więcej (autoryzacja, transakcja, telemetria, retry, translacja błędów), bo fasada modułu czy seam testowy mogą być wartościowe.
+
+**Efekt:** Klienci zależą bezpośrednio od `ScreeningCatalog`, a zachowanie "nieznany seans = WYPRZEDANE" zostało zachowane w jedynym miejscu, które go potrzebuje. To dziwne zachowanie jest teraz widoczne i czeka na osobną decyzję.
+
+**Różnica względem Javy:** `NoSuchElementException` to `KeyNotFoundException`, a `LinkedHashMap` w katalogu to `OrderedDictionary<string, Screening>` (.NET 9+), żeby kolejność tablicy seansów była gwarantowana.
+
+### Co widzimy
+
+`CinemaFacade` deleguje 1:1 do `ScreeningCatalog` - prawie. `FreeSeats` po cichu tłumaczy `KeyNotFoundException` na 0, więc `SeatBadge` pokazuje "WYPRZEDANE" dla nieznanego seansu. Dwóch klientów: `SeatBadge` i `DailyBoard`.
+
+```csharp
+public int FreeSeats(string id)
+{
+    try
+    {
+        return _catalog.FreeSeats(id);
+    }
+    catch (KeyNotFoundException)
+    {
+        return 0;
+    }
+}
+```
+
+### Krok 1: pośrednik staje się czystym forwarderem
+
+**W IDE:** przenieś `try/catch` do prywatnej metody `FreeSeats` w `SeatBadge` (jedyny klient, który polega na tłumaczeniu). W fasadzie zostaje zwykłe delegowanie.
+**Po:**
+
+```csharp
+// SeatBadge
+private int FreeSeats(string id)
+{
+    try
+    {
+        return _cinema.FreeSeats(id);
+    }
+    catch (KeyNotFoundException)
+    {
+        return 0;
+    }
+}
+```
+
+**Uruchom:** `scripts/warsztat.sh --lang cs test m5/s22` - przypadek "nieznany seans wygląda jak wyprzedany" nadal zielony.
+**Co powiedzieć:** najpierw sprawdź, co pośrednik naprawdę robi: autoryzacja, transakcja, telemetria, retry, translacja błędów. Tu była translacja - przenosimy ją do klienta, zanim usuniemy pośrednika.
+**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s22 0 1`
+
+### Krok 2: pierwszy klient rozmawia z katalogiem
+
+**W IDE:** w `SeatBadge` Change Signature (⌘F6) konstruktora: `CinemaFacade` na `ScreeningCatalog`, pole przez ⇧F6 na `_catalog`.
+**Po:**
+
+```csharp
+public SeatBadge(ScreeningCatalog catalog)
+{
+    ArgumentNullException.ThrowIfNull(catalog);
+    _catalog = catalog;
+}
+```
+
+**Uruchom:** test zielony.
+**Co powiedzieć:** jeden klient naraz. `DailyBoard` wciąż używa fasady i działa.
+**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s22 1 2`
+
+### Krok 3: ostatni klient i Safe Delete fasady
+
+**W IDE:** ten sam ruch w `DailyBoard` (`_cinema.Screenings()` na `_catalog.All()`), potem Safe Delete (⌘⌦) na `CinemaFacade`.
+**Po:**
+
+```csharp
+return string.Join("\n", _catalog.All()
+    .Select(screening => screening.Id + " " + screening.Title + " " + screening.Format));
+```
+
+**Uruchom:** test zielony.
+**Co powiedzieć:** odwrotny ruch to Hide Delegate. Fasada modułu albo seam testowy mogą być wartościowe - usuwamy pośrednika, który nic nie wnosi.
+**Snapshot:** `Step3/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s22 2 3`
+
+### Rozwiązanie i uzasadnienie
+
+`Step3`: dwaj klienci zależą od `ScreeningCatalog`, zachowanie dla nieznanego seansu zachowane w jedynym miejscu, które go potrzebuje. Test `CatalogItselfRejectsUnknownScreening` pokazuje, dlaczego krok 1 był konieczny.
+
+### Pułapki
+
+- Inline wszystkich metod fasady naraz (⌥⌘N na każdej metodzie, bez automatycznego Remove Middleman w Rider) bez sprawdzenia, że któraś tłumaczy błędy.
+- Usunięcie fasady, która jest granicą modułu (klienci z innych przestrzeni nazw albo assembly zaczną zależeć od szczegółów).
+- Utrwalenie dziwnego zachowania ("nieznany = wyprzedany") bez notatki - to kandydat na osobną decyzję.
+
+### Pytanie do sali
+
+Czy "nieznany seans = WYPRZEDANE" to błąd? Kiedy wolno go poprawić?
+
+## Scena s23. Refaktoryzacja a zmiana kontraktu - zwrot na BigDecimal
+
+**Temat ze slajdów:** 3.1. Refaktoryzacja a zmiana kontraktu; 3.2. Co trzeba zachować przy wprowadzaniu wzorca; 5.1. Bezpieczna pętla pracy
+**Namespace:** `Training.Workshop.M5.S23ContractChange` · **Test:** `scripts/warsztat.sh --lang cs test m5/s23` (`S23ContractTest`)
+**Czas:** ~10 min
+
+### W skrócie
+
+**Co robimy:** `RefundCalculator.Refund` liczy zwrot na `double`, a kontraktem jest też format z dwoma miejscami po przecinku. Robimy jedną czystą refaktoryzację, potem pokazujemy naiwne przejście na `decimal` (w C# odpowiednik `BigDecimal` z tytułu sceny), które zmienia dwie rzeczy naraz, i na koniec zostawiamy tylko uzgodnioną zmianę.
+
+**Zasada:** Refaktoryzacja zachowuje obserwowalne zachowanie w przyjętej granicy, a kryterium brzmi: klient nie dostrzega żadnej nieuzgodnionej różnicy. Zmiana typu, zaokrąglenia, formatu czy wyjątku to zmiana kontraktu, którą robimy i zatwierdzamy osobno od ruchów strukturalnych, a nie "przy okazji".
+
+**Efekt:** Zachowanie świadomie się zmienia w jednym punkcie: 64.35 anulowane 2 godziny przed seansem daje 29.18 zamiast 29.17, zatwierdzone w osobnym commicie. Format "0.00" zostaje, a naiwny krok 2 nie powinien trafić do repozytorium.
+
+**Różnica względem Javy:** `BigDecimal` to `decimal`. Pułapka formatu jest ta sama, ale mechanizm jest C#-owy: `decimal` niesie własną skalę, a `Math.Round` **nie dopisuje zer**, więc `Math.Max(..., 0m)` drukuje się jako `0`. Dlatego w kroku 3 poza przestawieniem zaokrąglenia za `Max()` format "0.00" przywraca jawne `ToString("F2")`. `(decimal)double` zastępuje `BigDecimal.valueOf(double)` (dla danych testu wynik identyczny), a komunikaty z `assertEquals(..., message)` są komentarzami nad `Assert.Equal`.
+
+### Co widzimy
+
+`RefundCalculator.Refund` liczy zwrot na `double` - dokładnie jak w legacy: 100%, 50% albo 0%, minus 3.00, nie poniżej zera, zaokrąglenie `Math.Floor(x * 100 + 0.5) / 100.0` (odpowiednik javowego `Math.round`, bo domyślne `Math.Round` w .NET zaokrągla bankiersko), format `"F2"`. Kontraktem jest także **format**: zawsze dwa miejsca po przecinku.
+
+```csharp
+refund = refund - 3.00;
+if (refund < 0)
+{
+    refund = 0;
+}
+refund = Math.Floor(refund * 100 + 0.5) / 100.0;
+return refund.ToString("F2", CultureInfo.InvariantCulture);
+```
+
+### Krok 1: czysta refaktoryzacja
+
+**W IDE:** zaznacz łańcuch `if/else` wyboru udziału, ⌥⌘M, nazwa `Share`, zwraca `double` (0, 1.0, 0.5). W `Refund` jedno wyrażenie `ticketsPaid * Share(minutes) - 3.00`.
+**Po:**
+
+```csharp
+double refund = ticketsPaid * Share(minutesBeforeStart) - 3.00;
+```
+
+**Uruchom:** `scripts/warsztat.sh --lang cs test m5/s23` - wszystko zielone, łącznie z przypadkami brzegowymi (29.17 i 0.00 w `RefactoringStepKeepsHistoricalRoundingAndFormat`).
+**Co powiedzieć:** `x * 1.0 == x` w `double` - arytmetyka jest identyczna co do bitu. To jest refaktoryzacja.
+**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s23 0 1`
+
+### Krok 2: "przy okazji" double na decimal
+
+**W IDE:** pokaż naiwny ruch: `Share` zwraca `decimal`, liczymy `Math.Max(Math.Round((decimal)ticketsPaid * Share(...) - Fee, 2, MidpointRounding.AwayFromZero), 0m)`, zwracamy `ToString(CultureInfo.InvariantCulture)` bez formatu.
+**Po:**
+
+```csharp
+var refund = Math.Max(
+    Math.Round((decimal)ticketsPaid * Share(minutesBeforeStart) - Fee, 2, MidpointRounding.AwayFromZero),
+    0m);
+return refund.ToString(CultureInfo.InvariantCulture);
+```
+
+**Uruchom:** test zwykłych zwrotów zielony (`OrdinaryRefundsNeverChange`), ale `ByTheWayStepChangedTwoThingsAtOnce` dokumentuje dwie zmiany: 64.35 zapłacone, anulowanie 2 h przed seansem daje 29.18 zamiast 29.17, a zwrot po starcie to "0" zamiast "0.00".
+**Co powiedzieć:** krok wyglądał na porządki, a zmienił dwa elementy kontraktu. Pierwszy (grosz) można uzasadnić regułą domeny, drugi (format) to czysta regresja - paragon i mail pokażą "Zwrot: 0".
+**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s23 1 2`
+
+### Krok 3: świadoma decyzja
+
+**W IDE:** przestaw `Math.Max` do środka, przed `Math.Round(..., 2, AwayFromZero)`, i wróć do formatu `"F2"` - "0.00" wraca. Różnicę groszową zatwierdzamy jako zmianę kontraktu: komentarz XML z decyzją, nowe oczekiwanie w teście, osobny commit.
+**Po:**
+
+```csharp
+var refund = Math.Round(
+    Math.Max((decimal)ticketsPaid * Share(minutesBeforeStart) - Fee, 0m),
+    2, MidpointRounding.AwayFromZero);
+return refund.ToString("F2", CultureInfo.InvariantCulture);
+```
+
+**Uruchom:** test zielony: `DeliberateStepChangesOnlyTheApprovedRounding`.
+**Co powiedzieć:** kryterium refaktoryzacji to "klient nie dostrzega żadnej **nieuzgodnionej** różnicy". Różnicę w groszach uzgodniliśmy, różnicy w formacie nie. W C# samo przestawienie `Max` nie wystarczy: `Math.Round(0m, 2)` to dalej `0`, bo zaokrąglenie nie podnosi skali - format trzeba napisać jawnie.
+**Snapshot:** `Step3/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s23 2 3`
+
+### Rozwiązanie i uzasadnienie
+
+`Step3/RefundCalculator`: `decimal` i `AwayFromZero` (HALF_UP) zgodnie z regułą domeny, format bez zmian. Historia commitów: refaktoryzacja (krok 1), zmiana typu i reguły zaokrąglenia jako jawna zmiana kontraktu (krok 3). Krok 2 nie powinien trafić do repozytorium.
+
+### Pułapki
+
+- Test tylko na "okrągłych" kwotach - `double` i `decimal` dają ten sam wynik i zmiana przechodzi niezauważona.
+- Liczenie dalej na `double` i konwersja na `decimal` dopiero na końcu (albo `Math.Round` na `double`) - binarne rozwinięcie (64.349999...) daje inny wynik zaokrąglenia. Na `decimal` przechodzimy na wejściu.
+- `decimal` porównuje wartości (`0m == 0.00m` to `true`), ale `ToString()` drukuje skalę ("0" i "0.00"). Test porównujący liczby nie zobaczy zmiany formatu - test porównujący tekst tak.
+- `Math.Round(x, 2)` bez trybu zaokrągla bankiersko (`ToEven`) - inny wynik niż HALF_UP np. dla 0.125 (0.12 zamiast 0.13), więc tryb podajemy zawsze jawnie.
+- Zmiana typu wyjątku, kolejności efektów albo formatu "bo i tak ruszamy ten kod".
+
+### Pytanie do sali
+
+Kto zatwierdza zmianę kontraktu o 1 grosz: programista, księgowość czy klient API?
+
+## Scena s24. Rename - nazwy, które żyją poza C#
+
+**Temat ze slajdów:** 4.1. Co daje IDE, a czego nie dowodzi; 4.2. Rename - mechanika i granice
+**Namespace:** `Training.Workshop.M5.S24Rename` · **Test:** `scripts/warsztat.sh --lang cs test m5/s24` (`S24EquivalenceTest`, `S24RenameLimitsTest`)
+**Czas:** ~12 min
+
+### W skrócie
+
+**Co robimy:** W `SalesReport` nazwy `Calc2`, `s`, `m`, `t` nic nie mówią, ale nazwa metody żyje w konfiguracji, a nazwy właściwości rekordu trafiają refleksją do nagłówka CSV. Zmieniamy nazwy od najbezpieczniejszych lokalnych do tych, które są kontraktem zewnętrznym.
+
+**Zasada:** Rename nadaje nazwę opisującą rolę w kontekście, a nie typ ani implementację. Dla zmiennych lokalnych IDE robi to bezpiecznie, ale nazwa użyta w konfiguracji, refleksji, JSON czy ORM jest częścią API i wymaga strategii migracji. IDE nie widzi takich użyć, więc nie mylić operacji ⇧F6 z bezpieczną zmianą kontraktu.
+
+**Efekt:** Kod czyta się po nazwach ról, a oba kontrakty zostają nietknięte: stara nazwa `Calc2` jako przestarzały delegat, nagłówek CSV jako jawna stała. Koszt to delegat, którego nie wolno usunąć, dopóki ktoś nie zmieni konfiguracji na serwerach.
+
+**Różnica względem Javy:** metoda z konfiguracji nazywa się w C# `Calc2` (PascalCase), więc wpis to `report.method=Calc2`. Rekord `Line` ma w `Start`, `Step1` i `Step2` celowo właściwości `t`, `n`, `d` z małej litery (część zapachu), dzięki czemu nagłówek z refleksji (`GetProperties()`) jest taki sam jak w Javie: `t;n;d`. `@Deprecated` to `[Obsolete]`, a `Properties` to ręczne parsowanie `klucz=wartość`. `GetMethod` zwraca w C# `null` zamiast rzucać, więc `ReportJob` sam rzuca `MissingMethodException` i opakowuje go w `InvalidOperationException`.
+
+### Co widzimy
+
+`SalesReport.Calc2(IReadOnlyList<Sale> s, bool flag)` składa CSV dla dystrybutora: `m`, `x`, `l`, `b`, a wiersz to `Line(string t, int n, decimal d)`. Dwie nazwy żyją poza C#:
+
+```csharp
+// ReportJob - w produkcji plik report.properties na serwerze
+internal const string Config = """
+    report.method=Calc2
+    report.onlineOnly=true
+    """;
+...
+var method = typeof(SalesReport).GetMethod(name, [typeof(IReadOnlyList<Sale>), typeof(bool)])
+    ?? throw new MissingMethodException(nameof(SalesReport), name);
+
+// SalesReport - nagłówek CSV liczony refleksją z nazw właściwości rekordu
+return string.Join(";", typeof(Line).GetProperties().Select(p => p.Name));
+```
+
+### Krok 1: Rename zmiennych lokalnych i parametrów
+
+**W IDE:** kursor na `s`, ⇧F6, `sales`. Tak samo `flag` -> `onlineOnly`, `m` -> `linesByTitle`, `x` -> `sale`, `l` -> `previous` / `line`, `b` -> `csv`, `v` -> `values`, `c` i `p` -> `property`.
+**Po:**
+
+```csharp
+public string Calc2(IReadOnlyList<Sale> sales, bool onlineOnly)
+{
+    var linesByTitle = new SortedDictionary<string, Line>(StringComparer.Ordinal);
+    foreach (var sale in sales)
+    {
+        if (onlineOnly && !sale.Online)
+```
+
+**Uruchom:** `scripts/warsztat.sh --lang cs test m5/s24` - 14 testów zielonych.
+**Co powiedzieć:** zasięg lokalny, zero użyć poza metodą, więc IDE robi to w stu procentach bezpiecznie. Od tego zaczynamy każde porządkowanie, bo tanie nazwy ułatwiają następne kroki.
+**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s24 0 1`
+
+### Krok 2: Rename metody z delegatem dla starej nazwy
+
+**W IDE:** najpierw na żywo naiwnie: ⇧F6 na `Calc2`, nazwa `RevenueCsv`, bez zmiany wystąpień w tekście (text occurrences). Uruchom test: `EveryStepRunsTheConfiguredJob` jest czerwony (`InvalidOperationException: Zadanie raportu nie działa: ...`, w środku `MissingMethodException` dla `Calc2`). IDE nie wie, że tekst w konfiguracji to nazwa metody. Cofnij (⌘Z). Teraz poprawnie: skopiuj metodę, zmień nazwę kopii na `RevenueCsv`, a ciało `Calc2` zamień na delegowanie i oznacz `[Obsolete]`.
+**Po:**
+
+```csharp
+/// <summary>
+/// Stara nazwa z konfiguracji report.properties (report.method=Calc2).
+/// Usunąć dopiero, gdy żaden serwer nie ma jej w konfiguracji.
+/// </summary>
+[Obsolete("Użyj RevenueCsv - Calc2 zostaje tylko dla konfiguracji report.properties")]
+public string Calc2(IReadOnlyList<Sale> sales, bool onlineOnly)
+{
+    return RevenueCsv(sales, onlineOnly);
+}
+
+public string RevenueCsv(IReadOnlyList<Sale> sales, bool onlineOnly)
+{
+```
+
+**Uruchom:** test zielony, zadanie z konfiguracji działa. Test, który wciąż woła `Calc2` wprost, wyłącza ostrzeżenie kompilatora przez `#pragma warning disable CS0618` (odpowiednik `@SuppressWarnings("deprecation")`).
+**Co powiedzieć:** konfiguracja leży na serwerach, poza naszym repozytorium, więc nie zmienimy jej w tym samym commicie. Stara nazwa zostaje jako przestarzały delegat, dopóki ktoś nie zmieni konfiguracji wszędzie. To jest strategia migracji ze slajdu.
+**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s24 1 2`
+
+### Krok 3: Rename właściwości rekordu po odcięciu kontraktu CSV
+
+**W IDE:** najpierw naiwnie: ⇧F6 na `t` w `Line`, `Title` (Rider zmienia parametr rekordu i wygenerowaną z niego właściwość). Test pokaże nagłówek `Title;n;d` zamiast `t;n;d`: plik dla dystrybutora właśnie się zmienił. Cofnij. Teraz poprawnie: najpierw zamień refleksyjne `Header()` i `Row()` na jawny `CsvHeader = "t;n;d"` i jawne składanie wiersza (test zielony), dopiero potem ⇧F6 na `t`, `n`, `d` -> `Title`, `Tickets`, `Revenue`.
+**Po:**
+
+```csharp
+/// <summary>Nagłówek uzgodniony z dystrybutorem - kontrakt zewnętrzny, NIE nazwy właściwości w C#.</summary>
+internal const string CsvHeader = "t;n;d";
+
+public sealed record Line(string Title, int Tickets, decimal Revenue);
+
+private static string Row(Line line)
+{
+    return line.Title + ";" + line.Tickets + ";" + line.Revenue.ToString(CultureInfo.InvariantCulture);
+}
+```
+
+**Uruchom:** test zielony, także `S24RenameLimitsTest.ReflectionTurnsCSharpNamesIntoTheCsvHeader`, który pokazuje, że refleksja na nowym rekordzie dałaby `Title;Tickets;Revenue`.
+**Co powiedzieć:** nazwa w C# i nazwa w kontrakcie zewnętrznym to dwie różne rzeczy. Dopóki są sklejone refleksją, każdy Rename jest zmianą API. Przy okazji: jawny wiersz formatuje kwotę z `InvariantCulture`, tak jak robiła to refleksja (`Convert.ToString(..., CultureInfo.InvariantCulture)`), inaczej na serwerze z `pl-PL` w pliku pojawiłby się przecinek.
+**Snapshot:** `Step3/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s24 2 3`
+
+### Rozwiązanie i uzasadnienie
+
+`Step3`: wszystkie nazwy mówią o roli (`RevenueCsv`, `onlineOnly`, `linesByTitle`, `Line.Revenue`), a dwa kontrakty zewnętrzne (nazwa metody w konfiguracji i nagłówek CSV) są zachowane jawnie: przez delegat i przez stałą. Oba testy równoważności (wywołanie z C# i zadanie z konfiguracji) są zielone na każdym etapie.
+
+### Pułapki
+
+- Poleganie na zmianie wystąpień w tekście (text occurrences) przy Rename w Rider. Czasem pomaga, ale nie widzi plików poza projektem (konfiguracja na serwerze, `appsettings.*.json` w innym repozytorium) ani nazw składanych dynamicznie (`"Calc" + version`).
+- Inne miejsca, w których nazwa jest kontraktem: JSON (`System.Text.Json`, Newtonsoft), kolumny i tabele EF Core bez jawnego mapowania, wiązanie konfiguracji (`IConfiguration.Bind`, `IOptions<T>` wiążą po nazwach właściwości), widoki Razor, nazwy w DI rejestrowane po nazwie, logi parsowane przez monitoring. `nameof(...)` jest bezpieczne, bo Rename je zmienia, ale wtedy zmienia też tekst, który ktoś może czytać.
+- Usunięcie delegatu `Calc2` "bo nikt go nie woła". Find Usages go nie znajdzie, bo wołają go tylko refleksja i konfiguracja.
+
+### Pytanie do sali
+
+Jak w waszym systemie sprawdzić, czy nazwa klasy albo metody nie jest użyta w konfiguracji, bazie danych lub innym repozytorium?
+
+## Scena s25. Extract Method - przepływ danych i wiele wyjść
+
+**Temat ze slajdów:** 4.3. Extract Method - analiza przepływu danych; 4.4. Extract Method - mechanika i trudne przypadki
+**Namespace:** `Training.Workshop.M5.S25ExtractMethod` · **Test:** `scripts/warsztat.sh --lang cs test m5/s25` (`S25EquivalenceTest`)
+**Czas:** ~15 min
+
+### W skrócie
+
+**Co robimy:** `TicketSummary.Describe` liczy cenę, sumę i liczbę miejsc VIP, a potem składa dokument, i to wszystko w jednej metodzie z komentarzami zamiast nazw. Wydzielamy bloki do metod, a pętlę z dwoma wyjściami najpierw rozdzielamy przez Split Loop.
+
+**Zasada:** Extract Method przenosi spójny fragment do metody, gdy nazwa wyrazi intencję lepiej niż szczegóły, a sama długość nie jest powodem. Kluczowa jest analiza przepływu danych: co wchodzi jako parametr, co wychodzi jako wynik. Gdy fragment ma kilka wyjść, dzielimy go albo tworzymy obiekt wyniku, a nie zwracamy tablicy, parametrów `out` czy mutowalnego holdera.
+
+**Efekt:** Metoda publiczna czyta się jak spis treści, a obliczenia są oddzielone od renderowania, bez zmiany sygnatury ani formatu. Kosztem są dwa przejścia po liście rzędów, pomijalne wobec czytelności.
+
+**Różnica względem Javy:** `base` to w C# słowo kluczowe, więc zmienna ceny bazowej nazywa się `@base`. Suma startuje od `0.00m` (a nie od `0m`), żeby puste zamówienie drukowało `0.00` tak jak `BigDecimal.setScale(2)` w Javie - `decimal` pamięta skalę literału. Inaczej niż IntelliJ, Rider nie odmawia ekstrakcji fragmentu z dwoma wyjściami: proponuje parametr `out` (albo krotkę), co omawiamy w kroku 2.
+
+### Co widzimy
+
+`TicketSummary.Describe` liczy cenę bazową, sumę i liczbę miejsc VIP, a na końcu składa dokument. Komentarze `// cena bazowa formatu`, `// suma i liczba miejsc VIP`, `// dokument` to naturalne granice metod. Pętla ma jednak **dwa wyjścia**: `subtotal` i `vipSeats`.
+
+```csharp
+decimal subtotal = 0.00m;
+int vipSeats = 0;
+foreach (var row in order.Rows)
+{
+    decimal price = @base;
+    if (row >= 10)
+    {
+        price = price + 10.00m;
+        vipSeats++;
+    }
+    subtotal = subtotal + price;
+}
+subtotal = Math.Round(subtotal, 2, MidpointRounding.AwayFromZero);
+```
+
+### Krok 1: Extract Method dla bloku z jednym wyjściem
+
+**W IDE:** zaznacz blok pod `// cena bazowa formatu` (od `decimal @base;` do końca `if` z porankiem), ⌥⌘M, nazwa `BasePrice`. Rider sam wykryje jedno wejście (`order`) i jedno wyjście (`@base`), które zostanie wartością zwracaną. Usuń zbędny komentarz.
+**Po:**
+
+```csharp
+decimal @base = BasePrice(order);
+```
+
+**Uruchom:** `scripts/warsztat.sh --lang cs test m5/s25` - 16 testów zielonych.
+**Co powiedzieć:** blok z jednym wyjściem to najprostszy przypadek, IDE robi to bezpiecznie. Komentarz stał się nazwą metody.
+**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s25 0 1`
+
+### Krok 2: Split Loop, potem dwa razy Extract Method
+
+**W IDE:** spróbuj ⌥⌘M na pętli (razem z `Math.Round`). Rider pokaże, że fragment ma dwie wartości wyjściowe, i zaproponuje jedną jako wynik, a drugą jako parametr `out` (albo krotkę). To jest moment dydaktyczny: zamknij dialog. Ręcznie skopiuj pętlę (Split Loop) i z pierwszej kopii usuń `vipSeats`, a z drugiej `subtotal` i `price`. Uruchom test. Następnie na każdej pętli ⌥⌘M, nazwy `Subtotal` i `VipSeats`.
+**Po:**
+
+```csharp
+decimal @base = BasePrice(order);
+decimal subtotal = Subtotal(order, @base);
+int vipSeats = VipSeats(order);
+```
+
+**Uruchom:** test po Split Loop i po każdej ekstrakcji.
+**Co powiedzieć:** zamiast zwracać parę (record z dwoma polami, krotkę albo `out`) rozdzielamy odpowiedzialności. Dwa przejścia po liście to koszt pomijalny wobec czytelności. Jeśli wydajność miałaby znaczenie, mierzymy (np. BenchmarkDotNet), a nie zgadujemy.
+**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s25 1 2`
+
+### Krok 3: Extract Method dla renderowania
+
+**W IDE:** zaznacz blok `// dokument` i wykonaj ⌥⌘M, nazwa `Render`. Parametry: `order`, `subtotal`, `vipSeats`. Potem Inline Variable (⌥⌘N) dla `@base`.
+**Po:**
+
+```csharp
+public string Describe(Order order)
+{
+    decimal subtotal = Subtotal(order, BasePrice(order));
+    int vipSeats = VipSeats(order);
+    return Render(order, subtotal, vipSeats);
+}
+```
+
+**Uruchom:** test zielony.
+**Co powiedzieć:** metoda publiczna czyta się jak spis treści. Obliczenia są oddzielone od prezentacji, więc przygotowaliśmy grunt pod Extract Class.
+**Snapshot:** `Step3/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s25 2 3`
+
+### Rozwiązanie i uzasadnienie
+
+`Step3/TicketSummary`: cztery prywatne metody, każda z jednym wyjściem. Nie zmieniliśmy sygnatury publicznej ani formatu dokumentu, co potwierdza test równoważności na czterech przypadkach (w tym zamówienie puste i same miejsca VIP).
+
+### Pułapki
+
+- Ekstrakcja bloku, który modyfikuje zmienną lokalną używaną dalej, bez zwrócenia jej wartości. IDE tego pilnuje, ręczne kopiowanie nie.
+- Zwracanie tablicy `object[]`, mutowalnego "holdera" albo dorzucanie parametrów `out`/`ref` tylko po to, żeby wyciągnąć dwa wyniki. Rider zaproponuje `out` sam z siebie - to nie znaczy, że to dobry projekt.
+- Nazwa metody opisująca "jak" (`LoopRows`) zamiast "co" (`VipSeats`).
+
+### Pytanie do sali
+
+Kiedy zamiast Split Loop lepiej zwrócić record (albo nazwaną krotkę) z dwoma polami?
+
+## Scena s26. Strategy, Command i State w jednej klasie - pulpit kasjera
+
+**Temat ze slajdów:** 6.1. Kto wybiera wariant i kiedy?; 6.2. Punkt wyjścia: trzy osie w jednej klasie; 6.3. Po: jeden mechanizm na każdą oś; 6.8. Typowe pomyłki przy wyborze
+**Namespace:** `Training.Workshop.M5.S26Variability` · **Test:** `scripts/warsztat.sh --lang cs test m5/s26` (`S26EquivalenceTest`, `S26SolutionTest`)
+**Czas:** ~15 min
+
+### W skrócie
+
+**Co robimy:** `BoxOfficeDesk.Handle` obsługuje polecenia kasjera BOOK, PAY, USE, CANCEL, UNDO i REPORT jednym `switch` po nazwie operacji, w którym siedzi `switch` po statusie rezerwacji, a w rezerwacji `switch` po typie biletu. Rozplątujemy trzy osie po kolei: cenę biletu jako Strategy (delegat `TicketPricing`), operacje kasjera jako Command z cofaniem (`IDeskCommand` i odbiorca `BookingLedger`), cykl życia rezerwacji jako State (`Booking` z prywatnym typem `State`).
+
+**Zasada:** O mechanizmie decyduje pytanie "kto wybiera wariant i kiedy?", a nie wygląd kodu - wszystkie trzy `switch` wyglądają tak samo. Strategy: wariant wybiera klient na podstawie danych (typ biletu), raz. Command: żądanie z zewnątrz, które trzeba zapisać w dzienniku i umieć cofnąć. State: wariant zmienia sam obiekt w wyniku własnych operacji (CANCEL w NEW zwalnia rezerwację, w PAID oddaje pieniądze). Wprowadzamy jedną oś naraz.
+
+**Efekt:** Nowy typ biletu, nowa operacja i nowy status to zmiany w trzech rozłącznych miejscach. Odpowiedzi pulpitu, stan kasy i dziennik są identyczne w `Start` i w każdym kroku, łącznie z komunikatami błędów, kolejnością walidacji i tym, że nieudane polecenie nie trafia do dziennika.
+
+**Różnica względem Javy:** `Status` to enum w PascalCase (`Status.New`), ale pulpit wypisuje go przez `ToString().ToUpperInvariant()`, więc odpowiedzi są takie same jak w Javie (`B1 NEW 122.00`, `B1=PAID`). Interfejs funkcyjny `TicketPricing` to delegat (jak `DayPolicy` w s20), `LinkedHashMap` to `OrderedDictionary<,>`, a metoda `status(id)` odbiorcy nazywa się `StatusOf(id)`. Prywatny enum Javy z metodami nadpisywanymi w stałych nie ma odpowiednika w C# (enum C# nie ma metod), więc w kroku 3 stan to prywatna klasa abstrakcyjna `State` z jednym obiektem na stan i fabryką `State.Of(Status)`; stany końcowe Used i Cancelled dzielą klasę `FinalState`. Metody odbiorcy i fabryki poleceń `From(args)` są `internal` (w Javie pakietowe).
+
+### Co widzimy
+
+`BoxOfficeDesk` trzyma statusy i kwoty rezerwacji w słownikach, kasę (`_till`) i dziennik rekordów `Entry`. Ta sama operacja CANCEL znaczy co innego w zależności od statusu, a cofanie (UNDO) to drugi `switch` po nazwie operacji zapisanej w dzienniku. Wspólny kontrakt sceny to enum `Status` (New, Paid, Used, Cancelled) - wartość zapisywana w bazie.
+
+```csharp
+Status? next = null;
+switch (status)
+{
+    case Status.New:
+        switch (operation)
+        {
+            case "PAY":
+                _till = _till.Plus(amount);
+                moved = amount;
+                next = Status.Paid;
+                break;
+            case "CANCEL":
+                next = Status.Cancelled;
+                break;
+        }
+        break;
+    case Status.Paid:
+        switch (operation)
+        {
+            case "USE":
+                next = Status.Used;
+                break;
+            case "CANCEL":
+                _till = _till.Minus(amount);
+                moved = amount;
+                next = Status.Cancelled;
+                break;
+        }
+        break;
+    case Status.Used:
+    case Status.Cancelled:
+        break;
+}
+```
+
+`S26EquivalenceTest` to sesje kasjera przechodzące przez wszystkie osie naraz: ceny typów N/S/E/C, cykl życia (CANCEL w NEW i w PAID), niedozwolone przejścia, cofanie w odwrotnej kolejności, cofnięcie USE i ponowny CANCEL, błędy, które nie trafiają do dziennika. Przed pierwszym ruchem pokaż na rzutniku wiersz `"BOOK B1 4DX N"`: najpierw walidacja formatu, potem typów biletów, dopiero na końcu "booking exists" - kolejność walidacji też jest kontraktem.
+
+### Krok 1: Strategy dla ceny biletu
+
+**W IDE:** utwórz delegat `public delegate Money TicketPricing(Money formatBase)`. Utwórz statyczną klasę `TicketPricings` ze słownikiem kod typu - strategia (lambdy, wspólna metoda `Discounted(percent)`) i `ForType(code)`, które dla nieznanego kodu rzuca `unknown ticket type: X` jak `Start`. W pętli `Book` zastąp wewnętrzny `switch` wywołaniem strategii.
+**Po:**
+
+```csharp
+for (var i = 3; i < args.Length; i++)
+{
+    total = total.Plus(TicketPricings.ForType(args[i]).Invoke(basePrice));
+}
+```
+
+**Uruchom:** `scripts/warsztat.sh --lang cs test m5/s26` - zielone.
+**Co powiedzieć:** cenę wybiera klient na podstawie danych wejściowych, bez historii i bez stanu - to Strategy. Strategia zna tylko cenę bazową formatu, nic o rezerwacji ani o operacji kasjera. Strategie są bezstanowe, więc `ForType("S")` zwraca zawsze tę samą instancję delegatu.
+**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s26 0 1`
+
+### Krok 2: Command dla operacji kasjera
+
+**W IDE:** ⌃T > Extract Class dla pól `_statuses`, `_amounts`, `_till` - powstaje odbiorca `BookingLedger` z metodami `Open`, `Remove`, `StatusOf`, `Pay`, `Use`, `Cancel`, `Restore`, `Deposit`, `Withdraw`, `Summary`. Utwórz interfejs `IDeskCommand` (`Execute(ledger)`, `Undo(ledger)`, `JournalEntry()`) i po jednej klasie na operację: `BookCommand`, `PayCommand`, `UseCommand`, `CancelCommand`, każda z fabryką `From(args)`. Pulpit dostaje rejestr `IReadOnlyDictionary<string, Func<string[], IDeskCommand>>` i historię `List<IDeskCommand>` zamiast rekordów `Entry`; `Undo()` woła `last.Undo(_ledger)`.
+**Po:**
+
+```csharp
+var command = factory(args);
+var result = command.Execute(_ledger);
+_history.Add(command);
+return result;
+```
+
+**Uruchom:** test zielony.
+**Co powiedzieć:** wykonanie i cofnięcie są obok siebie w jednej klasie, a nie w dwóch `switch`. Polecenie pamięta tylko to, czego potrzebuje do cofnięcia (poprzedni status, przesuniętą kwotę) - to stan **tego** żądania, dlatego każde wywołanie tworzy nowy obiekt przez `From(args)`, a komenda nie jest współdzieloną stałą jak w s15. Do historii trafia dopiero polecenie wykonane bez wyjątku, jak w `Start`. UNDO i REPORT zostały w `switch` pulpitu, bo nie są operacjami na rezerwacji. Cykl życia nadal siedzi w warunkach `BookingLedger` - to zapach na krok 3.
+**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s26 1 2`
+
+### Krok 3: State dla cyklu życia rezerwacji
+
+**W IDE:** utwórz klasę `Booking` (kwota i pole `private State _state`) z prywatną klasą zagnieżdżoną `State`. Warunki z `BookingLedger.Pay/Use/Cancel` przenieś do podklas stanu: `NewState` nadpisuje `Pay` i `Cancel`, `PaidState` nadpisuje `Use` i `Cancel`, `FinalState` (Used, Cancelled) nie nadpisuje niczego. Metody bazowe `State` rzucają `cannot <akcja> in <STATUS>`. `BookingLedger` trzyma `OrderedDictionary<string, Booking>` i tylko przesuwa pieniądze w kasie.
+**Po:**
+
+```csharp
+private sealed class NewState : State
+{
+    public override Status Status => Status.New;
+
+    public override Money Pay(Booking booking)
+    {
+        booking._state = Paid;
+        return booking._amount;
+    }
+
+    public override Money Cancel(Booking booking)
+    {
+        booking._state = Cancelled;
+        return Money.Zero;
+    }
+}
+```
+
+**Uruchom:** test zielony; `S26SolutionTest` sprawdza, że cena to bezstanowa strategia (`TicketPriceIsAStatelessStrategyThatKnowsOnlyMoney`), każda operacja to polecenie z `Undo` (`EveryOperatorOperationIsACommandWithUndo`), a stan jest prywatnym typem rezerwacji (`StateLivesInsideBookingAsPrivateType`).
+**Co powiedzieć:** CANCEL w NEW i w PAID to ta sama operacja z innym zachowaniem - tego nie wyrazi ani Strategy (nikt z zewnątrz nie wybiera), ani Command (polecenie jest to samo). `AxesAreNotMixed` pilnuje, że stan nie zna cennika ani nazw operacji, a polecenia nie sięgają do stanu. `Restore` celowo omija reguły przejść: cofnięcie to kompensacja, nie przejście biznesowe (USED -> PAID nie jest dozwolone, ale UNDO po USE musi je wykonać).
+**Snapshot:** `Step3/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s26 2 3`
+
+### Rozwiązanie i uzasadnienie
+
+`Step3`: pulpit zna tylko polecenia i ich historię, cena biletu to Strategy wybierana po typie, cykl życia to State w `Booking`. Trzy osie, trzy wzorce, zero mieszania. Publiczny `Status` zostaje kontraktem trwałym, a prywatny `State` jest szczegółem implementacji mapowanym przez `State.Of(status)`.
+
+### Pułapki
+
+- Jeden wzorzec dla wszystkich osi "bo to wszystko `switch`" - np. Strategy dla statusu: klient musiałby wiedzieć, w jakim stanie jest rezerwacja, i sam podmieniać strategię.
+- Polecenie jako współdzielony singleton z polami `_previous` i `_paid` - drugie PAY nadpisze dane potrzebne do cofnięcia pierwszego.
+- Cofanie przez publiczne przejścia (`Pay()`, `Cancel()`) zamiast `Restore` - cofnięcie USE wymaga przejścia, którego reguły zabraniają, a cofnięcie CANCEL po zwrocie musi wpłacić kwotę z powrotem do kasy (`Deposit`).
+- Kombinatoryczna hierarchia (`PaidCancelCommand`) zamiast złożenia osi.
+- Zapis prywatnego `State` (np. rzutowanie enuma na `int`) do bazy zamiast stabilnego `Status`.
+
+### Pytanie do sali
+
+Kierownik chce zwrotu z potrąceniem 10% dla rezerwacji opłaconej, ale tylko w weekend. Która oś się zmienia i w której klasie to dopiszecie?
+
+## Scena s27. Replace Inheritance with Delegation - raporty sprzedaży
+
+**Temat ze slajdów:** 7.3. Gdy haki niosą dwie osie; 7.4. Po: szkielet w klasie finalnej, osie jako strategie; 7.5. Replace Inheritance with Delegation; 7.6. Strategy czy Template Method?
+**Namespace:** `Training.Workshop.M5.S27TemplateToStrategy` · **Test:** `scripts/warsztat.sh --lang cs test m5/s27` (`S27EquivalenceTest`, `S27SolutionTest`)
+**Czas:** ~12 min
+
+### W skrócie
+
+**Co robimy:** `ScreeningReport` to Template Method z pięcioma hakami, ale haki niosą dwie niezależne osie: okres (`Includes`, `Label`) i format (`Header`, `Row`, `Footer`). Każda kombinacja jest podklasą (`DailyCsvReport`, `DailyTextReport`, `WeeklyCsvReport`, `WeeklyTextReport`), a kod okresu i formatu jest między nimi skopiowany. Wyjmujemy oś formatu do strategii `IReportFormat`, potem oś okresu do `IReportPeriod`, a na końcu zwijamy cztery podklasy w jedną klasę `sealed` złożoną z dwóch strategii.
+
+**Zasada:** Template Method jest dobry, gdy szkielet jest stabilny, a zmienia się **jeden** krok. Gdy haki grupują się w niezależne osie, dziedziczenie mnoży klasy (N × M), a kompozycja je dodaje (N + M). Replace Inheritance with Delegation robimy oś po osi: pogrupuj haki, Extract Interface dla grupy, delegat w konstruktorze, przeniesienie implementacji, usunięcie podklas po migracji klientów.
+
+**Efekt:** Dwa okresy i dwa formaty to cztery klasy strategii, a trzeci format to jedna klasa zamiast dwóch podklas. Kolejność kroków raportu nadal pilnuje jedna metoda `Render` - ochrona przechodzi z niewirtualnej metody szkieletu na klasę `sealed`. Wynik każdego raportu i komunikaty błędów `Reports.Of` są bez zmian.
+
+**Różnica względem Javy:** `final` na metodzie szkieletu to w C# zwykła metoda niewirtualna (metody C# domyślnie nie są wirtualne), a `final` na klasie to `sealed`. `S27SolutionTest` sprawdza to refleksją (`IsSealed`, `!IsVirtual`), a usunięte podklasy przez `Assembly.GetType(...) == null`. `TreeMap` to `SortedDictionary<string, ...>(StringComparer.Ordinal)`, `LocalDate` to `DateOnly` (drukowany jako `yyyy-MM-dd`), `previousOrSame(MONDAY)` to arytmetyka na `DayOfWeek`, a formatowanie `%-20s %5d %10s` to `string.Format(CultureInfo.InvariantCulture, "{0,-20} {1,5} {2,10}", ...)`. Format Markdown z testu to prywatna klasa `MarkdownFormat : IReportFormat`.
+
+### Co widzimy
+
+`Reports.Of(period, format)` (stabilny punkt wejścia) wybiera zagnieżdżonym `switch` jedną z czterech podklas - iloczyn osi zapisany w kodzie. Szkielet w bazie jest poprawny, ale haki mieszają dwie przyczyny zmiany:
+
+```csharp
+/// <summary>Szkielet raportu - niewirtualny (odpowiednik final).</summary>
+public string Render(DateOnly day, IReadOnlyList<ScreeningSale> sales)
+{
+    ...
+        if (Includes(day, sale.Day))                               // hak okresu
+    ...
+    var text = new StringBuilder(Header(Label(day)));              // format(okres)
+    ...
+        text.Append(Row(entry.Key, entry.Value.Tickets, entry.Value.Revenue));   // hak formatu
+    return text.Append(Footer(total.Tickets, total.Revenue)).ToString();
+}
+```
+
+`S27EquivalenceTest` sprawdza każdą kombinację: dzień CSV (z escapowaniem średnika w tytule), dzień tekst, tydzień CSV ze środy (sumy po tytule), tydzień tekst z niedzieli, następny tydzień od poniedziałku, dzień bez sprzedaży, nieznany okres, nieznany format i przypadek "najpierw okres, potem format".
+
+### Krok 1: oś formatu jako strategia
+
+**W IDE:** utwórz interfejs `IReportFormat` z `Header`, `Row`, `Footer` oraz klasy `CsvFormat` i `TextFormat` z ciałami skopiowanymi z `DailyCsvReport` i `DailyTextReport` (najpierw porównaj je z kopiami w `Weekly*`: zaznacz oba pliki w Solution Explorer i ⌘D). Do `ScreeningReport` dodaj pole `_format` i konstruktor `protected ScreeningReport(IReportFormat format)`, w `Render` wołaj `_format.Header(...)`, `_format.Row(...)`, `_format.Footer(...)`. Usuń trzy haki formatu z bazy i podklas (Safe Delete ⌘⌦), podklasy wołają `: base(new CsvFormat())` albo `: base(new TextFormat())`.
+**Po:**
+
+```csharp
+public DailyCsvReport()
+    : base(new CsvFormat())
+{
+}
+```
+
+**Uruchom:** `scripts/warsztat.sh --lang cs test m5/s27` - zielone.
+**Co powiedzieć:** najpierw grupujemy haki według osi, dopiero potem cokolwiek przenosimy. Hak wołamy teraz na delegacie, nie na `this` - strategia nie widzi stanu `protected` bazy i wszystko dostaje parametrami. `Reports` jest bez zmian, klienci niczego nie zauważyli.
+**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s27 0 1`
+
+### Krok 2: oś okresu jako strategia
+
+**W IDE:** ten sam ruch dla `Includes` i `Label`: interfejs `IReportPeriod`, klasy `DailyPeriod` i `WeeklyPeriod` (powtórzone wyliczanie poniedziałku wydziel ⌥⌘M do `Monday(day)`), konstruktor bazy `ScreeningReport(IReportPeriod period, IReportFormat format)`.
+**Po:**
+
+```csharp
+public WeeklyTextReport()
+    : base(new WeeklyPeriod(), new TextFormat())
+{
+}
+```
+
+**Uruchom:** test zielony.
+**Co powiedzieć:** baza nie ma już żadnego haka, a podklasy są tylko konfiguracją konstruktora - kandydatami do Inline Class. `Render` jest wciąż niewirtualny (`BeforeTheCollapseTheSkeletonWasStillAProtectedTemplateMethod`), więc kolejność kroków jest chroniona tak jak w Template Method.
+**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s27 1 2`
+
+### Krok 3: zwinięcie podklas w jedną klasę sealed
+
+**W IDE:** w `ScreeningReport` usuń `abstract`, oznacz klasę `sealed`, konstruktor zrób publiczny. `Reports.Of` składa `new ScreeningReport(period, format)` z dwóch słowników `Periods` i `Formats`, sprawdzając najpierw okres, potem format. Safe Delete (⌘⌦) czterech podklas.
+**Po:**
+
+```csharp
+if (!Periods.TryGetValue(period, out var chosenPeriod))
+{
+    throw new ArgumentException("unknown period: " + period);
+}
+if (!Formats.TryGetValue(format, out var chosenFormat))
+{
+    throw new ArgumentException("unknown format: " + format);
+}
+return new ScreeningReport(chosenPeriod, chosenFormat);
+```
+
+**Uruchom:** test zielony; `S27SolutionTest.NewFormatWorksWithEveryPeriodWithoutNewClasses` dodaje format Markdown jedną klasą testową i od razu używa go z oboma okresami, a `CombinationSubclassesAreGone` sprawdza, że podklas już nie ma.
+**Co powiedzieć:** N + M zamiast N × M; nowa kombinacja to nowe złożenie, nie nowa klasa. Przypadek "najpierw okres, potem format" (MONTHLY i PDF daje `unknown period`) pilnuje, że zamiana zagnieżdżonego `switch` na dwa słowniki nie zmieniła kolejności walidacji.
+**Snapshot:** `Step3/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s27 2 3`
+
+### Rozwiązanie i uzasadnienie
+
+`Step3`: jedna klasa `sealed ScreeningReport` złożona z `IReportPeriod` i `IReportFormat`, cztery małe strategie i fabryka `Reports` wybierająca osie niezależnie (`ReportIsOneFinalConcreteClassComposedOfTwoStrategies`). Template Method był dobry, dopóki zmieniała się jedna oś; przy dwóch niezależnych osiach kompozycja pozwala też wybrać kombinację w czasie działania.
+
+### Pułapki
+
+- Zwinięcie podklas przed wyjęciem obu osi - zostaje klasa z warunkiem `if (weekly)` zamiast strategii.
+- Znika typ podklasy: kod z `is WeeklyCsvReport`, rejestracja w kontenerze DI po typie albo zapisana nazwa klasy przestają działać - poszukaj takich użyć (⌥F7 Find Usages) przed Safe Delete.
+- Osie, które tylko wyglądają na niezależne: gdyby format tekstowy inaczej opisywał tydzień niż dzień, format zależałby od okresu i podział 2 + 2 byłby fałszywy.
+- Kopie implementacji w podklasach mogły się już rozjechać (np. escapowanie tylko w jednym CSV) - porównaj je, zanim zostawisz jedną.
+
+### Pytanie do sali
+
+Kiedy zostawilibyście Template Method mimo dwóch osi w hakach? Co musiałoby być prawdą o tempie zmian każdej z nich?
+
+## Scena s28. Replace Conditional with Chain of Responsibility - zatwierdzanie zwrotów
+
+**Temat ze slajdów:** 8.3. Łańcuch `if/else` z ukrytą kolejnością; 8.4. Chain of Responsibility - ogniwo i złożenie; 8.5. Chain - sekwencja i ryzyka; 8.6. Chain of Responsibility czy Decorator?
+**Namespace:** `Training.Workshop.M5.S28Chain` · **Test:** `scripts/warsztat.sh --lang cs test m5/s28` (`S28EquivalenceTest`, `S28SolutionTest`)
+**Czas:** ~12 min
+
+### W skrócie
+
+**Co robimy:** `RefundApprover.Decide` rozstrzyga łańcuchem `if/else`, kto zatwierdza zwrot: po rozpoczęciu seansu odmowa, co najmniej 24 h przed seansem zwrot automatyczny, do 100.00 kasjer, do 1000.00 kierownik, wyżej brak uprawnionego. Wyjmujemy pierwszą gałąź jako ogniwo `IRefundHandler`, potem wszystkie gałęzie jako ogniwa w liście, a na końcu budujemy jawny łańcuch z następnikiem w konstruktorze i ogniwem końcowym `NoApproverHandler`.
+
+**Zasada:** Chain of Responsibility pasuje do uporządkowanych reguł, z których obsługuje jedna. Ogniwa nie są niezależne: zwrot automatyczny nie ma limitu kwoty tylko dlatego, że stoi przed kasjerem - kolejność jest regułą biznesową i ma być widoczna w jednym miejscu. Koniec łańcucha to decyzja, nie `null`. Kształt przypomina Decorator, ale intencja jest inna: dekorator zawsze woła wnętrze, ogniwo tylko wtedy, gdy samo nie obsłuży żądania.
+
+**Efekt:** Kolejność poziomów widać w jednym wyrażeniu, a inną ścieżkę (np. festiwal bez zwrotów automatycznych) składa się bez edycji `Decide`. Walidacja kwoty zostaje przed łańcuchem, bo to warunek wstępny, a nie poziom zatwierdzania. Decyzje dla wszystkich granic progów są identyczne jak w `Start`.
+
+**Różnica względem Javy:** przejściowy kontrakt `Optional<RefundDecision>` z kroków 1-2 to `RefundDecision?` (`null` = "pytaj następne ogniwo"); w kroku 3 typ wyniku traci `?` i kompilator (nullable) sam pilnuje, że ogniwo zawsze zwraca decyzję. `LocalDateTime` to `DateTime`, a `Duration.between(...).toHours()` to `(ScreeningStart - RequestedAt).TotalHours`. Ogniwa mają jawne pola `readonly` (`_limit`, `_next`) zamiast konstruktorów głównych, żeby test refleksji (`EveryLinkKnowsOnlyItsSuccessor`) liczył dokładnie jedno pole następnika. Ogniwo-szpieg w `HandlerThatDecidesStopsTheChainUnlikeADecorator` to prywatna klasa `SpyHandler` zamiast lambdy.
+
+### Co widzimy
+
+```csharp
+if (!(request.RequestedAt < request.ScreeningStart))
+{
+    return RefundDecision.Rejected("seans juz sie rozpoczal");
+}
+else if ((request.ScreeningStart - request.RequestedAt).TotalHours >= 24)
+{
+    return RefundDecision.ApprovedBy("AUTO");
+}
+else if (!request.Amount.IsGreaterThan(CashierLimit))
+{
+    return RefundDecision.ApprovedBy("CASHIER");
+}
+else if (!request.Amount.IsGreaterThan(ManagerLimit))
+{
+    return RefundDecision.ApprovedBy("MANAGER");
+}
+return RefundDecision.Rejected("brak uprawnionego zatwierdzajacego");
+```
+
+Zmiana kolejności, nowy poziom albo inna ścieżka dla festiwalu oznacza edycję tej jednej metody. `S28EquivalenceTest` to tabela na granicach progów: dokładnie 24 h przed (AUTO) i 23 h 59 min (kasjer), 100.00 i 100.01, 1000.00 i 1000.01, 5000.00 trzy dni przed seansem (AUTO bez limitu - kolejność reguł), chwila rozpoczęcia seansu, kwota zero i kwota ujemna po seansie (walidacja przed łańcuchem).
+
+### Krok 1: Extract Interface i pierwsze ogniwo
+
+**W IDE:** utwórz interfejs `IRefundHandler` z metodą `RefundDecision? Handle(RefundRequest request)` - `null` znaczy "pytaj dalej". Pierwszą gałąź wydziel (⌥⌘M) i przenieś (F6) do klasy `AfterScreeningHandler`. W `Decide` zostaje reszta `if/else`.
+**Po:**
+
+```csharp
+var decision = _afterScreening.Handle(request);
+if (decision != null)
+{
+    return decision;
+}
+else if ((request.ScreeningStart - request.RequestedAt).TotalHours >= 24)
+{
+    return RefundDecision.ApprovedBy("AUTO");
+}
+```
+
+**Uruchom:** `scripts/warsztat.sh --lang cs test m5/s28` - zielone.
+**Co powiedzieć:** zaczynamy od pierwszej gałęzi, bo wszystkie pozostałe zakładają, że ona odmówiła. `RefundDecision?` to przejściowy kontrakt "obsłużyłem albo nie" - jeszcze bez następnika.
+**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s28 0 1`
+
+### Krok 2: wszystkie gałęzie jako ogniwa w liście
+
+**W IDE:** ten sam ruch dla `AutoRefundHandler`, `CashierHandler` i `ManagerHandler`; limity trafiają do konstruktorów (Introduce Parameter ⌥⌘P). `Decide` przegląda listę ogniw po kolei i zwraca pierwszą decyzję, a po liście - odmowę "brak uprawnionego zatwierdzajacego".
+**Po:**
+
+```csharp
+foreach (var handler in _handlers)
+{
+    var decision = handler.Handle(request);
+    if (decision != null)
+    {
+        return decision;
+    }
+}
+return RefundDecision.Rejected("brak uprawnionego zatwierdzajacego");
+```
+
+**Uruchom:** test zielony.
+**Co powiedzieć:** kolejność reguł ma nazwy i jest w jednym miejscu - to kolejność elementów listy. Lista bywa wystarczająca i prostsza niż klasyczny łańcuch; jeśli nikt nie musi składać innych ścieżek, można się tu zatrzymać.
+**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s28 1 2`
+
+### Krok 3: jawny łańcuch z następnikiem
+
+**W IDE:** Change Signature (⌘F6) na `IRefundHandler.Handle`: zwraca `RefundDecision` zamiast `RefundDecision?`. Każde ogniwo dostaje `next` w konstruktorze (pole `readonly _next`) i woła `_next.Handle(request)`, gdy nie obsłuży żądania. Odmowę z końca listy przenieś do `NoApproverHandler`. `RefundApprover` dostaje dwa konstruktory: domyślny składa standardową ścieżkę, drugi przyjmuje dowolną głowę łańcucha.
+**Po:**
+
+```csharp
+public RefundApprover()
+    : this(new AfterScreeningHandler(
+        new AutoRefundHandler(
+            new CashierHandler(CashierLimit,
+                new ManagerHandler(ManagerLimit,
+                    new NoApproverHandler())))))
+{
+}
+```
+
+**Uruchom:** test zielony; `S28SolutionTest.ChainIsAssembledExplicitlySoAFestivalCanSkipAutoRefunds` składa ścieżkę festiwalową bez zwrotów automatycznych, `HandlerThatDecidesStopsTheChainUnlikeADecorator` sprawdza, że ogniwo, które zdecydowało, nie woła następnika, a `EndOfTheChainHasNoSuccessor` - że koniec łańcucha jest ogniwem.
+**Co powiedzieć:** koniec łańcucha jest ogniwem, więc żądanie nie może "spaść" bez odpowiedzi. Kontrast z Decoratorem: dekorator zawsze woła wnętrze i dokłada coś do wyniku, a tu odpowiedź pochodzi od dokładnie jednego ogniwa. Pytanie kontrolne: czy po obsłużeniu ktoś dalej musi pracować? Audyt decyzji byłby więc Decoratorem wokół `RefundApprover`, a nie kolejnym ogniwem.
+**Snapshot:** `Step3/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s28 2 3`
+
+### Rozwiązanie i uzasadnienie
+
+`Step3`: pięć ogniw, każde zna tylko swój warunek i następnika, kolejność złożona w jednym konstruktorze, walidacja kwoty przed łańcuchem. Nowy poziom (np. dyrektor do 5000.00) to nowe ogniwo i jedna linia w złożeniu.
+
+### Pułapki
+
+- Przestawienie ogniw "dla porządku" (kasjer przed AUTO) - 5000.00 trzy dni przed seansem przestaje być zwrotem automatycznym; wychwyci to przypadek "AUTO nie ma limitu kwoty".
+- Ogniwa z mutowalnym `next` (setter `Then(...)` jak na slajdzie 8.4) współdzielone między dwoma łańcuchami - drugie złożenie zmienia pierwsze. Tu `_next` jest `readonly`.
+- Walidacja kwoty jako pierwsze ogniwo - łańcuch podany z zewnątrz mógłby ją pominąć.
+- Granica 24 h: `TotalHours` to ułamek godzin (Java `toHours()` obcina minuty, przy progu całkowitym wynik jest ten sam). Przepisanie na `.Hours >= 24` (składowa godzin, zawsze 0-23) albo zaokrąglanie łatwo zmienia wynik dla 23 h 59 min albo 3 dni - wychwyci to tabela granic.
+
+### Pytanie do sali
+
+Biznes chce logować każdą decyzję o zwrocie razem z tym, kto ją podjął. Ogniwo czy dekorator - i dlaczego?
+
+## Scena s29. Introduce Boundary Object - odpowiedź terminala płatniczego
+
+**Temat ze slajdów:** 9.3. Surowy ładunek w domenie; 9.4. Boundary Object: zwalidowany obraz na granicy; 9.5. Dane na granicy - decyzje; 9.6. Adapter czy Boundary Object?
+**Namespace:** `Training.Workshop.M5.S29BoundaryObject` · **Test:** `scripts/warsztat.sh --lang cs test m5/s29` (`S29EquivalenceTest`, `S29SolutionTest`)
+**Czas:** ~12 min
+
+### W skrócie
+
+**Co robimy:** `PaymentService` dostaje od starego terminala tekst `OK;AUTH-R1;4500` (status, kod, kwota w groszach) i rozbiera go w każdej metodzie osobno: `Split`, `StartsWith`, `LastIndexOf`. Wprowadzamy niezmienny obiekt graniczny `PaymentConfirmation`, wydzielamy mapper `TerminalResponseMapper`, a na końcu chowamy klienta terminala za portem `IPaymentTerminal` z adapterem `LegacyTerminalAdapter`.
+
+**Zasada:** Boundary Object to zwalidowany obraz danych z zewnątrz w języku domeny: jeśli obiekt istnieje, jest poprawny, więc domena niczego nie parsuje ani nie zgaduje. Adapter tłumaczy wywołanie (jak zawołać obcy system), Boundary Object - dane (co wpuszczamy do domeny); zwykle występują razem. Walidacja na granicy zmienia typ i moment błędu dla danych błędnych - to decyzja do zatwierdzenia, nie skutek uboczny.
+
+**Efekt:** Format terminala zna tylko mapper, a serwis zależy wyłącznie od portu i widzi `PaymentConfirmation`. Dla poprawnych odpowiedzi wynik jest identyczny. Świadomie zmienia się zachowanie dla odpowiedzi zniekształconych: są odrzucane na granicy przez `ArgumentException("malformed terminal response: ...")`, zamiast wybuchać trzy metody dalej albo drukować pusty kod na paragonie.
+
+**Różnica względem Javy:** zagnieżdżony enum `PaymentConfirmation.Outcome` to enum najwyższego poziomu `Outcome { Approved, Declined, Error }` (w C# typ zagnieżdżony o tej samej nazwie co właściwość `Outcome` dałby konflikt nazw), a odpowiedź serwisu wypisuje go przez `ToString().ToUpperInvariant()` (`DECLINED 51` jak w Javie). Rekord z konstruktorem kompaktowym to `sealed record` z jawnym konstruktorem i właściwościami tylko do odczytu (bez `init`), więc wyrażenie `with` nie ominie walidacji. `long.Parse`/`decimal.Parse` rzucają `FormatException` (nie `ArgumentException` jak `NumberFormatException` w Javie), dlatego mapper używa `decimal.TryParse` i sam rzuca `ArgumentException` z komunikatem granicy. Terminal podstawiony w `ServiceWorksWithAnyTerminalBehindThePort` to prywatna klasa `FakeTerminal : IPaymentTerminal` zamiast lambdy.
+
+### Co widzimy
+
+`LegacyTerminalClient` (nie zmieniamy go) przyjmuje grosze i odpowiada tekstem: kwota <= 0 daje `ERROR;AMOUNT;0`, powyżej 1000.00 `DECLINED;51;0`, powyżej 300.00 autoryzację częściową do 300.00. Serwis trzyma surowe odpowiedzi w słowniku i każda metoda sama je rozbiera:
+
+```csharp
+var grosze = decimal.ToInt64(amount.Amount * 100);
+var raw = _terminal.Authorize(bookingId, grosze);
+_responses[bookingId] = raw;
+var parts = raw.Split(';');
+if (parts[0] != "OK")
+{
+    return parts[0] + " " + parts[1];
+}
+var authorized = long.Parse(parts[2], CultureInfo.InvariantCulture);
+if (authorized < grosze)
+{
+    return "PARTIAL " + parts[1] + " brakuje "
+        + ((grosze - authorized) / 100m).ToString("0.00", CultureInfo.InvariantCulture);
+}
+```
+
+Punkt wejścia testu to korzeń kompozycji `PaymentModule.PaymentService(terminal)`. `S29EquivalenceTest` gra sesje płatności: pełna autoryzacja, częściowa, granica 300.00 i grosz ponad, odmowa i błąd kwoty, brak płatności, ponowna płatność nadpisująca poprzednią - za każdym razem z potwierdzeniem i sumą autoryzacji.
+
+### Krok 1: Introduce Boundary Object
+
+**W IDE:** utwórz `sealed record PaymentConfirmation` z konstruktorem `(Outcome outcome, string code, Money authorized)` i enum `Outcome { Approved, Declined, Error }`. W konstruktorze walidacja: kod niepusty, kwota nieujemna, tylko `Approved` może autoryzować pieniądze. W `Pay` rozbierz odpowiedź raz, zaraz po wywołaniu terminala (⌥⌘M `Parse(raw)`); słownik przechowuje `PaymentConfirmation`, a `Receipt` i `TotalAuthorized` czytają właściwości obiektu.
+**Po:**
+
+```csharp
+var confirmation = Parse(_terminal.Authorize(bookingId, grosze));
+_confirmations[bookingId] = confirmation;
+if (!confirmation.Approved)
+{
+    return confirmation.Outcome.ToString().ToUpperInvariant() + " " + confirmation.Code;
+}
+if (confirmation.IsPartialFor(amount))
+{
+    return "PARTIAL " + confirmation.Code + " brakuje " + amount.Minus(confirmation.Authorized);
+}
+```
+
+**Uruchom:** `scripts/warsztat.sh --lang cs test m5/s29` - zielone.
+**Co powiedzieć:** zamiast trzech parserów jest jeden, w miejscu wejścia danych. `TotalAuthorized` nie sprawdza już `StartsWith("OK")` i po prostu sumuje - niezmiennik obiektu gwarantuje zero dla odmowy. `Parse` sprawdza liczbę pól i znany status: to pierwszy moment, w którym zmienia się zachowanie dla danych błędnych (`Start` przyjąłby `OK;;4500` i wydrukował pusty kod).
+**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s29 0 1`
+
+### Krok 2: mapper na granicy
+
+**W IDE:** F6 (Move) dla statycznej `Parse` do nowej klasy `TerminalResponseMapper` jako `ToConfirmation(raw)`; przeliczenie złotych na grosze też tam (`ToGrosze(amount)`). Serwis tworzy mapper i woła go po obu stronach wywołania terminala.
+**Po:**
+
+```csharp
+var raw = _terminal.Authorize(bookingId, _mapper.ToGrosze(amount));
+var confirmation = _mapper.ToConfirmation(raw);
+```
+
+**Uruchom:** test zielony; `S29SolutionTest.MalformedResponseIsRejectedAtTheBoundary` sprawdza `OK;AUTH-R1`, `MAYBE;X;0`, `OK;;4500` i `OK;AUTH-R1;abc`, a `MapperTranslatesUnitsBothWays` - grosze w obie strony.
+**Co powiedzieć:** mapper to jedyne miejsce, które zna format `STATUS;KOD;KWOTA` i grosze w obie strony. Serwis nie zna już formatu, ale wciąż sam woła `LegacyTerminalClient` i składa wywołanie z mapperem.
+**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s29 1 2`
+
+### Krok 3: port domeny i adapter
+
+**W IDE:** utwórz interfejs `IPaymentTerminal` z `PaymentConfirmation Authorize(string bookingId, Money amount)` i klasę `LegacyTerminalAdapter : IPaymentTerminal`, która łączy klienta z mapperem. Change Signature (⌘F6) konstruktora `PaymentService`: `LegacyTerminalClient` na `IPaymentTerminal`. W korzeniu kompozycji owiń klienta adapterem.
+**Po:**
+
+```csharp
+public static PaymentService PaymentService(LegacyTerminalClient terminal)
+{
+    return new PaymentService(new LegacyTerminalAdapter(terminal));
+}
+```
+
+**Uruchom:** test zielony; `ServiceWorksWithAnyTerminalBehindThePort` używa ręcznego `FakeTerminal` zamiast terminala, a `DomainServiceSeesNeitherTheLegacyClientNorTheMapper` sprawdza sygnatury serwisu refleksją.
+**Co powiedzieć:** granica jest kompletna: Adapter (kształt wywołania), mapper (format danych), Boundary Object (poprawna wartość w języku domeny). Serwis da się testować bez terminala i bez tekstowych odpowiedzi.
+**Snapshot:** `Step3/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s29 2 3`
+
+### Rozwiązanie i uzasadnienie
+
+`Step3`: `PaymentService` zna tylko `IPaymentTerminal` i `PaymentConfirmation`, `LegacyTerminalAdapter` implementuje port, `TerminalResponseMapper` jako jedyny zna grosze i tekst odpowiedzi. Zmiana zachowania dla odpowiedzi zniekształconych jest nazwana i opisana testem (`BoundaryObjectCannotBeInvalid`, `MalformedResponseIsRejectedAtTheBoundary`).
+
+### Pułapki
+
+- Obiekt graniczny bez walidacji (zwykłe DTO, rekord pozycyjny z `init`) - domena znowu musi sprawdzać i zgadywać, a `with` stworzy niepoprawną kopię.
+- Zmiana typu i momentu błędu bez zapisania decyzji: w `Start` `OK;AUTH-R1` dawało `IndexOutOfRangeException` dopiero przy parsowaniu kwoty, a `OK;;4500` - paragon z pustym kodem.
+- Adapter, który przepuszcza surowy tekst dalej "dla elastyczności" - port ma mówić językiem domeny.
+- Kopiowanie każdego DTO obcego systemu bez potrzeby - osobny model ma sens, gdy granica oddziela różne semantyki lub tempo zmian.
+- Przeliczanie na grosze jest kontraktem: `decimal.ToInt64` po cichu obcina ułamek grosza (Java `longValueExact` rzuca wyjątek). Przy `Money` ze skalą 2 ułamka nie ma, ale kwota spoza `Money` zostałaby zaokrąglona w dół bez śladu.
+
+### Pytanie do sali
+
+Terminal zaczyna zwracać nowy status `PENDING`. W którym miejscu kodu to zobaczycie i kto powinien zdecydować, co z nim zrobić?
+
+## Scena s30. Extract Facade - zakup biletów w sklepie i w kasie
+
+**Temat ze slajdów:** 11.1. Klient orkiestruje podsystemy; 11.2. Po: fasada jako strażnik kolejności; 11.3. Facade - procedura i ryzyka; 3.4. Skutki strukturalne wzorców
+**Namespace:** `Training.Workshop.M5.S30Facade` · **Test:** `scripts/warsztat.sh --lang cs test m5/s30` (`S30BehaviourChangeTest`, `S30EquivalenceTest`, `S30SolutionTest`)
+**Czas:** ~12 min
+
+### W skrócie
+
+**Co robimy:** `OnlineShop.Buy` i `BoxOffice.Sell` same orkiestrują cztery podsystemy: cennik, rejestr miejsc, bramkę płatności i wysyłkę maili. Kod kasy to kopia sklepu sprzed lat i ma celowo zostawiony błąd legacy: po odmowie płatności nie zwalnia miejsc. Wyjmujemy orkiestrację ze sklepu do `BookingFacade`, przepinamy na nią kasę (to świadomie naprawia błąd), a na końcu ukrywamy podsystemy i domykamy niezmiennik blokiem `finally`.
+
+**Zasada:** Facade daje klientom jedną spójną operację zamiast znajomości kroków i ich kolejności. Procedura: test efektów obu klientów, Extract Method orkiestracji, Move Method do fasady, przepięcie drugiego klienta, zawężenie widoczności podsystemów. Gdy kopie orkiestracji już się rozjechały, przepięcie klienta zmienia jego zachowanie - to naprawa błędu, którą dokumentuje się osobnym testem, a nie "czysta" refaktoryzacja.
+
+**Efekt:** Kanały sprzedaży znają tylko fasadę i własną opłatę (sklep 2.00 za miejsce, kasa zero), a kolejność cena - rezerwacja - płatność z kompensacją - mail jest w jednym miejscu. Zachowanie świadomie zmienia się dwa razy: w kroku 2 kasa zaczyna zwalniać miejsca po odmowie płatności, w kroku 3 miejsca są zwalniane także wtedy, gdy bramka rzuci wyjątkiem.
+
+**Różnica względem Javy:** widoczność pakietowa to `internal`, ale warsztat jest jednym projektem (assembly), więc `internal` nie odgradza podsystemów od reszty kodu tak jak pakiet w Javie - granicę pilnuje test refleksji (`SubsystemIsHiddenBehindTheFacade`: typy podsystemów mają `IsPublic == false`, a fasada nie ma publicznych konstruktorów). Prawdziwą granicę dałby osobny projekt. `assumeTrue` z JUnit nie ma odpowiednika w xUnit 2, więc `StartBoxOfficeLeaksSeatsAfterDeclinedPayment` po `jump` do kroku 2 lub 3 wychodzi wcześniej (`return`) i jest zielony, a nie pominięty - jak testy pułapek w s11 i s17. `Cinema` buduje części w konstruktorze i wystawia kanały jako właściwości `OnlineShop` i `BoxOffice`; `State()` ręcznie odtwarza format `toString()` z Javy, więc migawki są identyczne.
+
+### Co widzimy
+
+Dwie metody wyglądają prawie tak samo. Pokaż je obok siebie na rzutniku i poproś salę o znalezienie różnic, zanim cokolwiek wydzielisz:
+
+```csharp
+// BoxOffice.Sell - kopia OnlineShop.Buy bez opłaty rezerwacyjnej
+var total = _prices.Price(order.TicketType).Times(order.Seats.Count);
+try
+{
+    _seats.Reserve(order.Screening, order.Seats);
+}
+catch (InvalidOperationException exception)
+{
+    return "ERROR " + exception.Message;
+}
+if (!_payments.Charge(order.Card, total))
+{
+    return "ERROR payment declined";          // sklep w tym miejscu woła _seats.Release(...)
+}
+```
+
+`Cinema` to korzeń kompozycji i stabilny punkt wejścia: składa podsystemy i oba kanały, a `State()` pokazuje miejsca, dziennik płatności i wysłane maile naraz. `S30EquivalenceTest` gra sesje, w których zachowanie ma zostać bez zmian (zakup w sklepie z opłatą, w kasie bez opłaty, miejsce zajęte przez drugi kanał, odmowa w sklepie, nieznany typ biletu przed rezerwacją, różne seanse). Odmowa w kasie celowo jest w osobnym `S30BehaviourChangeTest`.
+
+### Krok 1: Extract Facade ze sklepu
+
+**W IDE:** w `OnlineShop.Buy` zaznacz całą orkiestrację, ⌥⌘M `Book(order)`, potem Introduce Parameter (⌥⌘P) dla opłaty: `Book(order, feePerSeat)`. F6 (Move Instance Method) do nowej klasy `BookingFacade` z czterema podsystemami w konstruktorze. Sklep dostaje fasadę, a `Cinema` ją tworzy.
+**Po:**
+
+```csharp
+public string Buy(TicketOrder order)
+{
+    return _booking.Book(order, BookingFee);
+}
+```
+
+**Uruchom:** `scripts/warsztat.sh --lang cs test m5/s30` - zielone; `Step1StillLeaksBecauseOnlyTheShopUsesTheFacade` pokazuje, że błąd kasy wciąż żyje.
+**Co powiedzieć:** zaczynamy od klienta, którego orkiestracja jest poprawna (kompensuje odmowę płatności). To, czym różnią się kanały, przychodzi parametrem, a nie flagą `if (online)`.
+**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s30 0 1`
+
+### Krok 2: kasa na fasadzie - świadoma zmiana zachowania
+
+**W IDE:** Change Signature (⌘F6) konstruktora `BoxOffice`: cztery podsystemy na `BookingFacade`. `Sell` woła `_booking.Book(order, Money.Zero)`, skopiowaną orkiestrację usuń. Popraw `Cinema`.
+**Po:**
+
+```csharp
+public string Sell(TicketOrder order)
+{
+    return _booking.Book(order, Money.Zero);
+}
+```
+
+**Uruchom:** test równoważności zielony, a `S30BehaviourChangeTest.Step2FacadeReleasesSeatsForBothChannels` pokazuje zmianę: po odmowie w kasie miejsce A1 jest wolne i sklep może je sprzedać (`OK 27.00` zamiast `ERROR seat taken A1`).
+**Co powiedzieć:** usunięcie kopii usuwa także jej błąd, ale to zmiana zachowania kasy. Nazywamy ją, opisujemy testem i zatwierdzamy osobno (osobny commit "kasa zwalnia miejsca po odmowie płatności"). Test `StartBoxOfficeLeaksSeatsAfterDeclinedPayment` po `jump` do kroku 2 lub 3 kończy się wcześniej - `Start` kasy nie ma już własnej orkiestracji.
+**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s30 1 2`
+
+### Krok 3: ukryte podsystemy i niezmiennik w finally
+
+**W IDE:** zmień `public` na `internal` w `SeatRegistry`, `PriceList`, `PaymentClient`, `TicketMailer`, ich metodach i w konstruktorze fasady (⌥⏎ na modyfikatorze albo Change Signature ⌘F6 z widocznością). W `Book` otocz `Charge` blokiem `try/finally` (Surround With ⌥⌘T), który zwalnia miejsca, gdy płatność się nie udała.
+**Po:**
+
+```csharp
+var paid = false;
+try
+{
+    paid = _payments.Charge(order.Card, total);
+}
+finally
+{
+    if (!paid)
+    {
+        _seats.Release(order.Screening, order.Seats);
+    }
+}
+```
+
+**Uruchom:** test zielony; `S30SolutionTest` sprawdza, że podsystemy nie są publiczne (`SubsystemIsHiddenBehindTheFacade`), a kanały zależą tylko od fasady (`SalesChannelsKnowOnlyTheFacade`).
+**Co powiedzieć:** zawężenie widoczności to zmiana API dla klientów spoza assembly - robimy je po migracji, jako osobny krok. `finally` to druga zmiana zachowania: karta `TIMEOUT` (wyjątek bramki) w kroku 2 zostawiała miejsce zajęte (`BeforeStep3AGatewayFailureLeakedSeats`), teraz nie (`GatewayFailureNoLongerLeavesSeatsTaken`). Fasada pilnuje niezmiennika "miejsce zajęte tylko po udanej płatności", ale nie jest transakcją: błąd wysyłki maila po płatności nadal niczego nie cofa.
+**Snapshot:** `Step3/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s30 2 3`
+
+### Rozwiązanie i uzasadnienie
+
+`Step3`: `BookingFacade` to jedyne wejście do podsystemu i strażnik spójności, podsystemy są `internal`, a `Cinema` jest jedynym miejscem poza fasadą, które je składa. Obie zmiany zachowania (zwolnienie miejsc po odmowie w kasie i po awarii bramki) są nazwane i mają własne testy.
+
+### Pułapki
+
+- Przepięcie drugiego klienta jako "czysta refaktoryzacja" bez testu zmiany - ktoś mógł polegać na starym zachowaniu (np. raport zajętości kasy).
+- Fasada jako kopia całego API podsystemów (God Class) zamiast jednej spójnej operacji.
+- Parametr `bool online` zamiast opłaty - fasada zaczyna znać kanały sprzedaży.
+- Ukrycie podsystemów przed migracją wszystkich klientów, także testów i rejestracji w kontenerze DI.
+- `internal` w jednym projekcie to umowa, nie bariera - bez osobnego assembly albo testu architektury każdy w projekcie dalej może zawołać podsystem.
+- Fasada przekazująca 1:1 bez żadnej reguły to Middle Man (scena s22).
+
+### Pytanie do sali
+
+Kasa chce sprzedawać bilety bez maila, gdy klient nie poda adresu. Parametr fasady, druga operacja fasady czy osobny klient podsystemów?
+
+## Scena s31. Anti-Corruption Layer - licencje dystrybutora
+
+**Temat ze slajdów:** 12.1. Obcy model w regułach domeny; 12.2. ACL: port domenowy i tłumacz; 12.3. Facade a Anti-Corruption Layer; 12.4. ACL - ryzyka i Strangler Fig
+**Namespace:** `Training.Workshop.M5.S31AntiCorruptionLayer` · **Test:** `scripts/warsztat.sh --lang cs test m5/s31` (`S31EquivalenceTest`, `S31SolutionTest`)
+**Czas:** ~12 min
+
+### W skrócie
+
+**Co robimy:** `SettlementService` rozlicza się z dystrybutorem i decyduje, czy wolno grać film, myśląc w modelu dystrybutora: status `A`/`S`, daty `yyyyMMdd`, minimalna gwarancja w groszach jako tekst, udział `"45%"` albo `" 40 %"`, tytuł wielkimi literami. Wprowadzamy rekord domenowy `FilmLicense`, wydzielamy tłumacza `DistributorTranslator`, a na końcu port `IFilmLicenses` z implementacją `DistributorAcl`.
+
+**Zasada:** Anti-Corruption Layer chroni język domeny przed obcym modelem: port mówi językiem kina, a tłumacz jako jedyny zna cudze konwencje. Fasada upraszcza dostęp do podsystemu, ale mówi jego językiem; ACL tłumaczy jeden model na drugi i często składa się z fasady, adaptera i tłumacza naraz. Tłumaczenie zachłanne zmienia zachowanie dla danych błędnych - polityka wobec złego rekordu to decyzja biznesowa.
+
+**Efekt:** Reguły (czy licencja obejmuje dzień, ile się należy) są metodami `FilmLicense` i testuje się je bez typów dystrybutora, a `null` z obcego systemu nie wychodzi poza ACL. Dla poprawnych rekordów rozliczenia są identyczne. Walidacja jest świadomie zaostrzona: zła data to `ArgumentException("invalid legacy date: ...")`, a niespójna licencja (koniec przed początkiem, udział spoza 0-100) w ogóle nie powstanie.
+
+**Różnica względem Javy:** `Optional<FilmLicense>` to `FilmLicense?`. Obcy `DistributorFeed` jest skompilowany z `#nullable disable` (jak cudza biblioteka sprzed adnotacji nullable), więc kompilator nie ostrzega, że `Fetch` może zwrócić `null` - port `IFilmLicenses.Find` musi jawnie zadeklarować brak wyniku typem `FilmLicense?`, żeby `null` z obcego systemu nie przeszedł niezauważony. `DateTimeParseException` to `FormatException` z `DateOnly.ParseExact(legacy, "yyyyMMdd", CultureInfo.InvariantCulture)`, a komunikat granicy jest ten sam. Daty są parsowane i wypisywane z jawnymi formatami invariant (`yyyy-MM-dd` w odpowiedziach, jak `LocalDate.toString()`). Tłumacz jest klasą `internal` z metodą instancji `ToLicense`, a źródło licencji podane w `ServiceWorksWithAnyLicenseSource` to prywatna klasa `FixedLicenses : IFilmLicenses` zamiast lambdy.
+
+### Co widzimy
+
+```csharp
+if (record.StatusCode != "A")
+{
+    return "LICENCJA ZAWIESZONA " + filmCode;
+}
+if (!CanScreen(filmCode, day))
+{
+    return "LICENCJA NIEWAZNA " + filmCode + " w dniu " + day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+}
+var percent = int.Parse(record.Share.Replace("%", "").Trim(), CultureInfo.InvariantCulture);
+var minimum = new Money(decimal.Parse(record.MinGuaranteeCents, CultureInfo.InvariantCulture) / 100);
+var due = revenue.Percent(percent).Max(minimum);
+var title = record.TitleUpper[0] + record.TitleUpper[1..].ToLowerInvariant();
+```
+
+Reguła "wolno grać, gdy licencja jest aktywna i obejmuje dzień" jest zapisana jako "kod `A` i dwie daty sparsowane z `yyyyMMdd`". Każda zmiana formatu u dystrybutora rozlewa się po regułach kina. Punkt wejścia to `SettlementModule.SettlementService(feed)`; `DistributorFeed` i `DistributorRecord` należą do obcego systemu i ich nie zmieniamy. `S31EquivalenceTest` sprawdza udział powyżej minimum, minimalną gwarancję, udział ze spacjami i zaokrąglenie, oba końce okresu licencji (włącznie) i dni tuż poza nimi, licencję zawieszoną i nieznany film - dla `Settle` i `CanScreen`.
+
+### Krok 1: model domeny i tłumaczenie w jednym miejscu
+
+**W IDE:** utwórz `sealed record FilmLicense` (`FilmCode`, `Title`, `Active`, `ValidFrom`, `ValidTo`, `SharePercent`, `MinimumGuarantee`) z niezmiennikami w konstruktorze i metodami `Covers(day)`, `AllowsScreeningOn(day)`, `DueFor(revenue)`. W serwisie zaznacz dekodowanie pól rekordu, ⌥⌘M `ToLicense(record)`, a reguły licz na licencji.
+**Po:**
+
+```csharp
+var license = ToLicense(record);
+if (!license.Active)
+{
+    return "LICENCJA ZAWIESZONA " + filmCode;
+}
+if (!license.Covers(day))
+{
+    return "LICENCJA NIEWAZNA " + filmCode + " w dniu " + day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+}
+```
+
+**Uruchom:** `scripts/warsztat.sh --lang cs test m5/s31` - zielone.
+**Co powiedzieć:** reguły brzmią teraz jak reguły kina, a nie jak `StatusCode != "A"`. Zauważ, że tłumaczenie jest zachłanne: rekord zawieszony z zepsutą datą dawał w `Start` po prostu "LICENCJA ZAWIESZONA", a teraz parsowanie dat wybuchnie wcześniej. Dla poprawnych danych z testu wynik jest ten sam - to przesunięcie trzeba nazwać.
+**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s31 0 1`
+
+### Krok 2: tłumacz jako osobna klasa
+
+**W IDE:** F6 (Move) dla `ToLicense` do nowej klasy `DistributorTranslator`. Wydziel `Title(...)` i `Date(...)` (⌥⌘M), kod statusu jako stałą `Active` (⌥⌘C), a w `Date` zamień `FormatException` na `ArgumentException` z komunikatem granicy.
+**Po:**
+
+```csharp
+private static DateOnly Date(string legacy)
+{
+    try
+    {
+        return DateOnly.ParseExact(legacy, "yyyyMMdd", CultureInfo.InvariantCulture);
+    }
+    catch (FormatException exception)
+    {
+        throw new ArgumentException("invalid legacy date: " + legacy, exception);
+    }
+}
+```
+
+**Uruchom:** test zielony; `S31SolutionTest.AclRejectsMalformedLegacyDataAtTheBoundary` dokumentuje nowy komunikat dla daty `2026-10-01` w formacie ISO zamiast `yyyyMMdd`, a `AclTranslatesLegacyConventions` - tłumaczenie kodów, groszy i procentów.
+**Co powiedzieć:** zepsuty rekord zgłasza się w języku granicy, z komunikatem, który mówi, co jest nie tak. To zmiana typu wyjątku i trzeba ją zatwierdzić. Serwis nadal jednak sam pobiera `DistributorRecord` i obsługuje jego `null`.
+**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s31 1 2`
+
+### Krok 3: port domenowy i warstwa antykorupcyjna
+
+**W IDE:** utwórz interfejs `IFilmLicenses` z `FilmLicense? Find(string filmCode)` i klasę `DistributorAcl : IFilmLicenses`, która łączy klienta dystrybutora z tłumaczem. Change Signature (⌘F6) konstruktora serwisu: `DistributorFeed` na `IFilmLicenses`. Tłumacz staje się `internal`, a `SettlementModule` owija klienta w ACL.
+**Po:**
+
+```csharp
+public FilmLicense? Find(string filmCode)
+{
+    var record = _feed.Fetch(filmCode);
+    return record == null ? null : _translator.ToLicense(record);
+}
+```
+
+**Uruchom:** test zielony; `DomainServiceUsesNoLegacyType` sprawdza sygnatury serwisu refleksją, `TranslatorIsAnImplementationDetailOfTheAcl` - że tłumacz nie jest publiczny, a `ServiceWorksWithAnyLicenseSource` rozlicza licencję festiwalową podaną ręcznym `FixedLicenses`, bez żadnego rekordu dystrybutora.
+**Co powiedzieć:** żaden typ dystrybutora nie przekracza ACL, a "brak licencji" to zadeklarowany typem `FilmLicense?`, a nie przypadkowy `null` z biblioteki bez adnotacji. Fasada by tu nie wystarczyła - uprościłaby wywołania, ale domena dalej mówiłaby kodami `A`/`S`. ACL to też naturalny punkt dla Strangler Fig: za portem może stać stary i nowy dostawca licencji.
+**Snapshot:** `Step3/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s31 2 3`
+
+### Rozwiązanie i uzasadnienie
+
+`Step3`: `SettlementService` zależy tylko od `IFilmLicenses` i `FilmLicense`, `DistributorAcl` jest jedyną klasą, która widzi `DistributorFeed` i `DistributorRecord`, a `internal` `DistributorTranslator` zna wszystkie konwencje dystrybutora. Zaostrzona walidacja jest opisana testami (`AclRejectsMalformedLegacyDataAtTheBoundary`, `LicenseProtectsItsInvariants`).
+
+### Pułapki
+
+- ACL bez różnicy modeli to drogi Middle Man - tu różnica jest realna (kody, grosze, daty i procenty jako tekst).
+- Tłumaczenie zachłanne bez decyzji: zły rekord zawieszonej licencji zatrzymuje teraz rozliczenie. Odrzucić, pominąć z logiem czy przenieść do kwarantanny - to decyzja biznesowa.
+- Przecieki modelu: `DistributorRecord` zwracany "tylko w jednym miejscu", nieoznaczony `null` z kodu `#nullable disable` przepuszczony dalej, kody `A`/`S` w enumie domeny.
+- Normalizacja tytułu (`KRAINA LODU` daje `Kraina lodu`) też jest kontraktem (paragon, raport) - nie poprawiaj jej "przy okazji" na `Kraina Lodu` (np. przez `TextInfo.ToTitleCase`).
+
+### Pytanie do sali
+
+Dystrybutor dodaje status `T` (licencja tylko na pokazy prasowe). Gdzie pojawi się to pojęcie i jak nazwiecie je po stronie kina?
+
+## Scena s32. Introduce Mediator - ekran wyboru miejsc
+
+**Temat ze slajdów:** 15.1. Komponenty połączone każdy z każdym; 15.2. Po: reguły współpracy w jednym miejscu; 15.3. Mediator - procedura i ryzyka; 15.4. Observer czy Mediator?
+**Namespace:** `Training.Workshop.M5.S32Mediator` · **Test:** `scripts/warsztat.sh --lang cs test m5/s32` (`S32EquivalenceTest`, `S32SolutionTest`)
+**Czas:** ~12 min
+
+### W skrócie
+
+**Co robimy:** Ekran wyboru miejsc ma cztery komponenty: `SeatMap`, `Basket`, `PriceSummary` i `PayButton`, połączone "każdy z każdym" (11 referencji). Każdy po akcji użytkownika sam odświeża pozostałe, a kolejność odświeżania (suma, potem przycisk) jest powtórzona w czterech miejscach. Wprowadzamy `ISelectionMediator`: najpierw dla kliknięcia miejsca, potem dla wszystkich zdarzeń ze wspólnym `Refresh()`, a na końcu przycisk zgłasza tylko chęć płatności i komponenty znają wyłącznie mediatora.
+
+**Zasada:** Mediator skupia reguły współpracy komponentów w jednym miejscu: komponent zgłasza, co się stało, a mediator decyduje, kto i w jakiej kolejności reaguje. Od Observera różni się miejscem reguł: obserwator rozgłasza zdarzenie nieznanym odbiorcom, mediator zna wszystkich uczestników i świadomie koordynuje ich reakcję. Ryzyko to God Mediator - w mediatorze zostaje koordynacja, a logika komponentów (cena, limit miejsc) zostaje w komponentach.
+
+**Efekt:** Cztery referencje do interfejsu mediatora zamiast 11 między komponentami, a nowy komponent (np. licznik czasu rezerwacji) to zmiana w mediatorze, nie w czterech klasach. Migawka ekranu po każdej akcji jest identyczna jak w `Start`, także dla akcji ignorowanych.
+
+**Różnica względem Javy:** C# nie pozwala użyć `this` w inicjalizatorze pola (CS0027), więc od kroku 1 komponenty, które dostają mediatora, są tworzone w konstruktorze `SeatSelectionScreen` (`_seatMap = new SeatMap(this);`), a nie w inicjalizatorze pola jak w Javie. Z tego samego powodu konstruktor ekranu nie znika w kroku 3. Pola komponentów wiązane późno przez `Connect(...)` wymagają w `Start` `= null!;` - kompilator nullable sam wskazuje zapach "każdy zna każdego" (obiekt istnieje w niepełnym stanie, dopóki ktoś nie zawoła `Connect`). `TreeSet` to `SortedSet<string>` z porządkiem ordinalnym, a format `toString()` kolekcji Javy jest odtworzony przez `"[" + string.Join(", ", ...) + "]"`. Test architektury (`EveryComponentKnowsOnlyTheMediator`) działa, bo komponenty mają jawne pola, a nie auto-właściwości; atrapa mediatora to prywatna klasa `RecordingMediator : ISelectionMediator`.
+
+### Co widzimy
+
+`SeatSelectionScreen` (stabilny punkt wejścia) tylko tworzy komponenty i łączy je metodami `Connect(...)`. Sala ma miejsca A1-C4, B2 jest sprzedane wcześniej, rząd C to VIP (35.00, pozostałe 25.00), voucher KINO10 daje -10%, przycisk jest aktywny dla 1-4 miejsc.
+
+```csharp
+// SeatMap.Click - mapa zna trzy inne komponenty i kolejność ich odświeżania
+if (_selected.Remove(seat))
+{
+    _basket.Drop(seat);
+}
+else
+{
+    _selected.Add(seat);
+    _basket.Add(seat);
+}
+_summary.Recalculate(_basket.Seats);
+_payButton.Refresh(_basket.Seats.Count, _summary.Total);
+```
+
+Ta sama para "przelicz sumę, odśwież przycisk" jest w `Basket.Remove`, `Basket.Clear` i `PriceSummary.ApplyVoucher`, a `PayButton.Press` sam pyta koszyk i sumę, oznacza miejsca jako sprzedane i czyści koszyk, co uruchamia kaskadę odświeżeń. `S32EquivalenceTest` porównuje migawkę `Render()` po sekwencjach akcji: ekran startowy, kolejność kliknięć, ponowne kliknięcie, miejsca sprzedane i spoza sali, usuwanie z koszyka, limit 4 miejsc, voucher, płatność, czyszczenie koszyka.
+
+### Krok 1: interfejs mediatora i pierwsze zdarzenie
+
+**W IDE:** utwórz interfejs `ISelectionMediator` z metodą `SeatToggled(string seat, bool selected)`. `SeatSelectionScreen : ISelectionMediator` (jak "dialog" w GoF). Reakcję z `SeatMap.Click` wydziel (⌥⌘M) i przenieś (F6) do `SeatToggled` w ekranie. `SeatMap` dostaje mediatora w konstruktorze (`_seatMap = new SeatMap(this);` w konstruktorze ekranu), jej `Connect(...)` znika.
+**Po:**
+
+```csharp
+var nowSelected = !_selected.Remove(seat);
+if (nowSelected)
+{
+    _selected.Add(seat);
+}
+_mediator.SeatToggled(seat, nowSelected);
+```
+
+**Uruchom:** `scripts/warsztat.sh --lang cs test m5/s32` - zielone.
+**Co powiedzieć:** komponent mówi "co się stało", a nie "kto ma zareagować". `new SeatMap(this)` w konstruktorze przekazuje `this` przed końcem konstrukcji ekranu - bezpieczne tylko dlatego, że mediator działa dopiero po akcji użytkownika (C# w ogóle nie pozwala na to w inicjalizatorze pola). Pozostałe komponenty są nadal połączone wprost: jeden komponent naraz.
+**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s32 0 1`
+
+### Krok 2: wszystkie zdarzenia i jedno Refresh()
+
+**W IDE:** dodaj do interfejsu `SeatRemoved`, `BasketCleared`, `VoucherApplied` i `SeatsPaid(IReadOnlyList<string>)`. `Basket`, `PriceSummary` i `PayButton` dostają mediatora w konstruktorze i zgłaszają zdarzenia zamiast odświeżać sąsiadów; przycisk zachowuje jeszcze `Connect(basket, summary)`. Powtórzoną parę odświeżeń wydziel w ekranie do `Refresh()` (⌥⌘M; Rider zaproponuje zastąpienie pozostałych duplikatów).
+**Po:**
+
+```csharp
+/// <summary>Jedno miejsce, które zna kolejność odświeżania: najpierw suma, potem przycisk.</summary>
+private void Refresh()
+{
+    _summary.Recalculate(_basket.Seats);
+    _payButton.Refresh(_basket.Seats.Count, _summary.Total);
+}
+```
+
+**Uruchom:** test zielony.
+**Co powiedzieć:** kolejność odświeżania jest zachowaniem - przycisk pokazuje kwotę, więc suma musi być przeliczona wcześniej. Teraz jest zapisana raz zamiast czterech razy. Uwaga na reentrancję: `SeatsPaid` woła `_basket.Clear()`, które znów woła mediatora (`BasketCleared`) - kaskada działa, ale jest ukryta.
+**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s32 1 2`
+
+### Krok 3: komponenty znają tylko mediatora
+
+**W IDE:** Change Signature (⌘F6) `SeatsPaid(IReadOnlyList<string>)` na `string PayRequested()`. Zbieranie miejsc i kwoty oraz składanie komunikatu z `PayButton.Press` przenieś do mediatora. Usuń `Connect` z przycisku i ostatnie wywołanie `Connect` z konstruktora ekranu - zostaje w nim tylko tworzenie czterech komponentów z `this`.
+**Po:**
+
+```csharp
+public string Press()
+{
+    if (!_enabled)
+    {
+        return "Nieaktywny: " + _label;
+    }
+    return _mediator.PayRequested();
+}
+```
+
+**Uruchom:** test zielony; `S32SolutionTest.EveryComponentKnowsOnlyTheMediator` sprawdza pola komponentów refleksją, a `ComponentReportsWhatHappenedWithoutKnowingWhoReacts` testuje komponent z atrapą mediatora.
+**Co powiedzieć:** przycisk pilnuje własnej reguły (aktywny dla 1-4 miejsc) i zgłasza "użytkownik chce zapłacić", a dane zbiera mediator. Ekran jest jedynym miejscem, które zna wszystkie cztery komponenty - i to jest zarazem ryzyko: pilnuj, żeby mediator nie zaczął liczyć cen.
+**Snapshot:** `Step3/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s32 2 3`
+
+### Rozwiązanie i uzasadnienie
+
+`Step3`: `SeatSelectionScreen` implementuje `ISelectionMediator` i jako jedyny zna wszystkie komponenty; każdy komponent zna tylko interfejs mediatora. Reguły współpracy (kto reaguje na zdarzenie i w jakiej kolejności) są w jednym miejscu, a reguły komponentów (cena VIP, voucher, limit miejsc) zostały u siebie. Żadne pole nie potrzebuje już `= null!`.
+
+### Pułapki
+
+- God Mediator: mediator przejmuje logikę komponentów (cena VIP, limit 4 miejsc) albo obsługuje cały system zamiast jednego ekranu - dziel według spójnych grup reguł.
+- Zmiana kolejności w `Refresh()` (przycisk przed sumą) - przycisk pokaże starą kwotę; wychwyci to przypadek z voucherem.
+- Reentrancja: mediator woła komponent, który zgłasza zdarzenie z powrotem - podwójne odświeżenie albo nieskończona pętla.
+- Mediator dla dwóch komponentów i jednej zależności - zwykłe wywołanie wystarczy.
+- Zdarzenie domenowe dla wielu niezależnych odbiorców (mail, SMS, punkty po opłaceniu - scena s09) to Observer, a nie mediator ekranu.
+
+### Pytanie do sali
+
+Dochodzi licznik "rezerwacja wygasa za 10 minut", który po upływie czasu czyści koszyk. Ile klas zmienicie w `Start`, a ile w `Step3`?

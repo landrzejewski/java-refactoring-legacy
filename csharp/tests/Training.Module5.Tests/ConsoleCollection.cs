@@ -1,0 +1,4 @@
+namespace Training.Module5.Tests;
+
+[CollectionDefinition("Console", DisableParallelization = true)]
+public sealed class ConsoleCollection;

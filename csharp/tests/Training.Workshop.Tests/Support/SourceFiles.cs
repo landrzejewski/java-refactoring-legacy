@@ -17,13 +17,13 @@ public static class SourceFiles
         return dir?.FullName ?? throw new DirectoryNotFoundException("nie znaleziono katalogu csharp/");
     }
 
-    /// <summary>Ścieżka w projekcie Training.Workshop, np. <c>Workshop("M8", "S07Adr")</c>.</summary>
+    /// <summary>Ścieżka w projekcie Training.Workshop, np. <c>Workshop("M2", "S02Adr")</c>.</summary>
     public static string Workshop(params string[] parts)
     {
         return Path.Combine([CSharpRoot(), "src", "Training.Workshop", .. parts]);
     }
 
-    /// <summary>Ścieżka w projekcie testów, np. <c>Tests("M8", "S10QualityGate")</c>.</summary>
+    /// <summary>Ścieżka w projekcie testów, np. <c>Tests("M2", "S04QualityGate")</c>.</summary>
     public static string Tests(params string[] parts)
     {
         return Path.Combine([CSharpRoot(), "tests", "Training.Workshop.Tests", .. parts]);

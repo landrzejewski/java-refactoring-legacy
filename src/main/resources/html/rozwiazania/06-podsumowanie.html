@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rozwiązania: Moduł 6. Podsumowanie - rozwiązania dla prowadzącego</title>
+<style>:root{--bg:#fbfbfa;--fg:#1d1f23;--muted:#5f6670;--line:#e3e5e8;--card:#ffffff;--accent:#2457c5;--accent-bg:#eef3fd;
+--code-bg:#f4f5f7;--note-bg:#fff7e6;--note-line:#e6a700;--th:#f1f3f6;
+--k:#b3246b;--s:#1a7f37;--c:#6e7781;--n:#0550ae;--t:#8250df;--f:#6639ba;--a:#953800;
+--kind:#2457c5}
+@media (prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3036;--card:#1c1f23;--accent:#7aa7ff;--accent-bg:#1e2a40;
+--code-bg:#1f2328;--note-bg:#2b2412;--note-line:#c99400;--th:#23272d;
+--k:#ff7b9c;--s:#7ee2a0;--c:#8b949e;--n:#79c0ff;--t:#d2a8ff;--f:#d2a8ff;--a:#ffa657}}
+body.zadania{--kind:#1a7f37} body.warsztat{--kind:#c2570c} body.warsztat-zadania{--kind:#0f7b7b} body.rozwiazania{--kind:#b3246b} body.przyklady{--kind:#2457c5}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.topbar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 24px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);border-top:3px solid var(--kind)}
+.topbar a{color:var(--fg);text-decoration:none}
+.home{font-weight:600}
+.tabs{display:flex;gap:4px}
+.tab{padding:4px 12px;border-radius:999px;font-size:15px;color:var(--muted)!important}
+.tab:hover{background:var(--code-bg)}
+.tab.active{background:var(--accent-bg);color:var(--accent)!important;font-weight:600}
+.pager{margin-left:auto;display:flex;gap:14px;font-size:15px}
+.pager a{color:var(--muted)}.pager a:hover{color:var(--accent)}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:48px;max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+.layout.no-toc{grid-template-columns:minmax(0,1fr);max-width:1000px}
+aside{position:sticky;top:72px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px}
+.toc-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;font-weight:600}
+.toc ul{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.toc li a{display:block;padding:3px 12px;color:var(--muted);text-decoration:none;line-height:1.35}
+.toc li.h3 a{padding-left:24px;font-size:13px}
+.toc li a:hover{color:var(--accent)}
+main{min-width:0;max-width:860px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 1.2rem;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:2.6rem 0 .8rem;padding-top:.6rem;border-top:1px solid var(--line)}
+h3{font-size:1.18rem;margin:2rem 0 .6rem}
+h4{font-size:1rem;margin:1.5rem 0 .5rem}
+h1 a,h2 a,h3 a,h4 a{color:inherit;text-decoration:none}
+h2 a:hover::after,h3 a:hover::after{content:" #";color:var(--muted)}
+p,ul,ol{margin:.6rem 0 1rem}
+li{margin:.25rem 0}
+li>ul,li>ol{margin:.2rem 0}
+a{color:var(--accent)}
+strong{font-weight:650}
+code{font:0.88em/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre.code{position:relative;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:1rem 0 1.4rem}
+pre.code code{background:none;padding:0;font-size:14px;line-height:1.55}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:6px;right:10px;font:11px ui-monospace,Menlo,monospace;color:var(--muted);text-transform:uppercase}
+.table-wrap{overflow-x:auto;margin:1rem 0 1.4rem;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--th);font-weight:600}
+tr:last-child td{border-bottom:none}
+blockquote{margin:1rem 0 1.4rem;padding:10px 16px;background:var(--note-bg);border-left:4px solid var(--note-line);border-radius:0 8px 8px 0}
+blockquote p{margin:.3rem 0}
+hr{border:none;border-top:1px solid var(--line);margin:2rem 0}
+hr+h2{border-top:none;margin-top:1.4rem}
+main p code,main li code,main td code{overflow-wrap:break-word}
+.toc summary{cursor:pointer;list-style:none}.toc summary::-webkit-details-marker{display:none}
+.hljs-keyword,.hljs-selector-tag,.hljs-built_in,.hljs-literal{color:var(--k)}
+.hljs-string,.hljs-regexp,.hljs-addition{color:var(--s)}
+.hljs-comment,.hljs-quote,.hljs-meta{color:var(--c);font-style:italic}
+.hljs-number,.hljs-symbol{color:var(--n)}
+.hljs-type,.hljs-class .hljs-title,.hljs-title.class_{color:var(--t)}
+.hljs-title,.hljs-title.function_,.hljs-section{color:var(--f)}
+.hljs-attr,.hljs-attribute,.hljs-variable,.hljs-params,.hljs-tag{color:var(--a)}
+.hljs-deletion{color:var(--k)}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:16px;padding:20px 16px 60px}
+aside{position:static;max-height:none;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--card)}
+.toc-title{margin:0}.toc details[open] .toc-title{margin-bottom:8px}.toc summary::after{content:" ▾"}
+body{font-size:16px}.topbar{padding:8px 16px}.pager{margin-left:0}h1{font-size:1.6rem}}
+@media print{.topbar,aside{display:none}.layout{display:block;padding:0}main{max-width:none}
+pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#000;font-size:12pt}}
+.langs{margin-left:auto}.langs+.pager{margin-left:0}
+.langs{margin-left:auto}.langs+.pager{margin-left:0}</style>
+</head>
+<body class="rozwiazania">
+<header class="topbar"><a class="home" href="../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../slajdy/06-podsumowanie-slajdy.html">Slajdy</a><a class="tab" href="../zadania/06-podsumowanie.html">Zadania</a><a class="tab active" href="06-podsumowanie.html">Rozwiązania</a></div><div class="pager"><a href="05-refaktoryzacja-do-wzorcow.html" title="Poprzedni moduł">&larr; 05</a></div></header>
+<div class="layout">
+<aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#cwiczenie-koncowe-cinelegacy-pod-golden-masterem">Ćwiczenie końcowe: CineLegacy pod golden masterem</a></li><li class="h3"><a href="#organizacja">Organizacja</a></li><li class="h3"><a href="#etap-1-oczekiwana-diagnoza">Etap 1: oczekiwana diagnoza</a></li><li class="h3"><a href="#etap-2-luki-golden-mastera">Etap 2: luki golden mastera</a></li><li class="h3"><a href="#etap-3-przykladowe-karty-planu">Etap 3: przykładowe karty planu</a></li><li class="h3"><a href="#etap-4-przebieg-referencyjny-dla-karty-a">Etap 4: przebieg referencyjny dla karty A</a></li><li class="h3"><a href="#etap-5-wskazowki-do-retrospektywy">Etap 5: wskazówki do retrospektywy</a></li><li class="h3"><a href="#weryfikacja-kryteriow-akceptacji">Weryfikacja kryteriów akceptacji</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow">Typowe błędy uczestników</a></li><li class="h2"><a href="#odpowiedzi-do-pytan-koncowych">Odpowiedzi do pytań końcowych</a></li></ul></details></nav></aside>
+<main>
+<h1>Moduł 6. Podsumowanie - rozwiązania dla prowadzącego</h1>
+<p>Numeracja i nazwy etapów są zgodne z plikiem zadań. Ścieżki są względne względem katalogu repozytorium.</p>
+<p>Ćwiczenie końcowe nie ma jednego poprawnego wyniku. Poniżej jest zarys rozwiązania referencyjnego: oczekiwana diagnoza, znane luki golden mastera (potwierdzone kontrolnymi mutacjami), trzy przykładowe karty planu i szczegółowy przebieg jednej refaktoryzacji. Oceniamy przede wszystkim dyscyplinę przepływu pracy: fakty zamiast ocen, sieć przed zmianą, małe kroki, oddzielenie zmian zachowania.</p>
+<hr>
+<h2 id="cwiczenie-koncowe-cinelegacy-pod-golden-masterem" tabindex="-1"><a class="header-anchor" href="#cwiczenie-koncowe-cinelegacy-pod-golden-masterem"><span>Ćwiczenie końcowe: CineLegacy pod golden masterem</span></a></h2>
+<h3 id="organizacja" tabindex="-1"><a class="header-anchor" href="#organizacja"><span>Organizacja</span></a></h3>
+<ul>
+<li>Przed zajęciami: <code>mvn -q test -Dtest=CinemaManagerGoldenMasterTest</code> musi być zielony na czystym repozytorium.</li>
+<li>Przypomnij, że ostrzeżenie w nagłówku <code>CinemaManager</code> dotyczy głównej linii repozytorium - zespoły pracują na gałęziach <code>final/<wbr>&lt;zespół&gt;</code> i porzucają je po zajęciach.</li>
+<li>Wydziel czas twardo (zegar na ekranie). Najczęstszy problem: zespoły spędzają 40 minut na diagnozie i nie dochodzą do etapu 4.</li>
+<li>Jeśli czasu jest mało, przydziel zespołom różne refaktoryzacje (A, B, C poniżej) i zrób wspólne omówienie.</li>
+</ul>
+<h3 id="etap-1-oczekiwana-diagnoza" tabindex="-1"><a class="header-anchor" href="#etap-1-oczekiwana-diagnoza"><span>Etap 1: oczekiwana diagnoza</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Zapach</th>
+<th>Miejsce</th>
+<th>Dowód</th>
+<th>Kandydat</th>
+<th>Ryzyko</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>God Class</td>
+<td>cała klasa</td>
+<td>9 odpowiedzialności: repertuar, rezerwacje, cennik, płatności, zwroty, lojalność, powiadomienia, raporty, rozliczenia</td>
+<td>kampania: Extract Method, Extract Class</td>
+<td>big bang, konflikty w zespole</td>
+</tr>
+<tr>
+<td>Primitive Obsession (tablice)</td>
+<td><code>LegacyDb.SCREENINGS</code>, <code>BOOKINGS</code></td>
+<td><code>Object[]</code> z indeksami <code>s[1]</code>...<code>s[6]</code>, <code>b[0]</code>...<code>b[10]</code> i rzutowaniami</td>
+<td>Replace Array with Object (rekordy <code>Screening</code>, <code>Booking</code>)</td>
+<td>szeroki zasięg, format &quot;bazy&quot;</td>
+</tr>
+<tr>
+<td>kody typu</td>
+<td>komentarz w nagłówku, <code>book</code>, <code>pay</code></td>
+<td>format <code>1/<wbr>2/<wbr>3</code>, status <code>0-4</code>, typ biletu <code>N/<wbr>S/<wbr>E/<wbr>C</code></td>
+<td>Replace Type Code with Class (enumy z kodem)</td>
+<td>nieznany kod, format trwały</td>
+</tr>
+<tr>
+<td>Long Method, Arrowhead</td>
+<td><code>book</code></td>
+<td>trzy poziomy <code>if</code> z <code>else</code> na końcu, wycena w pętli</td>
+<td>Extract Method, Return ASAP (guard clauses)</td>
+<td>kolejność walidacji</td>
+</tr>
+<tr>
+<td>warunki po statusie</td>
+<td><code>pay</code>, <code>cancel</code>, <code>use</code>, <code>expireOld</code></td>
+<td><code>if (status == ...)</code> w każdej operacji</td>
+<td>Replace State-Altering Conditionals with State</td>
+<td>kolejność efektów w <code>cancel</code></td>
+</tr>
+<tr>
+<td>sztywne powiadomienia</td>
+<td><code>book</code>, <code>pay</code>, <code>cancel</code>, <code>expireOld</code></td>
+<td>statyczne <code>LegacyMailer.send</code> i <code>sms</code> w logice</td>
+<td>Extract Method, port powiadomień, ewentualnie Observer</td>
+<td>kolejność wiadomości</td>
+</tr>
+<tr>
+<td>ukryta zależność</td>
+<td><code>pay</code>, <code>cancel</code></td>
+<td>statyczne <code>LegacyPaymentGateway.charge</code> i <code>refund</code></td>
+<td>port + Adapter (moduł 5, s14 i s29)</td>
+<td>kolejność obciążeń i zwrotów</td>
+</tr>
+<tr>
+<td>globalny stan</td>
+<td><code>LegacyDb</code>, <code>sequence</code>, <code>clock</code></td>
+<td>statyczne mutowalne mapy i licznik, hak &quot;na chwilę&quot; z 2019 roku</td>
+<td>Parameterize Constructor, kierunek Inline Singleton</td>
+<td>golden master ustawia <code>clock</code> statycznie</td>
+</tr>
+<tr>
+<td>duplikacja</td>
+<td><code>cancel</code>, <code>expireOld</code></td>
+<td>ta sama pętla zwalniania miejsc, powtórzone rzutowanie <code>(Set&lt;String&gt;) s[6]</code></td>
+<td>Extract Method <code>releaseSeats</code></td>
+<td>-</td>
+</tr>
+<tr>
+<td>magiczne liczby</td>
+<td>cała klasa</td>
+<td><code>25.00</code>, <code>0.25</code>, <code>15</code>, <code>24</code>, <code>3.00</code>, <code>500.00</code>, <code>1.08</code></td>
+<td>Replace Magic Number with Named Constant</td>
+<td>brak</td>
+</tr>
+<tr>
+<td>pieniądze na <code>double</code></td>
+<td>wycena, zwroty, raporty</td>
+<td><code>Math.round(x * 100) /<wbr> 100.0</code> w kilku miejscach</td>
+<td><strong>świadomie pozostawić</strong> (zmiana zaokrągleń to zmiana kontraktu, s23)</td>
+<td>groszowe różnice</td>
+</tr>
+</tbody>
+</table></div>
+<p>Zapachy, których nie warto ruszać w tym ćwiczeniu: <code>Object[]</code> w <code>LegacyDb</code> (zbyt szeroki zasięg na 20 minut), <code>double</code> dla pieniędzy (zmiana kontraktu, wymaga decyzji księgowości), statyczny <code>clock</code> (golden master od niego zależy - najpierw trzeba zmienić skrypt testu, co jest osobnym krokiem).</p>
+<p>Powiązanie ze scenami modułu 5: wycena - s01, s03, s20, s25; statusy - s08; powiadomienia - s09; płatności - s14, s29; rozliczenia - s21; zwroty - s23, s28; budowa rezerwacji - s05; raporty - s16, s27.</p>
+<h3 id="etap-2-luki-golden-mastera" tabindex="-1"><a class="header-anchor" href="#etap-2-luki-golden-mastera"><span>Etap 2: luki golden mastera</span></a></h3>
+<p>Zachowania <strong>nieobjęte</strong> scenariuszem <code>CinemaManagerScript</code>:</p>
+<ul>
+<li><code>book</code>: brak miejsc (<code>ERROR: no seats</code>), miejsce poza zakresem kolumn przy poprawnym rzędzie (warunek <code>letter - &#x27;A&#x27; &gt;= ...</code> jest maskowany przez warunek rzędu dla <code>Z99</code>), nieznany kod formatu (cena bazowa 0) i nieznany typ biletu (brak zniżki),</li>
+<li><code>pay</code>: <code>ERROR: no booking</code>, <code>ERROR: already used</code>, <code>ERROR: cancelled</code>,</li>
+<li><code>cancel</code>: rezerwacja nieistniejąca, anulowanie rezerwacji nieopłaconej (zwrot <code>0.00</code> bez naliczania), anulowanie po starcie seansu, anulowanie wykorzystanej rezerwacji, zwrot ujemny obcięty do zera,</li>
+<li><code>use</code>: rezerwacja nieistniejąca, ponowne użycie,</li>
+<li>lojalność: dolna granica <code>Math.max(0, ...)</code> (u <code>anna</code> wynik to dokładnie 0),</li>
+<li><code>settlement</code>: procenty tygodniowe - oba rozliczenia w scenariuszu kończą się minimalną gwarancją <code>500.00</code>, więc ani <code>0.50</code>, ani <code>0.40</code>, ani <code>0.35</code> nie wpływają na wynik,</li>
+<li><code>dailyReport</code>: więcej niż jeden tytuł w dniu (sortowanie <code>TreeMap</code>),</li>
+<li><code>expireOld</code>: granica dokładnie 15 minut,</li>
+<li><code>freeSeats</code>: nieznany seans.</li>
+</ul>
+<p>Kontrolne mutacje sprawdzone na kodzie (golden master pozostaje <strong>zielony</strong>):</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Mutacja</th>
+<th>Wynik golden mastera</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>tydzień 1: <code>revenue * 0.50</code> → <code>revenue * 0.60</code></td>
+<td>zielony (luka)</td>
+</tr>
+<tr>
+<td>tydzień 3+: <code>revenue * 0.35</code> → <code>revenue * 0.30</code></td>
+<td>zielony (luka)</td>
+</tr>
+<tr>
+<td>komunikat <code>ERROR: already used</code> → <code>ERROR: used</code></td>
+<td>zielony (luka)</td>
+</tr>
+<tr>
+<td><code>cancel</code>: gałąź zwrotu także dla statusu NEW</td>
+<td>zielony (luka)</td>
+</tr>
+<tr>
+<td>lojalność: usunięcie <code>Math.max(0, ...)</code></td>
+<td>zielony (luka)</td>
+</tr>
+<tr>
+<td>zniżka studencka <code>0.25</code> → <code>0.20</code></td>
+<td><strong>czerwony</strong> (obszar dobrze pokryty)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Przykładowe testy charakterystyki zamykające luki (pakiet <code>pl.training.workshop.legacy</code> w <code>src/<wbr>test/<wbr>java</code>; oba testy sprawdzone na obecnym kodzie):</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">CinemaManagerGapsTest</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">LocalDateTime</span>[] <span class="hljs-variable">now</span> <span class="hljs-operator">=</span> {LocalDateTime.of(<span class="hljs-number">2026</span>, <span class="hljs-number">3</span>, <span class="hljs-number">9</span>, <span class="hljs-number">9</span>, <span class="hljs-number">0</span>)};
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">CinemaManager</span> <span class="hljs-variable">cinema</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">CinemaManager</span>();
+
+    <span class="hljs-meta">@BeforeEach</span>
+    <span class="hljs-type">void</span> <span class="hljs-title function_">setUp</span><span class="hljs-params">()</span> {
+        LegacyDb.clear();
+        CinemaManager.clock = () -&gt; now[<span class="hljs-number">0</span>];
+    }
+
+    <span class="hljs-meta">@AfterEach</span>
+    <span class="hljs-type">void</span> <span class="hljs-title function_">tearDown</span><span class="hljs-params">()</span> {
+        CinemaManager.clock = LocalDateTime::now;
+        LegacyDb.clear();
+    }
+
+    <span class="hljs-meta">@Test</span>
+    <span class="hljs-type">void</span> <span class="hljs-title function_">settlementUsesWeeklySharesAboveTheMinimumGuarantee</span><span class="hljs-params">()</span> {
+        <span class="hljs-comment">// 40 biletów normalnych IMAX = 1600.00, grupa -10% = 1440.00</span>
+        cinema.addScreening(<span class="hljs-string">&quot;S1&quot;</span>, <span class="hljs-string">&quot;Diuna&quot;</span>, <span class="hljs-number">3</span>, LocalDateTime.of(<span class="hljs-number">2026</span>, <span class="hljs-number">3</span>, <span class="hljs-number">20</span>, <span class="hljs-number">20</span>, <span class="hljs-number">0</span>), <span class="hljs-number">40</span>, <span class="hljs-number">1</span>, <span class="hljs-number">99</span>);
+        <span class="hljs-type">String</span>[] <span class="hljs-variable">seats</span> <span class="hljs-operator">=</span> IntStream.rangeClosed(<span class="hljs-number">1</span>, <span class="hljs-number">40</span>).mapToObj(row -&gt; <span class="hljs-string">&quot;A&quot;</span> + row).toArray(String[]::<span class="hljs-keyword">new</span>);
+        <span class="hljs-type">String</span>[] <span class="hljs-variable">types</span> <span class="hljs-operator">=</span> IntStream.rangeClosed(<span class="hljs-number">1</span>, <span class="hljs-number">40</span>).mapToObj(row -&gt; <span class="hljs-string">&quot;N&quot;</span>).toArray(String[]::<span class="hljs-keyword">new</span>);
+        <span class="hljs-type">String</span> <span class="hljs-variable">booking</span> <span class="hljs-operator">=</span> cinema.book(<span class="hljs-string">&quot;S1&quot;</span>, <span class="hljs-string">&quot;kino@firma.pl&quot;</span>, <span class="hljs-literal">null</span>, seats, types, <span class="hljs-literal">false</span>, <span class="hljs-literal">false</span>);
+        assertEquals(<span class="hljs-string">&quot;OK&quot;</span>, cinema.pay(booking, <span class="hljs-string">&quot;4111111111111111&quot;</span>));
+
+        assertEquals(<span class="hljs-string">&quot;ROZLICZENIE Diuna tydzien 1: przychod 1440.00, dla dystrybutora 720.00&quot;</span>,
+                cinema.settlement(<span class="hljs-string">&quot;Diuna&quot;</span>, <span class="hljs-number">1</span>));
+        assertEquals(<span class="hljs-string">&quot;ROZLICZENIE Diuna tydzien 2: przychod 1440.00, dla dystrybutora 576.00&quot;</span>,
+                cinema.settlement(<span class="hljs-string">&quot;Diuna&quot;</span>, <span class="hljs-number">2</span>));
+        assertEquals(<span class="hljs-string">&quot;ROZLICZENIE Diuna tydzien 3: przychod 1440.00, dla dystrybutora 504.00&quot;</span>,
+                cinema.settlement(<span class="hljs-string">&quot;Diuna&quot;</span>, <span class="hljs-number">3</span>));
+    }
+
+    <span class="hljs-meta">@Test</span>
+    <span class="hljs-type">void</span> <span class="hljs-title function_">statusTransitionsMissingFromTheGoldenMaster</span><span class="hljs-params">()</span> {
+        cinema.addScreening(<span class="hljs-string">&quot;S1&quot;</span>, <span class="hljs-string">&quot;Amator&quot;</span>, <span class="hljs-number">1</span>, LocalDateTime.of(<span class="hljs-number">2026</span>, <span class="hljs-number">3</span>, <span class="hljs-number">20</span>, <span class="hljs-number">18</span>, <span class="hljs-number">30</span>), <span class="hljs-number">10</span>, <span class="hljs-number">12</span>, <span class="hljs-number">9</span>);
+        <span class="hljs-type">String</span> <span class="hljs-variable">used</span> <span class="hljs-operator">=</span> cinema.book(<span class="hljs-string">&quot;S1&quot;</span>, <span class="hljs-string">&quot;a@kino.pl&quot;</span>, <span class="hljs-literal">null</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>[] {<span class="hljs-string">&quot;A1&quot;</span>}, <span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>[] {<span class="hljs-string">&quot;N&quot;</span>}, <span class="hljs-literal">false</span>, <span class="hljs-literal">false</span>);
+        <span class="hljs-type">String</span> <span class="hljs-variable">fresh</span> <span class="hljs-operator">=</span> cinema.book(<span class="hljs-string">&quot;S1&quot;</span>, <span class="hljs-string">&quot;b@kino.pl&quot;</span>, <span class="hljs-literal">null</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>[] {<span class="hljs-string">&quot;B1&quot;</span>}, <span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>[] {<span class="hljs-string">&quot;N&quot;</span>}, <span class="hljs-literal">false</span>, <span class="hljs-literal">false</span>);
+        cinema.pay(used, <span class="hljs-string">&quot;4111111111111111&quot;</span>);
+        cinema.use(used);
+
+        assertEquals(<span class="hljs-string">&quot;ERROR: no booking&quot;</span>, cinema.pay(<span class="hljs-string">&quot;B99&quot;</span>, <span class="hljs-string">&quot;4111111111111111&quot;</span>));
+        assertEquals(<span class="hljs-string">&quot;ERROR: already used&quot;</span>, cinema.pay(used, <span class="hljs-string">&quot;4111111111111111&quot;</span>));
+        assertEquals(<span class="hljs-string">&quot;ERROR: not paid&quot;</span>, cinema.use(used));
+        assertEquals(<span class="hljs-string">&quot;ERROR: cannot cancel&quot;</span>, cinema.cancel(used));
+        assertEquals(<span class="hljs-string">&quot;REFUND 0.00&quot;</span>, cinema.cancel(fresh));
+        assertEquals(<span class="hljs-string">&quot;ERROR: cancelled&quot;</span>, cinema.pay(fresh, <span class="hljs-string">&quot;4111111111111111&quot;</span>));
+    }
+}
+</code></pre>
+<p>Wniosek do omówienia: golden master jest bardzo dobry dla wyceny (każdy format, każdy typ biletu, poranek, VIP, okulary, grupa, opłata online), a słaby dla rozliczeń i rzadkich przejść statusów. Plan refaktoryzacji powinien to uwzględniać: wycenę można zmieniać od razu, State i rozliczenia - dopiero po dopisaniu testów.</p>
+<h3 id="etap-3-przykladowe-karty-planu" tabindex="-1"><a class="header-anchor" href="#etap-3-przykladowe-karty-planu"><span>Etap 3: przykładowe karty planu</span></a></h3>
+<p><strong>Karta A: wycena biletu (niskie ryzyko, rekomendowana do etapu 4)</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Pole</th>
+<th>Treść</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>zapach i dowód</td>
+<td>kody formatu <code>1/<wbr>2/<wbr>3</code> i typu <code>N/<wbr>S/<wbr>E/<wbr>C</code> w łańcuchach <code>if</code> w środku pętli <code>book</code>; ceny i zniżki jako magiczne liczby</td>
+</tr>
+<tr>
+<td>refaktoryzacja</td>
+<td>Extract Method, Replace Type Code with Class, Move Method (Extract Class)</td>
+</tr>
+<tr>
+<td>struktura docelowa</td>
+<td>enumy <code>ScreeningFormat</code> i <code>TicketType</code> z kodem, ceną bazową i zniżką; czysta funkcja wyceny jednego biletu</td>
+</tr>
+<tr>
+<td>zachowanie chronione</td>
+<td>kolejność operacji: zniżka, poranek, VIP, okulary; zaokrąglenie tylko sumy; rabat grupowy na sumie; opłata online poza sumą biletów</td>
+</tr>
+<tr>
+<td>test chroniący</td>
+<td>golden master (pokrywa wszystkie formaty i typy) + test dla nieznanego formatu i typu</td>
+</tr>
+<tr>
+<td>luki i decyzje</td>
+<td>nieznany format daje cenę 0, nieznany typ - brak zniżki: <strong>zachowujemy</strong>, mimo że to wygląda na błąd</td>
+</tr>
+<tr>
+<td>czego nie robimy</td>
+<td><code>BigDecimal</code>, walidacja kodów w <code>addScreening</code>, zmiana kodów w &quot;bazie&quot;</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Karta B: State dla statusu rezerwacji (średnie ryzyko, wymaga testów z etapu 2)</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Pole</th>
+<th>Treść</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>zapach i dowód</td>
+<td><code>if (status == ...)</code> w <code>pay</code>, <code>cancel</code>, <code>use</code>, <code>expireOld</code>; status jako <code>int</code> w <code>b[7]</code></td>
+</tr>
+<tr>
+<td>refaktoryzacja</td>
+<td>Replace Type Code with Class (enum <code>BookingStatus</code> z kodem), potem Replace State-Altering Conditionals with State</td>
+</tr>
+<tr>
+<td>struktura docelowa</td>
+<td>enum stanów z metodami zwracającymi następny stan albo komunikat błędu; <code>b[7]</code> nadal przechowuje kod liczbowy</td>
+</tr>
+<tr>
+<td>zachowanie chronione</td>
+<td>tabela przejść poniżej; w <code>cancel</code> kolejność: zwolnienie miejsc, status, zwrot i lojalność (tylko z PAID), mail</td>
+</tr>
+<tr>
+<td>test chroniący</td>
+<td>golden master + <code>statusTransitionsMissingFromTheGoldenMaster</code></td>
+</tr>
+<tr>
+<td>luki i decyzje</td>
+<td><code>cancel</code> czyta <strong>stary</strong> status do decyzji o zwrocie - nie zgubić tego przy przenoszeniu</td>
+</tr>
+<tr>
+<td>czego nie robimy</td>
+<td>zmiana komunikatów, nowe przejścia, zmiana zapisu w <code>LegacyDb</code></td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Status</th>
+<th>pay</th>
+<th>cancel</th>
+<th>use</th>
+<th>expireOld</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NEW (0)</td>
+<td>PAID albo <code>payment declined</code> (status bez zmian)</td>
+<td>CANCELLED, zwrot <code>0.00</code></td>
+<td><code>not paid</code></td>
+<td>EXPIRED po 15 min</td>
+</tr>
+<tr>
+<td>PAID (1)</td>
+<td><code>already paid</code></td>
+<td>CANCELLED, zwrot według czasu</td>
+<td>USED</td>
+<td>-</td>
+</tr>
+<tr>
+<td>USED (2)</td>
+<td><code>already used</code></td>
+<td><code>cannot cancel</code></td>
+<td><code>not paid</code></td>
+<td>-</td>
+</tr>
+<tr>
+<td>EXPIRED (3)</td>
+<td><code>expired</code></td>
+<td><code>cannot cancel</code></td>
+<td><code>not paid</code></td>
+<td>-</td>
+</tr>
+<tr>
+<td>CANCELLED (4)</td>
+<td><code>cancelled</code></td>
+<td><code>cannot cancel</code></td>
+<td><code>not paid</code></td>
+<td>-</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Karta C: port powiadomień (średnie ryzyko)</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Pole</th>
+<th>Treść</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>zapach i dowód</td>
+<td>statyczne <code>LegacyMailer.send</code> i <code>sms</code> w pięciu miejscach logiki</td>
+</tr>
+<tr>
+<td>refaktoryzacja</td>
+<td>Extract Method dla każdej wiadomości, Extract Interface, Parameterize Constructor (z konstruktorem bezparametrowym jako domyślnym)</td>
+</tr>
+<tr>
+<td>struktura docelowa</td>
+<td>port <code>CustomerNotifications</code> (<code>bookingCreated</code>, <code>paymentDeclined</code>, <code>ticketsPaid</code>, <code>bookingExpired</code>, <code>bookingCancelled</code>) i adapter do <code>LegacyMailer</code></td>
+</tr>
+<tr>
+<td>zachowanie chronione</td>
+<td>treść i kolejność wiadomości w <code>LegacyMailer.SENT</code> (mail przed SMS w <code>pay</code>), brak SMS bez telefonu</td>
+</tr>
+<tr>
+<td>test chroniący</td>
+<td>golden master (porównuje całą skrzynkę nadawczą)</td>
+</tr>
+<tr>
+<td>luki i decyzje</td>
+<td>Observer z wieloma odbiorcami to <strong>rozszerzenie</strong> - najpierw jeden odbiorca przez port</td>
+</tr>
+<tr>
+<td>czego nie robimy</td>
+<td>asynchroniczna wysyłka, kontynuacja po błędzie maila</td>
+</tr>
+</tbody>
+</table></div>
+<p>Kolejność: A (najlepiej pokryta, najmniejszy zasięg) → C (golden master porównuje całą skrzynkę) → B (dopiero po testach luk). Rozliczenia (Strategy dla procentów) świadomie odkładamy: jeden model rozliczeń to za mało na Strategy (s21), wystarczą Extract Method i nazwane stałe - po dopisaniu <code>settlementUsesWeeklySharesAboveTheMinimumGuarantee</code>.</p>
+<h3 id="etap-4-przebieg-referencyjny-dla-karty-a" tabindex="-1"><a class="header-anchor" href="#etap-4-przebieg-referencyjny-dla-karty-a"><span>Etap 4: przebieg referencyjny dla karty A</span></a></h3>
+<p>Każdy krok kończy się kompilacją, zielonym golden masterem i commitem.</p>
+<ol>
+<li><strong>Extract Method</strong> dla ciała pętli wyceny (IntelliJ: zaznacz od <code>double p = 0;</code> do ostatniego <code>if</code> z okularami): <code>private static double ticketPrice(Object[] s, String type, String seat, boolean ownGlasses)</code>. IDE poda wynik <code>p</code> jako wartość zwracaną. Pętla: <code>sum = sum + ticketPrice(s, types[i], seats[i], ownGlasses);</code>.</li>
+<li><strong>Extract Method</strong> dla łańcucha formatu: <code>private static double basePrice(int format)</code> - z zachowaniem <code>return 0</code> dla nieznanego kodu.</li>
+<li><strong>Extract Method</strong> dla zniżki: <code>private static double discounted(double price, String type)</code> - dokładnie to samo wyrażenie <code>price - price * 0.25</code>, nie &quot;uproszczone&quot; <code>price * 0.75</code> (inna arytmetyka na <code>double</code> może dać inną ostatnią cyfrę binarną, a zaokrąglenie robimy dopiero na sumie).</li>
+<li><strong>Replace Type Code with Class</strong> dla formatu:</li>
+</ol>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">enum</span> <span class="hljs-title class_">ScreeningFormat</span> {
+    TWO_D(<span class="hljs-number">1</span>, <span class="hljs-number">25.00</span>), THREE_D(<span class="hljs-number">2</span>, <span class="hljs-number">32.00</span>), IMAX(<span class="hljs-number">3</span>, <span class="hljs-number">40.00</span>);
+
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">int</span> code;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">double</span> basePrice;
+
+    ScreeningFormat(<span class="hljs-type">int</span> code, <span class="hljs-type">double</span> basePrice) { <span class="hljs-built_in">this</span>.code = code; <span class="hljs-built_in">this</span>.basePrice = basePrice; }
+
+    <span class="hljs-keyword">static</span> <span class="hljs-type">double</span> <span class="hljs-title function_">basePriceOf</span><span class="hljs-params">(<span class="hljs-type">int</span> code)</span> {
+        <span class="hljs-keyword">for</span> (ScreeningFormat format : values()) {
+            <span class="hljs-keyword">if</span> (format.code == code) <span class="hljs-keyword">return</span> format.basePrice;
+        }
+        <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;                                   <span class="hljs-comment">// zachowane: nieznany kod = cena 0</span>
+    }
+}
+</code></pre>
+<ol start="5">
+<li><strong>Replace Type Code with Class</strong> dla typu biletu: enum <code>TicketType</code> (<code>NORMAL(&quot;N&quot;, 0)</code>, <code>STUDENT(&quot;S&quot;, 0.25)</code>, <code>SENIOR(&quot;E&quot;, 0.30)</code>, <code>CHILD(&quot;C&quot;, 0.40)</code>) z metodą <code>discountOf(String code)</code>. Uwaga na <code>null</code>: legacy rzuca <code>NullPointerException</code> z <code>types[i].equals(...)</code>. Implementacja przez <code>switch</code> po <code>String</code> też rzuci <code>NullPointerException</code>, ale przez <code>Map.getOrDefault(code, 0.0)</code> - <strong>nie</strong>, co byłoby cichą zmianą zachowania. Wybierz świadomie i dopisz test.</li>
+<li><strong>Move Method / Extract Class:</strong> <code>ticketPrice</code> jako czysta funkcja nowej klasy <code>TicketPricing</code> (wejście: format, typ, godzina startu, rząd, próg VIP, własne okulary). <code>book</code> woła ją w pętli. Kody w <code>LegacyDb</code> pozostają liczbami i znakami - format trwały bez zmian.</li>
+</ol>
+<p>Opcjonalny krok 7: test charakterystyki dla nieznanego formatu i typu (<code>addScreening</code> z formatem <code>9</code>, bilet typu <code>X</code>), żeby polityka &quot;cena 0, brak zniżki&quot; była zapisana, a nie przypadkowa.</p>
+<p>Typowe pokusy do zapisania na liście &quot;na później&quot;: <code>BigDecimal</code> zamiast <code>double</code>, odrzucanie nieznanego formatu, walidacja <code>seatsPerRow</code>, rabat grupowy jako osobna reguła, wyciągnięcie opłaty online.</p>
+<h3 id="etap-5-wskazowki-do-retrospektywy" tabindex="-1"><a class="header-anchor" href="#etap-5-wskazowki-do-retrospektywy"><span>Etap 5: wskazówki do retrospektywy</span></a></h3>
+<ul>
+<li>Zespoły zwykle zauważają, że <strong>zapach łatwiej zobaczyć niż usunąć</strong> w miejscach z efektami (powiadomienia, płatności) - bo kolejność efektów jest częścią kontraktu.</li>
+<li>Przeżyte mutacje w rozliczeniach to najlepszy materiał do rozmowy o tym, że zielony golden master dowodzi tylko tego, co scenariusz wykonuje.</li>
+<li>Krok &quot;większy niż w planie&quot; to najczęściej Extract Method w <code>book</code> z kilkoma wartościami wyjściowymi albo przeniesienie warunku statusu razem z efektem.</li>
+<li>Kandydaci na ADR: polityka dla nieznanych kodów, decyzja o <code>double</code>, wybór mechanizmu powiadomień (port teraz, Observer dopiero przy drugim odbiorcy).</li>
+</ul>
+<h3 id="weryfikacja-kryteriow-akceptacji" tabindex="-1"><a class="header-anchor" href="#weryfikacja-kryteriow-akceptacji"><span>Weryfikacja kryteriów akceptacji</span></a></h3>
+<ul>
+<li>diagnoza z faktami: tabela z kolumną &quot;dowód&quot; i co najmniej jednym zapachem świadomie pozostawionym,</li>
+<li>karty planu z nazwą refaktoryzacji, strukturą docelową, ryzykiem i testem,</li>
+<li>luki potwierdzone mutacją i zamknięte testem przed zmianą w obszarze,</li>
+<li>golden master zielony po każdym commicie; <code>git diff</code> nie pokazuje zmian w <code>cinema-manager.approved.txt</code>,</li>
+<li>commity z jedną intencją,</li>
+<li>lista zmian zachowania &quot;na później&quot;.</li>
+</ul>
+<h3 id="typowe-bledy-uczestnikow" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>Zmiana pliku <code>cinema-manager.approved.txt</code> &quot;bo test był czerwony&quot;.</li>
+<li>Uproszczenie arytmetyki (<code>p * 0.75</code>) albo przejście na <code>BigDecimal</code> w tym samym kroku co Extract Method.</li>
+<li>Przeniesienie wyceny razem z zaokrągleniem sumy do funkcji jednego biletu (zaokrąglenie per bilet zmienia wynik).</li>
+<li>Zgubienie odczytu <strong>starego</strong> statusu w <code>cancel</code> przy wprowadzaniu State.</li>
+<li>Wprowadzenie Observera z kolekcją odbiorców i asynchroniczną wysyłką od razu.</li>
+<li>Zmiana <code>CinemaManager.clock</code> na pole instancji bez dostosowania <code>CinemaManagerScript</code> (golden master przestaje kontrolować czas).</li>
+<li>Diagnoza złożona z ocen (&quot;kod jest brzydki&quot;) zamiast faktów (&quot;status jako <code>int</code> sprawdzany w czterech metodach&quot;).</li>
+<li>Brak commitów pośrednich - jeden duży commit po 25 minutach.</li>
+</ul>
+<hr>
+<h2 id="odpowiedzi-do-pytan-koncowych" tabindex="-1"><a class="header-anchor" href="#odpowiedzi-do-pytan-koncowych"><span>Odpowiedzi do pytań końcowych</span></a></h2>
+<ol>
+<li>
+<p><strong>Po czym poznać, że zmiana jest refaktoryzacją, a nie zmianą zachowania?</strong>
+Klient nie dostrzega żadnej nieuzgodnionej różnicy w przyjętej granicy: te same wyniki, wyjątki (typ, komunikat, moment), stan po sukcesie i błędzie, efekty i ich kolejność. Nowa walidacja, inny typ błędu, nowy odbiorca czy inne zaokrąglenie to zmiany zachowania.</p>
+</li>
+<li>
+<p><strong>Dlaczego zielony golden master nie dowodzi bezpieczeństwa każdej zmiany?</strong>
+Golden master dowodzi zgodności tylko dla wykonanych scenariuszy. W CineLegacy procenty rozliczeń i rzadkie przejścia statusów nie wpływają na wynik, więc mutacje w tych miejscach przeżywają. Zakres sieci sprawdzamy kontrolną mutacją.</p>
+</li>
+<li>
+<p><strong>Jak wybrać pierwszy obszar do refaktoryzacji w dużym systemie legacy?</strong>
+Tam, gdzie kod zmienia się najczęściej i gdzie planowane są zmiany biznesowe (gorące punkty: historia zmian × złożoność), a nie tam, gdzie jest najbrzydszy. Pierwszy krok ma być mały, odwracalny i chroniony testem.</p>
+</li>
+<li>
+<p><strong>Kiedy wzorzec należy usunąć zamiast go rozbudowywać?</strong>
+Gdy chroni zmienność, której już nie ma (jedna implementacja), tylko przekazuje wywołania, ukrywa zależność (globalny mutowalny stan) albo mimo niego nowy wariant wymaga zmian w wielu miejscach.</p>
+</li>
+<li>
+<p><strong>Jak rozstrzygnąć między Strategy, Command i State dla podobnego <code>switch</code>?</strong>
+Pytaniem: kto wybiera wariant i kiedy. Klient raz - Strategy; nadawca przy każdym żądaniu, które trzeba kolejkować, logować lub cofać - Command; nikt z zewnątrz, obiekt sam po przejściu - State.</p>
+</li>
+<li>
+<p><strong>Co odróżnia Facade od Anti-Corruption Layer w kontekście migracji?</strong>
+Fasada upraszcza interfejs podsystemu w tym samym modelu. ACL tłumaczy obcy model na model domeny i daje port, za którym można wymienić stary system na nowy (Strangler Fig, Branch by Abstraction) bez zmian w domenie.</p>
+</li>
+<li>
+<p><strong>Jakie elementy powinien mieć opis zestawu zmian z refaktoryzacją?</strong>
+Intencję (jedną), rodzaj zmiany (refaktoryzacja, zmiana zachowania, migracja), zakres i ryzyko, test chroniący, sposób wdrożenia i wycofania, listę elementów przejściowych z kryterium usunięcia oraz odwołanie do ADR, jeśli decyzja ma trwałe skutki.</p>
+</li>
+<li>
+<p><strong>Jak zmierzyć, czy refaktoryzacja w zespole przynosi efekt?</strong>
+Trendem: czas realizacji zmian w obszarze, liczba regresji i incydentów, rozmiar i czas przeglądu zestawów zmian, liczba nowych naruszeń bramek. Nie liczbą wzorców ani jednorazowym skokiem pokrycia.</p>
+</li>
+</ol>
+
+</main>
+</div>
+<script>if(matchMedia('(max-width:900px)').matches){var d=document.querySelector('.toc details');if(d)d.open=false}</script>
+</body>
+</html>

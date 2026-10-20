@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Roslyn: sceny m8 (bramka kompilatora, codemod) i testy kompilujące kod w pamięci -->
+    <!-- Roslyn: sceny m2 (bramka kompilatora, bramka jakości) i testy kompilujące kod w pamięci -->
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.9.0" />
   </ItemGroup>
 
@@ -17,9 +17,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- m8/s10: próbki domeny dla bramki jakości - bramka kompiluje je w pamięci, projekt nie -->
-    <Compile Remove="M8/S10QualityGate/Sample/**/*.cs" />
-    <None Include="M8/S10QualityGate/Sample/**/*.cs" />
+    <!-- m2/s04: próbki domeny dla bramki jakości - bramka kompiluje je w pamięci, projekt nie -->
+    <Compile Remove="M2/S04QualityGate/Sample/**/*.cs" />
+    <None Include="M2/S04QualityGate/Sample/**/*.cs" />
   </ItemGroup>
 
 </Project>

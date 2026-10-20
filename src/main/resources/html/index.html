@@ -3,16 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Materiały dla prowadzącego</title>
-<style>
-:root{--bg:#fbfbfa;--fg:#1d1f23;--muted:#5f6670;--line:#e3e5e8;--card:#ffffff;--accent:#2457c5;--accent-bg:#eef3fd;
+<title>Refaktoryzacja i wzorce projektowe - materiały dla prowadzącego</title>
+<style>:root{--bg:#fbfbfa;--fg:#1d1f23;--muted:#5f6670;--line:#e3e5e8;--card:#ffffff;--accent:#2457c5;--accent-bg:#eef3fd;
 --code-bg:#f4f5f7;--note-bg:#fff7e6;--note-line:#e6a700;--th:#f1f3f6;
 --k:#b3246b;--s:#1a7f37;--c:#6e7781;--n:#0550ae;--t:#8250df;--f:#6639ba;--a:#953800;
 --kind:#2457c5}
 @media (prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3036;--card:#1c1f23;--accent:#7aa7ff;--accent-bg:#1e2a40;
 --code-bg:#1f2328;--note-bg:#2b2412;--note-line:#c99400;--th:#23272d;
 --k:#ff7b9c;--s:#7ee2a0;--c:#8b949e;--n:#79c0ff;--t:#d2a8ff;--f:#d2a8ff;--a:#ffa657}}
-body.zadania{--kind:#1a7f37} body.rozwiazania{--kind:#b3246b} body.przyklady{--kind:#2457c5}
+body.zadania{--kind:#1a7f37} body.warsztat{--kind:#c2570c} body.warsztat-zadania{--kind:#0f7b7b} body.rozwiazania{--kind:#b3246b} body.przyklady{--kind:#2457c5}
 *{box-sizing:border-box}
 html{scroll-padding-top:72px}
 body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
@@ -74,15 +73,16 @@ aside{position:static;max-height:none;border:1px solid var(--line);border-radius
 body{font-size:16px}.topbar{padding:8px 16px}.pager{margin-left:0}h1{font-size:1.6rem}}
 @media print{.topbar,aside{display:none}.layout{display:block;padding:0}main{max-width:none}
 pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#000;font-size:12pt}}
-</style>
+.langs{margin-left:auto}.langs+.pager{margin-left:0}
+.langs{margin-left:auto}.langs+.pager{margin-left:0}</style>
 </head>
 <body class="index">
 <header class="topbar"><a class="home" href="index.html">Materiały prowadzącego</a></header>
 <div class="layout no-toc">
 
 <main>
-<h1>Materiały dla prowadzącego</h1>
-<p>Katalog zawiera materiały pomocnicze do prowadzenia zajęć, podzielone na trzy rodzaje:</p>
+<h1>Refaktoryzacja i wzorce projektowe - materiały dla prowadzącego</h1>
+<p>Szkolenie trwa 3 dni i ma 6 modułów. Materiały każdego modułu są podzielone na cztery rodzaje:</p>
 <div class="table-wrap"><table>
 <thead>
 <tr>
@@ -93,34 +93,34 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 </thead>
 <tbody>
 <tr>
-<td><code>slajdy/</code></td>
+<td><code>slajdy/<wbr></code></td>
 <td>prowadzący, uczestnicy</td>
-<td>prezentacje Marp do części wykładowej każdego modułu (źródła w <code>md/<wbr>slides/</code>)</td>
+<td>prezentacje Marp do części wykładowej (źródła w <code>md/<wbr>slides/<wbr></code>)</td>
 </tr>
 <tr>
-<td><code>zadania/</code></td>
+<td><code>zadania/<wbr></code></td>
 <td>uczestnicy (do rozdania)</td>
-<td>krótkie aktywności, ćwiczenia i warsztaty: cel, czas, dane wejściowe, polecenia, kryteria akceptacji, pytania sprawdzające - bez odpowiedzi</td>
+<td>aktywności i ćwiczenia: cel, czas, dane wejściowe, polecenia, kryteria akceptacji, pytania sprawdzające - bez odpowiedzi</td>
 </tr>
 <tr>
-<td><code>przyklady/</code></td>
+<td><code>przyklady/<wbr></code></td>
 <td>prowadzący</td>
-<td>przewodnik po kodzie projektu: co ilustruje każdy przykład, pliki przed/po, testy chroniące zachowanie, jak uruchomić i jak przeprowadzić demonstrację na żywo</td>
+<td>przewodnik po kodzie: co ilustruje każdy przykład, pliki przed/po, testy chroniące zachowanie, uruchamianie, demonstracja na żywo</td>
 </tr>
 <tr>
-<td><code>rozwiazania/</code></td>
+<td><code>rozwiazania/<wbr></code></td>
 <td>prowadzący</td>
-<td>rozwiązania wzorcowe i wskazówki do omówienia, odniesienia do kodu referencyjnego, typowe błędy, pytania do dyskusji, odpowiedzi do pytań sprawdzających</td>
+<td>rozwiązania wzorcowe, odniesienia do kodu referencyjnego, typowe błędy, pytania do dyskusji, odpowiedzi do pytań sprawdzających</td>
 </tr>
 </tbody>
 </table></div>
-<p>Rozwiązania oznaczone notą „Rozwiązanie opracowane na podstawie kodu referencyjnego” nie pochodzą wprost z materiału teoretycznego (dotyczy głównie modułów 07 i 08).</p>
-<p>Powiązane materiały: teoria w <code>src/<wbr>main/<wbr>resources/<wbr>0N-*.md</code>, slajdy w <code>html/<wbr>slajdy/</code> (źródła Marp w <code>md/<wbr>slides/</code>).</p>
+<p>Kod przykładów i warsztatu jest dostępny w trzech wersjach językowych o tej samej strukturze: Java (główna), C# i TypeScript. Slajdy, zadania i rozwiązania pokazują kod w Javie i wskazują odpowiedniki w C# i TypeScript.</p>
 <h2 id="moduly" tabindex="-1"><a class="header-anchor" href="#moduly"><span>Moduły</span></a></h2>
 <div class="table-wrap"><table>
 <thead>
 <tr>
 <th>Moduł</th>
+<th>Czas</th>
 <th>Slajdy</th>
 <th>Zadania</th>
 <th>Przykłady</th>
@@ -129,65 +129,94 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 </thead>
 <tbody>
 <tr>
-<td>1. Wprowadzenie do pracy z kodem legacy</td>
-<td><a href="slajdy/01-wprowadzenie-do-pracy-z-kodem-legacy-slajdy.html">slajdy</a></td>
-<td><a href="zadania/01-wprowadzenie-do-pracy-z-kodem-legacy.html">zadania</a></td>
-<td><a href="przyklady/01-wprowadzenie-do-pracy-z-kodem-legacy.html">przykłady</a></td>
-<td><a href="rozwiazania/01-wprowadzenie-do-pracy-z-kodem-legacy.html">rozwiązania</a></td>
+<td>1. Wprowadzenie</td>
+<td>ok. 2,5 h</td>
+<td><a href="slajdy/01-wprowadzenie-slajdy.html">slajdy</a></td>
+<td><a href="zadania/01-wprowadzenie.html">zadania</a></td>
+<td><a href="przyklady/01-wprowadzenie.html">przykłady</a></td>
+<td><a href="rozwiazania/01-wprowadzenie.html">rozwiązania</a></td>
 </tr>
 <tr>
-<td>2. Fundamenty refaktoryzacji</td>
-<td><a href="slajdy/02-fundamenty-refaktoryzacji-slajdy.html">slajdy</a></td>
-<td><a href="zadania/02-fundamenty-refaktoryzacji.html">zadania</a></td>
-<td><a href="przyklady/02-fundamenty-refaktoryzacji.html">przykłady</a></td>
-<td><a href="rozwiazania/02-fundamenty-refaktoryzacji.html">rozwiązania</a></td>
+<td>2. Prewencja</td>
+<td>ok. 3 h</td>
+<td><a href="slajdy/02-prewencja-slajdy.html">slajdy</a></td>
+<td><a href="zadania/02-prewencja.html">zadania</a></td>
+<td><a href="przyklady/02-prewencja.html">przykłady</a></td>
+<td><a href="rozwiazania/02-prewencja.html">rozwiązania</a></td>
 </tr>
 <tr>
-<td>3. Zasady dobrego projektowania</td>
-<td><a href="slajdy/03-zasady-dobrego-projektowania-slajdy.html">slajdy</a></td>
-<td><a href="zadania/03-zasady-dobrego-projektowania.html">zadania</a></td>
-<td><a href="przyklady/03-zasady-dobrego-projektowania.html">przykłady</a></td>
-<td><a href="rozwiazania/03-zasady-dobrego-projektowania.html">rozwiązania</a></td>
+<td>3. Testowanie a bezpieczeństwo</td>
+<td>ok. 3 h</td>
+<td><a href="slajdy/03-testowanie-a-bezpieczenstwo-slajdy.html">slajdy</a></td>
+<td><a href="zadania/03-testowanie-a-bezpieczenstwo.html">zadania</a></td>
+<td><a href="przyklady/03-testowanie-a-bezpieczenstwo.html">przykłady</a></td>
+<td><a href="rozwiazania/03-testowanie-a-bezpieczenstwo.html">rozwiązania</a></td>
 </tr>
 <tr>
-<td>4. Podstawowe refaktoryzacje</td>
-<td><a href="slajdy/04-podstawowe-refaktoryzacje-warsztat-praktyczny-slajdy.html">slajdy</a></td>
-<td><a href="zadania/04-podstawowe-refaktoryzacje-warsztat-praktyczny.html">zadania</a></td>
-<td><a href="przyklady/04-podstawowe-refaktoryzacje-warsztat-praktyczny.html">przykłady</a></td>
-<td><a href="rozwiazania/04-podstawowe-refaktoryzacje-warsztat-praktyczny.html">rozwiązania</a></td>
+<td>4. Wzorce projektowe</td>
+<td>ok. 4 h</td>
+<td><a href="slajdy/04-wzorce-projektowe-slajdy.html">slajdy</a></td>
+<td><a href="zadania/04-wzorce-projektowe.html">zadania</a></td>
+<td><a href="przyklady/04-wzorce-projektowe.html">przykłady</a></td>
+<td><a href="rozwiazania/04-wzorce-projektowe.html">rozwiązania</a></td>
 </tr>
 <tr>
-<td>5. Refaktoryzacje hierarchii klas</td>
-<td><a href="slajdy/05-refaktoryzacje-hierarchii-klas-warsztat-praktyczny-slajdy.html">slajdy</a></td>
-<td><a href="zadania/05-refaktoryzacje-hierarchii-klas-warsztat-praktyczny.html">zadania</a></td>
-<td><a href="przyklady/05-refaktoryzacje-hierarchii-klas-warsztat-praktyczny.html">przykłady</a></td>
-<td><a href="rozwiazania/05-refaktoryzacje-hierarchii-klas-warsztat-praktyczny.html">rozwiązania</a></td>
+<td>5. Refaktoryzacja do wzorców</td>
+<td>ok. 6 h</td>
+<td><a href="slajdy/05-refaktoryzacja-do-wzorcow-slajdy.html">slajdy</a></td>
+<td><a href="zadania/05-refaktoryzacja-do-wzorcow.html">zadania</a></td>
+<td><a href="przyklady/05-refaktoryzacja-do-wzorcow.html">przykłady</a></td>
+<td><a href="rozwiazania/05-refaktoryzacja-do-wzorcow.html">rozwiązania</a></td>
 </tr>
 <tr>
-<td>6. Refaktoryzacje do wzorców projektowych</td>
-<td><a href="slajdy/06-refaktoryzacje-do-wzorcow-projektowych-warsztat-praktyczny-slajdy.html">slajdy</a></td>
-<td><a href="zadania/06-refaktoryzacje-do-wzorcow-projektowych-warsztat-praktyczny.html">zadania</a></td>
-<td><a href="przyklady/06-refaktoryzacje-do-wzorcow-projektowych-warsztat-praktyczny.html">przykłady</a></td>
-<td><a href="rozwiazania/06-refaktoryzacje-do-wzorcow-projektowych-warsztat-praktyczny.html">rozwiązania</a></td>
-</tr>
-<tr>
-<td>7. Zaawansowane refaktoryzacje</td>
-<td><a href="slajdy/07-zaawansowane-refaktoryzacje-warsztat-praktyczny-slajdy.html">slajdy</a></td>
-<td><a href="zadania/07-zaawansowane-refaktoryzacje-warsztat-praktyczny.html">zadania</a></td>
-<td><a href="przyklady/07-zaawansowane-refaktoryzacje-warsztat-praktyczny.html">przykłady</a></td>
-<td><a href="rozwiazania/07-zaawansowane-refaktoryzacje-warsztat-praktyczny.html">rozwiązania</a></td>
-</tr>
-<tr>
-<td>8. Strategie i dobre praktyki</td>
-<td><a href="slajdy/08-strategie-i-dobre-praktyki-slajdy.html">slajdy</a></td>
-<td><a href="zadania/08-strategie-i-dobre-praktyki.html">zadania</a></td>
-<td><a href="przyklady/08-strategie-i-dobre-praktyki.html">przykłady</a></td>
-<td><a href="rozwiazania/08-strategie-i-dobre-praktyki.html">rozwiązania</a></td>
+<td>6. Podsumowanie</td>
+<td>ok. 1 h</td>
+<td><a href="slajdy/06-podsumowanie-slajdy.html">slajdy</a></td>
+<td><a href="zadania/06-podsumowanie.html">zadania</a></td>
+<td>-</td>
+<td><a href="rozwiazania/06-podsumowanie.html">rozwiązania</a></td>
 </tr>
 </tbody>
 </table></div>
-<h2 id="warsztat-cinelegacy" tabindex="-1"><a class="header-anchor" href="#warsztat-cinelegacy"><span>Warsztat CineLegacy (moduły 3-8)</span></a></h2>
-<p>Osobny pakiet praktyczny na nowym kodzie (system kina CineLegacy): kilkadziesiąt krótkich scen do pokazu na żywo, po jednej na temat ze slajdów. Każda scena ma kod wyjściowy (<code>start</code>), gotowe snapshoty kolejnych kroków (<code>stepN</code>) i testy równoważności. Pokaz prowadzi się narzędziem <code>scripts/<wbr>warsztat.sh</code> (<code>list</code>, <code>test</code>, <code>diff</code>, <code>next</code>, <code>prev</code>, <code>status</code>, <code>jump</code>, <code>reset</code>, <code>html</code>). Warsztat jest dostępny w trzech językach: Java, C# (<code>--lang cs</code>) i TypeScript (<code>--lang ts</code>).</p>
+<p>Tematy modułów:</p>
+<ol>
+<li><strong>Wprowadzenie:</strong> czym jest refaktoryzacja, kiedy warto refaktoryzować, code smells, metryki jakości kodu.</li>
+<li><strong>Prewencja:</strong> fast feedback, podejmowanie decyzji i odsuwanie ich w czasie, akceptacja problemów, których nie rozwiążesz, degradacja jakości i jej kontrola przez projektowanie, prewencja ważniejsza niż leczenie.</li>
+<li><strong>Testowanie a bezpieczeństwo:</strong> piramida testów, Test Double Patterns, code coverage, praca bez testów.</li>
+<li><strong>Wzorce projektowe:</strong> definicja wzorca, wzorce kreacyjne, strukturalne i behawioralne (katalog GoF z wariantami funkcyjnymi).</li>
+<li><strong>Refaktoryzacja do wzorców:</strong> czy zawsze warto, kiedy pozbyć się wzorca, niebezpieczeństwa, wsparcie IDE, refaktoryzacja a testowanie, Command/Strategy/State, Strategy/Template Method, Chain of Responsibility/Decorator, Adapter i Boundary Object, Factory, Facade, Facade a Anti-Corruption Layer, Builder, Observer, Mediator, Visitor.</li>
+<li><strong>Podsumowanie:</strong> mapa decyzji, lista kontrolna, ćwiczenie końcowe na <code>CinemaManager</code>.</li>
+</ol>
+<h2 id="proponowany-plan-3-dni" tabindex="-1"><a class="header-anchor" href="#proponowany-plan-3-dni"><span>Proponowany plan 3 dni</span></a></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Dzień</th>
+<th>Przed południem</th>
+<th>Po południu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Moduł 1. Wprowadzenie</td>
+<td>Moduł 2. Prewencja</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Moduł 3. Testowanie a bezpieczeństwo</td>
+<td>Moduł 4. Wzorce projektowe</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Moduł 5. Refaktoryzacja do wzorców (tematy 1-8)</td>
+<td>Moduł 5 (tematy 9-16), Moduł 6. Podsumowanie</td>
+</tr>
+</tbody>
+</table></div>
+<p>Czasy modułów są orientacyjne. Sceny warsztatu to menu pokazów, z którego prowadzący wybiera tematy pasujące do grupy.</p>
+<h2 id="warsztat-cinelegacy-moduly-2-3-i-5" tabindex="-1"><a class="header-anchor" href="#warsztat-cinelegacy-moduly-2-3-i-5"><span>Warsztat CineLegacy (moduły 2, 3 i 5)</span></a></h2>
+<p>Osobny pakiet praktyczny na kodzie systemu kina CineLegacy: krótkie sceny do pokazu na żywo, po jednej na temat ze slajdów. Każda scena ma kod wyjściowy (<code>start</code>), gotowe snapshoty kolejnych kroków (<code>stepN</code>) i testy równoważności. Pokaz prowadzi się narzędziem <code>scripts/<wbr>warsztat.sh</code> (<code>list</code>, <code>test</code>, <code>diff</code>, <code>next</code>, <code>prev</code>, <code>status</code>, <code>jump</code>, <code>reset</code>, <code>html</code>). Warsztat jest dostępny w trzech językach: Java, C# (<code>--lang cs</code>) i TypeScript (<code>--lang ts</code>).</p>
 <p>Start (wprowadzenie, reguły domeny, macierz pokrycia tematów): <a href="warsztat/00-cinelegacy.html">Java</a>, <a href="warsztat-csharp/00-cinelegacy.html">C#</a>, <a href="warsztat-typescript/00-cinelegacy.html">TypeScript</a>.</p>
 <div class="table-wrap"><table>
 <thead>
@@ -200,50 +229,34 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 </thead>
 <tbody>
 <tr>
-<td>3. Zasady dobrego projektowania</td>
-<td><a href="warsztat/przewodnik/03-zasady-dobrego-projektowania.html">Java</a>, <a href="warsztat-csharp/przewodnik/03-zasady-dobrego-projektowania.html">C#</a>, <a href="warsztat-typescript/przewodnik/03-zasady-dobrego-projektowania.html">TS</a></td>
-<td><a href="warsztat/zadania/03-zasady-dobrego-projektowania.html">Java</a>, <a href="warsztat-csharp/zadania/03-zasady-dobrego-projektowania.html">C#</a>, <a href="warsztat-typescript/zadania/03-zasady-dobrego-projektowania.html">TS</a></td>
+<td>2. Prewencja</td>
+<td><a href="warsztat/przewodnik/02-prewencja.html">Java</a>, <a href="warsztat-csharp/przewodnik/02-prewencja.html">C#</a>, <a href="warsztat-typescript/przewodnik/02-prewencja.html">TS</a></td>
+<td><a href="warsztat/zadania/02-prewencja.html">Java</a>, <a href="warsztat-csharp/zadania/02-prewencja.html">C#</a>, <a href="warsztat-typescript/zadania/02-prewencja.html">TS</a></td>
+<td><code>pl.training.workshop.m2</code>, <code>Training.Workshop.M2</code>, <code>typescript/<wbr>src/<wbr>workshop/<wbr>m2</code></td>
+</tr>
+<tr>
+<td>3. Testowanie a bezpieczeństwo</td>
+<td><a href="warsztat/przewodnik/03-testowanie-a-bezpieczenstwo.html">Java</a>, <a href="warsztat-csharp/przewodnik/03-testowanie-a-bezpieczenstwo.html">C#</a>, <a href="warsztat-typescript/przewodnik/03-testowanie-a-bezpieczenstwo.html">TS</a></td>
+<td><a href="warsztat/zadania/03-testowanie-a-bezpieczenstwo.html">Java</a>, <a href="warsztat-csharp/zadania/03-testowanie-a-bezpieczenstwo.html">C#</a>, <a href="warsztat-typescript/zadania/03-testowanie-a-bezpieczenstwo.html">TS</a></td>
 <td><code>pl.training.workshop.m3</code>, <code>Training.Workshop.M3</code>, <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3</code></td>
 </tr>
 <tr>
-<td>4. Podstawowe refaktoryzacje</td>
-<td><a href="warsztat/przewodnik/04-podstawowe-refaktoryzacje.html">Java</a>, <a href="warsztat-csharp/przewodnik/04-podstawowe-refaktoryzacje.html">C#</a>, <a href="warsztat-typescript/przewodnik/04-podstawowe-refaktoryzacje.html">TS</a></td>
-<td><a href="warsztat/zadania/04-podstawowe-refaktoryzacje.html">Java</a>, <a href="warsztat-csharp/zadania/04-podstawowe-refaktoryzacje.html">C#</a>, <a href="warsztat-typescript/zadania/04-podstawowe-refaktoryzacje.html">TS</a></td>
-<td><code>pl.training.workshop.m4</code>, <code>Training.Workshop.M4</code>, <code>typescript/<wbr>src/<wbr>workshop/<wbr>m4</code></td>
-</tr>
-<tr>
-<td>5. Refaktoryzacje hierarchii klas</td>
-<td><a href="warsztat/przewodnik/05-refaktoryzacje-hierarchii-klas.html">Java</a>, <a href="warsztat-csharp/przewodnik/05-refaktoryzacje-hierarchii-klas.html">C#</a>, <a href="warsztat-typescript/przewodnik/05-refaktoryzacje-hierarchii-klas.html">TS</a></td>
-<td><a href="warsztat/zadania/05-refaktoryzacje-hierarchii-klas.html">Java</a>, <a href="warsztat-csharp/zadania/05-refaktoryzacje-hierarchii-klas.html">C#</a>, <a href="warsztat-typescript/zadania/05-refaktoryzacje-hierarchii-klas.html">TS</a></td>
+<td>5. Refaktoryzacja do wzorców</td>
+<td><a href="warsztat/przewodnik/05-refaktoryzacja-do-wzorcow.html">Java</a>, <a href="warsztat-csharp/przewodnik/05-refaktoryzacja-do-wzorcow.html">C#</a>, <a href="warsztat-typescript/przewodnik/05-refaktoryzacja-do-wzorcow.html">TS</a></td>
+<td><a href="warsztat/zadania/05-refaktoryzacja-do-wzorcow.html">Java</a>, <a href="warsztat-csharp/zadania/05-refaktoryzacja-do-wzorcow.html">C#</a>, <a href="warsztat-typescript/zadania/05-refaktoryzacja-do-wzorcow.html">TS</a></td>
 <td><code>pl.training.workshop.m5</code>, <code>Training.Workshop.M5</code>, <code>typescript/<wbr>src/<wbr>workshop/<wbr>m5</code></td>
-</tr>
-<tr>
-<td>6. Refaktoryzacje do wzorców projektowych</td>
-<td><a href="warsztat/przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html">Java</a>, <a href="warsztat-csharp/przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html">C#</a>, <a href="warsztat-typescript/przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html">TS</a></td>
-<td><a href="warsztat/zadania/06-refaktoryzacje-do-wzorcow-projektowych.html">Java</a>, <a href="warsztat-csharp/zadania/06-refaktoryzacje-do-wzorcow-projektowych.html">C#</a>, <a href="warsztat-typescript/zadania/06-refaktoryzacje-do-wzorcow-projektowych.html">TS</a></td>
-<td><code>pl.training.workshop.m6</code>, <code>Training.Workshop.M6</code>, <code>typescript/<wbr>src/<wbr>workshop/<wbr>m6</code></td>
-</tr>
-<tr>
-<td>7. Zaawansowane refaktoryzacje</td>
-<td><a href="warsztat/przewodnik/07-zaawansowane-refaktoryzacje.html">Java</a>, <a href="warsztat-csharp/przewodnik/07-zaawansowane-refaktoryzacje.html">C#</a>, <a href="warsztat-typescript/przewodnik/07-zaawansowane-refaktoryzacje.html">TS</a></td>
-<td><a href="warsztat/zadania/07-zaawansowane-refaktoryzacje.html">Java</a>, <a href="warsztat-csharp/zadania/07-zaawansowane-refaktoryzacje.html">C#</a>, <a href="warsztat-typescript/zadania/07-zaawansowane-refaktoryzacje.html">TS</a></td>
-<td><code>pl.training.workshop.m7</code>, <code>Training.Workshop.M7</code>, <code>typescript/<wbr>src/<wbr>workshop/<wbr>m7</code></td>
-</tr>
-<tr>
-<td>8. Strategie i dobre praktyki</td>
-<td><a href="warsztat/przewodnik/08-strategie-i-dobre-praktyki.html">Java</a>, <a href="warsztat-csharp/przewodnik/08-strategie-i-dobre-praktyki.html">C#</a>, <a href="warsztat-typescript/przewodnik/08-strategie-i-dobre-praktyki.html">TS</a></td>
-<td><a href="warsztat/zadania/08-strategie-i-dobre-praktyki.html">Java</a>, <a href="warsztat-csharp/zadania/08-strategie-i-dobre-praktyki.html">C#</a>, <a href="warsztat-typescript/zadania/08-strategie-i-dobre-praktyki.html">TS</a></td>
-<td><code>pl.training.workshop.m8</code>, <code>Training.Workshop.M8</code>, <code>typescript/<wbr>src/<wbr>workshop/<wbr>m8</code></td>
 </tr>
 </tbody>
 </table></div>
 <h2 id="uruchamianie-przykladow" tabindex="-1"><a class="header-anchor" href="#uruchamianie-przykladow"><span>Uruchamianie przykładów</span></a></h2>
-<p>Kod przykładów jest dostępny w trzech językach o tej samej strukturze modułów.</p>
+<p>Kod przykładów jest dostępny w trzech językach o tej samej strukturze modułów (<code>module1</code> ... <code>module5</code>).</p>
 <h3 id="java-glowny-projekt-java-25-maven" tabindex="-1"><a class="header-anchor" href="#java-glowny-projekt-java-25-maven"><span>Java (główny projekt, Java 25, Maven)</span></a></h3>
 <pre class="code" data-lang="bash"><code class="hljs">mvn -q compile
 java -<span class="hljs-built_in">cp</span> target/classes pl.training.module1.Module1Examples   <span class="hljs-comment"># dowolny moduł: moduleN.ModuleNExamples</span>
+java -<span class="hljs-built_in">cp</span> target/classes pl.training.module4.Module4Examples all   <span class="hljs-comment"># katalog wzorców: klucz albo all</span>
 mvn <span class="hljs-built_in">test</span>                                                      <span class="hljs-comment"># wszystkie testy</span>
-mvn <span class="hljs-built_in">test</span> -Dtest=<span class="hljs-string">&#x27;pl.training.module4.**&#x27;</span>                      <span class="hljs-comment"># testy jednego modułu</span>
+mvn <span class="hljs-built_in">test</span> -Dtest=<span class="hljs-string">&#x27;pl.training.module5.**&#x27;</span>                      <span class="hljs-comment"># testy jednego modułu</span>
+mvn verify                                                    <span class="hljs-comment"># testy + raport JaCoCo (target/site/jacoco)</span>
 </code></pre>
 <p>Kod: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>moduleN</code>, testy: <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>moduleN</code>.</p>
 <h3 id="c-net-10" tabindex="-1"><a class="header-anchor" href="#c-net-10"><span>C# (.NET 10)</span></a></h3>
@@ -251,6 +264,7 @@ mvn <span class="hljs-built_in">test</span> -Dtest=<span class="hljs-string">&#x
 dotnet build
 dotnet <span class="hljs-built_in">test</span>
 dotnet run --project src/Training.Module1
+dotnet run --project src/Training.Module4 -- all
 </code></pre>
 <h3 id="typescript-nodejs-22" tabindex="-1"><a class="header-anchor" href="#typescript-nodejs-22"><span>TypeScript (Node.js 22+)</span></a></h3>
 <pre class="code" data-lang="bash"><code class="hljs"><span class="hljs-built_in">cd</span> typescript
@@ -258,13 +272,16 @@ npm ci
 npm run build
 npm <span class="hljs-built_in">test</span>
 npm run module1
+npm run module4 -- all
 </code></pre>
+<h2 id="generowanie-stron" tabindex="-1"><a class="header-anchor" href="#generowanie-stron"><span>Generowanie stron</span></a></h2>
+<p>Strony HTML (także ta) powstają z plików <code>md/<wbr></code> poleceniem <code>scripts/<wbr>warsztat.sh html</code> (wymaga Node.js; slajdy generuje Marp CLI).</p>
 <h2 id="sugerowany-przebieg-modulu" tabindex="-1"><a class="header-anchor" href="#sugerowany-przebieg-modulu"><span>Sugerowany przebieg modułu</span></a></h2>
 <ol>
-<li>Teoria na podstawie slajdów (<code>slides/</code>).</li>
-<li>Demonstracja przykładów z kodu według <code>przyklady/</code> (najpierw wersja wyjściowa i test charakterystyki, potem kolejne kroki).</li>
-<li>Rozdanie <code>zadania/</code> i praca w parach lub małych grupach.</li>
-<li>Omówienie według <code>rozwiazania/</code>, z porównaniem prac uczestników z kodem referencyjnym.</li>
+<li>Teoria na podstawie slajdów (<code>slajdy/<wbr></code>).</li>
+<li>Demonstracja przykładów z kodu według <code>przyklady/<wbr></code> (najpierw wersja wyjściowa i test, potem kolejne kroki) albo scen warsztatu CineLegacy.</li>
+<li>Rozdanie <code>zadania/<wbr></code> i praca w parach lub małych grupach.</li>
+<li>Omówienie według <code>rozwiazania/<wbr></code>, z porównaniem prac uczestników z kodem referencyjnym.</li>
 <li>Pytania sprawdzające i lista kontrolna na zakończenie.</li>
 </ol>
 

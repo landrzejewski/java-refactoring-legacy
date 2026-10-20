@@ -1,0 +1,623 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zadania: Moduł 4. Wzorce projektowe - zadania dla uczestników</title>
+<style>:root{--bg:#fbfbfa;--fg:#1d1f23;--muted:#5f6670;--line:#e3e5e8;--card:#ffffff;--accent:#2457c5;--accent-bg:#eef3fd;
+--code-bg:#f4f5f7;--note-bg:#fff7e6;--note-line:#e6a700;--th:#f1f3f6;
+--k:#b3246b;--s:#1a7f37;--c:#6e7781;--n:#0550ae;--t:#8250df;--f:#6639ba;--a:#953800;
+--kind:#2457c5}
+@media (prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3036;--card:#1c1f23;--accent:#7aa7ff;--accent-bg:#1e2a40;
+--code-bg:#1f2328;--note-bg:#2b2412;--note-line:#c99400;--th:#23272d;
+--k:#ff7b9c;--s:#7ee2a0;--c:#8b949e;--n:#79c0ff;--t:#d2a8ff;--f:#d2a8ff;--a:#ffa657}}
+body.zadania{--kind:#1a7f37} body.warsztat{--kind:#c2570c} body.warsztat-zadania{--kind:#0f7b7b} body.rozwiazania{--kind:#b3246b} body.przyklady{--kind:#2457c5}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.topbar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 24px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);border-top:3px solid var(--kind)}
+.topbar a{color:var(--fg);text-decoration:none}
+.home{font-weight:600}
+.tabs{display:flex;gap:4px}
+.tab{padding:4px 12px;border-radius:999px;font-size:15px;color:var(--muted)!important}
+.tab:hover{background:var(--code-bg)}
+.tab.active{background:var(--accent-bg);color:var(--accent)!important;font-weight:600}
+.pager{margin-left:auto;display:flex;gap:14px;font-size:15px}
+.pager a{color:var(--muted)}.pager a:hover{color:var(--accent)}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:48px;max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+.layout.no-toc{grid-template-columns:minmax(0,1fr);max-width:1000px}
+aside{position:sticky;top:72px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px}
+.toc-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;font-weight:600}
+.toc ul{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.toc li a{display:block;padding:3px 12px;color:var(--muted);text-decoration:none;line-height:1.35}
+.toc li.h3 a{padding-left:24px;font-size:13px}
+.toc li a:hover{color:var(--accent)}
+main{min-width:0;max-width:860px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 1.2rem;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:2.6rem 0 .8rem;padding-top:.6rem;border-top:1px solid var(--line)}
+h3{font-size:1.18rem;margin:2rem 0 .6rem}
+h4{font-size:1rem;margin:1.5rem 0 .5rem}
+h1 a,h2 a,h3 a,h4 a{color:inherit;text-decoration:none}
+h2 a:hover::after,h3 a:hover::after{content:" #";color:var(--muted)}
+p,ul,ol{margin:.6rem 0 1rem}
+li{margin:.25rem 0}
+li>ul,li>ol{margin:.2rem 0}
+a{color:var(--accent)}
+strong{font-weight:650}
+code{font:0.88em/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre.code{position:relative;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:1rem 0 1.4rem}
+pre.code code{background:none;padding:0;font-size:14px;line-height:1.55}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:6px;right:10px;font:11px ui-monospace,Menlo,monospace;color:var(--muted);text-transform:uppercase}
+.table-wrap{overflow-x:auto;margin:1rem 0 1.4rem;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--th);font-weight:600}
+tr:last-child td{border-bottom:none}
+blockquote{margin:1rem 0 1.4rem;padding:10px 16px;background:var(--note-bg);border-left:4px solid var(--note-line);border-radius:0 8px 8px 0}
+blockquote p{margin:.3rem 0}
+hr{border:none;border-top:1px solid var(--line);margin:2rem 0}
+hr+h2{border-top:none;margin-top:1.4rem}
+main p code,main li code,main td code{overflow-wrap:break-word}
+.toc summary{cursor:pointer;list-style:none}.toc summary::-webkit-details-marker{display:none}
+.hljs-keyword,.hljs-selector-tag,.hljs-built_in,.hljs-literal{color:var(--k)}
+.hljs-string,.hljs-regexp,.hljs-addition{color:var(--s)}
+.hljs-comment,.hljs-quote,.hljs-meta{color:var(--c);font-style:italic}
+.hljs-number,.hljs-symbol{color:var(--n)}
+.hljs-type,.hljs-class .hljs-title,.hljs-title.class_{color:var(--t)}
+.hljs-title,.hljs-title.function_,.hljs-section{color:var(--f)}
+.hljs-attr,.hljs-attribute,.hljs-variable,.hljs-params,.hljs-tag{color:var(--a)}
+.hljs-deletion{color:var(--k)}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:16px;padding:20px 16px 60px}
+aside{position:static;max-height:none;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--card)}
+.toc-title{margin:0}.toc details[open] .toc-title{margin-bottom:8px}.toc summary::after{content:" ▾"}
+body{font-size:16px}.topbar{padding:8px 16px}.pager{margin-left:0}h1{font-size:1.6rem}}
+@media print{.topbar,aside{display:none}.layout{display:block;padding:0}main{max-width:none}
+pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#000;font-size:12pt}}
+.langs{margin-left:auto}.langs+.pager{margin-left:0}
+.langs{margin-left:auto}.langs+.pager{margin-left:0}</style>
+</head>
+<body class="zadania">
+<header class="topbar"><a class="home" href="../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../slajdy/04-wzorce-projektowe-slajdy.html">Slajdy</a><a class="tab active" href="04-wzorce-projektowe.html">Zadania</a><a class="tab" href="../przyklady/04-wzorce-projektowe.html">Przykłady</a><a class="tab" href="../rozwiazania/04-wzorce-projektowe.html">Rozwiązania</a></div><div class="pager"><a href="03-testowanie-a-bezpieczenstwo.html" title="Poprzedni moduł">&larr; 03</a><a href="05-refaktoryzacja-do-wzorcow.html" title="Następny moduł">05 &rarr;</a></div></header>
+<div class="layout">
+<aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#jak-pracowac">Jak pracować</a></li><li class="h3"><a href="#przygotowanie-srodowiska">Przygotowanie środowiska</a></li><li class="h3"><a href="#przeglad-zadan">Przegląd zadań</a></li><li class="h2"><a href="#krotkie-aktywnosci">Krótkie aktywności</a></li><li class="h3"><a href="#aktywnosc-17-nazwij-problem-nie-wzorzec">Aktywność 1.7: Nazwij problem, nie wzorzec</a></li><li class="h3"><a href="#aktywnosc-28-konstruktor-fabryka-czy-builder">Aktywność 2.8: Konstruktor, fabryka czy builder?</a></li><li class="h3"><a href="#aktywnosc-312-rozpoznaj-opakowanie">Aktywność 3.12: Rozpoznaj opakowanie</a></li><li class="h3"><a href="#aktywnosc-418-strategy-czy-state">Aktywność 4.18: Strategy czy State?</a></li><li class="h2"><a href="#cwiczenie-1-rozpoznawanie-wzorcow-w-kodzie">Ćwiczenie 1: Rozpoznawanie wzorców w kodzie</a></li><li class="h3"><a href="#kontekst">Kontekst</a></li><li class="h3"><a href="#pliki-wejsciowe">Pliki wejściowe</a></li><li class="h3"><a href="#polecenia">Polecenia</a></li><li class="h3"><a href="#ograniczenia">Ograniczenia</a></li><li class="h3"><a href="#kryteria-akceptacji">Kryteria akceptacji</a></li><li class="h3"><a href="#oczekiwany-produkt">Oczekiwany produkt</a></li><li class="h2"><a href="#cwiczenie-2-nowy-wariant-bez-modyfikacji">Ćwiczenie 2: Nowy wariant bez modyfikacji</a></li><li class="h3"><a href="#kontekst-1">Kontekst</a></li><li class="h3"><a href="#pliki-wejsciowe-1">Pliki wejściowe</a></li><li class="h3"><a href="#polecenia-1">Polecenia</a></li><li class="h3"><a href="#ograniczenia-1">Ograniczenia</a></li><li class="h3"><a href="#kryteria-akceptacji-1">Kryteria akceptacji</a></li><li class="h3"><a href="#oczekiwany-produkt-1">Oczekiwany produkt</a></li><li class="h2"><a href="#cwiczenie-3-wariant-obiektowy-czy-funkcyjny">Ćwiczenie 3: Wariant obiektowy czy funkcyjny?</a></li><li class="h3"><a href="#kontekst-2">Kontekst</a></li><li class="h3"><a href="#pliki-wejsciowe-2">Pliki wejściowe</a></li><li class="h3"><a href="#polecenia-2">Polecenia</a></li><li class="h3"><a href="#ograniczenia-2">Ograniczenia</a></li><li class="h3"><a href="#kryteria-akceptacji-2">Kryteria akceptacji</a></li><li class="h3"><a href="#oczekiwany-produkt-2">Oczekiwany produkt</a></li><li class="h2"><a href="#cwiczenie-4-dobor-wzorca-karty-problemow">Ćwiczenie 4: Dobór wzorca - karty problemów</a></li><li class="h3"><a href="#kontekst-3">Kontekst</a></li><li class="h3"><a href="#karty">Karty</a></li><li class="h3"><a href="#polecenia-3">Polecenia</a></li><li class="h3"><a href="#kryteria-akceptacji-3">Kryteria akceptacji</a></li><li class="h3"><a href="#oczekiwany-produkt-3">Oczekiwany produkt</a></li><li class="h2"><a href="#sprawdzenie-wiedzy">Sprawdzenie wiedzy</a></li></ul></details></nav></aside>
+<main>
+<h1>Moduł 4. Wzorce projektowe - zadania dla uczestników</h1>
+<h2 id="jak-pracowac" tabindex="-1"><a class="header-anchor" href="#jak-pracowac"><span>Jak pracować</span></a></h2>
+<ul>
+<li>Wzorzec rozpoznajemy po <strong>intencji</strong> (jaki problem rozwiązuje i co się zmienia), a nie po nazwie klasy, pakietu czy kształcie diagramu.</li>
+<li>Zanim nazwiesz wzorzec, opisz problem jednym zdaniem bez jego nazwy. Zanim go zastosujesz, sprawdź prostszą alternatywę (<code>if</code>, <code>enum</code>, <code>record</code>, lambda).</li>
+<li>Przy każdym wzorcu wskaż koszt: dodatkowe typy, pośredniość, kontrakt do utrzymania i testowania.</li>
+<li>W ćwiczeniach z kodem nie zmieniaj istniejących klas, chyba że polecenie mówi inaczej. Nowe klasy dodawaj obok, a testy umieszczaj w tym samym pakiecie co testowany kod.</li>
+<li>Każdy nowy test sprawdź <strong>kontrolną mutacją</strong>: zepsuj na chwilę regułę, zobacz czerwony test, przywróć kod.</li>
+<li>Refaktoryzacje prowadzące do wzorców (i od nich) są tematem modułu 5. Tutaj budujemy słownik i umiejętność oceny.</li>
+</ul>
+<h3 id="przygotowanie-srodowiska" tabindex="-1"><a class="header-anchor" href="#przygotowanie-srodowiska"><span>Przygotowanie środowiska</span></a></h3>
+<ol>
+<li>Sprawdź <code>mvn -version</code> i potwierdź, że Maven korzysta z Javy 25.</li>
+<li>Przejdź do katalogu głównego repozytorium.</li>
+<li>Uruchom <code>mvn clean verify</code>. Wszystkie testy powinny być zielone.</li>
+<li>Uruchom katalog przykładów bez argumentów, aby zobaczyć listę kluczy:</li>
+</ol>
+<pre class="code" data-lang="bash"><code class="hljs">mvn -q compile &amp;&amp; java -<span class="hljs-built_in">cp</span> target/classes pl.training.module4.Module4Examples
+</code></pre>
+<ol start="5">
+<li>Pracuj w pakiecie <code>pl.training.module4</code> (<code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4</code> i <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4</code>).</li>
+</ol>
+<p>Uruchomienie jednego przykładu i samych testów modułu:</p>
+<pre class="code" data-lang="bash"><code class="hljs">mvn -q compile &amp;&amp; java -<span class="hljs-built_in">cp</span> target/classes pl.training.module4.Module4Examples bridge
+mvn <span class="hljs-built_in">test</span> -Dtest=<span class="hljs-string">&#x27;pl.training.module4.**&#x27;</span>
+</code></pre>
+<p>Odpowiedniki w innych językach (jeśli pracujesz w C# lub TypeScript): <code>csharp/<wbr>src/<wbr>Training.Module4</code> (katalogi <code>Creational</code>, <code>Structural</code>, <code>Behavioral</code>, <code>Fn</code>; interfejsy z prefiksem <code>I</code>, np. <code>IMessageSender</code>, <code>IVisitor</code>) z testami w <code>csharp/<wbr>tests/<wbr>Training.Module4.Tests</code> (<code>cd csharp &amp;&amp; dotnet run --project src/<wbr>Training.Module4 -- &lt;klucz|all&gt;</code>, <code>cd csharp &amp;&amp; dotnet test tests/<wbr>Training.Module4.Tests</code>) oraz <code>typescript/<wbr>src/<wbr>module4</code> (katalogi <code>creational</code>, <code>structural</code>, <code>behavioral</code>, <code>fn</code>) z testami w <code>typescript/<wbr>test/<wbr>module4</code> (<code>cd typescript &amp;&amp; npm ci &amp;&amp; npm run build &amp;&amp; npm run module4 -- &lt;klucz|all&gt;</code>, <code>cd typescript &amp;&amp; npx vitest run test/<wbr>module4</code>). Klucze przykładów i nazwy klas są takie same jak w Javie.</p>
+<h3 id="przeglad-zadan" tabindex="-1"><a class="header-anchor" href="#przeglad-zadan"><span>Przegląd zadań</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Nr</th>
+<th>Nazwa</th>
+<th>Czas</th>
+<th>Forma</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Aktywność 1.7</td>
+<td>Nazwij problem, nie wzorzec</td>
+<td>3 min</td>
+<td>analiza, dyskusja</td>
+</tr>
+<tr>
+<td>Aktywność 2.8</td>
+<td>Konstruktor, fabryka czy builder?</td>
+<td>3 min</td>
+<td>analiza</td>
+</tr>
+<tr>
+<td>Aktywność 3.12</td>
+<td>Rozpoznaj opakowanie</td>
+<td>4 min</td>
+<td>analiza kodu</td>
+</tr>
+<tr>
+<td>Aktywność 4.18</td>
+<td>Strategy czy State?</td>
+<td>3 min</td>
+<td>analiza, dyskusja</td>
+</tr>
+<tr>
+<td>Ćwiczenie 1</td>
+<td>Rozpoznawanie wzorców w kodzie</td>
+<td>20 min + 10 min omówienia</td>
+<td>analiza kodu</td>
+</tr>
+<tr>
+<td>Ćwiczenie 2</td>
+<td>Nowy wariant bez modyfikacji</td>
+<td>30 min + 10 min omówienia</td>
+<td>kod + test</td>
+</tr>
+<tr>
+<td>Ćwiczenie 3</td>
+<td>Wariant obiektowy czy funkcyjny?</td>
+<td>20 min + 10 min omówienia</td>
+<td>analiza + kod</td>
+</tr>
+<tr>
+<td>Ćwiczenie 4</td>
+<td>Dobór wzorca - karty problemów</td>
+<td>15 min + 10 min omówienia</td>
+<td>praca w parach, dyskusja</td>
+</tr>
+</tbody>
+</table></div>
+<hr>
+<h2 id="krotkie-aktywnosci" tabindex="-1"><a class="header-anchor" href="#krotkie-aktywnosci"><span>Krótkie aktywności</span></a></h2>
+<h3 id="aktywnosc-17-nazwij-problem-nie-wzorzec" tabindex="-1"><a class="header-anchor" href="#aktywnosc-17-nazwij-problem-nie-wzorzec"><span>Aktywność 1.7: Nazwij problem, nie wzorzec</span></a></h3>
+<p><strong>Czas:</strong> 3 minuty.</p>
+<p><strong>Cel:</strong> oddzielić opis problemu od nazwy rozwiązania i zacząć od rodzaju zmienności.</p>
+<p><strong>Kontekst:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">byte</span>[] <span class="hljs-title function_">export</span><span class="hljs-params">(Report report, String type)</span> {
+    <span class="hljs-keyword">if</span> (type.equals(<span class="hljs-string">&quot;PDF&quot;</span>))  { <span class="hljs-comment">/* 40 linii */</span> }
+    <span class="hljs-keyword">if</span> (type.equals(<span class="hljs-string">&quot;CSV&quot;</span>))  { <span class="hljs-comment">/* 25 linii */</span> }
+    <span class="hljs-keyword">if</span> (type.equals(<span class="hljs-string">&quot;XLSX&quot;</span>)) { <span class="hljs-comment">/* 60 linii */</span> }
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;unknown type: &quot;</span> + type);
+}
+</code></pre>
+<p><strong>Polecenia:</strong></p>
+<ol>
+<li>Opisz problem tego kodu jednym zdaniem, nie używając nazwy żadnego wzorca.</li>
+<li>Odpowiedz: co się zmienia, kto wybiera wariant (i kiedy), jak często dochodzi nowy format?</li>
+<li>Dopiero teraz zaproponuj wzorzec albo uzasadnij, że żaden nie jest potrzebny.</li>
+</ol>
+<p><strong>Oczekiwany produkt:</strong> jedno zdanie opisu problemu, trzy krótkie odpowiedzi i decyzja.</p>
+<hr>
+<h3 id="aktywnosc-28-konstruktor-fabryka-czy-builder" tabindex="-1"><a class="header-anchor" href="#aktywnosc-28-konstruktor-fabryka-czy-builder"><span>Aktywność 2.8: Konstruktor, fabryka czy builder?</span></a></h3>
+<p><strong>Czas:</strong> 3 minuty.</p>
+<p><strong>Cel:</strong> dobrać najprostszy mechanizm tworzenia do liczby parametrów, niezmienników i wiedzy klienta.</p>
+<p><strong>Polecenia:</strong> dla każdego przypadku wskaż mechanizm (konstruktor lub <code>record</code>, statyczna metoda fabrykująca, Factory Method lub Abstract Factory, Builder) i uzasadnij jednym zdaniem.</p>
+<ol>
+<li><code>Money(BigDecimal amount, Currency currency)</code> - dwa wymagane pola, reguła: kwota nieujemna.</li>
+<li><code>HttpClientConfig</code> - 9 pól, z czego 6 opcjonalnych; <code>proxyHost</code> wymaga <code>proxyPort</code>.</li>
+<li><code>Notifier</code> - zależnie od konfiguracji powiadamia e-mailem, SMS-em albo push; klient nie powinien znać konkretnych klas.</li>
+</ol>
+<p><strong>Oczekiwany produkt:</strong> trzy decyzje z uzasadnieniem.</p>
+<hr>
+<h3 id="aktywnosc-312-rozpoznaj-opakowanie" tabindex="-1"><a class="header-anchor" href="#aktywnosc-312-rozpoznaj-opakowanie"><span>Aktywność 3.12: Rozpoznaj opakowanie</span></a></h3>
+<p><strong>Czas:</strong> 4 minuty.</p>
+<p><strong>Cel:</strong> zobaczyć, że Adapter, Decorator i Proxy mogą mieć identyczną strukturę, a rozróżnia je intencja.</p>
+<p><strong>Kontekst:</strong> trzy klasy implementują <code>PaymentsService</code> z <code>pl.training.module4.structural.proxy</code>:</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">class</span> <span class="hljs-title class_">A</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">PaymentsService</span> {
+    <span class="hljs-keyword">public</span> <span class="hljs-type">void</span> <span class="hljs-title function_">pay</span><span class="hljs-params">(Map&lt;String, String&gt; p)</span> {
+        <span class="hljs-keyword">if</span> (!user.isAdmin()) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">SecurityException</span>(<span class="hljs-string">&quot;forbidden&quot;</span>);
+        target.pay(p);
+    }
+}
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">B</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">PaymentsService</span> {
+    <span class="hljs-keyword">public</span> <span class="hljs-type">void</span> <span class="hljs-title function_">pay</span><span class="hljs-params">(Map&lt;String, String&gt; p)</span> { metrics.time(<span class="hljs-string">&quot;pay&quot;</span>, () -&gt; target.pay(p)); }
+}
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">C</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">PaymentsService</span> {
+    <span class="hljs-keyword">public</span> <span class="hljs-type">void</span> <span class="hljs-title function_">pay</span><span class="hljs-params">(Map&lt;String, String&gt; p)</span> { gateway.charge(p.get(<span class="hljs-string">&quot;amount&quot;</span>), <span class="hljs-string">&quot;PLN&quot;</span>); }
+}
+</code></pre>
+<p><strong>Polecenia:</strong></p>
+<ol>
+<li>Przypisz każdej klasie wzorzec: Adapter, Decorator albo Proxy. Co rozstrzyga - kod czy intencja?</li>
+<li>Czym staje się klasa B, jeśli zacznie odrzucać płatności w oknie serwisowym?</li>
+<li>Do którego z trzech wzorców pasuje <code>PaymentLoggerProxy</code> z repozytorium?</li>
+</ol>
+<p><strong>Oczekiwany produkt:</strong> trzy przypisania z jednym zdaniem uzasadnienia oraz odpowiedzi na pytania 2 i 3.</p>
+<hr>
+<h3 id="aktywnosc-418-strategy-czy-state" tabindex="-1"><a class="header-anchor" href="#aktywnosc-418-strategy-czy-state"><span>Aktywność 4.18: Strategy czy State?</span></a></h3>
+<p><strong>Czas:</strong> 3 minuty.</p>
+<p><strong>Cel:</strong> rozróżnić dwa wzorce o tej samej strukturze po tym, kto i kiedy zmienia wariant.</p>
+<p><strong>Polecenia:</strong> dla każdego przypadku zdecyduj: Strategy, State czy żaden. Odpowiedz, kto zmienia wariant i kiedy, oraz czy istnieje tabela przejść.</p>
+<ol>
+<li>Sposób zaokrąglania ceny wybierany w konfiguracji sklepu.</li>
+<li>Bilet: ZAREZERWOWANY → OPŁACONY → WYKORZYSTANY; zwrot możliwy tylko przed wykorzystaniem.</li>
+<li>Algorytm kompresji wybierany przez użytkownika przy każdym eksporcie.</li>
+<li>Abonament: próbny → płatny → zawieszony; w każdym stanie inny limit pobrań.</li>
+</ol>
+<p><strong>Oczekiwany produkt:</strong> cztery decyzje z odpowiedzią „kto i kiedy”.</p>
+<hr>
+<h2 id="cwiczenie-1-rozpoznawanie-wzorcow-w-kodzie" tabindex="-1"><a class="header-anchor" href="#cwiczenie-1-rozpoznawanie-wzorcow-w-kodzie"><span>Ćwiczenie 1: Rozpoznawanie wzorców w kodzie</span></a></h2>
+<p><strong>Cel:</strong> rozpoznawać wzorce po intencji, także tam, gdzie nazwa pakietu lub klasy nic nie mówi albo wprowadza w błąd, oraz nazywać role, koszt i ryzyko widoczne w kodzie.</p>
+<p><strong>Czas:</strong> 20 minut pracy (w parach) i 10 minut omówienia.</p>
+<h3 id="kontekst" tabindex="-1"><a class="header-anchor" href="#kontekst"><span>Kontekst</span></a></h3>
+<p>Pakiety <code>pl.training.module4.creational</code>, <code>structural</code> i <code>behavioral</code> mają nazwy wzorców, więc „rozpoznanie” po nazwie pakietu jest zbyt łatwe. W tym ćwiczeniu patrzysz na fragmenty, w których wzorzec jest ukryty, nazwany inaczej, niż działa, albo połączony z innym. Część fragmentów pochodzi z JDK - wzorce GoF są tam na każdym kroku.</p>
+<h3 id="pliki-wejsciowe" tabindex="-1"><a class="header-anchor" href="#pliki-wejsciowe"><span>Pliki wejściowe</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Nr</th>
+<th>Fragment</th>
+<th>Plik lub wyrażenie</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>F1</td>
+<td><code>ServerEvent.builder()</code> i klasa <code>ServerEventBuilder</code></td>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>observer/<wbr>ServerEvent.java</code></td>
+</tr>
+<tr>
+<td>F2</td>
+<td>metody <code>op(...)</code> i <code>operatorFactory(...)</code> oraz interfejs <code>BiOperator</code></td>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>interpreter/<wbr>Application.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>interpreter/<wbr>BiOperator.java</code></td>
+</tr>
+<tr>
+<td>F3</td>
+<td><code>PaymentLoggerProxy</code></td>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>proxy/<wbr>PaymentLoggerProxy.java</code></td>
+</tr>
+<tr>
+<td>F4</td>
+<td>pole <code>builder</code> w <code>PostgresSqlConnectionUrlBuilder</code> (porównaj z <code>MySqlConnectionUrlBuilder</code>)</td>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>creational/<wbr>builder/<wbr>PostgresSqlConnectionUrlBuilder.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>creational/<wbr>builder/<wbr>MySqlConnectionUrlBuilder.java</code></td>
+</tr>
+<tr>
+<td>F5</td>
+<td><code>MovieType</code> i <code>movies.Order</code></td>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>strategy/<wbr>movies/<wbr>MovieType.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>strategy/<wbr>movies/<wbr>Order.java</code></td>
+</tr>
+<tr>
+<td>F6</td>
+<td><code>Playlist.iterator()</code> i <code>Playlist.reversed()</code></td>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>iterator/<wbr>Playlist.java</code></td>
+</tr>
+<tr>
+<td>F7</td>
+<td><code>Department.accept(...)</code> i <code>Node.accept(...)</code></td>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>visitor/<wbr>Department.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>visitor/<wbr>Node.java</code></td>
+</tr>
+<tr>
+<td>F8</td>
+<td>metoda <code>memoize(...)</code></td>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>fn/<wbr>FunctionalStyleSingleton.java</code></td>
+</tr>
+<tr>
+<td>F9</td>
+<td><code>new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8))</code></td>
+<td>JDK (<code>java.io</code>)</td>
+</tr>
+<tr>
+<td>F10</td>
+<td><code>Collections.unmodifiableList(list)</code></td>
+<td>JDK (<code>java.util</code>)</td>
+</tr>
+<tr>
+<td>F11</td>
+<td><code>Arrays.asList(array)</code></td>
+<td>JDK (<code>java.util</code>)</td>
+</tr>
+<tr>
+<td>F12</td>
+<td><code>Integer.valueOf(100) == Integer.valueOf(100)</code></td>
+<td>JDK (<code>java.lang</code>)</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="polecenia" tabindex="-1"><a class="header-anchor" href="#polecenia"><span>Polecenia</span></a></h3>
+<ol>
+<li>Dla każdego fragmentu wypełnij wiersz tabeli:</li>
+</ol>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Nr</th>
+<th>Wzorzec (jeden lub kilka)</th>
+<th>Role z katalogu (np. Context, Strategy)</th>
+<th>Intencja jednym zdaniem</th>
+<th>Koszt lub ryzyko widoczne w kodzie</th>
+</tr>
+</thead>
+</table></div>
+<ol start="2">
+<li>Zaznacz fragmenty, w których nazwa klasy sugeruje inny wzorzec niż ten, który realizuje kod.</li>
+<li>Zaznacz fragmenty, w których jeden wzorzec jest zbudowany z pomocą innego (np. fabryka wewnątrz Flyweight).</li>
+<li>Wskaż co najmniej jeden fragment, który według ciebie <strong>nie jest</strong> wzorcem GoF, tylko zwykłą techniką (delegacja, statyczna metoda fabrykująca) - i uzasadnij.</li>
+<li>Dla F3 i F7 zaproponuj jedną zmianę, która usunęłaby wskazane ryzyko, ale <strong>nie wprowadzaj jej</strong>.</li>
+</ol>
+<h3 id="ograniczenia" tabindex="-1"><a class="header-anchor" href="#ograniczenia"><span>Ograniczenia</span></a></h3>
+<ul>
+<li>Nie modyfikuj kodu. To ćwiczenie analityczne.</li>
+<li>Nie używaj nazwy pakietu jako jedynego argumentu.</li>
+</ul>
+<h3 id="kryteria-akceptacji" tabindex="-1"><a class="header-anchor" href="#kryteria-akceptacji"><span>Kryteria akceptacji</span></a></h3>
+<ul>
+<li>Każdy fragment ma wskazaną intencję jednym zdaniem, a nie tylko nazwę wzorca.</li>
+<li>Co najmniej trzy fragmenty mają wskazany więcej niż jeden wzorzec albo technikę pomocniczą.</li>
+<li>Dla F3 odpowiedź odróżnia strukturę (opakowanie z tym samym interfejsem) od intencji (kontrola dostępu vs dodanie odpowiedzialności).</li>
+<li>Dla F7 odpowiedź wskazuje, kto odpowiada za przejście po strukturze.</li>
+<li>Każde wskazane ryzyko jest konkretne (np. „mutowalny produkt po <code>build()</code>”), a nie ogólne („może być trudne w utrzymaniu”).</li>
+</ul>
+<h3 id="oczekiwany-produkt" tabindex="-1"><a class="header-anchor" href="#oczekiwany-produkt"><span>Oczekiwany produkt</span></a></h3>
+<p>Wypełniona tabela 12 fragmentów, lista fragmentów o mylącej nazwie, lista połączeń wzorców oraz dwie propozycje zmian (F3, F7).</p>
+<hr>
+<h2 id="cwiczenie-2-nowy-wariant-bez-modyfikacji" tabindex="-1"><a class="header-anchor" href="#cwiczenie-2-nowy-wariant-bez-modyfikacji"><span>Ćwiczenie 2: Nowy wariant bez modyfikacji</span></a></h2>
+<p><strong>Cel:</strong> sprawdzić w praktyce, wzdłuż której osi wzorzec pozwala rozszerzać kod bez modyfikacji istniejących klas, i policzyć koszt rozszerzenia wzdłuż osi przeciwnej.</p>
+<p><strong>Czas:</strong> 30 minut pracy i 10 minut omówienia.</p>
+<h3 id="kontekst-1" tabindex="-1"><a class="header-anchor" href="#kontekst-1"><span>Kontekst</span></a></h3>
+<p>Most (<code>structural.bridge</code>) rozdziela rodzaj wiadomości od kanału wysyłki. Gość (<code>behavioral.visitor</code>) oddziela operacje na drzewie działów od klas węzłów. Zespół chce dodać kanał push, wiadomość z podpisem i raport liczby pracowników. Wymaganie zespołu: istniejące klasy obu pakietów mają pozostać nietknięte - zmiany mają być widoczne w <code>git status</code> wyłącznie jako nowe pliki.</p>
+<h3 id="pliki-wejsciowe-1" tabindex="-1"><a class="header-anchor" href="#pliki-wejsciowe-1"><span>Pliki wejściowe</span></a></h3>
+<ul>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>bridge/<wbr>Message.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>bridge/<wbr>TextMessage.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>bridge/<wbr>UrgentMessage.java</code> - abstrakcja i jej rozszerzenia,</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>bridge/<wbr>MessageSender.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>bridge/<wbr>EmailSender.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>bridge/<wbr>SmsSender.java</code> - implementacja i kanały,</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>visitor/<wbr>Visitor.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>visitor/<wbr>Node.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>visitor/<wbr>Department.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>visitor/<wbr>SuperDepartment.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>visitor/<wbr>Employee.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>visitor/<wbr>Reporter.java</code>,</li>
+<li><code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>AdditionalPatternsExamplesTest.java</code> - wzór przechwytywania <code>System.out</code> (metoda <code>outputOf</code>) i adnotacji <code>@ResourceLock</code>.</li>
+</ul>
+<h3 id="polecenia-1" tabindex="-1"><a class="header-anchor" href="#polecenia-1"><span>Polecenia</span></a></h3>
+<p><strong>Część A: Bridge</strong></p>
+<ol>
+<li>Narysuj dwie hierarchie mostu i zapisz, ile klas potrzeba dziś dla 2 rodzajów i 2 kanałów, a ile byłoby potrzebnych bez mostu dla 3 rodzajów i 3 kanałów.</li>
+<li>Dodaj klasę <code>PushSender implements MessageSender</code> w pakiecie <code>pl.training.module4.structural.bridge</code>, wypisującą <code>Push to &lt;recipient&gt;: &lt;content&gt;</code>.</li>
+<li>Dodaj klasę <code>SignedMessage extends Message</code> przyjmującą w konstruktorze kanał i podpis; wysyła treść w postaci <code>&lt;text&gt; (&lt;signature&gt;)</code>. Podpis <code>null</code> ma być odrzucony.</li>
+<li>Napisz test <code>BridgeExtensionTest</code> w <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>bridge/<wbr></code>:
+<ul>
+<li>własny obiekt zastępczy <code>RecordingSender implements MessageSender</code> zapisujący wywołania,</li>
+<li>każdy z trzech rodzajów wiadomości wysłany przez ten sam <code>RecordingSender</code> (dowód, że abstrakcja nie zależy od konkretnego kanału),</li>
+<li><code>UrgentMessage</code> wysłana przez <code>PushSender</code> - sprawdź wyjście konsoli (<code>Push to anna: [URGENT] DISK FULL</code>).</li>
+</ul>
+</li>
+<li>Sprawdź <code>git status</code>: żaden istniejący plik nie może być zmieniony.</li>
+</ol>
+<p><strong>Część B: Visitor</strong></p>
+<ol start="6">
+<li>Dodaj klasę <code>EmployeeCounter implements Visitor</code> w pakiecie <code>pl.training.module4.behavioral.visitor</code>, z metodą <code>int count()</code>.</li>
+<li>Napisz test <code>EmployeeCounterTest</code> w <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>visitor/<wbr></code>: drzewo z <code>Department</code>, <code>SuperDepartment</code> i trzema <code>Employee</code> (w tym jeden wewnątrz <code>SuperDepartment</code>) daje 3; pusty dział daje 0.</li>
+<li>Uruchom <code>Reporter</code> na drzewie zawierającym <code>SuperDepartment</code> z jednym pracownikiem (np. w teście albo tymczasowo w <code>main</code>, którego potem nie zatwierdzasz) i opisz, co widać w wyniku. Wyjaśnij przyczynę.</li>
+<li>Bez pisania kodu: wypisz wszystkie pliki, które trzeba utworzyć lub zmienić, aby dodać nowy rodzaj węzła <code>Contractor</code> (zewnętrzny wykonawca w dziale). Co się stanie z istniejącymi gośćmi, jeśli nowa metoda w <code>Visitor</code> będzie miała pustą implementację domyślną, a co, jeśli będzie abstrakcyjna?</li>
+</ol>
+<h3 id="ograniczenia-1" tabindex="-1"><a class="header-anchor" href="#ograniczenia-1"><span>Ograniczenia</span></a></h3>
+<ul>
+<li>Nie modyfikuj istniejących klas w <code>structural.bridge</code> i <code>behavioral.visitor</code> ani <code>Module4Examples</code>.</li>
+<li>Nie używaj <code>instanceof</code> ani rzutowania w gościu.</li>
+<li>Nie zmieniaj formatu wyjścia istniejących kanałów i wiadomości.</li>
+</ul>
+<h3 id="kryteria-akceptacji-1" tabindex="-1"><a class="header-anchor" href="#kryteria-akceptacji-1"><span>Kryteria akceptacji</span></a></h3>
+<ul>
+<li><code>mvn test -Dtest=&#x27;pl.training.module4.**&#x27;</code> jest zielone, łącznie z nowymi testami.</li>
+<li><code>git status</code> pokazuje wyłącznie nowe pliki.</li>
+<li>Test mostu używa własnego obiektu zastępczego, a nie tylko przechwytywania konsoli.</li>
+<li><code>EmployeeCounter</code> liczy także pracowników działu <code>SuperDepartment</code>.</li>
+<li>Każdy nowy test zawodzi po kontrolnej mutacji (np. <code>SignedMessage</code> pomija podpis, <code>EmployeeCounter</code> liczy działy).</li>
+<li>Odpowiedź na polecenie 8 wskazuje przyczynę (pusta metoda domyślna <code>visit(SuperDepartment)</code>), a odpowiedź na polecenie 9 zawiera pełną listę plików i oba warianty interfejsu.</li>
+</ul>
+<h3 id="oczekiwany-produkt-1" tabindex="-1"><a class="header-anchor" href="#oczekiwany-produkt-1"><span>Oczekiwany produkt</span></a></h3>
+<p>Klasy <code>PushSender</code>, <code>SignedMessage</code>, <code>EmployeeCounter</code>, testy <code>BridgeExtensionTest</code> i <code>EmployeeCounterTest</code>, rachunek klas z polecenia 1 oraz pisemne odpowiedzi na polecenia 8 i 9.</p>
+<hr>
+<h2 id="cwiczenie-3-wariant-obiektowy-czy-funkcyjny" tabindex="-1"><a class="header-anchor" href="#cwiczenie-3-wariant-obiektowy-czy-funkcyjny"><span>Ćwiczenie 3: Wariant obiektowy czy funkcyjny?</span></a></h2>
+<p><strong>Cel:</strong> ocenić, kiedy lambda lub kompozycja funkcji wystarczy w miejsce klas wzorca, a kiedy zmienia jego semantykę albo odbiera ważne możliwości.</p>
+<p><strong>Czas:</strong> 20 minut pracy i 10 minut omówienia.</p>
+<h3 id="kontekst-2" tabindex="-1"><a class="header-anchor" href="#kontekst-2"><span>Kontekst</span></a></h3>
+<p>Pakiet <code>pl.training.module4.fn</code> zawiera warianty funkcyjne jedenastu wzorców. Zespół zastanawia się, czy w nowym kodzie pisać wzorce wyłącznie lambdami. Zanim przyjmie regułę, chce porównać warianty na konkretnych kryteriach i sprawdzić, czy zachowanie jest naprawdę takie samo.</p>
+<h3 id="pliki-wejsciowe-2" tabindex="-1"><a class="header-anchor" href="#pliki-wejsciowe-2"><span>Pliki wejściowe</span></a></h3>
+<ul>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>fn/<wbr>FunctionalStyleChain.java</code> oraz <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>chainofresponsibility/<wbr>Validator.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>chainofresponsibility/<wbr>Logger.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>chainofresponsibility/<wbr>Processor.java</code> (para obowiązkowa),</li>
+<li>do wyboru dwie dalsze pary:
+<ul>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>fn/<wbr>FunctionalStyleStrategy.java</code> i <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>strategy/<wbr></code>,</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>fn/<wbr>FunctionalStyleDecorator.java</code> i <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>decorator/<wbr></code>,</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>fn/<wbr>FunctionalStyleObserver.java</code> i <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>observer/<wbr></code>,</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>fn/<wbr>FunctionalStyleState.java</code> i <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>state/<wbr></code>,</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>fn/<wbr>FunctionalStyleCommand.java</code> i <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>command/<wbr></code>,</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>fn/<wbr>FunctionalStyleSingleton.java</code> i <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>creational/<wbr>singleton/<wbr></code>.</li>
+</ul>
+</li>
+</ul>
+<h3 id="polecenia-2" tabindex="-1"><a class="header-anchor" href="#polecenia-2"><span>Polecenia</span></a></h3>
+<ol>
+<li>Uruchom obie wersje każdej z trzech par (np. <code>chain-of-responsibility</code> i <code>fn-chain</code>).</li>
+<li>Dla każdej pary wypełnij tabelę:</li>
+</ol>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Kryterium</th>
+<th>Wariant obiektowy</th>
+<th>Wariant funkcyjny</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>liczba typów do napisania</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>nazwa domenowa roli</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>stan (gdzie i czy bezpieczny)</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>tożsamość (wyrejestrowanie, porównanie)</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>dodanie drugiej operacji (np. <code>undo</code>)</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>testowalność</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>czy semantyka jest identyczna?</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<ol start="3">
+<li>Dla pary łańcucha znajdź różnicę semantyczną: co dzieje się z żądaniem <code>&quot;Te&quot;</code> w obu wersjach?</li>
+<li>Usuń tę różnicę w wariancie funkcyjnym. Dodaj klasę <code>FunctionalRequestChain</code> w pakiecie <code>pl.training.module4.fn</code>:
+<ul>
+<li>konstruktor przyjmuje <code>List&lt;Function&lt;String, Optional&lt;String&gt;&gt;&gt;</code>,</li>
+<li>metoda <code>Optional&lt;String&gt; handle(String request)</code> przekazuje żądanie przez kolejne kroki; krok zwracający <code>Optional.empty()</code> przerywa łańcuch.</li>
+</ul>
+</li>
+<li>Napisz test <code>FunctionalRequestChainTest</code> w <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>fn/<wbr></code> z trzema krokami odpowiadającymi <code>Validator</code>, <code>Logger</code> i <code>Processor</code> (kroki zapisują swoje wywołania na listach):
+<ul>
+<li><code>&quot;Test&quot;</code> przechodzi przez wszystkie kroki i daje <code>Processing: Test</code>,</li>
+<li><code>&quot;Te&quot;</code> zostaje zatrzymane na walidacji; log i przetwarzanie pozostają puste.</li>
+</ul>
+</li>
+<li>Zapisz regułę zespołu (2-3 zdania): kiedy rola wzorca zostaje lambdą, a kiedy klasą.</li>
+</ol>
+<h3 id="ograniczenia-2" tabindex="-1"><a class="header-anchor" href="#ograniczenia-2"><span>Ograniczenia</span></a></h3>
+<ul>
+<li>Nie modyfikuj istniejących klas w <code>fn</code> ani w pakietach wzorców.</li>
+<li>Nie używaj wyjątków do sterowania przepływem w <code>FunctionalRequestChain</code>.</li>
+</ul>
+<h3 id="kryteria-akceptacji-2" tabindex="-1"><a class="header-anchor" href="#kryteria-akceptacji-2"><span>Kryteria akceptacji</span></a></h3>
+<ul>
+<li>Tabela porównania jest wypełniona dla trzech par, a ostatni wiersz każdej z nich zawiera uzasadnienie.</li>
+<li>Zachowanie <code>FunctionalRequestChain</code> dla <code>&quot;Te&quot;</code> jest identyczne z obiektowym łańcuchem (brak logu i przetwarzania).</li>
+<li>Test zawodzi po kontrolnej mutacji (np. krok walidacji zawsze zwracający wartość albo pętla, która po pustym wyniku wraca do pierwotnego żądania).</li>
+<li>Reguła zespołu odwołuje się do kryteriów z tabeli, a nie do gustu („lambdy są nowocześniejsze”).</li>
+</ul>
+<h3 id="oczekiwany-produkt-2" tabindex="-1"><a class="header-anchor" href="#oczekiwany-produkt-2"><span>Oczekiwany produkt</span></a></h3>
+<p>Trzy tabele porównania, klasa <code>FunctionalRequestChain</code> z testem i reguła zespołu.</p>
+<hr>
+<h2 id="cwiczenie-4-dobor-wzorca-karty-problemow" tabindex="-1"><a class="header-anchor" href="#cwiczenie-4-dobor-wzorca-karty-problemow"><span>Ćwiczenie 4: Dobór wzorca - karty problemów</span></a></h2>
+<p><strong>Cel:</strong> dobierać wzorzec do problemu, zaczynając od rodzaju zmienności, i zawsze rozważać prostszą alternatywę, w tym brak wzorca.</p>
+<p><strong>Czas:</strong> 15 minut pracy w parach i 10 minut omówienia.</p>
+<h3 id="kontekst-3" tabindex="-1"><a class="header-anchor" href="#kontekst-3"><span>Kontekst</span></a></h3>
+<p>Każda karta opisuje sytuację z projektu. Nie ma jednej poprawnej odpowiedzi, ale są odpowiedzi lepiej i gorzej uzasadnione. Liczy się uzasadnienie oparte na tym, co się zmienia, kto o tym decyduje i jak często.</p>
+<h3 id="karty" tabindex="-1"><a class="header-anchor" href="#karty"><span>Karty</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Karta</th>
+<th>Sytuacja</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>K1</td>
+<td>Raport eksportujemy do PDF, CSV i XLSX; format wybiera użytkownik przy każdym eksporcie, co kwartał dochodzi nowy format.</td>
+</tr>
+<tr>
+<td>K2</td>
+<td>Bilet przechodzi przez stany zarezerwowany, opłacony, wykorzystany, anulowany; dziś pięć metod klasy <code>Ticket</code> ma <code>switch</code> po polu <code>status</code>, a każda nowa reguła psuje inną gałąź.</td>
+</tr>
+<tr>
+<td>K3</td>
+<td>Zewnętrzna biblioteka płatności przyjmuje kwoty w groszach (<code>long</code>), rzuca własne wyjątki kontrolowane; nasz kod używa <code>BigDecimal</code> i własnego interfejsu <code>PaymentGateway</code>.</td>
+</tr>
+<tr>
+<td>K4</td>
+<td>Do klienta HTTP chcemy dodawać ponowienia, logowanie i pamięć podręczną - w różnych kombinacjach dla różnych usług.</td>
+</tr>
+<tr>
+<td>K5</td>
+<td>Kategorie produktów tworzą drzewo dowolnej głębokości; dla każdej kategorii liczymy sumę cen i liczbę produktów w całym poddrzewie.</td>
+</tr>
+<tr>
+<td>K6</td>
+<td>Edytor diagramów ma mieć cofanie i ponawianie operacji użytkownika (dodaj, przesuń, usuń element).</td>
+</tr>
+<tr>
+<td>K7</td>
+<td>Obiekt konfiguracji połączenia ma 9 parametrów, 6 opcjonalnych; niektóre kombinacje są niedozwolone (np. TLS bez certyfikatu).</td>
+</tr>
+<tr>
+<td>K8</td>
+<td>Po złożeniu zamówienia trzeba powiadomić magazyn, fakturowanie i wysyłkę e-maila; lista odbiorców rośnie z każdym wydaniem.</td>
+</tr>
+<tr>
+<td>K9</td>
+<td>Formularz: zmiana kraju zmienia listę województw, regułę walidacji kodu pocztowego i widoczność pola NIP; komponenty odwołują się dziś do siebie nawzajem.</td>
+</tr>
+<tr>
+<td>K10</td>
+<td>Dwa rodzaje rabatu (standardowy i studencki), niezmienne od pięciu lat, używane w jednym miejscu kodu.</td>
+</tr>
+<tr>
+<td>K11 (dodatkowa)</td>
+<td>Mapa gry ma milion kafelków, ale tylko 12 rodzajów tekstur; pamięć jest problemem.</td>
+</tr>
+<tr>
+<td>K12 (dodatkowa)</td>
+<td>Komponenty interfejsu (przycisk, pole, okno) występują w motywie jasnym i ciemnym; nie wolno mieszać komponentów z różnych motywów.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="polecenia-3" tabindex="-1"><a class="header-anchor" href="#polecenia-3"><span>Polecenia</span></a></h3>
+<ol>
+<li>Dla każdej karty K1-K10 wypełnij wiersz:</li>
+</ol>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Karta</th>
+<th>Rodzaj zmienności (co się zmienia, kto decyduje)</th>
+<th>Wzorzec</th>
+<th>Prostsza alternatywa</th>
+<th>Główny koszt lub ryzyko</th>
+</tr>
+</thead>
+</table></div>
+<ol start="2">
+<li>Wskaż karty, dla których najlepszą odpowiedzią jest „bez wzorca” lub najprostszy mechanizm języka.</li>
+<li>Wskaż karty, w których sensowne jest połączenie dwóch wzorców.</li>
+<li>Jeśli zostanie czas, rozwiąż karty K11 i K12.</li>
+</ol>
+<h3 id="kryteria-akceptacji-3" tabindex="-1"><a class="header-anchor" href="#kryteria-akceptacji-3"><span>Kryteria akceptacji</span></a></h3>
+<ul>
+<li>Każda decyzja zaczyna się od rodzaju zmienności, a nie od nazwy wzorca.</li>
+<li>Każdy wiersz ma prostszą alternatywę (także wtedy, gdy ją odrzucasz).</li>
+<li>Co najmniej jedna karta ma odpowiedź „bez wzorca” z uzasadnieniem.</li>
+<li>Koszt jest konkretny (np. „kolejność dekoratorów zmienia liczbę wpisów audytu”), a nie ogólny.</li>
+</ul>
+<h3 id="oczekiwany-produkt-3" tabindex="-1"><a class="header-anchor" href="#oczekiwany-produkt-3"><span>Oczekiwany produkt</span></a></h3>
+<p>Tabela dziesięciu (lub dwunastu) kart oraz krótka lista kart „bez wzorca” i kart z połączeniem wzorców.</p>
+<hr>
+<h2 id="sprawdzenie-wiedzy" tabindex="-1"><a class="header-anchor" href="#sprawdzenie-wiedzy"><span>Sprawdzenie wiedzy</span></a></h2>
+<ol>
+<li>Czym jest wzorzec projektowy i z jakich elementów składa się jego opis?</li>
+<li>Na czym polega podział wzorców ze względu na rodzaj i ze względu na zakres? Które wzorce GoF są klasowe?</li>
+<li>Czym różni się Factory Method od Abstract Factory? Co jest trudne do dodania w Abstract Factory?</li>
+<li>Jakie problemy rozwiązuje Builder i jakie ryzyko niesie builder zwracający mutowalny produkt?</li>
+<li>Dlaczego Singleton bywa uważany za antywzorzec i jakie są alternatywy w Javie?</li>
+<li>Co odróżnia Adapter, Decorator, Proxy i Facade?</li>
+<li>Czym różni się przezroczysty i bezpieczny wariant Composite?</li>
+<li>Dlaczego kolejność dekoratorów jest częścią kontraktu?</li>
+<li>Co odróżnia State od Strategy, a Strategy od Template Method?</li>
+<li>Jaki wymiar zmian preferuje Visitor? Czym grożą puste metody domyślne w interfejsie gościa?</li>
+<li>Jakie decyzje trzeba podjąć, projektując Observer?</li>
+<li>Kiedy lambda wystarcza w miejsce klasy wzorca, a kiedy zmienia jego semantykę?</li>
+<li>Jakie sygnały wskazują, że wzorzec jest zbędny?</li>
+</ol>
+
+</main>
+</div>
+<script>if(matchMedia('(max-width:900px)').matches){var d=document.querySelector('.toc details');if(d)d.open=false}</script>
+</body>
+</html>

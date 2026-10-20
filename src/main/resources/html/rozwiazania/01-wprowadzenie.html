@@ -1,0 +1,1045 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rozwiązania: Moduł 1. Wprowadzenie - rozwiązania dla prowadzącego</title>
+<style>:root{--bg:#fbfbfa;--fg:#1d1f23;--muted:#5f6670;--line:#e3e5e8;--card:#ffffff;--accent:#2457c5;--accent-bg:#eef3fd;
+--code-bg:#f4f5f7;--note-bg:#fff7e6;--note-line:#e6a700;--th:#f1f3f6;
+--k:#b3246b;--s:#1a7f37;--c:#6e7781;--n:#0550ae;--t:#8250df;--f:#6639ba;--a:#953800;
+--kind:#2457c5}
+@media (prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3036;--card:#1c1f23;--accent:#7aa7ff;--accent-bg:#1e2a40;
+--code-bg:#1f2328;--note-bg:#2b2412;--note-line:#c99400;--th:#23272d;
+--k:#ff7b9c;--s:#7ee2a0;--c:#8b949e;--n:#79c0ff;--t:#d2a8ff;--f:#d2a8ff;--a:#ffa657}}
+body.zadania{--kind:#1a7f37} body.warsztat{--kind:#c2570c} body.warsztat-zadania{--kind:#0f7b7b} body.rozwiazania{--kind:#b3246b} body.przyklady{--kind:#2457c5}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.topbar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 24px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);border-top:3px solid var(--kind)}
+.topbar a{color:var(--fg);text-decoration:none}
+.home{font-weight:600}
+.tabs{display:flex;gap:4px}
+.tab{padding:4px 12px;border-radius:999px;font-size:15px;color:var(--muted)!important}
+.tab:hover{background:var(--code-bg)}
+.tab.active{background:var(--accent-bg);color:var(--accent)!important;font-weight:600}
+.pager{margin-left:auto;display:flex;gap:14px;font-size:15px}
+.pager a{color:var(--muted)}.pager a:hover{color:var(--accent)}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:48px;max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+.layout.no-toc{grid-template-columns:minmax(0,1fr);max-width:1000px}
+aside{position:sticky;top:72px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px}
+.toc-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;font-weight:600}
+.toc ul{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.toc li a{display:block;padding:3px 12px;color:var(--muted);text-decoration:none;line-height:1.35}
+.toc li.h3 a{padding-left:24px;font-size:13px}
+.toc li a:hover{color:var(--accent)}
+main{min-width:0;max-width:860px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 1.2rem;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:2.6rem 0 .8rem;padding-top:.6rem;border-top:1px solid var(--line)}
+h3{font-size:1.18rem;margin:2rem 0 .6rem}
+h4{font-size:1rem;margin:1.5rem 0 .5rem}
+h1 a,h2 a,h3 a,h4 a{color:inherit;text-decoration:none}
+h2 a:hover::after,h3 a:hover::after{content:" #";color:var(--muted)}
+p,ul,ol{margin:.6rem 0 1rem}
+li{margin:.25rem 0}
+li>ul,li>ol{margin:.2rem 0}
+a{color:var(--accent)}
+strong{font-weight:650}
+code{font:0.88em/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre.code{position:relative;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:1rem 0 1.4rem}
+pre.code code{background:none;padding:0;font-size:14px;line-height:1.55}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:6px;right:10px;font:11px ui-monospace,Menlo,monospace;color:var(--muted);text-transform:uppercase}
+.table-wrap{overflow-x:auto;margin:1rem 0 1.4rem;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--th);font-weight:600}
+tr:last-child td{border-bottom:none}
+blockquote{margin:1rem 0 1.4rem;padding:10px 16px;background:var(--note-bg);border-left:4px solid var(--note-line);border-radius:0 8px 8px 0}
+blockquote p{margin:.3rem 0}
+hr{border:none;border-top:1px solid var(--line);margin:2rem 0}
+hr+h2{border-top:none;margin-top:1.4rem}
+main p code,main li code,main td code{overflow-wrap:break-word}
+.toc summary{cursor:pointer;list-style:none}.toc summary::-webkit-details-marker{display:none}
+.hljs-keyword,.hljs-selector-tag,.hljs-built_in,.hljs-literal{color:var(--k)}
+.hljs-string,.hljs-regexp,.hljs-addition{color:var(--s)}
+.hljs-comment,.hljs-quote,.hljs-meta{color:var(--c);font-style:italic}
+.hljs-number,.hljs-symbol{color:var(--n)}
+.hljs-type,.hljs-class .hljs-title,.hljs-title.class_{color:var(--t)}
+.hljs-title,.hljs-title.function_,.hljs-section{color:var(--f)}
+.hljs-attr,.hljs-attribute,.hljs-variable,.hljs-params,.hljs-tag{color:var(--a)}
+.hljs-deletion{color:var(--k)}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:16px;padding:20px 16px 60px}
+aside{position:static;max-height:none;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--card)}
+.toc-title{margin:0}.toc details[open] .toc-title{margin-bottom:8px}.toc summary::after{content:" ▾"}
+body{font-size:16px}.topbar{padding:8px 16px}.pager{margin-left:0}h1{font-size:1.6rem}}
+@media print{.topbar,aside{display:none}.layout{display:block;padding:0}main{max-width:none}
+pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#000;font-size:12pt}}
+.langs{margin-left:auto}.langs+.pager{margin-left:0}
+.langs{margin-left:auto}.langs+.pager{margin-left:0}</style>
+</head>
+<body class="rozwiazania">
+<header class="topbar"><a class="home" href="../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../slajdy/01-wprowadzenie-slajdy.html">Slajdy</a><a class="tab" href="../zadania/01-wprowadzenie.html">Zadania</a><a class="tab" href="../przyklady/01-wprowadzenie.html">Przykłady</a><a class="tab active" href="01-wprowadzenie.html">Rozwiązania</a></div><div class="pager"><a href="02-prewencja.html" title="Następny moduł">02 &rarr;</a></div></header>
+<div class="layout">
+<aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#aktywnosc-11-nazwij-kontrakt">Aktywność 1.1: Nazwij kontrakt</a></li><li class="h3"><a href="#rozwiazanie">Rozwiązanie</a></li><li class="h3"><a href="#kod-referencyjny">Kod referencyjny</a></li><li class="h3"><a href="#weryfikacja-kryteriow-akceptacji">Weryfikacja kryteriów akceptacji</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji">Pytania do dyskusji</a></li><li class="h2"><a href="#aktywnosc-12-brakujace-pola-rekordu">Aktywność 1.2: Brakujące pola rekordu</a></li><li class="h3"><a href="#rozwiazanie-1">Rozwiązanie</a></li><li class="h3"><a href="#kod-referencyjny-1">Kod referencyjny</a></li><li class="h3"><a href="#weryfikacja-kryteriow-akceptacji-1">Weryfikacja kryteriów akceptacji</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow-1">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji-1">Pytania do dyskusji</a></li><li class="h2"><a href="#aktywnosc-13-wybor-najmniejszego-kroku">Aktywność 1.3: Wybór najmniejszego kroku</a></li><li class="h3"><a href="#rozwiazanie-2">Rozwiązanie</a></li><li class="h3"><a href="#kod-referencyjny-2">Kod referencyjny</a></li><li class="h3"><a href="#weryfikacja-kryteriow-akceptacji-2">Weryfikacja kryteriów akceptacji</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow-2">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji-2">Pytania do dyskusji</a></li><li class="h2"><a href="#aktywnosc-14-fakt-czy-ocena">Aktywność 1.4: Fakt czy ocena</a></li><li class="h3"><a href="#rozwiazanie-3">Rozwiązanie</a></li><li class="h3"><a href="#kod-referencyjny-3">Kod referencyjny</a></li><li class="h3"><a href="#weryfikacja-kryteriow-akceptacji-3">Weryfikacja kryteriów akceptacji</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow-3">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji-3">Pytania do dyskusji</a></li><li class="h2"><a href="#aktywnosc-15-dobor-metryk">Aktywność 1.5: Dobór metryk</a></li><li class="h3"><a href="#rozwiazanie-4">Rozwiązanie</a></li><li class="h3"><a href="#kod-referencyjny-4">Kod referencyjny</a></li><li class="h3"><a href="#weryfikacja-kryteriow-akceptacji-4">Weryfikacja kryteriów akceptacji</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow-4">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji-4">Pytania do dyskusji</a></li><li class="h2"><a href="#cwiczenie-1-obserwacja-bez-pochopnej-naprawy">Ćwiczenie 1: Obserwacja bez pochopnej naprawy</a></li><li class="h3"><a href="#krok-1-fakty-hipotezy-dowody">Krok 1: fakty, hipotezy, dowody</a></li><li class="h3"><a href="#krok-2-pytania-domenowe">Krok 2: pytania domenowe</a></li><li class="h3"><a href="#kod-referencyjny-5">Kod referencyjny</a></li><li class="h3"><a href="#weryfikacja-kryteriow-akceptacji-5">Weryfikacja kryteriów akceptacji</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow-5">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji-5">Pytania do dyskusji</a></li><li class="h2"><a href="#cwiczenie-2-od-zapachu-do-kierunku-zmiany">Ćwiczenie 2: Od zapachu do kierunku zmiany</a></li><li class="h3"><a href="#krok-1-zapachy-dowody-utrudnione-zmiany">Krok 1: zapachy, dowody, utrudnione zmiany</a></li><li class="h3"><a href="#krok-2-zapach-ktorego-swiadomie-nie-usuwamy">Krok 2: zapach, którego świadomie nie usuwamy</a></li><li class="h3"><a href="#kod-referencyjny-6">Kod referencyjny</a></li><li class="h3"><a href="#weryfikacja-kryteriow-akceptacji-6">Weryfikacja kryteriów akceptacji</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow-6">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji-6">Pytania do dyskusji</a></li><li class="h2"><a href="#cwiczenie-3-klasyfikacja-i-priorytetyzacja-dlugu">Ćwiczenie 3: Klasyfikacja i priorytetyzacja długu</a></li><li class="h3"><a href="#krok-1-klasyfikacja">Krok 1: klasyfikacja</a></li><li class="h3"><a href="#krok-2-pelny-rekord-pricingservice">Krok 2: pełny rekord PricingService</a></li><li class="h3"><a href="#krok-3-budzet-szesciu-osobodni">Krok 3: budżet sześciu osobodni</a></li><li class="h3"><a href="#krok-4-brakujace-informacje">Krok 4: brakujące informacje</a></li><li class="h3"><a href="#krok-5-nowe-zalozenie-dla-annualreportformatter">Krok 5: nowe założenie dla AnnualReportFormatter</a></li><li class="h3"><a href="#kod-referencyjny-7">Kod referencyjny</a></li><li class="h3"><a href="#weryfikacja-kryteriow-akceptacji-7">Weryfikacja kryteriów akceptacji</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow-7">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji-7">Pytania do dyskusji</a></li><li class="h2"><a href="#cwiczenie-4-wybor-strategii-modernizacji">Ćwiczenie 4: Wybór strategii modernizacji</a></li><li class="h3"><a href="#krok-1-rozwazone-strategie">Krok 1: rozważone strategie</a></li><li class="h3"><a href="#krok-2-modelowy-rekord-decyzji-wersja-skrocona">Krok 2: modelowy rekord decyzji (wersja skrócona)</a></li><li class="h3"><a href="#kod-referencyjny-8">Kod referencyjny</a></li><li class="h3"><a href="#weryfikacja-kryteriow-akceptacji-8">Weryfikacja kryteriów akceptacji</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow-8">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji-8">Pytania do dyskusji</a></li><li class="h2"><a href="#sprawdzenie-wiedzy-odpowiedzi">Sprawdzenie wiedzy - odpowiedzi</a></li></ul></details></nav></aside>
+<main>
+<h1>Moduł 1. Wprowadzenie - rozwiązania dla prowadzącego</h1>
+<p>Materiał tylko dla prowadzącego. Numeracja i nazwy zadań odpowiadają plikowi zadań (<code>src/<wbr>main/<wbr>resources/<wbr>md/<wbr>zadania/<wbr>01-wprowadzenie.md</code>), a odwołania do slajdów - plikowi <code>src/<wbr>main/<wbr>resources/<wbr>md/<wbr>slides/<wbr>01-wprowadzenie-slajdy.md</code>.</p>
+<p><strong>Uwaga ogólna:</strong> moduł 1 nie zawiera kodu „after”. Kod w <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module1/<wbr></code> jest materiałem diagnostycznym, a testy w <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module1/<wbr></code> są testami charakteryzującymi obecne zachowanie. Odniesienia do kodu referencyjnego w tym pliku wskazują więc miejsca, które ilustrują odpowiedź, a nie gotową refaktoryzację.</p>
+<p><strong>Zasada oceniania we wszystkich zadaniach:</strong> nagradzamy trafne rozróżnienie faktu od hipotezy i jawne nazwanie niewiadomych. Nie nagradzamy szybkiego proponowania wzorców ani liczb, które nie wynikają z materiału.</p>
+<hr>
+<h2 id="aktywnosc-11-nazwij-kontrakt" tabindex="-1"><a class="header-anchor" href="#aktywnosc-11-nazwij-kontrakt"><span>Aktywność 1.1: Nazwij kontrakt</span></a></h2>
+<h3 id="rozwiazanie" tabindex="-1"><a class="header-anchor" href="#rozwiazanie"><span>Rozwiązanie</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Zmiana</th>
+<th>Konsument</th>
+<th>Możliwa obserwacja</th>
+<th>Weryfikacja</th>
+<th>Ocena</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. prywatne pole <code>List</code> na <code>Set</code></td>
+<td>metody publiczne zwracające lub przetwarzające elementy, serializacja pól (np. Jackson, serializacja Javy), <code>equals</code>/<code>hashCode</code></td>
+<td>usunięcie duplikatów, utrata kolejności (np. <code>HashSet</code>), inny format po serializacji, inna złożoność operacji</td>
+<td>testy z duplikatami i z kolejnością elementów na publicznej granicy, test serializacji</td>
+<td>refaktoryzacja tylko wtedy, gdy duplikaty są niemożliwe lub nieistotne, kolejność nie jest kontraktem, a pole nie jest serializowane; w przeciwnym razie zmiana zachowania</td>
+</tr>
+<tr>
+<td>2. zamiana dwóch zapisów do bazy</td>
+<td>baza (klucze obce, wyzwalacze, ograniczenia), mechanizmy CDC i audytu, inne transakcje</td>
+<td>kolejność efektów ubocznych (protokół), stan po częściowej awarii, naruszenie ograniczeń, zakleszczenia</td>
+<td>test integracyjny z rzeczywistą bazą, test zachowania transakcyjnego, test interakcji, jeśli kolejność jest kontraktem</td>
+<td>zwykle nie jest czystą refaktoryzacją, dopóki nie wykaże się, że oba zapisy są w jednej transakcji i nic nie zależy od ich kolejności</td>
+</tr>
+<tr>
+<td>3. przeniesienie klasy używanej przez refleksję</td>
+<td>konfiguracja tekstowa, <code>Class.forName</code>, serializacja z nazwą typu, kontener DI, zewnętrzne pliki</td>
+<td>pełna nazwa klasy (pakiet + nazwa) jest częścią kontraktu; błąd pojawia się dopiero w runtime</td>
+<td>wyszukanie nazwy w konfiguracji i zasobach, test uruchamiający rzeczywisty mechanizm (np. start kontekstu, deserializacja zapisanych danych)</td>
+<td>IDE nie zobaczy wszystkich odwołań; refaktoryzacja tylko po aktualizacji wszystkich konsumentów i zgodności zapisanych danych</td>
+</tr>
+<tr>
+<td>4. szybszy algorytm</td>
+<td>wywołujący kod, użytkownicy, SLA</td>
+<td>wynik (stabilność sortowania, remisy, zaokrąglenia zmiennoprzecinkowe, przypadki brzegowe), czas i pamięć</td>
+<td>test różnicowy stary kontra nowy na wielu danych, testy wartości granicznych, osobny pomiar wydajności</td>
+<td>zwykle optymalizacja (slajd 1.3); wynik funkcjonalny musi być identyczny, a zmiana właściwości pozafunkcjonalnej jest celem, więc trzeba ją nazwać</td>
+</tr>
+<tr>
+<td>5. prywatna nazwa bez refleksji i konfiguracji</td>
+<td>praktycznie brak (ewentualnie logi ze stosem wywołań)</td>
+<td>brak obserwacji na granicy publicznej</td>
+<td>automatyczna zmiana nazwy w IDE, kompilacja, istniejące testy</td>
+<td>refaktoryzacja</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="kod-referencyjny" tabindex="-1"><a class="header-anchor" href="#kod-referencyjny"><span>Kod referencyjny</span></a></h3>
+<p>Aktywność jest koncepcyjna. Ilustracją zachowania obserwowalnego innego niż wynik jest <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module1/<wbr>LegacyOrderService.java</code>: zapis przez <code>OrderRepository</code> następuje przed wysłaniem wiadomości przez <code>MailGateway</code>, więc zamiana tych dwóch wywołań miejscami zmieniłaby stan po awarii bramki pocztowej (przypadek 2 w małej skali).</p>
+<h3 id="weryfikacja-kryteriow-akceptacji" tabindex="-1"><a class="header-anchor" href="#weryfikacja-kryteriow-akceptacji"><span>Weryfikacja kryteriów akceptacji</span></a></h3>
+<ul>
+<li>Każdy wiersz ma konsumenta i obserwację przed oceną - jeśli uczestnicy zaczynają od kolumny „Ocena”, poproś o uzupełnienie pierwszych kolumn.</li>
+<li>Ocena „zależy od kontraktu” jest poprawna dla pozycji 1-3, o ile nazwany jest warunek.</li>
+</ul>
+<h3 id="typowe-bledy-uczestnikow" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>uznanie zmiany kolejności zapisów za „nieistotną wewnętrzną kolejność”,</li>
+<li>pominięcie serializacji przy polu prywatnym,</li>
+<li>uznanie szybszego algorytmu za refaktoryzację bez nazwania zmiany wydajności,</li>
+<li>klasyfikowanie od razu („to refaktoryzacja”) bez kolumn konsument, obserwacja, weryfikacja.</li>
+</ul>
+<h3 id="pytania-do-dyskusji" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>Pozycje 1 i 5 wyglądają na „wewnętrzne” - dlaczego tylko 5 jest bezpieczna bez dodatkowej analizy?</li>
+<li>Kiedy kolejność dwóch zapisów staje się kontraktem?</li>
+<li>Co w Waszym systemie korzysta z nazw klas zapisanych tekstowo?</li>
+</ul>
+<hr>
+<h2 id="aktywnosc-12-brakujace-pola-rekordu" tabindex="-1"><a class="header-anchor" href="#aktywnosc-12-brakujace-pola-rekordu"><span>Aktywność 1.2: Brakujące pola rekordu</span></a></h2>
+<h3 id="rozwiazanie-1" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-1"><span>Rozwiązanie</span></a></h3>
+<p><strong>Co zawiera zapis zespołu:</strong> częściowo lokalizację („import”, bez wskazania komponentu ani procesu), częściowo konstrukcję („brak testów”, bez zakresu) i coś, co wygląda na kapitał („trzy dni”), ale bez podstawy oszacowania i bez definicji, co oznacza „naprawa”.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Pole</th>
+<th>Źródło informacji</th>
+<th>Komentarz</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Przyczyna</td>
+<td>dane historyczne, wiedza domenowa</td>
+<td>historia repozytorium, rozmowa z autorami; nie zakładamy zaniedbania</td>
+</tr>
+<tr>
+<td>Konsekwencja</td>
+<td>dane historyczne</td>
+<td>np. czas ręcznej regresji, liczba zmian odrzuconych lub opóźnionych</td>
+</tr>
+<tr>
+<td>Dowód</td>
+<td>dane historyczne</td>
+<td>incydenty, regresje, wycofane wdrożenia związane z importem</td>
+</tr>
+<tr>
+<td>Zaobserwowane odsetki</td>
+<td>dane historyczne</td>
+<td>dodatkowy nakład poniesiony przy ostatnich zmianach importu</td>
+</tr>
+<tr>
+<td>Ekspozycja</td>
+<td>decyzja właściciela produktu (plan rozwoju)</td>
+<td>czy i jak często import będzie zmieniany</td>
+</tr>
+<tr>
+<td>Kapitał bieżący (weryfikacja „trzech dni”)</td>
+<td>eksperyment techniczny</td>
+<td>np. ograniczona czasowo próba napisania pierwszych testów charakteryzujących</td>
+</tr>
+<tr>
+<td>Ryzyko spłaty</td>
+<td>eksperyment techniczny, wiedza domenowa</td>
+<td>czy import da się uruchomić na kontrolowanych danych; nieznane reguły formatów</td>
+</tr>
+<tr>
+<td>Decyzja</td>
+<td>decyzja właściciela produktu</td>
+<td>spłacić, ograniczyć, tolerować, obserwować</td>
+</tr>
+<tr>
+<td>Poziom pewności</td>
+<td>wynika z jakości zebranych dowodów</td>
+<td>jawnie „niski”, dopóki brak danych</td>
+</tr>
+<tr>
+<td>Właściciel i termin przeglądu</td>
+<td>decyzja właściciela produktu / zespołu</td>
+<td>kto i kiedy wraca do tematu</td>
+</tr>
+</tbody>
+</table></div>
+<p>Wystarczająca odpowiedź: co najmniej cztery pola z tej listy z poprawnie przypisanym źródłem.</p>
+<h3 id="kod-referencyjny-1" tabindex="-1"><a class="header-anchor" href="#kod-referencyjny-1"><span>Kod referencyjny</span></a></h3>
+<p>Brak - aktywność dotyczy rejestru długu. Pełny przykład wypełnionego rekordu znajduje się niżej w rozwiązaniu Ćwiczenia 3 (<code>PricingService</code>).</p>
+<h3 id="weryfikacja-kryteriow-akceptacji-1" tabindex="-1"><a class="header-anchor" href="#weryfikacja-kryteriow-akceptacji-1"><span>Weryfikacja kryteriów akceptacji</span></a></h3>
+<ul>
+<li>cztery lub więcej pól z typem źródła z listy czterech,</li>
+<li>brak „dopisanych” wartości - wpis „brak danych” jest poprawny.</li>
+</ul>
+<h3 id="typowe-bledy-uczestnikow-1" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow-1"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>„dopisywanie” wartości (np. „konsekwencja: dużo regresji”) bez danych,</li>
+<li>przyjęcie „trzech dni” jako kapitału bez pytania, czy obejmuje testy, wdrożenie i odzyskanie wiedzy (slajd 2.6: oszacowanie jest przedziałem, nie obietnicą),</li>
+<li>pomijanie ekspozycji: bez planu zmian nie wiadomo, czy odsetki w ogóle będą naliczane.</li>
+</ul>
+<h3 id="pytania-do-dyskusji-1" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji-1"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>Czy „brak testów” jest zawsze długiem? (Tylko gdy zwiększa przyszły koszt lub ryzyko zmian, np. wymusza powtarzalną ręczną regresję.)</li>
+<li>Jaki najtańszy eksperyment zweryfikuje oszacowanie „trzech dni”?</li>
+</ul>
+<hr>
+<h2 id="aktywnosc-13-wybor-najmniejszego-kroku" tabindex="-1"><a class="header-anchor" href="#aktywnosc-13-wybor-najmniejszego-kroku"><span>Aktywność 1.3: Wybór najmniejszego kroku</span></a></h2>
+<h3 id="rozwiazanie-2" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-2"><span>Rozwiązanie</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Krok</th>
+<th>Jaki problem rozwiązuje</th>
+<th>Czy problem jest potwierdzony w opisie</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pełne przepisanie systemu</td>
+<td>całą konstrukcję systemu</td>
+<td>nie: problem dotyczy jednego modułu; brak danych o całości; długi okres bez wartości, ryzyko utraty zachowań (slajd 2.10)</td>
+</tr>
+<tr>
+<td>Wymiana platformy</td>
+<td>wsparcie i możliwości platformy</td>
+<td>nie: platforma jest wspierana przez dwa lata; regresje wynikają z braku testów, nie z platformy</td>
+</tr>
+<tr>
+<td>Testy charakteryzujące moduł</td>
+<td>brak szybkiej informacji zwrotnej w module, który zmienia się co tydzień i powoduje większość regresji</td>
+<td>tak</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Rekomendowany krok:</strong> testy charakteryzujące krytyczny moduł.</p>
+<ul>
+<li><strong>Założenie do weryfikacji:</strong> regresje wynikają głównie z braku szybkiej weryfikacji zachowania modułu, a jego zachowanie da się uchwycić testami na kontrolowanych danych przez istniejącą granicę.</li>
+<li><strong>Miernik wyniku:</strong> liczba poprawek po wydaniu przypadająca na zmianę modułu; czas uzyskania wiarygodnego wyniku testów modułu. (Nie: „liczba napisanych testów”, „procent pokrycia”, bo to mierniki aktywności.)</li>
+<li><strong>Warunek przerwania:</strong> np. jeżeli po ustalonym czasie (np. dwóch tygodniach) nie udaje się uruchomić modułu na kontrolowanych danych albo testy są niestabilne, przerywamy i oceniamy inną granicę testów (np. wyższy poziom). Jeżeli po kilku cyklach wydań poprawki się nie zmniejszają, założenie o przyczynie regresji jest błędne i trzeba wrócić do diagnozy.</li>
+</ul>
+<h3 id="kod-referencyjny-2" tabindex="-1"><a class="header-anchor" href="#kod-referencyjny-2"><span>Kod referencyjny</span></a></h3>
+<p><code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module1/<wbr>LegacyOrderServiceTest.java</code> to przykład testu charakteryzującego: utrwala obecny wynik (236.39) i interakcje z repozytorium oraz bramką pocztową, bez oceniania, czy wynik jest „poprawny”. Technika testów charakteryzujących jest rozwijana w module 3.</p>
+<h3 id="weryfikacja-kryteriow-akceptacji-2" tabindex="-1"><a class="header-anchor" href="#weryfikacja-kryteriow-akceptacji-2"><span>Weryfikacja kryteriów akceptacji</span></a></h3>
+<ul>
+<li>wybór odwołuje się do faktów scenariusza (moduł zmienia się co tydzień, brak szybkich testów, platforma wspierana),</li>
+<li>miernik opisuje efekt, warunek przerwania ma termin lub sprawdzalny sygnał.</li>
+</ul>
+<h3 id="typowe-bledy-uczestnikow-2" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow-2"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>wybór pełnego przepisania z uzasadnieniem „i tak kiedyś trzeba” (sygnał ostrzegawczy ze slajdu 2.10),</li>
+<li>miernik aktywności zamiast wyniku,</li>
+<li>warunek przerwania niesprawdzalny („jeśli nie wyjdzie”).</li>
+</ul>
+<h3 id="pytania-do-dyskusji-2" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji-2"><span>Pytania do dyskusji</span></a></h3>
+<p>Jaka nowa informacja po pierwszym kroku mogłaby uzasadnić wymianę platformy lub modułu? (Np. potwierdzone ograniczenie platformy, niemożność testowania w izolacji, planowane zmiany wykraczające poza model modułu.)</p>
+<hr>
+<h2 id="aktywnosc-14-fakt-czy-ocena" tabindex="-1"><a class="header-anchor" href="#aktywnosc-14-fakt-czy-ocena"><span>Aktywność 1.4: Fakt czy ocena</span></a></h2>
+<h3 id="rozwiazanie-3" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-3"><span>Rozwiązanie</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Nr</th>
+<th>Stwierdzenie</th>
+<th>Kategoria</th>
+<th>Uzasadnienie</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Metoda ma 142 linie i złożoność cyklomatyczną równą 24.</td>
+<td>fakt (pomiar) + symptom</td>
+<td>Wynik pomiaru, sprawdzalny, ale zależny od narzędzia i konfiguracji. Duży rozmiar i złożoność to sygnał możliwego problemu (zapach Long Method), nie dowód problemu.</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Metoda jest niemożliwa do utrzymania.</td>
+<td>ocena / hipoteza</td>
+<td>Brak faktu, kontekstu, konsekwencji i dowodu. W dosłownym brzmieniu zwykle nieprawdziwe (metoda jest utrzymywana, skoro działa w produkcji).</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Wynik dla zatwierdzonego przykładu różni się od wymaganej kwoty.</td>
+<td>fakt + defekt</td>
+<td>Zaobserwowana niezgodność zachowania z zatwierdzonym wymaganiem. Nie jest to automatycznie dług techniczny.</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Producent środowiska wykonawczego zakończy dostarczanie poprawek za sześć miesięcy.</td>
+<td>fakt + ograniczenie (i źródło ryzyka)</td>
+<td>Decyzja strony trzeciej, której zespół nie kontroluje. Może stać się ryzykiem bezpieczeństwa i zgodności, jeżeli brak ścieżki aktualizacji.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Przykład przepisania stwierdzenia 2 jako diagnozy:</p>
+<ul>
+<li><strong>Fakt:</strong> metoda <code>X</code> ma 142 linie i złożoność cyklomatyczną 24 (narzędzie Y, konfiguracja Z); łączy wycenę, zapis i wysyłkę powiadomień.</li>
+<li><strong>Kontekst:</strong> w następnym kwartale planujemy w niej trzy zmiany reguł cenowych.</li>
+<li><strong>Konsekwencja:</strong> każda zmiana wymaga analizy wielu niezależnych decyzji, a regresja może dotknąć zapisu i powiadomień; wydłuża to czas zmiany i zwiększa ryzyko poprawek po wydaniu.</li>
+<li><strong>Potrzebny dowód:</strong> historia zmian tego pliku, czas realizacji ostatnich zmian, liczba regresji i poprawek po wydaniu powiązanych z metodą, pokrycie gałęzi zmienianych decyzji. (Wartości nieznane zostawiamy jako do zebrania.)</li>
+</ul>
+<h3 id="kod-referencyjny-3" tabindex="-1"><a class="header-anchor" href="#kod-referencyjny-3"><span>Kod referencyjny</span></a></h3>
+<p><code>LegacyOrderService.placeOrder</code> to miniatura stwierdzenia 1: metoda łączy kilka odpowiedzialności. Diagnoza w czterech częściach dla niej to materiał Ćwiczenia 1.</p>
+<h3 id="weryfikacja-kryteriow-akceptacji-3" tabindex="-1"><a class="header-anchor" href="#weryfikacja-kryteriow-akceptacji-3"><span>Weryfikacja kryteriów akceptacji</span></a></h3>
+<ul>
+<li>każde stwierdzenie ma kategorię i jedno zdanie uzasadnienia,</li>
+<li>diagnoza nie używa słów „brzydki”, „zły”, „nieczytelny” jako argumentu,</li>
+<li>dowód jest listą danych do zebrania.</li>
+</ul>
+<h3 id="typowe-bledy-uczestnikow-3" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow-3"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>klasyfikowanie stwierdzenia 1 jako „problem” lub „dług” (to fakt i symptom, konsekwencja nie jest wykazana),</li>
+<li>traktowanie stwierdzenia 3 jako długu technicznego (defekt wymaga osobnego zarządzania, slajd 2.5),</li>
+<li>w diagnozie wpisanie wymyślonych liczb jako dowodu,</li>
+<li>pomijanie kontekstu: diagnoza bez planowanej zmiany nie wskazuje, dlaczego problem ma znaczenie teraz.</li>
+</ul>
+<h3 id="pytania-do-dyskusji-3" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji-3"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>Czy stwierdzenie 1 może być prawdziwe, a mimo to metoda nie wymaga żadnej interwencji? (Tak: np. stabilny kod bez planowanych zmian, slajd 2.1.)</li>
+<li>Czy stwierdzenie 4 jest długiem technicznym? (Nie z samego faktu; staje się kandydatem, gdy wykażemy konsekwencję i ekspozycję. Por. <code>OldPaymentAdapter</code> w Ćwiczeniu 3.)</li>
+</ul>
+<hr>
+<h2 id="aktywnosc-15-dobor-metryk" tabindex="-1"><a class="header-anchor" href="#aktywnosc-15-dobor-metryk"><span>Aktywność 1.5: Dobór metryk</span></a></h2>
+<h3 id="rozwiazanie-4" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-4"><span>Rozwiązanie</span></a></h3>
+<p>Wybrane wskaźniki:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Wskaźnik</th>
+<th>Pytanie</th>
+<th>Ograniczenie interpretacji</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>liczba poprawek po wydaniu przypadająca na zmianę reguł</td>
+<td>czy zmiany reguł cenowych rzeczywiście powodują regresje i jak często</td>
+<td>normalizacja na zmianę jest konieczna, bo bezwzględna liczba regresji rośnie wraz z liczbą wdrożeń; nie wskazuje przyczyny</td>
+</tr>
+<tr>
+<td>współzmienność plików zawierających reguły cenowe</td>
+<td>czy jedna reguła jest rozproszona i czy kopie zmieniają się razem</td>
+<td>wskazuje ryzyko pominięcia kopii, ale nie dowodzi wspólnej semantyki (por. <code>SalesCalculations</code>)</td>
+</tr>
+<tr>
+<td>pokrycie gałęzi zmienianych reguł przez testy z istotnymi asercjami</td>
+<td>czy testy wykonują obie strony zmienianych decyzji</td>
+<td>ujawnia niewykonane warianty, ale nie ocenia jakości danych i oczekiwanych wyników (por. <code>DiscountPolicy</code>: 100 procent linii, 50 procent gałęzi)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Odrzucone wskaźniki:</p>
+<ul>
+<li>globalne pokrycie linii całej aplikacji: może rosnąć poza obszarem wyceny, uśrednia ryzyko (antywzorzec ze slajdu 4.8),</li>
+<li>maksymalna złożoność dowolnej metody w systemie: nie odpowiada na pytanie o przyczyny regresji w aktywnie zmienianych regułach.</li>
+</ul>
+<p>Uwaga prowadzącego: „liczba klas w repozytorium” jest oczywiście nieprzydatna dla tego celu. Jeżeli uczestnicy odrzucą ją zamiast jednego z dwóch powyższych, uznaj odpowiedź, o ile uzasadnią, dlaczego pozostały wskaźnik globalny jest słaby. Oba odrzucone wskaźniki mogą służyć innym analizom, ale nie temu celowi.</p>
+<h3 id="kod-referencyjny-4" tabindex="-1"><a class="header-anchor" href="#kod-referencyjny-4"><span>Kod referencyjny</span></a></h3>
+<ul>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module1/<wbr>DiscountPolicy.java</code> + <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module1/<wbr>DiscountPolicyTest.java</code> (pokrycie linii a gałęzi),</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module1/<wbr>SalesCalculations.java</code> (współzmienność kopii reguły VIP),</li>
+<li><code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module1/<wbr>Module1ExamplesTest.java</code> (pokrycie bez asercji).</li>
+</ul>
+<h3 id="weryfikacja-kryteriow-akceptacji-4" tabindex="-1"><a class="header-anchor" href="#weryfikacja-kryteriow-akceptacji-4"><span>Weryfikacja kryteriów akceptacji</span></a></h3>
+<ul>
+<li>wybrane wskaźniki dotyczą reguł cenowych,</li>
+<li>każdy wybrany wskaźnik ma nazwane ograniczenie.</li>
+</ul>
+<h3 id="typowe-bledy-uczestnikow-4" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow-4"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>wybór globalnego pokrycia „bo to standard” bez pytania, czy mierzy obszar reguł cenowych,</li>
+<li>pominięcie słów „z istotnymi asercjami”: pokrycie bez asercji nie mówi nic o wykrywaniu regresji (<code>Module1ExamplesTest</code> jest tu dobrym kontrprzykładem),</li>
+<li>brak ograniczeń przy wybranych wskaźnikach.</li>
+</ul>
+<h3 id="pytania-do-dyskusji-4" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji-4"><span>Pytania do dyskusji</span></a></h3>
+<p>Jaki cel (inny niż regresje w wycenie) uzasadniałby użycie maksymalnej złożoności lub globalnego pokrycia?</p>
+<hr>
+<h2 id="cwiczenie-1-obserwacja-bez-pochopnej-naprawy" tabindex="-1"><a class="header-anchor" href="#cwiczenie-1-obserwacja-bez-pochopnej-naprawy"><span>Ćwiczenie 1: Obserwacja bez pochopnej naprawy</span></a></h2>
+<h3 id="krok-1-fakty-hipotezy-dowody" tabindex="-1"><a class="header-anchor" href="#krok-1-fakty-hipotezy-dowody"><span>Krok 1: fakty, hipotezy, dowody</span></a></h3>
+<p>Tabela jest jedną z możliwych odpowiedzi.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Fragment</th>
+<th>Fakt</th>
+<th>Hipoteza lub ryzyko</th>
+<th>Potrzebny dowód</th>
+<th>Planowana zmiana</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>warunki dotyczące <code>customerType</code></td>
+<td>typ klienta jest reprezentowany przez <code>String</code>, a metoda sprawdza wyłącznie wartość <code>VIP</code></td>
+<td>dodanie <code>PARTNER</code> może rozbudować zestaw warunków i ujawnić nieznane zasady łączenia rabatów</td>
+<td>zatwierdzone przykłady cen dla każdego typu klienta, dane o aktualnie używanych wartościach, testy istniejących rabatów</td>
+<td>nowy typ <code>PARTNER</code></td>
+</tr>
+<tr>
+<td>warunki dotyczące <code>destinationCountry</code></td>
+<td>jawne stawki istnieją tylko dla <code>PL</code> i <code>DE</code>, a każda inna wartość daje podatek równy zero</td>
+<td>zero może oznaczać zarówno poprawną stawkę, jak i nieobsługiwany kraj ukryty jako poprawny wynik</td>
+<td>wymagania podatkowe, kontrakt metody, lista krajów z danych produkcyjnych, zachowanie oczekiwane dla nieznanej wartości</td>
+<td>obsługa Czech</td>
+</tr>
+<tr>
+<td>obliczanie <code>shipping</code></td>
+<td>metoda rozróżnia tylko przesyłkę ekspresową i standardową; koszt zależy także od sumy po rabatach</td>
+<td>parametr <code>boolean</code> nie pozwoli jednoznacznie reprezentować odbioru osobistego, a próg bezpłatnej wysyłki może nie dotyczyć tego wariantu</td>
+<td>reguły dostawy, przykłady graniczne dla kwoty 200,00, decyzja o kolejności rabatu i naliczania wysyłki</td>
+<td>odbiór osobisty</td>
+</tr>
+<tr>
+<td>pętla po pozycjach</td>
+<td>rabat VIP i rabat ilościowy są składane przez mnożenie, bez pośredniego zaokrąglania</td>
+<td>rabaty mogą zgodnie z wymaganiem składać się multiplikatywnie albo sumować jako punkty procentowe; etap zaokrąglania także może być istotny</td>
+<td>przykłady zatwierdzone przez właściciela produktu, istniejące faktury i testy charakteryzujące przypadki łączenia rabatów</td>
+<td>typ <code>PARTNER</code> może mieć odmienną politykę rabatową</td>
+</tr>
+<tr>
+<td>końcowa część <code>placeOrder</code></td>
+<td>jedna metoda oblicza kwotę, zapisuje wynik i wysyła wiadomość; zapis następuje przed wysłaniem</td>
+<td>awaria bramki pocztowej może pozostawić zapisane zamówienie, mimo że metoda zakończy się wyjątkiem</td>
+<td>kontrakt transakcyjny, sposób obsługi wyjątków przez wywołującego, logi awarii i zasady ponawiania</td>
+<td>każda z planowanych zmian wymaga bezpiecznej regresji całego przebiegu</td>
+</tr>
+<tr>
+<td>walidacja wejścia</td>
+<td>sprawdzana jest obecność zamówienia i co najmniej jednej pozycji, ale nie są jawnie sprawdzane liczba sztuk, cena, adres ani kod kraju</td>
+<td>niedozwolone wartości mogą docierać z wcześniejszej warstwy albo nie być kontrolowane wcale</td>
+<td>kontrakty wejścia, walidacja w kontrolerze lub modelu, próbki błędnych żądań</td>
+<td>nowe wartości zwiększą liczbę wariantów wejścia</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="krok-2-pytania-domenowe" tabindex="-1"><a class="header-anchor" href="#krok-2-pytania-domenowe"><span>Krok 2: pytania domenowe</span></a></h3>
+<ul>
+<li>Czy brak stawki oznacza nieobsługiwany kraj, stawkę zerową czy sprzedaż zwolnioną z podatku?</li>
+<li>Czy awaria wiadomości powinna cofnąć zapis zamówienia, czy wysyłka ma być ponawiana niezależnie?</li>
+<li>Czy rabaty mają być składane multiplikatywnie, czy sumowane jako punkty procentowe, i na którym etapie należy zaokrąglać kwoty?</li>
+<li>Czy próg bezpłatnej wysyłki jest liczony przed rabatem czy po nim?</li>
+<li>Czy odbiór osobisty zawsze ma koszt zerowy?</li>
+</ul>
+<p>Dodatkowe fakty widoczne w kodzie (przydatne, gdy grupa ma mało obserwacji):</p>
+<ul>
+<li>podatek liczony jest od <code>subtotal</code>, bez kosztu wysyłki,</li>
+<li>przesyłka ekspresowa kosztuje zawsze 39.99, także gdy suma przekracza próg darmowej wysyłki,</li>
+<li>rabat ilościowy dotyczy pojedynczej pozycji (<code>line.quantity() &gt;= 10</code>), nie całego zamówienia,</li>
+<li>zaokrąglenie <code>HALF_UP</code> do dwóch miejsc następuje tylko raz, dla sumy końcowej,</li>
+<li>wartości reguł (<code>0.90</code>, <code>0.95</code>, <code>10</code>, <code>39.99</code>, <code>200.00</code>, <code>14.99</code>, <code>0.23</code>, <code>0.19</code>) są literałami bez nazw,</li>
+<li>zależności <code>OrderRepository</code> i <code>MailGateway</code> są przekazywane przez konstruktor jako interfejsy.</li>
+</ul>
+<p>Każdy z tych faktów rodzi pytanie domenowe, a nie wniosek „to błąd”.</p>
+<p><strong>Kluczowy komunikat:</strong> stwierdzenie „podatek jest liczony błędnie” nie jest faktem widocznym w kodzie. Bez reguły biznesowej pozostaje hipotezą. Najlepszy pierwszy krok zwiększa wiedzę lub kontrolę nad zachowaniem, nie musi tworzyć docelowej architektury.</p>
+<h3 id="kod-referencyjny-5" tabindex="-1"><a class="header-anchor" href="#kod-referencyjny-5"><span>Kod referencyjny</span></a></h3>
+<ul>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module1/<wbr>LegacyOrderService.java</code> - materiał ćwiczenia.</li>
+<li><code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module1/<wbr>LegacyOrderServiceTest.java</code> realizuje rozsądny pierwszy krok: test charakteryzujący przez publiczną metodę z implementacjami zastępczymi (<code>OrderRepository</code>, <code>MailGateway</code> jako lambdy). Po ćwiczeniu pokaż go i policz z grupą 236.39 (200.00 x 0.90 = 180.00; wysyłka 14.99; podatek 41.40).</li>
+<li>Zapytaj, których wierszy tabeli ten test nie chroni (ekspres, próg 200.00, DE i inne kraje, rabat ilościowy, klient bez VIP, walidacja).</li>
+<li>Rozsądna sekwencja kolejnych kroków: testy charakteryzujące, uzgodnienie przykładów z właścicielem produktu, odseparowanie obliczeń od zapisu i wysyłki, precyzyjne testy wyodrębnionych reguł, dopiero potem decyzja o strukturze.</li>
+</ul>
+<h3 id="weryfikacja-kryteriow-akceptacji-5" tabindex="-1"><a class="header-anchor" href="#weryfikacja-kryteriow-akceptacji-5"><span>Weryfikacja kryteriów akceptacji</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Kryterium</th>
+<th>Jak sprawdzić</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>co najmniej pięć faktów</td>
+<td>każdy fakt wskazuje linię lub fragment kodu</td>
+</tr>
+<tr>
+<td>trzy hipotezy oddzielone od faktów</td>
+<td>hipoteza zawiera słowo „może” albo opisuje ryzyko, nie stan</td>
+</tr>
+<tr>
+<td>lista pytań domenowych</td>
+<td>pytania, na które kod nie odpowiada (np. kraj nieobsługiwany kontra stawka zero)</td>
+</tr>
+<tr>
+<td>dowód adekwatny do hipotezy</td>
+<td>dla reguły podatkowej dowodem jest wymaganie, a nie „ponowne czytanie kodu”</td>
+</tr>
+<tr>
+<td>brak docelowej architektury</td>
+<td>w arkuszu nie ma słów Strategy, enum, Extract Class</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="typowe-bledy-uczestnikow-5" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow-5"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>zapisywanie ocen jako faktów („kod jest nieczytelny”, „podatek jest źle liczony”),</li>
+<li>proponowanie wzorca Strategia, enumów lub podziału klas mimo zakazu,</li>
+<li>stwierdzenie, że klasa „nie jest testowalna” (jest: interfejsy w konstruktorze, wynik zwracany z metody),</li>
+<li>dowody nieadekwatne do hipotezy (np. „przeczytać kod jeszcze raz” jako dowód reguły podatkowej),</li>
+<li>brak powiązania symptomu z konkretnym elementem planowanej zmiany (Czechy, <code>PARTNER</code>, odbiór osobisty).</li>
+</ul>
+<h3 id="pytania-do-dyskusji-5" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji-5"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>Który z symptomów stanie się istotny dopiero przy planowanej zmianie, a który jest ryzykiem już dziś (zapis przed wysłaniem wiadomości)?</li>
+<li>Czy dla Czech wystarczy „dodać kolejny <code>if</code>”? Co musimy wiedzieć przedtem?</li>
+<li>Jaki najmniejszy krok dostarczy najwięcej wiedzy?</li>
+</ul>
+<hr>
+<h2 id="cwiczenie-2-od-zapachu-do-kierunku-zmiany" tabindex="-1"><a class="header-anchor" href="#cwiczenie-2-od-zapachu-do-kierunku-zmiany"><span>Ćwiczenie 2: Od zapachu do kierunku zmiany</span></a></h2>
+<blockquote>
+<p>Rozwiązanie opracowane na podstawie kodu referencyjnego. Tabela jest jedną z możliwych odpowiedzi; oceniaj powiązanie zapachu z utrudnioną zmianą, a nie zgodność nazw co do słowa.</p>
+</blockquote>
+<h3 id="krok-1-zapachy-dowody-utrudnione-zmiany" tabindex="-1"><a class="header-anchor" href="#krok-1-zapachy-dowody-utrudnione-zmiany"><span>Krok 1: zapachy, dowody, utrudnione zmiany</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Klasa / fragment</th>
+<th>Zapach (grupa)</th>
+<th>Dowód w kodzie</th>
+<th>Utrudniona zmiana</th>
+<th>Możliwy kierunek</th>
+<th>Decyzja i uzasadnienie</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>LegacyOrderService.placeOrder</code></td>
+<td>Long Method (Bloaters)</td>
+<td>walidacja, wycena, rabaty, wysyłka, podatek, zaokrąglenie, zapis i wiadomość w jednej metodzie</td>
+<td>każda z trzech zmian wymaga regresji całego przebiegu</td>
+<td>Extract Method, Compose Method</td>
+<td><strong>przy planowanej zmianie</strong>, po testach charakteryzujących: refaktoryzacja przygotowawcza („najpierw ułatw zmianę”)</td>
+</tr>
+<tr>
+<td>parametr <code>customerType</code></td>
+<td>Primitive Obsession (Bloaters)</td>
+<td><code>&quot;VIP&quot;.equals(customerType)</code>; dowolny napis jest legalny</td>
+<td><code>PARTNER</code>: literówka przejdzie bez błędu, brak listy dozwolonych typów</td>
+<td>Replace Type Code with Class</td>
+<td><strong>przy planowanej zmianie</strong> (przed dodaniem <code>PARTNER</code>); bez tej zmiany typ jako napis nikomu dziś nie szkodzi</td>
+</tr>
+<tr>
+<td><code>destinationCountry</code> i łańcuch <code>if</code> krajów</td>
+<td>Primitive Obsession + Conditional Complexity</td>
+<td><code>&quot;PL&quot;</code>, <code>&quot;DE&quot;</code>, a każdy inny kraj daje podatek zero</td>
+<td>Czechy: kolejny <code>if</code> i niejawne zachowanie dla nieznanego kraju</td>
+<td>tabela 3.6 podpowiada Strategy; prostszy kierunek: jawna tabela stawek (Replace Data Value with Object)</td>
+<td><strong>przy planowanej zmianie</strong>; stawki to dane, nie różne algorytmy - wzorzec byłby nadmiarem, decyzja o nieznanym kraju należy do domeny</td>
+</tr>
+<tr>
+<td>parametr <code>boolean express</code></td>
+<td>Switch Statements w postaci argumentu-flagi (Object-Orientation Abusers)</td>
+<td><code>if (express) ... else if (subtotal &gt;= 200.00) ...</code></td>
+<td>odbiór osobisty: trzeci wariant nie mieści się w <code>boolean</code></td>
+<td>Replace Type Code with Class; Strategy dopiero, gdy koszty dostawy staną się różnymi algorytmami</td>
+<td><strong>teraz lub przy zmianie</strong> - planowana zmiana wymusza trzeci wariant, więc sygnatura i tak się zmieni</td>
+</tr>
+<tr>
+<td>literały <code>0.90</code>, <code>0.95</code>, <code>39.99</code>, <code>200.00</code>, <code>14.99</code>, <code>0.23</code>, <code>0.19</code></td>
+<td>liczby bez nazw (wspierają Primitive Obsession)</td>
+<td>literały w regułach bez nazwy domenowej</td>
+<td>każda zmiana stawki wymaga odnalezienia znaczenia liczby</td>
+<td>Extract Constant (Replace Magic Number with Symbolic Constant)</td>
+<td><strong>przy planowanej zmianie</strong> jako mała poprawa w dotykanym kodzie</td>
+</tr>
+<tr>
+<td><code>LegacyOrderService</code> jako całość</td>
+<td>Divergent Change (Change Preventers)</td>
+<td>ta sama klasa zmienia się z powodu cennika, podatków, logistyki i komunikacji z klientem</td>
+<td>trzy zmiany różnych aktorów w jednym pliku</td>
+<td>Extract Class</td>
+<td><strong>przy planowanej zmianie</strong>, gdy testy charakteryzujące chronią przebieg; nie przed nimi</td>
+</tr>
+<tr>
+<td><code>SalesCalculations.invoiceLineTotal</code> / <code>quoteLineTotal</code> i <code>0.90</code> w <code>LegacyOrderService</code></td>
+<td>Duplicated Code (Dispensables)</td>
+<td>identyczne metody, ta sama liczba w trzech miejscach</td>
+<td>zmiana rabatu VIP (nieplanowana); <code>PARTNER</code> może mieć inny rabat</td>
+<td>Extract Method, ewentualnie Form Template Method</td>
+<td><strong>nie teraz - zebrać informacje</strong>: najpierw ustalić z właścicielem, czy faktura i oferta korzystają z jednej reguły</td>
+</tr>
+<tr>
+<td><code>RiskClassifier.riskLevel</code></td>
+<td>brak zapachu wartego interwencji</td>
+<td><code>V(G) = 5</code>, metoda krótka i liniowa</td>
+<td>żadna planowana zmiana jej nie dotyka</td>
+<td>-</td>
+<td><strong>nie</strong>: wysoka liczba nie jest werdyktem (slajd 4.2)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Couplers: w kodzie modułu 1 nie ma wyraźnego przykładu (brak łańcuchów wywołań i zawiści o dane). Jeśli grupa dopisze zapach z tej grupy „na siłę”, zapytaj o dowód w kodzie.</p>
+<h3 id="krok-2-zapach-ktorego-swiadomie-nie-usuwamy" tabindex="-1"><a class="header-anchor" href="#krok-2-zapach-ktorego-swiadomie-nie-usuwamy"><span>Krok 2: zapach, którego świadomie nie usuwamy</span></a></h3>
+<p>Najczęstsza dobra odpowiedź: duplikacja w <code>SalesCalculations</code> albo złożoność <code>RiskClassifier</code>. W pierwszym przypadku decyzja zależy od wiedzy domenowej, w drugim metryka sugeruje problem, którego nie ma.</p>
+<h3 id="kod-referencyjny-6" tabindex="-1"><a class="header-anchor" href="#kod-referencyjny-6"><span>Kod referencyjny</span></a></h3>
+<ul>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module1/<wbr>LegacyOrderService.java</code>,</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module1/<wbr>SalesCalculations.java</code> i <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module1/<wbr>SalesCalculationsTest.java</code> (nazwa testu z „currently” dokumentuje obecną zbieżność, nie wymaganie),</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module1/<wbr>RiskClassifier.java</code>.</li>
+</ul>
+<p>Refaktoryzacje i wzorce z kolumny „Możliwy kierunek” są wykonywane w modułach 4 i 5; tu tylko je nazywamy.</p>
+<h3 id="weryfikacja-kryteriow-akceptacji-6" tabindex="-1"><a class="header-anchor" href="#weryfikacja-kryteriow-akceptacji-6"><span>Weryfikacja kryteriów akceptacji</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Kryterium</th>
+<th>Jak sprawdzić</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>nazwa z katalogu, grupa, dowód</td>
+<td>każdy wiersz wskazuje fragment kodu, a nazwa pochodzi ze slajdów 3.3-3.4</td>
+</tr>
+<tr>
+<td>kierunek powiązany z utrudnioną zmianą</td>
+<td>kolumna „Utrudniona zmiana” jest wypełniona przed kolumną „Możliwy kierunek”</td>
+</tr>
+<tr>
+<td>co najmniej jedna decyzja „nie” lub „przy planowanej zmianie”</td>
+<td>najczęściej <code>SalesCalculations</code> lub <code>RiskClassifier</code></td>
+</tr>
+<tr>
+<td>brak kodu docelowego</td>
+<td>arkusz zawiera nazwy refaktoryzacji, nie implementację</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="typowe-bledy-uczestnikow-6" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow-6"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>traktowanie tabeli 3.6 jak algorytmu („jest <code>if</code>, więc Strategy”), bez pytania o utrudnioną zmianę,</li>
+<li>Strategy dla stawek podatkowych, które są danymi, a nie wariantami algorytmu,</li>
+<li>decyzja „teraz” dla wszystkiego, bez kosztu i bez sieci bezpieczeństwa,</li>
+<li>mylenie grup (Duplicated Code jako Change Preventer) - drugorzędne, jeśli dowód i decyzja są trafne,</li>
+<li>pominięcie zapachów na poziomie klasy (Divergent Change) i skupienie wyłącznie na liniach.</li>
+</ul>
+<h3 id="pytania-do-dyskusji-6" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji-6"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>Który zapach utrudnia najwięcej planowanych zmian naraz? (Long Method i Divergent Change - dlatego przygotowawcza refaktoryzacja po testach jest dobrym pierwszym ruchem.)</li>
+<li>Kiedy kierunek „od wzorca” byłby właściwy w tym kodzie? (Np. gdyby ktoś wcześniej wprowadził Strategy dla dwóch stawek podatkowych.)</li>
+<li>Czy nazwa zapachu pomogła w rozmowie, czy tylko zastąpiła słowo „zły”?</li>
+</ul>
+<hr>
+<h2 id="cwiczenie-3-klasyfikacja-i-priorytetyzacja-dlugu" tabindex="-1"><a class="header-anchor" href="#cwiczenie-3-klasyfikacja-i-priorytetyzacja-dlugu"><span>Ćwiczenie 3: Klasyfikacja i priorytetyzacja długu</span></a></h2>
+<h3 id="krok-1-klasyfikacja" tabindex="-1"><a class="header-anchor" href="#krok-1-klasyfikacja"><span>Krok 1: klasyfikacja</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Kandydat</th>
+<th>Fakt</th>
+<th>Symptom</th>
+<th>Potencjalny dług</th>
+<th>Defekt</th>
+<th>Ograniczenie</th>
+<th>Pewność</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PricingService</code></td>
+<td>istnieją trzy kopie reguły; dwukrotnie pominięto jedną z nich</td>
+<td>duplikacja i wysoka złożoność</td>
+<td>rozproszona reguła zwiększa koszt oraz ryzyko kolejnych zmian</td>
+<td>brak dowodu na aktualnie błędny wynik</td>
+<td>brak</td>
+<td>wysoka dla konstrukcji i odsetek</td>
+</tr>
+<tr>
+<td><code>AnnualReportFormatter</code></td>
+<td>maksymalna złożoność wynosi 54; brak zmian od 22 miesięcy; wycofanie planowane za cztery miesiące</td>
+<td>wysoka złożoność</td>
+<td>brak wystarczającego dowodu na istotny przyszły koszt</td>
+<td>brak danych</td>
+<td>krótki pozostały okres życia</td>
+<td>wysoka dla faktów, niska dla długu wymagającego spłaty</td>
+</tr>
+<tr>
+<td><code>OldPaymentAdapter</code></td>
+<td>wsparcie zależności kończy się za sześć miesięcy; nowy interfejs jest niezgodny</td>
+<td>nie wynika z podanych metryk kodu</td>
+<td>zależność może ograniczać przyszłą zmianę, ale konstrukcja i koszt pozostawienia wymagają rozpoznania</td>
+<td>brak danych</td>
+<td>decyzja dostawcy i niezgodny interfejs</td>
+<td>wysoka dla ograniczenia, średnia dla długu</td>
+</tr>
+<tr>
+<td><code>CustomerExportController</code></td>
+<td>komentarz opisuje niezatwierdzoną funkcję</td>
+<td>możliwy zbędny komentarz</td>
+<td>brak wykazanego przyszłego kosztu</td>
+<td>brak</td>
+<td>brak</td>
+<td>wysoka</td>
+</tr>
+<tr>
+<td><code>TaxRoundingRule</code></td>
+<td>implementacja używa <code>DOWN</code> zamiast wymaganego <code>HALF_UP</code>; błąd odtworzono</td>
+<td>brak opisanego symptomu strukturalnego</td>
+<td>brak danych o konstrukcji powodującej przyszły koszt</td>
+<td>tak</td>
+<td>brak</td>
+<td>wysoka</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="krok-2-pelny-rekord-pricingservice" tabindex="-1"><a class="header-anchor" href="#krok-2-pelny-rekord-pricingservice"><span>Krok 2: pełny rekord <code>PricingService</code></span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Pole</th>
+<th>Wartość</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Lokalizacja</td>
+<td><code>PricingService</code>, trzy metody zawierające regułę VIP</td>
+</tr>
+<tr>
+<td>Konstrukcja</td>
+<td>trzy niezależne kopie tej samej reguły</td>
+</tr>
+<tr>
+<td>Przyczyna</td>
+<td>brak danych; do sprawdzenia w historii zmian i rozmowie z właścicielem</td>
+</tr>
+<tr>
+<td>Konsekwencja</td>
+<td>każda zmiana reguły wymaga zgodnej modyfikacji trzech miejsc i zwiększa ryzyko pominięcia</td>
+</tr>
+<tr>
+<td>Dowód</td>
+<td>dwa wdrożenia z pominiętą kopią, trzy regresje w ciągu pół roku</td>
+</tr>
+<tr>
+<td>Zaobserwowane odsetki</td>
+<td>co najmniej analiza i naprawa dwóch niespójnych wdrożeń; brak danych o liczbie osobodni</td>
+</tr>
+<tr>
+<td>Ekspozycja</td>
+<td>pięć podobnych zmian w planie rozwoju produktu</td>
+</tr>
+<tr>
+<td>Kapitał bieżący</td>
+<td>od 3 do 5 osobodni według podanego oszacowania</td>
+</tr>
+<tr>
+<td>Ryzyko spłaty</td>
+<td>kopie mogą zawierać zamierzone różnice; wspólna abstrakcja może połączyć reguły rozwijane niezależnie</td>
+</tr>
+<tr>
+<td>Decyzja</td>
+<td>zabezpieczyć przykłady zachowania i usunąć potwierdzoną duplikację przed kolejną zmianą VIP</td>
+</tr>
+<tr>
+<td>Poziom pewności</td>
+<td>wysoki dla potrzeby interwencji, średni dla docelowej konstrukcji</td>
+</tr>
+<tr>
+<td>Właściciel i termin przeglądu</td>
+<td>właściciel modułu wyceny; przegląd po analizie trzech kopii, nie później niż przed następną zmianą rabatu</td>
+</tr>
+</tbody>
+</table></div>
+<p>Rekord z jawną niepewnością dla <code>OldPaymentAdapter</code> (rejestrujemy jako ograniczenie i potencjalny dług, bez zgadywania):</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Pole</th>
+<th>Wartość</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Lokalizacja</td>
+<td>granica integracji płatniczej i używana zależność</td>
+</tr>
+<tr>
+<td>Konstrukcja</td>
+<td>zależność od interfejsu, który nie obsługuje nowej metody płatności</td>
+</tr>
+<tr>
+<td>Przyczyna</td>
+<td>ewolucja interfejsu dostawcy; wcześniejsza decyzja mogła być poprawna</td>
+</tr>
+<tr>
+<td>Konsekwencja</td>
+<td>po utracie wsparcia mogą zniknąć poprawki i możliwość dodania nowej metody; dokładny wpływ nieznany</td>
+</tr>
+<tr>
+<td>Dowód</td>
+<td>ogłoszony termin końca wsparcia i potwierdzona niezgodność interfejsu</td>
+</tr>
+<tr>
+<td>Zaobserwowane odsetki</td>
+<td>brak danych</td>
+</tr>
+<tr>
+<td>Ekspozycja</td>
+<td>planowana nowa metoda płatności i termin sześciu miesięcy</td>
+</tr>
+<tr>
+<td>Kapitał bieżący</td>
+<td>od 4 do 7 osobodni, z nieznanym zakresem testów kontraktowych i wdrożenia</td>
+</tr>
+<tr>
+<td>Ryzyko spłaty</td>
+<td>zmiana zachowania integracji, niepełna zgodność danych, wymagania certyfikacyjne dostawcy</td>
+</tr>
+<tr>
+<td>Decyzja</td>
+<td>jednodniowe rozpoznanie ograniczeń i kontraktu, następnie ponowna priorytetyzacja</td>
+</tr>
+<tr>
+<td>Poziom pewności</td>
+<td>średni</td>
+</tr>
+<tr>
+<td>Właściciel i termin przeglądu</td>
+<td>właściciel integracji płatniczej; następny przegląd po rozpoznaniu, w tym samym tygodniu</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="krok-3-budzet-szesciu-osobodni" tabindex="-1"><a class="header-anchor" href="#krok-3-budzet-szesciu-osobodni"><span>Krok 3: budżet sześciu osobodni</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th style="text-align:right">Nakład</th>
+<th>Działanie</th>
+<th>Oczekiwany rezultat</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right">1 osobodzień</td>
+<td>poprawić <code>TaxRoundingRule</code> i dodać test regresyjny odtwarzający zatwierdzony przypadek</td>
+<td>usunięty potwierdzony defekt</td>
+</tr>
+<tr>
+<td style="text-align:right">4 osobodni</td>
+<td>scharakteryzować trzy warianty reguły VIP, a po potwierdzeniu równoważności skonsolidować je i uruchomić testy</td>
+<td>ograniczone odsetki w obszarze pięciu planowanych zmian</td>
+</tr>
+<tr>
+<td style="text-align:right">1 osobodzień</td>
+<td>wykonać ograniczone czasowo rozpoznanie <code>OldPaymentAdapter</code></td>
+<td>znany zakres wpływu końca wsparcia, kontraktu, certyfikacji i migracji</td>
+</tr>
+</tbody>
+</table></div>
+<p>Jeżeli interwencja w <code>PricingService</code> nie mieści się w czterech dniach, zespół kończy bezpieczny etap charakteryzacji i aktualizuje oszacowanie, zamiast przyspieszać zmianę kosztem weryfikacji. <strong>Świadomie nie</strong> refaktoryzuje <code>AnnualReportFormatter</code> (najgorsza metryka, ale brak zmian i wycofanie za cztery miesiące) i <strong>nie</strong> implementuje niezatwierdzonego eksportu z <code>CustomerExportController</code>.</p>
+<h3 id="krok-4-brakujace-informacje" tabindex="-1"><a class="header-anchor" href="#krok-4-brakujace-informacje"><span>Krok 4: brakujące informacje</span></a></h3>
+<p>Koszt i termin biznesowy nowej metody płatności, dokładny zakres wsparcia dostawcy, aktywni konsumenci adaptera, semantyczne różnice między kopiami reguły VIP, czas obsługi regresji, krytyczność raportu rocznego oraz potwierdzenie terminu jego wycofania.</p>
+<h3 id="krok-5-nowe-zalozenie-dla-annualreportformatter" tabindex="-1"><a class="header-anchor" href="#krok-5-nowe-zalozenie-dla-annualreportformatter"><span>Krok 5: nowe założenie dla <code>AnnualReportFormatter</code></span></a></h3>
+<p>Przy aktywności przez dwa lata i zmianach co miesiąc wzrasta ekspozycja: około 24 zmian. Nie oznacza to automatycznej potrzeby pełnej refaktoryzacji, ale uzasadnia analizę struktury metody, historii podobnych zmian i ochrony testami. Przy potwierdzonym koszcie każdej zmiany formatter powinien zostać ponownie porównany z adapterem i modułem cenowym.</p>
+<h3 id="kod-referencyjny-7" tabindex="-1"><a class="header-anchor" href="#kod-referencyjny-7"><span>Kod referencyjny</span></a></h3>
+<p><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module1/<wbr>SalesCalculations.java</code> i <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module1/<wbr>SalesCalculationsTest.java</code> to miniatura problemu <code>PricingService</code>: ta sama reguła VIP (<code>0.90</code>) w dwóch metodach, a trzecia kopia w <code>LegacyOrderService</code>. Test o nazwie <code>duplicatedCalculationsCurrentlyProduceTheSameResult</code> jest przykładem „zabezpieczenia przykładów zachowania” przed konsolidacją. Pokaż go przy omawianiu decyzji dla <code>PricingService</code> i ryzyka spłaty („kopie mogą zawierać zamierzone różnice”).</p>
+<h3 id="weryfikacja-kryteriow-akceptacji-7" tabindex="-1"><a class="header-anchor" href="#weryfikacja-kryteriow-akceptacji-7"><span>Weryfikacja kryteriów akceptacji</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Kryterium</th>
+<th>Jak sprawdzić</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>suma nakładów nie przekracza sześciu osobodni</td>
+<td>zsumuj kolumnę „Nakład”</td>
+</tr>
+<tr>
+<td>plan wskazuje świadome rezygnacje</td>
+<td><code>AnnualReportFormatter</code> i <code>CustomerExportController</code> z uzasadnieniem</td>
+</tr>
+<tr>
+<td>rekord bez wymyślonych wartości</td>
+<td>pola bez danych mają wpis „brak danych”</td>
+</tr>
+<tr>
+<td>ponowna ocena odnosi się do ekspozycji</td>
+<td>uzasadnienie mówi o liczbie przyszłych zmian, a nie o samej złożoności</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="typowe-bledy-uczestnikow-7" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow-7"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>priorytet dla <code>AnnualReportFormatter</code>, bo ma najwyższą złożoność (to dokładnie teza, którą ćwiczenie obala),</li>
+<li>zaliczenie <code>TaxRoundingRule</code> do długu (to defekt; brak danych o konstrukcji),</li>
+<li>zaliczenie <code>CustomerExportController</code> do długu lub zaplanowanie implementacji eksportu (brak zakresu produktu to nie dług, slajd 2.5),</li>
+<li>zignorowanie <code>OldPaymentAdapter</code>, bo „metryki są dobre” (ograniczenie środowiskowe nie wynika z metryk kodu),</li>
+<li>plan przekraczający sześć osobodni albo bez listy świadomych rezygnacji,</li>
+<li>wymyślanie wartości w rekordach długu zamiast „brak danych”.</li>
+</ul>
+<h3 id="pytania-do-dyskusji-7" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji-7"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>Dlaczego defekt <code>TaxRoundingRule</code> dostaje budżet, choć nie jest długiem?</li>
+<li>Co musiałoby się stać, żeby <code>OldPaymentAdapter</code> wyprzedził <code>PricingService</code>?</li>
+<li>Czy konsolidacja trzech kopii reguły VIP zawsze jest właściwa? Jak sprawdzić, że kopie są równoważne?</li>
+<li>Jak zespół powinien zapisać decyzję o niespłacaniu długu <code>AnnualReportFormatter</code>? (Zapowiedź świadomego rejestru długu z modułu 2.)</li>
+</ul>
+<hr>
+<h2 id="cwiczenie-4-wybor-strategii-modernizacji" tabindex="-1"><a class="header-anchor" href="#cwiczenie-4-wybor-strategii-modernizacji"><span>Ćwiczenie 4: Wybór strategii modernizacji</span></a></h2>
+<p><strong>Teza wyjściowa:</strong> sam przedstawiony materiał nie uzasadnia pełnego przepisania <code>ClaimsCore</code>. Oszacowanie nie obejmuje znacznej części kosztu, zachowanie jest częściowo niejawne, system jest krytyczny i musi równolegle ewoluować.</p>
+<h3 id="krok-1-rozwazone-strategie" tabindex="-1"><a class="header-anchor" href="#krok-1-rozwazone-strategie"><span>Krok 1: rozważone strategie</span></a></h3>
+<ol>
+<li><strong>Pozostawić obecną architekturę</strong>, skrócić zestaw testów dla modułu reguł i dodać testy charakteryzujące. Mały koszt i szybka poprawa informacji zwrotnej, ale nie musi zapewnić niezależnego wdrażania ani ograniczyć sprzężenia z resztą systemu.</li>
+<li><strong>Przyrostowo wydzielać moduł reguł za jawnym kontraktem</strong>, początkowo obliczając wyniki równolegle. Wykorzystuje istniejącą granicę, pozwala porównywać zachowanie i dostarczać korzyści kategoriami spraw.</li>
+<li><strong>Przepisać cały <code>ClaimsCore</code></strong> i przełączyć system po osiągnięciu zgodności. Może usunąć część ograniczeń, ale ma niepełne oszacowanie, późno dostarcza wartość i wymaga równoległego odtwarzania zmian regulacyjnych, danych oraz 18 integracji.</li>
+</ol>
+<h3 id="krok-2-modelowy-rekord-decyzji-wersja-skrocona" tabindex="-1"><a class="header-anchor" href="#krok-2-modelowy-rekord-decyzji-wersja-skrocona"><span>Krok 2: modelowy rekord decyzji (wersja skrócona)</span></a></h3>
+<p><strong>Problem:</strong> najczęściej zmieniany moduł reguł ma wolną pętlę weryfikacji, niskie pokrycie gałęzi i odpowiada za większość poprawek po wydaniu. Pełny system musi zachować dostępność i nadal przyjmować zmiany regulacyjne.</p>
+<p><strong>Decyzja i uzasadnienie:</strong> przyrostowo wydzielać moduł reguł za jawnym kontraktem. Najpierw zbudować szybką weryfikację i uruchamianie równoległe, następnie przełączać pojedyncze kategorie spraw. Nie rozpoczynać pełnego przepisania systemu. Strategia bezpośrednio skraca pętlę weryfikacji reguły (czas wdrożenia) i ogranicza promień zmiany (poprawki po wydaniu).</p>
+<p><strong>Pierwszy odwracalny krok (4 tygodnie):</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Tydzień</th>
+<th>Rezultat</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>jawny opis wejścia, wyjścia i efektów ubocznych; zestaw reprezentatywnych spraw uzgodniony z ekspertami; bazowe mierniki czasu wdrożenia i poprawek</td>
+</tr>
+<tr>
+<td>2</td>
+<td>szybki zestaw testów charakteryzujących kontrakt oraz automatyczne porównanie wyników dla danych historycznych</td>
+</tr>
+<tr>
+<td>3</td>
+<td>nowa implementacja jednej ograniczonej kategorii reguł, bez prawa do podejmowania decyzji produkcyjnych</td>
+</tr>
+<tr>
+<td>4</td>
+<td>uruchomienie równoległe dla kontrolowanej próbki, raport rozbieżności, wpływ na wydajność i decyzja o następnym kroku</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Warunek przerwania albo zmiany kierunku:</strong> po czterech tygodniach zatrzymać wydzielanie i ponownie ocenić strategię, jeżeli nie da się utworzyć powtarzalnego kontraktu bez wykonywania efektów ubocznych albo nie można wiarygodnie sklasyfikować rozbieżności. Dokładne progi zatwierdzają właściciele biznesowi i operacyjni.</p>
+<p><strong>Mierniki wyniku:</strong> mediana i 85. percentyl czasu od zatwierdzenia reguły do wdrożenia, odsetek zmian reguł wymagających poprawki po wydaniu, czas uzyskania wiarygodnego wyniku testów modułu, liczba niewyjaśnionych rozbieżności na tysiąc porównań, dostępność i czas odpowiedzi systemu. Liczba przepisanych klas, wykonanych zadań lub procent migracji to mierniki aktywności i nie dowodzą osiągnięcia celu.</p>
+<p>Jeśli grupa ma czas, dopytaj o elementy pominięte w wersji skróconej: sposób weryfikacji zgodności (klasyfikacja rozbieżności: defekt nowej ścieżki, ujawniony defekt starej, zamierzona zmiana reguły, niewystarczające dane), plan wycofania (tryb obserwacyjny wyłączany flagą, brak nieodwracalnych zapisów w pierwszym kroku) i kryterium usunięcia architektury przejściowej (stara implementacja nie obsługuje żadnej kategorii przez dwa pełne cykle wydawnicze, potem usunięcie podwójnego obliczania, flag i adapterów). Techniki przyrostowej wymiany (Strangler Fig, Branch by Abstraction, równoległa weryfikacja) są omawiane w module 5.</p>
+<h3 id="kod-referencyjny-8" tabindex="-1"><a class="header-anchor" href="#kod-referencyjny-8"><span>Kod referencyjny</span></a></h3>
+<p>Ćwiczenie jest scenariuszowe, bez kodu w projekcie. Przy omówieniu można nawiązać do <code>LegacyOrderService</code>: ten sam tok rozumowania w małej skali (testy charakteryzujące przez istniejącą granicę, potem separacja, potem decyzja o strukturze).</p>
+<h3 id="weryfikacja-kryteriow-akceptacji-8" tabindex="-1"><a class="header-anchor" href="#weryfikacja-kryteriow-akceptacji-8"><span>Weryfikacja kryteriów akceptacji</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Kryterium</th>
+<th>Jak sprawdzić</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>pięć elementów rekomendacji</td>
+<td>szablon wypełniony we wszystkich polach</td>
+</tr>
+<tr>
+<td>opcja inna niż refaktoryzacja i przepisanie</td>
+<td>np. pozostawienie z ograniczeniem ryzyka albo przyrostowe wydzielanie</td>
+</tr>
+<tr>
+<td>pierwszy krok w czterech tygodniach, odwracalny</td>
+<td>brak migracji wspólnej bazy i nieodwracalnych zapisów</td>
+</tr>
+<tr>
+<td>mierniki powiązane z celem</td>
+<td>czas wdrożenia reguły, poprawki po wydaniu, dostępność</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="typowe-bledy-uczestnikow-8" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow-8"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>tylko dwie opcje (refaktoryzacja albo przepisanie) zamiast co najmniej trzech,</li>
+<li>przyjęcie 18 miesięcy jako pełnego kosztu przepisania (brak migracji danych, integracji, równoległego utrzymania, wyłączenia; slajd 2.10),</li>
+<li>pierwszy krok dłuższy niż cztery tygodnie albo nieodwracalny (np. migracja wspólnej bazy),</li>
+<li>mierniki aktywności (liczba przepisanych klas, procent migracji) zamiast wyniku,</li>
+<li>ignorowanie wspólnej bazy z procesami raportowymi i zmian regulacyjnych w trakcie prac.</li>
+</ul>
+<h3 id="pytania-do-dyskusji-8" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji-8"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>Która informacja ze scenariusza najmocniej przemawia przeciw pełnemu przepisaniu?</li>
+<li>Jakie sygnały musiałyby wystąpić, żeby przepisanie modułu (a nie systemu) stało się zasadne?</li>
+<li>Kto w organizacji powinien zatwierdzić progi przerwania i dlaczego nie zespół deweloperski sam?</li>
+</ul>
+<hr>
+<h2 id="sprawdzenie-wiedzy-odpowiedzi" tabindex="-1"><a class="header-anchor" href="#sprawdzenie-wiedzy-odpowiedzi"><span>Sprawdzenie wiedzy - odpowiedzi</span></a></h2>
+<ol>
+<li><strong>Czym refaktoryzacja różni się od zmiany funkcjonalnej i od przepisania?</strong> Refaktoryzacja zmienia strukturę, zachowując nazwane obserwacje. Zmiana funkcjonalna celowo zmienia zachowanie. Przepisanie tworzy nową implementację, która nie dziedziczy automatycznie zachowań starej.</li>
+<li><strong>Czy zachowanie obserwowalne to tylko wartość zwracana?</strong> Nie. Obejmuje też wyjątki, efekty uboczne i ich kolejność, format danych, kontrakt publiczny oraz właściwości pozafunkcjonalne, jeśli są wymaganiem.</li>
+<li><strong>Dlaczego wiek kodu nie wystarcza do określenia go jako legacy?</strong> Istotne są koszt i ryzyko zmiany, znaczenie systemu, testowalność oraz kontekst planowanych prac. Nowy kod także może być trudny do bezpiecznej zmiany.</li>
+<li><strong>W jakich momentach pracy refaktoryzacja jest najłatwiejsza do uzasadnienia?</strong> Przygotowawczo przed zmianą w trudnym miejscu, dla zrozumienia kodu, oportunistycznie w dotykanym kodzie i planowo małymi seriami w często zmienianym obszarze.</li>
+<li><strong>Co oznaczają kapitał i odsetki w metaforze długu?</strong> Kapitał to przybliżony koszt usunięcia lub ograniczenia konstrukcji, a odsetki to dodatkowy koszt ponoszony podczas kolejnych prac, które ją napotykają.</li>
+<li><strong>Kiedy brak testów można opisać jako element długu technicznego?</strong> Gdy brak wiarygodnej weryfikacji zwiększa przyszły koszt albo ryzyko zmian, na przykład wymusza powtarzalną ręczną regresję.</li>
+<li><strong>Czym różni się symptom jakości od defektu?</strong> Symptom wskazuje możliwy problem projektowy. Defekt oznacza zaobserwowaną niezgodność zachowania z wymaganiem.</li>
+<li><strong>Do której grupy katalogu należy Shotgun Surgery i jaki kierunek refaktoryzacji podpowiada?</strong> Do Change Preventers. Kierunek: zebrać rozproszoną wiedzę w jednym miejscu (Move Method, Move Field, Extract Class, czasem Inline Class), ewentualnie jeden punkt wejścia w postaci fasady.</li>
+<li><strong>Dlaczego tabela „zapach -&gt; wzorzec” nie rozstrzyga, czy refaktoryzować?</strong> Bo zapach jest hipotezą, a decyzja zależy od planowanej zmiany, kosztu interwencji i sieci bezpieczeństwa. Tabela mówi, dokąd można iść, nie czy i kiedy.</li>
+<li><strong>Co mierzy złożoność cyklomatyczna, a czego nie mierzy?</strong> Opisuje liczbę liniowo niezależnych ścieżek wynikających ze struktury przepływu sterowania. Nie mierzy pełnej trudności domeny, czytelności ani wszystkich możliwych zachowań. (Ilustracja: <code>RiskClassifier.riskLevel</code>, V(G) = 5.)</li>
+<li><strong>Dlaczego 100 procent pokrycia linii nie dowodzi poprawności testów?</strong> Pokrycie potwierdza wykonanie kodu, ale nie jakość danych, asercji, modelu przypadków ani zdolność wykrywania ważnych defektów. (Ilustracja: <code>DiscountPolicyTest</code> daje 100 procent linii i 50 procent gałęzi; <code>Module1ExamplesTest</code> wykonuje cały kod bez asercji wyniku.)</li>
+<li><strong>Dlaczego identyczny fragment kodu nie zawsze powinien zostać uogólniony?</strong> Podobne fragmenty mogą reprezentować różne reguły, które mają rozwijać się niezależnie. Wspólna abstrakcja stworzyłaby wtedy nieprawidłowe sprzężenie. (Ilustracja: <code>SalesCalculations</code>.)</li>
+<li><strong>Co daje połączenie częstotliwości zmian ze złożonością?</strong> Pomaga znaleźć aktywne obszary (<em>hotspoty</em>), w których trudna struktura faktycznie wpływa na bieżącą pracę. Każdy z tych sygnałów osobno daje słabszą podstawę decyzji.</li>
+<li><strong>Jakie koszty pełnego przepisania są często pomijane?</strong> Między innymi odzyskanie wymagań, utrzymanie dwóch systemów, migracja danych, integracje, testy niefunkcjonalne, operacje, szkolenia, przełączenie, wycofanie wdrożenia i wyłączenie starego rozwiązania.</li>
+</ol>
+
+</main>
+</div>
+<script>if(matchMedia('(max-width:900px)').matches){var d=document.querySelector('.toc details');if(d)d.open=false}</script>
+</body>
+</html>

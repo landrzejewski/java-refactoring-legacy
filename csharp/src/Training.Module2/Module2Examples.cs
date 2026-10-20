@@ -1,5 +1,11 @@
-using System.Globalization;
-using static Training.Module2.OrderPlacementService;
+using Training.Module2.Adapter;
+using Training.Module2.Application;
+using Training.Module2.BoyScout;
+using Training.Module2.Documentation;
+using Training.Module2.Domain;
+using Training.Module2.Legacy;
+using Training.Module2.Tooling;
+using Command = Training.Module2.Application.CreateDeliveryQuote.Command;
 
 namespace Training.Module2;
 
@@ -7,83 +13,105 @@ public static class Module2Examples
 {
     public static void Main(string[] args)
     {
-        RunBehaviorPreservingRefactoring();
-        RunTestDoubleExample();
-        RunExplicitSeamExample();
-    }
-
-    private static void RunBehaviorPreservingRefactoring()
-    {
-        IReadOnlyList<InvoiceLine> lines =
-        [
-            new InvoiceLine("BOOK", 2, 19.99m),
-            new InvoiceLine("PEN", 1, 5.00m),
-        ];
-        string before = new LegacyInvoiceFormatter().Format("Acme", lines);
-        string after = new InvoiceFormatter().Format("Acme", lines);
-
-        Console.WriteLine("Formatter outputs equal: " + (before == after).ToString().ToLowerInvariant());
-    }
-
-    private static void RunTestDoubleExample()
-    {
-        OrderPlacementService service = new(
-            new FixedPriceCatalog(12.50m),
-            new FixedAuthorizationGateway("AUTH-DEMO"),
-            new FixedIdOrderRepository(1L),
-            new ConsoleEventPublisher());
-
-        PlacedOrder order = service.Place("BOOK", 2, "TOKEN-DEMO");
-        Console.WriteLine("Placed order: " + order);
-    }
-
-    private static void RunExplicitSeamExample()
-    {
-        TimeProvider clock = new FixedTimeProvider(
-            DateTimeOffset.Parse("2026-08-30T10:00:00Z", CultureInfo.InvariantCulture));
-        ReminderService service = new(clock, new ConsoleReminderGateway());
-
-        service.SendRenewalReminder(new Subscription(
+        Parcel parcel = new(3.00m);
+        LegacyDeliveryQuoteService legacy = new();
+        DeliveryQuote legacyQuote = legacy.CreateQuote(
             "developer@example.com",
-            new DateOnly(2026, 9, 6)));
+            ShippingMethod.Standard,
+            parcel);
+
+        FuelSurcharge fuelSurcharge = new(0.08m);
+        DeliveryPriceCalculator calculator = new(
+        [
+            new StandardDeliveryPricePolicy(fuelSurcharge),
+            new ExpressDeliveryPricePolicy(fuelSurcharge),
+        ]);
+        InMemoryQuoteRepository repository = new();
+        CreateDeliveryQuote useCase = new(
+            calculator,
+            repository,
+            new ConsoleQuoteNotifier());
+
+        DeliveryQuote refactoredQuote = useCase.Execute(new Command(
+            "developer@example.com",
+            ShippingMethod.Standard,
+            parcel));
+
+        Console.WriteLine(
+            "Legacy and refactored prices equal: "
+            + (legacyQuote.Price == refactoredQuote.Price).ToString().ToLowerInvariant());
+        Console.WriteLine("Stored quotes: " + repository.Quotes().Count);
+
+        RunBoyScoutExample();
+        RunDecisionRecordExample();
+        RunCompilerGateExample();
     }
 
-    private sealed class FixedPriceCatalog(decimal price) : IProductCatalog
+    private static void RunBoyScoutExample()
     {
-        public decimal PriceFor(string sku) => price;
+        var formatter = new BoyScout.After.ReleaseSummaryFormatter();
+        string summary = formatter.Format("release-42",
+        [
+            new DeploymentResult(
+                DeploymentStatus.Success, "test", "deployed"),
+            new DeploymentResult(
+                DeploymentStatus.Failure, "prod", "timeout")
+        ]);
+
+        Console.WriteLine("Boy Scout: " + summary.Split('\n')[^1]);
     }
 
-    private sealed class FixedAuthorizationGateway(string authorizationId) : IPaymentGateway
+    private static void RunDecisionRecordExample()
     {
-        public string Charge(string paymentToken, decimal amount) => authorizationId;
+        var record = new DecisionRecord(
+            new DecisionId("ADR-0042"),
+            "Use Branch by Abstraction",
+            DecisionStatus.Accepted,
+            "The pricing engine must be replaced incrementally.",
+            "Route both implementations through one client contract.",
+            [
+                new DecisionOption(
+                    "Branch by Abstraction",
+                    "Supports incremental verification."),
+                new DecisionOption(
+                    "Big bang",
+                    "Removes coexistence but delays feedback.")
+            ],
+            [
+                new DecisionConsequence(
+                    ConsequenceKind.Positive,
+                    "Rollout can stop after each stage."),
+                new DecisionConsequence(
+                    ConsequenceKind.Negative,
+                    "Two implementations coexist temporarily.")
+            ],
+            "Compare results in VERIFY mode before switching traffic.");
+
+        Console.WriteLine("Decision record: " + new DecisionRecordMarkdownRenderer()
+            .Render(record)
+            .Split('\n')[0]);
     }
 
-    private sealed class FixedIdOrderRepository(long id) : IOrderRepository
+    private static void RunCompilerGateExample()
     {
-        public long Save(OrderDraft order) => id;
-    }
+        const string source = """
+            namespace Example;
 
-    private sealed class ConsoleEventPublisher : IEventPublisher
-    {
-        public void Publish(OrderPlaced @event) =>
-            Console.WriteLine("Published event: " + @event);
-    }
+            public sealed class CleanSample
+            {
+                public int DoubleValue(int value)
+                {
+                    return value * 2;
+                }
+            }
+            """;
+        bool successful = new InMemoryCSharpCompiler().Compile(
+                "Example.CleanSample",
+                source,
+                WarningPolicy.TreatWarningsAsErrors)
+            .Successful;
 
-    private sealed class ConsoleReminderGateway : ReminderService.IReminderGateway
-    {
-        public void Send(string email, DateOnly renewalDate) =>
-            Console.WriteLine(string.Format(
-                CultureInfo.InvariantCulture,
-                "Reminder: {0} renews on {1:yyyy-MM-dd}",
-                email,
-                renewalDate));
-    }
-
-    // Equivalent of Java's Clock.fixed(instant, ZoneOffset.UTC).
-    private sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider
-    {
-        public override DateTimeOffset GetUtcNow() => now;
-
-        public override TimeZoneInfo LocalTimeZone => TimeZoneInfo.Utc;
+        // Java wypisuje boolean jako "true"/"false"; C# bool.ToString() daje "True".
+        Console.WriteLine("Compiler gate: compiled=" + (successful ? "true" : "false"));
     }
 }

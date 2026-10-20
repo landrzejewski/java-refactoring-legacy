@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zadania: Moduł 2. Prewencja - zadania dla uczestników</title>
+<style>:root{--bg:#fbfbfa;--fg:#1d1f23;--muted:#5f6670;--line:#e3e5e8;--card:#ffffff;--accent:#2457c5;--accent-bg:#eef3fd;
+--code-bg:#f4f5f7;--note-bg:#fff7e6;--note-line:#e6a700;--th:#f1f3f6;
+--k:#b3246b;--s:#1a7f37;--c:#6e7781;--n:#0550ae;--t:#8250df;--f:#6639ba;--a:#953800;
+--kind:#2457c5}
+@media (prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3036;--card:#1c1f23;--accent:#7aa7ff;--accent-bg:#1e2a40;
+--code-bg:#1f2328;--note-bg:#2b2412;--note-line:#c99400;--th:#23272d;
+--k:#ff7b9c;--s:#7ee2a0;--c:#8b949e;--n:#79c0ff;--t:#d2a8ff;--f:#d2a8ff;--a:#ffa657}}
+body.zadania{--kind:#1a7f37} body.warsztat{--kind:#c2570c} body.warsztat-zadania{--kind:#0f7b7b} body.rozwiazania{--kind:#b3246b} body.przyklady{--kind:#2457c5}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.topbar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 24px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);border-top:3px solid var(--kind)}
+.topbar a{color:var(--fg);text-decoration:none}
+.home{font-weight:600}
+.tabs{display:flex;gap:4px}
+.tab{padding:4px 12px;border-radius:999px;font-size:15px;color:var(--muted)!important}
+.tab:hover{background:var(--code-bg)}
+.tab.active{background:var(--accent-bg);color:var(--accent)!important;font-weight:600}
+.pager{margin-left:auto;display:flex;gap:14px;font-size:15px}
+.pager a{color:var(--muted)}.pager a:hover{color:var(--accent)}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:48px;max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+.layout.no-toc{grid-template-columns:minmax(0,1fr);max-width:1000px}
+aside{position:sticky;top:72px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px}
+.toc-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;font-weight:600}
+.toc ul{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.toc li a{display:block;padding:3px 12px;color:var(--muted);text-decoration:none;line-height:1.35}
+.toc li.h3 a{padding-left:24px;font-size:13px}
+.toc li a:hover{color:var(--accent)}
+main{min-width:0;max-width:860px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 1.2rem;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:2.6rem 0 .8rem;padding-top:.6rem;border-top:1px solid var(--line)}
+h3{font-size:1.18rem;margin:2rem 0 .6rem}
+h4{font-size:1rem;margin:1.5rem 0 .5rem}
+h1 a,h2 a,h3 a,h4 a{color:inherit;text-decoration:none}
+h2 a:hover::after,h3 a:hover::after{content:" #";color:var(--muted)}
+p,ul,ol{margin:.6rem 0 1rem}
+li{margin:.25rem 0}
+li>ul,li>ol{margin:.2rem 0}
+a{color:var(--accent)}
+strong{font-weight:650}
+code{font:0.88em/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre.code{position:relative;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:1rem 0 1.4rem}
+pre.code code{background:none;padding:0;font-size:14px;line-height:1.55}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:6px;right:10px;font:11px ui-monospace,Menlo,monospace;color:var(--muted);text-transform:uppercase}
+.table-wrap{overflow-x:auto;margin:1rem 0 1.4rem;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--th);font-weight:600}
+tr:last-child td{border-bottom:none}
+blockquote{margin:1rem 0 1.4rem;padding:10px 16px;background:var(--note-bg);border-left:4px solid var(--note-line);border-radius:0 8px 8px 0}
+blockquote p{margin:.3rem 0}
+hr{border:none;border-top:1px solid var(--line);margin:2rem 0}
+hr+h2{border-top:none;margin-top:1.4rem}
+main p code,main li code,main td code{overflow-wrap:break-word}
+.toc summary{cursor:pointer;list-style:none}.toc summary::-webkit-details-marker{display:none}
+.hljs-keyword,.hljs-selector-tag,.hljs-built_in,.hljs-literal{color:var(--k)}
+.hljs-string,.hljs-regexp,.hljs-addition{color:var(--s)}
+.hljs-comment,.hljs-quote,.hljs-meta{color:var(--c);font-style:italic}
+.hljs-number,.hljs-symbol{color:var(--n)}
+.hljs-type,.hljs-class .hljs-title,.hljs-title.class_{color:var(--t)}
+.hljs-title,.hljs-title.function_,.hljs-section{color:var(--f)}
+.hljs-attr,.hljs-attribute,.hljs-variable,.hljs-params,.hljs-tag{color:var(--a)}
+.hljs-deletion{color:var(--k)}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:16px;padding:20px 16px 60px}
+aside{position:static;max-height:none;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--card)}
+.toc-title{margin:0}.toc details[open] .toc-title{margin-bottom:8px}.toc summary::after{content:" ▾"}
+body{font-size:16px}.topbar{padding:8px 16px}.pager{margin-left:0}h1{font-size:1.6rem}}
+@media print{.topbar,aside{display:none}.layout{display:block;padding:0}main{max-width:none}
+pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#000;font-size:12pt}}
+.langs{margin-left:auto}.langs+.pager{margin-left:0}
+.langs{margin-left:auto}.langs+.pager{margin-left:0}</style>
+</head>
+<body class="zadania">
+<header class="topbar"><a class="home" href="../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../slajdy/02-prewencja-slajdy.html">Slajdy</a><a class="tab active" href="02-prewencja.html">Zadania</a><a class="tab" href="../przyklady/02-prewencja.html">Przykłady</a><a class="tab" href="../rozwiazania/02-prewencja.html">Rozwiązania</a></div><div class="pager"><a href="01-wprowadzenie.html" title="Poprzedni moduł">&larr; 01</a><a href="03-testowanie-a-bezpieczenstwo.html" title="Następny moduł">03 &rarr;</a></div></header>
+<div class="layout">
+<aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#jak-pracowac">Jak pracować</a></li><li class="h2"><a href="#przeglad-zadan">Przegląd zadań</a></li><li class="h3"><a href="#pliki-bedace-punktem-wyjscia">Pliki będące punktem wyjścia</a></li><li class="h2"><a href="#aktywnosc-21-zmapuj-swoje-petle">Aktywność 2.1: Zmapuj swoje pętle</a></li><li class="h3"><a href="#kontekst">Kontekst</a></li><li class="h3"><a href="#polecenia">Polecenia</a></li><li class="h3"><a href="#kryteria-akceptacji">Kryteria akceptacji</a></li><li class="h3"><a href="#oczekiwany-produkt">Oczekiwany produkt</a></li><li class="h2"><a href="#aktywnosc-22-drzwi-jedno-czy-dwukierunkowe">Aktywność 2.2: Drzwi jedno- czy dwukierunkowe?</a></li><li class="h3"><a href="#kontekst-1">Kontekst</a></li><li class="h3"><a href="#polecenia-1">Polecenia</a></li><li class="h3"><a href="#kryteria-akceptacji-1">Kryteria akceptacji</a></li><li class="h3"><a href="#oczekiwany-produkt-1">Oczekiwany produkt</a></li><li class="h2"><a href="#aktywnosc-23-napraw-izoluj-czy-zaakceptuj">Aktywność 2.3: Napraw, izoluj czy zaakceptuj?</a></li><li class="h3"><a href="#kontekst-2">Kontekst</a></li><li class="h3"><a href="#polecenia-2">Polecenia</a></li><li class="h3"><a href="#kryteria-akceptacji-2">Kryteria akceptacji</a></li><li class="h3"><a href="#oczekiwany-produkt-2">Oczekiwany produkt</a></li><li class="h2"><a href="#cwiczenie-1-petle-informacji-zwrotnej-i-bramka-w-legacy">Ćwiczenie 1: Pętle informacji zwrotnej i bramka w legacy</a></li><li class="h3"><a href="#kontekst-3">Kontekst</a></li><li class="h3"><a href="#polecenia-3">Polecenia</a></li><li class="h3"><a href="#kryteria-akceptacji-3">Kryteria akceptacji</a></li><li class="h3"><a href="#oczekiwany-produkt-3">Oczekiwany produkt</a></li><li class="h2"><a href="#cwiczenie-2-decyzje-teraz-pozniej-czy-nigdy">Ćwiczenie 2: Decyzje teraz, później czy nigdy</a></li><li class="h3"><a href="#kontekst-4">Kontekst</a></li><li class="h3"><a href="#polecenia-4">Polecenia</a></li><li class="h3"><a href="#kryteria-akceptacji-4">Kryteria akceptacji</a></li><li class="h3"><a href="#oczekiwany-produkt-4">Oczekiwany produkt</a></li><li class="h2"><a href="#cwiczenie-3-projekt-jako-hamulec-degradacji">Ćwiczenie 3: Projekt jako hamulec degradacji</a></li><li class="h3"><a href="#kontekst-5">Kontekst</a></li><li class="h3"><a href="#polecenia-5">Polecenia</a></li><li class="h3"><a href="#kryteria-akceptacji-5">Kryteria akceptacji</a></li><li class="h3"><a href="#oczekiwany-produkt-5">Oczekiwany produkt</a></li><li class="h2"><a href="#cwiczenie-4-boy-scout-i-seria-zmian-gotowych-do-przegladu">Ćwiczenie 4: Boy Scout i seria zmian gotowych do przeglądu</a></li><li class="h3"><a href="#kontekst-6">Kontekst</a></li><li class="h3"><a href="#polecenia-6">Polecenia</a></li><li class="h3"><a href="#kryteria-akceptacji-6">Kryteria akceptacji</a></li><li class="h3"><a href="#oczekiwany-produkt-6">Oczekiwany produkt</a></li><li class="h2"><a href="#sprawdzenie-wiedzy">Sprawdzenie wiedzy</a></li></ul></details></nav></aside>
+<main>
+<h1>Moduł 2. Prewencja - zadania dla uczestników</h1>
+<h2 id="jak-pracowac" tabindex="-1"><a class="header-anchor" href="#jak-pracowac"><span>Jak pracować</span></a></h2>
+<ul>
+<li>
+<p>Zadania dotyczą kodu z pakietu <code>pl.training.module2</code> (Java). Odpowiedniki znajdziesz w <code>csharp/<wbr>src/<wbr>Training.Module2</code> oraz <code>typescript/<wbr>src/<wbr>module2</code> (te same nazwy klas, zapisane zgodnie z konwencjami języka).</p>
+</li>
+<li>
+<p>Przed rozpoczęciem uruchom pełny build i upewnij się, że jest zielony:</p>
+<pre class="code" data-lang="shell"><code class="hljs">mvn clean verify
+</code></pre>
+</li>
+<li>
+<p>Testy samego modułu: <code>mvn test -Dtest=&#x27;pl.training.module2.**&#x27;</code>. Program demonstracyjny: <code>mvn -q compile &amp;&amp; java -cp target/<wbr>classes pl.training.module2.Module2Examples</code>.</p>
+</li>
+<li>
+<p>Po każdym małym kroku uruchom najszybszy test, który może wykryć błąd tego kroku, a przed zakończeniem ćwiczenia ponownie <code>mvn verify</code>.</p>
+</li>
+<li>
+<p>Nie zmieniaj jednocześnie zachowania biznesowego i struktury, chyba że zadanie wyraźnie tego wymaga.</p>
+</li>
+<li>
+<p>Każdą decyzję uzasadniaj aktualnym wymaganiem, ryzykiem albo kierunkiem zmiany. Sama nazwa zasady (YAGNI, SOLID, Boy Scout) nie jest uzasadnieniem.</p>
+</li>
+<li>
+<p>Jeżeli czegoś nie wiesz o zachowaniu kodu, zapisz to jako założenie albo pytanie. Nie zgaduj po cichu.</p>
+</li>
+</ul>
+<h2 id="przeglad-zadan" tabindex="-1"><a class="header-anchor" href="#przeglad-zadan"><span>Przegląd zadań</span></a></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Nr</th>
+<th>Nazwa</th>
+<th>Forma</th>
+<th>Czas</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Aktywność 2.1</td>
+<td>Zmapuj swoje pętle</td>
+<td>indywidualnie</td>
+<td>3 min</td>
+</tr>
+<tr>
+<td>Aktywność 2.2</td>
+<td>Drzwi jedno- czy dwukierunkowe?</td>
+<td>indywidualnie lub w parach</td>
+<td>4 min</td>
+</tr>
+<tr>
+<td>Aktywność 2.3</td>
+<td>Napraw, izoluj czy zaakceptuj?</td>
+<td>indywidualnie lub w parach</td>
+<td>4 min</td>
+</tr>
+<tr>
+<td>Ćwiczenie 1</td>
+<td>Pętle informacji zwrotnej i bramka w legacy</td>
+<td>pary</td>
+<td>15 min + 5 min omówienia</td>
+</tr>
+<tr>
+<td>Ćwiczenie 2</td>
+<td>Decyzje teraz, później czy nigdy</td>
+<td>pary lub grupy</td>
+<td>15 min + 10 min omówienia</td>
+</tr>
+<tr>
+<td>Ćwiczenie 3</td>
+<td>Projekt jako hamulec degradacji</td>
+<td>pary</td>
+<td>25 min + 10 min omówienia</td>
+</tr>
+<tr>
+<td>Ćwiczenie 4</td>
+<td>Boy Scout i seria zmian gotowych do przeglądu</td>
+<td>pary</td>
+<td>20 min + 5 min omówienia</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="pliki-bedace-punktem-wyjscia" tabindex="-1"><a class="header-anchor" href="#pliki-bedace-punktem-wyjscia"><span>Pliki będące punktem wyjścia</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Plik</th>
+<th>Rola</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>tooling/<wbr>InMemoryJavaCompiler.java</code></td>
+<td>kompilator w pamięci z jawną polityką ostrzeżeń (Ćwiczenie 1)</td>
+</tr>
+<tr>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>documentation/<wbr>DecisionRecord.java</code></td>
+<td>model ADR i jego wymagane pola (Ćwiczenie 2)</td>
+</tr>
+<tr>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>legacy/<wbr>LegacyDeliveryQuoteService.java</code></td>
+<td>zastany serwis wyceny dostawy (Ćwiczenie 3)</td>
+</tr>
+<tr>
+<td><code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>legacy/<wbr>LegacyDeliveryQuoteServiceCharacterizationTest.java</code></td>
+<td>testy charakterystyki wersji zastanej (Ćwiczenie 3)</td>
+</tr>
+<tr>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>boyscout/<wbr>before/<wbr>ReleaseSummaryFormatter.java</code></td>
+<td>formater raportu wydania przed poprawą (Ćwiczenie 4)</td>
+</tr>
+</tbody>
+</table></div>
+<hr>
+<h2 id="aktywnosc-21-zmapuj-swoje-petle" tabindex="-1"><a class="header-anchor" href="#aktywnosc-21-zmapuj-swoje-petle"><span>Aktywność 2.1: Zmapuj swoje pętle</span></a></h2>
+<p><strong>Cel:</strong> uświadomić sobie rzeczywisty czas informacji zwrotnej w codziennej pracy.</p>
+<p><strong>Czas:</strong> 3 minuty.</p>
+<h3 id="kontekst" tabindex="-1"><a class="header-anchor" href="#kontekst"><span>Kontekst</span></a></h3>
+<p>Slajd 1.1 pokazuje pętle od sekund (kompilator, IDE, szybkie testy) do dni (przegląd kodu, produkcja). Każda pętla wykrywa inne klasy problemów.</p>
+<h3 id="polecenia" tabindex="-1"><a class="header-anchor" href="#polecenia"><span>Polecenia</span></a></h3>
+<ol>
+<li>Dla projektu, nad którym pracujesz, zapisz czas każdej pętli z tabeli 1.1 - od zapisania pliku do sygnału.</li>
+<li>Wskaż najwolniejszą pętlę, która najczęściej wykrywa problemy.</li>
+<li>Podaj jeden konkretny problem z ostatnich tygodni, który dałoby się złapać w szybszej pętli.</li>
+</ol>
+<h3 id="kryteria-akceptacji" tabindex="-1"><a class="header-anchor" href="#kryteria-akceptacji"><span>Kryteria akceptacji</span></a></h3>
+<ul>
+<li>czasy są liczbami (zmierzonymi albo szacowanymi z przykładem), a nie określeniami „długo”, „szybko”,</li>
+<li>problem ma wskazaną pętlę, w której został wykryty, i pętlę, w której mógłby zostać wykryty.</li>
+</ul>
+<h3 id="oczekiwany-produkt" tabindex="-1"><a class="header-anchor" href="#oczekiwany-produkt"><span>Oczekiwany produkt</span></a></h3>
+<p>Lista pętli z czasami i jeden przykład przesunięcia wykrywania.</p>
+<hr>
+<h2 id="aktywnosc-22-drzwi-jedno-czy-dwukierunkowe" tabindex="-1"><a class="header-anchor" href="#aktywnosc-22-drzwi-jedno-czy-dwukierunkowe"><span>Aktywność 2.2: Drzwi jedno- czy dwukierunkowe?</span></a></h2>
+<p><strong>Cel:</strong> odróżnić decyzje odwracalne od trudnych do cofnięcia i zobaczyć, co czyni decyzję odwracalną.</p>
+<p><strong>Czas:</strong> 4 minuty.</p>
+<h3 id="kontekst-1" tabindex="-1"><a class="header-anchor" href="#kontekst-1"><span>Kontekst</span></a></h3>
+<p>Decyzje:</p>
+<ol>
+<li>zmiana nazwy pakietu <code>pricing</code> na <code>tariffs</code> w aplikacji bez zewnętrznych klientów,</li>
+<li>format pliku eksportu odbieranego co noc przez partnera,</li>
+<li>wybór biblioteki do generowania PDF używanej w jednym adapterze,</li>
+<li>usunięcie kolumny <code>discount_percent</code> z tabeli z historią zamówień,</li>
+<li>wprowadzenie interfejsu <code>PricingRule</code>, „bo kiedyś będą pluginy”,</li>
+<li>przejście z <code>double</code> na <code>BigDecimal</code> w publicznym DTO biblioteki.</li>
+</ol>
+<h3 id="polecenia-1" tabindex="-1"><a class="header-anchor" href="#polecenia-1"><span>Polecenia</span></a></h3>
+<ol>
+<li>Sklasyfikuj każdą decyzję jako drzwi dwukierunkowe albo jednokierunkowe.</li>
+<li>Dla każdej decyzji jednokierunkowej podaj jeden mechanizm, który uczyniłby ją bardziej odwracalną.</li>
+<li>Wskaż decyzje, które zasługują na ADR.</li>
+</ol>
+<h3 id="kryteria-akceptacji-1" tabindex="-1"><a class="header-anchor" href="#kryteria-akceptacji-1"><span>Kryteria akceptacji</span></a></h3>
+<ul>
+<li>klasyfikacja jest uzasadniona konsumentem lub danymi, których dotyczy decyzja,</li>
+<li>mechanizm odwracalności jest konkretny (np. wersjonowanie formatu, okres przejściowy, kopia danych), a nie „ostrożnie”.</li>
+</ul>
+<h3 id="oczekiwany-produkt-1" tabindex="-1"><a class="header-anchor" href="#oczekiwany-produkt-1"><span>Oczekiwany produkt</span></a></h3>
+<p>Tabela sześciu decyzji: klasyfikacja, uzasadnienie, mechanizm odwracalności, ADR (tak / nie).</p>
+<hr>
+<h2 id="aktywnosc-23-napraw-izoluj-czy-zaakceptuj" tabindex="-1"><a class="header-anchor" href="#aktywnosc-23-napraw-izoluj-czy-zaakceptuj"><span>Aktywność 2.3: Napraw, izoluj czy zaakceptuj?</span></a></h2>
+<p><strong>Cel:</strong> przećwiczyć świadomą reakcję na problem, którego nie trzeba albo nie da się od razu usunąć.</p>
+<p><strong>Czas:</strong> 4 minuty.</p>
+<h3 id="kontekst-2" tabindex="-1"><a class="header-anchor" href="#kontekst-2"><span>Kontekst</span></a></h3>
+<p>Problemy:</p>
+<ol>
+<li>SDK przewoźnika zwraca kwoty w groszach jako <code>long</code> i rzuca własne wyjątki.</li>
+<li>Moduł raportów rocznych z wysoką złożonością zostanie wycofany za cztery miesiące.</li>
+<li>Reguła rabatu VIP jest skopiowana w trzech miejscach, a w planie jest pięć zmian rabatów.</li>
+<li>Kompilator zgłasza 10 ostrzeżeń <code>auxiliaryclass</code> w module, którego nikt nie zmienia.</li>
+</ol>
+<h3 id="polecenia-2" tabindex="-1"><a class="header-anchor" href="#polecenia-2"><span>Polecenia</span></a></h3>
+<ol>
+<li>Dla każdego problemu wybierz reakcję: naprawić (spłacić), izolować (kwarantanna za granicą), zaakceptować (tolerować lub obserwować).</li>
+<li>Dla każdej reakcji „izolować” i „zaakceptować” podaj właściciela i sygnał ponownej oceny.</li>
+</ol>
+<h3 id="kryteria-akceptacji-2" tabindex="-1"><a class="header-anchor" href="#kryteria-akceptacji-2"><span>Kryteria akceptacji</span></a></h3>
+<ul>
+<li>każda akceptacja ma właściciela i sprawdzalny sygnał,</li>
+<li>izolacja wskazuje, co dokładnie zostaje za granicą, a co widzi reszta kodu.</li>
+</ul>
+<h3 id="oczekiwany-produkt-2" tabindex="-1"><a class="header-anchor" href="#oczekiwany-produkt-2"><span>Oczekiwany produkt</span></a></h3>
+<p>Tabela czterech problemów: reakcja, uzasadnienie, właściciel, sygnał ponownej oceny.</p>
+<hr>
+<h2 id="cwiczenie-1-petle-informacji-zwrotnej-i-bramka-w-legacy" tabindex="-1"><a class="header-anchor" href="#cwiczenie-1-petle-informacji-zwrotnej-i-bramka-w-legacy"><span>Ćwiczenie 1: Pętle informacji zwrotnej i bramka w legacy</span></a></h2>
+<p><strong>Cel:</strong> przesunąć wykrywanie problemów do szybszych pętli i zaprojektować bramkę, która nie blokuje zespołu historycznymi naruszeniami.</p>
+<p><strong>Czas:</strong> 15 minut pracy w parach (część A około 7 minut, część B około 8 minut) i 5 minut omówienia.</p>
+<h3 id="kontekst-3" tabindex="-1"><a class="header-anchor" href="#kontekst-3"><span>Kontekst</span></a></h3>
+<p><strong>Część A.</strong> Zespół utrzymuje system rezerwacji biletów. Zmierzone czasy pętli:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Pętla</th>
+<th>Stan obecny</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>kompilacja w IDE</td>
+<td>2 s; pełne <code>mvn compile</code> 40 s</td>
+</tr>
+<tr>
+<td>testy</td>
+<td>jeden zestaw, 25 minut, bo każdy test uruchamia pełny kontekst aplikacji z bazą; uruchamiany tylko w CI</td>
+</tr>
+<tr>
+<td>CI</td>
+<td>po scaleniu do gałęzi głównej, 35 minut</td>
+</tr>
+<tr>
+<td>przegląd kodu</td>
+<td>średnio 2 dni oczekiwania, typowy PR ma około 900 linii</td>
+</tr>
+<tr>
+<td>wydanie</td>
+<td>co dwa tygodnie, 3 dni ręcznej regresji</td>
+</tr>
+</tbody>
+</table></div>
+<p>Problemy z ostatniego miesiąca:</p>
+<ol>
+<li>literówka w nazwie reguły cenowej w konfiguracji tekstowej, wykryta na produkcji,</li>
+<li><code>ClassCastException</code> z kolekcji o surowym typie, wykryty podczas ręcznej regresji,</li>
+<li>błędne zaokrąglenie ceny biletu grupowego, zgłoszone przez klienta,</li>
+<li>spór w przeglądzie o to, czy pakiet <code>pricing</code> może wysyłać maile, rozstrzygany przez trzy dni,</li>
+<li>regresja w formatowaniu raportu po „drobnym sprzątaniu” w PR z nową funkcją.</li>
+</ol>
+<p><strong>Część B.</strong> Projekt szkoleniowy jest budowany Mavenem z <code>maven.compiler.release</code> ustawionym na <code>25</code>, bez bramki ostrzeżeń. Narzędzie do eksperymentu: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>tooling/<wbr>InMemoryJavaCompiler.java</code> z <code>WarningPolicy</code>.</p>
+<h3 id="polecenia-3" tabindex="-1"><a class="header-anchor" href="#polecenia-3"><span>Polecenia</span></a></h3>
+<p>Część A:</p>
+<ol>
+<li>Dla każdego problemu wskaż pętlę, w której został wykryty, i najszybszą pętlę, w której mógłby zostać wykryty.</li>
+<li>Dla każdego problemu nazwij mechanizm, który to umożliwi (np. typ zamiast napisu, <code>-Xlint</code>, szybki test reguły, test reguły architektury, osobny zestaw zmian).</li>
+<li>Zaproponuj trzy ruchy o największym wpływie na czas informacji zwrotnej. Dla każdego podaj miernik wyniku.</li>
+</ol>
+<p>Część B:</p>
+<ol>
+<li>Sprawdź, jakim JDK uruchamiany jest Maven (<code>java -version</code>, <code>mvn -v</code>) i porównaj z <code>maven.compiler.release</code> w <code>pom.xml</code>.</li>
+<li>Zmierz ostrzeżenia kompilatora bez zmiany kodu: <code>javac --release 25 -Xlint:all -d &lt;katalog-tymczasowy&gt; $(find src/<wbr>main/<wbr>java -name &#x27;*.java&#x27;)</code>. Zapisz liczbę i kategorie.</li>
+<li>Uruchom <code>InMemoryJavaCompilerTest</code> i odczytaj, jak ten sam surowy typ zachowuje się przy <code>ALLOW_WARNINGS</code> i <code>TREAT_WARNINGS_AS_ERRORS</code>.</li>
+<li>Zaproponuj regułę bramki: co blokuje od razu, co trafia do stanu bazowego, kto może zmieniać stan bazowy.</li>
+</ol>
+<h3 id="kryteria-akceptacji-3" tabindex="-1"><a class="header-anchor" href="#kryteria-akceptacji-3"><span>Kryteria akceptacji</span></a></h3>
+<ul>
+<li>każdy problem z części A ma wskazaną szybszą pętlę i mechanizm, a nie tylko „więcej testów”,</li>
+<li>trzy ruchy mają mierniki wyniku (czas od commita do sygnału, liczba problemów wykrytych po scaleniu), nie aktywności,</li>
+<li>pomiar z części B jest wykonany bez zmian w kodzie produkcyjnym,</li>
+<li>bramka nie blokuje zespołu historycznymi ostrzeżeniami, a nowe naruszenia nie powiększają stanu bazowego.</li>
+</ul>
+<h3 id="oczekiwany-produkt-3" tabindex="-1"><a class="header-anchor" href="#oczekiwany-produkt-3"><span>Oczekiwany produkt</span></a></h3>
+<p>Tabela pięciu problemów z pętlami i mechanizmami, trzy ruchy z miernikami, wynik pomiaru ostrzeżeń oraz trzy zdania opisujące regułę bramki i stan bazowy.</p>
+<hr>
+<h2 id="cwiczenie-2-decyzje-teraz-pozniej-czy-nigdy" tabindex="-1"><a class="header-anchor" href="#cwiczenie-2-decyzje-teraz-pozniej-czy-nigdy"><span>Ćwiczenie 2: Decyzje teraz, później czy nigdy</span></a></h2>
+<p><strong>Cel:</strong> odróżnienie decyzji, które trzeba podjąć teraz, od tych, które warto odłożyć do ostatniego odpowiedzialnego momentu, oraz zapis decyzji trudnej do cofnięcia.</p>
+<p><strong>Czas:</strong> 15 minut pracy i 10 minut omówienia.</p>
+<h3 id="kontekst-4" tabindex="-1"><a class="header-anchor" href="#kontekst-4"><span>Kontekst</span></a></h3>
+<p>Wszystkie sytuacje dotyczą wyceny dostawy z pakietu <code>pl.training.module2</code> (<code>legacy/<wbr>LegacyDeliveryQuoteService.java</code> i jego zrefaktoryzowanej wersji w <code>domain</code>, <code>application</code>, <code>adapter</code>).</p>
+<ol>
+<li>W politykach STANDARD i EXPRESS występuje stawka opłaty paliwowej 8 procent oraz identyczne zaokrąglenie.</li>
+<li>W dwóch niezależnych kontekstach <code>MaximumParcelWeight</code> i <code>MaximumWarehouseLoad</code> wynosi dziś 1000 kg.</li>
+<li>Zespół proponuje refleksyjny system pluginów, ponieważ za rok mogą pojawić się taryfy definiowane przez partnerów.</li>
+<li>Produkt ma zatwierdzone wymaganie: za trzy tygodnie zostanie uruchomiona trzecia metoda dostawy z innym algorytmem.</li>
+<li>Partner logistyczny będzie co noc pobierał plik z ofertami. Format trzeba uzgodnić w tym sprincie, a partner wdroży parser za kwartał i nie planuje częstych zmian.</li>
+<li>Do oferty w PDF potrzebna jest biblioteka generująca dokumenty; będzie używana w jednym adapterze.</li>
+</ol>
+<p>Model ADR w projekcie (<code>documentation/<wbr>DecisionRecord.java</code>) wymaga: identyfikatora <code>ADR-NNNN</code>, tytułu, statusu, kontekstu, decyzji, co najmniej jednej rozważonej opcji, co najmniej jednej konsekwencji i metody weryfikacji.</p>
+<h3 id="polecenia-4" tabindex="-1"><a class="header-anchor" href="#polecenia-4"><span>Polecenia</span></a></h3>
+<ol>
+<li>Dla każdej sytuacji zdecyduj: <strong>teraz</strong>, <strong>odłożyć do ostatniego odpowiedzialnego momentu</strong> (podaj, kiedy on wypada), <strong>nie budować</strong> albo <strong>zebrać więcej informacji</strong>.</li>
+<li>Dla każdej sytuacji zapisz w tabeli:
+<ul>
+<li>czy to drzwi jedno- czy dwukierunkowe,</li>
+<li>reprezentowaną wiedzę oraz właściciela i powód zmiany,</li>
+<li>najprostsze poprawne rozwiązanie na dziś,</li>
+<li>sygnał, po którym decyzję trzeba ponownie ocenić.</li>
+</ul>
+</li>
+<li>Wybierz jedną decyzję jednokierunkową i zapisz ją jako ADR w Markdown według pól modelu <code>DecisionRecord</code>, z co najmniej dwiema realnymi opcjami oraz konsekwencjami pozytywnymi i negatywnymi.</li>
+<li>Odpowiedz: co by się stało z tym ADR, gdyby za pół roku zespół zmienił kierunek?</li>
+</ol>
+<p>Szablon tabeli:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Nr</th>
+<th>Decyzja</th>
+<th>Drzwi</th>
+<th>Wiedza, właściciel, powód zmiany</th>
+<th>Najprostsze rozwiązanie na dziś</th>
+<th>Sygnał ponownej oceny</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>2</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>3</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>4</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>5</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>6</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="kryteria-akceptacji-4" tabindex="-1"><a class="header-anchor" href="#kryteria-akceptacji-4"><span>Kryteria akceptacji</span></a></h3>
+<ul>
+<li>decyzja odwołuje się do wiedzy i właściciela, a nie do liczby podobnych linii,</li>
+<li>przyszłe wymaganie jest odróżnione od zatwierdzonego wymagania,</li>
+<li>dla decyzji odłożonych wskazany jest moment, w którym opcja wygasa,</li>
+<li>ADR zawiera kontekst konkretnej sytuacji, co najmniej dwie opcje i uczciwy koszt wybranej.</li>
+</ul>
+<h3 id="oczekiwany-produkt-4" tabindex="-1"><a class="header-anchor" href="#oczekiwany-produkt-4"><span>Oczekiwany produkt</span></a></h3>
+<p>Wypełniona tabela sześciu sytuacji oraz jeden ADR w Markdown (pół strony).</p>
+<hr>
+<h2 id="cwiczenie-3-projekt-jako-hamulec-degradacji" tabindex="-1"><a class="header-anchor" href="#cwiczenie-3-projekt-jako-hamulec-degradacji"><span>Ćwiczenie 3: Projekt jako hamulec degradacji</span></a></h2>
+<p><strong>Cel:</strong> refaktoryzacja <code>LegacyDeliveryQuoteService</code> w taki sposób, żeby kolejne zmiany cennika, zapisu i powiadomień trafiały w osobne, nazwane miejsca, z zachowaniem cen oraz jawnego protokołu efektów.</p>
+<p><strong>Czas:</strong> 25 minut pracy i 10 minut omówienia.</p>
+<h3 id="kontekst-5" tabindex="-1"><a class="header-anchor" href="#kontekst-5"><span>Kontekst</span></a></h3>
+<p>Punkt wyjścia:</p>
+<ul>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>legacy/<wbr>LegacyDeliveryQuoteService.java</code>,</li>
+<li><code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>legacy/<wbr>LegacyDeliveryQuoteServiceCharacterizationTest.java</code>,</li>
+<li>modele <code>Parcel</code>, <code>ShippingMethod</code>, <code>DeliveryQuote</code> w <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>domain/<wbr></code>.</li>
+</ul>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">BigDecimal</span> <span class="hljs-variable">price</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">switch</span> (method) {
+    <span class="hljs-keyword">case</span> STANDARD -&gt; {
+        <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">base</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;10.00&quot;</span>)
+                .add(parcel.weightKg().multiply(<span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;2.00&quot;</span>)));
+        <span class="hljs-keyword">yield</span> money(base.add(base.multiply(<span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;0.08&quot;</span>))));
+    }
+    <span class="hljs-keyword">case</span> EXPRESS -&gt; {
+        <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">base</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;20.00&quot;</span>)
+                .add(parcel.weightKg().multiply(<span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;3.00&quot;</span>)));
+        <span class="hljs-keyword">yield</span> money(base.add(base.multiply(<span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;0.08&quot;</span>))));
+    }
+};
+<span class="hljs-type">DeliveryQuote</span> <span class="hljs-variable">quote</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">DeliveryQuote</span>(customerEmail, method, parcel, price);
+storedQuotes.add(quote);
+System.out.printf(<span class="hljs-string">&quot;Quote ready for %s: %s costs %s%n&quot;</span>, customerEmail, method, price);
+<span class="hljs-keyword">return</span> quote;
+</code></pre>
+<p>Znane zachowanie (test charakterystyki): przesyłka 3 kg kosztuje <code>17.28</code> dla <code>STANDARD</code> oraz <code>31.32</code> dla <code>EXPRESS</code>, a utworzona oferta trafia do listy zapisanych ofert. Testy nie przechwytują treści wypisywanej na konsolę.</p>
+<p>Pracuj na kopii klasy zastanej w nowym pakiecie roboczym (np. <code>pl.training.module2.exercise3</code>) albo na gałęzi, na której przywrócisz wersję <code>legacy</code>. Gotowy podział (<code>domain</code>, <code>application</code>, <code>adapter</code>) jest w projekcie - nie zaglądaj do niego przed końcem ćwiczenia.</p>
+<h3 id="polecenia-5" tabindex="-1"><a class="header-anchor" href="#polecenia-5"><span>Polecenia</span></a></h3>
+<ol>
+<li>Wskaż aktorów zmiany dla wyceny, zapisu i powiadomień.</li>
+<li>Ustal z właścicielem procesu (w tej roli występuje prowadzący), czy po nieudanym zapisie wolno wysłać powiadomienie, i zapisz decyzję jako wymaganie.</li>
+<li>Wydziel regułę opłaty paliwowej bez łączenia niezależnych cenników.</li>
+<li>Wydziel kontrakt polityki cenowej i przenieś jeden wariant. Uruchom testy przed przeniesieniem drugiego wariantu.</li>
+<li>Dodaj test kontraktowy uruchamiany dla każdej polityki.</li>
+<li>Wydziel porty zapisu i powiadamiania z perspektywy przypadku użycia; po utworzeniu punktu podmiany dopisz test chroniący uzgodnione zachowanie przy awarii zapisu.</li>
+<li>Przenieś konkretne efekty (zapis w pamięci, wypisanie na konsolę) do adapterów i złóż rozwiązanie ręcznie poza przypadkiem użycia (composition root).</li>
+<li>Zaproponuj automatyczną kontrolę, która wykryje import adaptera w pakiecie aplikacji lub domeny (test architektury, skan importów w teście, moduły Maven, JPMS). Porównaj siłę gwarancji i koszt dwóch wariantów, nie implementuj wszystkich.</li>
+</ol>
+<p>Po każdym kroku zanotuj, którą oś zmiany chroni konstrukcja oraz jaki koszt dodaje:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Krok</th>
+<th>Co zmieniono</th>
+<th>Chroniona oś zmiany</th>
+<th>Dodany koszt</th>
+<th>Testy uruchomione</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="kryteria-akceptacji-5" tabindex="-1"><a class="header-anchor" href="#kryteria-akceptacji-5"><span>Kryteria akceptacji</span></a></h3>
+<ul>
+<li>ceny STANDARD i EXPRESS pozostają odpowiednio <code>17.28</code> oraz <code>31.32</code> dla 3 kg,</li>
+<li>przypadek użycia nie importuje adapterów,</li>
+<li>stawka opłaty paliwowej ma jedną reprezentację,</li>
+<li>każdy wariant przechodzi wspólny test kontraktowy,</li>
+<li>awaria zapisu nie prowadzi do powiadomienia (o ile taka jest uzgodniona decyzja właściciela procesu),</li>
+<li><code>mvn verify</code> kończy się powodzeniem.</li>
+</ul>
+<h3 id="oczekiwany-produkt-5" tabindex="-1"><a class="header-anchor" href="#oczekiwany-produkt-5"><span>Oczekiwany produkt</span></a></h3>
+<p>Zrefaktoryzowany kod z testami, dziennik kroków oraz porównanie dwóch wariantów automatycznej kontroli granicy.</p>
+<hr>
+<h2 id="cwiczenie-4-boy-scout-i-seria-zmian-gotowych-do-przegladu" tabindex="-1"><a class="header-anchor" href="#cwiczenie-4-boy-scout-i-seria-zmian-gotowych-do-przegladu"><span>Ćwiczenie 4: Boy Scout i seria zmian gotowych do przeglądu</span></a></h2>
+<p><strong>Cel:</strong> podzielić zmianę w kodzie legacy na samodzielne zestawy zmian o czytelnej intencji, w których mała poprawa struktury nie miesza się ze zmianą zachowania.</p>
+<p><strong>Czas:</strong> 20 minut pracy w parach i 5 minut omówienia.</p>
+<h3 id="kontekst-6" tabindex="-1"><a class="header-anchor" href="#kontekst-6"><span>Kontekst</span></a></h3>
+<p>Zespół dostał zadanie biznesowe: raport z wydania ma dodatkowo pokazywać liczbę nieudanych wdrożeń w ostatnim wierszu (np. <code>Successful: 1/<wbr>2, Failed: 1/<wbr>2</code>). Osoba, która otworzyła klasę formatera, zauważyła nieczytelne nazwy zmiennych, wielokrotną konkatenację napisów i powielony format wiersza. Pierwsza wersja zmiany zawierała wszystko naraz w jednym commicie: zmianę nazw, przeformatowanie pliku, przebudowę pętli, nową regułę raportu i poprawione testy. Osoba przeglądająca odmówiła akceptacji, bo nie była w stanie ocenić, czy stare zachowanie zostało zachowane.</p>
+<p>Dane wejściowe:</p>
+<ul>
+<li>klasa do zmiany: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>boyscout/<wbr>before/<wbr>ReleaseSummaryFormatter.java</code>,</li>
+<li>model danych wejściowych (nie jest przedmiotem zmiany): <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>boyscout/<wbr>DeploymentResult.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>boyscout/<wbr>DeploymentStatus.java</code>.</li>
+</ul>
+<p>Pracuj na kopii klasy w nowym pakiecie roboczym (np. <code>pl.training.module2.exercise4</code>), tak aby oryginał pozostał punktem odniesienia do porównania. Każdy krok zapisuj jako osobny commit na własnej gałęzi roboczej.</p>
+<h3 id="polecenia-6" tabindex="-1"><a class="header-anchor" href="#polecenia-6"><span>Polecenia</span></a></h3>
+<ol>
+<li><strong>Odkrycie zachowania.</strong> Zapisz obecny kontrakt <code>format(...)</code>: postać wyniku, obsługę spacji w <code>releaseId</code>, kolejność walidacji, typy wyjątków i komunikaty (w tym dla <code>null</code> na liście wyników i dla kombinacji kilku błędnych argumentów).</li>
+<li><strong>Testy charakteryzujące.</strong> Przygotuj testy tego kontraktu. Dla każdego zdecyduj, czy utrwala zachowanie zamierzone, czy przypadkowe.</li>
+<li><strong>Boy Scout bez zmiany zachowania.</strong> Wykonaj lokalne porządki (nazwy, wydzielenie walidacji i formatowania wiersza, sposób budowania napisu). Nie zmieniaj sygnatury publicznej ani walidacji.</li>
+<li><strong>Zmiana zachowania.</strong> W osobnym zestawie zmian zaimplementuj nową regułę ostatniego wiersza wraz z testem opisującym nowe wymaganie.</li>
+<li>Jeśli formatujesz plik lub używasz automatycznej transformacji IDE, zrób to jako osobny krok mechaniczny.</li>
+<li>Dla każdego zestawu zmian przygotuj opis odpowiadający na pięć pytań: dlaczego, co zmienia i czego nie zmienia, jaki kontrakt ma pozostać niezmieniony, jakie dowody potwierdzają wynik, jak wdrożyć i wycofać.</li>
+<li>Wskaż kolejność czytania plików dla osoby przeglądającej.</li>
+</ol>
+<h3 id="kryteria-akceptacji-6" tabindex="-1"><a class="header-anchor" href="#kryteria-akceptacji-6"><span>Kryteria akceptacji</span></a></h3>
+<ul>
+<li>każdy zestaw zmian ma jedną główną intencję,</li>
+<li>system działa (kompilacja i testy) po każdym kroku,</li>
+<li>testy nie utrwalają bezkrytycznie przypadkowego zachowania,</li>
+<li>zmiany mechaniczne i ręczne są rozdzielone,</li>
+<li>opis pozwala odtworzyć sposób weryfikacji (konkretne polecenia, a nie „testy przeszły”).</li>
+</ul>
+<h3 id="oczekiwany-produkt-6" tabindex="-1"><a class="header-anchor" href="#oczekiwany-produkt-6"><span>Oczekiwany produkt</span></a></h3>
+<p>Seria commitów (lub opis serii, jeśli zabraknie czasu na kod) i opisy zestawów zmian według pięciu pytań.</p>
+<hr>
+<h2 id="sprawdzenie-wiedzy" tabindex="-1"><a class="header-anchor" href="#sprawdzenie-wiedzy"><span>Sprawdzenie wiedzy</span></a></h2>
+<ol>
+<li>Dlaczego problem złapany w pętli kompilatora jest tańszy niż ten sam problem złapany w przeglądzie kodu?</li>
+<li>Dlaczego nagłe włączenie <code>-Werror</code> w dużym projekcie legacy jest złym pomysłem i co zrobić zamiast tego?</li>
+<li>Czym jest ostatni odpowiedzialny moment i czym różni się od odkładania decyzji w nieskończoność?</li>
+<li>Jak testy i granice zamieniają decyzje jednokierunkowe w dwukierunkowe?</li>
+<li>Czy YAGNI zabrania pisania testów dla aktualnego zachowania?</li>
+<li>Kiedy decyzja zasługuje na ADR i co robimy z ADR, gdy zmieniamy kierunek?</li>
+<li>Czym różni się akceptacja problemu od jego ignorowania?</li>
+<li>Na czym polega kwarantanna problemu za granicą i do jakiego wzorca prowadzi?</li>
+<li>Co mówią prawa Lehmana o degradacji jakości i czego nie mówią?</li>
+<li>Jak teoria rozbitych okien przekłada się na zasady pracy z ostrzeżeniami i testami?</li>
+<li>Co jest przedmiotem DRY: tekst kodu czy wiedza?</li>
+<li>Dlaczego <code>@Autowired</code> nie dowodzi zastosowania DIP?</li>
+<li>Czy przepływ sterowania z przypadku użycia do adaptera łamie regułę zależności?</li>
+<li>Czym różni się Boy Scout Rule od „sprzątania przy okazji” zmieniającego zachowanie?</li>
+<li>Dlaczego refaktoryzacji nie łączy się ze zmianą zachowania w jednym zestawie zmian?</li>
+</ol>
+
+</main>
+</div>
+<script>if(matchMedia('(max-width:900px)').matches){var d=document.querySelector('.toc details');if(d)d.open=false}</script>
+</body>
+</html>

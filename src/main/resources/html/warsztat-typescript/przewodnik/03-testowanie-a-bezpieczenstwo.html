@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Przewodnik: Moduł 3. Testowanie a bezpieczeństwo - warsztat CineLegacy (TypeScript): przewodnik prowadzącego (TypeScript)</title>
+<style>:root{--bg:#fbfbfa;--fg:#1d1f23;--muted:#5f6670;--line:#e3e5e8;--card:#ffffff;--accent:#2457c5;--accent-bg:#eef3fd;
+--code-bg:#f4f5f7;--note-bg:#fff7e6;--note-line:#e6a700;--th:#f1f3f6;
+--k:#b3246b;--s:#1a7f37;--c:#6e7781;--n:#0550ae;--t:#8250df;--f:#6639ba;--a:#953800;
+--kind:#2457c5}
+@media (prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3036;--card:#1c1f23;--accent:#7aa7ff;--accent-bg:#1e2a40;
+--code-bg:#1f2328;--note-bg:#2b2412;--note-line:#c99400;--th:#23272d;
+--k:#ff7b9c;--s:#7ee2a0;--c:#8b949e;--n:#79c0ff;--t:#d2a8ff;--f:#d2a8ff;--a:#ffa657}}
+body.zadania{--kind:#1a7f37} body.warsztat{--kind:#c2570c} body.warsztat-zadania{--kind:#0f7b7b} body.rozwiazania{--kind:#b3246b} body.przyklady{--kind:#2457c5}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.topbar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 24px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);border-top:3px solid var(--kind)}
+.topbar a{color:var(--fg);text-decoration:none}
+.home{font-weight:600}
+.tabs{display:flex;gap:4px}
+.tab{padding:4px 12px;border-radius:999px;font-size:15px;color:var(--muted)!important}
+.tab:hover{background:var(--code-bg)}
+.tab.active{background:var(--accent-bg);color:var(--accent)!important;font-weight:600}
+.pager{margin-left:auto;display:flex;gap:14px;font-size:15px}
+.pager a{color:var(--muted)}.pager a:hover{color:var(--accent)}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:48px;max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+.layout.no-toc{grid-template-columns:minmax(0,1fr);max-width:1000px}
+aside{position:sticky;top:72px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px}
+.toc-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;font-weight:600}
+.toc ul{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.toc li a{display:block;padding:3px 12px;color:var(--muted);text-decoration:none;line-height:1.35}
+.toc li.h3 a{padding-left:24px;font-size:13px}
+.toc li a:hover{color:var(--accent)}
+main{min-width:0;max-width:860px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 1.2rem;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:2.6rem 0 .8rem;padding-top:.6rem;border-top:1px solid var(--line)}
+h3{font-size:1.18rem;margin:2rem 0 .6rem}
+h4{font-size:1rem;margin:1.5rem 0 .5rem}
+h1 a,h2 a,h3 a,h4 a{color:inherit;text-decoration:none}
+h2 a:hover::after,h3 a:hover::after{content:" #";color:var(--muted)}
+p,ul,ol{margin:.6rem 0 1rem}
+li{margin:.25rem 0}
+li>ul,li>ol{margin:.2rem 0}
+a{color:var(--accent)}
+strong{font-weight:650}
+code{font:0.88em/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre.code{position:relative;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:1rem 0 1.4rem}
+pre.code code{background:none;padding:0;font-size:14px;line-height:1.55}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:6px;right:10px;font:11px ui-monospace,Menlo,monospace;color:var(--muted);text-transform:uppercase}
+.table-wrap{overflow-x:auto;margin:1rem 0 1.4rem;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--th);font-weight:600}
+tr:last-child td{border-bottom:none}
+blockquote{margin:1rem 0 1.4rem;padding:10px 16px;background:var(--note-bg);border-left:4px solid var(--note-line);border-radius:0 8px 8px 0}
+blockquote p{margin:.3rem 0}
+hr{border:none;border-top:1px solid var(--line);margin:2rem 0}
+hr+h2{border-top:none;margin-top:1.4rem}
+main p code,main li code,main td code{overflow-wrap:break-word}
+.toc summary{cursor:pointer;list-style:none}.toc summary::-webkit-details-marker{display:none}
+.hljs-keyword,.hljs-selector-tag,.hljs-built_in,.hljs-literal{color:var(--k)}
+.hljs-string,.hljs-regexp,.hljs-addition{color:var(--s)}
+.hljs-comment,.hljs-quote,.hljs-meta{color:var(--c);font-style:italic}
+.hljs-number,.hljs-symbol{color:var(--n)}
+.hljs-type,.hljs-class .hljs-title,.hljs-title.class_{color:var(--t)}
+.hljs-title,.hljs-title.function_,.hljs-section{color:var(--f)}
+.hljs-attr,.hljs-attribute,.hljs-variable,.hljs-params,.hljs-tag{color:var(--a)}
+.hljs-deletion{color:var(--k)}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:16px;padding:20px 16px 60px}
+aside{position:static;max-height:none;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--card)}
+.toc-title{margin:0}.toc details[open] .toc-title{margin-bottom:8px}.toc summary::after{content:" ▾"}
+body{font-size:16px}.topbar{padding:8px 16px}.pager{margin-left:0}h1{font-size:1.6rem}}
+@media print{.topbar,aside{display:none}.layout{display:block;padding:0}main{max-width:none}
+pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#000;font-size:12pt}}
+.langs{margin-left:auto}.langs+.pager{margin-left:0}
+.langs{margin-left:auto}.langs+.pager{margin-left:0}</style>
+</head>
+<body class="warsztat">
+<header class="topbar"><a class="home" href="../../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../00-cinelegacy.html">Warsztat CineLegacy</a><a class="tab" href="../zadania/03-testowanie-a-bezpieczenstwo.html">Zadania</a><a class="tab active" href="03-testowanie-a-bezpieczenstwo.html">Przewodnik</a></div><div class="tabs langs" aria-label="Język"><a class="tab" href="../../warsztat/przewodnik/03-testowanie-a-bezpieczenstwo.html">Java</a><a class="tab" href="../../warsztat-csharp/przewodnik/03-testowanie-a-bezpieczenstwo.html">C#</a><a class="tab active" href="../../warsztat-typescript/przewodnik/03-testowanie-a-bezpieczenstwo.html">TypeScript</a></div><div class="pager"><a href="02-prewencja.html" title="Poprzedni moduł">&larr; 02</a><a href="05-refaktoryzacja-do-wzorcow.html" title="Następny moduł">05 &rarr;</a></div></header>
+<div class="layout">
+<aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#jak-prowadzic-pokaz">Jak prowadzić pokaz</a></li><li class="h2"><a href="#mapa-scen">Mapa scen</a></li><li class="h2"><a href="#scena-s01-test-charakterystyki-przed-pierwsza-zmiana">Scena s01. Test charakterystyki przed pierwszą zmianą</a></li><li class="h3"><a href="#w-skrocie">W skrócie</a></li><li class="h3"><a href="#co-widzimy">Co widzimy</a></li><li class="h3"><a href="#krok-1-parameterize-constructor-wstrzykniety-clock">Krok 1: Parameterize Constructor - wstrzyknięty Clock</a></li><li class="h3"><a href="#krok-2-pierwsza-refaktoryzacja-pod-ochrona-testu">Krok 2: pierwsza refaktoryzacja pod ochroną testu</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali">Pytanie do sali</a></li><li class="h2"><a href="#scena-s02-break-dependencies-seam-dla-zadania-przypomnien">Scena s02. Break Dependencies - seam dla zadania przypomnień</a></li><li class="h3"><a href="#w-skrocie-1">W skrócie</a></li><li class="h3"><a href="#co-widzimy-1">Co widzimy</a></li><li class="h3"><a href="#krok-1-extract-interface-parameterize-constructor">Krok 1: Extract Interface + Parameterize Constructor</a></li><li class="h3"><a href="#krok-2-clock-jako-zaleznosc">Krok 2: Clock jako zależność</a></li><li class="h3"><a href="#krok-3-subclass-and-override-method-i-pierwszy-test">Krok 3: Subclass and Override Method i pierwszy test</a></li><li class="h3"><a href="#krok-4-seam-z-dziedziczenia-na-typ-funkcyjny">Krok 4: seam z dziedziczenia na typ funkcyjny</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-1">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-1">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-1">Pytanie do sali</a></li><li class="h2"><a href="#scena-s03-wektor-obserwowalnego-zachowania-platnosc-za-bilety">Scena s03. Wektor obserwowalnego zachowania - płatność za bilety</a></li><li class="h3"><a href="#w-skrocie-2">W skrócie</a></li><li class="h3"><a href="#co-widzimy-2">Co widzimy</a></li><li class="h3"><a href="#krok-1-seam-dla-maili-regresja-staje-sie-widoczna">Krok 1: seam dla maili - regresja staje się widoczna</a></li><li class="h3"><a href="#krok-2-naprawa-regresji-pod-ochrona-testu">Krok 2: naprawa regresji pod ochroną testu</a></li><li class="h3"><a href="#krok-3-seam-dla-platnosci-i-pelny-wektor">Krok 3: seam dla płatności i pełny wektor</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-2">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-2">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-2">Pytanie do sali</a></li><li class="h2"><a href="#scena-s04-rownolegla-weryfikacja-shadow-kalkulatora-cen">Scena s04. Równoległa weryfikacja (shadow) kalkulatora cen</a></li><li class="h3"><a href="#w-skrocie-3">W skrócie</a></li><li class="h3"><a href="#co-widzimy-3">Co widzimy</a></li><li class="h3"><a href="#krok-1-dodanie-cienia">Krok 1: dodanie cienia</a></li><li class="h3"><a href="#krok-2-raport-rozbieznosci">Krok 2: raport rozbieżności</a></li><li class="h3"><a href="#krok-3-poprawka-znaleziona-przez-raport">Krok 3: poprawka znaleziona przez raport</a></li><li class="h3"><a href="#krok-4-przelaczenie">Krok 4: przełączenie</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-3">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-3">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-3">Pytanie do sali</a></li><li class="h2"><a href="#scena-s05-granice-trybu-shadow-efekty-uboczne">Scena s05. Granice trybu shadow - efekty uboczne</a></li><li class="h3"><a href="#w-skrocie-4">W skrócie</a></li><li class="h3"><a href="#co-widzimy-4">Co widzimy</a></li><li class="h3"><a href="#krok-1-port-efektow-parameterize-constructor">Krok 1: port efektów (Parameterize Constructor)</a></li><li class="h3"><a href="#krok-2-przechwycenie-efektow-w-cieniu">Krok 2: przechwycenie efektów w cieniu</a></li><li class="h3"><a href="#krok-3-separate-query-from-modifier-czysty-plan">Krok 3: Separate Query from Modifier - czysty plan</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-4">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-4">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-4">Pytanie do sali</a></li><li class="h2"><a href="#proponowana-kolejnosc-pokazu">Proponowana kolejność pokazu</a></li></ul></details></nav></aside>
+<main>
+<h1>Moduł 3. Testowanie a bezpieczeństwo - warsztat CineLegacy (TypeScript): przewodnik prowadzącego</h1>
+<p>Pięć scen w domenie kina pokazuje na żywo, jak zbudować sieć bezpieczeństwa wokół kodu, który jej nie ma: test charakterystyki przed pierwszą zmianą, seam w klasie, której nie da się uruchomić w teście, wektor obserwowalnego zachowania, równoległą weryfikację (shadow) i jej granice przy efektach ubocznych. Każda scena ma kod wyjściowy (<code>start</code>), kompletne snapshoty po każdym kroku (<code>stepN</code>) i test (vitest), który po każdym ruchu w VS Code ma być zielony. Tam, gdzie krok świadomie zmienia zachowanie (s03 krok 2, s04 krok 4), test ma osobne oczekiwania i pokazuje różnicę wprost.</p>
+<p>Punktem odniesienia dla całego modułu jest golden master starego systemu: <code>CinemaManagerGoldenMasterTest</code> (<code>typescript/<wbr>test/<wbr>workshop/<wbr>legacy/<wbr>CinemaManagerGoldenMasterTest.test.ts</code>) odtwarza &quot;jeden dzień kina&quot; na nietkniętym <code>typescript/<wbr>src/<wbr>workshop/<wbr>legacy/<wbr>CinemaManager.ts</code> i porównuje pełny wektor zachowania (wyniki wywołań, maile, SMS-y, obciążenia i zwroty, raport dzienny, rozliczenia) z zatwierdzonym plikiem <code>src/<wbr>test/<wbr>resources/<wbr>workshop/<wbr>cinema-manager.approved.txt</code>, wspólnym dla Javy, C# i TypeScriptu. To odpowiedź na pytanie &quot;jak poradzić sobie bez testów?&quot; w skali całego systemu: jeden szeroki, deterministyczny test, zanim powstanie jakikolwiek test jednostkowy. Sceny poniżej pokazują te same techniki w mniejszej skali. Pokaż golden master na początku modułu (3 min) i wracaj do niego przy s01 (charakterystyka) i s03 (wektor zachowania).</p>
+<p>Sceny nie powtarzają przykładów z <code>typescript/<wbr>src/<wbr>module3</code> ani ćwiczeń z zadań modułu 3. Tamte ćwiczenia uczestnicy robią sami, a sceny poniżej służą do pokazu.</p>
+<p>Port TypeScript: kod scen leży w <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>sNN_.../<wbr>{start,step1,...}</code>, testy w <code>typescript/<wbr>test/<wbr>workshop/<wbr>m3/<wbr>sNN_.../<wbr></code>, a pokaz prowadzimy w VS Code. Wspólne dla całego modułu: rekordy Javy to klasy z polami <code>readonly</code>, <code>@FunctionalInterface</code> to alias typu funkcyjnego (w teście wystarczy funkcja strzałkowa), drugi konstruktor Javy (<code>this(...)</code>) zastępują parametry domyślne jedynego konstruktora, <code>Clock</code> pochodzi z <code>typescript/<wbr>src/<wbr>workshop/<wbr>shared/<wbr>time.ts</code>, <code>sealed interface</code> z rekordami to unia klas z polem <code>kind</code> i <code>assertNever</code> w <code>switch</code>, a w oczekiwanych tekstach testów zamiast nazw wyjątków Javy stoją nazwy klas błędów portu (<code>IllegalArgumentError</code>, <code>IllegalStateError</code>, <code>NullPointerError</code> z <code>typescript/<wbr>src/<wbr>shared/<wbr>errors.ts</code>). Tam, gdzie scena odbiega od Javy, akapit <strong>Różnica względem Javy</strong> mówi, co i dlaczego wygląda inaczej.</p>
+<h2 id="jak-prowadzic-pokaz" tabindex="-1"><a class="header-anchor" href="#jak-prowadzic-pokaz"><span>Jak prowadzić pokaz</span></a></h2>
+<pre class="code" data-lang="bash"><code class="hljs">(<span class="hljs-built_in">cd</span> typescript &amp;&amp; npx vitest run <span class="hljs-built_in">test</span>/workshop/legacy)   <span class="hljs-comment"># golden master starego systemu</span>
+scripts/warsztat.sh --lang ts list m3              <span class="hljs-comment"># sceny modułu i ich kroki</span>
+scripts/warsztat.sh --lang ts <span class="hljs-built_in">test</span> m3/s02          <span class="hljs-comment"># testy jednej sceny</span>
+scripts/warsztat.sh --lang ts <span class="hljs-built_in">test</span> m3              <span class="hljs-comment"># wszystkie sceny modułu (107 testów)</span>
+scripts/warsztat.sh --lang ts diff m3/s04 1 2      <span class="hljs-comment"># co zmienia krok 2 względem kroku 1 (0 = start)</span>
+scripts/warsztat.sh --lang ts diff m3/s04 1 2 --word  <span class="hljs-comment"># to samo, zmiany podświetlone w obrębie linii</span>
+scripts/warsztat.sh --lang ts jump m3/s04 2        <span class="hljs-comment"># skopiuj step2 do start, gdy brakuje czasu</span>
+scripts/warsztat.sh --lang ts next m3/s04          <span class="hljs-comment"># następny krok do start + podsumowanie zmian</span>
+scripts/warsztat.sh next                           <span class="hljs-comment"># kolejny krok tej samej sceny (język i scena zapamiętane)</span>
+scripts/warsztat.sh prev                           <span class="hljs-comment"># krok wstecz</span>
+scripts/warsztat.sh status                         <span class="hljs-comment"># który krok jest teraz w start</span>
+scripts/warsztat.sh --lang ts reset m3/s04         <span class="hljs-comment"># przywróć start po pokazie</span>
+</code></pre>
+<ul>
+<li>Zasada: <strong>jeden krok - jeden test - jedno zdanie komentarza.</strong> Ruch w VS Code, test sceny (skrypt albo rozszerzenie Vitest), zdanie z sekcji &quot;Co powiedzieć&quot;. Zanim ruszysz kod, powiedz, jaki dowód da test po kroku.</li>
+<li><strong>Krok po kroku bez numerów:</strong> <code>scripts/<wbr>warsztat.sh --lang ts next m3/<wbr>sNN</code> wstawia do <code>start</code> gotowy następny krok i wypisuje, co się zmieniło. <code>prev</code> cofa o krok, <code>status</code> mówi, który krok jest teraz w <code>start</code>. Skrypt pamięta język i ostatnią scenę, więc potem wystarczy samo <code>next</code>. Ręczne zmiany w <code>start</code> zostają nadpisane - o to chodzi, gdy krok na żywo się rozjechał.</li>
+<li>Pracujesz zawsze w katalogu <code>start</code>. Snapshoty <code>stepN</code> służą do <code>diff</code> albo do przeskoku (<code>next</code>, <code>jump</code>), gdy coś się rozjedzie.</li>
+<li>Zanim zaczniesz, pokaż slajd 4.6 &quot;Wektor obserwowalnego zachowania&quot; i wracaj do niego przy każdej scenie: <em>co tu obserwujemy - wynik, wyjątek, stan, efekty, kolejność?</em></li>
+<li>W s02 start <strong>nie ma prawdziwych testów</strong> i to jest puenta: test dla <code>start</code> (<code>startCannotEvenRunInATest</code>) tylko dokumentuje, że klasy nie da się uruchomić, a testy zachowania pojawiają się dopiero wtedy, gdy kod ma seam. Pierwsze ruchy to mechaniczne ruchy o niskim ryzyku (slajd 4.16).</li>
+<li>W s01 i s03 warto najpierw <strong>zrobić naiwny ruch na żywo</strong> (np. &quot;poprawić&quot; znalezisko z charakterystyki, sprawdzić tylko wynik), pokazać, czego test nie widzi, cofnąć (⌘Z) i dopiero wtedy wykonać krok z przewodnika.</li>
+<li>W s04 i s05 część testów to nie tylko równoważność (<code>SNNEquivalenceTest</code>), ale też dowody strategii (<code>SNNSolutionTest</code>): raport rozbieżności, dziennik efektów ubocznych. Testy, które <strong>dokumentują stan startowy</strong> (np. &quot;start obciąża kartę dwa razy&quot;), zmienią kolor na czerwony, gdy wykonasz kroki na katalogu <code>start</code> - to znak, że start jest już naprawiony. Po pokazie: <code>scripts/<wbr>warsztat.sh --lang ts reset m3/<wbr>sNN</code>.</li>
+<li>Kroki, które zmieniają zachowanie (s03 krok 2, s04 krok 4), zapowiadaj na głos: &quot;to jest osobny commit, nie refaktoryzacja&quot;.</li>
+<li><strong>Test to nie kompilacja.</strong> Vitest uruchamia kod bez sprawdzania typów, więc tam, gdzie krok zmienia sygnaturę konstruktora albo usuwa plik (s02, s03, s05), uruchom też <code>npm run typecheck</code> w katalogu <code>typescript</code> albo patrz na podkreślenia w VS Code.</li>
+<li>Refaktoryzacje w VS Code: zaznaczenie i ⌃⇧R (Refactor...) daje Extract to method in class / Extract to function / Extract to constant / Extract to readonly field i Inline variable, F2 to Rename Symbol, ⌘. (Quick Fix) m.in. Implement interface i Add missing member, a Move to a new file / Move to file przenosi deklaracje najwyższego poziomu. Extract Interface (z klasy), Change Signature, Introduce Parameter, Inline Method ani Safe Delete nie ma - te ruchy robimy ręcznie, a listę miejsc do poprawy daje <code>npm run typecheck</code> (albo Find All References ⇧⌥F12).</li>
+</ul>
+<h2 id="mapa-scen" tabindex="-1"><a class="header-anchor" href="#mapa-scen"><span>Mapa scen</span></a></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Scena</th>
+<th>Temat ze slajdów</th>
+<th>Kroki</th>
+<th>Katalog</th>
+<th>Czas</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>s01</td>
+<td>4.2 Testy charakteryzujące; 4.4 Dobór przypadków; 4.8 Porównanie implementacji</td>
+<td>2</td>
+<td><code>m3/<wbr>s01_characterization</code></td>
+<td>~15 min</td>
+</tr>
+<tr>
+<td>s02</td>
+<td>4.10 Seam; 4.12 Szew przejściowy; 4.14 Break Dependencies; 4.16 Ruchy IDE bez testów</td>
+<td>4</td>
+<td><code>m3/<wbr>s02_breakdependencies</code></td>
+<td>~20 min</td>
+</tr>
+<tr>
+<td>s03</td>
+<td>4.6 Wektor obserwowalnego zachowania; 2.2 Weryfikacja stanu a zachowania</td>
+<td>3</td>
+<td><code>m3/<wbr>s03_behaviourvector</code></td>
+<td>~12 min</td>
+</tr>
+<tr>
+<td>s04</td>
+<td>4.18 Równoległa weryfikacja (parallel run)</td>
+<td>4</td>
+<td><code>m3/<wbr>s04_parallelrun</code></td>
+<td>~15 min</td>
+</tr>
+<tr>
+<td>s05</td>
+<td>4.19 Granice trybu shadow</td>
+<td>3</td>
+<td><code>m3/<wbr>s05_shadowlimits</code></td>
+<td>~12 min</td>
+</tr>
+</tbody>
+</table></div>
+<p>Katalogi są względne wobec <code>typescript/<wbr>src/<wbr>workshop/<wbr></code>, testy leżą w odpowiednim katalogu pod <code>typescript/<wbr>test/<wbr>workshop/<wbr></code>.</p>
+<h2 id="scena-s01-test-charakterystyki-przed-pierwsza-zmiana" tabindex="-1"><a class="header-anchor" href="#scena-s01-test-charakterystyki-przed-pierwsza-zmiana"><span>Scena s01. Test charakterystyki przed pierwszą zmianą</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 4.2 Testy charakteryzujące; 4.4 Dobór przypadków; 4.8 Porównanie implementacji (równoważność etapów); 4.6 Wektor obserwowalnego zachowania
+<strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>s01_characterization</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s01</code> (<code>S01CharacterizationTest.test.ts</code>)
+<strong>Czas:</strong> ~15 min</p>
+<h3 id="w-skrocie" tabindex="-1"><a class="header-anchor" href="#w-skrocie"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> <code>BookingConfirmation.confirm</code> drukuje potwierdzenie bez żadnego testu, a w wydruku jest bieżący czas i kwoty zależne od domyślnego locale. Najpierw zapisujemy w teście pełny dokument, potem robimy szew na zegar i dopiero wtedy pierwszą ekstrakcję.</p>
+<p><strong>Zasada:</strong> Test charakterystyki zapisuje, co kod faktycznie robi, a nie co powinien robić - razem z dziwnymi regułami. Stosujemy go przed pierwszą zmianą kodu bez testów, a ten sam zestaw oczekiwań uruchamiamy na każdym etapie jako test równoważności. Nie mylić z testem, który liczy oczekiwania tym samym algorytmem co kod.</p>
+<p><strong>Efekt:</strong> Mamy deterministyczny test całego dokumentu, wstrzykiwany <code>Clock</code> i wydzieloną metodę <code>ticketPrice</code>, a wywołanie <code>new BookingConfirmation()</code> bez argumentu dalej działa. Znaleziska (rabat od 11 biletów, kwoty zależne od locale) zostają zapisane, ale niepoprawione, bo to osobne decyzje.</p>
+<p><strong>Różnica względem Javy:</strong> JavaScript nie ma <code>Locale.setDefault</code>. Odpowiednikiem <code>String.format(&quot;%.2f&quot;, x)</code> bez <code>Locale</code> jest <code>x.toLocaleString(undefined, AMOUNT)</code>, którego wynik zależy od domyślnego locale środowiska. Pomocnik testu <code>inLocale</code> podmienia na czas wywołania domyślny argument <code>Number.prototype.toLocaleString</code> i przywraca oryginał w <code>finally</code>. Parameterize Constructor to jeden konstruktor z parametrem domyślnym (<code>clock: Clock = systemClock</code>) zamiast dwóch konstruktorów, bo TypeScript nie ma przeciążeń konstruktorów, a dla klientów efekt jest ten sam.</p>
+<h3 id="co-widzimy" tabindex="-1"><a class="header-anchor" href="#co-widzimy"><span>Co widzimy</span></a></h3>
+<p><code>BookingConfirmation.confirm</code> drukuje potwierdzenie rezerwacji. Nie ma żadnego testu, a dokument czytają klienci i infolinia. Zanim cokolwiek zmienimy, zapisujemy, co kod <strong>robi</strong>. Na drodze stoją dwie rzeczy: bieżący czas w ostatniej linii i <code>toLocaleString(undefined, ...)</code>, czyli formatowanie zależne od domyślnego locale.</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">if</span> (b.<span class="hljs-property">ticketTypes</span>.<span class="hljs-property">length</span> &gt; <span class="hljs-number">10</span>) {
+  sum = sum * <span class="hljs-number">0.9</span>;
+}
+...
+  + <span class="hljs-string">&#x27;Do zaplaty: &#x27;</span> + (sum + fee).<span class="hljs-title function_">toLocaleString</span>(<span class="hljs-literal">undefined</span>, <span class="hljs-variable constant_">AMOUNT</span>) + <span class="hljs-string">&#x27;\n&#x27;</span>
+  + <span class="hljs-string">&#x27;Wygenerowano: &#x27;</span> + <span class="hljs-title class_">LocalDateTime</span>.<span class="hljs-title function_">now</span>().<span class="hljs-title function_">toString</span>() + <span class="hljs-string">&#x27;\n&#x27;</span>;
+</code></pre>
+<p>W tej scenie najważniejszy jest test <code>S01CharacterizationTest</code>. Powstaje w trzech ruchach (A, B, C), a kod <code>start/<wbr>step1/<wbr>step2</code> tylko za nim nadąża.</p>
+<p><strong>Ruch A (na <code>start</code>, przed krokiem 1):</strong> napisz <code>expect(new BookingConfirmation().confirm(booking)).toBe(&#x27;&#x27;)</code>, uruchom i skopiuj rzeczywisty wynik z diffu Vitest do oczekiwań. Test dalej jest czerwony, bo zmienia się sekunda. Dodaj &quot;scrubber&quot;, który maskuje linię z czasem (<code>document.replace(/<wbr>Wygenerowano: .*\n/<wbr>g, &#x27;Wygenerowano: &lt;czas&gt;\n&#x27;)</code>), i ustaw locale jawnie na czas wywołania (<code>inLocale(&#x27;pl-PL&#x27;, () =&gt; ...)</code>). Teraz test jest zielony i deterministyczny. Dopisz przypadki na obu bokach progów: 10 i 11 biletów, rano i wieczorem, kasa i online.</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">function</span> <span class="hljs-title function_">inLocale</span>(<span class="hljs-params"><span class="hljs-attr">locale</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">action</span>: () =&gt; <span class="hljs-built_in">string</span></span>): <span class="hljs-built_in">string</span> {
+  <span class="hljs-keyword">const</span> original = <span class="hljs-title class_">Number</span>.<span class="hljs-property"><span class="hljs-keyword">prototype</span></span>.<span class="hljs-property">toLocaleString</span>;
+  <span class="hljs-title class_">Number</span>.<span class="hljs-property"><span class="hljs-keyword">prototype</span></span>.<span class="hljs-property">toLocaleString</span> = <span class="hljs-keyword">function</span> (<span class="hljs-params"><span class="hljs-attr">this</span>: <span class="hljs-built_in">number</span>, <span class="hljs-attr">locales</span>?: <span class="hljs-title class_">Intl</span>.<span class="hljs-title class_">LocalesArgument</span>,
+    <span class="hljs-attr">options</span>?: <span class="hljs-title class_">Intl</span>.<span class="hljs-title class_">NumberFormatOptions</span></span>): <span class="hljs-built_in">string</span> {
+    <span class="hljs-keyword">return</span> original.<span class="hljs-title function_">call</span>(<span class="hljs-variable language_">this</span>, locales ?? locale, options);
+  };
+  <span class="hljs-keyword">try</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-title function_">action</span>();
+  } <span class="hljs-keyword">finally</span> {
+    <span class="hljs-title class_">Number</span>.<span class="hljs-property"><span class="hljs-keyword">prototype</span></span>.<span class="hljs-property">toLocaleString</span> = original;
+  }
+}
+</code></pre>
+<p>W trakcie wychodzą dwa znaleziska, które test zapisuje, a nie poprawia:</p>
+<ul>
+<li>rabat grupowy działa od <strong>11</strong> biletów (<code>&gt; 10</code>), choć regulamin mówi &quot;10+&quot; - przypadek nazwany <code>ZASTANE: ...</code>,</li>
+<li>kwoty zależą od locale serwera: na <code>pl-PL</code> jest <code>74,00</code>, na <code>en-US</code> <code>74.00</code> (test <code>foundDuringCharacterizationAmountsDependOnServerLocale</code>).</li>
+</ul>
+<h3 id="krok-1-parameterize-constructor-wstrzykniety-clock" tabindex="-1"><a class="header-anchor" href="#krok-1-parameterize-constructor-wstrzykniety-clock"><span>Krok 1: Parameterize Constructor - wstrzyknięty Clock</span></a></h3>
+<p><strong>W IDE:</strong> VS Code nie ma Extract Parameter ani Introduce Field dla konstruktora, więc ruch robimy ręcznie w dwóch małych krokach. Najpierw dodaj konstruktor z parametrem domyślnym: <code>constructor(private readonly clock: Clock = systemClock) {}</code> (import <code>Clock</code> i <code>systemClock</code> z <code>shared/<wbr>time.js</code> podpowie Quick Fix ⌘.). Uruchom test - nic się nie zmieniło, bo nikt jeszcze nie czyta pola. Potem w <code>confirm</code> zamień <code>LocalDateTime.now()</code> na <code>LocalDateTime.now(this.clock)</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">BookingConfirmation</span> {
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">clock</span>: <span class="hljs-title class_">Clock</span> = systemClock</span>) {}
+  ...
+      + <span class="hljs-string">&#x27;Wygenerowano: &#x27;</span> + <span class="hljs-title class_">LocalDateTime</span>.<span class="hljs-title function_">now</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">clock</span>).<span class="hljs-title function_">toString</span>() + <span class="hljs-string">&#x27;\n&#x27;</span>;
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s01</code> - 15 testów zielonych, w tym <code>fromStep1TheWholeDocumentIsDeterministic</code> (z <code>fixedClock(...)</code> porównujemy także linię z czasem, bez scrubbera).
+<strong>Co powiedzieć:</strong> to minimalna zmiana, która robi szew dla testu. Wywołanie bez argumentu zostaje (parametr domyślny to zegar systemowy), więc produkcyjni klienci nie widzą różnicy. Scrubber był rusztowaniem i od tego kroku jest potrzebny tylko dla <code>start</code>.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s01 0 1</code></p>
+<h3 id="krok-2-pierwsza-refaktoryzacja-pod-ochrona-testu" tabindex="-1"><a class="header-anchor" href="#krok-2-pierwsza-refaktoryzacja-pod-ochrona-testu"><span>Krok 2: pierwsza refaktoryzacja pod ochroną testu</span></a></h3>
+<p><strong>W IDE:</strong> zaznacz ciało pętli od <code>let p: number;</code> do końca <code>if</code> z porankiem (<code>p = p - 5.00; }</code>), ⌃⇧R, &quot;Extract to method in class 'BookingConfirmation'&quot;, nazwa <code>ticketPrice</code>. VS Code wykryje dwa wejścia (<code>b</code>, <code>t</code>) i jedno wyjście (<code>p</code>), więc w pętli zostanie zmienna z wynikiem metody. Kursor na tej zmiennej, ⌃⇧R, &quot;Inline variable&quot;. W pętli zostaje <code>sum = sum + this.ticketPrice(b, t);</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> t <span class="hljs-keyword">of</span> b.<span class="hljs-property">ticketTypes</span>) {
+  sum = sum + <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">ticketPrice</span>(b, t);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony - ten sam dokument, znak w znak.
+<strong>Co powiedzieć:</strong> kusi, żeby przy okazji zamienić <code>number</code> na <code>Decimal</code>, podać jawne locale i poprawić próg grupy. Każda z tych rzeczy zmienia wydruk, więc to trzy osobne decyzje z wymaganiem, a nie refaktoryzacja.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s01 1 2</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Test charakterystyki porównuje <strong>pełny dokument</strong>, a nie wybrane liczby, dla przypadków po obu stronach progów. Ten sam zestaw oczekiwań uruchamiamy na <code>start</code>, <code>step1</code> i <code>step2</code>, co jest testem równoważności etapów. Oczekiwania zapisaliśmy raz, zatwierdzone przez człowieka, a nie liczone na nowo przez starą wersję kodu. Kod zmienia się minimalnie: szew na czas i jedna ekstrakcja.</p>
+<h3 id="pulapki" tabindex="-1"><a class="header-anchor" href="#pulapki"><span>Pułapki</span></a></h3>
+<ul>
+<li>Test, który wylicza oczekiwania tym samym algorytmem co kod (&quot;drugi raz to samo&quot;), niczego nie charakteryzuje.</li>
+<li>Test zależny od strefy czasowej, locale albo bieżącej daty przejdzie na laptopie i padnie na CI. Tutaj locale ustawiamy na czas wywołania i przywracamy w <code>finally</code>. Podmiana <code>Number.prototype.toLocaleString</code> bez <code>finally</code> rozlałaby się na inne testy w tym samym procesie.</li>
+<li>&quot;Poprawienie&quot; znaleziska z charakterystyki w tym samym commicie co refaktoryzacja. Znalezisko zapisujemy (<code>ZASTANE: ...</code>), zgłaszamy i poprawiamy osobno.</li>
+<li>Brak sprawdzenia czułości testu. Zmień na chwilę <code>&gt; 10</code> na <code>&gt;= 10</code> w <code>start</code> i zobacz, że test padnie. Potem cofnij.</li>
+</ul>
+<h3 id="pytanie-do-sali" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali"><span>Pytanie do sali</span></a></h3>
+<p>Znaleźliście w charakterystyce ewidentny błąd (rabat od 11 biletów). Kto decyduje, czy go poprawić, i jak powinien wyglądać commit z poprawką?</p>
+<h2 id="scena-s02-break-dependencies-seam-dla-zadania-przypomnien" tabindex="-1"><a class="header-anchor" href="#scena-s02-break-dependencies-seam-dla-zadania-przypomnien"><span>Scena s02. Break Dependencies - seam dla zadania przypomnień</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 4.10 Seam, punkt aktywacji i cel rozrywania; 4.12 Minimalny szew przejściowy; 4.14 Break Dependencies - przed i po; 4.16 Bezpieczne ruchy automatami IDE, gdy brak testów
+<strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>s02_breakdependencies</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s02</code> (<code>S02SeamTest.test.ts</code>)
+<strong>Czas:</strong> ~20 min</p>
+<h3 id="w-skrocie-1" tabindex="-1"><a class="header-anchor" href="#w-skrocie-1"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> <code>ShowtimeReminderJob</code> sam tworzy bazę, czyta zegar systemowy i woła statyczny mailer, więc nie da się go uruchomić w teście. Kolejnymi małymi ruchami wyciągamy trzy zależności do konstruktora, aż test może podstawić fałszywą bazę, stały zegar i lambdę zamiast maila.</p>
+<p><strong>Zasada:</strong> Break Dependencies tworzy seam - miejsce, w którym można podstawić inną implementację bez edycji algorytmu, żeby uruchomić kod bez kosztownego otoczenia i obserwować jego komunikację. Wybieramy najwęższy skuteczny seam: parametr, zależność konstruktora, <code>Clock</code> albo typ funkcyjny, a nie interfejs przed każdą klasą. To nie jest zmiana reguły biznesowej, tylko zmiana miejsca tworzenia zależności.</p>
+<p><strong>Efekt:</strong> Klasa ma pierwszy prawdziwy test z granicą 120/121 minut, a produkcyjny konstruktor (parametry domyślne) składa te same implementacje co wcześniej, łącznie z bazą otwieraną przy każdym <code>run()</code>. Kosztem są trzy nowe małe typy i konstruktor z trzema parametrami.</p>
+<p><strong>Różnica względem Javy:</strong> <code>Supplier&lt;BookingStore&gt;</code> to typ funkcyjny <code>() =&gt; BookingStore</code>, <code>Clock</code> pochodzi z <code>workshop/<wbr>shared/<wbr>time.ts</code> (w teście <code>fixedClock(NOW)</code>), a <code>@FunctionalInterface ReminderSender</code> to alias typu funkcyjnego. Drugi konstruktor Javy (<code>this(...)</code>) zastępują parametry domyślne jedynego konstruktora. Klasy TS nie są <code>final</code>, więc ceną seamu z kroku 3 jest metoda <code>protected</code> (punkt rozszerzenia przez dziedziczenie), która w kroku 4 znika. Test ma jeden <code>FakeStore</code> dla wszystkich kroków - interfejsy <code>BookingStore</code> z kroków mają ten sam kształt, a TypeScript typuje strukturalnie.</p>
+<h3 id="co-widzimy-1" tabindex="-1"><a class="header-anchor" href="#co-widzimy-1"><span>Co widzimy</span></a></h3>
+<p><code>ShowtimeReminderJob.run</code> wysyła przypomnienia na 2 godziny przed seansem. Wszystkie zależności są zaszyte w środku: produkcyjna baza tworzona przez <code>new</code>, bieżący czas i statyczny mailer. Konstruktor <code>LegacyDatabase</code> rzuca <code>IllegalStateError</code> poza serwerownią, a <code>ReminderMailer.send</code> - poza produkcją. <strong>Tej klasy nie da się uruchomić w teście</strong> - test sceny dla <code>start</code> (<code>startCannotEvenRunInATest</code>) tylko to dokumentuje.</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-title function_">run</span>(): <span class="hljs-built_in">number</span> {
+  <span class="hljs-keyword">const</span> database = <span class="hljs-keyword">new</span> <span class="hljs-title class_">LegacyDatabase</span>();
+  <span class="hljs-keyword">const</span> now = <span class="hljs-title class_">LocalDateTime</span>.<span class="hljs-title function_">now</span>();
+  ...
+      <span class="hljs-title class_">ReminderMailer</span>.<span class="hljs-title function_">send</span>(booking.<span class="hljs-property">email</span>,
+        <span class="hljs-string">`Przypomnienie: <span class="hljs-subst">${booking.title}</span>`</span>, ...);
+      database.<span class="hljs-title function_">markReminded</span>(booking.<span class="hljs-property">id</span>);
+</code></pre>
+<p>Sekwencja ze slajdu 4.15: nazwij zachowanie i punkt obserwacji, wprowadź najmniejszy szew bez zmiany logiki, zabezpiecz go testem z fake/spy, przenieś wybór do jawnego punktu aktywacji, usuń konstrukcję przejściową. Charakterystyki nie da się napisać przed pierwszym ruchem, więc pierwsze ruchy muszą być mechaniczne i małe (slajd 4.16). VS Code nie ma tu wszystkich automatów, więc część ruchów robimy ręcznie, a kompilator wskazuje miejsca do poprawy.</p>
+<h3 id="krok-1-extract-interface-parameterize-constructor" tabindex="-1"><a class="header-anchor" href="#krok-1-extract-interface-parameterize-constructor"><span>Krok 1: Extract Interface + Parameterize Constructor</span></a></h3>
+<p><strong>W IDE:</strong> VS Code nie wydziela interfejsu z klasy, więc ręcznie: plik <code>BookingStore.ts</code> z interfejsem <code>BookingStore</code> z dwiema metodami (<code>paidBookings</code>, <code>markReminded</code>), a na <code>LegacyDatabase</code> dopisz <code>implements BookingStore</code>. Potem w <code>ShowtimeReminderJob</code>: pole <code>stores: () =&gt; BookingStore</code> i parametr konstruktora z wartością domyślną <code>() =&gt; new LegacyDatabase()</code>. W <code>run()</code> zamień <code>new LegacyDatabase()</code> na <code>this.stores()</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-attr">stores</span>: () =&gt; <span class="hljs-title class_">BookingStore</span> = () =&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">LegacyDatabase</span>()</span>) {
+  <span class="hljs-variable language_">this</span>.<span class="hljs-property">stores</span> = <span class="hljs-title function_">requireNonNull</span>(stores, <span class="hljs-string">&#x27;stores&#x27;</span>);
+}
+
+<span class="hljs-title function_">run</span>(): <span class="hljs-built_in">number</span> {
+  <span class="hljs-keyword">const</span> database = <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">stores</span>();
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s02</code> - testy <code>step1...</code> zielone: z fałszywą bazą zadanie działa, gdy nic nie jest do wysłania.
+<strong>Co powiedzieć:</strong> przekazujemy fabrykę, a nie gotową bazę, bo stary kod otwierał połączenie przy każdym <code>run()</code>. Gdybyśmy dali domyślnie <code>stores: BookingStore = new LegacyDatabase()</code>, wyjątek poleciałby już w konstruktorze - zmienilibyśmy czas życia zależności i moment błędu.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s02 0 1</code></p>
+<h3 id="krok-2-clock-jako-zaleznosc" tabindex="-1"><a class="header-anchor" href="#krok-2-clock-jako-zaleznosc"><span>Krok 2: Clock jako zależność</span></a></h3>
+<p><strong>W IDE:</strong> ręcznie (VS Code nie ma Introduce Parameter; ⌃⇧R dodałby co najwyżej parametr do wydzielanej funkcji, a potrzebujemy zależności konstruktora): pole <code>clock: Clock</code>, drugi parametr konstruktora z wartością domyślną <code>systemClock</code>, w <code>run()</code> <code>LocalDateTime.now(this.clock)</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">const</span> now = <span class="hljs-title class_">LocalDateTime</span>.<span class="hljs-title function_">now</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">clock</span>);
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony. Test <code>step2ControlsTimeButStillHitsStaticMailer</code> pokazuje dwie rzeczy: przypadki bez wysyłki działają przy stałym zegarze, a przypadek &quot;do wysłania&quot; wciąż kończy się wyjątkiem SMTP.
+<strong>Co powiedzieć:</strong> czas był ukrytym wejściem. Zegar czytamy w tym samym miejscu co wcześniej (po utworzeniu bazy), więc kolejność się nie zmienia. Następna przeszkoda jest widoczna w teście - statyczny mailer.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s02 1 2</code></p>
+<h3 id="krok-3-subclass-and-override-method-i-pierwszy-test" tabindex="-1"><a class="header-anchor" href="#krok-3-subclass-and-override-method-i-pierwszy-test"><span>Krok 3: Subclass and Override Method i pierwszy test</span></a></h3>
+<p><strong>W IDE:</strong> zaznacz wywołanie <code>ReminderMailer.send(...)</code>, ⌃⇧R &gt; Extract to method in class 'ShowtimeReminderJob', nazwa <code>sendReminder</code>. VS Code tworzy metodę <code>private</code> - zmień ją ręcznie na <code>protected</code>. W teście anonimowa podklasa (<code>new (class extends step3.ShowtimeReminderJob { ... })(...)</code>) nadpisuje <code>sendReminder</code> i zapisuje wiadomości do tablicy - to jest <strong>pierwszy prawdziwy test</strong> tej klasy.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">protected</span> <span class="hljs-title function_">sendReminder</span>(<span class="hljs-attr">to</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">subject</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">body</span>: <span class="hljs-built_in">string</span>): <span class="hljs-built_in">void</span> {
+  <span class="hljs-title class_">ReminderMailer</span>.<span class="hljs-title function_">send</span>(to, subject, body);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony: 3 przypadki z granicą 120/121 minut, już przypomniane i już rozpoczęte.
+<strong>Co powiedzieć:</strong> to najtańszy seam, gdy nie możemy jeszcze zmienić konstruktora - ale ma cenę: klasa ma teraz punkt rozszerzenia przez dziedziczenie (metodę <code>protected</code>), a test zależy od szczegółu implementacji (nazwy metody chronionej).
+<strong>Snapshot:</strong> <code>step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s02 2 3</code></p>
+<h3 id="krok-4-seam-z-dziedziczenia-na-typ-funkcyjny" tabindex="-1"><a class="header-anchor" href="#krok-4-seam-z-dziedziczenia-na-typ-funkcyjny"><span>Krok 4: seam z dziedziczenia na typ funkcyjny</span></a></h3>
+<p><strong>W IDE:</strong> utwórz <code>ReminderSender.ts</code> z <code>export type ReminderSender = (to: string, subject: string, body: string) =&gt; void;</code>, dodaj trzeci parametr konstruktora z wartością domyślną wołającą <code>ReminderMailer.send</code>. Inline Method nie ma w VS Code, więc ręcznie: w <code>run()</code> zamień <code>this.sendReminder(...)</code> na <code>this.sender(...)</code> i usuń metodę <code>protected</code>. W teście podklasę zastępuje lambda.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-title function_">constructor</span>(<span class="hljs-params">
+  <span class="hljs-attr">stores</span>: () =&gt; <span class="hljs-title class_">BookingStore</span> = () =&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">LegacyDatabase</span>(),
+  <span class="hljs-attr">clock</span>: <span class="hljs-title class_">Clock</span> = systemClock,
+  <span class="hljs-attr">sender</span>: <span class="hljs-title class_">ReminderSender</span> = (to, subject, body) =&gt; <span class="hljs-title class_">ReminderMailer</span>.send(to, subject, body),
+</span>) {
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony - te same 3 przypadki dla <code>step3</code> (podklasa) i <code>step4</code> (lambda).
+<strong>Co powiedzieć:</strong> pod ochroną testu z kroku 3 wymieniliśmy seam na najwęższy możliwy. Produkcja (parametry domyślne) składa dokładnie te same implementacje co wcześniej - zmieniło się <strong>miejsce tworzenia zależności</strong>, nie reguła.
+<strong>Snapshot:</strong> <code>step4/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s02 3 4</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-1" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-1"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>step4/<wbr>ShowtimeReminderJob</code>: trzy zależności w konstruktorze, każda o najwęższym kontrakcie potrzebnym klientowi (<code>BookingStore</code> z dwiema metodami, <code>Clock</code>, <code>ReminderSender</code> z jedną sygnaturą). Reguła przypomnień nie zmieniła się ani o znak. Dopiero teraz można bezpiecznie dodać nową regułę biznesową (np. przypomnienie SMS), bo test widzi i czas, i wysyłki.</p>
+<h3 id="pulapki-1" tabindex="-1"><a class="header-anchor" href="#pulapki-1"><span>Pułapki</span></a></h3>
+<ul>
+<li><code>stores: BookingStore = new LegacyDatabase()</code> jako parametr domyślny: zmiana czasu życia i momentu wyjątku (test <code>step1KeepsConnectionLifetimeOfProductionConstructor</code>).</li>
+<li>Interfejs &quot;na zapas&quot; z wszystkimi metodami <code>LegacyDatabase</code> zamiast dwóch potrzebnych.</li>
+<li>Seam typowany klasą <code>LegacyDatabase</code> zamiast interfejsu - dopóki klasa ma tylko metody publiczne, fake pasuje strukturalnie, ale pierwsze pole <code>private</code> albo <code>#private</code> robi z typu klasy typ nominalny i test nie podstawi już własnej implementacji.</li>
+<li>Zostawienie Subclass and Override na stałe: metoda <code>protected</code> i klasa otwarta do dziedziczenia tylko dla testu.</li>
+</ul>
+<h3 id="pytanie-do-sali-1" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-1"><span>Pytanie do sali</span></a></h3>
+<p>Kiedy Subclass and Override jest lepszym pierwszym ruchem niż Parameterize Constructor?</p>
+<h2 id="scena-s03-wektor-obserwowalnego-zachowania-platnosc-za-bilety" tabindex="-1"><a class="header-anchor" href="#scena-s03-wektor-obserwowalnego-zachowania-platnosc-za-bilety"><span>Scena s03. Wektor obserwowalnego zachowania - płatność za bilety</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 4.6 Wektor obserwowalnego zachowania; 2.2 Weryfikacja stanu a weryfikacja zachowania; 3.4-3.5 Pokrycie: zalety, ograniczenia, progi, nadużycia
+<strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>s03_behaviourvector</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s03</code> (<code>S03ResultOnlyTest.test.ts</code>, <code>S03BehaviourVectorTest.test.ts</code>)
+<strong>Czas:</strong> ~12 min</p>
+<h3 id="w-skrocie-2" tabindex="-1"><a class="header-anchor" href="#w-skrocie-2"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> Po &quot;porządkach&quot; kolegi <code>TicketCheckout.pay</code> wysyła mail z potwierdzeniem także klientowi z odrzuconą kartą, a test sprawdzający tylko wynik tego nie widzi. Wprowadzamy seam dla maili, naprawiamy regresję i dodajemy seam dla płatności, żeby test widział pełny wektor.</p>
+<p><strong>Zasada:</strong> Wektor obserwowalnego zachowania to wszystko, co klient może zauważyć: wynik, wyjątki (typ, komunikat, moment), stan po sukcesie i po błędzie, wywołania współpracowników z ich kolejnością, czas i granice. Test sprawdzający jeden wymiar przepuści regresję w pozostałych, dlatego granica kontraktu ma być świadomą decyzją, a nie skutkiem słabego testu.</p>
+<p><strong>Efekt:</strong> Test widzi wynik, wyjątek, maile i obciążenia karty w jednym dzienniku oraz status rezerwacji. Zachowanie świadomie się zmienia w kroku 2: przy odrzuconej karcie znika błędny mail o opłaceniu - to naprawa błędu, a nie refaktoryzacja, choć wynik metody pozostaje ten sam.</p>
+<p><strong>Różnica względem Javy:</strong> <code>@FunctionalInterface Mailer</code> i <code>PaymentGateway</code> to aliasy typów funkcyjnych, więc w teście wystarczy funkcja strzałkowa (albo pole-strzałka <code>MailLog.add</code>). Konstruktory z domyślnymi zależnościami (<code>this(CinemaMailer::send)</code>) to parametry domyślne. <code>Objects.requireNonNull(card, &quot;card&quot;)</code> to <code>requireNonNull(card, &#x27;card&#x27;)</code> rzucające <code>NullPointerError</code>, więc w pełnym wektorze jest <code>wyjatek=NullPointerError: card</code>. <code>Booking.status()</code> to getter <code>status</code> bez settera - stan zmienia tylko <code>markPaid()</code>.</p>
+<h3 id="co-widzimy-2" tabindex="-1"><a class="header-anchor" href="#co-widzimy-2"><span>Co widzimy</span></a></h3>
+<p><code>TicketCheckout.pay</code> to kod <strong>po</strong> &quot;porządkach&quot; kolegi (Consolidate Duplicate Conditional Fragments): mail potwierdzający wysunięto za <code>if</code>, więc dostaje go także klient z odrzuconą kartą. Mailer i terminal są statyczne - z testu widać tylko wynik. <code>S03ResultOnlyTest</code> jest zielony dla każdego wariantu. Regresja przeszła.</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">const</span> charged = <span class="hljs-title class_">CardTerminal</span>.<span class="hljs-title function_">charge</span>(cardNumber, booking.<span class="hljs-property">amount</span>);
+<span class="hljs-keyword">if</span> (charged) {
+  booking.<span class="hljs-title function_">markPaid</span>();
+} <span class="hljs-keyword">else</span> {
+  <span class="hljs-title class_">CinemaMailer</span>.<span class="hljs-title function_">send</span>(booking.<span class="hljs-property">email</span>, <span class="hljs-string">`Platnosc odrzucona <span class="hljs-subst">${booking.id}</span>`</span>);
+}
+<span class="hljs-title class_">CinemaMailer</span>.<span class="hljs-title function_">send</span>(booking.<span class="hljs-property">email</span>, <span class="hljs-string">`Bilety <span class="hljs-subst">${booking.id}</span> oplacone: <span class="hljs-subst">${booking.amount.toString()}</span>`</span>);
+<span class="hljs-keyword">return</span> charged ? <span class="hljs-string">&#x27;OK&#x27;</span> : <span class="hljs-string">&#x27;DECLINED&#x27;</span>;
+</code></pre>
+<p>Pokaż tabelę ze slajdu 4.6: wynik, wyjątki, stan, współpracownicy, czas, granice. Które z nich ten test widzi?</p>
+<h3 id="krok-1-seam-dla-maili-regresja-staje-sie-widoczna" tabindex="-1"><a class="header-anchor" href="#krok-1-seam-dla-maili-regresja-staje-sie-widoczna"><span>Krok 1: seam dla maili - regresja staje się widoczna</span></a></h3>
+<p><strong>W IDE:</strong> utwórz <code>Mailer.ts</code> z <code>export type Mailer = (to: string, text: string) =&gt; void;</code>, dodaj parametr konstruktora z wartością domyślną <code>(to, text) =&gt; CinemaMailer.send(to, text)</code> i zamień statyczne wywołania na <code>this.mailer(...)</code>. Logika bez zmian.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-attr">mailer</span>: <span class="hljs-title class_">Mailer</span> = (to, text) =&gt; <span class="hljs-title class_">CinemaMailer</span>.send(to, text)</span>) {
+  <span class="hljs-variable language_">this</span>.<span class="hljs-property">mailer</span> = <span class="hljs-title function_">requireNonNull</span>(mailer, <span class="hljs-string">&#x27;mailer&#x27;</span>);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s03</code> - 23 testy zielone. <code>step1SeesTheRegressionThatResultOnlyTestMissed</code> dokumentuje, że po odrzuceniu karty idą dwa maile: &quot;Platnosc odrzucona B1&quot; i &quot;Bilety B1 oplacone: 114.00&quot;.
+<strong>Co powiedzieć:</strong> kod się nie zmienił, zmieniło się to, co widzimy. Test z samym wynikiem nie mógł tego wykryć.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s03 0 1</code></p>
+<h3 id="krok-2-naprawa-regresji-pod-ochrona-testu" tabindex="-1"><a class="header-anchor" href="#krok-2-naprawa-regresji-pod-ochrona-testu"><span>Krok 2: naprawa regresji pod ochroną testu</span></a></h3>
+<p><strong>W IDE:</strong> przenieś wysyłkę potwierdzenia do gałęzi sukcesu, zamień <code>charged ? &#x27;OK&#x27; : &#x27;DECLINED&#x27;</code> na dwa <code>return</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">if</span> (<span class="hljs-title class_">CardTerminal</span>.<span class="hljs-title function_">charge</span>(cardNumber, booking.<span class="hljs-property">amount</span>)) {
+  booking.<span class="hljs-title function_">markPaid</span>();
+  <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">mailer</span>(booking.<span class="hljs-property">email</span>, <span class="hljs-string">`Bilety <span class="hljs-subst">${booking.id}</span> oplacone: <span class="hljs-subst">${booking.amount.toString()}</span>`</span>);
+  <span class="hljs-keyword">return</span> <span class="hljs-string">&#x27;OK&#x27;</span>;
+}
+<span class="hljs-variable language_">this</span>.<span class="hljs-title function_">mailer</span>(booking.<span class="hljs-property">email</span>, <span class="hljs-string">`Platnosc odrzucona <span class="hljs-subst">${booking.id}</span>`</span>);
+<span class="hljs-keyword">return</span> <span class="hljs-string">&#x27;DECLINED&#x27;</span>;
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony: <code>fromStep2MailsAreCorrect</code>.
+<strong>Co powiedzieć:</strong> to naprawa błędu, nie refaktoryzacja - przywracamy kontrakt sprzed &quot;porządków&quot;. Wynik metody się nie zmienia, zmienia się efekt uboczny.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s03 1 2</code></p>
+<h3 id="krok-3-seam-dla-platnosci-i-pelny-wektor" tabindex="-1"><a class="header-anchor" href="#krok-3-seam-dla-platnosci-i-pelny-wektor"><span>Krok 3: seam dla płatności i pełny wektor</span></a></h3>
+<p><strong>W IDE:</strong> utwórz <code>PaymentGateway.ts</code> z <code>export type PaymentGateway = (card: string, amount: Money) =&gt; boolean;</code>, drugi parametr konstruktora z wartością domyślną <code>(card, amount) =&gt; CardTerminal.charge(card, amount)</code>. W teście oba fałszywe obiekty zapisują do <strong>jednej</strong> tablicy zdarzeń.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-title function_">constructor</span>(<span class="hljs-params">
+  <span class="hljs-attr">mailer</span>: <span class="hljs-title class_">Mailer</span> = (to, text) =&gt; <span class="hljs-title class_">CinemaMailer</span>.send(to, text),
+  <span class="hljs-attr">gateway</span>: <span class="hljs-title class_">PaymentGateway</span> = (card, amount) =&gt; <span class="hljs-title class_">CardTerminal</span>.charge(card, amount),
+</span>) {
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony: <code>step3ObservesTheFullVector</code> sprawdza wynik albo wyjątek (nazwa klasy błędu i komunikat), obciążenia i maile w jednej kolejności oraz status rezerwacji po operacji.
+<strong>Co powiedzieć:</strong> jeden dziennik dla wszystkich współpracowników pokazuje kolejność: najpierw obciążenie, potem mail. Stan po błędzie (<code>NEW</code> po odrzuceniu) i brak efektów przy wyjątku (<code>wyjatek=NullPointerError: card; zdarzenia=[]</code>) też są częścią kontraktu.
+<strong>Snapshot:</strong> <code>step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s03 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-2" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-2"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p><code>step3/<wbr>TicketCheckout</code> z dwoma seamami i test, który obserwuje pięć wymiarów wektora: wynik, wyjątek, efekty, kolejność efektów i stan. Granica kontraktu jest świadomą decyzją, a nie skutkiem zbyt słabego testu.</p>
+<h3 id="pulapki-2" tabindex="-1"><a class="header-anchor" href="#pulapki-2"><span>Pułapki</span></a></h3>
+<ul>
+<li>Test &quot;zielony, bo nic nie sprawdza&quot; - pokrycie linii 100%, a efekty uboczne niewidoczne.</li>
+<li>Osobne tablice dla maili i obciążeń - kolejność między współpracownikami ginie.</li>
+<li>Sprawdzanie komunikatu wyjątku bez sprawdzenia, że nie było efektów przed wyjątkiem.</li>
+<li>Metoda przekazana jako seam bez wiązania <code>this</code> (<code>new TicketCheckout(log.add)</code>, gdy <code>add</code> jest zwykłą metodą) - <code>this</code> jest wtedy <code>undefined</code> i test pada z innego powodu. Dlatego <code>MailLog.add</code> w teście to pole-strzałka.</li>
+<li>Logi: jeśli ktoś je parsuje (alerty, audyt), też należą do wektora - wtedy potrzebny kolejny seam.</li>
+</ul>
+<h3 id="pytanie-do-sali-2" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-2"><span>Pytanie do sali</span></a></h3>
+<p>Które elementy wektora sprawdzają testy w Waszym najważniejszym module? Czego nie widzą?</p>
+<h2 id="scena-s04-rownolegla-weryfikacja-shadow-kalkulatora-cen" tabindex="-1"><a class="header-anchor" href="#scena-s04-rownolegla-weryfikacja-shadow-kalkulatora-cen"><span>Scena s04. Równoległa weryfikacja (shadow) kalkulatora cen</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 4.18 Równoległa weryfikacja (parallel run)
+<strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>s04_parallelrun</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s04</code> (<code>S04EquivalenceTest.test.ts</code>, <code>S04SolutionTest.test.ts</code>)
+<strong>Czas:</strong> ~15 min</p>
+<h3 id="w-skrocie-3" tabindex="-1"><a class="header-anchor" href="#w-skrocie-3"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> <code>PriceService</code> woła tylko stary kalkulator liczący w <code>number</code>, a gotowy <code>CandidatePriceCalculator</code> nigdy nie był porównany z produkcją. Uruchamiamy kandydata w cieniu, zbieramy typowany raport rozbieżności, poprawiamy znaleziony błąd i wprowadzamy jawny tryb <code>MigrationMode</code>.</p>
+<p><strong>Zasada:</strong> Równoległa weryfikacja (shadow) liczy wynik obiema implementacjami na prawdziwym ruchu, ale klient dostaje wynik legacy, a awaria kandydata jest izolowana. Nadaje się dla czystych obliczeń bez efektów ubocznych. Zgodność obu implementacji nie dowodzi poprawności - obie mogą mieć ten sam błąd.</p>
+<p><strong>Efekt:</strong> Raport wskazał złą kolejność rabatu porannego i zniżki procentowej, a po poprawce zostaje tylko awaria dla 4DX. W trybie <code>CANDIDATE</code> zachowanie dla 4DX świadomie się zmienia (odrzucenie zamiast wyceny 0.00), a <code>LEGACY</code> służy za natychmiastowe wycofanie, dopóki stary kod istnieje.</p>
+<p><strong>Różnica względem Javy:</strong> <code>sealed interface Verification</code> z rekordami to unia klas <code>Agreement | Divergence | CandidateFailure</code> z polem <code>kind</code>, a <code>problems()</code> rozróżnia je <code>switch (entry.kind)</code> z <code>assertNever</code>. Raport awarii kandydata zawiera nazwę klasy błędu TypeScriptu (<code>IllegalArgumentError: Nieznany format: 4DX</code>), a nie <code>IllegalArgumentException</code> - odpowiednikiem <code>getClass().getSimpleName()</code> jest <code>error.name</code>. W kroku 1 <code>catch</code> łapie każdy błąd (TypeScript nie ma typowanych klauzul <code>catch</code>).</p>
+<h3 id="co-widzimy-3" tabindex="-1"><a class="header-anchor" href="#co-widzimy-3"><span>Co widzimy</span></a></h3>
+<p><code>start/<wbr>PriceService.ts</code> woła tylko <code>LegacyPriceCalculator</code> (liczy w <code>number</code>). Obok leży <code>CandidatePriceCalculator</code> (Money), napisany przez zespół, ale nigdy nieporównany z produkcją. Jedyne opcje: &quot;włączyć i zobaczyć&quot; albo wieczne testy ręczne.</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-title function_">price</span>(<span class="hljs-attr">query</span>: <span class="hljs-title class_">TicketQuery</span>): <span class="hljs-title class_">Money</span> {
+  <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">legacy</span>.<span class="hljs-title function_">price</span>(query);
+}
+</code></pre>
+<h3 id="krok-1-dodanie-cienia" tabindex="-1"><a class="header-anchor" href="#krok-1-dodanie-cienia"><span>Krok 1: dodanie cienia</span></a></h3>
+<p><strong>W IDE:</strong> w <code>price</code> po wyliczeniu wyniku legacy wywołaj kandydata w <code>try/<wbr>catch</code> (zaznaczenie i Surround With: snippet <code>try</code> z Quick Fix albo ręcznie) i licz niezgodności.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">const</span> result = <span class="hljs-variable language_">this</span>.<span class="hljs-property">legacy</span>.<span class="hljs-title function_">price</span>(query);
+<span class="hljs-keyword">try</span> {
+  <span class="hljs-keyword">if</span> (!<span class="hljs-variable language_">this</span>.<span class="hljs-property">candidate</span>.<span class="hljs-title function_">price</span>(query).<span class="hljs-title function_">equals</span>(result)) {
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">mismatchCount</span>++;
+  }
+} <span class="hljs-keyword">catch</span> {
+  <span class="hljs-variable language_">this</span>.<span class="hljs-property">mismatchCount</span>++;
+}
+<span class="hljs-keyword">return</span> result;
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; <code>step1ShadowSurvivesCandidateFailureButOnlyCountsMismatches</code> - błąd kandydata dla formatu 4DX nie przerywa sprzedaży.
+<strong>Co powiedzieć:</strong> klient zawsze dostaje wynik legacy. Ale licznik mówi tylko, ŻE coś się różni - nie wiemy co.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s04 0 1</code></p>
+<h3 id="krok-2-raport-rozbieznosci" tabindex="-1"><a class="header-anchor" href="#krok-2-raport-rozbieznosci"><span>Krok 2: raport rozbieżności</span></a></h3>
+<p><strong>W IDE:</strong> nowy moduł <code>VerificationReport.ts</code> z klasami <code>Agreement</code>, <code>Divergence</code>, <code>CandidateFailure</code> (pole <code>kind</code>) i unią <code>Verification</code>. ⌃⇧R → Extract to method <code>verify</code> w <code>PriceService</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">return</span> legacyPrice.<span class="hljs-title function_">equals</span>(candidatePrice)
+  ? <span class="hljs-keyword">new</span> <span class="hljs-title class_">Agreement</span>(query, legacyPrice)
+  : <span class="hljs-keyword">new</span> <span class="hljs-title class_">Divergence</span>(query, legacyPrice, candidatePrice);
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; <code>step2ReportShowsWhatDivergedAndWhy</code> - raport pokazuje dwie rozbieżności (3D dziecko rano: 17.20 vs 19.20, 2D student rano: 13.75 vs 15.00) i awarię dla 4DX (<code>IllegalArgumentError: Nieznany format: 4DX</code>).
+<strong>Co powiedzieć:</strong> z raportu widać wzorzec: rozbieżności tylko rano i tylko przy zniżce procentowej. Kandydat odejmuje rabat poranny przed procentem.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s04 1 2</code></p>
+<h3 id="krok-3-poprawka-znaleziona-przez-raport" tabindex="-1"><a class="header-anchor" href="#krok-3-poprawka-znaleziona-przez-raport"><span>Krok 3: poprawka znaleziona przez raport</span></a></h3>
+<p><strong>W IDE:</strong> w <code>CandidatePriceCalculator</code> przenieś blok rabatu porannego (⌥↓, Move Line Down) za wyliczenie zniżki procentowej.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">let</span> price = base.<span class="hljs-title function_">minus</span>(base.<span class="hljs-title function_">percent</span>(<span class="hljs-title class_">CandidatePriceCalculator</span>.<span class="hljs-title function_">discountPercent</span>(query.<span class="hljs-property">type</span>)));
+<span class="hljs-keyword">if</span> (query.<span class="hljs-property">start</span>.<span class="hljs-property">hour</span> &lt; <span class="hljs-number">12</span>) {
+  price = price.<span class="hljs-title function_">minus</span>(<span class="hljs-title class_">CandidatePriceCalculator</span>.<span class="hljs-property">MORNING_DISCOUNT</span>);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; w raporcie zostaje tylko awaria 4DX.
+<strong>Co powiedzieć:</strong> odrzucenie nieznanego formatu to świadoma decyzja (legacy wyceniało 4DX na 0.00!), a nie błąd. Zapisujemy ją jako zaakceptowaną różnicę.
+<strong>Snapshot:</strong> <code>step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s04 2 3</code></p>
+<h3 id="krok-4-przelaczenie" tabindex="-1"><a class="header-anchor" href="#krok-4-przelaczenie"><span>Krok 4: przełączenie</span></a></h3>
+<p><strong>W IDE:</strong> wyliczenie <code>MigrationMode { LEGACY, SHADOW, CANDIDATE }</code>, konstruktor <code>PriceService(mode = MigrationMode.SHADOW, report = new VerificationReport())</code>, <code>switch</code> w <code>price</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">switch</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-property">mode</span>) {
+  <span class="hljs-keyword">case</span> <span class="hljs-title class_">MigrationMode</span>.<span class="hljs-property">LEGACY</span>: <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">legacy</span>.<span class="hljs-title function_">price</span>(query);
+  <span class="hljs-keyword">case</span> <span class="hljs-title class_">MigrationMode</span>.<span class="hljs-property">SHADOW</span>: <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">shadow</span>(query);
+  <span class="hljs-keyword">case</span> <span class="hljs-title class_">MigrationMode</span>.<span class="hljs-property">CANDIDATE</span>: <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">candidate</span>.<span class="hljs-title function_">price</span>(query);
+  <span class="hljs-attr">default</span>: <span class="hljs-keyword">return</span> <span class="hljs-title function_">assertNever</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">mode</span>);
+}
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; równoważność obejmuje wszystkie trzy tryby, <code>step4CandidateModeIsAuthoritativeAndRejectsUnknownFormat</code> pokazuje świadomą zmianę dla 4DX.
+<strong>Co powiedzieć:</strong> tryb zamiast flagi boolean, wybór w jednym miejscu. <code>LEGACY</code> to natychmiastowe wycofanie, dopóki nie usuniemy starego kodu.
+<strong>Snapshot:</strong> <code>step4/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s04 3 4</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-3" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-3"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Shadow daje dowód na prawdziwym ruchu, zanim nowa implementacja stanie się autorytatywna. Typowane zdarzenia raportu pozwalają podjąć decyzję bez parsowania logów.</p>
+<h3 id="pulapki-3" tabindex="-1"><a class="header-anchor" href="#pulapki-3"><span>Pułapki</span></a></h3>
+<ul>
+<li>Brak izolacji awarii kandydata - błąd w cieniu zatrzymuje sprzedaż.</li>
+<li>Zgodność obu implementacji nie dowodzi poprawności: obie mogą mieć ten sam błąd (np. wycena 4DX na 0.00 w legacy).</li>
+<li>Produkcyjny cień kosztuje: latencja, timeout, limit ruchu.</li>
+</ul>
+<h3 id="pytanie-do-sali-3" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-3"><span>Pytanie do sali</span></a></h3>
+<p>Ile dni ruchu i ile zgodnych porównań wystarczy, żeby przełączyć tryb na CANDIDATE? Kto o tym decyduje?</p>
+<h2 id="scena-s05-granice-trybu-shadow-efekty-uboczne" tabindex="-1"><a class="header-anchor" href="#scena-s05-granice-trybu-shadow-efekty-uboczne"><span>Scena s05. Granice trybu shadow - efekty uboczne</span></a></h2>
+<p><strong>Temat ze slajdów:</strong> 4.19 Granice trybu shadow
+<strong>Katalog:</strong> <code>typescript/<wbr>src/<wbr>workshop/<wbr>m3/<wbr>s05_shadowlimits</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s05</code> (<code>S05EquivalenceTest.test.ts</code>, <code>S05SolutionTest.test.ts</code>)
+<strong>Czas:</strong> ~12 min</p>
+<h3 id="w-skrocie-4" tabindex="-1"><a class="header-anchor" href="#w-skrocie-4"><span>W skrócie</span></a></h3>
+<p><strong>Co robimy:</strong> <code>ShadowBooking</code> stosuje shadow do rezerwacji z efektami ubocznymi, więc klient dostaje dwa maile i dwa obciążenia karty, a cień niczego nie zgłasza. Wprowadzamy port <code>Effects</code>, w cieniu nagrywamy efekty zamiast je wykonywać, a na końcu wydzielamy czysty <code>BookingPlanner</code>, który zwraca plan jako dane.</p>
+<p><strong>Zasada:</strong> Podwójne wykonanie w trybie shadow jest bezpieczne tylko dla czystych obliczeń - płatności, maili, zapisów ani zdarzeń nie wolno powielać. Efekty zamieniamy w dane (Separate Query from Modifier): opis &quot;co zrobić&quot; można porównać, a wykonuje się go tylko raz. Zgodność zwracanego wyniku nie dowodzi zgodności efektów.</p>
+<p><strong>Efekt:</strong> Po rezerwacji klient dostaje jeden mail i jedno obciążenie, a cień porównuje zaplanowane efekty z efektami legacy i wyłapuje błędną kwotę w mailu kandydata. Bezpieczeństwo gwarantuje typ, bo <code>BookingPlanner</code> nie ma dostępu do portu efektów; kosztem jest rozdzielenie planu od wykonania i dodatkowy typ <code>BookingPlan</code>.</p>
+<p><strong>Różnica względem Javy:</strong> efekty planu (w Javie <code>sealed interface Effect</code> z rekordami) to klasy <code>Charge</code>, <code>Save</code>, <code>SendMail</code> z polem <code>kind</code>, metodami <code>describe()</code> i <code>applyTo(port)</code>, połączone w unię <code>Effect</code> w module <code>BookingPlan.ts</code>. Lista efektów w <code>BookingPlan</code> jest zamrożona (<code>Object.freeze</code>), jak <code>List.copyOf</code> w rekordzie.</p>
+<h3 id="co-widzimy-4" tabindex="-1"><a class="header-anchor" href="#co-widzimy-4"><span>Co widzimy</span></a></h3>
+<p><code>start/<wbr>ShadowBooking.ts</code> stosuje shadow &quot;jak dla kalkulatora&quot; do rezerwacji z efektami ubocznymi. <code>NewBookingFlow</code> sam obciąża kartę, zapisuje wiersz i wysyła mail. Test pokazuje: klient dostaje <strong>dwa maile i dwa obciążenia</strong>, a cień niczego nie zgłasza, bo porównuje tylko zwracany tekst.</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">const</span> result = <span class="hljs-variable language_">this</span>.<span class="hljs-property">legacy</span>.<span class="hljs-title function_">book</span>(request);
+<span class="hljs-keyword">try</span> {
+  <span class="hljs-keyword">const</span> shadow = <span class="hljs-variable language_">this</span>.<span class="hljs-property">candidate</span>.<span class="hljs-title function_">book</span>(request); <span class="hljs-comment">// też obciąża kartę i wysyła mail</span>
+</code></pre>
+<h3 id="krok-1-port-efektow-parameterize-constructor" tabindex="-1"><a class="header-anchor" href="#krok-1-port-efektow-parameterize-constructor"><span>Krok 1: port efektów (Parameterize Constructor)</span></a></h3>
+<p><strong>W IDE:</strong> interfejs <code>Effects</code> z operacjami <code>Infrastructure</code> używanymi przez nowy przepływ piszemy ręcznie (VS Code nie ma Extract Interface), adapter <code>RealEffects implements Effects</code> (⌘. → Implement interface). Typ parametru konstruktora <code>NewBookingFlow</code> zmieniamy ręcznie z <code>Infrastructure</code> na <code>Effects</code>; miejsca wywołań wskaże <code>npm run typecheck</code>.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-variable language_">this</span>.<span class="hljs-property">candidate</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">NewBookingFlow</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">RealEffects</span>(infra));
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; <code>step1PreparatoryRefactoringKeepsTheBugOnPurpose</code> - nadal dwa maile.
+<strong>Co powiedzieć:</strong> refaktoryzacja przygotowawcza zachowuje zachowanie, także błędne. Mamy szew, który w następnym kroku zmieni wszystko.
+<strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s05 0 1</code></p>
+<h3 id="krok-2-przechwycenie-efektow-w-cieniu" tabindex="-1"><a class="header-anchor" href="#krok-2-przechwycenie-efektow-w-cieniu"><span>Krok 2: przechwycenie efektów w cieniu</span></a></h3>
+<p><strong>W IDE:</strong> nowa klasa <code>RecordingEffects implements Effects</code> zapisuje zamiary w formacie dziennika. <code>ShadowBooking</code> przekazuje kandydatowi nagrywarkę i porównuje nagrane efekty z efektami, które faktycznie wykonało legacy.
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">const</span> recorder = <span class="hljs-keyword">new</span> <span class="hljs-title class_">RecordingEffects</span>();
+<span class="hljs-keyword">const</span> shadow = <span class="hljs-keyword">new</span> <span class="hljs-title class_">NewBookingFlow</span>(recorder).<span class="hljs-title function_">book</span>(request);
+<span class="hljs-variable language_">this</span>.<span class="hljs-title function_">compare</span>(<span class="hljs-string">&#x27;wynik&#x27;</span>, [result], [shadow]);
+<span class="hljs-variable language_">this</span>.<span class="hljs-title function_">compare</span>(<span class="hljs-string">&#x27;efekty&#x27;</span>, legacyEffects, recorder.<span class="hljs-title function_">recorded</span>());
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; <code>step2RecordsCandidateEffectsInsteadOfExecutingThem</code> - jeden mail, jedno obciążenie, a raport pokazuje rozbieżność w treści maila (kandydat pisze 50.00 zamiast 54.00).
+<strong>Co powiedzieć:</strong> porównanie efektów znalazło błąd, którego porównanie wyniku nie widziało.
+<strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s05 1 2</code></p>
+<h3 id="krok-3-separate-query-from-modifier-czysty-plan" tabindex="-1"><a class="header-anchor" href="#krok-3-separate-query-from-modifier-czysty-plan"><span>Krok 3: Separate Query from Modifier - czysty plan</span></a></h3>
+<p><strong>W IDE:</strong> z <code>NewBookingFlow.book</code> wydziel (⌃⇧R → Extract to method, potem ręcznie do nowego pliku) klasę <code>BookingPlanner</code> z metodą <code>plan</code>, która zwraca <code>new BookingPlan(result, effects)</code>. <code>NewBookingFlow</code> wykonuje plan na porcie; <code>ShadowBooking</code> woła tylko <code>BookingPlanner</code>. Plik <code>RecordingEffects.ts</code> usuń (Find All References potwierdzi brak użyć).
+<strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">const</span> plan = <span class="hljs-variable language_">this</span>.<span class="hljs-property">candidate</span>.<span class="hljs-title function_">plan</span>(request);
+<span class="hljs-variable language_">this</span>.<span class="hljs-title function_">compare</span>(<span class="hljs-string">&#x27;wynik&#x27;</span>, [result], [plan.<span class="hljs-property">result</span>]);
+<span class="hljs-keyword">const</span> planned = plan.<span class="hljs-property">effects</span>.<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">effect</span>) =&gt;</span> effect.<span class="hljs-title function_">describe</span>());
+<span class="hljs-variable language_">this</span>.<span class="hljs-title function_">compare</span>(<span class="hljs-string">&#x27;efekty&#x27;</span>, legacyEffects, planned);
+</code></pre>
+<p><strong>Uruchom:</strong> test zielony; <code>step3ComparesAPurePlanAndNeverTouchesInfrastructure</code>.
+<strong>Co powiedzieć:</strong> typ gwarantuje bezpieczeństwo: <code>BookingPlanner</code> nie ma dostępu do portu efektów, więc w cieniu nie da się go użyć &quot;za mocno&quot;.
+<strong>Snapshot:</strong> <code>step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s05 2 3</code></p>
+<h3 id="rozwiazanie-i-uzasadnienie-4" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-4"><span>Rozwiązanie i uzasadnienie</span></a></h3>
+<p>Podwójne wykonanie tylko dla czystych obliczeń. Efekty (płatność, mail, zapis, zdarzenia) w cieniu są danymi do porównania, a nie akcjami.</p>
+<h3 id="pulapki-4" tabindex="-1"><a class="header-anchor" href="#pulapki-4"><span>Pułapki</span></a></h3>
+<ul>
+<li>Nagrywarka podpięta tylko w części miejsc - jeden zapomniany efekt i klient dostaje drugi SMS.</li>
+<li>Efekty ukryte w obliczeniu: sekwencja numerów rezerwacji, cache, licznik - też są efektami.</li>
+<li>Zgodność odpowiedzi API to nie dowód zgodności danych i transakcji.</li>
+</ul>
+<h3 id="pytanie-do-sali-4" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-4"><span>Pytanie do sali</span></a></h3>
+<p>Jakie efekty uboczne ma wasz &quot;czysty&quot; kod, o których zwykle nie myślicie (logi audytowe, metryki, sekwencje)?</p>
+<h2 id="proponowana-kolejnosc-pokazu" tabindex="-1"><a class="header-anchor" href="#proponowana-kolejnosc-pokazu"><span>Proponowana kolejność pokazu</span></a></h2>
+<p><strong>Ścieżka krótka (~50 min):</strong> jak zdobyć pierwszy dowód, gdy testów nie ma.</p>
+<ol>
+<li>Golden master <code>CinemaManager</code> (~3 min) - jeden szeroki test na cały stary system</li>
+<li>s01 Test charakterystyki (ruch A i krok 1, ~12 min)</li>
+<li>s02 Break Dependencies, kroki 1, 3 i 4 (~15 min)</li>
+<li>s03 Wektor obserwowalnego zachowania, kroki 1 i 3 (~10 min)</li>
+<li>s05 Granice trybu shadow, kroki 1 i 2 (~10 min)</li>
+</ol>
+<p><strong>Ścieżka pełna (~80 min):</strong> golden master → s01 → s02 → s03 → s04 → s05, czyli kolejność sekcji 4 slajdów. Jeśli chcesz wcześniej ustawić język wektora zachowania, pokaż s03 przed s02 (scena sama wprowadza swoje seamy). Po s03 zrób przerwę na pytania. Sceny s03 i s05 dobrze nadają się na samodzielną pracę uczestników, jeśli brakuje czasu na pokaz (patrz plik zadań modułu 3).</p>
+
+</main>
+</div>
+<script>if(matchMedia('(max-width:900px)').matches){var d=document.querySelector('.toc details');if(d)d.open=false}</script>
+</body>
+</html>

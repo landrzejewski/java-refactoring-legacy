@@ -8,10 +8,10 @@ import { LegacyPaymentGateway } from './LegacyPaymentGateway.js';
  *
  * Klasa robi wszystko: repertuar, rezerwacje, cennik, płatności,
  * zwroty, program lojalnościowy, powiadomienia, raporty i rozliczenia
- * z dystrybutorem. Z niej wycięto sceny warsztatu (moduły 3-8).
+ * z dystrybutorem. Z niej wycięto sceny warsztatu (moduły 2, 3 i 5).
  *
  * NIE REFAKTORYZUJ tej klasy bezpośrednio - chroni ją
- * CinemaManagerGoldenMasterTest, a sceny m7/s13 i m8 pracują na kopiach.
+ * CinemaManagerGoldenMasterTest, a sceny warsztatu pracują na kopiach.
  */
 export class CinemaManager {
   // format: 1 = 2D, 2 = 3D, 3 = IMAX

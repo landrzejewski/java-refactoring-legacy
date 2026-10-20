@@ -1,0 +1,977 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Przykłady: Moduł 4. Wzorce projektowe - przewodnik prowadzącego po przykładach</title>
+<style>:root{--bg:#fbfbfa;--fg:#1d1f23;--muted:#5f6670;--line:#e3e5e8;--card:#ffffff;--accent:#2457c5;--accent-bg:#eef3fd;
+--code-bg:#f4f5f7;--note-bg:#fff7e6;--note-line:#e6a700;--th:#f1f3f6;
+--k:#b3246b;--s:#1a7f37;--c:#6e7781;--n:#0550ae;--t:#8250df;--f:#6639ba;--a:#953800;
+--kind:#2457c5}
+@media (prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3036;--card:#1c1f23;--accent:#7aa7ff;--accent-bg:#1e2a40;
+--code-bg:#1f2328;--note-bg:#2b2412;--note-line:#c99400;--th:#23272d;
+--k:#ff7b9c;--s:#7ee2a0;--c:#8b949e;--n:#79c0ff;--t:#d2a8ff;--f:#d2a8ff;--a:#ffa657}}
+body.zadania{--kind:#1a7f37} body.warsztat{--kind:#c2570c} body.warsztat-zadania{--kind:#0f7b7b} body.rozwiazania{--kind:#b3246b} body.przyklady{--kind:#2457c5}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.topbar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 24px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);border-top:3px solid var(--kind)}
+.topbar a{color:var(--fg);text-decoration:none}
+.home{font-weight:600}
+.tabs{display:flex;gap:4px}
+.tab{padding:4px 12px;border-radius:999px;font-size:15px;color:var(--muted)!important}
+.tab:hover{background:var(--code-bg)}
+.tab.active{background:var(--accent-bg);color:var(--accent)!important;font-weight:600}
+.pager{margin-left:auto;display:flex;gap:14px;font-size:15px}
+.pager a{color:var(--muted)}.pager a:hover{color:var(--accent)}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:48px;max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+.layout.no-toc{grid-template-columns:minmax(0,1fr);max-width:1000px}
+aside{position:sticky;top:72px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px}
+.toc-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;font-weight:600}
+.toc ul{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.toc li a{display:block;padding:3px 12px;color:var(--muted);text-decoration:none;line-height:1.35}
+.toc li.h3 a{padding-left:24px;font-size:13px}
+.toc li a:hover{color:var(--accent)}
+main{min-width:0;max-width:860px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 1.2rem;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:2.6rem 0 .8rem;padding-top:.6rem;border-top:1px solid var(--line)}
+h3{font-size:1.18rem;margin:2rem 0 .6rem}
+h4{font-size:1rem;margin:1.5rem 0 .5rem}
+h1 a,h2 a,h3 a,h4 a{color:inherit;text-decoration:none}
+h2 a:hover::after,h3 a:hover::after{content:" #";color:var(--muted)}
+p,ul,ol{margin:.6rem 0 1rem}
+li{margin:.25rem 0}
+li>ul,li>ol{margin:.2rem 0}
+a{color:var(--accent)}
+strong{font-weight:650}
+code{font:0.88em/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre.code{position:relative;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:1rem 0 1.4rem}
+pre.code code{background:none;padding:0;font-size:14px;line-height:1.55}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:6px;right:10px;font:11px ui-monospace,Menlo,monospace;color:var(--muted);text-transform:uppercase}
+.table-wrap{overflow-x:auto;margin:1rem 0 1.4rem;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--th);font-weight:600}
+tr:last-child td{border-bottom:none}
+blockquote{margin:1rem 0 1.4rem;padding:10px 16px;background:var(--note-bg);border-left:4px solid var(--note-line);border-radius:0 8px 8px 0}
+blockquote p{margin:.3rem 0}
+hr{border:none;border-top:1px solid var(--line);margin:2rem 0}
+hr+h2{border-top:none;margin-top:1.4rem}
+main p code,main li code,main td code{overflow-wrap:break-word}
+.toc summary{cursor:pointer;list-style:none}.toc summary::-webkit-details-marker{display:none}
+.hljs-keyword,.hljs-selector-tag,.hljs-built_in,.hljs-literal{color:var(--k)}
+.hljs-string,.hljs-regexp,.hljs-addition{color:var(--s)}
+.hljs-comment,.hljs-quote,.hljs-meta{color:var(--c);font-style:italic}
+.hljs-number,.hljs-symbol{color:var(--n)}
+.hljs-type,.hljs-class .hljs-title,.hljs-title.class_{color:var(--t)}
+.hljs-title,.hljs-title.function_,.hljs-section{color:var(--f)}
+.hljs-attr,.hljs-attribute,.hljs-variable,.hljs-params,.hljs-tag{color:var(--a)}
+.hljs-deletion{color:var(--k)}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:16px;padding:20px 16px 60px}
+aside{position:static;max-height:none;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--card)}
+.toc-title{margin:0}.toc details[open] .toc-title{margin-bottom:8px}.toc summary::after{content:" ▾"}
+body{font-size:16px}.topbar{padding:8px 16px}.pager{margin-left:0}h1{font-size:1.6rem}}
+@media print{.topbar,aside{display:none}.layout{display:block;padding:0}main{max-width:none}
+pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#000;font-size:12pt}}
+.langs{margin-left:auto}.langs+.pager{margin-left:0}
+.langs{margin-left:auto}.langs+.pager{margin-left:0}</style>
+</head>
+<body class="przyklady">
+<header class="topbar"><a class="home" href="../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../slajdy/04-wzorce-projektowe-slajdy.html">Slajdy</a><a class="tab" href="../zadania/04-wzorce-projektowe.html">Zadania</a><a class="tab active" href="04-wzorce-projektowe.html">Przykłady</a><a class="tab" href="../rozwiazania/04-wzorce-projektowe.html">Rozwiązania</a></div><div class="pager"><a href="03-testowanie-a-bezpieczenstwo.html" title="Poprzedni moduł">&larr; 03</a><a href="05-refaktoryzacja-do-wzorcow.html" title="Następny moduł">05 &rarr;</a></div></header>
+<div class="layout">
+<aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#uruchamianie-przykladow-i-testow">Uruchamianie przykładów i testów</a></li><li class="h3"><a href="#java">Java</a></li><li class="h3"><a href="#c">C#</a></li><li class="h3"><a href="#typescript">TypeScript</a></li><li class="h2"><a href="#mapa-przykladow">Mapa przykładów</a></li><li class="h2"><a href="#przyklad-1-factory-method-i-abstract-factory-creationalfactorymethod-creationalabstractfactory">Przykład 1. Factory Method i Abstract Factory (creational.factorymethod, creational.abstractfactory)</a></li><li class="h2"><a href="#przyklad-2-builder-creationalbuilder">Przykład 2. Builder (creational.builder)</a></li><li class="h2"><a href="#przyklad-3-prototype-i-singleton-creationalprototype-creationalsingleton">Przykład 3. Prototype i Singleton (creational.prototype, creational.singleton)</a></li><li class="h2"><a href="#przyklad-4-adapter-structuraladapter">Przykład 4. Adapter (structural.adapter)</a></li><li class="h2"><a href="#przyklad-5-bridge-structuralbridge">Przykład 5. Bridge (structural.bridge)</a></li><li class="h2"><a href="#przyklad-6-composite-structuralcomposite">Przykład 6. Composite (structural.composite)</a></li><li class="h2"><a href="#przyklad-7-decorator-i-proxy-structuraldecorator-structuralproxy">Przykład 7. Decorator i Proxy (structural.decorator, structural.proxy)</a></li><li class="h2"><a href="#przyklad-8-facade-i-flyweight-structuralfacade-structuralflyweight">Przykład 8. Facade i Flyweight (structural.facade, structural.flyweight)</a></li><li class="h2"><a href="#przyklad-9-chain-of-responsibility-i-command-behavioralchainofresponsibility-behavioralcommand">Przykład 9. Chain of Responsibility i Command (behavioral.chainofresponsibility, behavioral.command)</a></li><li class="h2"><a href="#przyklad-10-interpreter-i-iterator-behavioralinterpreter-behavioraliterator">Przykład 10. Interpreter i Iterator (behavioral.interpreter, behavioral.iterator)</a></li><li class="h2"><a href="#przyklad-11-mediator-i-observer-behavioralmediator-behavioralobserver">Przykład 11. Mediator i Observer (behavioral.mediator, behavioral.observer)</a></li><li class="h2"><a href="#przyklad-12-memento-behavioralmemento">Przykład 12. Memento (behavioral.memento)</a></li><li class="h2"><a href="#przyklad-13-state-i-strategy-behavioralstate-behavioralstrategy">Przykład 13. State i Strategy (behavioral.state, behavioral.strategy)</a></li><li class="h2"><a href="#przyklad-14-template-method-behavioraltemplatemethod">Przykład 14. Template Method (behavioral.templatemethod)</a></li><li class="h2"><a href="#przyklad-15-visitor-behavioralvisitor">Przykład 15. Visitor (behavioral.visitor)</a></li><li class="h2"><a href="#przyklad-16-warianty-funkcyjne-fn">Przykład 16. Warianty funkcyjne (fn)</a></li><li class="h2"><a href="#przyklad-17-punkt-wejscia-i-testy-modulu-pltrainingmodule4">Przykład 17. Punkt wejścia i testy modułu (pl.training.module4)</a></li><li class="h2"><a href="#proponowany-plan-modulu-ok-240-min">Proponowany plan modułu (ok. 240 min)</a></li></ul></details></nav></aside>
+<main>
+<h1>Moduł 4. Wzorce projektowe - przewodnik prowadzącego po przykładach</h1>
+<p>Dokument opisuje kod modułu 4 w projekcie: co ilustruje każdy przykład, jak go pokazać na żywo i na co zwrócić uwagę grupy. Slajdy: <code>src/<wbr>main/<wbr>resources/<wbr>md/<wbr>slides/<wbr>04-wzorce-projektowe-slajdy.md</code>.</p>
+<p>Wszystkie ścieżki Java są względne wobec katalogu głównego repozytorium. Kod produkcyjny: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr></code> (pakiety <code>creational</code>, <code>structural</code>, <code>behavioral</code>, <code>fn</code>), testy: <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr></code>. W tabelach i opisach pakiety podajemy względem <code>pl.training.module4</code> (np. <code>creational.builder</code> oznacza <code>pl.training.module4.creational.builder</code>).</p>
+<p>Moduł 4 jest katalogiem wzorców: pokazujemy intencję, strukturę, koszt i wariant w nowoczesnej Javie. Przykłady są celowo małe i mają po jednej klasie <code>Application</code> z metodą <code>main</code>. Refaktoryzacje prowadzące do wzorców (i od nich) oraz porównania wzorców w kontekście zmiany kodu legacy są tematem modułu 5 - w razie pytań o „jak tu dojść z istniejącego kodu” odsyłaj tam.</p>
+<h2 id="uruchamianie-przykladow-i-testow" tabindex="-1"><a class="header-anchor" href="#uruchamianie-przykladow-i-testow"><span>Uruchamianie przykładów i testów</span></a></h2>
+<h3 id="java" tabindex="-1"><a class="header-anchor" href="#java"><span>Java</span></a></h3>
+<pre class="code" data-lang="bash"><code class="hljs"><span class="hljs-comment"># z katalogu głównego repozytorium</span>
+mvn -q compile &amp;&amp; java -<span class="hljs-built_in">cp</span> target/classes pl.training.module4.Module4Examples            <span class="hljs-comment"># lista kluczy</span>
+mvn -q compile &amp;&amp; java -<span class="hljs-built_in">cp</span> target/classes pl.training.module4.Module4Examples builder    <span class="hljs-comment"># jeden przykład</span>
+mvn -q compile &amp;&amp; java -<span class="hljs-built_in">cp</span> target/classes pl.training.module4.Module4Examples all        <span class="hljs-comment"># wszystkie po kolei</span>
+
+<span class="hljs-comment"># testy modułu 4</span>
+mvn <span class="hljs-built_in">test</span> -Dtest=<span class="hljs-string">&#x27;pl.training.module4.**&#x27;</span>
+</code></pre>
+<p>Pojedyncza klasa testowa, np. <code>mvn test -Dtest=AdditionalPatternsExamplesTest</code>. Z IDE: uruchom <code>Module4Examples.main</code> z argumentem (klucz albo <code>all</code>) albo bezpośrednio <code>main</code> wybranej klasy <code>Application</code>.</p>
+<p><code>Module4Examples</code> to jeden punkt wejścia zamiast 34 metod <code>main</code>:</p>
+<ul>
+<li>bez argumentów wypisuje dostępne klucze i klasy,</li>
+<li>z kluczem (np. <code>observer</code>) uruchamia jeden przykład; nieznany klucz kończy się kodem wyjścia 1 i komunikatem <code>Unknown example: ...</code>,</li>
+<li><code>all</code> uruchamia wszystkie przykłady w kolejności z listy, poprzedzając każdy nagłówkiem <code>=== klucz ===</code>.</li>
+</ul>
+<p>Klucze: <code>abstract-factory</code>, <code>builder</code>, <code>factory-method</code>, <code>prototype</code>, <code>singleton</code>, <code>adapter</code>, <code>bridge</code>, <code>composite</code>, <code>decorator</code>, <code>facade</code>, <code>flyweight</code>, <code>proxy</code>, <code>chain-of-responsibility</code>, <code>command</code>, <code>interpreter</code>, <code>iterator</code>, <code>mediator</code>, <code>memento</code>, <code>observer</code>, <code>state</code>, <code>strategy</code>, <code>template-method</code>, <code>visitor</code> oraz warianty funkcyjne <code>fn-chain</code>, <code>fn-command</code>, <code>fn-decorator</code>, <code>fn-factory</code>, <code>fn-iterator</code>, <code>fn-memento</code>, <code>fn-observer</code>, <code>fn-singleton</code>, <code>fn-state</code>, <code>fn-strategy</code>, <code>fn-template</code>.</p>
+<p>Przykład <code>decorator</code> czyta jedną linię ze standardowego wejścia; gdy wejście jest puste lub zamknięte, używa tekstu <code>Hello Decorator Pattern</code>. W trybie <code>all</code> wejście nie jest czytane wcale, więc uruchomienie nigdy się nie blokuje. Do pokazu z własnym tekstem: <code>echo &quot;Ala ma kota&quot; | java -cp target/<wbr>classes pl.training.module4.Module4Examples decorator</code>.</p>
+<p>Część przykładów pisze przez <code>java.util.logging</code>. Wtedy przed każdym komunikatem <code>INFO:</code> pojawia się linia z datą i nazwą klasy (format zależy od ustawień regionalnych, np. <code>paź 20, 2026 1:47:34 PM pl.training.module4.creational.builder.Director run</code>). Poniżej pomijamy te linie.</p>
+<p>Oczekiwane wyjście <code>Module4Examples all</code> (bez linii nagłówkowych <code>java.util.logging</code>):</p>
+<pre class="code" data-lang="text"><code class="hljs">=== abstract-factory ===
+INFO: Connection: 21
+INFO: Secured connection: 22
+=== builder ===
+INFO: Connection url: jdbc:postgres://localhost:5432/test?encoding=UTF-8
+=== factory-method ===
+INFO: Id: 00000000000000000001
+=== prototype ===
+INFO: Window: Window(x=0, y=0, width=800, height=600)
+=== singleton ===
+INFO: Is same: true
+Info: Success
+=== adapter ===
+INFO: Changing temperature: 18.0
+=== bridge ===
+Email to anna: Server restarted
+SMS to anna: Server restarted
+Email to anna: [URGENT] SERVER RESTARTED
+SMS to anna: [URGENT] SERVER RESTARTED
+=== composite ===
+Department: IT Department
+ - Employee Kowalski
+ - Employee Karlsson
+=== decorator ===
+INFO: hello_decorator_pattern
+=== facade ===
+INFO: Step 1
+INFO: Step 2
+=== flyweight ===
+Oak (green) at 1,2
+Pine (dark green) at 5,3
+Oak (green) at 9,8
+true
+=== proxy ===
+INFO: Checking security
+INFO: Payment started
+INFO: Payment completed
+=== chain-of-responsibility ===
+INFO: Test
+INFO: Processing: Test
+=== command ===
+INFO: 2026-10-20T13:47:34.438274
+INFO: Connecting...
+INFO: Connected...
+=== interpreter ===
+INFO: Result: 25.0
+=== iterator ===
+Playing: Intro (90s)
+Playing: Main Theme (225s)
+Playing: Outro (130s)
+Reversed: Outro
+Reversed: Main Theme
+Reversed: Intro
+=== mediator ===
+Alice sends: Hello everyone
+Bob received from Alice: Hello everyone
+Carol received from Alice: Hello everyone
+Bob sends: Hi Alice
+Alice received from Bob: Hi Alice
+Carol received from Bob: Hi Alice
+=== memento ===
+INFO: Deposited balance: 10
+INFO: Restored balance: 0
+=== observer ===
+INFO: Started
+=== state ===
+INFO: State: NEW
+INFO: State: PAID
+INFO: State: SHIPPED
+INFO: Cancellation is not allowed in state SHIPPED
+=== strategy ===
+INFO: Id: 6eae08aa-784f-4dfd-a8e2-7a8ad38731a2
+INFO: Id: 00000000000000000001
+=== template-method ===
+TEMPLATE METHOD
+=== visitor ===
+Department name too short: Ma
+=== fn-chain ===
+Request -&gt; validate -&gt; authenticate -&gt; log
+=== fn-command ===
+Opening file...
+Saving file...
+Closing file...
+=== fn-decorator ===
+[DECORATOR PATTERN]
+=== fn-factory ===
+Circle
+Square
+=== fn-iterator ===
+ONE
+TWO
+THREE
+=== fn-memento ===
+Set state: A
+Set state: B
+Restored: A
+=== fn-observer ===
+Observer 1 received: Functional Observer pattern with lambdas!
+Observer 2 received: FUNCTIONAL OBSERVER PATTERN WITH LAMBDAS!
+=== fn-singleton ===
+Connecting to DB...
+true
+=== fn-state ===
+Locked → unlocking
+Unlocked → locking
+Locked → unlocking
+=== fn-strategy ===
+UPPER: FUNCTIONAL PATTERNS
+LOWER: functional patterns
+REVERSE: snrettaP lanoitcnuF
+=== fn-template ===
+Start processing...
+Custom step with: data
+Finish processing!
+</code></pre>
+<p>Wartości niedeterministyczne: znacznik czasu w <code>command</code> i UUID w <code>strategy</code> są inne przy każdym uruchomieniu.</p>
+<h3 id="c" tabindex="-1"><a class="header-anchor" href="#c"><span>C#</span></a></h3>
+<pre class="code" data-lang="bash"><code class="hljs"><span class="hljs-built_in">cd</span> csharp &amp;&amp; dotnet run --project src/Training.Module4 -- &lt;klucz|all&gt;
+<span class="hljs-built_in">cd</span> csharp &amp;&amp; dotnet <span class="hljs-built_in">test</span> tests/Training.Module4.Tests
+</code></pre>
+<p>Kod: <code>csharp/<wbr>src/<wbr>Training.Module4</code> z katalogami <code>Creational</code>, <code>Structural</code>, <code>Behavioral</code> i <code>Fn</code> (np. <code>csharp/<wbr>src/<wbr>Training.Module4/<wbr>Creational/<wbr>Builder</code>, <code>csharp/<wbr>src/<wbr>Training.Module4/<wbr>Structural/<wbr>Bridge</code>, <code>csharp/<wbr>src/<wbr>Training.Module4/<wbr>Behavioral/<wbr>Visitor</code>). Interfejsy mają prefiks <code>I</code> (np. <code>IMessageSender</code>, <code>IVisitor</code>), pozostałe nazwy klas są takie same jak w Javie. Testy: <code>csharp/<wbr>tests/<wbr>Training.Module4.Tests</code> (<code>ExamplesSmokeTest.cs</code>, <code>AdditionalPatternsExamplesTest.cs</code>). Klucze przykładów są takie same jak w Javie.</p>
+<h3 id="typescript" tabindex="-1"><a class="header-anchor" href="#typescript"><span>TypeScript</span></a></h3>
+<pre class="code" data-lang="bash"><code class="hljs"><span class="hljs-built_in">cd</span> typescript &amp;&amp; npm ci &amp;&amp; npm run build &amp;&amp; npm run module4 -- &lt;klucz|all&gt;
+<span class="hljs-built_in">cd</span> typescript &amp;&amp; npx vitest run <span class="hljs-built_in">test</span>/module4
+</code></pre>
+<p>Kod: <code>typescript/<wbr>src/<wbr>module4</code> z katalogami <code>creational</code>, <code>structural</code>, <code>behavioral</code> i <code>fn</code> (te same nazwy pakietów co w Javie, np. <code>typescript/<wbr>src/<wbr>module4/<wbr>creational/<wbr>builder</code>), punkt wejścia <code>typescript/<wbr>src/<wbr>module4/<wbr>main.ts</code>. Testy: <code>typescript/<wbr>test/<wbr>module4</code> (<code>PatternsSmoke.test.ts</code>, <code>AdditionalPatternsExamplesTest.test.ts</code>).</p>
+<h2 id="mapa-przykladow" tabindex="-1"><a class="header-anchor" href="#mapa-przykladow"><span>Mapa przykładów</span></a></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Nr</th>
+<th>Przykład</th>
+<th>Sekcja slajdów</th>
+<th>Pakiet (<code>pl.training.module4.</code>)</th>
+<th>Klucz</th>
+<th>Testy</th>
+<th>Zadania</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Factory Method i Abstract Factory</td>
+<td>2.1-2.3</td>
+<td><code>creational.factorymethod</code>, <code>creational.abstractfactory</code></td>
+<td><code>factory-method</code>, <code>abstract-factory</code></td>
+<td><code>usesTheRegisteredFtpControlPort</code> + smoke</td>
+<td>Ćwiczenie 4 (K1, K12)</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Builder</td>
+<td>2.4-2.5</td>
+<td><code>creational.builder</code></td>
+<td><code>builder</code></td>
+<td>smoke</td>
+<td>Aktywność 2.8, Ćwiczenie 1 (F4), Ćwiczenie 4 (K7)</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Prototype i Singleton</td>
+<td>2.6-2.7</td>
+<td><code>creational.prototype</code>, <code>creational.singleton</code></td>
+<td><code>prototype</code>, <code>singleton</code></td>
+<td>smoke</td>
+<td>Ćwiczenie 3 (opcjonalnie)</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Adapter</td>
+<td>3.1-3.2</td>
+<td><code>structural.adapter</code></td>
+<td><code>adapter</code></td>
+<td><code>convertsTemperatureDifferencesWithoutAnAbsoluteScaleOffset</code></td>
+<td>Ćwiczenie 4 (K3)</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Bridge</td>
+<td>3.3</td>
+<td><code>structural.bridge</code></td>
+<td><code>bridge</code></td>
+<td><code>bridgeCombinesEveryMessageKindWithEverySender</code></td>
+<td>Ćwiczenie 2A</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Composite</td>
+<td>3.4-3.5</td>
+<td><code>structural.composite</code></td>
+<td><code>composite</code></td>
+<td>smoke</td>
+<td>Ćwiczenie 4 (K5)</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Decorator i Proxy</td>
+<td>3.6-3.7, 3.10-3.12</td>
+<td><code>structural.decorator</code>, <code>structural.proxy</code></td>
+<td><code>decorator</code>, <code>proxy</code></td>
+<td><code>decoratorUsesDefaultTextWhenStdinIsEmpty</code>, <code>decoratorTransformsTheLineReadFromStdin</code></td>
+<td>Aktywność 3.12, Ćwiczenie 1 (F3), Ćwiczenie 4 (K4)</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Facade i Flyweight</td>
+<td>3.8-3.9</td>
+<td><code>structural.facade</code>, <code>structural.flyweight</code></td>
+<td><code>facade</code>, <code>flyweight</code></td>
+<td><code>sharesOneFlyweightInstancePerIntrinsicState</code></td>
+<td>Ćwiczenie 4 (K11)</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Chain of Responsibility i Command</td>
+<td>4.1-4.3</td>
+<td><code>behavioral.chainofresponsibility</code>, <code>behavioral.command</code></td>
+<td><code>chain-of-responsibility</code>, <code>command</code></td>
+<td>smoke</td>
+<td>Ćwiczenie 3, Ćwiczenie 4 (K6)</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Interpreter i Iterator</td>
+<td>4.4-4.5</td>
+<td><code>behavioral.interpreter</code>, <code>behavioral.iterator</code></td>
+<td><code>interpreter</code>, <code>iterator</code></td>
+<td><code>iteratorDemoWalksThePlaylistForwardAndBackward</code>, <code>playlistIteratorIsExhaustedAfterTheLastSong</code></td>
+<td>Ćwiczenie 1 (F2, F6)</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Mediator i Observer</td>
+<td>4.6, 4.8-4.9</td>
+<td><code>behavioral.mediator</code>, <code>behavioral.observer</code></td>
+<td><code>mediator</code>, <code>observer</code></td>
+<td><code>mediatorDeliversMessagesToEveryoneExceptTheSender</code></td>
+<td>Ćwiczenie 1 (F1), Ćwiczenie 4 (K8, K9)</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Memento</td>
+<td>4.7</td>
+<td><code>behavioral.memento</code></td>
+<td><code>memento</code></td>
+<td><code>restoresTheBalanceRecordedInTheMemento</code></td>
+<td>Ćwiczenie 4 (K6)</td>
+</tr>
+<tr>
+<td>13</td>
+<td>State i Strategy</td>
+<td>4.10-4.13, 4.17-4.18</td>
+<td><code>behavioral.state</code>, <code>behavioral.strategy</code></td>
+<td><code>state</code>, <code>strategy</code></td>
+<td><code>orderStateMovesThroughItsLifecycleAndRejectsInvalidTransitions</code>, <code>doesNotSubtractAChargeDuringTheFreeRentalPeriod</code></td>
+<td>Aktywność 4.18, Ćwiczenie 1 (F5), Ćwiczenie 4 (K1, K2)</td>
+</tr>
+<tr>
+<td>14</td>
+<td>Template Method</td>
+<td>4.14</td>
+<td><code>behavioral.templatemethod</code></td>
+<td><code>template-method</code></td>
+<td>smoke</td>
+<td>Ćwiczenie 3</td>
+</tr>
+<tr>
+<td>15</td>
+<td>Visitor</td>
+<td>4.15-4.16</td>
+<td><code>behavioral.visitor</code></td>
+<td><code>visitor</code></td>
+<td>smoke</td>
+<td>Ćwiczenie 1 (F7), Ćwiczenie 2B</td>
+</tr>
+<tr>
+<td>16</td>
+<td>Warianty funkcyjne</td>
+<td>1.6, 4.19-4.20</td>
+<td><code>fn</code></td>
+<td><code>fn-*</code></td>
+<td><code>functionalStateDemoAlternatesTransitions</code> + smoke</td>
+<td>Ćwiczenie 3</td>
+</tr>
+<tr>
+<td>17</td>
+<td>Punkt wejścia i testy modułu</td>
+<td>przekrojowo</td>
+<td><code>Module4Examples</code></td>
+<td><code>all</code></td>
+<td><code>ExamplesSmokeTest</code>, <code>AdditionalPatternsExamplesTest</code></td>
+<td>-</td>
+</tr>
+</tbody>
+</table></div>
+<p>„Smoke” oznacza, że przykład jest objęty tylko testem <code>ExamplesSmokeTest.exampleRunsWithoutException</code> (uruchamia się bez wyjątku i coś wypisuje). To celowo słaba asercja - nie chroni żadnej reguły wzorca. Sekcja 1 slajdów (definicja, klasyfikacja, katalog, rodzaj zmienności, koszt wzorca) nie ma osobnego kodu; ilustruj ją uruchomieniem <code>Module4Examples</code> bez argumentów (lista 23 + 11 kluczy jako „mapa katalogu”) oraz przykładem 13 (ta sama struktura, różna intencja).</p>
+<hr>
+<h2 id="przyklad-1-factory-method-i-abstract-factory-creationalfactorymethod-creationalabstractfactory" tabindex="-1"><a class="header-anchor" href="#przyklad-1-factory-method-i-abstract-factory-creationalfactorymethod-creationalabstractfactory"><span>Przykład 1. Factory Method i Abstract Factory (<code>creational.factorymethod</code>, <code>creational.abstractfactory</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 2.1 Factory Method, 2.2 Abstract Factory, 2.3 fabryki w kodzie i ich koszt; nawiązanie do 1.4 (kod, który jedynie wybiera i tworzy obiekt).</p>
+<p><strong>Co ilustruje:</strong> dwa poziomy ukrywania konkretnych klas. W Factory Method klient (<code>Service</code>) dostaje obiekt, który tworzy <strong>jeden</strong> produkt (<code>IdGenerator</code>). W Abstract Factory klient dostaje fabrykę <strong>rodziny</strong> produktów (<code>Connection</code> i <code>SecuredConnection</code>), które muszą do siebie pasować.</p>
+<p><strong>Klasy:</strong></p>
+<ul>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>creational/<wbr>factorymethod/<wbr>IdGeneratorFactory.java</code> - interfejs z jedną metodą <code>create()</code>.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>creational/<wbr>factorymethod/<wbr>ProductionIdGeneratorFactory.java</code> - zwraca zawsze tę samą instancję <code>UuidGenerator</code>.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>creational/<wbr>factorymethod/<wbr>TestIdGeneratorFactory.java</code> - przy każdym <code>create()</code> zwraca nowy <code>IncrementalIdGenerator</code> (licznik od 1, format <code>%020d</code>).</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>creational/<wbr>factorymethod/<wbr>Service.java</code> - w <code>run()</code> woła <code>create()</code> i loguje <code>Id: ...</code>.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>creational/<wbr>abstractfactory/<wbr>ConnectionAbstractFactory.java</code> - <code>createConnection()</code>, <code>createSecuredConnection()</code>.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>creational/<wbr>abstractfactory/<wbr>ftp/<wbr>FtpConnectionFactory.java</code> (porty 21 i 22, <code>SftpConnection</code> z <code>AES</code>), <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>creational/<wbr>abstractfactory/<wbr>http/<wbr>HttpConnectionFactory.java</code> (porty 80 i 443).</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>creational/<wbr>abstractfactory/<wbr>Service.java</code> - używa wyłącznie interfejsów.</li>
+</ul>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li>Klasyczny Factory Method GoF jest <strong>klasowy</strong>: metoda wytwórcza jest abstrakcyjna w klasie twórcy i nadpisywana w podklasie. W repozytorium twórca jest wstrzykiwanym obiektem (<code>Service(IdGeneratorFactory)</code>), czyli wariant kompozycyjny - strukturalnie bliski jednoproduktowej fabryce abstrakcyjnej albo „strategii tworzenia”. Warto to powiedzieć wprost, bo uczestnicy często pytają o różnicę.</li>
+<li>Dwie fabryki mają <strong>różne kontrakty</strong>: produkcyjna współdzieli instancję, testowa tworzy nową. Ponieważ <code>Service.run()</code> woła <code>create()</code> za każdym razem, generator testowy przy każdym <code>run()</code> zaczyna od <code>00000000000000000001</code>. Pytanie do grupy: czy <code>create()</code> obiecuje nowy obiekt? Kontrakt fabryki trzeba nazwać.</li>
+<li>Abstract Factory chroni spójność rodziny (FTP + SFTP albo HTTP + HTTPS). Koszt widać przy pytaniu: „dodajmy <code>createProxyConnection()</code>” - zmiana interfejsu i obu fabryk. Nowa rodzina (np. <code>SmtpConnectionFactory</code>) to natomiast tylko nowe klasy.</li>
+<li>Wariant funkcyjny: <code>fn/<wbr>FunctionalStyleFactory</code> (<code>Supplier&lt;Shape&gt;</code>, <code>Square::new</code>). Dla jednej metody bez stanu lambda wystarcza; rodzina produktów to zwykle rekord z kilkoma <code>Supplier</code>.</li>
+</ul>
+<p><strong>Testy:</strong> <code>AdditionalPatternsExamplesTest.usesTheRegisteredFtpControlPort</code> (port 21 dla <code>FtpConnection</code>); poza tym tylko smoke.</p>
+<p><strong>Demonstracja na żywo (ok. 6 min):</strong></p>
+<ol>
+<li>Uruchom <code>factory-method</code>, potem w <code>creational/<wbr>factorymethod/<wbr>Application.java</code> zamień <code>TestIdGeneratorFactory</code> na <code>ProductionIdGeneratorFactory</code> i uruchom ponownie (UUID zamiast licznika). <code>Service</code> się nie zmienia.</li>
+<li>Uruchom <code>abstract-factory</code>, zamień <code>FtpConnectionFactory</code> na <code>HttpConnectionFactory</code> (porty 80 i 443).</li>
+<li>Zapytaj: „Co trzeba zmienić, by dodać trzeci produkt do rodziny?” i pokaż listę plików. Przywróć kod.</li>
+</ol>
+<hr>
+<h2 id="przyklad-2-builder-creationalbuilder" tabindex="-1"><a class="header-anchor" href="#przyklad-2-builder-creationalbuilder"><span>Przykład 2. Builder (<code>creational.builder</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 2.4 Builder - intencja i struktura, 2.5 kod i pułapki; Aktywność 2.8.</p>
+<p><strong>Co ilustruje:</strong> płynny interfejs budowy adresu JDBC z wartościami domyślnymi zależnymi od bazy oraz rolę <code>Director</code>. Wynik: <code>jdbc:postgres:/<wbr>/<wbr>localhost:5432/<wbr>test?encoding=UTF-8</code>.</p>
+<p><strong>Klasy:</strong></p>
+<ul>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>creational/<wbr>builder/<wbr>ConnectionUrlBuilder.java</code> - interfejs kroków <code>host</code>, <code>port</code>, <code>protocol</code>, <code>database</code>, <code>encoding</code>, <code>build</code>.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>creational/<wbr>builder/<wbr>GenericConnectionUrlBuilder.java</code> - realizacja ogólna, domyślne kodowanie <code>UTF-8</code>.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>creational/<wbr>builder/<wbr>MySqlConnectionUrlBuilder.java</code> - <strong>dziedziczy</strong> po <code>Generic...</code> i ustawia <code>mysql</code>/<code>3306</code>.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>creational/<wbr>builder/<wbr>PostgresSqlConnectionUrlBuilder.java</code> - <strong>deleguje</strong> do wewnętrznego <code>Generic...</code> i ustawia <code>postgres</code>/<code>5432</code>.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>creational/<wbr>builder/<wbr>ConnectionUrl.java</code> - produkt z polami pakietowymi i <code>toString()</code> w formacie JDBC.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>creational/<wbr>builder/<wbr>Director.java</code> - w <code>run()</code> woła <code>build()</code> i loguje wynik.</li>
+</ul>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li>Dwa sposoby ponownego użycia ogólnego buildera obok siebie: dziedziczenie (MySQL) i kompozycja z delegacją (PostgreSQL). Delegacja wymaga powtórzenia wszystkich metod, ale zwraca właściwy typ (<code>PostgresSqlConnectionUrlBuilder</code>) bez rzutowania i nie wiąże z wnętrzem klasy bazowej.</li>
+<li><code>build()</code> zwraca <strong>tę samą mutowalną instancję</strong> <code>ConnectionUrl</code>. Wywołanie <code>host(&quot;other&quot;)</code> po <code>build()</code> zmienia obiekt już przekazany dalej. To najważniejsza pułapka do pokazania (slajd 2.5).</li>
+<li>Brak walidacji niezmienników: bez <code>host</code> powstaje <code>jdbc:postgres:/<wbr>/<wbr>null:5432/<wbr>...</code>. Builder jest naturalnym miejscem na sprawdzenie kompletności i spójności całości (np. port w zakresie, wymagany host).</li>
+<li><code>Director</code> w GoF steruje kolejnością kroków budowy. Tu jedynie wywołuje <code>build()</code> - kroki wykonuje <code>Application</code>. Można zapytać, co musiałoby się znaleźć w <code>Director</code>, aby uzasadnić jego istnienie (np. „profil połączenia testowego”).</li>
+<li>W pakiecie <code>behavioral.observer</code> jest jeszcze jeden builder: <code>ServerEvent.builder()</code> - klasyczny wewnętrzny builder w stylu generowanym przez Lombok, nieużywany w demo. Wykorzystujemy go w Ćwiczeniu 1.</li>
+<li>Alternatywa w Javie 25: dla kilku pól wystarczy <code>record ConnectionUrl(...)</code> z walidacją w konstruktorze kanonicznym i statycznymi fabrykami <code>postgres(host, db)</code>, <code>mysql(host, db)</code>.</li>
+</ul>
+<p><strong>Testy:</strong> tylko smoke (<code>ExamplesSmokeTest</code>). Brak testu niezmienników jest świadomy - to dobre pytanie do grupy: jaki test wykryłby problem z mutowalnym produktem?</p>
+<p><strong>Demonstracja na żywo (ok. 5 min):</strong></p>
+<ol>
+<li>Uruchom <code>builder</code>.</li>
+<li>W <code>creational/<wbr>builder/<wbr>Application.java</code> po <code>new Director(builder).run();</code> dopisz <code>builder.host(&quot;prod-db&quot;); new Director(builder).run();</code> i pokaż, że „zbudowany” wcześniej obiekt to ten sam egzemplarz (np. zachowaj referencję z pierwszego <code>build()</code> i wypisz ją po zmianie).</li>
+<li>Usuń <code>.host(&quot;localhost&quot;)</code> - pokaż <code>null</code> w adresie. Przywróć kod.</li>
+</ol>
+<hr>
+<h2 id="przyklad-3-prototype-i-singleton-creationalprototype-creationalsingleton" tabindex="-1"><a class="header-anchor" href="#przyklad-3-prototype-i-singleton-creationalprototype-creationalsingleton"><span>Przykład 3. Prototype i Singleton (<code>creational.prototype</code>, <code>creational.singleton</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 2.6 Prototype, 2.7 Singleton; nawiązanie do 1.6 (enum i <code>memoize</code> jako zapis roli w Javie 25).</p>
+<p><strong>Co ilustruje:</strong> dwa wzorce kreacyjne, które w nowoczesnej Javie najczęściej zastępujemy prostszym idiomem. Prototype: nowe okno przez <code>clone()</code> istniejącego. Singleton: leniwie tworzony, synchronizowany <code>Logger.getInstance()</code>.</p>
+<p><strong>Klasy:</strong></p>
+<ul>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>creational/<wbr>prototype/<wbr>Window.java</code> - <code>final class Window implements Cloneable</code> z czterema polami <code>final int</code>, <code>clone()</code> z kowariantnym typem zwracanym.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>creational/<wbr>prototype/<wbr>Application.java</code> - klonuje <code>fullScreenWindow</code>; obiekt <code>dialog</code> jest tworzony, ale nieużywany.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>creational/<wbr>singleton/<wbr>Logger.java</code> - prywatny konstruktor, <code>synchronized static getInstance()</code>, leniwa inicjalizacja.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>fn/<wbr>FunctionalStyleSingleton.java</code> - <code>memoize(Supplier)</code> jako wariant funkcyjny.</li>
+</ul>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li><code>Window</code> jest niemutowalny, więc klonowanie niczego nie daje - ten sam efekt da współdzielenie instancji. Prototype ma sens dla obiektów kosztownych w konfiguracji i <strong>mutowalnych</strong> po skopiowaniu. Przy okazji: <code>Cloneable</code> ma wadliwy kontrakt (metoda <code>clone</code> w <code>Object</code>, wyjątek kontrolowany, płytka kopia); w Javie preferujemy konstruktor kopiujący lub metodę <code>copy()</code>.</li>
+<li><code>Module4Examples</code> opakowuje <code>prototype</code> w <code>runPrototype()</code>, bo <code>main</code> deklaruje <code>CloneNotSupportedException</code> - ilustracja kosztu wyjątku kontrolowanego w kontrakcie <code>clone()</code>.</li>
+<li><code>Logger.getInstance()</code> synchronizuje każde wywołanie. Alternatywy: idiom holder, <code>enum INSTANCE</code>, a najczęściej jedna instancja tworzona w composition root i przekazywana jawnie.</li>
+<li>Nazwa <code>Logger</code> koliduje z <code>java.util.logging.Logger</code> - dlatego <code>Application</code> używa pełnej nazwy kwalifikowanej dla loggera JUL. Drobiazg, ale dobrze pokazuje koszt globalnych nazw.</li>
+<li><code>memoize</code> daje jedną instancję <strong>na dostawcę</strong>, nie na proces - to zaleta (można wstrzyknąć inny dostawca w teście), ale też zmiana semantyki względem klasycznego Singletona.</li>
+</ul>
+<p><strong>Testy:</strong> tylko smoke.</p>
+<p><strong>Demonstracja na żywo (ok. 4 min):</strong> uruchom <code>prototype</code>, <code>singleton</code> i <code>fn-singleton</code>. Przy <code>fn-singleton</code> zwróć uwagę, że <code>Connecting to DB...</code> pojawia się raz, a <code>c1 == c2</code> daje <code>true</code>. Zapytaj: „Jak w teście podmienić <code>Logger.getInstance()</code>?” (bez zmian w kodzie produkcyjnym - nie da się łatwo).</p>
+<hr>
+<h2 id="przyklad-4-adapter-structuraladapter" tabindex="-1"><a class="header-anchor" href="#przyklad-4-adapter-structuraladapter"><span>Przykład 4. Adapter (<code>structural.adapter</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 3.1 Adapter - intencja i struktura, 3.2 kod i semantyka; 3.11 rodzina opakowań.</p>
+<p><strong>Co ilustruje:</strong> obiektowy Adapter tłumaczący interfejs <code>TemperatureController</code> (stopnie Celsjusza, dwie metody) na API <code>AirConditioningController.changeTemperature(deltaInFahrenheit)</code>.</p>
+<p><strong>Klasy:</strong></p>
+<ul>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>adapter/<wbr>TemperatureController.java</code> - interfejs docelowy (Target).</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>adapter/<wbr>AirConditioningController.java</code> - klasa adaptowana (Adaptee).</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>adapter/<wbr>TemperatureControllerAdapter.java</code> - adapter z prywatną konwersją <code>celsiusDeltaToFahrenheit</code>.</li>
+</ul>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li>Adapter przelicza <strong>różnicę</strong> temperatur, więc mnoży przez 1.8 bez dodawania 32. To właśnie semantyka, której nie widać w sygnaturze <code>double -&gt; double</code>. Test o długiej nazwie dokumentuje tę decyzję.</li>
+<li><code>temperatureDown</code> przekazuje wartość ujemną - adapter tłumaczy także znak i kierunek, nie tylko nazwę metody.</li>
+<li>Adapter nie dodaje logiki domenowej (np. limitów temperatury) - to byłaby inna odpowiedzialność.</li>
+<li>Wariant klasowy (adapter dziedziczący po <code>AirConditioningController</code> i implementujący <code>TemperatureController</code>) też jest możliwy, ale wiąże z klasą adaptowaną i ujawnia jej metody.</li>
+<li>Adapter na granicy z systemem zewnętrznym, tłumaczący model i błędy, prowadzi do Anti-Corruption Layer - moduł 5.</li>
+</ul>
+<p><strong>Testy:</strong> <code>AdditionalPatternsExamplesTest.convertsTemperatureDifferencesWithoutAnAbsoluteScaleOffset</code> - podklasa <code>RecordingAirConditioningController</code> (obiekt szpiegujący) zapisuje przekazane delty; oczekiwane <code>[18.0, -18.0]</code>.</p>
+<p><strong>Demonstracja na żywo (ok. 4 min):</strong></p>
+<ol>
+<li>Uruchom <code>adapter</code> (<code>Changing temperature: 18.0</code>).</li>
+<li>Kontrolna mutacja: w <code>celsiusDeltaToFahrenheit</code> zmień na <code>value * 1.8 + 32</code>. Uruchom <code>mvn test -Dtest=AdditionalPatternsExamplesTest</code> - test pada. Przywróć kod.</li>
+<li>Pytanie: czy „poprawny” wzór na przeliczenie temperatury zawsze jest poprawny w adapterze? (Zależy od tego, czy tłumaczymy wartość bezwzględną, czy różnicę.)</li>
+</ol>
+<hr>
+<h2 id="przyklad-5-bridge-structuralbridge" tabindex="-1"><a class="header-anchor" href="#przyklad-5-bridge-structuralbridge"><span>Przykład 5. Bridge (<code>structural.bridge</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 3.3 Bridge; 3.11 rodzina opakowań; Ćwiczenie 2A.</p>
+<p><strong>Co ilustruje:</strong> dwie niezależne hierarchie - rodzaj wiadomości (abstrakcja) i kanał wysyłki (implementacja). Abstrakcja trzyma referencję do implementacji zamiast po niej dziedziczyć, więc 2 rodzaje i 2 kanały dają 4 klasy obsługujące 4 kombinacje.</p>
+<p><strong>Klasy:</strong></p>
+<ul>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>bridge/<wbr>Message.java</code> - abstrakcja z chronionym polem <code>sender</code>.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>bridge/<wbr>TextMessage.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>bridge/<wbr>UrgentMessage.java</code> - rozszerzone abstrakcje (<code>UrgentMessage</code> dodaje <code>[URGENT] </code> i zamienia tekst na wielkie litery).</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>bridge/<wbr>MessageSender.java</code> - interfejs implementacji (jedna metoda).</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>bridge/<wbr>EmailSender.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>bridge/<wbr>SmsSender.java</code> - konkretne implementacje.</li>
+</ul>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li>Bridge projektuje się <strong>z góry</strong>, gdy wiadomo, że obie osie będą rosły. Adapter dodaje się <strong>po fakcie</strong> do istniejącego API. Strukturalnie oba to „obiekt z polem innego typu”.</li>
+<li><code>MessageSender</code> ma jedną metodę, więc kanał może być lambdą (<code>(recipient, content) -&gt; ...</code>). Abstrakcja (<code>Message</code>) zostaje klasą, bo rodzaje wiadomości mają własne zachowanie.</li>
+<li>Różnica względem Strategy: implementacja w moście jest trwałą częścią abstrakcji (ustalana przy tworzeniu), a nie algorytmem wymienianym przez klienta dla pojedynczej operacji. Granica bywa płynna - dobre pytanie do grupy.</li>
+<li>Rachunek klas: przy 3 rodzajach i 3 kanałach most daje 6 klas, a hierarchia kombinacji - 9. Ćwiczenie 2A to sprawdza w praktyce.</li>
+</ul>
+<p><strong>Testy:</strong> <code>AdditionalPatternsExamplesTest.bridgeCombinesEveryMessageKindWithEverySender</code> - porównuje cztery linie wyjścia <code>Application.main</code>.</p>
+<p><strong>Demonstracja na żywo (ok. 4 min):</strong> uruchom <code>bridge</code>. Narysuj na tablicy dwie hierarchie i zapytaj, ile klas powstałoby bez mostu po dodaniu kanału push i wiadomości podpisanej. Nie pisz kodu - to treść Ćwiczenia 2.</p>
+<hr>
+<h2 id="przyklad-6-composite-structuralcomposite" tabindex="-1"><a class="header-anchor" href="#przyklad-6-composite-structuralcomposite"><span>Przykład 6. Composite (<code>structural.composite</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 3.4 Composite - intencja i struktura, 3.5 wariant przezroczysty i bezpieczny.</p>
+<p><strong>Co ilustruje:</strong> drzewo działów (<code>Department</code>) i pracowników (<code>Employee</code>) obsługiwane jednym typem <code>Node</code>. <code>printInfo()</code> na dowolnym węźle drukuje całe poddrzewo.</p>
+<p><strong>Klasy:</strong></p>
+<ul>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>composite/<wbr>Node.java</code> - abstrakcyjny komponent z <code>name</code>, listą <code>children</code>, <code>addChild</code> i <code>setChildren</code>.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>composite/<wbr>Department.java</code> - kompozyt, drukuje siebie i dzieci.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>composite/<wbr>Employee.java</code> - liść, <code>addChild</code> rzuca <code>UnsupportedOperationException</code>.</li>
+</ul>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li>To wariant <strong>przezroczysty</strong>: zarządzanie dziećmi jest we wspólnym typie, więc liść musi rzucać wyjątek. Klient nie musi rozróżniać typów, ale kompilator nie ochroni przed <code>employee.addChild(...)</code>. Wariant bezpieczny przenosi <code>addChild</code> do kompozytu.</li>
+<li><code>children</code> jest chronione i mutowalne, a <code>setChildren</code> publiczne - każdy może podmienić listę dzieci. W nowoczesnej Javie: <code>sealed interface Node permits Department, Employee</code>, rekordy i <code>List.copyOf</code>.</li>
+<li>Brak ochrony przed cyklem (<code>a.addChild(b); b.addChild(a);</code> kończy się <code>StackOverflowError</code> przy <code>printInfo</code>).</li>
+<li>Demo wywołuje <code>printInfo()</code> na <code>itDepartment</code>, a nie na korzeniu - operacja na fragmencie hierarchii działa tak samo jak na całości (konsekwencja z katalogu).</li>
+<li>Ten sam model w wersji z gościem jest w przykładzie 15 (<code>behavioral.visitor</code>).</li>
+</ul>
+<p><strong>Testy:</strong> tylko smoke.</p>
+<p><strong>Demonstracja na żywo (ok. 3 min):</strong> uruchom <code>composite</code>, potem w <code>Application</code> zamień <code>itDepartment.printInfo()</code> na <code>mainDepartment.printInfo()</code>. Zapytaj, co się stanie przy <code>new Employee(&quot;X&quot;).addChild(...)</code>.</p>
+<hr>
+<h2 id="przyklad-7-decorator-i-proxy-structuraldecorator-structuralproxy" tabindex="-1"><a class="header-anchor" href="#przyklad-7-decorator-i-proxy-structuraldecorator-structuralproxy"><span>Przykład 7. Decorator i Proxy (<code>structural.decorator</code>, <code>structural.proxy</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 3.6-3.7 Decorator, 3.10 Proxy, 3.11 rodzina opakowań; Aktywność 3.12.</p>
+<p><strong>Co ilustruje:</strong> dwa wzorce o <strong>identycznej strukturze</strong> (klasa implementuje ten sam interfejs i deleguje do opakowanego obiektu), różniące się intencją. Decorator dokłada odpowiedzialność (przekształcenie tekstu), Proxy kontroluje dostęp (bezpieczeństwo, logowanie płatności).</p>
+<p><strong>Klasy:</strong></p>
+<ul>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>decorator/<wbr>Reader.java</code> - komponent.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>decorator/<wbr>SystemInReader.java</code> - rdzeń; czyta linię ze standardowego wejścia albo zwraca <code>Hello Decorator Pattern</code>.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>decorator/<wbr>ReaderDecorator.java</code> - abstrakcyjny dekorator delegujący.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>decorator/<wbr>UnderscoreReaderDecorator.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>decorator/<wbr>LowerCaseReaderDecorator.java</code>.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>proxy/<wbr>PaymentsService.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>proxy/<wbr>RemotePaymentsService.java</code> (obiekt rzeczywisty).</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>proxy/<wbr>PaymentSecurityProxy.java</code> (loguje przed delegacją), <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>proxy/<wbr>PaymentLoggerProxy.java</code> (loguje po delegacji).</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>fn/<wbr>FunctionalStyleDecorator.java</code> - <code>Function.andThen</code>.</li>
+</ul>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li>Kolejność dekoratorów: <code>new LowerCase(new Underscore(reader))</code> - najpierw działa warstwa najbliżej rdzenia. Tu oba przekształcenia są przemienne, więc kolejności nie widać. Dla pary „przytnij” i „zamień spacje” wynik zależy od kolejności - dobry przykład do dopowiedzenia.</li>
+<li>Wariant funkcyjny składa od lewej do prawej (<code>base.andThen(trim).andThen(upper).andThen(addBrackets)</code>), obiektowy - od środka na zewnątrz. Uczestnicy często mylą te kierunki.</li>
+<li><code>PaymentSecurityProxy</code> w obecnej postaci niczego nie blokuje - tylko loguje <code>Checking security</code>. Strukturalnie to dekorator. Prawdziwy proxy ochronny może <strong>nie delegować</strong> (rzucić wyjątek), proxy wirtualny tworzy obiekt rzeczywisty dopiero przy pierwszym użyciu, proxy zdalny ukrywa komunikację.</li>
+<li><code>PaymentLoggerProxy</code> loguje <code>Payment completed</code> tylko wtedy, gdy delegat nie rzuci wyjątku - kolejność i obsługa błędów są częścią kontraktu opakowania.</li>
+<li>Dekorator i proxy nie są przezroczyste dla tożsamości (<code>==</code>), <code>getClass()</code> ani <code>equals</code>. Proxy frameworków (np. transakcyjne) nie działają dla wywołań wewnątrz tej samej klasy.</li>
+</ul>
+<p><strong>Testy:</strong> <code>ExamplesSmokeTest.decoratorUsesDefaultTextWhenStdinIsEmpty</code> (oczekuje <code>INFO: hello_decorator_pattern</code>) i <code>ExamplesSmokeTest.decoratorTransformsTheLineReadFromStdin</code> (wejście <code>Hello World Foo</code> daje <code>hello_world_foo</code>). Proxy - tylko smoke.</p>
+<p><strong>Demonstracja na żywo (ok. 6 min):</strong></p>
+<ol>
+<li><code>echo &quot;Ala Ma Kota&quot; | java -cp target/<wbr>classes pl.training.module4.Module4Examples decorator</code> - wynik <code>ala_ma_kota</code>.</li>
+<li>Uruchom <code>fn-decorator</code> i porównaj kierunek składania.</li>
+<li>Uruchom <code>proxy</code>; zwróć uwagę na kolejność trzech linii. Zamień kolejność opakowań w <code>structural/<wbr>proxy/<wbr>Application.java</code> (<code>new PaymentSecurityProxy(new PaymentLoggerProxy(...))</code>) i porównaj. Przywróć kod.</li>
+<li>Przejdź do Aktywności 3.12.</li>
+</ol>
+<hr>
+<h2 id="przyklad-8-facade-i-flyweight-structuralfacade-structuralflyweight" tabindex="-1"><a class="header-anchor" href="#przyklad-8-facade-i-flyweight-structuralfacade-structuralflyweight"><span>Przykład 8. Facade i Flyweight (<code>structural.facade</code>, <code>structural.flyweight</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 3.8 Facade, 3.9 Flyweight.</p>
+<p><strong>Co ilustruje:</strong> Facade - jeden punkt wejścia (<code>run()</code>) uruchamiający kroki dwóch podsystemów. Flyweight - współdzielenie stanu wewnętrznego drzew (<code>TreeType</code>: nazwa i kolor) między wieloma obiektami <code>Tree</code> różniącymi się tylko położeniem.</p>
+<p><strong>Klasy:</strong></p>
+<ul>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>facade/<wbr>Facade.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>facade/<wbr>FirstService.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>facade/<wbr>SecondService.java</code>.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>flyweight/<wbr>TreeType.java</code> - pyłek (stan wewnętrzny), konstruktor pakietowy.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>flyweight/<wbr>TreeFactory.java</code> - fabryka pyłków ze statyczną <code>HashMap</code> i <code>computeIfAbsent</code>.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>flyweight/<wbr>Tree.java</code> - obiekt kontekstu ze stanem zewnętrznym (<code>x</code>, <code>y</code>).</li>
+</ul>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li>Fasada w przykładzie jest minimalna. Jej wartość rośnie, gdy ukrywa kolejność kroków, konfigurację i obsługę błędów podsystemu. Fasada przekazująca wywołania 1:1 albo rosnąca o każdą nową operację to sygnał nadmiaru. Porównanie Facade z Anti-Corruption Layer - moduł 5.</li>
+<li><code>TreeFactory</code> łączy dwa wzorce: fabrykę i pulę pyłków. Konstruktor <code>TreeType</code> jest pakietowy, więc klient spoza pakietu nie ominie puli.</li>
+<li>Klucz <code>name + &quot;:&quot; + color</code> jest niejednoznaczny: <code>(&quot;a:b&quot;, &quot;c&quot;)</code> i <code>(&quot;a&quot;, &quot;b:c&quot;)</code> dają <code>a:b:c</code>. Lepszy klucz to <code>record TreeKey(String name, String color)</code>.</li>
+<li>Statyczna <code>HashMap</code> nie jest bezpieczna wątkowo i nigdy nie zwalnia wpisów. Przy wielu wątkach - <code>ConcurrentHashMap</code>; przy dużej rotacji typów - polityka usuwania.</li>
+<li>Wymóg z katalogu: aplikacja <strong>nie może zależeć od tożsamości</strong> obiektów - tu wręcz test sprawdza, że tożsamość jest współdzielona (<code>assertSame</code>).</li>
+<li>Przykład z JDK: <code>Integer.valueOf(127) == Integer.valueOf(127)</code> daje <code>true</code>, a dla 128 zwykle <code>false</code> (pamięć podręczna -128..127).</li>
+</ul>
+<p><strong>Testy:</strong> <code>AdditionalPatternsExamplesTest.sharesOneFlyweightInstancePerIntrinsicState</code>. Facade - tylko smoke.</p>
+<p><strong>Demonstracja na żywo (ok. 4 min):</strong> uruchom <code>facade</code> i <code>flyweight</code> (ostatnia linia <code>true</code> to porównanie tożsamości). Zapytaj o klucz: jak wymusić kolizję dwóch różnych typów drzew?</p>
+<hr>
+<h2 id="przyklad-9-chain-of-responsibility-i-command-behavioralchainofresponsibility-behavioralcommand" tabindex="-1"><a class="header-anchor" href="#przyklad-9-chain-of-responsibility-i-command-behavioralchainofresponsibility-behavioralcommand"><span>Przykład 9. Chain of Responsibility i Command (<code>behavioral.chainofresponsibility</code>, <code>behavioral.command</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 4.1 Chain of Responsibility, 4.2-4.3 Command, 4.17 (CoR a Decorator), 4.20 (semantyka <code>fn-chain</code>).</p>
+<p><strong>Co ilustruje:</strong> CoR - łańcuch <code>Validator → Logger → Processor</code>, w którym walidator może przerwać przetwarzanie. Command - żądania jako obiekty wykonywane przez <code>Invoker</code>.</p>
+<p><strong>Klasy:</strong></p>
+<ul>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>chainofresponsibility/<wbr>Handler.java</code> - abstrakcja z chronionym polem <code>nextHandler</code>.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>chainofresponsibility/<wbr>Validator.java</code> (przerywa dla żądań krótszych niż 3 znaki), <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>chainofresponsibility/<wbr>Logger.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>chainofresponsibility/<wbr>Processor.java</code> (ogniwo końcowe).</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>command/<wbr>Command.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>command/<wbr>PrintTime.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>command/<wbr>ConnectToServer.java</code>.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>command/<wbr>Invoker.java</code> - <code>invoke(command)</code> oraz kolejka <code>register</code>/<code>invokeAll</code>.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>fn/<wbr>FunctionalStyleChain.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>fn/<wbr>FunctionalStyleCommand.java</code>.</li>
+</ul>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li>Konsekwencja z katalogu „brak gwarancji odbioru żądania” jest widoczna wprost: <code>handleRequest(&quot;Te&quot;)</code> nie robi nic i nic nie zgłasza. Czy to poprawne zachowanie, zależy od kontraktu.</li>
+<li><code>Validator</code> kończy łańcuch, <code>Logger</code> zawsze deleguje. Gdyby wszystkie ogniwa zawsze delegowały, mielibyśmy potok dekoratorów, a nie łańcuch odpowiedzialności.</li>
+<li><code>FunctionalStyleChain</code> (<code>step1.andThen(step2).andThen(step3)</code>) <strong>nie potrafi przerwać</strong> - każde ogniwo zawsze działa. To potok przekształceń, nie CoR. Ćwiczenie 3 każe tę różnicę usunąć.</li>
+<li>Klasa łańcucha nazywa się <code>Logger</code> i koliduje z <code>java.util.logging.Logger</code> - stąd pełna nazwa w polu <code>log</code>.</li>
+<li>Komendy w przykładzie nie mają odbiorcy (Receiver) - same wykonują pracę. W GoF komenda zwykle przechowuje odbiorcę i parametry, a <code>execute()</code> deleguje do <code>receiver.action()</code>.</li>
+<li><code>Invoker.register</code>/<code>invokeAll</code> nie są używane w demo, ale pokazują drugą intencję Command: kolejkowanie i późniejsze wykonanie. <code>invokeAll</code> nie czyści kolejki - ponowne wywołanie wykona komendy drugi raz.</li>
+<li><code>PrintTime</code> używa <code>LocalDateTime.now()</code> - wynik niedeterministyczny, trudny do testu. Undo nie jest zaimplementowane; potrzebowałoby <code>undo()</code> albo migawki (przykład 12).</li>
+</ul>
+<p><strong>Testy:</strong> tylko smoke.</p>
+<p><strong>Demonstracja na żywo (ok. 5 min):</strong></p>
+<ol>
+<li>Uruchom <code>chain-of-responsibility</code>, potem w <code>Application</code> zmień żądanie na <code>&quot;Te&quot;</code> - brak wyjścia.</li>
+<li>Uruchom <code>fn-chain</code> i zapytaj, gdzie w tej wersji umieścić walidację, która może zatrzymać przetwarzanie.</li>
+<li>Uruchom <code>command</code> i <code>fn-command</code>. W <code>behavioral/<wbr>command/<wbr>Application.java</code> dopisz <code>invoker.register(new PrintTime()); invoker.invokeAll(); invoker.invokeAll();</code> - komenda wykona się dwa razy. Przywróć kod.</li>
+</ol>
+<hr>
+<h2 id="przyklad-10-interpreter-i-iterator-behavioralinterpreter-behavioraliterator" tabindex="-1"><a class="header-anchor" href="#przyklad-10-interpreter-i-iterator-behavioralinterpreter-behavioraliterator"><span>Przykład 10. Interpreter i Iterator (<code>behavioral.interpreter</code>, <code>behavioral.iterator</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 4.4 Interpreter, 4.5 Iterator.</p>
+<p><strong>Co ilustruje:</strong> Interpreter - drzewo wyrażenia <code>2a * 3 + 1</code> (dla <code>a = 4</code> wynik <code>25.0</code>) zbudowane z wyrażeń terminalnych i nieterminalnych. Iterator - własny agregat <code>Playlist</code> z dwoma sposobami przejścia (w przód i wstecz) bez ujawniania tablicy.</p>
+<p><strong>Klasy:</strong></p>
+<ul>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>interpreter/<wbr>Expression.java</code> - <code>evaluate(Map&lt;String, Double&gt; context)</code>.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>interpreter/<wbr>Literal.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>interpreter/<wbr>Variable.java</code> (terminalne), <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>interpreter/<wbr>Operation.java</code> (nieterminalne, <code>left</code>, <code>right</code>, <code>BiOperator</code>).</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>interpreter/<wbr>BiOperator.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>interpreter/<wbr>Plus.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>interpreter/<wbr>Minus.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>interpreter/<wbr>Multiply.java</code>.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>interpreter/<wbr>Application.java</code> - <code>op(name)</code> z pamięcią podręczną operatorów (<code>computeIfAbsent</code>) i <code>operatorFactory</code> (<code>switch</code>).</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>iterator/<wbr>Playlist.java</code> - tablica powiększana dwukrotnie, wewnętrzna klasa <code>PlaylistIterator(start, step)</code>, metoda <code>reversed()</code> zwracająca lambdę <code>Iterable</code>.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>iterator/<wbr>Song.java</code> - rekord.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>fn/<wbr>FunctionalStyleIterator.java</code> - <code>Stream</code> jako iterator wewnętrzny.</li>
+</ul>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li>Interpreter nie ma parsera: drzewo składni buduje się ręcznie. W praktyce koszt Interpretera to głównie gramatyka i parser; dla złożonej gramatyki lepszy jest generator parserów albo gotowy silnik.</li>
+<li><code>Variable.evaluate</code> zwraca <code>context.get(name)</code> jako <code>double</code> - brak zmiennej kończy się <code>NullPointerException</code> przy rozpakowaniu. Komunikat błędu dla użytkownika języka to część kontraktu interpretera.</li>
+<li>W <code>Application</code> ukryte są dwa dodatkowe wzorce: <code>op(...)</code> współdzieli instancje operatorów (Flyweight), a <code>operatorFactory</code> to prosta fabryka. <code>BiOperator</code> to z kolei strategia działania.</li>
+<li>Wariant w Javie 25: <code>sealed interface Expr permits Num, Var, Add, Mul</code> + rekordy + <code>switch</code> z dopasowaniem wzorców. Nowe operacje (np. wypisywanie, upraszczanie) dodaje się wtedy jako funkcje, nie metody w każdej klasie.</li>
+<li><code>Playlist.iterator()</code> jest metodą wytwórczą (Factory Method) dla iteratora - klasyczne powiązanie z katalogu. <code>reversed()</code> daje drugi sposób przejścia bez kopiowania danych.</li>
+<li><code>PlaylistIterator</code> nie wykrywa modyfikacji listy w trakcie przejścia (kolekcje JDK są fail-fast dzięki <code>modCount</code>). Rzuca natomiast <code>NoSuchElementException</code> po końcu - zgodnie z kontraktem <code>Iterator</code>.</li>
+<li>Iterator zewnętrzny pozwala przerwać i mieć dwa niezależne kursory; <code>Stream</code> (<code>fn-iterator</code>) jest wewnętrzny i jednorazowy.</li>
+</ul>
+<p><strong>Testy:</strong> <code>AdditionalPatternsExamplesTest.iteratorDemoWalksThePlaylistForwardAndBackward</code> (sześć linii wyjścia), <code>AdditionalPatternsExamplesTest.playlistIteratorIsExhaustedAfterTheLastSong</code> (wyczerpanie i pusta lista wstecz). Interpreter - tylko smoke.</p>
+<p><strong>Demonstracja na żywo (ok. 5 min):</strong></p>
+<ol>
+<li>Uruchom <code>interpreter</code>; zmień kontekst na <code>Map.of(&quot;a&quot;, 1.0)</code> (wynik <code>7.0</code>), potem na <code>Map.of()</code> - <code>NullPointerException</code>. Przywróć kod.</li>
+<li>Uruchom <code>iterator</code> i <code>fn-iterator</code>. Zapytaj, jak przerwać przejście po pierwszym utworze dłuższym niż 200 s w każdej z wersji.</li>
+</ol>
+<hr>
+<h2 id="przyklad-11-mediator-i-observer-behavioralmediator-behavioralobserver" tabindex="-1"><a class="header-anchor" href="#przyklad-11-mediator-i-observer-behavioralmediator-behavioralobserver"><span>Przykład 11. Mediator i Observer (<code>behavioral.mediator</code>, <code>behavioral.observer</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 4.6 Mediator, 4.8-4.9 Observer, 4.17 (Facade a Mediator).</p>
+<p><strong>Co ilustruje:</strong> dwa sposoby rozluźnienia komunikacji wielu obiektów. Mediator: uczestnicy czatu znają tylko pokój (<code>ChatRoom</code>), który rozsyła wiadomości wszystkim poza nadawcą. Observer: szyna zdarzeń (<code>EventsBus</code>) powiadamia zarejestrowanych odbiorców <code>Consumer&lt;ServerEvent&gt;</code>.</p>
+<p><strong>Klasy:</strong></p>
+<ul>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>mediator/<wbr>ChatMediator.java</code> - <code>join</code>, <code>broadcast</code>.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>mediator/<wbr>ChatRoom.java</code> - konkretny mediator, lista uczestników, porównanie tożsamości <code>participant != sender</code>.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>mediator/<wbr>Participant.java</code> - współpracownik; w konstruktorze woła <code>mediator.join(this)</code>.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>observer/<wbr>EventsBus.java</code> - <code>synchronizedSet(new HashSet&lt;&gt;())</code>, <code>addConsumer</code>, <code>publish</code>.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>observer/<wbr>Logger.java</code> - odbiorca (<code>Consumer&lt;ServerEvent&gt;</code>).</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>observer/<wbr>ServerEvent.java</code> - zdarzenie z wewnętrznym builderem.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>fn/<wbr>FunctionalStyleObserver.java</code> - lista lambd.</li>
+</ul>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li>Mediator zastępuje sieć powiązań „każdy z każdym” powiązaniami z jednym obiektem, ale centralizuje sterowanie. Gdy w mediatorze zaczyna się logika biznesowa wszystkich uczestników, powstaje mediator-bóg.</li>
+<li><code>Participant</code> rejestruje się w konstruktorze - <code>this</code> wycieka przed zakończeniem konstrukcji. Przy dziedziczeniu lub wielowątkowości to ryzyko; bezpieczniej rejestrować w fabryce. Brak operacji opuszczenia pokoju.</li>
+<li><code>EventsBus</code> używa <code>HashSet</code>: <strong>kolejność powiadomień nie jest określona</strong>, a dodanie tego samego obiektu drugi raz niczego nie zmienia. Lista dałaby kolejność rejestracji i dopuszczała duplikaty - to decyzja kontraktu.</li>
+<li><code>forEach</code> na zbiorze z <code>synchronizedSet</code> wykonuje się pod blokadą tego zbioru. Odbiorca, który długo działa, blokuje inne publikacje i rejestracje; odbiorca rejestrujący kolejnego w innym wątku może prowadzić do zakleszczenia. Alternatywa: <code>CopyOnWriteArrayList</code> (iteracja po migawce).</li>
+<li>Brak wyrejestrowania. Lambda nie ma stabilnej tożsamości, więc bez uchwytu (<code>Subscription</code>) nie da się jej niezawodnie usunąć. Pierwszy wyjątek odbiorcy przerywa pętlę - pozostali nie dostaną zdarzenia.</li>
+<li><code>ServerEvent</code> ma builder, z którego nikt nie korzysta (<code>new ServerEvent(&quot;Started&quot;)</code> w demo) - materiał do Ćwiczenia 1.</li>
+<li>Observer a Mediator: obserwator nie wie o innych obserwatorach, mediator zna wszystkich i koordynuje ich współpracę.</li>
+</ul>
+<p><strong>Testy:</strong> <code>AdditionalPatternsExamplesTest.mediatorDeliversMessagesToEveryoneExceptTheSender</code> (sześć linii w ustalonej kolejności). Observer - tylko smoke.</p>
+<p><strong>Demonstracja na żywo (ok. 5 min):</strong></p>
+<ol>
+<li>Uruchom <code>mediator</code>. Zapytaj: ile referencji między uczestnikami byłoby bez pokoju przy 10 osobach?</li>
+<li>Uruchom <code>observer</code> i <code>fn-observer</code>. W <code>behavioral/<wbr>observer/<wbr>Application.java</code> dodaj drugiego odbiorcę lambdą i uruchom kilka razy - kolejność nie jest gwarantowana kontraktem (w praktyce może się nie zmieniać, ale nic jej nie obiecuje).</li>
+<li>Dodaj odbiorcę rzucającego wyjątek i pokaż, że przerywa publikację. Przywróć kod.</li>
+</ol>
+<hr>
+<h2 id="przyklad-12-memento-behavioralmemento" tabindex="-1"><a class="header-anchor" href="#przyklad-12-memento-behavioralmemento"><span>Przykład 12. Memento (<code>behavioral.memento</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 4.7 Memento; nawiązanie do 4.3 (undo w Command).</p>
+<p><strong>Co ilustruje:</strong> zapis i przywrócenie salda konta bez ujawniania jego wnętrza opiekunowi migawek.</p>
+<p><strong>Klasy:</strong></p>
+<ul>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>memento/<wbr>accounts/<wbr>Account.java</code> - Originator: <code>createMemento()</code>, <code>restoreMemento(memento)</code>.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>memento/<wbr>accounts/<wbr>Memento.java</code> - publiczna klasa z <strong>pakietowym</strong> konstruktorem i pakietową metodą <code>balance()</code>.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>memento/<wbr>Application.java</code> - Caretaker (lista migawek w innym pakiecie niż <code>Account</code>).</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>fn/<wbr>FunctionalStyleMemento.java</code> - migawka jako domknięcie <code>Supplier&lt;String&gt;</code>.</li>
+</ul>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li>Umieszczenie <code>Account</code> i <code>Memento</code> w podpakiecie <code>accounts</code> realizuje „wąski interfejs” z katalogu: <code>Application</code> może przechować migawkę, ale nie może jej utworzyć ani odczytać salda. Pokaż, że <code>memento.balance()</code> w <code>Application</code> się nie skompiluje.</li>
+<li>Migawka przechowuje referencję do <code>BigDecimal</code>. To bezpieczne tylko dlatego, że <code>BigDecimal</code> jest niemutowalny. Dla mutowalnego stanu (lista, mapa) potrzebna jest kopia głęboka.</li>
+<li>Koszt pamięci: każda migawka to pełna kopia stanu. Dla dużych obiektów rozważ zapis różnic albo zdarzeń.</li>
+<li>W Javie 25 migawka to naturalnie rekord; wariant z domknięciem (<code>fn-memento</code>) jest zwięzły, ale przechwytuje referencję - przy mutowalnym stanie wymaga jawnej kopii.</li>
+<li>Memento z Command daje undo: komenda zapisuje migawkę przed wykonaniem, <code>undo()</code> ją przywraca.</li>
+</ul>
+<p><strong>Testy:</strong> <code>AdditionalPatternsExamplesTest.restoresTheBalanceRecordedInTheMemento</code>.</p>
+<p><strong>Demonstracja na żywo (ok. 3 min):</strong> uruchom <code>memento</code> i <code>fn-memento</code>. W <code>behavioral/<wbr>memento/<wbr>Application.java</code> spróbuj wywołać <code>caretaker.getFirst().balance()</code> - błąd kompilacji jest celem projektu, nie przeszkodą.</p>
+<hr>
+<h2 id="przyklad-13-state-i-strategy-behavioralstate-behavioralstrategy" tabindex="-1"><a class="header-anchor" href="#przyklad-13-state-i-strategy-behavioralstate-behavioralstrategy"><span>Przykład 13. State i Strategy (<code>behavioral.state</code>, <code>behavioral.strategy</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 4.10-4.11 State, 4.12-4.13 Strategy, 4.17 podobna struktura i różna intencja; Aktywność 4.18. Nawiązanie do 1.4 (rodzaj zmienności).</p>
+<p><strong>Co ilustruje:</strong> dwa wzorce o tej samej strukturze (kontekst z polem typu interfejsowego i delegacją) i różnej intencji. W State obiekt sam zmienia stan w wyniku operacji (<code>state = state.pay()</code>). W Strategy algorytm wybiera klient z zewnątrz (<code>new Service(new UuidGenerator())</code>).</p>
+<p><strong>Klasy:</strong></p>
+<ul>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>state/<wbr>OrderState.java</code> - domyślne metody <code>pay</code>, <code>ship</code>, <code>cancel</code> rzucają <code>IllegalStateException</code> z nazwą stanu.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>state/<wbr>OrderStatus.java</code> - <code>enum</code> ze stałymi z ciałami (<code>NEW</code>, <code>PAID</code>), <code>SHIPPED</code> i <code>CANCELLED</code> bez nadpisań.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>state/<wbr>Order.java</code> - kontekst.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>strategy/<wbr>IdGenerator.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>strategy/<wbr>UuidGenerator.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>strategy/<wbr>IncrementalIdGenerator.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>strategy/<wbr>Service.java</code>.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>strategy/<wbr>movies/<wbr>MovieType.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>strategy/<wbr>movies/<wbr>Order.java</code> - strategia wyrażona danymi enumu.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>fn/<wbr>FunctionalStyleState.java</code>, <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>fn/<wbr>FunctionalStyleStrategy.java</code>.</li>
+</ul>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li>Tabela przejść jest zapisana w stałych enumu: <code>NEW --pay--&gt; PAID</code>, <code>NEW --cancel--&gt; CANCELLED</code>, <code>PAID --ship--&gt; SHIPPED</code>, <code>PAID --cancel--&gt; CANCELLED</code>; wszystko inne rzuca wyjątek. Domyślna metoda rzucająca wyjątek (a nie pusta) jest kluczowa - pusta zmieniłaby niedozwoloną operację w ciche zignorowanie.</li>
+<li>Komunikat używa <code>this</code>, czyli nazwy stałej enumu (<code>Cancellation is not allowed in state SHIPPED</code>).</li>
+<li>Stany są bezstanowymi singletonami (stałe enumu) - dlatego dane zamówienia muszą być w <code>Order</code>, a nie w stanie.</li>
+<li><code>FunctionalStyleState</code> modeluje bramkę LOCKED/UNLOCKED lambdami, które same ustawiają następny stan. Jest zwięzły, ale ma jedno zdarzenie (<code>onEvent</code>) i efekty uboczne w stanach; brakuje nazwanych operacji i jawnej tabeli.</li>
+<li><code>IncrementalIdGenerator</code> jest stanowy (licznik <code>int</code>, bez synchronizacji). Współdzielona strategia musi być bezstanowa albo bezpieczna wątkowo.</li>
+<li><code>MovieType</code> to strategia jako dane: trzy warianty różnią się parametrami, nie kodem. To często lepsza forma niż hierarchia klas, gdy zestaw jest zamknięty. Test chroni regułę bezpłatnego okresu.</li>
+<li><code>IdGenerator</code> z pakietu <code>strategy</code> i z pakietu <code>factorymethod</code> mają identyczny kształt - ta sama abstrakcja może grać rolę produktu fabryki albo strategii, zależnie od tego, kto ją wybiera i po co.</li>
+</ul>
+<p><strong>Testy:</strong> <code>AdditionalPatternsExamplesTest.orderStateMovesThroughItsLifecycleAndRejectsInvalidTransitions</code> (cykl życia, odrzucenie <code>cancel</code> po wysyłce bez zmiany stanu, <code>pay</code> po anulowaniu), <code>AdditionalPatternsExamplesTest.doesNotSubtractAChargeDuringTheFreeRentalPeriod</code> (koszt dla jednego dnia: 2.0, 1.5, 3.0; wyjątek dla wartości ujemnej), <code>AdditionalPatternsExamplesTest.functionalStateDemoAlternatesTransitions</code>.</p>
+<p><strong>Demonstracja na żywo (ok. 6 min):</strong></p>
+<ol>
+<li>Uruchom <code>state</code>; pokaż tabelę przejść na podstawie enumu.</li>
+<li>Kontrolna mutacja: w <code>OrderState.cancel()</code> zamień <code>throw</code> na <code>return this;</code>. Uruchom <code>mvn test -Dtest=AdditionalPatternsExamplesTest</code> - test cyklu życia pada. Przywróć kod.</li>
+<li>Uruchom <code>strategy</code> i <code>fn-strategy</code>. Zadaj pytanie z Aktywności 4.18: kto zmienia wariant i kiedy?</li>
+</ol>
+<hr>
+<h2 id="przyklad-14-template-method-behavioraltemplatemethod" tabindex="-1"><a class="header-anchor" href="#przyklad-14-template-method-behavioraltemplatemethod"><span>Przykład 14. Template Method (<code>behavioral.templatemethod</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 4.14 Template Method, 4.17 (Strategy a Template Method).</p>
+<p><strong>Co ilustruje:</strong> szkielet przetwarzania <code>read → process → write</code> w metodzie <code>final run()</code> z krokami w podklasie <code>UpperCaseProcessor</code> (wynik <code>TEMPLATE METHOD</code>).</p>
+<p><strong>Klasy:</strong></p>
+<ul>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>templatemethod/<wbr>Processor.java</code> - klasa abstrakcyjna z parametrami typu <code>V</code> (dane wejściowe) i <code>PV</code> (dane przetworzone).</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>templatemethod/<wbr>Application.java</code> - statyczna klasa zagnieżdżona <code>UpperCaseProcessor</code>.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>fn/<wbr>FunctionalStyleTemplate.java</code> - krok przekazany jako <code>Consumer&lt;String&gt;</code>.</li>
+</ul>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li><code>final</code> na <code>run()</code> chroni sekwencję - podklasa może zmienić kroki, ale nie ich kolejność. To dokładnie „możliwa zmiana poszczególnych kroków, ale nie ich sekwencji” z katalogu.</li>
+<li>Wszystkie kroki są abstrakcyjne. Hook z implementacją domyślną (np. pusta <code>afterWrite()</code>) jest opcjonalny - dodawaj go tylko, gdy domyślne zachowanie jest poprawne dla wszystkich podklas.</li>
+<li>Odwrócenie sterowania: to klasa bazowa wywołuje kod podklasy. Podklasa nie powinna wołać kroków samodzielnie ani polegać na kolejności inicjalizacji pól (hook wywołany z konstruktora bazy widzi niezainicjalizowane pola podklasy).</li>
+<li><code>FunctionalStyleTemplate</code> zamienia dziedziczenie na parametr - szkielet zostaje w <code>process</code>, krok przychodzi z zewnątrz. To przejście od Template Method do kompozycji, bliskiej Strategy.</li>
+</ul>
+<p><strong>Testy:</strong> tylko smoke.</p>
+<p><strong>Demonstracja na żywo (ok. 3 min):</strong> uruchom <code>template-method</code> i <code>fn-template</code>. Spróbuj w <code>UpperCaseProcessor</code> nadpisać <code>run()</code> - błąd kompilacji (<code>final</code>).</p>
+<hr>
+<h2 id="przyklad-15-visitor-behavioralvisitor" tabindex="-1"><a class="header-anchor" href="#przyklad-15-visitor-behavioralvisitor"><span>Przykład 15. Visitor (<code>behavioral.visitor</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 4.15-4.16 Visitor, 4.17 (Visitor a metoda polimorficzna); Ćwiczenie 2B.</p>
+<p><strong>Co ilustruje:</strong> operacje na drzewie działów jako osobne klasy gości (<code>NameValidator</code>, <code>Reporter</code>) bez zmian w klasach węzłów; podwójna dyspozycja przez <code>accept</code>/<code>visit</code>.</p>
+<p><strong>Klasy:</strong></p>
+<ul>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>visitor/<wbr>Visitor.java</code> - trzy przeciążenia <code>visit</code> z <strong>pustymi metodami domyślnymi</strong>.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>visitor/<wbr>Node.java</code> - <code>accept</code> przekazuje gościa dzieciom.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>visitor/<wbr>Department.java</code> - <code>visitor.visit(this)</code>, potem <code>super.accept(visitor)</code>.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>visitor/<wbr>SuperDepartment.java</code> - własne <code>accept</code> wywołujące przeciążenie <code>visit(SuperDepartment)</code>.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>visitor/<wbr>Employee.java</code> - liść.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>visitor/<wbr>NameValidator.java</code> - zgłasza nazwy działów krótsze niż 3 znaki.</li>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>visitor/<wbr>Reporter.java</code> - drukuje działy i pracowników (nieużywany w demo).</li>
+</ul>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li>Przeciążenie <code>visit(this)</code> jest wybierane <strong>w czasie kompilacji</strong> na podstawie statycznego typu <code>this</code> w danej klasie. Dlatego <code>SuperDepartment</code> musi mieć własne <code>accept</code> - odziedziczone z <code>Department</code> wywołałoby <code>visit(Department)</code>.</li>
+<li>Puste metody domyślne pozwalają pisać gości obsługujących tylko część typów, ale <strong>wyłączają kontrolę kompilatora</strong>. <code>Reporter</code> nie nadpisuje <code>visit(SuperDepartment)</code>, więc dział typu <code>SuperDepartment</code> znika z raportu, a jego pracownicy zostają wypisani (sprawdzone: dla drzewa <code>Main → Board(SuperDepartment) → Nowak</code> wynik to <code>Department: Main</code> i <code> - Employee Nowak</code>).</li>
+<li>Przejście po drzewie jest w węzłach (<code>accept</code> deleguje do dzieci). Gość nie wybiera kolejności ani nie może pominąć poddrzewa.</li>
+<li>Gość czyta pole <code>name</code> (chronione) - działa, bo jest w tym samym pakiecie. Gość spoza pakietu potrzebowałby publicznego akcesora.</li>
+<li>Macierz zmian: nowa operacja = nowa klasa gościa (łatwo); nowy rodzaj węzła = zmiana interfejsu <code>Visitor</code> i przegląd wszystkich gości (trudno). Ćwiczenie 2B każe to policzyć.</li>
+<li>Java 25: <code>sealed interface Node permits ...</code> i <code>switch (node) { case Department d -&gt; ...; case Employee e -&gt; ...; }</code> dają sprawdzenie wyczerpujące bez <code>accept</code> - nowy rodzaj węzła psuje kompilację w każdym <code>switch</code>, czyli tam, gdzie trzeba podjąć decyzję.</li>
+</ul>
+<p><strong>Testy:</strong> tylko smoke (<code>Department name too short: Ma</code>).</p>
+<p><strong>Demonstracja na żywo (ok. 5 min):</strong></p>
+<ol>
+<li>Uruchom <code>visitor</code>.</li>
+<li>W <code>behavioral/<wbr>visitor/<wbr>Application.java</code> zamień <code>new NameValidator()</code> na <code>new Reporter()</code> i uruchom.</li>
+<li>Dodaj <code>var board = new SuperDepartment(&quot;Board&quot;); mainDepartment.addChild(board); board.addChild(new Employee(&quot;Nowak&quot;));</code> i uruchom ponownie z <code>Reporter</code> - dział <code>Board</code> nie pojawia się w raporcie. Przywróć kod.</li>
+</ol>
+<hr>
+<h2 id="przyklad-16-warianty-funkcyjne-fn" tabindex="-1"><a class="header-anchor" href="#przyklad-16-warianty-funkcyjne-fn"><span>Przykład 16. Warianty funkcyjne (<code>fn</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 1.6 wzorce a język, 4.19-4.20 wariant funkcyjny; Ćwiczenie 3.</p>
+<p><strong>Co ilustruje:</strong> jak wzorce z jedną, bezstanową rolą zamieniają się w interfejsy funkcyjne JDK i co przy tym tracimy.</p>
+<p><strong>Klasy:</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Klasa</th>
+<th>Klucz</th>
+<th>Odpowiednik obiektowy</th>
+<th>Mechanizm</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>fn/<wbr>FunctionalStyleStrategy.java</code></td>
+<td><code>fn-strategy</code></td>
+<td><code>behavioral.strategy</code></td>
+<td><code>Function&lt;String, String&gt;</code></td>
+</tr>
+<tr>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>fn/<wbr>FunctionalStyleCommand.java</code></td>
+<td><code>fn-command</code></td>
+<td><code>behavioral.command</code></td>
+<td><code>Runnable</code></td>
+</tr>
+<tr>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>fn/<wbr>FunctionalStyleFactory.java</code></td>
+<td><code>fn-factory</code></td>
+<td><code>creational.factorymethod</code></td>
+<td><code>Supplier&lt;Shape&gt;</code>, <code>Square::new</code></td>
+</tr>
+<tr>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>fn/<wbr>FunctionalStyleDecorator.java</code></td>
+<td><code>fn-decorator</code></td>
+<td><code>structural.decorator</code></td>
+<td><code>Function.andThen</code></td>
+</tr>
+<tr>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>fn/<wbr>FunctionalStyleChain.java</code></td>
+<td><code>fn-chain</code></td>
+<td><code>behavioral.chainofresponsibility</code></td>
+<td><code>Function.andThen</code> (bez przerwania)</td>
+</tr>
+<tr>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>fn/<wbr>FunctionalStyleTemplate.java</code></td>
+<td><code>fn-template</code></td>
+<td><code>behavioral.templatemethod</code></td>
+<td><code>Consumer&lt;String&gt;</code> jako krok</td>
+</tr>
+<tr>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>fn/<wbr>FunctionalStyleObserver.java</code></td>
+<td><code>fn-observer</code></td>
+<td><code>behavioral.observer</code></td>
+<td><code>List&lt;Consumer&lt;String&gt;&gt;</code></td>
+</tr>
+<tr>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>fn/<wbr>FunctionalStyleState.java</code></td>
+<td><code>fn-state</code></td>
+<td><code>behavioral.state</code></td>
+<td><code>State extends Consumer&lt;FunctionalStyleState&gt;</code></td>
+</tr>
+<tr>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>fn/<wbr>FunctionalStyleMemento.java</code></td>
+<td><code>fn-memento</code></td>
+<td><code>behavioral.memento</code></td>
+<td>domknięcie <code>Supplier&lt;String&gt;</code></td>
+</tr>
+<tr>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>fn/<wbr>FunctionalStyleSingleton.java</code></td>
+<td><code>fn-singleton</code></td>
+<td><code>creational.singleton</code></td>
+<td><code>memoize(Supplier)</code></td>
+</tr>
+<tr>
+<td><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>fn/<wbr>FunctionalStyleIterator.java</code></td>
+<td><code>fn-iterator</code></td>
+<td><code>behavioral.iterator</code></td>
+<td><code>Stream</code></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li>Dwa warianty mają <strong>inną semantykę</strong> niż odpowiednik obiektowy: <code>fn-chain</code> nie przerywa łańcucha, a <code>fn-iterator</code> jest iteratorem wewnętrznym i jednorazowym. Pozostałe zachowują intencję, ale tracą nazwę domenową i miejsce na drugą operację.</li>
+<li><code>fn-observer</code> nie ma wyrejestrowania; lambdy nie mają stabilnej tożsamości, więc „usuń tę samą lambdę” nie działa niezawodnie.</li>
+<li><code>fn-state</code>: stany <code>LOCKED</code> i <code>UNLOCKED</code> to statyczne pola odwołujące się do siebie nawzajem. Działa, bo lambda odczytuje pole dopiero przy wywołaniu, ale kolejność inicjalizacji pól statycznych to subtelna pułapka.</li>
+<li><code>fn-singleton</code>: <code>memoize</code> synchronizuje każde <code>get()</code>; jedna instancja na dostawcę, nie na proces.</li>
+<li><code>fn-memento</code>: domknięcie przechwytuje referencję - dla <code>String</code> bezpiecznie, dla mutowalnych obiektów potrzebna jawna kopia.</li>
+<li>Reguła do zapamiętania: funkcja dla jednej, bezstanowej roli; klasa, gdy rola ma nazwę, stan, kilka operacji lub cykl życia.</li>
+</ul>
+<p><strong>Testy:</strong> <code>AdditionalPatternsExamplesTest.functionalStateDemoAlternatesTransitions</code>; pozostałe - smoke.</p>
+<p><strong>Demonstracja na żywo (ok. 5 min):</strong> uruchom kolejno pary <code>strategy</code>/<code>fn-strategy</code>, <code>decorator</code>/<code>fn-decorator</code>, <code>chain-of-responsibility</code>/<code>fn-chain</code>. Przy ostatniej parze zapytaj o wynik dla żądania <code>&quot;Te&quot;</code> w obu wersjach - to wprowadzenie do Ćwiczenia 3.</p>
+<hr>
+<h2 id="przyklad-17-punkt-wejscia-i-testy-modulu-pltrainingmodule4" tabindex="-1"><a class="header-anchor" href="#przyklad-17-punkt-wejscia-i-testy-modulu-pltrainingmodule4"><span>Przykład 17. Punkt wejścia i testy modułu (<code>pl.training.module4</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> przekrojowo; 1.3 (katalog jako lista kluczy).</p>
+<p><strong>Co ilustruje:</strong> jeden punkt wejścia dla 34 przykładów oraz dwa rodzaje testów: dymne (każdy przykład się uruchamia) i dokumentujące reguły wybranych wzorców.</p>
+<p><strong>Klasy:</strong></p>
+<ul>
+<li><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>Module4Examples.java</code> - rekord <code>Example(key, javaClass, run)</code>, lista <code>EXAMPLES</code>, metody <code>execute</code> (zwraca kod wyjścia bez <code>System.exit</code>), <code>tryRun</code>, <code>runAll</code> (podmienia <code>System.in</code> na pusty strumień).</li>
+<li><code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>ExamplesSmokeTest.java</code> - test parametryzowany po wszystkich kluczach, przechwytuje <code>System.out</code>, <code>System.err</code> i <code>java.util.logging</code>; testy nieznanego klucza, listy kluczy, kolejności <code>all</code> i wejścia dla <code>decorator</code>.</li>
+<li><code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>AdditionalPatternsExamplesTest.java</code> - 11 testów reguł (adapter, strategia filmowa, port FTP, memento, flyweight, cykl stanów, stan funkcyjny, iterator x2, bridge, mediator).</li>
+</ul>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li><code>ExamplesSmokeTest</code> daje szerokie pokrycie przy bardzo słabej asercji (brak wyjątku i niepuste wyjście). Dobry kontrprzykład: wysokie pokrycie nie oznacza ochrony reguł wzorca.</li>
+<li>Oba testy używają <code>@ResourceLock</code> na <code>System.out</code> - przechwytywanie globalnego wyjścia wymaga wyłączności przy równoległym uruchamianiu testów.</li>
+<li><code>AdditionalPatternsExamplesTest.outputOf(...)</code> to wzór do skopiowania w Ćwiczeniu 2 (test kanału piszącego na konsolę).</li>
+<li>Łącznie moduł ma 51 testów (11 + 40 przypadków <code>ExamplesSmokeTest</code>).</li>
+</ul>
+<p><strong>Testy:</strong> <code>mvn test -Dtest=&#x27;pl.training.module4.**&#x27;</code>.</p>
+<p><strong>Demonstracja na żywo:</strong> na początku modułu uruchom <code>Module4Examples</code> bez argumentów jako mapę katalogu (slajd 1.3). Pod koniec, przy omówieniu Ćwiczenia 2, pokaż, że nowe testy uczestników są w tych samych pakietach co kod (dostęp do elementów pakietowych).</p>
+<hr>
+<h2 id="proponowany-plan-modulu-ok-240-min" tabindex="-1"><a class="header-anchor" href="#proponowany-plan-modulu-ok-240-min"><span>Proponowany plan modułu (ok. 240 min)</span></a></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Blok</th>
+<th>Czas (orientacyjnie)</th>
+<th>Materiał</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Wprowadzenie, <code>Module4Examples</code> jako mapa katalogu</td>
+<td>3 min</td>
+<td>slajdy: Agenda, 1.3; przykład 17</td>
+</tr>
+<tr>
+<td>Sekcja 1: definicja, klasyfikacja, rodzaj zmienności, koszt, Java 25, Aktywność 1.7</td>
+<td>15 min</td>
+<td>slajdy 1.1-1.7</td>
+</tr>
+<tr>
+<td>Sekcja 2: wzorce kreacyjne, Aktywność 2.8</td>
+<td>22 min</td>
+<td>przykłady 1-3</td>
+</tr>
+<tr>
+<td>Sekcja 3: wzorce strukturalne, Aktywność 3.12</td>
+<td>28 min</td>
+<td>przykłady 4-8</td>
+</tr>
+<tr>
+<td>Sekcja 4: wzorce behawioralne, Aktywność 4.18</td>
+<td>35 min</td>
+<td>przykłady 9-15</td>
+</tr>
+<tr>
+<td>Sekcja 4: wariant funkcyjny</td>
+<td>7 min</td>
+<td>slajdy 4.19-4.20; przykład 16</td>
+</tr>
+<tr>
+<td>Ćwiczenie 1 (rozpoznawanie wzorców)</td>
+<td>30 min</td>
+<td>przykłady 2, 7, 10, 11, 15 jako omówienie</td>
+</tr>
+<tr>
+<td>Ćwiczenie 2 (nowy wariant bez modyfikacji)</td>
+<td>40 min</td>
+<td>przykłady 5 i 15</td>
+</tr>
+<tr>
+<td>Ćwiczenie 3 (obiektowy czy funkcyjny)</td>
+<td>30 min</td>
+<td>przykłady 9 i 16</td>
+</tr>
+<tr>
+<td>Ćwiczenie 4 (karty problemów)</td>
+<td>25 min</td>
+<td>mapa decyzji</td>
+</tr>
+<tr>
+<td>Podsumowanie, lista kontrolna, sprawdzenie wiedzy</td>
+<td>5 min</td>
+<td>slajdy końcowe</td>
+</tr>
+</tbody>
+</table></div>
+<p>Wykład z aktywnościami zajmuje ok. 110 minut, ćwiczenia z omówieniem ok. 125 minut. Przerwy nie są wliczone. Jeśli brakuje czasu, skróć demonstracje przykładów 3, 8 i 14 do samego uruchomienia klucza, a w Ćwiczeniu 4 omów tylko karty K1, K2, K8 i K10.</p>
+
+</main>
+</div>
+<script>if(matchMedia('(max-width:900px)').matches){var d=document.querySelector('.toc details');if(d)d.open=false}</script>
+</body>
+</html>

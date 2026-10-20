@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Przykłady: Moduł 2. Prewencja - przewodnik prowadzącego po przykładach</title>
+<style>:root{--bg:#fbfbfa;--fg:#1d1f23;--muted:#5f6670;--line:#e3e5e8;--card:#ffffff;--accent:#2457c5;--accent-bg:#eef3fd;
+--code-bg:#f4f5f7;--note-bg:#fff7e6;--note-line:#e6a700;--th:#f1f3f6;
+--k:#b3246b;--s:#1a7f37;--c:#6e7781;--n:#0550ae;--t:#8250df;--f:#6639ba;--a:#953800;
+--kind:#2457c5}
+@media (prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3036;--card:#1c1f23;--accent:#7aa7ff;--accent-bg:#1e2a40;
+--code-bg:#1f2328;--note-bg:#2b2412;--note-line:#c99400;--th:#23272d;
+--k:#ff7b9c;--s:#7ee2a0;--c:#8b949e;--n:#79c0ff;--t:#d2a8ff;--f:#d2a8ff;--a:#ffa657}}
+body.zadania{--kind:#1a7f37} body.warsztat{--kind:#c2570c} body.warsztat-zadania{--kind:#0f7b7b} body.rozwiazania{--kind:#b3246b} body.przyklady{--kind:#2457c5}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.topbar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 24px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);border-top:3px solid var(--kind)}
+.topbar a{color:var(--fg);text-decoration:none}
+.home{font-weight:600}
+.tabs{display:flex;gap:4px}
+.tab{padding:4px 12px;border-radius:999px;font-size:15px;color:var(--muted)!important}
+.tab:hover{background:var(--code-bg)}
+.tab.active{background:var(--accent-bg);color:var(--accent)!important;font-weight:600}
+.pager{margin-left:auto;display:flex;gap:14px;font-size:15px}
+.pager a{color:var(--muted)}.pager a:hover{color:var(--accent)}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:48px;max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+.layout.no-toc{grid-template-columns:minmax(0,1fr);max-width:1000px}
+aside{position:sticky;top:72px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px}
+.toc-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;font-weight:600}
+.toc ul{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.toc li a{display:block;padding:3px 12px;color:var(--muted);text-decoration:none;line-height:1.35}
+.toc li.h3 a{padding-left:24px;font-size:13px}
+.toc li a:hover{color:var(--accent)}
+main{min-width:0;max-width:860px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 1.2rem;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:2.6rem 0 .8rem;padding-top:.6rem;border-top:1px solid var(--line)}
+h3{font-size:1.18rem;margin:2rem 0 .6rem}
+h4{font-size:1rem;margin:1.5rem 0 .5rem}
+h1 a,h2 a,h3 a,h4 a{color:inherit;text-decoration:none}
+h2 a:hover::after,h3 a:hover::after{content:" #";color:var(--muted)}
+p,ul,ol{margin:.6rem 0 1rem}
+li{margin:.25rem 0}
+li>ul,li>ol{margin:.2rem 0}
+a{color:var(--accent)}
+strong{font-weight:650}
+code{font:0.88em/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre.code{position:relative;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:1rem 0 1.4rem}
+pre.code code{background:none;padding:0;font-size:14px;line-height:1.55}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:6px;right:10px;font:11px ui-monospace,Menlo,monospace;color:var(--muted);text-transform:uppercase}
+.table-wrap{overflow-x:auto;margin:1rem 0 1.4rem;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--th);font-weight:600}
+tr:last-child td{border-bottom:none}
+blockquote{margin:1rem 0 1.4rem;padding:10px 16px;background:var(--note-bg);border-left:4px solid var(--note-line);border-radius:0 8px 8px 0}
+blockquote p{margin:.3rem 0}
+hr{border:none;border-top:1px solid var(--line);margin:2rem 0}
+hr+h2{border-top:none;margin-top:1.4rem}
+main p code,main li code,main td code{overflow-wrap:break-word}
+.toc summary{cursor:pointer;list-style:none}.toc summary::-webkit-details-marker{display:none}
+.hljs-keyword,.hljs-selector-tag,.hljs-built_in,.hljs-literal{color:var(--k)}
+.hljs-string,.hljs-regexp,.hljs-addition{color:var(--s)}
+.hljs-comment,.hljs-quote,.hljs-meta{color:var(--c);font-style:italic}
+.hljs-number,.hljs-symbol{color:var(--n)}
+.hljs-type,.hljs-class .hljs-title,.hljs-title.class_{color:var(--t)}
+.hljs-title,.hljs-title.function_,.hljs-section{color:var(--f)}
+.hljs-attr,.hljs-attribute,.hljs-variable,.hljs-params,.hljs-tag{color:var(--a)}
+.hljs-deletion{color:var(--k)}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:16px;padding:20px 16px 60px}
+aside{position:static;max-height:none;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--card)}
+.toc-title{margin:0}.toc details[open] .toc-title{margin-bottom:8px}.toc summary::after{content:" ▾"}
+body{font-size:16px}.topbar{padding:8px 16px}.pager{margin-left:0}h1{font-size:1.6rem}}
+@media print{.topbar,aside{display:none}.layout{display:block;padding:0}main{max-width:none}
+pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#000;font-size:12pt}}
+.langs{margin-left:auto}.langs+.pager{margin-left:0}
+.langs{margin-left:auto}.langs+.pager{margin-left:0}</style>
+</head>
+<body class="przyklady">
+<header class="topbar"><a class="home" href="../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../slajdy/02-prewencja-slajdy.html">Slajdy</a><a class="tab" href="../zadania/02-prewencja.html">Zadania</a><a class="tab active" href="02-prewencja.html">Przykłady</a><a class="tab" href="../rozwiazania/02-prewencja.html">Rozwiązania</a></div><div class="pager"><a href="01-wprowadzenie.html" title="Poprzedni moduł">&larr; 01</a><a href="03-testowanie-a-bezpieczenstwo.html" title="Następny moduł">03 &rarr;</a></div></header>
+<div class="layout">
+<aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#uruchamianie-przykladow-i-testow">Uruchamianie przykładów i testów</a></li><li class="h3"><a href="#java">Java</a></li><li class="h3"><a href="#c">C#</a></li><li class="h3"><a href="#typescript">TypeScript</a></li><li class="h2"><a href="#mapa-przykladow">Mapa przykładów</a></li><li class="h2"><a href="#przyklad-1-bramka-kompilatora-w-pamieci-pltrainingmodule2tooling">Przykład 1. Bramka kompilatora w pamięci (pl.training.module2.tooling)</a></li><li class="h2"><a href="#przyklad-2-wykonywalny-model-adr-pltrainingmodule2documentation">Przykład 2. Wykonywalny model ADR (pl.training.module2.documentation)</a></li><li class="h2"><a href="#przyklad-3-wersja-zastana-i-test-charakterystyki-pltrainingmodule2legacy">Przykład 3. Wersja zastana i test charakterystyki (pl.training.module2.legacy)</a></li><li class="h2"><a href="#przyklad-4-model-domeny-i-dry-dla-oplaty-paliwowej-pltrainingmodule2domain">Przykład 4. Model domeny i DRY dla opłaty paliwowej (pl.training.module2.domain)</a></li><li class="h2"><a href="#przyklad-5-strategy-dla-wariantow-ceny-i-test-kontraktowy-pltrainingmodule2domain">Przykład 5. Strategy dla wariantów ceny i test kontraktowy (pl.training.module2.domain)</a></li><li class="h2"><a href="#przyklad-6-porty-i-przypadek-uzycia-pltrainingmodule2application">Przykład 6. Porty i przypadek użycia (pl.training.module2.application)</a></li><li class="h2"><a href="#przyklad-7-adaptery-i-composition-root-pltrainingmodule2adapter">Przykład 7. Adaptery i composition root (pl.training.module2.adapter)</a></li><li class="h2"><a href="#przyklad-8-lokalna-poprawa-boy-scout-z-testem-rownowaznosci-pltrainingmodule2boyscout">Przykład 8. Lokalna poprawa Boy Scout z testem równoważności (pl.training.module2.boyscout)</a></li><li class="h2"><a href="#przyklad-9-module2examples-przeglad-calego-modulu-pltrainingmodule2">Przykład 9. Module2Examples - przegląd całego modułu (pl.training.module2)</a></li><li class="h2"><a href="#proponowany-plan-modulu-3-h">Proponowany plan modułu (~3 h)</a></li></ul></details></nav></aside>
+<main>
+<h1>Moduł 2. Prewencja - przewodnik prowadzącego po przykładach</h1>
+<p>Materiał dla prowadzącego. Opisuje przykłady kodu z pakietu <code>pl.training.module2</code>, ich związek ze slajdami modułu (<code>src/<wbr>main/<wbr>resources/<wbr>md/<wbr>slides/<wbr>02-prewencja-slajdy.md</code>) oraz sugerowany przebieg demonstracji.</p>
+<p>Pakiet łączy trzy grupy przykładów, ułożone w przewodniku według tematów modułu:</p>
+<ul>
+<li><strong>szybka informacja zwrotna i decyzje</strong> (sekcje 1-2 slajdów): bramka kompilatora w pamięci (<code>tooling</code>) i wykonywalny model ADR (<code>documentation</code>),</li>
+<li><strong>projekt jako kontrola degradacji</strong> (sekcja 5): studium wyceny dostawy - zastany serwis <code>LegacyDeliveryQuoteService</code> (<code>legacy</code>) rozłożony na domenę (<code>domain</code>), przypadek użycia z portami (<code>application</code>), adaptery (<code>adapter</code>) i ręczny composition root (<code>Module2Examples</code>),</li>
+<li><strong>prewencja w codziennej pracy</strong> (sekcja 6): lokalna poprawa Boy Scout z testem równoważności (<code>boyscout</code>).</li>
+</ul>
+<p>Sekcje 3 (akceptacja) i 4 (degradacja) slajdów są koncepcyjne i nie mają osobnego kodu; ilustracją kwarantanny jest pakiet <code>adapter</code>, a ilustracją rejestru długu - stan bazowy bramki z Ćwiczenia 1.</p>
+<h2 id="uruchamianie-przykladow-i-testow" tabindex="-1"><a class="header-anchor" href="#uruchamianie-przykladow-i-testow"><span>Uruchamianie przykładów i testów</span></a></h2>
+<p>Wszystkie polecenia uruchamiamy z katalogu głównego repozytorium.</p>
+<h3 id="java" tabindex="-1"><a class="header-anchor" href="#java"><span>Java</span></a></h3>
+<pre class="code" data-lang="bash"><code class="hljs">mvn -q compile &amp;&amp; java -<span class="hljs-built_in">cp</span> target/classes pl.training.module2.Module2Examples
+mvn <span class="hljs-built_in">test</span> -Dtest=<span class="hljs-string">&#x27;pl.training.module2.**&#x27;</span>
+</code></pre>
+<p>Albo z IDE: uruchom <code>Module2Examples.main</code> oraz testy z katalogu <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2</code>. Przed ćwiczeniami warto wykonać <code>mvn clean verify</code>.</p>
+<p>Oczekiwany wynik <code>Module2Examples</code>:</p>
+<pre class="code" data-lang="text"><code class="hljs">Quote ready for developer@example.com: STANDARD costs 17.28
+Quote ready for developer@example.com: STANDARD costs 17.28
+Legacy and refactored prices equal: true
+Stored quotes: 1
+Boy Scout: Successful: 1/2
+Decision record: # ADR-0042: Use Branch by Abstraction
+Compiler gate: compiled=true
+</code></pre>
+<p>Pierwsza linia pochodzi z wersji zastanej, druga z adaptera <code>ConsoleQuoteNotifier</code> nowej wersji. Przykład <code>tooling</code> wymaga uruchomienia na JDK (nie JRE), bo korzysta z <code>ToolProvider.getSystemJavaCompiler()</code>; opcja <code>--release 25</code> wymaga JDK w wersji co najmniej 25.</p>
+<h3 id="c" tabindex="-1"><a class="header-anchor" href="#c"><span>C#</span></a></h3>
+<pre class="code" data-lang="bash"><code class="hljs"><span class="hljs-built_in">cd</span> csharp &amp;&amp; dotnet run --project src/Training.Module2
+dotnet <span class="hljs-built_in">test</span> tests/Training.Module2.Tests
+</code></pre>
+<p>Kod: <code>csharp/<wbr>src/<wbr>Training.Module2</code> (katalogi <code>Legacy</code>, <code>Domain</code>, <code>Application</code>, <code>Adapter</code>, <code>BoyScout</code> z <code>Before</code> i <code>After</code>, <code>Documentation</code>, <code>Tooling</code>, plik <code>Module2Examples.cs</code>), testy: <code>csharp/<wbr>tests/<wbr>Training.Module2.Tests</code>. Odpowiednikiem kompilatora w pamięci jest <code>Tooling/<wbr>InMemoryCSharpCompiler.cs</code> (Roslyn).</p>
+<h3 id="typescript" tabindex="-1"><a class="header-anchor" href="#typescript"><span>TypeScript</span></a></h3>
+<pre class="code" data-lang="bash"><code class="hljs"><span class="hljs-built_in">cd</span> typescript &amp;&amp; npm ci &amp;&amp; npm run build &amp;&amp; npm run module2
+npx vitest run <span class="hljs-built_in">test</span>/module2
+</code></pre>
+<p>Kod: <code>typescript/<wbr>src/<wbr>module2</code> (<code>legacy</code>, <code>domain</code>, <code>application</code>, <code>adapter</code>, <code>boyscout/<wbr>before</code>, <code>boyscout/<wbr>after</code>, <code>documentation</code>, <code>tooling</code>, <code>Module2Examples.ts</code>, <code>main.ts</code>), testy: <code>typescript/<wbr>test/<wbr>module2</code>. Odpowiednikiem kompilatora jest <code>tooling/<wbr>InMemoryTypeScriptCompiler.ts</code>.</p>
+<hr>
+<h2 id="mapa-przykladow" tabindex="-1"><a class="header-anchor" href="#mapa-przykladow"><span>Mapa przykładów</span></a></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Nr</th>
+<th>Przykład (pakiet)</th>
+<th>Sekcja teorii</th>
+<th>Kluczowe pliki (<code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>...</code>)</th>
+<th>Testy (<code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>...</code>)</th>
+<th>Zadania</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Bramka kompilatora (<code>tooling</code>)</td>
+<td>1.4 Różne narzędzia, 1.5 Kompilator jako najszybsza bramka, 1.6 Bramki w legacy</td>
+<td><code>tooling/<wbr>InMemoryJavaCompiler.java</code>, <code>WarningPolicy.java</code>, <code>CompilationResult.java</code>, <code>CompilationDiagnostic.java</code></td>
+<td><code>tooling/<wbr>InMemoryJavaCompilerTest.java</code></td>
+<td>Ćwiczenie 1</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Wykonywalny model ADR (<code>documentation</code>)</td>
+<td>2.7 Zapis decyzji: ADR</td>
+<td><code>documentation/<wbr>DecisionRecord.java</code>, <code>DecisionRecordMarkdownRenderer.java</code>, <code>DecisionId.java</code>, <code>DecisionStatus.java</code>, <code>DecisionOption.java</code>, <code>DecisionConsequence.java</code>, <code>ConsequenceKind.java</code></td>
+<td><code>documentation/<wbr>DecisionRecordTest.java</code>, <code>DecisionRecordMarkdownRendererTest.java</code></td>
+<td>Ćwiczenie 2</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Wersja zastana i test charakterystyki (<code>legacy</code>)</td>
+<td>5.7 Punkt wyjścia, 5.8 Co naprawdę jest problemem</td>
+<td><code>legacy/<wbr>LegacyDeliveryQuoteService.java</code></td>
+<td><code>legacy/<wbr>LegacyDeliveryQuoteServiceCharacterizationTest.java</code></td>
+<td>Ćwiczenie 3</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Model domeny i DRY dla opłaty (<code>domain</code>)</td>
+<td>5.2 DRY dotyczy wiedzy</td>
+<td><code>domain/<wbr>Parcel.java</code>, <code>ShippingMethod.java</code>, <code>DeliveryQuote.java</code>, <code>FuelSurcharge.java</code></td>
+<td>pośrednio <code>domain/<wbr>DeliveryPriceCalculatorTest.java</code>, <code>domain/<wbr>DeliveryPricePolicyContractTest.java</code></td>
+<td>Ćwiczenia 2 i 3</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Strategy dla wariantów ceny i test kontraktowy (<code>domain</code>)</td>
+<td>5.3 SOLID, 5.4 Błędne uproszczenia, 5.10 Bilans</td>
+<td><code>domain/<wbr>DeliveryPricePolicy.java</code>, <code>StandardDeliveryPricePolicy.java</code>, <code>ExpressDeliveryPricePolicy.java</code>, <code>DeliveryPriceCalculator.java</code></td>
+<td><code>domain/<wbr>DeliveryPricePolicyContractTest.java</code>, <code>domain/<wbr>DeliveryPriceCalculatorTest.java</code></td>
+<td>Ćwiczenie 3</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Porty i przypadek użycia (<code>application</code>)</td>
+<td>5.6 Reguła zależności, 5.9 Porty i przypadek użycia</td>
+<td><code>application/<wbr>QuoteRepository.java</code>, <code>QuoteNotifier.java</code>, <code>CreateDeliveryQuote.java</code></td>
+<td><code>application/<wbr>CreateDeliveryQuoteTest.java</code></td>
+<td>Ćwiczenie 3</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Adaptery i composition root (<code>adapter</code>)</td>
+<td>3.3 Kwarantanna, 5.6, 5.10</td>
+<td><code>adapter/<wbr>InMemoryQuoteRepository.java</code>, <code>ConsoleQuoteNotifier.java</code>, <code>Module2Examples.java</code></td>
+<td><code>adapter/<wbr>InMemoryQuoteRepositoryTest.java</code></td>
+<td>Ćwiczenie 3</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Lokalna poprawa Boy Scout (<code>boyscout</code>)</td>
+<td>6.1-6.3 Boy Scout Rule, 6.4 Małe zestawy zmian</td>
+<td><code>boyscout/<wbr>before/<wbr>ReleaseSummaryFormatter.java</code>, <code>boyscout/<wbr>after/<wbr>ReleaseSummaryFormatter.java</code>, <code>DeploymentResult.java</code>, <code>DeploymentStatus.java</code></td>
+<td><code>boyscout/<wbr>BoyScoutEquivalenceTest.java</code></td>
+<td>Ćwiczenie 4</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Przegląd całego modułu</td>
+<td>wszystkie sekcje</td>
+<td><code>Module2Examples.java</code></td>
+<td><code>Module2ExamplesTest.java</code></td>
+<td>-</td>
+</tr>
+</tbody>
+</table></div>
+<hr>
+<h2 id="przyklad-1-bramka-kompilatora-w-pamieci-pltrainingmodule2tooling" tabindex="-1"><a class="header-anchor" href="#przyklad-1-bramka-kompilatora-w-pamieci-pltrainingmodule2tooling"><span>Przykład 1. Bramka kompilatora w pamięci (<code>pl.training.module2.tooling</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 1.4 Różne narzędzia, różne dowody; 1.5 Kompilator jako najszybsza bramka; 1.6 Bramki w legacy: stan bazowy i ratchet.</p>
+<p><strong>Co ilustruje:</strong> politykę ostrzeżeń jako jawny parametr (<code>WarningPolicy</code>): ten sam kod z surowym typem przechodzi przy <code>ALLOW_WARNINGS</code> (z ostrzeżeniem) i nie przechodzi przy <code>TREAT_WARNINGS_AS_ERRORS</code> (odpowiednik <code>-Werror</code>). Diagnostyka jest zapisywana strukturalnie (rodzaj, kod, pozycja), a nie jako lokalizowany komunikat. To najszybsza pętla informacji zwrotnej po IDE.</p>
+<p><strong>Klasy:</strong></p>
+<ul>
+<li><code>tooling/<wbr>WarningPolicy.java</code> - <code>ALLOW_WARNINGS</code>, <code>TREAT_WARNINGS_AS_ERRORS</code>.</li>
+<li><code>tooling/<wbr>InMemoryJavaCompiler.java</code> - <code>javax.tools</code>, opcje <code>--release 25</code>, <code>-proc:none</code>, <code>-Xlint:rawtypes</code>, plus <code>-Werror</code> zależnie od polityki; źródło i kod bajtowy w pamięci (<code>MemoryFileManager</code>).</li>
+<li><code>tooling/<wbr>CompilationResult.java</code> - <code>successful</code>, lista diagnostyk, posortowane nazwy wygenerowanych klas, <code>hasDiagnostic(kind, code)</code>.</li>
+<li><code>tooling/<wbr>CompilationDiagnostic.java</code> - <code>Optional&lt;String&gt; code</code> (API dopuszcza brak kodu), pozycje <code>NOPOS</code> lub dodatnie.</li>
+</ul>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-variable">BASE_OPTIONS</span> <span class="hljs-operator">=</span> List.of(
+        <span class="hljs-string">&quot;--release&quot;</span>, <span class="hljs-string">&quot;25&quot;</span>,
+        <span class="hljs-string">&quot;-proc:none&quot;</span>,
+        <span class="hljs-string">&quot;-Xlint:rawtypes&quot;</span>);
+...
+<span class="hljs-keyword">if</span> (warningPolicy == WarningPolicy.TREAT_WARNINGS_AS_ERRORS) {
+    options.add(<span class="hljs-string">&quot;-Werror&quot;</span>);
+}
+</code></pre>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li><code>--release 25</code> ustala poziom języka i API, ale nie gwarantuje, że Maven działa na JDK 25. W CI kontroluje się faktyczny JDK (toolchains lub jawne środowisko). Warto pokazać <code>mvn -v</code> na maszynie prowadzącego.</li>
+<li><code>-Werror</code> to silna bramka dla nowego kodu, ale włączona nagle w dużym legacy zablokuje wszystkich. Stąd stan bazowy i ratchet (slajd 1.6).</li>
+<li>Testy sprawdzają konkretne kody <code>javac</code> (<code>compiler.warn.raw.class.use</code>, <code>compiler.err.warnings.and.werror</code>), więc są świadomie związane z wersją kompilatora.</li>
+<li>Ten przykład nie zastępuje Mavena z pełną ścieżką klas, testów ani analizatorów (Checkstyle, PMD, SpotBugs pokrywają inne klasy problemów).</li>
+<li>Tabela 1.4: każde narzędzie daje inny dowód i ma inne granice. Zielony wynik jednego narzędzia to nie certyfikat.</li>
+</ul>
+<p><strong>Testy:</strong> <code>InMemoryJavaCompilerTest</code>:</p>
+<ul>
+<li><code>compilesTypedSourceAndKeepsGeneratedBytecodeInMemory</code> - czysty kod przechodzi nawet z <code>-Werror</code>, brak diagnostyk,</li>
+<li><code>reportsRawTypeByKindAndCompilerCodeWithoutRejectingSource</code> - surowy typ: sukces i ostrzeżenie <code>compiler.warn.raw.class.use</code>,</li>
+<li><code>rejectsTheSameRawTypeWhenWarningsAreErrors</code> - ten sam kod: porażka, ostrzeżenie oraz błąd <code>compiler.err.warnings.and.werror</code>,</li>
+<li><code>validatesCompilationRequest</code> - walidacja nazwy binarnej, źródła, polityki,</li>
+<li><code>diagnosticsCanRepresentAnAbsentImplementationSpecificCode</code> - brak kodu diagnostyki i walidacja pozycji.</li>
+</ul>
+<p><strong>Demonstracja na żywo (10 min):</strong></p>
+<ol>
+<li><code>java -version</code>, <code>mvn -v</code>: jaki JDK faktycznie buduje projekt? Porównaj z <code>maven.compiler.release</code> w <code>pom.xml</code>.</li>
+<li>Pokaż <code>InMemoryJavaCompilerTest</code> i uruchom trzy pierwsze testy; pokaż różnicę w <code>successful</code> dla tego samego <code>RAW_SOURCE</code>.</li>
+<li>Na żywo: skompiluj wszystkie źródła z <code>-Xlint:all</code> bez zmiany <code>pom.xml</code>, np. <code>javac --release 25 -Xlint:all -d /<wbr>tmp/<wbr>lint $(find src/<wbr>main/<wbr>java -name &#x27;*.java&#x27;)</code>, i pokaż, że nawet projekt szkoleniowy ma historyczne ostrzeżenia (kategoria <code>auxiliaryclass</code> w module 1) oraz celowe ostrzeżenia w materiale warsztatu (<code>m2/<wbr>s03_compilergate/<wbr>start</code>, <code>m2/<wbr>s04_qualitygate/<wbr>sample/<wbr>dirty</code>). Most do Ćwiczenia 1: „co byście zrobili, gdyby jutro włączyć <code>-Werror</code>?”.</li>
+<li>Zapytaj o czas tej pętli: ile sekund od zapisu pliku do sygnału? Porównaj z czasem przeglądu kodu (slajd 1.1).</li>
+</ol>
+<hr>
+<h2 id="przyklad-2-wykonywalny-model-adr-pltrainingmodule2documentation" tabindex="-1"><a class="header-anchor" href="#przyklad-2-wykonywalny-model-adr-pltrainingmodule2documentation"><span>Przykład 2. Wykonywalny model ADR (<code>pl.training.module2.documentation</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 2.7 Zapis decyzji: ADR; pośrednio 2.2 Decyzje odwracalne i nieodwracalne.</p>
+<p><strong>Co ilustruje:</strong> model decyzji architektonicznej w lokalnym szablonie projektu (rdzeń ADR: tytuł, status, kontekst, decyzja, konsekwencje, rozszerzony o identyfikator, rozważone opcje i metodę weryfikacji) oraz deterministyczny renderer do Markdown.</p>
+<p><strong>Klasy:</strong></p>
+<ul>
+<li><code>documentation/<wbr>DecisionId.java</code> - lokalna konwencja <code>ADR-[0-9]{4}</code> (nie wymóg formatu ADR).</li>
+<li><code>documentation/<wbr>DecisionStatus.java</code> - <code>PROPOSED</code>, <code>ACCEPTED</code>, <code>REJECTED</code>, <code>DEPRECATED</code>, <code>SUPERSEDED</code>.</li>
+<li><code>documentation/<wbr>DecisionOption.java</code>, <code>DecisionConsequence.java</code>, <code>ConsequenceKind.java</code>.</li>
+<li><code>documentation/<wbr>DecisionRecord.java</code> - wymaga co najmniej jednej opcji i jednej konsekwencji, niepustych tekstów; kopie defensywne list.</li>
+<li><code>documentation/<wbr>DecisionRecordMarkdownRenderer.java</code> - stała kolejność sekcji, polskie etykiety statusów (<code>Zaakceptowana</code>, <code>Zastąpiona</code> itd.) i rodzajów konsekwencji.</li>
+</ul>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li>ADR jest dla decyzji jednokierunkowych, o trwałym wpływie na architekturę (slajd 2.2), nie dla każdego Extract Method.</li>
+<li>Model wymaga przynajmniej jednej konsekwencji dowolnego rodzaju; w praktyce warto uczciwie opisać korzyści i koszty.</li>
+<li>Renderer gwarantuje formę, nie jakość decyzji. Wartość pochodzi z kontekstu, uczciwych alternatyw i weryfikacji.</li>
+<li>Przy zmianie kierunku stary ADR oznacza się jako zastąpiony (<code>SUPERSEDED</code>) i tworzy nowy; historia rozumowania zostaje.</li>
+<li>ADR to dokumentacja historyczna. Komentarz w kodzie opisuje „dlaczego” i stan obecny, nie historię edycji („przeniesiono tę metodę” należy do VCS).</li>
+<li>Wykonywalną regułę z ADR (test architektury pilnujący decyzji) pokazuje scena warsztatu <code>m2/<wbr>s02_adr</code>.</li>
+</ul>
+<p><strong>Testy:</strong></p>
+<ul>
+<li><code>DecisionRecordTest.snapshotsCollectionsAndExposesImmutableViews</code> - migawki list i niemodyfikowalne widoki,</li>
+<li><code>DecisionRecordTest.rejectsInvalidIdentifiersAndIncompleteRecords</code> - odrzucenie złego identyfikatora (<code>&quot;42&quot;</code>), pustego tytułu, pustej listy opcji, pustej listy konsekwencji, pustego uzasadnienia i opisu,</li>
+<li><code>DecisionRecordMarkdownRendererTest.rendersEveryFieldInDeterministicOrder</code> - pełny oczekiwany dokument jako text block (kolejność sekcji, etykiety, końcowe nowe linie), determinizm,</li>
+<li><code>DecisionRecordMarkdownRendererTest.rejectsANullRecord</code>.</li>
+</ul>
+<p><strong>Demonstracja na żywo (8 min):</strong></p>
+<ol>
+<li>Zapytaj, gdzie uczestnicy zapisują dziś decyzje i jak po roku odtwarzają, dlaczego coś zrobiono.</li>
+<li>Pokaż <code>DecisionRecord</code> i test renderera; uruchom <code>Module2Examples</code> (linia <code>Decision record: # ADR-0042: Use Branch by Abstraction</code>).</li>
+<li>Pokaż w teście kompletny wynik Markdown jako wzór struktury.</li>
+<li>Eksperyment: spróbuj utworzyć <code>DecisionRecord</code> z pustą listą konsekwencji i pokaż wyjątek <code>consequences must not be empty</code>.</li>
+<li>Przejdź do Aktywności 2.2 i zapytaj, które z sześciu decyzji zasługują na ADR.</li>
+</ol>
+<hr>
+<h2 id="przyklad-3-wersja-zastana-i-test-charakterystyki-pltrainingmodule2legacy" tabindex="-1"><a class="header-anchor" href="#przyklad-3-wersja-zastana-i-test-charakterystyki-pltrainingmodule2legacy"><span>Przykład 3. Wersja zastana i test charakterystyki (<code>pl.training.module2.legacy</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 5.7 Studium przypadku: punkt wyjścia; 5.8 Co naprawdę jest problemem.</p>
+<p><strong>Co ilustruje:</strong> klasę, w której jeden przebieg łączy trzy niezależne decyzje: cennik (dział finansowy), zapis (właściciel danych) i komunikat (komunikacja z klientem). Sam <code>switch</code> nie jest głównym problemem. Każda kolejna zmiana dokłada się do tej samej metody - to mechanizm degradacji z sekcji 4 w małej skali.</p>
+<p><strong>Klasy:</strong> <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>legacy/<wbr>LegacyDeliveryQuoteService.java</code>.</p>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li>stała <code>0.08</code> występuje w obu gałęziach <code>switch</code> (ta sama reguła, dwie reprezentacje),</li>
+<li>zapis to prywatna <code>List</code> serwisu, powiadomienie to bezpośredni <code>System.out.printf</code>,</li>
+<li>kolejność: obliczenie, zapis, powiadomienie, zwrot jest ukryta w implementacji; to protokół efektów ubocznych, który wymaga jawnej decyzji,</li>
+<li>brak punktu podmiany: nie da się wiarygodnie zasymulować awarii zapisu.</li>
+</ul>
+<p><strong>Testy:</strong> <code>LegacyDeliveryQuoteServiceCharacterizationTest</code>:</p>
+<ul>
+<li><code>documentsStandardDeliveryPriceAndStorage</code> - 3 kg STANDARD daje <code>17.28</code>, a oferta trafia do <code>storedQuotes()</code>,</li>
+<li><code>documentsExpressDeliveryPrice</code> - 3 kg EXPRESS daje <code>31.32</code>.</li>
+<li>Jawna luka: test nie przechwytuje treści konsoli. Nie jest to dowód, że komunikat nie jest częścią kontraktu. Technika testów charakteryzujących jest rozwijana w module 3.</li>
+</ul>
+<p><strong>Demonstracja na żywo (8 min):</strong></p>
+<ol>
+<li>Otwórz <code>LegacyDeliveryQuoteService</code> i poproś grupę o wypisanie „kto może zażądać zmiany w tej klasie”.</li>
+<li>Pokaż tabelę ze slajdu 5.8 dopiero po odpowiedziach grupy.</li>
+<li>Otwórz test charakterystyki, uruchom go. Przelicz na tablicy: (10 + 3 x 2) x 1.08 = 17.28, (20 + 3 x 3) x 1.08 = 31.32.</li>
+<li>Pytania: „Czego ten test nie chroni?”, „Czy treść komunikatu jest kontraktem? Kto to rozstrzyga?”, „Jak wyglądałaby ta metoda po pięciu kolejnych metodach dostawy, gdyby nikt jej nie porządkował?” (prawa Lehmana, slajd 4.1).</li>
+</ol>
+<hr>
+<h2 id="przyklad-4-model-domeny-i-dry-dla-oplaty-paliwowej-pltrainingmodule2domain" tabindex="-1"><a class="header-anchor" href="#przyklad-4-model-domeny-i-dry-dla-oplaty-paliwowej-pltrainingmodule2domain"><span>Przykład 4. Model domeny i DRY dla opłaty paliwowej (<code>pl.training.module2.domain</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 5.2 DRY dotyczy wiedzy, KISS - złożoności wprowadzonej.</p>
+<p><strong>Co ilustruje:</strong> rekordy utrzymujące podstawowe inwarianty w konstruktorze kanonicznym oraz centralizację jednej potwierdzonej reguły (stawka + sposób doliczenia + zaokrąglenie <code>HALF_UP</code>) przy świadomym <strong>niewydzielaniu</strong> wspólnej formuły ceny bazowej.</p>
+<p><strong>Klasy:</strong></p>
+<ul>
+<li>
+<p><code>domain/<wbr>Parcel.java</code> (masa niepusta i dodatnia), <code>domain/<wbr>ShippingMethod.java</code> (enum <code>STANDARD</code>, <code>EXPRESS</code>), <code>domain/<wbr>DeliveryQuote.java</code>:</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">if</span> (price.signum() &lt; <span class="hljs-number">0</span>) {
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;Price must not be negative&quot;</span>);
+}
+price = price.setScale(<span class="hljs-number">2</span>, RoundingMode.UNNECESSARY);
+</code></pre>
+</li>
+<li>
+<p><code>domain/<wbr>FuelSurcharge.java</code>:</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">if</span> (rate.signum() &lt; <span class="hljs-number">0</span> || rate.compareTo(BigDecimal.ONE) &gt; <span class="hljs-number">0</span>) {
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(
+            <span class="hljs-string">&quot;Fuel surcharge rate must be between zero and one&quot;</span>);
+}
+...
+<span class="hljs-keyword">return</span> baseAmount.add(baseAmount.multiply(rate)).setScale(<span class="hljs-number">2</span>, RoundingMode.HALF_UP);
+</code></pre>
+</li>
+</ul>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li><code>RoundingMode.UNNECESSARY</code> nie zaokrągla, tylko rzuca <code>ArithmeticException</code>, gdy cena ma więcej niż dwa znaczące miejsca dziesiętne. Zaokrąglenie jest odpowiedzialnością polityki ceny, a nie wyniku.</li>
+<li><code>BigDecimal</code> tworzony z tekstu, nie z <code>double</code>; <code>record</code> ogranicza kod techniczny, ale nie tworzy modelu - znaczenie wynika z nazw i reguł.</li>
+<li>brak metody <code>basePrice(base, rate, weight)</code>: formuły STANDARD i EXPRESS są podobne tekstowo, ale to odrębne cenniki, które mogą zmieniać się niezależnie,</li>
+<li>inwariant <code>0..1</code> jest decyzją modelową, nie wynika z typu; jeśli biznes dopuści więcej niż 100 procent lub korektę ujemną, trzeba go zmienić,</li>
+<li>brak interfejsu <code>Surcharge</code> (YAGNI, jedna reguła, brak granicy) - decyzja odłożona do chwili, gdy pojawi się drugi wariant,</li>
+<li>pułapka: w testach nie należy liczyć oczekiwanej ceny przez <code>FuelSurcharge</code> (niezależność wyroczni). Testy w projekcie mają wartości wpisane jawnie (<code>17.28</code>, <code>31.32</code>).</li>
+<li>Wersja zastana także korzysta z <code>Parcel</code> i <code>DeliveryQuote</code>, więc inwarianty obowiązują obie wersje.</li>
+</ul>
+<p><strong>Testy:</strong> brak dedykowanych testów rekordów i <code>FuelSurcharge</code>; zachowanie chronią pośrednio <code>DeliveryPriceCalculatorTest</code> (konkretne ceny) i <code>DeliveryPricePolicyContractTest</code> (skala 2, nieujemność). Walidacja zakresu stawki i ujemnej kwoty bazowej nie ma testu - warto to powiedzieć wprost jako lukę.</p>
+<p><strong>Demonstracja na żywo (6 min):</strong> pokaż obok siebie dwie gałęzie <code>switch</code> z Przykładu 3 i <code>FuelSurcharge</code>. Pytanie: „Dlaczego scalono <code>0.08</code>, a nie scalono <code>10.00 + weight * 2.00</code> z <code>20.00 + weight * 3.00</code>?”. Następnie: „Co się stanie dla <code>new BigDecimal(&quot;17.285&quot;)</code> w <code>DeliveryQuote</code>?” (wyjątek, nie zaokrąglenie).</p>
+<hr>
+<h2 id="przyklad-5-strategy-dla-wariantow-ceny-i-test-kontraktowy-pltrainingmodule2domain" tabindex="-1"><a class="header-anchor" href="#przyklad-5-strategy-dla-wariantow-ceny-i-test-kontraktowy-pltrainingmodule2domain"><span>Przykład 5. Strategy dla wariantów ceny i test kontraktowy (<code>pl.training.module2.domain</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 5.3 SOLID jako narzędzie analizy zmian; 5.4 Błędne uproszczenia SOLID; 5.10 Bilans decyzji.</p>
+<p><strong>Co ilustruje:</strong> dwa istniejące algorytmy za wspólnym kontraktem; każda polityka ma własne stałe <code>BASE_PRICE</code>, <code>PRICE_PER_KG</code> i współdzieli <code>FuelSurcharge</code> przez konstruktor. Kalkulator indeksuje strategie raz w konstruktorze (<code>EnumMap</code>), odrzuca konfigurację pustą, <code>null</code> i zduplikowaną, a następnie tworzy niemodyfikowalną kopię (<code>Map.copyOf</code>). Jeden parametryzowany test sprawdza kontrakt dla wszystkich implementacji.</p>
+<p><strong>Klasy:</strong> <code>domain/<wbr>DeliveryPricePolicy.java</code>, <code>domain/<wbr>StandardDeliveryPricePolicy.java</code>, <code>domain/<wbr>ExpressDeliveryPricePolicy.java</code>, <code>domain/<wbr>DeliveryPriceCalculator.java</code>.</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">DeliveryPricePolicy</span> <span class="hljs-variable">previous</span> <span class="hljs-operator">=</span> indexedPolicies.putIfAbsent(method, policy);
+<span class="hljs-keyword">if</span> (previous != <span class="hljs-literal">null</span>) {
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;Duplicate policy for method: &quot;</span> + method);
+}
+...
+<span class="hljs-built_in">this</span>.policies = Map.copyOf(indexedPolicies);
+</code></pre>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li>kontrakt jest zapisany w Javadoc (stabilna niepusta metoda; wynik deterministyczny, nieujemny, skala 2, bez efektów ubocznych); typy tego nie wyrażają,</li>
+<li>brak pluginów, refleksji, konfiguracji wyrażeń (YAGNI) - Strategy jest uzasadniona <strong>istniejącymi</strong> wariantami, a nie samym faktem istnienia <code>switch</code> („nie każdy <code>switch</code> łamie OCP”, slajd 5.4),</li>
+<li><code>ShippingMethod</code> pozostaje enumem: dodanie metody wymaga zmiany enuma i composition root. Zamknięta na zmianę jest logika wyboru w kalkulatorze, nie cały system,</li>
+<li>brak polityki dla metody jest wykrywany dopiero przy żądaniu (<code>priceFor</code>), nie w konstruktorze; wybór zależy od tego, czy częściowa konfiguracja jest legalna,</li>
+<li><code>CreateDeliveryQuote</code> zależy od konkretnej klasy kalkulatora, bez interfejsu: DIP nie wymaga interfejsu przed każdą klasą,</li>
+<li>test kontraktowy dostarcza dowodów, nie formalnego dowodu LSP: jedna masa (100 kg), brak sprawdzenia niezmienności wejścia; lista implementacji w <code>policies()</code> musi być ręcznie utrzymywana.</li>
+</ul>
+<p><strong>Testy:</strong></p>
+<ul>
+<li><code>DeliveryPricePolicyContractTest.everyPolicyObeysTheSubstitutionContract</code> (warianty „standard policy”, „express policy”): metoda stabilna, wynik nieujemny, skala 2, determinizm,</li>
+<li><code>DeliveryPriceCalculatorTest.delegatesToPolicySelectedByShippingMethod</code> - parametryzowany: STANDARD <code>17.28</code>, EXPRESS <code>31.32</code> dla 3 kg,</li>
+<li><code>DeliveryPriceCalculatorTest.rejectsDuplicatePolicyForOneShippingMethod</code> - dwie polityki STANDARD dają <code>IllegalArgumentException</code>,</li>
+<li><code>DeliveryPriceCalculatorTest.reportsMissingPolicy</code> - kalkulator tylko ze STANDARD rzuca wyjątek dla EXPRESS.</li>
+</ul>
+<p><strong>Demonstracja na żywo (8 min):</strong> najpierw interfejs i jego Javadoc, potem obie polityki. Uruchom testy domeny. W kopii roboczej zmień w jednej polityce <code>setScale(2, ...)</code> na <code>setScale(3, ...)</code> i pokaż czerwony test kontraktowy; cofnij zmianę. Pytanie: „Co trzeba zmienić, żeby dodać SAME_DAY? Ile plików?” oraz „Dlaczego nie ma <code>IDeliveryPriceCalculator</code>?”.</p>
+<hr>
+<h2 id="przyklad-6-porty-i-przypadek-uzycia-pltrainingmodule2application" tabindex="-1"><a class="header-anchor" href="#przyklad-6-porty-i-przypadek-uzycia-pltrainingmodule2application"><span>Przykład 6. Porty i przypadek użycia (<code>pl.training.module2.application</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 5.6 Reguła zależności i composition root; 5.9 Porty i przypadek użycia.</p>
+<p><strong>Co ilustruje:</strong> dwa wąskie porty wyjściowe należące do pakietu <code>application</code>, nazwane przez potrzebę wnętrza, oraz <code>CreateDeliveryQuote</code>, który koordynuje jeden cel: oblicza cenę, tworzy <code>DeliveryQuote</code>, zapisuje, powiadamia i zwraca. Nie zna wzoru ceny, mechanizmu zapisu ani formatu komunikatu.</p>
+<p><strong>Klasy:</strong> <code>application/<wbr>QuoteRepository.java</code> (<code>void save(DeliveryQuote)</code>), <code>application/<wbr>QuoteNotifier.java</code> (<code>void quoteCreated(DeliveryQuote)</code>), oba <code>@FunctionalInterface</code>; <code>application/<wbr>CreateDeliveryQuote.java</code> z rekordem <code>Command</code>.</p>
+<pre class="code" data-lang="java"><code class="hljs">repository.save(quote);
+notifier.quoteCreated(quote);
+<span class="hljs-keyword">return</span> quote;
+</code></pre>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li>po jednej metodzie, bo są dwie odrębne role, a nie dlatego, że „ISP wymaga jednej metody”; brak dziedziczenia <code>CrudRepository&lt;DeliveryQuote&gt;</code>,</li>
+<li>port należy do strony formułującej potrzebę; adapter importuje port, nie odwrotnie,</li>
+<li>kolejność <code>save</code>, potem <code>quoteCreated</code> to decyzja protokołu wynikająca z wymagania biznesowego, nie z SOLID; wyjątek przy zapisie przerywa przebieg,</li>
+<li>kolejność nie daje atomowości: jeśli zapis się uda, a powiadomienie zawiedzie, potrzebne mogą być ponowienia, idempotencja lub transactional outbox (świadomie nieimplementowane),</li>
+<li>zmiana semantyki względem wersji zastanej: w legacy nie było możliwości awarii zapisu, więc zachowanie przy błędzie jest <strong>nową, jawnie uzgodnioną</strong> decyzją, a nie przeniesionym zachowaniem.</li>
+</ul>
+<p><strong>Testy:</strong> <code>CreateDeliveryQuoteTest</code>:</p>
+<ul>
+<li><code>calculatesStoresAndNotifiesAboutQuote</code> - cena <code>17.28</code>, dokładnie jeden zapis i jedno powiadomienie z tym samym obiektem,</li>
+<li><code>doesNotNotifyWhenSavingFails</code> - repozytorium rzuca <code>IllegalStateException</code>, wyjątek propaguje się, lista powiadomień pozostaje pusta.</li>
+<li>Porty jako lambdy (<code>savedQuotes::add</code>) nie udają bazy ani brokera; realne adaptery wymagają testów integracyjnych (moduł 3).</li>
+</ul>
+<p><strong>Demonstracja na żywo (8 min):</strong> pokaż oba porty, potem przypadek użycia i test awarii. Pytania: „Kto jest właścicielem tego interfejsu?”, „Czy dodalibyśmy tu <code>findAll()</code>? Dla kogo?”, „Skąd wiemy, że powiadomienie po błędzie zapisu jest niedozwolone?”.</p>
+<hr>
+<h2 id="przyklad-7-adaptery-i-composition-root-pltrainingmodule2adapter" tabindex="-1"><a class="header-anchor" href="#przyklad-7-adaptery-i-composition-root-pltrainingmodule2adapter"><span>Przykład 7. Adaptery i composition root (<code>pl.training.module2.adapter</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 3.3 Kwarantanna: izoluj problem za granicą; 5.6 Reguła zależności i composition root; 5.10 Kierunek zależności i bilans decyzji.</p>
+<p><strong>Co ilustruje:</strong> konkretne efekty wyniesione poza przypadek użycia; adaptery importują porty aplikacji, aplikacja nie importuje adapterów. <code>Module2Examples.main</code> ręcznie składa graf: <code>FuelSurcharge(0.08)</code>, dwie polityki, <code>DeliveryPriceCalculator</code>, <code>InMemoryQuoteRepository</code>, <code>ConsoleQuoteNotifier</code>, <code>CreateDeliveryQuote</code>; uruchamia też wersję zastaną i porównuje ceny.</p>
+<p><strong>Klasy:</strong> <code>adapter/<wbr>InMemoryQuoteRepository.java</code> (lista w pamięci, <code>quotes()</code> zwraca <code>List.copyOf</code>), <code>adapter/<wbr>ConsoleQuoteNotifier.java</code> (ten sam format komunikatu co w legacy: <code>&quot;Quote ready for %s: %s costs %s%n&quot;</code>), <code>Module2Examples.java</code> (composition root).</p>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li>adapter to naturalne miejsce kwarantanny (slajd 3.3): gdyby zapis trafiał do obcego systemu, tłumaczenie jego modelu i błędów zostałoby tutaj, a przypadek użycia by się nie zmienił,</li>
+<li><code>InMemoryQuoteRepository</code> to działający adapter demonstracyjny, nie substytut testu trwałości: brak bezpieczeństwa wątkowego, transakcji, przetrwania restartu,</li>
+<li>format komunikatu w <code>ConsoleQuoteNotifier</code> został przeniesiony bez zmian, więc wyjście programu jest takie samo jak w legacy,</li>
+<li>composition root zna wszystkie konkrety i nie zawiera reguł biznesowych; ręczne konstruktory to pełnoprawny root - kontener DI nie tworzy poprawnego kierunku zależności samym faktem użycia (KISS, YAGNI),</li>
+<li>reguła zależności działa tu tylko na poziomie pakietów i importów: wszystko jest w jednym module Maven; silniejszą, automatyczną kontrolę pokazuje scena warsztatu <code>m2/<wbr>s10_boundarycheck</code>,</li>
+<li>refaktoryzacja zwiększyła liczbę klas; wartością jest rozdzielenie niezależnych decyzji, nie mniejsza liczba linii.</li>
+</ul>
+<p><strong>Testy:</strong> <code>InMemoryQuoteRepositoryTest.storesQuote</code> - zapisana oferta jest zwracana przez <code>quotes()</code>. <code>ConsoleQuoteNotifier</code> nie ma testu (treść konsoli nie jest przechwytywana) - to motywacja do adaptera buforującego w rozwiązaniu Ćwiczenia 3.</p>
+<p><strong>Demonstracja na żywo (8 min):</strong> narysuj dwie strzałki: przepływ sterowania <code>CreateDeliveryQuote -&gt; QuoteNotifier -&gt; ConsoleQuoteNotifier</code> oraz zależność źródłową <code>ConsoleQuoteNotifier -&gt; QuoteNotifier</code>. Wykonaj na żywo <code>grep -r &quot;import pl.training.module2.adapter&quot; src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>application src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>domain</code> (brak wyników). Pytanie: „Czy wywołanie adaptera z przypadku użycia łamie regułę zależności?”, „Gdzie dodalibyśmy trzecią politykę?”.</p>
+<hr>
+<h2 id="przyklad-8-lokalna-poprawa-boy-scout-z-testem-rownowaznosci-pltrainingmodule2boyscout" tabindex="-1"><a class="header-anchor" href="#przyklad-8-lokalna-poprawa-boy-scout-z-testem-rownowaznosci-pltrainingmodule2boyscout"><span>Przykład 8. Lokalna poprawa Boy Scout z testem równoważności (<code>pl.training.module2.boyscout</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> 6.1 Boy Scout Rule: heurystyka, nie mandat; 6.2 Przykład lokalnej poprawy; 6.3 Bezpieczna sekwencja i typowe nadużycia; 6.4 Małe zestawy zmian.</p>
+<p><strong>Co ilustruje:</strong> małą, lokalną refaktoryzację klasy formatera raportu wydania, wykonaną przy okazji bieżącej pracy, bez zmiany obserwowalnego zachowania, zweryfikowaną testem różnicowym (stara i nowa wersja obok siebie) oraz niezależnym oraklem.</p>
+<p><strong>Klasy:</strong></p>
+<ul>
+<li><code>boyscout/<wbr>DeploymentStatus.java</code>, <code>boyscout/<wbr>DeploymentResult.java</code> - wspólny model; normalizacja (<code>strip</code>) i walidacja raz, w konstruktorze rekordu.</li>
+<li><code>boyscout/<wbr>before/<wbr>ReleaseSummaryFormatter.java</code> - nazwy <code>s</code>, <code>n</code>, <code>r</code>, konkatenacja w pętli, powielony format wiersza.</li>
+<li><code>boyscout/<wbr>after/<wbr>ReleaseSummaryFormatter.java</code> - wydzielone <code>validate</code> i <code>formatResult</code>, nazwa <code>successfulDeployments</code>, <code>StringBuilder</code>.</li>
+</ul>
+<p><strong>Na co zwrócić uwagę:</strong></p>
+<ul>
+<li>Poprawa <strong>nie</strong> dodaje nowej walidacji, nie zmienia sygnatury i zachowuje kolejność kontroli (<code>releaseId</code> null, <code>results</code> null, pusty <code>releaseId</code>, pusta lista, <code>null</code> element). Kusi, żeby „przy okazji” zaostrzyć kontrakt; to byłaby zmiana zachowania.</li>
+<li>Kombinacja <code>format(&quot; &quot;, null)</code> pokazuje, że kolejność walidacji jest częścią kontraktu: oba warianty muszą rzucić ten sam wyjątek (<code>NullPointerException</code> z komunikatem <code>results</code>, bo kontrole null są przed kontrolą pustego napisu).</li>
+<li>Test różnicowy sam w sobie nie wystarcza (dwie zgodne wersje mogą być jednocześnie błędne), dlatego jest też test z niezależnie zapisanym oczekiwanym tekstem.</li>
+<li>Boy Scout to heurystyka, nie mandat: zmiana publicznego API, aktualizacja zależności czy naprawa reguły biznesowej to nie jest „drobne sprzątanie”.</li>
+<li>Masowe formatowanie lub przeniesienia trzeba oddzielić od ręcznych poprawek (slajd 6.4).</li>
+</ul>
+<p><strong>Testy:</strong> <code>BoyScoutEquivalenceTest</code>:</p>
+<ul>
+<li><code>localCleanupPreservesRepresentativeOutputs</code> - porównanie wyników <code>before</code> i <code>after</code> (pojedynczy sukces, pojedyncza porażka, mieszany wynik ze spacjami w <code>releaseId</code>),</li>
+<li><code>refactoredCodeProducesTheIndependentlySpecifiedSummary</code> - niezależny orakl tekstu raportu,</li>
+<li><code>localCleanupPreservesValidationFailuresAndTheirOrder</code> - ten sam typ i komunikat wyjątku dla sześciu błędnych wejść,</li>
+<li><code>bothVersionsExposeTheSameCallableContract</code> - obie wersje pasują do tego samego interfejsu funkcyjnego (zgodność sygnatury),</li>
+<li><code>sharedInputModelRejectsIncompleteResults</code> - walidacja <code>DeploymentResult</code>.</li>
+</ul>
+<p><strong>Demonstracja na żywo (10 min):</strong></p>
+<ol>
+<li>Otwórz <code>before</code> i poproś uczestników o listę zapachów (słownik z modułu 1).</li>
+<li>Otwórz <code>after</code> obok (widok porównania w IDE). Pokaż, co się zmieniło, a co zostało celowo zachowane (walidacja, sygnatura).</li>
+<li>Uruchom <code>BoyScoutEquivalenceTest</code>.</li>
+<li>Eksperyment: w <code>after.validate</code> zamień kolejność kontroli (<code>isBlank</code> przed <code>requireNonNull(results)</code>). Test <code>localCleanupPreservesValidationFailuresAndTheirOrder</code> zawiedzie na przypadku <code>(&quot; &quot;, null)</code>. Przywróć.</li>
+<li>Eksperyment 2: w <code>after</code> dodaj walidację „przy okazji” (np. odrzucanie <code>releaseId</code> dłuższego niż 20 znaków) i zapytaj, czy to nadal Boy Scout. Wycofaj.</li>
+</ol>
+<p>Uwaga: w Ćwiczeniu 4 uczestnicy pracują na <code>before</code>. Przed ćwiczeniem nie pokazuj <code>after</code> jako wzorca do skopiowania albo zaznacz, że ich zadanie jest szersze (seria zmian, zmiana zachowania, opis).</p>
+<hr>
+<h2 id="przyklad-9-module2examples-przeglad-calego-modulu-pltrainingmodule2" tabindex="-1"><a class="header-anchor" href="#przyklad-9-module2examples-przeglad-calego-modulu-pltrainingmodule2"><span>Przykład 9. <code>Module2Examples</code> - przegląd całego modułu (<code>pl.training.module2</code>)</span></a></h2>
+<p><strong>Sekcja teorii:</strong> wszystkie sekcje.</p>
+<p><strong>Co ilustruje:</strong> jeden program uruchamia po kolei: wersję zastaną i zrefaktoryzowaną wyceny (porównanie cen), lokalną poprawę Boy Scout (ostatnia linia raportu), renderer ADR (pierwsza linia dokumentu) i bramkę kompilatora (czysty kod z <code>-Werror</code>).</p>
+<p><strong>Klasy:</strong> <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module2/<wbr>Module2Examples.java</code>.</p>
+<p><strong>Na co zwrócić uwagę:</strong> ścieżka <code>legacy</code> istnieje tylko dla demonstracji porównania i współdzieli typy domenowe (<code>Parcel</code>, <code>DeliveryQuote</code>) z nową wersją; zmiana ich inwariantów wpływa na obie.</p>
+<p><strong>Testy:</strong> <code>Module2ExamplesTest.runsAllModuleExamples</code> - tylko <code>assertDoesNotThrow</code>; nie sprawdza treści wyjścia (warto to wskazać jako słabą wyrocznię, por. moduł 1).</p>
+<p><strong>Demonstracja na żywo:</strong> dobry punkt startowy na początku modułu (pokazanie „mapy”) i na końcu (podsumowanie): przy każdej linii wyjścia zapytaj, w której pętli informacji zwrotnej działa dany mechanizm.</p>
+<hr>
+<h2 id="proponowany-plan-modulu-3-h" tabindex="-1"><a class="header-anchor" href="#proponowany-plan-modulu-3-h"><span>Proponowany plan modułu (~3 h)</span></a></h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Blok</th>
+<th>Czas</th>
+<th>Slajdy</th>
+<th>Przykłady</th>
+<th>Zadania</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fast feedback</td>
+<td>~30 min</td>
+<td>1.1-1.6</td>
+<td>Przykład 1</td>
+<td>Aktywność 2.1, Ćwiczenie 1</td>
+</tr>
+<tr>
+<td>Decyzje</td>
+<td>~40 min</td>
+<td>2.1-2.7</td>
+<td>Przykład 2</td>
+<td>Aktywność 2.2, Ćwiczenie 2</td>
+</tr>
+<tr>
+<td>Akceptacja i degradacja</td>
+<td>~20 min</td>
+<td>3.1-4.4</td>
+<td>(Przykład 7 jako kwarantanna)</td>
+<td>Aktywność 2.3</td>
+</tr>
+<tr>
+<td>Projekt</td>
+<td>~55 min</td>
+<td>5.1-5.10</td>
+<td>Przykłady 3-7</td>
+<td>Ćwiczenie 3</td>
+</tr>
+<tr>
+<td>Prewencja codzienna</td>
+<td>~35 min</td>
+<td>6.1-6.6</td>
+<td>Przykład 8</td>
+<td>Ćwiczenie 4</td>
+</tr>
+<tr>
+<td>Zamknięcie</td>
+<td>~5 min</td>
+<td>wnioski, sprawdzenie wiedzy, lista kontrolna</td>
+<td>Przykład 9</td>
+<td>-</td>
+</tr>
+</tbody>
+</table></div>
+<p>Sceny warsztatu CineLegacy (<code>src/<wbr>main/<wbr>resources/<wbr>md/<wbr>warsztat/<wbr>przewodnik/<wbr>02-prewencja.md</code>) są pokazami prowadzącego do wyboru; każda trwa około 10-15 minut i może zastąpić demonstrację odpowiedniego przykładu.</p>
+
+</main>
+</div>
+<script>if(matchMedia('(max-width:900px)').matches){var d=document.querySelector('.toc details');if(d)d.open=false}</script>
+</body>
+</html>

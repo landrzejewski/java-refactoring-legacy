@@ -1,0 +1,11 @@
+package pl.training.workshop.m3.s02_breakdependencies.step2;
+
+/** Statyczny klient SMTP. Poza produkcją serwer jest nieosiągalny. */
+public final class ReminderMailer {
+    private ReminderMailer() {
+    }
+
+    public static void send(String to, String subject, String body) {
+        throw new IllegalStateException("SMTP smtp.kino.pl niedostepny (" + to + ")");
+    }
+}

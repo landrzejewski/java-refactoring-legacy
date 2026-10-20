@@ -11,11 +11,7 @@
     "module2": "node dist/module2/main.js",
     "module3": "node dist/module3/main.js",
     "module4": "node dist/module4/main.js",
-    "module5": "node dist/module5/main.js",
-    "module6": "node dist/module6/main.js",
-    "module7": "node dist/module7/main.js",
-    "module8": "node dist/module8/main.js",
-    "patterns": "node dist/patterns/main.js"
+    "module5": "node dist/module5/main.js"
   },
   "devDependencies": {
     "@types/node": "^26.6.1",

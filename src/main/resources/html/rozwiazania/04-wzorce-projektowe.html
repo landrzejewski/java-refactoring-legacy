@@ -1,0 +1,860 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rozwiązania: Moduł 4. Wzorce projektowe - rozwiązania dla prowadzącego</title>
+<style>:root{--bg:#fbfbfa;--fg:#1d1f23;--muted:#5f6670;--line:#e3e5e8;--card:#ffffff;--accent:#2457c5;--accent-bg:#eef3fd;
+--code-bg:#f4f5f7;--note-bg:#fff7e6;--note-line:#e6a700;--th:#f1f3f6;
+--k:#b3246b;--s:#1a7f37;--c:#6e7781;--n:#0550ae;--t:#8250df;--f:#6639ba;--a:#953800;
+--kind:#2457c5}
+@media (prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3036;--card:#1c1f23;--accent:#7aa7ff;--accent-bg:#1e2a40;
+--code-bg:#1f2328;--note-bg:#2b2412;--note-line:#c99400;--th:#23272d;
+--k:#ff7b9c;--s:#7ee2a0;--c:#8b949e;--n:#79c0ff;--t:#d2a8ff;--f:#d2a8ff;--a:#ffa657}}
+body.zadania{--kind:#1a7f37} body.warsztat{--kind:#c2570c} body.warsztat-zadania{--kind:#0f7b7b} body.rozwiazania{--kind:#b3246b} body.przyklady{--kind:#2457c5}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.topbar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 24px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);border-top:3px solid var(--kind)}
+.topbar a{color:var(--fg);text-decoration:none}
+.home{font-weight:600}
+.tabs{display:flex;gap:4px}
+.tab{padding:4px 12px;border-radius:999px;font-size:15px;color:var(--muted)!important}
+.tab:hover{background:var(--code-bg)}
+.tab.active{background:var(--accent-bg);color:var(--accent)!important;font-weight:600}
+.pager{margin-left:auto;display:flex;gap:14px;font-size:15px}
+.pager a{color:var(--muted)}.pager a:hover{color:var(--accent)}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:48px;max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+.layout.no-toc{grid-template-columns:minmax(0,1fr);max-width:1000px}
+aside{position:sticky;top:72px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px}
+.toc-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;font-weight:600}
+.toc ul{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.toc li a{display:block;padding:3px 12px;color:var(--muted);text-decoration:none;line-height:1.35}
+.toc li.h3 a{padding-left:24px;font-size:13px}
+.toc li a:hover{color:var(--accent)}
+main{min-width:0;max-width:860px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 1.2rem;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:2.6rem 0 .8rem;padding-top:.6rem;border-top:1px solid var(--line)}
+h3{font-size:1.18rem;margin:2rem 0 .6rem}
+h4{font-size:1rem;margin:1.5rem 0 .5rem}
+h1 a,h2 a,h3 a,h4 a{color:inherit;text-decoration:none}
+h2 a:hover::after,h3 a:hover::after{content:" #";color:var(--muted)}
+p,ul,ol{margin:.6rem 0 1rem}
+li{margin:.25rem 0}
+li>ul,li>ol{margin:.2rem 0}
+a{color:var(--accent)}
+strong{font-weight:650}
+code{font:0.88em/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre.code{position:relative;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:1rem 0 1.4rem}
+pre.code code{background:none;padding:0;font-size:14px;line-height:1.55}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:6px;right:10px;font:11px ui-monospace,Menlo,monospace;color:var(--muted);text-transform:uppercase}
+.table-wrap{overflow-x:auto;margin:1rem 0 1.4rem;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--th);font-weight:600}
+tr:last-child td{border-bottom:none}
+blockquote{margin:1rem 0 1.4rem;padding:10px 16px;background:var(--note-bg);border-left:4px solid var(--note-line);border-radius:0 8px 8px 0}
+blockquote p{margin:.3rem 0}
+hr{border:none;border-top:1px solid var(--line);margin:2rem 0}
+hr+h2{border-top:none;margin-top:1.4rem}
+main p code,main li code,main td code{overflow-wrap:break-word}
+.toc summary{cursor:pointer;list-style:none}.toc summary::-webkit-details-marker{display:none}
+.hljs-keyword,.hljs-selector-tag,.hljs-built_in,.hljs-literal{color:var(--k)}
+.hljs-string,.hljs-regexp,.hljs-addition{color:var(--s)}
+.hljs-comment,.hljs-quote,.hljs-meta{color:var(--c);font-style:italic}
+.hljs-number,.hljs-symbol{color:var(--n)}
+.hljs-type,.hljs-class .hljs-title,.hljs-title.class_{color:var(--t)}
+.hljs-title,.hljs-title.function_,.hljs-section{color:var(--f)}
+.hljs-attr,.hljs-attribute,.hljs-variable,.hljs-params,.hljs-tag{color:var(--a)}
+.hljs-deletion{color:var(--k)}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:16px;padding:20px 16px 60px}
+aside{position:static;max-height:none;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--card)}
+.toc-title{margin:0}.toc details[open] .toc-title{margin-bottom:8px}.toc summary::after{content:" ▾"}
+body{font-size:16px}.topbar{padding:8px 16px}.pager{margin-left:0}h1{font-size:1.6rem}}
+@media print{.topbar,aside{display:none}.layout{display:block;padding:0}main{max-width:none}
+pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#000;font-size:12pt}}
+.langs{margin-left:auto}.langs+.pager{margin-left:0}
+.langs{margin-left:auto}.langs+.pager{margin-left:0}</style>
+</head>
+<body class="rozwiazania">
+<header class="topbar"><a class="home" href="../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../slajdy/04-wzorce-projektowe-slajdy.html">Slajdy</a><a class="tab" href="../zadania/04-wzorce-projektowe.html">Zadania</a><a class="tab" href="../przyklady/04-wzorce-projektowe.html">Przykłady</a><a class="tab active" href="04-wzorce-projektowe.html">Rozwiązania</a></div><div class="pager"><a href="03-testowanie-a-bezpieczenstwo.html" title="Poprzedni moduł">&larr; 03</a><a href="05-refaktoryzacja-do-wzorcow.html" title="Następny moduł">05 &rarr;</a></div></header>
+<div class="layout">
+<aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#krotkie-aktywnosci-odpowiedzi">Krótkie aktywności - odpowiedzi</a></li><li class="h3"><a href="#aktywnosc-17-nazwij-problem-nie-wzorzec">Aktywność 1.7: Nazwij problem, nie wzorzec</a></li><li class="h3"><a href="#aktywnosc-28-konstruktor-fabryka-czy-builder">Aktywność 2.8: Konstruktor, fabryka czy builder?</a></li><li class="h3"><a href="#aktywnosc-312-rozpoznaj-opakowanie">Aktywność 3.12: Rozpoznaj opakowanie</a></li><li class="h3"><a href="#aktywnosc-418-strategy-czy-state">Aktywność 4.18: Strategy czy State?</a></li><li class="h2"><a href="#cwiczenie-1-rozpoznawanie-wzorcow-w-kodzie">Ćwiczenie 1: Rozpoznawanie wzorców w kodzie</a></li><li class="h3"><a href="#krok-1-tabela-referencyjna">Krok 1: tabela referencyjna</a></li><li class="h3"><a href="#krok-2-4-nazwy-mylace-polaczenia-techniki-niebedace-wzorcami-gof">Krok 2-4: nazwy mylące, połączenia, techniki niebędące wzorcami GoF</a></li><li class="h3"><a href="#krok-5-propozycje-zmian-bez-wprowadzania">Krok 5: propozycje zmian (bez wprowadzania)</a></li><li class="h3"><a href="#weryfikacja-kryteriow-akceptacji">Weryfikacja kryteriów akceptacji</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji">Pytania do dyskusji</a></li><li class="h2"><a href="#cwiczenie-2-nowy-wariant-bez-modyfikacji">Ćwiczenie 2: Nowy wariant bez modyfikacji</a></li><li class="h3"><a href="#krok-1-rachunek-klas">Krok 1: rachunek klas</a></li><li class="h3"><a href="#kod-referencyjny">Kod referencyjny</a></li><li class="h3"><a href="#krok-2-dlaczego-to-dziala-bez-zmian">Krok 2: dlaczego to działa bez zmian</a></li><li class="h3"><a href="#krok-3-polecenie-8-reporter-i-superdepartment">Krok 3 (polecenie 8): Reporter i SuperDepartment</a></li><li class="h3"><a href="#krok-4-polecenie-9-koszt-nowego-rodzaju-wezla-contractor">Krok 4 (polecenie 9): koszt nowego rodzaju węzła Contractor</a></li><li class="h3"><a href="#weryfikacja-kryteriow-akceptacji-1">Weryfikacja kryteriów akceptacji</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow-1">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji-1">Pytania do dyskusji</a></li><li class="h2"><a href="#cwiczenie-3-wariant-obiektowy-czy-funkcyjny">Ćwiczenie 3: Wariant obiektowy czy funkcyjny?</a></li><li class="h3"><a href="#krok-1-2-tabele-porownania-wzorcowe">Krok 1-2: tabele porównania (wzorcowe)</a></li><li class="h3"><a href="#krok-3-roznica-semantyczna-lancucha">Krok 3: różnica semantyczna łańcucha</a></li><li class="h3"><a href="#kod-referencyjny-1">Kod referencyjny</a></li><li class="h3"><a href="#krok-4-regula-zespolu-przyklad">Krok 4: reguła zespołu (przykład)</a></li><li class="h3"><a href="#weryfikacja-kryteriow-akceptacji-2">Weryfikacja kryteriów akceptacji</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow-2">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji-2">Pytania do dyskusji</a></li><li class="h2"><a href="#cwiczenie-4-dobor-wzorca-karty-problemow">Ćwiczenie 4: Dobór wzorca - karty problemów</a></li><li class="h3"><a href="#krok-1-tabela-referencyjna-1">Krok 1: tabela referencyjna</a></li><li class="h3"><a href="#krok-2-3-karty-bez-wzorca-i-polaczenia">Krok 2-3: karty „bez wzorca” i połączenia</a></li><li class="h3"><a href="#weryfikacja-kryteriow-akceptacji-3">Weryfikacja kryteriów akceptacji</a></li><li class="h3"><a href="#typowe-bledy-uczestnikow-3">Typowe błędy uczestników</a></li><li class="h3"><a href="#pytania-do-dyskusji-3">Pytania do dyskusji</a></li><li class="h2"><a href="#odpowiedzi-do-pytan-sprawdzajacych">Odpowiedzi do pytań sprawdzających</a></li></ul></details></nav></aside>
+<main>
+<h1>Moduł 4. Wzorce projektowe - rozwiązania dla prowadzącego</h1>
+<p>Numeracja i nazwy zadań są zgodne z plikiem zadań (<code>src/<wbr>main/<wbr>resources/<wbr>md/<wbr>zadania/<wbr>04-wzorce-projektowe.md</code>). Ścieżki Javy są względne względem katalogu głównego repozytorium, pakiety w tabelach - względem <code>pl.training.module4</code>.</p>
+<p>Odpowiedzi opierają się na kodzie modułu (<code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4</code>) oraz na treści katalogu wzorców ze slajdów (przeznaczenie, zastosowanie, konsekwencje). Kod referencyjny ćwiczeń 2 i 3 został skompilowany i uruchomiony na kopii repozytorium (Java 25, JUnit 6): wszystkie testy referencyjne przechodzą. Kod referencyjny <strong>nie jest</strong> częścią repozytorium - uczestnicy piszą go sami.</p>
+<p>W ćwiczeniach analitycznych (1 i 4) nie ma jednej poprawnej odpowiedzi. Oceniaj jakość uzasadnienia: czy zaczyna się od rodzaju zmienności, czy nazywa koszt i czy rozważa prostszą alternatywę.</p>
+<hr>
+<h2 id="krotkie-aktywnosci-odpowiedzi" tabindex="-1"><a class="header-anchor" href="#krotkie-aktywnosci-odpowiedzi"><span>Krótkie aktywności - odpowiedzi</span></a></h2>
+<h3 id="aktywnosc-17-nazwij-problem-nie-wzorzec" tabindex="-1"><a class="header-anchor" href="#aktywnosc-17-nazwij-problem-nie-wzorzec"><span>Aktywność 1.7: Nazwij problem, nie wzorzec</span></a></h3>
+<ul>
+<li><strong>Opis problemu bez nazwy wzorca:</strong> jedna metoda zawiera kilka niezależnych algorytmów formatowania wybieranych napisem, więc każdy nowy format wymaga edycji tej samej metody, a błąd w nazwie formatu wychodzi dopiero w czasie działania.</li>
+<li><strong>Co się zmienia:</strong> algorytm formatowania. <strong>Kto wybiera:</strong> użytkownik, przy każdym eksporcie. <strong>Jak często:</strong> zestaw jest otwarty (nowe formaty pojawiają się regularnie).</li>
+<li><strong>Decyzja:</strong> Strategy (<code>ReportExporter</code>) z rejestrem <code>Map&lt;Format, ReportExporter&gt;</code> i typem <code>Format</code> (enum) zamiast <code>String</code>. Gdyby formaty były dwa, stabilne i krótkie, <code>switch</code> po enumie byłby wystarczający - sama obecność <code>if</code> nie uzasadnia wzorca.</li>
+</ul>
+<h3 id="aktywnosc-28-konstruktor-fabryka-czy-builder" tabindex="-1"><a class="header-anchor" href="#aktywnosc-28-konstruktor-fabryka-czy-builder"><span>Aktywność 2.8: Konstruktor, fabryka czy builder?</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Przypadek</th>
+<th>Mechanizm</th>
+<th>Uzasadnienie</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Money</code></td>
+<td><code>record Money(BigDecimal amount, Currency currency)</code> z walidacją w konstruktorze kompaktowym; opcjonalnie fabryka <code>Money.pln(...)</code></td>
+<td>dwa wymagane pola i jedna reguła - builder byłby nadmiarem</td>
+</tr>
+<tr>
+<td><code>HttpClientConfig</code></td>
+<td>Builder z walidacją kombinacji w <code>build()</code></td>
+<td>wiele opcjonalnych parametrów i niezmiennik całości (<code>proxyHost</code> wymaga <code>proxyPort</code>)</td>
+</tr>
+<tr>
+<td><code>Notifier</code></td>
+<td>fabryka (Factory Method lub wybór w composition root) zwracająca interfejs <code>Notifier</code></td>
+<td>klient ma znać tylko abstrakcję; wybór implementacji zależy od konfiguracji</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="aktywnosc-312-rozpoznaj-opakowanie" tabindex="-1"><a class="header-anchor" href="#aktywnosc-312-rozpoznaj-opakowanie"><span>Aktywność 3.12: Rozpoznaj opakowanie</span></a></h3>
+<ul>
+<li><strong>A - Proxy (ochronny):</strong> kontroluje dostęp i może <strong>nie delegować</strong>.</li>
+<li><strong>B - Decorator:</strong> zawsze deleguje i dokłada odpowiedzialność (pomiar czasu).</li>
+<li><strong>C - Adapter:</strong> tłumaczy wywołanie na inny interfejs (<code>gateway.charge(...)</code>), nie deleguje do obiektu tego samego typu.</li>
+<li>Rozstrzyga <strong>intencja</strong>: A i B mają identyczną strukturę.</li>
+<li>Jeśli B zacznie odrzucać płatności w oknie serwisowym, zmienia intencję na kontrolę dostępu - staje się proxy ochronnym, a dla klienta pojawia się nowy możliwy wynik (wyjątek), czyli zmiana kontraktu.</li>
+<li><code>PaymentLoggerProxy</code> z repozytorium to strukturalnie i intencjonalnie <strong>Decorator</strong> (zawsze deleguje, dokłada log po sukcesie) - mimo nazwy.</li>
+</ul>
+<h3 id="aktywnosc-418-strategy-czy-state" tabindex="-1"><a class="header-anchor" href="#aktywnosc-418-strategy-czy-state"><span>Aktywność 4.18: Strategy czy State?</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Przypadek</th>
+<th>Decyzja</th>
+<th>Kto i kiedy zmienia wariant</th>
+<th>Tabela przejść</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. zaokrąglanie ceny</td>
+<td>Strategy, a często po prostu parametr (<code>RoundingMode</code>)</td>
+<td>konfiguracja, przy starcie</td>
+<td>brak</td>
+</tr>
+<tr>
+<td>2. bilet</td>
+<td>State</td>
+<td>sam obiekt, w wyniku operacji (opłać, wykorzystaj, zwróć)</td>
+<td>tak</td>
+</tr>
+<tr>
+<td>3. kompresja</td>
+<td>Strategy (lub zwykły parametr wywołania)</td>
+<td>użytkownik, przy każdym eksporcie</td>
+<td>brak</td>
+</tr>
+<tr>
+<td>4. abonament</td>
+<td>State; jeśli stany różnią się tylko limitem - <code>enum</code> z polem <code>limit</code></td>
+<td>sam obiekt (płatność, zaległość)</td>
+<td>tak</td>
+</tr>
+</tbody>
+</table></div>
+<p>Pytanie kontrolne, które rozstrzyga: „Czy wariant zmienia się w wyniku operacji na samym obiekcie?” Jeśli tak - State.</p>
+<hr>
+<h2 id="cwiczenie-1-rozpoznawanie-wzorcow-w-kodzie" tabindex="-1"><a class="header-anchor" href="#cwiczenie-1-rozpoznawanie-wzorcow-w-kodzie"><span>Ćwiczenie 1: Rozpoznawanie wzorców w kodzie</span></a></h2>
+<blockquote>
+<p>Rozwiązanie opracowane na podstawie kodu modułu i katalogu wzorców ze slajdów.</p>
+</blockquote>
+<h3 id="krok-1-tabela-referencyjna" tabindex="-1"><a class="header-anchor" href="#krok-1-tabela-referencyjna"><span>Krok 1: tabela referencyjna</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Nr</th>
+<th>Wzorzec (jeden lub kilka)</th>
+<th>Role</th>
+<th>Intencja</th>
+<th>Koszt lub ryzyko w kodzie</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>F1</td>
+<td>Builder (wewnętrzny, statyczny, w stylu generowanym przez Lombok)</td>
+<td>Builder: <code>ServerEventBuilder</code>, Product: <code>ServerEvent</code>; brak Directora</td>
+<td>tworzenie zdarzenia z nazwanymi parametrami</td>
+<td>przy jednym polu builder jest nadmiarowy (wystarczy <code>record ServerEvent(String payload)</code>); nieużywany w demo; pole <code>payload</code> nie jest <code>final</code></td>
+</tr>
+<tr>
+<td>F2</td>
+<td>Flyweight (<code>op(...)</code> współdzieli operatory) + prosta fabryka (<code>operatorFactory</code>) + Strategy (<code>BiOperator</code> jako wymienne działanie w <code>Operation</code>)</td>
+<td>FlyweightFactory: <code>op</code>; Flyweight: <code>Plus</code>, <code>Minus</code>, <code>Multiply</code>; Strategy: <code>BiOperator</code></td>
+<td>jeden egzemplarz operatora na symbol i wybór działania bez warunków w <code>Operation</code></td>
+<td>statyczna <code>HashMap</code> bez synchronizacji w klasie <code>Application</code>; nieznany operator wykryty dopiero przy budowie wyrażenia; dla bezstanowych operatorów prostszy byłby <code>enum</code></td>
+</tr>
+<tr>
+<td>F3</td>
+<td>Decorator (mimo nazwy Proxy)</td>
+<td>Component: <code>PaymentsService</code>; ConcreteDecorator: <code>PaymentLoggerProxy</code></td>
+<td>dołożenie logowania po udanej płatności</td>
+<td>nazwa myli; brak wpisu przy wyjątku - log dokumentuje tylko sukcesy</td>
+</tr>
+<tr>
+<td>F4</td>
+<td>Builder; wewnątrz delegacja (przekazywanie wywołań) do <code>GenericConnectionUrlBuilder</code> - technika, nie osobny wzorzec</td>
+<td>ConcreteBuilder: <code>PostgresSqlConnectionUrlBuilder</code></td>
+<td>ponowne użycie ogólnego buildera z innymi wartościami domyślnymi bez dziedziczenia</td>
+<td>każda nowa metoda interfejsu wymaga ręcznego przekazania; <code>build()</code> zwraca mutowalny produkt; MySQL robi to samo dziedziczeniem - dwa style w jednym pakiecie</td>
+</tr>
+<tr>
+<td>F5</td>
+<td>Strategy wyrażona danymi (<code>enum</code> z parametrami)</td>
+<td>Context: <code>movies.Order</code>; Strategy: <code>MovieType</code></td>
+<td>wycena wypożyczenia zależna od rodzaju filmu bez hierarchii klas</td>
+<td>wariant o innym <strong>algorytmie</strong> (nie tylko innych parametrach) wymaga ciała stałej lub powrotu do klas; <code>double</code> dla kwot pieniężnych</td>
+</tr>
+<tr>
+<td>F6</td>
+<td>Iterator + Factory Method (<code>iterator()</code> i <code>reversed()</code> tworzą iteratory)</td>
+<td>Aggregate: <code>Playlist</code> (<code>Iterable</code>); ConcreteIterator: <code>PlaylistIterator</code></td>
+<td>przejście w przód i wstecz bez ujawniania tablicy</td>
+<td>brak wykrywania modyfikacji w trakcie przejścia (nie jest fail-fast)</td>
+</tr>
+<tr>
+<td>F7</td>
+<td>Visitor na strukturze Composite</td>
+<td>Element: <code>Node</code>, <code>Department</code>, <code>Employee</code>; ObjectStructure: drzewo <code>Node</code>; Visitor: <code>Visitor</code></td>
+<td>nowe operacje na drzewie bez zmian w węzłach</td>
+<td>przejście (preorder) jest zaszyte w węzłach - gość nie może pominąć poddrzewa; <code>SuperDepartment</code> musi powielać <code>accept</code>; puste metody domyślne ukrywają brak obsługi typów</td>
+</tr>
+<tr>
+<td>F8</td>
+<td>leniwa inicjalizacja przez wirtualny Proxy (<code>Supplier</code> opakowujący <code>Supplier</code>), efekt: jedna instancja na dostawcę</td>
+<td>Proxy: anonimowy <code>Supplier</code>; RealSubject: przekazany <code>supplier</code></td>
+<td>utworzyć kosztowny obiekt raz, przy pierwszym użyciu</td>
+<td><code>synchronized</code> przy każdym <code>get()</code>; dostawca zwracający <code>null</code> będzie wołany ponownie; to nie jest Singleton w zakresie procesu</td>
+</tr>
+<tr>
+<td>F9</td>
+<td>Decorator (<code>BufferedReader</code>) + Adapter (<code>InputStreamReader</code>: bajty → znaki)</td>
+<td>Component: <code>Reader</code>; Adaptee: <code>InputStream</code></td>
+<td>buforowanie i <code>readLine()</code> nad strumieniem bajtów</td>
+<td>kodowanie znaków to semantyka adaptera (jawny <code>Charset</code>); zamknięcie zewnętrznego obiektu zamyka wewnętrzny</td>
+</tr>
+<tr>
+<td>F10</td>
+<td>Proxy ochronny (widok tylko do odczytu)</td>
+<td>Subject: <code>List</code>; Proxy: lista niemodyfikowalna</td>
+<td>zablokować modyfikację przez tę referencję</td>
+<td>to <strong>widok</strong>, nie kopia - zmiany oryginału są widoczne; kopia to <code>List.copyOf</code></td>
+</tr>
+<tr>
+<td>F11</td>
+<td>Adapter (tablica → <code>List</code>)</td>
+<td>Target: <code>List</code>; Adaptee: tablica</td>
+<td>użyć tablicy tam, gdzie oczekiwana jest lista</td>
+<td>adapter częściowy: <code>set</code> działa i zmienia tablicę, <code>add</code>/<code>remove</code> rzucają <code>UnsupportedOperationException</code></td>
+</tr>
+<tr>
+<td>F12</td>
+<td>Flyweight (pamięć podręczna <code>Integer</code> dla -128..127) + statyczna metoda fabrykująca</td>
+<td>FlyweightFactory: <code>Integer.valueOf</code></td>
+<td>nie tworzyć wielu identycznych małych obiektów</td>
+<td><code>==</code> daje <code>true</code> dla 100, a zwykle <code>false</code> dla 1000 - nie wolno porównywać tożsamością</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="krok-2-4-nazwy-mylace-polaczenia-techniki-niebedace-wzorcami-gof" tabindex="-1"><a class="header-anchor" href="#krok-2-4-nazwy-mylace-polaczenia-techniki-niebedace-wzorcami-gof"><span>Krok 2-4: nazwy mylące, połączenia, techniki niebędące wzorcami GoF</span></a></h3>
+<ul>
+<li><strong>Nazwa sugeruje inny wzorzec niż kod:</strong> F3 (<code>...Proxy</code> realizuje Decorator), F8 (klasa <code>FunctionalStyleSingleton</code>, a mechanizm to leniwy proxy z pamięcią), F1 (builder w pakiecie <code>observer</code>), F2 (pula i fabryka ukryte w klasie <code>Application</code>).</li>
+<li><strong>Połączenia wzorców:</strong> F2 (Flyweight + fabryka + Strategy), F6 (Iterator + Factory Method), F7 (Visitor + Composite), F8 (Proxy + Singleton), F9 (Decorator + Adapter), F12 (Flyweight + statyczna fabryka).</li>
+<li><strong>Techniki, nie wzorce GoF:</strong> delegacja w F4 (to „kompozycja zamiast dziedziczenia”, strukturalnie podobna do dekoratora, ale bez intencji dokładania odpowiedzialności), <code>operatorFactory</code> w F2 i <code>Integer.valueOf</code> w F12 (statyczna metoda fabrykująca - idiom, nie Factory Method GoF).</li>
+</ul>
+<h3 id="krok-5-propozycje-zmian-bez-wprowadzania" tabindex="-1"><a class="header-anchor" href="#krok-5-propozycje-zmian-bez-wprowadzania"><span>Krok 5: propozycje zmian (bez wprowadzania)</span></a></h3>
+<ul>
+<li><strong>F3:</strong> zmiana nazwy na <code>LoggingPaymentsService</code> (lub <code>PaymentsLoggingDecorator</code>) i jawna decyzja o logowaniu porażek (<code>try</code>/<code>catch</code> z ponownym rzuceniem tego samego wyjątku). Jeśli intencją ma być kontrola dostępu, prawdziwy proxy powinien mieć warunek, przy którym <strong>nie deleguje</strong>.</li>
+<li><strong>F7:</strong> przenieść przejście po drzewie do gościa (węzeł tylko <code>visitor.visit(this)</code>, a <code>visit(Department)</code> decyduje o dzieciach) albo zastąpić metody domyślne abstrakcyjnymi, aby kompilator wymusił obsługę każdego rodzaju węzła. W Javie 25 alternatywą jest <code>sealed</code> + <code>switch</code> z dopasowaniem wzorców.</li>
+</ul>
+<h3 id="weryfikacja-kryteriow-akceptacji" tabindex="-1"><a class="header-anchor" href="#weryfikacja-kryteriow-akceptacji"><span>Weryfikacja kryteriów akceptacji</span></a></h3>
+<ul>
+<li>Intencja jednym zdaniem przy każdym fragmencie: kolumna „Intencja”.</li>
+<li>Co najmniej trzy fragmenty z więcej niż jednym wzorcem lub techniką: F2, F6, F7, F8, F9, F12.</li>
+<li>F3: struktura (opakowanie z tym samym interfejsem) odróżniona od intencji (dokładanie logowania, brak kontroli dostępu).</li>
+<li>F7: przejście po strukturze należy do węzłów (<code>Node.accept</code> iteruje dzieci), nie do gościa.</li>
+<li>Ryzyka konkretne: np. „widok, nie kopia” (F10), „<code>set</code> działa, <code>add</code> nie” (F11), „kolizja tożsamości <code>Integer</code>” (F12).</li>
+</ul>
+<h3 id="typowe-bledy-uczestnikow" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>Rozpoznanie po nazwie pakietu lub klasy („to proxy, bo tak się nazywa”).</li>
+<li>Uznanie każdej delegacji za Decorator albo każdego <code>static ... of(...)</code>/<code>valueOf(...)</code> za Factory Method GoF.</li>
+<li>Traktowanie <code>Collections.unmodifiableList</code> jako kopii obronnej.</li>
+<li>Pominięcie Factory Method w <code>Iterable.iterator()</code> - to klasyczny przykład z katalogu.</li>
+<li>Wskazanie ryzyka ogólnikiem („trudne w utrzymaniu”) zamiast konkretnej konsekwencji.</li>
+</ul>
+<h3 id="pytania-do-dyskusji" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>Czy nazwa klasy powinna zawierać nazwę wzorca? Kiedy pomaga, a kiedy utrwala błędną intencję (F3)?</li>
+<li>Czy builder dla klasy z jednym polem (F1) to błąd, czy konwencja zespołu? Kto płaci jego koszt?</li>
+<li>Dlaczego JDK ma tyle wzorców „w środku”, a tak rzadko w nazwach typów?</li>
+</ul>
+<hr>
+<h2 id="cwiczenie-2-nowy-wariant-bez-modyfikacji" tabindex="-1"><a class="header-anchor" href="#cwiczenie-2-nowy-wariant-bez-modyfikacji"><span>Ćwiczenie 2: Nowy wariant bez modyfikacji</span></a></h2>
+<blockquote>
+<p>Rozwiązanie opracowane na podstawie kodu referencyjnego przygotowanego dla tego ćwiczenia; kod został skompilowany i przetestowany (<code>BridgeExtensionTest</code>: 2 testy, <code>EmployeeCounterTest</code>: 2 testy, wszystkie zielone).</p>
+</blockquote>
+<h3 id="krok-1-rachunek-klas" tabindex="-1"><a class="header-anchor" href="#krok-1-rachunek-klas"><span>Krok 1: rachunek klas</span></a></h3>
+<ul>
+<li>Dziś: abstrakcja <code>Message</code> + 2 rozszerzenia oraz implementacja <code>MessageSender</code> + 2 kanały. Cztery kombinacje obsługują 4 klasy konkretne.</li>
+<li>Po dodaniu <code>SignedMessage</code> i <code>PushSender</code>: 3 + 3 = <strong>6</strong> klas konkretnych.</li>
+<li>Bez mostu (podklasa dla każdej kombinacji, np. <code>UrgentSmsMessage</code>): 3 × 3 = <strong>9</strong> klas, a każdy nowy kanał dokłada tyle klas, ile jest rodzajów wiadomości.</li>
+</ul>
+<h3 id="kod-referencyjny" tabindex="-1"><a class="header-anchor" href="#kod-referencyjny"><span>Kod referencyjny</span></a></h3>
+<p><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>bridge/<wbr>PushSender.java</code>:</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">package</span> pl.training.module4.structural.bridge;
+
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">PushSender</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">MessageSender</span> {
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-type">void</span> <span class="hljs-title function_">send</span><span class="hljs-params">(String recipient, String content)</span> {
+        System.out.println(<span class="hljs-string">&quot;Push to &quot;</span> + recipient + <span class="hljs-string">&quot;: &quot;</span> + content);
+    }
+
+}
+</code></pre>
+<p><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>bridge/<wbr>SignedMessage.java</code>:</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">package</span> pl.training.module4.structural.bridge;
+
+<span class="hljs-keyword">import</span> java.util.Objects;
+
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">SignedMessage</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">Message</span> {
+
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String signature;
+
+    <span class="hljs-type">public</span> <span class="hljs-title function_">SignedMessage</span><span class="hljs-params">(MessageSender sender, String signature)</span> {
+        <span class="hljs-built_in">super</span>(sender);
+        <span class="hljs-built_in">this</span>.signature = Objects.requireNonNull(signature, <span class="hljs-string">&quot;signature&quot;</span>);
+    }
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-type">void</span> <span class="hljs-title function_">send</span><span class="hljs-params">(String recipient, String text)</span> {
+        sender.send(recipient, text + <span class="hljs-string">&quot; (&quot;</span> + signature + <span class="hljs-string">&quot;)&quot;</span>);
+    }
+
+}
+</code></pre>
+<p><code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>structural/<wbr>bridge/<wbr>BridgeExtensionTest.java</code>:</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-meta">@ResourceLock(Resources.SYSTEM_OUT)</span>
+<span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">BridgeExtensionTest</span> {
+
+    <span class="hljs-meta">@Test</span>
+    <span class="hljs-type">void</span> <span class="hljs-title function_">everyMessageKindWorksWithEverySender</span><span class="hljs-params">()</span> {
+        <span class="hljs-type">var</span> <span class="hljs-variable">sender</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">RecordingSender</span>();
+        <span class="hljs-type">List</span>&lt;Message&gt; <span class="hljs-variable">messages</span> <span class="hljs-operator">=</span> List.of(
+                <span class="hljs-keyword">new</span> <span class="hljs-title class_">TextMessage</span>(sender),
+                <span class="hljs-keyword">new</span> <span class="hljs-title class_">UrgentMessage</span>(sender),
+                <span class="hljs-keyword">new</span> <span class="hljs-title class_">SignedMessage</span>(sender, <span class="hljs-string">&quot;ops&quot;</span>));
+
+        messages.forEach(message -&gt; message.send(<span class="hljs-string">&quot;anna&quot;</span>, <span class="hljs-string">&quot;Server restarted&quot;</span>));
+
+        assertEquals(List.of(
+                <span class="hljs-string">&quot;anna|Server restarted&quot;</span>,
+                <span class="hljs-string">&quot;anna|[URGENT] SERVER RESTARTED&quot;</span>,
+                <span class="hljs-string">&quot;anna|Server restarted (ops)&quot;</span>), sender.sent);
+    }
+
+    <span class="hljs-meta">@Test</span>
+    <span class="hljs-type">void</span> <span class="hljs-title function_">pushSenderPrintsThePushChannel</span><span class="hljs-params">()</span> {
+        <span class="hljs-type">PrintStream</span> <span class="hljs-variable">original</span> <span class="hljs-operator">=</span> System.out;
+        <span class="hljs-type">var</span> <span class="hljs-variable">output</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ByteArrayOutputStream</span>();
+        <span class="hljs-keyword">try</span> (<span class="hljs-type">var</span> <span class="hljs-variable">replacement</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">PrintStream</span>(output, <span class="hljs-literal">true</span>, StandardCharsets.UTF_8)) {
+            System.setOut(replacement);
+            <span class="hljs-keyword">new</span> <span class="hljs-title class_">UrgentMessage</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">PushSender</span>()).send(<span class="hljs-string">&quot;anna&quot;</span>, <span class="hljs-string">&quot;disk full&quot;</span>);
+        } <span class="hljs-keyword">finally</span> {
+            System.setOut(original);
+        }
+        assertEquals(List.of(<span class="hljs-string">&quot;Push to anna: [URGENT] DISK FULL&quot;</span>),
+                output.toString(StandardCharsets.UTF_8).lines().toList());
+    }
+
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">RecordingSender</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">MessageSender</span> {
+
+        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-variable">sent</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();
+
+        <span class="hljs-meta">@Override</span>
+        <span class="hljs-keyword">public</span> <span class="hljs-type">void</span> <span class="hljs-title function_">send</span><span class="hljs-params">(String recipient, String content)</span> {
+            sent.add(recipient + <span class="hljs-string">&quot;|&quot;</span> + content);
+        }
+
+    }
+
+}
+</code></pre>
+<p>Importy testu: <code>org.junit.jupiter.api.Test</code>, <code>org.junit.jupiter.api.parallel.ResourceLock</code>, <code>org.junit.jupiter.api.parallel.Resources</code>, <code>java.io.ByteArrayOutputStream</code>, <code>java.io.PrintStream</code>, <code>java.nio.charset.StandardCharsets</code>, <code>java.util.ArrayList</code>, <code>java.util.List</code> oraz statyczny <code>org.junit.jupiter.api.Assertions.assertEquals</code>.</p>
+<p><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>visitor/<wbr>EmployeeCounter.java</code>:</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">package</span> pl.training.module4.behavioral.visitor;
+
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">EmployeeCounter</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Visitor</span> {
+
+    <span class="hljs-keyword">private</span> <span class="hljs-type">int</span> count;
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-type">void</span> <span class="hljs-title function_">visit</span><span class="hljs-params">(Employee employee)</span> {
+        count++;
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-type">int</span> <span class="hljs-title function_">count</span><span class="hljs-params">()</span> {
+        <span class="hljs-keyword">return</span> count;
+    }
+
+}
+</code></pre>
+<p><code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>behavioral/<wbr>visitor/<wbr>EmployeeCounterTest.java</code>:</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">EmployeeCounterTest</span> {
+
+    <span class="hljs-meta">@Test</span>
+    <span class="hljs-type">void</span> <span class="hljs-title function_">countsEmployeesInTheWholeTree</span><span class="hljs-params">()</span> {
+        <span class="hljs-type">var</span> <span class="hljs-variable">main</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Department</span>(<span class="hljs-string">&quot;Main Department&quot;</span>);
+        <span class="hljs-type">var</span> <span class="hljs-variable">it</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Department</span>(<span class="hljs-string">&quot;IT Department&quot;</span>);
+        <span class="hljs-type">var</span> <span class="hljs-variable">board</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">SuperDepartment</span>(<span class="hljs-string">&quot;Board&quot;</span>);
+        main.addChild(it);
+        main.addChild(board);
+        it.addChild(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Employee</span>(<span class="hljs-string">&quot;Kowalski&quot;</span>));
+        it.addChild(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Employee</span>(<span class="hljs-string">&quot;Karlsson&quot;</span>));
+        board.addChild(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Employee</span>(<span class="hljs-string">&quot;Nowak&quot;</span>));
+
+        <span class="hljs-type">var</span> <span class="hljs-variable">counter</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">EmployeeCounter</span>();
+        main.accept(counter);
+
+        assertEquals(<span class="hljs-number">3</span>, counter.count());
+    }
+
+    <span class="hljs-meta">@Test</span>
+    <span class="hljs-type">void</span> <span class="hljs-title function_">emptyDepartmentHasNoEmployees</span><span class="hljs-params">()</span> {
+        <span class="hljs-type">var</span> <span class="hljs-variable">counter</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">EmployeeCounter</span>();
+        <span class="hljs-keyword">new</span> <span class="hljs-title class_">Department</span>(<span class="hljs-string">&quot;Empty&quot;</span>).accept(counter);
+        assertEquals(<span class="hljs-number">0</span>, counter.count());
+    }
+
+}
+</code></pre>
+<h3 id="krok-2-dlaczego-to-dziala-bez-zmian" tabindex="-1"><a class="header-anchor" href="#krok-2-dlaczego-to-dziala-bez-zmian"><span>Krok 2: dlaczego to działa bez zmian</span></a></h3>
+<ul>
+<li><strong>Bridge:</strong> <code>Message</code> zależy wyłącznie od interfejsu <code>MessageSender</code>, a <code>MessageSender</code> nie wie nic o rodzajach wiadomości. Nowy kanał i nowy rodzaj to nowe klasy na dwóch niezależnych osiach.</li>
+<li><strong>Visitor:</strong> <code>Visitor</code> ma metody domyślne, więc nowy gość nadpisuje tylko <code>visit(Employee)</code>. Przejście po drzewie zapewniają węzły - także <code>SuperDepartment.accept</code>, który przekazuje gościa dzieciom - więc pracownik w dziale <code>SuperDepartment</code> jest policzony.</li>
+</ul>
+<h3 id="krok-3-polecenie-8-reporter-i-superdepartment" tabindex="-1"><a class="header-anchor" href="#krok-3-polecenie-8-reporter-i-superdepartment"><span>Krok 3 (polecenie 8): <code>Reporter</code> i <code>SuperDepartment</code></span></a></h3>
+<p>Dla drzewa <code>Main → Board (SuperDepartment) → Nowak</code> wynik <code>main.accept(new Reporter())</code> to (sprawdzone):</p>
+<pre class="code" data-lang="text"><code class="hljs">Department: Main
+ - Employee Nowak
+</code></pre>
+<p>Dział <code>Board</code> nie pojawia się w raporcie. Przyczyna: <code>SuperDepartment.accept</code> wywołuje przeciążenie <code>visit(SuperDepartment)</code>, a <code>Reporter</code> go nie nadpisuje - działa pusta metoda domyślna z interfejsu <code>Visitor</code>. Kompilator tego nie zgłosi. To ta sama mechanika, która w kroku 2 pozwoliła napisać <code>EmployeeCounter</code> jednym nadpisaniem - wygoda i ryzyko mają jedno źródło.</p>
+<h3 id="krok-4-polecenie-9-koszt-nowego-rodzaju-wezla-contractor" tabindex="-1"><a class="header-anchor" href="#krok-4-polecenie-9-koszt-nowego-rodzaju-wezla-contractor"><span>Krok 4 (polecenie 9): koszt nowego rodzaju węzła <code>Contractor</code></span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Plik</th>
+<th>Zmiana</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Contractor.java</code> (nowy)</td>
+<td><code>extends Node</code>, <code>accept(visitor)</code> wywołuje <code>visitor.visit(this)</code>, <code>addChild</code> rzuca wyjątek (liść)</td>
+</tr>
+<tr>
+<td><code>Visitor.java</code></td>
+<td>nowe przeciążenie <code>visit(Contractor)</code> - bez niego <code>visitor.visit(this)</code> w <code>Contractor</code> się nie skompiluje (żadne istniejące przeciążenie nie pasuje)</td>
+</tr>
+<tr>
+<td><code>Reporter.java</code></td>
+<td>decyzja: czy i jak raportować wykonawców</td>
+</tr>
+<tr>
+<td><code>EmployeeCounter.java</code></td>
+<td>decyzja: czy wykonawca jest pracownikiem w sensie licznika</td>
+</tr>
+<tr>
+<td><code>NameValidator.java</code></td>
+<td>przegląd - prawdopodobnie bez zmian (sprawdza tylko działy)</td>
+</tr>
+<tr>
+<td>testy i odpowiedniki C#/TS</td>
+<td>jak wyżej</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li><strong>Pusta metoda domyślna</strong> <code>visit(Contractor)</code>: wszystko się kompiluje, a wszyscy goście <strong>po cichu ignorują</strong> wykonawców (powtórka problemu <code>SuperDepartment</code>).</li>
+<li><strong>Metoda abstrakcyjna:</strong> kompilator wskaże każdego gościa (<code>NameValidator</code>, <code>Reporter</code>, <code>EmployeeCounter</code>, klasy anonimowe), który musi podjąć decyzję. Koszt: każdy gość implementuje wszystkie metody, także te, których nie potrzebuje.</li>
+<li>Pułapka: gdyby <code>Contractor</code> dziedziczył po <code>Employee</code>, kod skompilowałby się bez zmian w <code>Visitor</code>, a wykonawcy byliby traktowani jak pracownicy - decyzja domenowa podjęta przez przypadek.</li>
+<li>Wniosek z macierzy zmian: Visitor ułatwia nowe operacje i utrudnia nowe typy. Gdy częściej dochodzą typy, naturalniejsze są metody polimorficzne w węzłach; w Javie 25 również <code>sealed</code> + <code>switch</code>, gdzie nowy typ psuje kompilację dokładnie w miejscach decyzji.</li>
+</ul>
+<h3 id="weryfikacja-kryteriow-akceptacji-1" tabindex="-1"><a class="header-anchor" href="#weryfikacja-kryteriow-akceptacji-1"><span>Weryfikacja kryteriów akceptacji</span></a></h3>
+<ul>
+<li>Testy zielone: <code>mvn test -Dtest=&#x27;pl.training.module4.**&#x27;</code> (51 testów modułu + 4 nowe).</li>
+<li><code>git status</code> pokazuje tylko nowe pliki: <code>PushSender.java</code>, <code>SignedMessage.java</code>, <code>EmployeeCounter.java</code> i dwa testy.</li>
+<li>Test mostu korzysta z <code>RecordingSender</code> (obiekt zastępczy roli implementacji); konsola sprawdzana tylko dla nowego kanału.</li>
+<li><code>EmployeeCounter</code> liczy pracownika <code>Nowak</code> w <code>SuperDepartment</code>.</li>
+<li>Kontrolne mutacje: <code>SignedMessage</code> wysyłające samo <code>text</code> - pada <code>everyMessageKindWorksWithEverySender</code>; <code>EmployeeCounter</code> z dodatkowym <code>count++</code> w <code>visit(Department)</code> - pada <code>countsEmployeesInTheWholeTree</code>; <code>PushSender</code> z prefiksem <code>Notification to</code> - pada <code>pushSenderPrintsThePushChannel</code>.</li>
+</ul>
+<h3 id="typowe-bledy-uczestnikow-1" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow-1"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>Dodanie <code>visit(...)</code> lub nowej metody do <code>Visitor</code> „na wszelki wypadek” - łamie ograniczenie i niczego nie daje.</li>
+<li><code>instanceof Employee</code> wewnątrz gościa zamiast nadpisania przeciążenia.</li>
+<li>Liczenie dzieci w <code>visit(Department)</code> zamiast liczenia liści - wynik zależy od struktury i pomija <code>SuperDepartment</code>.</li>
+<li><code>SignedMessage extends UrgentMessage</code> albo <code>PushSender extends EmailSender</code> - dziedziczenie między elementami jednej osi przywraca kombinatorykę.</li>
+<li>Test oparty wyłącznie na przechwytywaniu konsoli, bez obiektu zastępczego.</li>
+<li>Brak przywrócenia <code>System.out</code> w <code>finally</code> albo brak <code>@ResourceLock</code> - niestabilne testy przy równoległym uruchamianiu.</li>
+</ul>
+<h3 id="pytania-do-dyskusji-1" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji-1"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>Czy <code>MessageSender</code> powinien być interfejsem funkcyjnym, skoro kanał to jedna metoda? Co by się zmieniło w teście?</li>
+<li>Czy puste metody domyślne w <code>Visitor</code> to dobra decyzja dla tego modelu? Jaką cenę płacimy za wygodę z kroku 2?</li>
+<li>Bridge a Strategy: czym różni się kanał wiadomości od strategii wysyłki?</li>
+</ul>
+<hr>
+<h2 id="cwiczenie-3-wariant-obiektowy-czy-funkcyjny" tabindex="-1"><a class="header-anchor" href="#cwiczenie-3-wariant-obiektowy-czy-funkcyjny"><span>Ćwiczenie 3: Wariant obiektowy czy funkcyjny?</span></a></h2>
+<blockquote>
+<p>Rozwiązanie opracowane na podstawie kodu referencyjnego przygotowanego dla tego ćwiczenia; <code>FunctionalRequestChainTest</code> (2 testy) przechodzi.</p>
+</blockquote>
+<h3 id="krok-1-2-tabele-porownania-wzorcowe" tabindex="-1"><a class="header-anchor" href="#krok-1-2-tabele-porownania-wzorcowe"><span>Krok 1-2: tabele porównania (wzorcowe)</span></a></h3>
+<p><strong>Chain of Responsibility</strong> (<code>behavioral.chainofresponsibility</code> i <code>fn/<wbr>FunctionalStyleChain</code>):</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Kryterium</th>
+<th>Obiektowy</th>
+<th>Funkcyjny</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>liczba typów</td>
+<td><code>Handler</code> + 3 ogniwa</td>
+<td>0 nowych typów, 3 lambdy</td>
+</tr>
+<tr>
+<td>nazwa domenowa</td>
+<td><code>Validator</code>, <code>Logger</code>, <code>Processor</code></td>
+<td><code>step1</code>, <code>step2</code>, <code>step3</code></td>
+</tr>
+<tr>
+<td>stan</td>
+<td><code>nextHandler</code> (chronione, mutowalne pole)</td>
+<td>brak</td>
+</tr>
+<tr>
+<td>tożsamość</td>
+<td>nieistotna</td>
+<td>nieistotna</td>
+</tr>
+<tr>
+<td>druga operacja</td>
+<td>możliwa w <code>Handler</code></td>
+<td>wymaga zmiany typu funkcji</td>
+</tr>
+<tr>
+<td>testowalność</td>
+<td>każde ogniwo osobno, z atrapą następnika</td>
+<td>każda lambda osobno, łatwo</td>
+</tr>
+<tr>
+<td>semantyka identyczna?</td>
+<td><strong>nie</strong> - ogniwo może przerwać</td>
+<td><code>andThen</code> zawsze wykonuje każdy krok</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Strategy</strong> (<code>behavioral.strategy</code> i <code>fn/<wbr>FunctionalStyleStrategy</code>): semantyka identyczna dla strategii bezstanowych; <code>IncrementalIdGenerator</code> jest stanowy, więc wariant funkcyjny wymaga domknięcia nad licznikiem (<code>AtomicInteger</code>) - stan przestaje być widoczny w nazwie typu. Nazwa domenowa (<code>IdGenerator</code>) ginie przy <code>Function&lt;String, String&gt;</code>; własny <code>@FunctionalInterface</code> przywraca ją bez kosztu klasy.</p>
+<p><strong>Decorator</strong> (<code>structural.decorator</code> i <code>fn/<wbr>FunctionalStyleDecorator</code>): semantyka zachowana, ale <strong>kierunek zapisu</strong> odwrotny (obiektowo od środka na zewnątrz, funkcyjnie od lewej do prawej). Dekorator obiektowy może mieć stan (np. licznik prób przy retry) i dodatkowe metody, kompozycja funkcji - nie.</p>
+<p><strong>Observer</strong> (<code>behavioral.observer</code> i <code>fn/<wbr>FunctionalStyleObserver</code>): <code>List</code> daje kolejność rejestracji i duplikaty, <code>HashSet</code> - brak kolejności i brak duplikatów. Wariant z lambdami nie ma wyrejestrowania; lambda nie ma stabilnej tożsamości, więc potrzebny byłby uchwyt (<code>Subscription</code>) zwracany przez <code>subscribe</code>.</p>
+<p><strong>State</strong> (<code>behavioral.state</code> i <code>fn/<wbr>FunctionalStyleState</code>): wariant funkcyjny ma jedno zdarzenie (<code>onEvent</code>) i stany z efektami ubocznymi; brak nazwanych operacji i domyślnego wyjątku dla niedozwolonego przejścia. Przy wielu operacjach enum z ciałami stałych jest czytelniejszy.</p>
+<p><strong>Command</strong> (<code>behavioral.command</code> i <code>fn/<wbr>FunctionalStyleCommand</code>): <code>Runnable</code> wystarcza do kolejkowania i wywołania; <code>undo</code>, nazwa komendy do logu audytu czy utrwalanie wymagają klasy.</p>
+<p><strong>Singleton</strong> (<code>creational.singleton</code> i <code>fn/<wbr>FunctionalStyleSingleton</code>): <code>memoize</code> daje jedną instancję na dostawcę i łatwo go podmienić w teście; klasyczny Singleton - jedna instancja na loader klas i trudna podmiana.</p>
+<h3 id="krok-3-roznica-semantyczna-lancucha" tabindex="-1"><a class="header-anchor" href="#krok-3-roznica-semantyczna-lancucha"><span>Krok 3: różnica semantyczna łańcucha</span></a></h3>
+<ul>
+<li>Obiektowo: <code>new Validator(...).handleRequest(&quot;Te&quot;)</code> - walidator zwraca bez delegacji, <code>Logger</code> i <code>Processor</code> nie działają.</li>
+<li>Funkcyjnie: <code>step1.andThen(step2).andThen(step3)</code> nie ma mechanizmu przerwania. Ogniwo może jedynie zwrócić inną wartość, a kolejne i tak się wykona. To potok (bliżej dekoratorów), nie łańcuch odpowiedzialności.</li>
+</ul>
+<h3 id="kod-referencyjny-1" tabindex="-1"><a class="header-anchor" href="#kod-referencyjny-1"><span>Kod referencyjny</span></a></h3>
+<p><code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>fn/<wbr>FunctionalRequestChain.java</code>:</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">package</span> pl.training.module4.fn;
+
+<span class="hljs-keyword">import</span> java.util.List;
+<span class="hljs-keyword">import</span> java.util.Optional;
+<span class="hljs-keyword">import</span> java.util.function.Function;
+
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">FunctionalRequestChain</span> {
+
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> List&lt;Function&lt;String, Optional&lt;String&gt;&gt;&gt; steps;
+
+    <span class="hljs-type">public</span> <span class="hljs-title function_">FunctionalRequestChain</span><span class="hljs-params">(List&lt;Function&lt;String, Optional&lt;String&gt;&gt;&gt; steps)</span> {
+        <span class="hljs-built_in">this</span>.steps = List.copyOf(steps);
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-type">Optional</span>&lt;String&gt; <span class="hljs-title function_">handle</span><span class="hljs-params">(String request)</span> {
+        <span class="hljs-type">Optional</span>&lt;String&gt; <span class="hljs-variable">current</span> <span class="hljs-operator">=</span> Optional.of(request);
+        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> step : steps) {
+            current = current.flatMap(step);
+        }
+        <span class="hljs-keyword">return</span> current;
+    }
+
+}
+</code></pre>
+<p><code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>module4/<wbr>fn/<wbr>FunctionalRequestChainTest.java</code>:</p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">FunctionalRequestChainTest</span> {
+
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-variable">log</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-variable">processed</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();
+
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">FunctionalRequestChain</span> <span class="hljs-variable">chain</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">FunctionalRequestChain</span>(List.of(
+            request -&gt; request.length() &lt; <span class="hljs-number">3</span> ? Optional.empty() : Optional.of(request),
+            request -&gt; { log.add(request); <span class="hljs-keyword">return</span> Optional.of(request); },
+            request -&gt; { processed.add(request); <span class="hljs-keyword">return</span> Optional.of(<span class="hljs-string">&quot;Processing: &quot;</span> + request); }));
+
+    <span class="hljs-meta">@Test</span>
+    <span class="hljs-type">void</span> <span class="hljs-title function_">validRequestPassesThroughEveryStep</span><span class="hljs-params">()</span> {
+        assertEquals(Optional.of(<span class="hljs-string">&quot;Processing: Test&quot;</span>), chain.handle(<span class="hljs-string">&quot;Test&quot;</span>));
+        assertEquals(List.of(<span class="hljs-string">&quot;Test&quot;</span>), log);
+        assertEquals(List.of(<span class="hljs-string">&quot;Test&quot;</span>), processed);
+    }
+
+    <span class="hljs-meta">@Test</span>
+    <span class="hljs-type">void</span> <span class="hljs-title function_">shortRequestStopsTheChainLikeTheValidator</span><span class="hljs-params">()</span> {
+        assertEquals(Optional.empty(), chain.handle(<span class="hljs-string">&quot;Te&quot;</span>));
+        assertEquals(List.of(), log);
+        assertEquals(List.of(), processed);
+    }
+
+}
+</code></pre>
+<ul>
+<li><code>flatMap</code> na pustym <code>Optional</code> nie wywołuje kolejnych kroków - to właśnie przerwanie łańcucha bez wyjątków.</li>
+<li><code>List.copyOf</code> chroni przed zmianą listy kroków po utworzeniu łańcucha (i odrzuca <code>null</code>).</li>
+<li>Alternatywy równie dobre: <code>Predicate&lt;String&gt;</code> jako warunek kontynuacji, pętla z <code>break</code>, własny interfejs <code>Step { Optional&lt;String&gt; handle(String request); }</code> z nazwą domenową.</li>
+<li>Wariant „pierwszy obsługujący kończy” (klasyczny GoF) wymagałby innej konwencji: krok zwracający wartość kończy łańcuch, a <code>Optional.empty()</code> przekazuje dalej. Warto o to zapytać grupę - kierunek konwencji to decyzja kontraktu.</li>
+</ul>
+<h3 id="krok-4-regula-zespolu-przyklad" tabindex="-1"><a class="header-anchor" href="#krok-4-regula-zespolu-przyklad"><span>Krok 4: reguła zespołu (przykład)</span></a></h3>
+<blockquote>
+<p>Rolę wzorca zapisujemy lambdą lub referencją do metody, gdy ma jedną operację, nie ma stanu, nie potrzebuje tożsamości i nie musi być rozpoznawalna w logach. Gdy rola potrzebuje nazwy domenowej, deklarujemy własny <code>@FunctionalInterface</code>. Klasę piszemy, gdy rola ma stan, więcej niż jedną operację (np. <code>undo</code>), cykl życia (rejestracja i wyrejestrowanie) albo gdy wariant funkcyjny zmieniłby semantykę (przerwanie łańcucha, kolejność).</p>
+</blockquote>
+<h3 id="weryfikacja-kryteriow-akceptacji-2" tabindex="-1"><a class="header-anchor" href="#weryfikacja-kryteriow-akceptacji-2"><span>Weryfikacja kryteriów akceptacji</span></a></h3>
+<ul>
+<li>Trzy tabele z uzasadnionym ostatnim wierszem: para łańcucha jest obowiązkowa i jako jedyna ma odpowiedź „nie” w wierszu semantyki.</li>
+<li>Dla <code>&quot;Te&quot;</code>: <code>Optional.empty()</code>, puste listy <code>log</code> i <code>processed</code> - jak w wersji obiektowej.</li>
+<li>Kontrolne mutacje: walidacja <code>request -&gt; Optional.of(request)</code> - pada <code>shortRequestStopsTheChainLikeTheValidator</code>; pętla przywracająca <code>Optional.of(request)</code> po pustym wyniku - pada ten sam test.</li>
+<li>Reguła odwołuje się do kryteriów (stan, liczba operacji, tożsamość, semantyka).</li>
+</ul>
+<h3 id="typowe-bledy-uczestnikow-2" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow-2"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>Uznanie wersji z <code>andThen</code> za równoważną, bo „dla <code>Test</code> wynik jest taki sam” - testy tylko ścieżki pozytywnej nie wykryją różnicy.</li>
+<li>Przerywanie łańcucha wyjątkiem (sterowanie przepływem przez wyjątki, koszt i nieczytelność).</li>
+<li>Zwracanie <code>null</code> z kroku zamiast <code>Optional.empty()</code>.</li>
+<li>Ocena wyłącznie po liczbie linii kodu.</li>
+<li>Reguła „zawsze lambdy” lub „nigdy lambd” bez kryteriów.</li>
+</ul>
+<h3 id="pytania-do-dyskusji-2" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji-2"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>Czy <code>FunctionalRequestChain</code> to jeszcze Chain of Responsibility, czy już potok z warunkiem? Czy nazwa ma znaczenie?</li>
+<li>Jak zapewnić wyrejestrowanie odbiorcy w wariancie z lambdami?</li>
+<li>Dlaczego przy wariancie funkcyjnym tym bardziej potrzebny jest test zachowania brzegowego?</li>
+</ul>
+<hr>
+<h2 id="cwiczenie-4-dobor-wzorca-karty-problemow" tabindex="-1"><a class="header-anchor" href="#cwiczenie-4-dobor-wzorca-karty-problemow"><span>Ćwiczenie 4: Dobór wzorca - karty problemów</span></a></h2>
+<blockquote>
+<p>Rozwiązanie opracowane na podstawie katalogu wzorców ze slajdów (zastosowanie, konsekwencje) i mapy decyzji.</p>
+</blockquote>
+<h3 id="krok-1-tabela-referencyjna-1" tabindex="-1"><a class="header-anchor" href="#krok-1-tabela-referencyjna-1"><span>Krok 1: tabela referencyjna</span></a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Karta</th>
+<th>Rodzaj zmienności</th>
+<th>Wzorzec</th>
+<th>Prostsza alternatywa</th>
+<th>Główny koszt lub ryzyko</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>K1</td>
+<td>algorytm eksportu; wybiera użytkownik w czasie działania; zestaw otwarty</td>
+<td>Strategy + rejestr <code>Map&lt;Format, ReportExporter&gt;</code></td>
+<td><code>switch</code> po enumie <code>Format</code> (dla 2-3 stabilnych formatów)</td>
+<td>wspólny kontrakt eksportera (strumień czy bajty, kodowanie); jedno miejsce rejestracji</td>
+</tr>
+<tr>
+<td>K2</td>
+<td>zachowanie zależne od bieżącego stanu i przejścia</td>
+<td>State (np. <code>enum</code> stanów z domyślnym wyjątkiem)</td>
+<td><code>switch</code> po enumie w jednym miejscu albo tabela przejść w <code>EnumMap</code></td>
+<td>rozproszona tabela przejść; stan po wyjątku; trwały kod stanu w bazie</td>
+</tr>
+<tr>
+<td>K3</td>
+<td>obcy interfejs i model (grosze, wyjątki kontrolowane)</td>
+<td>Adapter implementujący <code>PaymentGateway</code></td>
+<td>brak - tłumaczenie musi gdzieś być; ważne, by było w jednym miejscu</td>
+<td>zaokrąglenie i skala przy konwersji kwot, waluta, mapowanie wyjątków z zachowaniem przyczyny; na granicy systemu - Anti-Corruption Layer (moduł 5)</td>
+</tr>
+<tr>
+<td>K4</td>
+<td>opcjonalne dodatki w różnych kombinacjach</td>
+<td>Decorator (składany w fabryce lub konfiguracji)</td>
+<td>gotowe interceptory biblioteki klienta HTTP</td>
+<td>kolejność warstw (retry wewnątrz czy na zewnątrz pamięci podręcznej), idempotencja ponowień, maskowanie wyjątków</td>
+</tr>
+<tr>
+<td>K5</td>
+<td>struktura część-całość dowolnej głębokości</td>
+<td>Composite (+ Visitor lub <code>sealed</code> + <code>switch</code>, gdy operacji przybywa)</td>
+<td>rekurencyjna funkcja nad <code>record Category(List&lt;Category&gt; children, List&lt;Product&gt; products)</code></td>
+<td>cykle i głębokość; koszt wielokrotnego liczenia sum w dużych drzewach</td>
+</tr>
+<tr>
+<td>K6</td>
+<td>operacje użytkownika do cofnięcia i ponowienia</td>
+<td>Command z <code>undo()</code> + Memento (stos historii)</td>
+<td>migawka całego dokumentu po każdej operacji</td>
+<td>poprawne <code>undo</code> dla każdej komendy; pamięć; spójność z zapisem dokumentu</td>
+</tr>
+<tr>
+<td>K7</td>
+<td>wiele parametrów opcjonalnych i niezmienniki kombinacji</td>
+<td>Builder z walidacją w <code>build()</code></td>
+<td><code>record</code> z konstruktorem kanonicznym i kilka nazwanych fabryk</td>
+<td>duplikacja pól; builder wielokrotnego użytku i mutowalny produkt</td>
+</tr>
+<tr>
+<td>K8</td>
+<td>zmienny zbiór odbiorców zdarzenia</td>
+<td>Observer (zdarzenie domenowe <code>OrderPlaced</code>)</td>
+<td>jawne wywołania w serwisie, gdy odbiorców jest 2-3 i są stali</td>
+<td>kolejność, polityka błędów (czy błąd e-maila cofa zamówienie?), transakcja; asynchroniczność i outbox to osobna decyzja</td>
+</tr>
+<tr>
+<td>K9</td>
+<td>sieć wzajemnych zależności komponentów</td>
+<td>Mediator (<code>AddressFormMediator</code>)</td>
+<td>model formularza z regułami albo Observer między komponentami (ale sieć zostaje)</td>
+<td>mediator-bóg skupiający logikę wszystkich pól</td>
+</tr>
+<tr>
+<td>K10</td>
+<td>brak realnej zmienności</td>
+<td><strong>bez wzorca</strong>: <code>if</code> albo <code>enum DiscountType</code> z wartością</td>
+<td>-</td>
+<td>Strategy byłaby spekulacją (YAGNI): więcej typów bez korzyści</td>
+</tr>
+<tr>
+<td>K11</td>
+<td>wiele obiektów, mało rodzajów stanu wewnętrznego</td>
+<td>Flyweight (<code>TileType</code> współdzielony, pozycja jako stan zewnętrzny)</td>
+<td>tablica indeksów rodzajów (<code>byte[]</code>) i tablica 12 tekstur</td>
+<td>stan współdzielony musi być niemutowalny; kafelek traci tożsamość</td>
+</tr>
+<tr>
+<td>K12</td>
+<td>spójne rodziny produktów</td>
+<td>Abstract Factory (<code>UiFactory</code>: <code>createButton</code>, <code>createField</code>, <code>createWindow</code>)</td>
+<td>motyw jako dane (tokeny stylu) zamiast klas</td>
+<td>nowy rodzaj komponentu wymaga zmiany interfejsu i wszystkich fabryk</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="krok-2-3-karty-bez-wzorca-i-polaczenia" tabindex="-1"><a class="header-anchor" href="#krok-2-3-karty-bez-wzorca-i-polaczenia"><span>Krok 2-3: karty „bez wzorca” i połączenia</span></a></h3>
+<ul>
+<li><strong>Bez wzorca lub najprostszy mechanizm:</strong> K10 (zawsze); K1 i K2, jeśli zestaw jest mały i stabilny; K11 w wersji z tablicą indeksów bywa prostsza niż obiekty-pyłki.</li>
+<li><strong>Połączenia:</strong> K1 (Strategy + rejestr lub fabryka), K4 (Decorator + fabryka składająca warstwy), K5 (Composite + Visitor), K6 (Command + Memento), K8 (Observer; przy wielu kanałach także Mediator lub szyna zdarzeń).</li>
+</ul>
+<h3 id="weryfikacja-kryteriow-akceptacji-3" tabindex="-1"><a class="header-anchor" href="#weryfikacja-kryteriow-akceptacji-3"><span>Weryfikacja kryteriów akceptacji</span></a></h3>
+<ul>
+<li>Każdy wiersz zaczyna się od kolumny „Rodzaj zmienności”.</li>
+<li>Każdy wiersz ma prostszą alternatywę - w K3 jest nią świadomy brak alternatywy (tłumaczenie jest konieczne).</li>
+<li>K10 ma odpowiedź „bez wzorca” z uzasadnieniem (brak zmienności od pięciu lat, jedno miejsce użycia).</li>
+<li>Koszty są konkretne (np. kolejność warstw w K4, polityka błędów w K8).</li>
+</ul>
+<h3 id="typowe-bledy-uczestnikow-3" tabindex="-1"><a class="header-anchor" href="#typowe-bledy-uczestnikow-3"><span>Typowe błędy uczestników</span></a></h3>
+<ul>
+<li>Start od nazwy wzorca („tu pasuje Strategy”) zamiast od pytania, co się zmienia i kto decyduje.</li>
+<li>Strategy dla K2 („bo jest <code>switch</code>”) - pytanie kontrolne: czy wariant zmienia się w wyniku operacji na obiekcie?</li>
+<li>Wzorzec dla K10 „na przyszłość”.</li>
+<li>Observer dla K9 bez zauważenia, że sieć wzajemnych subskrypcji to nadal sieć powiązań.</li>
+<li>Pominięcie polityki błędów w K8 i kolejności w K4.</li>
+<li>Builder dla każdego obiektu z więcej niż trzema polami, bez sprawdzenia <code>record</code>.</li>
+</ul>
+<h3 id="pytania-do-dyskusji-3" tabindex="-1"><a class="header-anchor" href="#pytania-do-dyskusji-3"><span>Pytania do dyskusji</span></a></h3>
+<ul>
+<li>K8: co zmienia się w kontrakcie, gdy z jednego odbiorcy robi się lista? Kiedy to już rozszerzenie zachowania (moduł 5)?</li>
+<li>K5: Visitor czy metody w węzłach - co częściej będzie się zmieniać w waszym katalogu produktów?</li>
+<li>K3: gdzie kończy się Adapter, a zaczyna Anti-Corruption Layer?</li>
+</ul>
+<hr>
+<h2 id="odpowiedzi-do-pytan-sprawdzajacych" tabindex="-1"><a class="header-anchor" href="#odpowiedzi-do-pytan-sprawdzajacych"><span>Odpowiedzi do pytań sprawdzających</span></a></h2>
+<ol>
+<li>
+<p><strong>Czym jest wzorzec projektowy i z jakich elementów składa się jego opis?</strong>
+To odkrywany na bazie doświadczenia szablon sprawdzonego rozwiązania powszechnie występującego problemu (koncepcja Christophera Alexandra, katalog obiektowy GoF). Opis obejmuje nazwę, problem i kontekst, rozwiązanie (role i ich współpracę) oraz konsekwencje. Nie jest gotowym kodem ani biblioteką.</p>
+</li>
+<li>
+<p><strong>Na czym polega podział ze względu na rodzaj i zakres? Które wzorce GoF są klasowe?</strong>
+Rodzaj: kreacyjne (tworzenie i konfigurowanie obiektów), strukturalne (struktury obiektów i klas), behawioralne (zachowanie i odpowiedzialność współpracujących obiektów). Zakres: klasowe (statyczne związki między klasami, dziedziczenie) i obiektowe (dynamiczne zależności między obiektami, kompozycja). Klasowe: Factory Method, Interpreter, Template Method i klasowy wariant Adaptera.</p>
+</li>
+<li>
+<p><strong>Czym różni się Factory Method od Abstract Factory? Co jest trudne w Abstract Factory?</strong>
+Factory Method tworzy jeden produkt, a jego typ określa podklasa (lub wstrzyknięty twórca). Abstract Factory tworzy całe rodziny powiązanych produktów, które mają być używane razem. W Abstract Factory łatwo dodać nową rodzinę, a trudno nowy rodzaj produktu - wymaga zmiany interfejsu i wszystkich fabryk.</p>
+</li>
+<li>
+<p><strong>Jakie problemy rozwiązuje Builder i jakie ryzyko niesie mutowalny produkt?</strong>
+Oddziela proces konstrukcji złożonego obiektu od jego reprezentacji, porządkuje wiele parametrów opcjonalnych i daje miejsce na walidację niezmienników całości. Builder zwracający tę samą mutowalną instancję (jak <code>GenericConnectionUrlBuilder.build()</code>) pozwala zmienić już zbudowany i przekazany produkt dalszym wywołaniem metod buildera.</p>
+</li>
+<li>
+<p><strong>Dlaczego Singleton bywa uważany za antywzorzec i jakie są alternatywy w Javie?</strong>
+Wprowadza globalny stan i ukrytą zależność: testy wpływają na siebie, implementacji nie da się łatwo podmienić, a cykl życia jest sztywny. Alternatywy: jedna instancja tworzona w composition root i wstrzykiwana, <code>enum INSTANCE</code> (jedna instancja na loader klas), idiom holder, <code>memoize(Supplier)</code>.</p>
+</li>
+<li>
+<p><strong>Co odróżnia Adapter, Decorator, Proxy i Facade?</strong>
+Adapter zmienia interfejs na oczekiwany przez klienta; Decorator zachowuje interfejs i dokłada odpowiedzialność; Proxy zachowuje interfejs i kontroluje dostęp (może nie delegować, opóźnić, wywołać zdalnie); Facade daje nowy, uproszczony interfejs nad wieloma obiektami podsystemu. Struktura bywa identyczna - rozstrzyga intencja.</p>
+</li>
+<li>
+<p><strong>Czym różni się przezroczysty i bezpieczny wariant Composite?</strong>
+Przezroczysty umieszcza zarządzanie dziećmi we wspólnym typie komponentu (jednolitość, ale liść musi rzucać wyjątek lub ignorować <code>add</code>, jak <code>Employee.addChild</code>). Bezpieczny umieszcza je tylko w kompozycie (kontrola kompilatora, ale klient czasem rozróżnia typy).</p>
+</li>
+<li>
+<p><strong>Dlaczego kolejność dekoratorów jest częścią kontraktu?</strong>
+Każda warstwa zmienia zasięg działania pozostałych: <code>audit(retry(core))</code> zapisze jedną operację, <code>retry(audit(core))</code> każdą próbę; podobnie pamięć podręczna przed lub za ponowieniami czy transakcją. Zmiana kolejności zmienia obserwowalne zachowanie.</p>
+</li>
+<li>
+<p><strong>Co odróżnia State od Strategy, a Strategy od Template Method?</strong>
+Strategy wybiera klient z zewnątrz, State zmienia sam obiekt w wyniku operacji i wyznacza dozwolone przejścia. Strategy opiera się na kompozycji (wymiana w czasie działania), Template Method na dziedziczeniu (kroki ustalone przez podklasę, sekwencja chroniona <code>final</code>).</p>
+</li>
+<li>
+<p><strong>Jaki wymiar zmian preferuje Visitor? Czym grożą puste metody domyślne?</strong>
+Częste dodawanie nowych operacji przy stabilnym zestawie typów elementów; nowy typ elementu wymaga zmiany interfejsu gościa i przeglądu wszystkich gości. Puste metody domyślne wyłączają kontrolę kompilatora - gość po cichu pomija nieobsłużony typ (jak <code>Reporter</code> pomija <code>SuperDepartment</code>).</p>
+</li>
+<li>
+<p><strong>Jakie decyzje trzeba podjąć, projektując Observer?</strong>
+Kolejność powiadomień, dopuszczalność duplikatów, polityka wyjątków odbiorcy (przerwać czy kontynuować i zebrać błędy), wątek i synchroniczność, wyrejestrowanie (także w trakcie publikacji) oraz to, czy odbiorcy są wywoływani pod blokadą.</p>
+</li>
+<li>
+<p><strong>Kiedy lambda wystarcza w miejsce klasy wzorca, a kiedy zmienia semantykę?</strong>
+Wystarcza dla jednej, bezstanowej operacji bez potrzeby tożsamości i nazwy (Strategy, prosta komenda, fabryka, krok szablonu). Zmienia semantykę, gdy mechanizm funkcyjny działa inaczej niż wzorzec: <code>andThen</code> nie przerywa łańcucha, <code>Stream</code> jest iteratorem wewnętrznym i jednorazowym, lambdy nie da się niezawodnie wyrejestrować. Klasa wraca, gdy rola ma stan, kilka operacji lub cykl życia.</p>
+</li>
+<li>
+<p><strong>Jakie sygnały wskazują, że wzorzec jest zbędny?</strong>
+Jedna implementacja od dawna, interfejs powtarzający API jednej klasy, fabryka z jednym <code>new</code>, większość implementacji rzucająca <code>UnsupportedOperationException</code>, nowy wariant nadal wymagający zmian w wielu miejscach, konfiguracja trudniejsza od bezpośredniego <code>new</code>. Usuwanie wzorca to równie poprawna refaktoryzacja - moduł 5.</p>
+</li>
+</ol>
+
+</main>
+</div>
+<script>if(matchMedia('(max-width:900px)').matches){var d=document.querySelector('.toc details');if(d)d.open=false}</script>
+</body>
+</html>

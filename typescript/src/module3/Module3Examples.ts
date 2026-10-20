@@ -1,45 +1,91 @@
 import { Decimal } from 'decimal.js';
-import { ConsoleQuoteNotifier } from './adapter/ConsoleQuoteNotifier.js';
-import { InMemoryQuoteRepository } from './adapter/InMemoryQuoteRepository.js';
-import { Command, CreateDeliveryQuote } from './application/CreateDeliveryQuote.js';
-import { DeliveryPriceCalculator } from './domain/DeliveryPriceCalculator.js';
-import { ExpressDeliveryPricePolicy } from './domain/ExpressDeliveryPricePolicy.js';
-import { FuelSurcharge } from './domain/FuelSurcharge.js';
-import { Parcel } from './domain/Parcel.js';
-import { ShippingMethod } from './domain/ShippingMethod.js';
-import { StandardDeliveryPricePolicy } from './domain/StandardDeliveryPricePolicy.js';
-import { LegacyDeliveryQuoteService } from './legacy/LegacyDeliveryQuoteService.js';
+import { DeploymentWindowService } from './breakdependencies/after/DeploymentWindowService.js';
+import { StandardMaintenanceWindows } from './breakdependencies/after/StandardMaintenanceWindows.js';
+import { fixedClock } from './Clock.js';
+import { InvoiceFormatter } from './InvoiceFormatter.js';
+import { CandidatePricingEngine } from './incremental/CandidatePricingEngine.js';
+import { LegacyPricingEngineAdapter } from './incremental/LegacyPricingEngineAdapter.js';
+import { MigratingPricingEngine } from './incremental/MigratingPricingEngine.js';
+import { MigrationMode } from './incremental/MigrationMode.js';
+import { PriceRequest } from './incremental/PriceRequest.js';
+import type { VerificationEvent } from './incremental/VerificationEvent.js';
+import { InvoiceLine } from './InvoiceLine.js';
+import { LegacyInvoiceFormatter } from './LegacyInvoiceFormatter.js';
+import { LocalDate } from './LocalDate.js';
+import { OrderPlacementService } from './OrderPlacementService.js';
+import { ReminderService } from './ReminderService.js';
+import { Subscription } from './Subscription.js';
 
 export class Module3Examples {
   private constructor() {}
 
   static main(_args: readonly string[] = []): void {
-    const parcel = new Parcel(new Decimal('3.00'));
-    const legacy = new LegacyDeliveryQuoteService();
-    const legacyQuote = legacy.createQuote(
+    Module3Examples.runBehaviorPreservingRefactoring();
+    Module3Examples.runTestDoubleExample();
+    Module3Examples.runExplicitSeamExample();
+    Module3Examples.runBreakDependenciesExample();
+    Module3Examples.runParallelVerificationExample();
+  }
+
+  private static runBehaviorPreservingRefactoring(): void {
+    const lines = [
+      new InvoiceLine('BOOK', 2, new Decimal('19.99')),
+      new InvoiceLine('PEN', 1, new Decimal('5.00')),
+    ];
+    const before = new LegacyInvoiceFormatter().format('Acme', lines);
+    const after = new InvoiceFormatter().format('Acme', lines);
+
+    console.log('Formatter outputs equal: ' + (before === after));
+  }
+
+  private static runTestDoubleExample(): void {
+    const service = new OrderPlacementService(
+      { priceFor: () => new Decimal('12.50') },
+      { charge: () => 'AUTH-DEMO' },
+      { save: () => 1 },
+      { publish: (event) => console.log('Published event: ' + event.toString()) },
+    );
+
+    const order = service.place('BOOK', 2, 'TOKEN-DEMO');
+    console.log('Placed order: ' + order.toString());
+  }
+
+  private static runExplicitSeamExample(): void {
+    const clock = fixedClock('2026-08-30T10:00:00Z');
+    const service = new ReminderService(
+      clock,
+      {
+        send: (email, renewalDate) =>
+          console.log(`Reminder: ${email} renews on ${renewalDate.toString()}`),
+      },
+    );
+
+    service.sendRenewalReminder(new Subscription(
       'developer@example.com',
-      ShippingMethod.STANDARD,
-      parcel);
+      LocalDate.of(2026, 9, 6)));
+  }
 
-    const fuelSurcharge = new FuelSurcharge(new Decimal('0.08'));
-    const calculator = new DeliveryPriceCalculator([
-      new StandardDeliveryPricePolicy(fuelSurcharge),
-      new ExpressDeliveryPricePolicy(fuelSurcharge),
-    ]);
-    const repository = new InMemoryQuoteRepository();
-    const useCase = new CreateDeliveryQuote(
-      calculator,
-      repository,
-      new ConsoleQuoteNotifier());
+  private static runBreakDependenciesExample(): void {
+    const windowService = new DeploymentWindowService(
+      new StandardMaintenanceWindows());
+    console.log('Break Dependencies: '
+      + windowService.schedule('payments', 2));
+  }
 
-    const refactoredQuote = useCase.execute(new Command(
-      'developer@example.com',
-      ShippingMethod.STANDARD,
-      parcel));
+  private static runParallelVerificationExample(): void {
+    const events: VerificationEvent[] = [];
+    const engine = new MigratingPricingEngine(
+      new LegacyPricingEngineAdapter(),
+      new CandidatePricingEngine(),
+      { report: (event) => events.push(event) },
+      MigrationMode.VERIFY);
 
-    console.log(
-      'Legacy and refactored prices equal: '
-        + legacyQuote.price.equals(refactoredQuote.price));
-    console.log('Stored quotes: ' + repository.quotes().length);
+    const quote = engine.quote(new PriceRequest(
+      new Decimal('19.99'),
+      3,
+      new Decimal('0.10')));
+
+    console.log('Parallel verification: ' + quote.netAmount.toFixed(2)
+      + '/' + events[0]?.kind);
   }
 }

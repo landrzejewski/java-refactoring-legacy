@@ -1,6 +1,6 @@
-# Warsztat CineLegacy (C#) - praktyczne sceny do modułów 3-8
+# Warsztat CineLegacy (C#) - praktyczne sceny do modułów 2, 3 i 5
 
-CineLegacy to wymyślony, stary system kina. Obsługuje seanse, sale, miejsca, bilety, zniżki, rezerwacje, płatności, powiadomienia, raporty i rozliczenia z dystrybutorem. Na jego kodzie pokazujemy na żywo techniki z modułów 3-8. Każdy temat ze slajdów ma swoją krótką **scenę**: kod wyjściowy, kolejne kroki, gotowe snapshoty i testy.
+CineLegacy to wymyślony, stary system kina. Obsługuje seanse, sale, miejsca, bilety, zniżki, rezerwacje, płatności, powiadomienia, raporty i rozliczenia z dystrybutorem. Na jego kodzie pokazujemy na żywo techniki z modułów 2 (Prewencja), 3 (Testowanie a bezpieczeństwo) i 5 (Refaktoryzacja do wzorców). Każdy temat ze slajdów ma swoją krótką **scenę**: kod wyjściowy, kolejne kroki, gotowe snapshoty i testy.
 
 Ten pakiet nie powtarza ćwiczeń z zakładek "Zadania" i "Przykłady" poszczególnych modułów. Uzupełnia je o jak najwięcej małych, uruchamialnych demonstracji na nowym kodzie.
 
@@ -14,14 +14,14 @@ Wersja C# ma te same reguły biznesowe i oczekiwane wyniki co wersja Java. Tam, 
 csharp/src/Training.Workshop/
     Shared/Money.cs                 wspólny typ wartości (nie refaktoryzujemy go)
     Legacy/                         stary system: CinemaManager (God Class), LegacyDb, LegacyMailer, LegacyPaymentGateway
-    M6/S08State/
+    M5/S08State/
         IPayments.cs, Status.cs     stabilne typy kontraktu sceny (opcjonalnie)
         Start/                      kod wyjściowy - na nim pracujemy na żywo
         Step1/ Step2/ ...           gotowe snapshoty po każdym kroku przewodnika
 csharp/tests/Training.Workshop.Tests/
     Legacy/CinemaManagerGoldenMasterTest
     Support/Scene                   te same przypadki dla Start i każdego kroku ([Theory] + [MemberData])
-    M6/S08State/S08EquivalenceTest ...
+    M5/S08State/S08EquivalenceTest ...
 ```
 
 - Każda scena w przewodniku zaczyna się od sekcji "W skrócie": co robimy, na czym polega zasada lub technika i jaki jest efekt. Można ją przeczytać sali przed pokazem.
@@ -34,17 +34,17 @@ csharp/tests/Training.Workshop.Tests/
 
 ```bash
 scripts/warsztat.sh --lang cs list            # wszystkie sceny i ich kroki
-scripts/warsztat.sh --lang cs list m6         # sceny jednego modułu
-scripts/warsztat.sh --lang cs test m6/s08     # testy jednej sceny (dotnet test)
-scripts/warsztat.sh --lang cs test m6         # testy całego modułu
-scripts/warsztat.sh --lang cs diff m6/s08 1 2 # co dokładnie zmienia krok 2 (0 = start), w kolorach
-scripts/warsztat.sh --lang cs diff m6/s08 1 2 --word  # zmiany podświetlone w obrębie linii
-scripts/warsztat.sh --lang cs jump m6/s08 2   # skopiuj step2 do start - przeskok, gdy brakuje czasu
+scripts/warsztat.sh --lang cs list m5         # sceny jednego modułu
+scripts/warsztat.sh --lang cs test m5/s08     # testy jednej sceny (dotnet test)
+scripts/warsztat.sh --lang cs test m5         # testy całego modułu
+scripts/warsztat.sh --lang cs diff m5/s08 1 2 # co dokładnie zmienia krok 2 (0 = start), w kolorach
+scripts/warsztat.sh --lang cs diff m5/s08 1 2 --word  # zmiany podświetlone w obrębie linii
+scripts/warsztat.sh --lang cs jump m5/s08 2   # skopiuj step2 do start - przeskok, gdy brakuje czasu
 scripts/warsztat.sh --lang cs next            # następny krok do start (ostatnio używana scena)
 scripts/warsztat.sh --lang cs prev            # krok wstecz
 scripts/warsztat.sh --lang cs status          # który krok jest teraz w start
-scripts/warsztat.sh --lang cs reset m6/s08    # przywróć start z repozytorium po pokazie
-scripts/warsztat.sh html            # wygeneruj strony HTML z md/warsztat (Node.js)
+scripts/warsztat.sh --lang cs reset m5/s08    # przywróć start z repozytorium po pokazie
+scripts/warsztat.sh html            # wygeneruj strony HTML wszystkich materiałów (Node.js)
 ```
 
 > `reset` przywraca `Start` z gita, więc pliki warsztatu muszą być w repozytorium (co najmniej `git add`). Przed zajęciami: `cd csharp && dotnet test` (wszystko zielone) i `git status` (czysty `Start`).
@@ -86,9 +86,9 @@ Filmy w przykładach: "Diuna" (IMAX, wieczór), "Kraina Lodu" (3D, rano), "Amato
 
 ## Stary system i golden master
 
-`Legacy/CinemaManager` to "serce" starego systemu. Ma kody `int` i `string`, tablice `object?[]` jako rekordy, statyczną "bazę", maile wysyłane z logiki biznesowej, `double` na pieniądze i zagnieżdżone warunki. Z niego wycięto większość scen. Ten sam kod jest też materiałem kampanii God Class (moduł 7) oraz Branch by Abstraction i Strangler Fig (moduł 8).
+`Legacy/CinemaManager` to "serce" starego systemu. Ma kody `int` i `string`, tablice `object?[]` jako rekordy, statyczną "bazę", maile wysyłane z logiki biznesowej, `double` na pieniądze i zagnieżdżone warunki. Z niego wycięto większość scen. Ten sam kod jest też materiałem ćwiczenia końcowego (moduł 6. Podsumowanie).
 
-`CinemaManagerGoldenMasterTest` odtwarza "jeden dzień kina" i porównuje pełny wektor zachowania z plikiem `src/test/resources/workshop/cinema-manager.approved.txt`. Wektor obejmuje wyniki wywołań, maile, SMS-y, obciążenia i zwroty na bramce płatności, raport dzienny i rozliczenia. Warto go pokazać na początku modułu 3 jako punkt odniesienia dla całego warsztatu. Plik zatwierdzonego wyniku jest wspólny dla Javy, C# i TypeScript - wszystkie trzy wersje starego systemu dają identyczny wektor zachowania.
+`CinemaManagerGoldenMasterTest` odtwarza "jeden dzień kina" i porównuje pełny wektor zachowania z plikiem `src/test/resources/workshop/cinema-manager.approved.txt`. Wektor obejmuje wyniki wywołań, maile, SMS-y, obciążenia i zwroty na bramce płatności, raport dzienny i rozliczenia. Warto go pokazać w module 3 ("Jak poradzić sobie bez testów?") jako punkt odniesienia dla całego warsztatu. Plik zatwierdzonego wyniku jest wspólny dla Javy, C# i TypeScript - wszystkie trzy wersje starego systemu dają identyczny wektor zachowania.
 
 ```bash
 cd csharp && dotnet test tests/Training.Workshop.Tests --filter "FullyQualifiedName~CinemaManagerGoldenMasterTest"
@@ -98,136 +98,74 @@ cd csharp && dotnet test tests/Training.Workshop.Tests --filter "FullyQualifiedN
 
 | Moduł | Przewodnik prowadzącego | Zadania dla uczestników | Namespace |
 |---|---|---|---|
-| 3. Zasady dobrego projektowania | [przewodnik](przewodnik/03-zasady-dobrego-projektowania.html) | [zadania](zadania/03-zasady-dobrego-projektowania.html) | `Training.Workshop.M3` |
-| 4. Podstawowe refaktoryzacje | [przewodnik](przewodnik/04-podstawowe-refaktoryzacje.html) | [zadania](zadania/04-podstawowe-refaktoryzacje.html) | `Training.Workshop.M4` |
-| 5. Refaktoryzacje hierarchii klas | [przewodnik](przewodnik/05-refaktoryzacje-hierarchii-klas.html) | [zadania](zadania/05-refaktoryzacje-hierarchii-klas.html) | `Training.Workshop.M5` |
-| 6. Refaktoryzacje do wzorców projektowych | [przewodnik](przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html) | [zadania](zadania/06-refaktoryzacje-do-wzorcow-projektowych.html) | `Training.Workshop.M6` |
-| 7. Zaawansowane refaktoryzacje | [przewodnik](przewodnik/07-zaawansowane-refaktoryzacje.html) | [zadania](zadania/07-zaawansowane-refaktoryzacje.html) | `Training.Workshop.M7` |
-| 8. Strategie i dobre praktyki | [przewodnik](przewodnik/08-strategie-i-dobre-praktyki.html) | [zadania](zadania/08-strategie-i-dobre-praktyki.html) | `Training.Workshop.M8` |
+| 2. Prewencja | [przewodnik](przewodnik/02-prewencja.html) | [zadania](zadania/02-prewencja.html) | `Training.Workshop.M2` |
+| 3. Testowanie a bezpieczeństwo | [przewodnik](przewodnik/03-testowanie-a-bezpieczenstwo.html) | [zadania](zadania/03-testowanie-a-bezpieczenstwo.html) | `Training.Workshop.M3` |
+| 5. Refaktoryzacja do wzorców | [przewodnik](przewodnik/05-refaktoryzacja-do-wzorcow.html) | [zadania](zadania/05-refaktoryzacja-do-wzorcow.html) | `Training.Workshop.M5` |
+
+Moduły 1 (Wprowadzenie), 4 (Wzorce projektowe) i 6 (Podsumowanie) nie mają scen warsztatu: ćwiczenia tych modułów są w zakładkach "Zadania" i "Przykłady".
 
 ## Macierz pokrycia tematów
 
-Każda scena odsyła do sekcji slajdów swojego modułu. Tematy, które są wyłącznie dyskusyjne (np. kryteria decyzji, jakość w kontekście), omawiamy w przewodnikach przy pytaniach do sali.
+Każda scena odsyła do sekcji slajdów swojego modułu. Tematy, które są wyłącznie dyskusyjne, omawiamy w przewodnikach przy pytaniach do sali.
 
-### Moduł 3. Zasady dobrego projektowania
-
-| Scena | Tytuł | Temat ze slajdów | Kroki |
-|---|---|---|---|
-| [m3/s01](przewodnik/03-zasady-dobrego-projektowania.html#scena-s01-dry-jedna-wiedza-dwie-reprezentacje) | DRY - jedna wiedza, dwie reprezentacje | 2.1 DRY dotyczy wiedzy; 2.8 Napięcia między zasadami (nazwanie potwierdzonej reguły) | 4 |
-| [m3/s02](przewodnik/03-zasady-dobrego-projektowania.html#scena-s02-podobienstwo-to-nie-duplikacja) | Podobieństwo to nie duplikacja | 2.2 Podobieństwo nie wystarcza; 2.3 Tymczasowe powtórzenie kodu bywa bezpiecznym etapem | 3 |
-| [m3/s03](przewodnik/03-zasady-dobrego-projektowania.html#scena-s03-falszywa-abstrakcja-z-flagami) | Fałszywa abstrakcja z flagami | 2.3 Fałszywa abstrakcja: zabezpiecz testami, przenieś kod z powrotem, wydziel tylko potwierdzoną wiedzę | 2 |
-| [m3/s04](przewodnik/03-zasady-dobrego-projektowania.html#scena-s04-dry-w-testach-i-niezalezna-wyrocznia) | DRY w testach i niezależna wyrocznia | 2.3 DRY w testach: wspólne fabryki danych tak, liczenie oczekiwanej wartości algorytmem produkcyjnym nie | 2 |
-| [m3/s05](przewodnik/03-zasady-dobrego-projektowania.html#scena-s05-kiss-zlozonosc-wprowadzona-kontra-istotna) | KISS - złożoność wprowadzona kontra istotna | 2.4-2.5 KISS: prostota po poprawności; ukryty przepływ przez refleksję | 2 |
-| [m3/s06](przewodnik/03-zasady-dobrego-projektowania.html#scena-s06-yagni-silnik-regul-dla-dwoch-regul) | YAGNI - silnik reguł dla dwóch reguł | 2.6-2.7 YAGNI i czego nie zabrania; 2.8 Napięcia (ogólny silnik hipotetycznych taryf); 2.9 Filtr decyzyjny | 3 |
-| [m3/s07](przewodnik/03-zasady-dobrego-projektowania.html#scena-s07-srp-raport-dla-dwoch-aktorow) | SRP - raport dla dwóch aktorów | 3.2 SRP: jeden aktor zmiany; 3.7 Błędne uproszczenia SOLID ("klasa robi jedną rzecz") | 3 |
-| [m3/s08](przewodnik/03-zasady-dobrego-projektowania.html#scena-s08-ocp-na-wybranej-osi-formaty-seansu) | OCP na wybranej osi - formaty seansu | 3.3 OCP: zamknięcie dla wybranej osi; nie każdy `switch` narusza OCP | 3 |
-| [m3/s09](przewodnik/03-zasady-dobrego-projektowania.html#scena-s09-lsp-i-test-kontraktowy) | LSP i test kontraktowy | 3.4 LSP: substytucja behawioralna; `UnsupportedOperationException` nie zawsze łamie LSP - ocena zaczyna się od kontraktu | 2 |
-| [m3/s10](przewodnik/03-zasady-dobrego-projektowania.html#scena-s10-isp-z-perspektywy-klienta) | ISP z perspektywy klienta | 3.5 ISP: interfejs według ról klientów; 4.2 Interfejs nie usuwa sprzężenia | 2 |
-| [m3/s11](przewodnik/03-zasady-dobrego-projektowania.html#scena-s11-dip-kierunek-zaleznosci-kontra-przeplyw-sterowania) | DIP - kierunek zależności kontra przepływ sterowania | 3.6 DIP i DIP to nie dependency injection; 5.1-5.2 Reguła zależności a przepływ sterowania | 3 |
-| [m3/s12](przewodnik/03-zasady-dobrego-projektowania.html#scena-s12-clean-architecture-use-case-dane-na-granicy-composition-root) | Clean Architecture - use case, dane na granicy, composition root | 5.3 Elementy praktyczne; 5.4 Dane na granicy i composition root; 5.5-5.6 Kręgi to nie szablon; 7.8 Protokół efektów | 4 |
-| [m3/s13](przewodnik/03-zasady-dobrego-projektowania.html#scena-s13-automatyczna-ochrona-granicy-i-diagnostyka-spojnosci) | Automatyczna ochrona granicy i diagnostyka spójności | 4.4 Diagnostyka spójności i sprzężenia; 4.1-4.3 Spójność, sprzężenie, koszt wydzielenia; lista kontrolna "reguła sprawdzana automatycznie" | 2 |
-| [m3/s14](przewodnik/03-zasady-dobrego-projektowania.html#scena-s14-wzorzec-jako-decyzja-odwracalna) | Wzorzec jako decyzja odwracalna | 6.1-6.2 Wzorzec i refaktoryzacja w jego kierunku; 6.3 Strategy i Adapter; 6.4 Wzorzec można usunąć | 3 |
-| [m3/s15](przewodnik/03-zasady-dobrego-projektowania.html#scena-s15-inwarianty-w-modelu-domeny) | Inwarianty w modelu domeny | 7.4 Model domeny i DRY (obiekty pilnują inwariantów); 4.3 Dobry moduł ukrywa decyzję | 2 |
-| [m3/s16](przewodnik/03-zasady-dobrego-projektowania.html#scena-s16-sprzezenie-protokolu-ukryta-kolejnosc-wywolan) | Sprzężenie protokołu - ukryta kolejność wywołań | 4.4 "Czy wywołania wymagają ukrytej kolejności?" - sprzężenie protokołu lub czasu | 2 |
-
-### Moduł 4. Podstawowe refaktoryzacje
+### Moduł 2. Prewencja
 
 | Scena | Tytuł | Temat ze slajdów | Kroki |
 |---|---|---|---|
-| [m4/s00](przewodnik/04-podstawowe-refaktoryzacje.html#scena-s00-test-charakterystyki-przed-pierwsza-zmiana) | Test charakterystyki przed pierwszą zmianą | Test charakterystyki przed pierwszą zmianą; Test równoważności etapów; Co ma pozostać niezmienione | 2 |
-| [m4/s01](przewodnik/04-podstawowe-refaktoryzacje.html#scena-s01-rename-nazwy-ktore-zyja-poza-c) | Rename - nazwy, które żyją poza C# | Rename - cel i mechanika; Co ma pozostać niezmienione (refleksja, konfiguracja) | 3 |
-| [m4/s02](przewodnik/04-podstawowe-refaktoryzacje.html#scena-s02-extract-variable-dla-zlozonego-wyrazenia-ceny) | Extract Variable dla złożonego wyrażenia ceny | Extract Variable i moment ewaluacji | 3 |
-| [m4/s03](przewodnik/04-podstawowe-refaktoryzacje.html#scena-s03-stale-z-nazwa-zamiast-magicznych-liczb) | Stałe z nazwą zamiast magicznych liczb | Extract Constant i `final`; Replace Magic Numbers with Named Constants | 3 |
-| [m4/s04](przewodnik/04-podstawowe-refaktoryzacje.html#scena-s04-extract-method-przeplyw-danych-i-wiele-wyjsc) | Extract Method - przepływ danych i wiele wyjść | Extract Method - cel i sygnały; Extract Method - analiza przepływu danych; Extract Method - mechanika i trudne przypadki | 3 |
-| [m4/s05](przewodnik/04-podstawowe-refaktoryzacje.html#scena-s05-inline-variable-liczba-i-moment-ewaluacji) | Inline Variable - liczba i moment ewaluacji | Inline Variable i typ docelowy; Extract Variable i moment ewaluacji | 3 |
-| [m4/s06](przewodnik/04-podstawowe-refaktoryzacje.html#scena-s06-inline-method-i-nadpisanie-w-podklasie) | Inline Method i nadpisanie w podklasie | Inline Method i jego ryzyka | 2 |
-| [m4/s07](przewodnik/04-podstawowe-refaktoryzacje.html#scena-s07-move-method-feature-envy-i-pulapka-przeciazenia) | Move Method - Feature Envy i pułapka przeciążenia | Move Method i Move Field - wybór właściciela; Move Method krok po kroku i ryzyka | 2 |
-| [m4/s08](przewodnik/04-podstawowe-refaktoryzacje.html#scena-s08-move-field-prog-vip-nalezy-do-sali) | Move Field - próg VIP należy do sali | Move Field krok po kroku i ryzyka; Move Method i Move Field - wybór właściciela | 3 |
-| [m4/s09](przewodnik/04-podstawowe-refaktoryzacje.html#scena-s09-extract-class-klient-platnosc-i-klasa-worek) | Extract Class - klient, płatność i klasa-worek | Extract Class - cel, mechanika i zły wynik | 3 |
-| [m4/s10](przewodnik/04-podstawowe-refaktoryzacje.html#scena-s10-encapsulate-field-status-ktory-kazdy-moze-nadpisac) | Encapsulate Field - status, który każdy może nadpisać | Encapsulate Field | 3 |
-| [m4/s11](przewodnik/04-podstawowe-refaktoryzacje.html#scena-s11-encapsulate-collection-trzy-kontrakty-listy-miejsc) | Encapsulate Collection - trzy kontrakty listy miejsc | Encapsulate Collection; Trzy różne kontrakty kolekcji | 3 |
-| [m4/s12](przewodnik/04-podstawowe-refaktoryzacje.html#scena-s12-encapsulate-conditional-czy-przysluguje-zwrot) | Encapsulate Conditional - czy przysługuje zwrot | Encapsulate Conditional | 3 |
+| [m2/s01](przewodnik/02-prewencja.html#scena-s01-yagni-silnik-regul-dla-dwoch-regul) | YAGNI - silnik reguł dla dwóch reguł | 2.4 YAGNI: aktualna potrzeba przed przewidywaną; 2.5 Napięcia między zasadami (ogólny silnik hipotetycznych taryf); 2.6 Filtr decyzyjny przed dodaniem abstrakcji; 2.1 Ostatni odpowiedzialny moment | 3 |
+| [m2/s02](przewodnik/02-prewencja.html#scena-s02-adr-i-wykonywalny-model-decyzji) | ADR i wykonywalny model decyzji | 2.7 Zapis decyzji: ADR; 2.2 Decyzje odwracalne i nieodwracalne | 2 |
+| [m2/s03](przewodnik/02-prewencja.html#scena-s03-bramka-kompilatora-nullable-i-ostrzezenia-jako-bledy) | Bramka kompilatora - nullable i ostrzeżenia jako błędy | 1.5 Kompilator jako najszybsza bramka; 1.6 Bramki w legacy: stan bazowy i ratchet | 3 |
+| [m2/s04](przewodnik/02-prewencja.html#scena-s04-minimalna-bramka-jakosci-jako-kod) | Minimalna bramka jakości jako kod | 1.4 Różne narzędzia, różne dowody; 1.6 Bramki w legacy: stan bazowy i ratchet (minimalna bramka) | 4 |
+| [m2/s05](przewodnik/02-prewencja.html#scena-s05-boy-scout-rule-mala-poprawa-i-jej-naduzycie) | Boy Scout Rule - mała poprawa i jej nadużycie | 6.1 Boy Scout Rule: heurystyka, nie mandat; 6.3 Bezpieczna sekwencja i typowe nadużycia | 2 |
+| [m2/s06](przewodnik/02-prewencja.html#scena-s06-seria-malych-zmian-gotowych-do-przegladu) | Seria małych zmian gotowych do przeglądu | 6.4 Małe zestawy zmian - czego nie łączyć; 6.5 Przegląd kodu i informacja zwrotna | 3 |
+| [m2/s07](przewodnik/02-prewencja.html#scena-s07-srp-raport-dla-dwoch-aktorow) | SRP - raport dla dwóch aktorów | 5.3 SOLID jako narzędzie analizy zmian (SRP: jeden aktor zmiany); 5.4 Błędne uproszczenia SOLID ("klasa robi jedną rzecz") | 3 |
+| [m2/s08](przewodnik/02-prewencja.html#scena-s08-dip-kierunek-zaleznosci-kontra-przeplyw-sterowania) | DIP - kierunek zależności kontra przepływ sterowania | 5.3 SOLID jako narzędzie analizy zmian (DIP to nie dependency injection); 5.6 Reguła zależności i composition root | 3 |
+| [m2/s09](przewodnik/02-prewencja.html#scena-s09-clean-architecture-use-case-dane-na-granicy-composition-root) | Clean Architecture - use case, dane na granicy, composition root | 5.6 Reguła zależności i composition root; 5.9 Porty i przypadek użycia; 5.10 Kierunek zależności i bilans decyzji | 4 |
+| [m2/s10](przewodnik/02-prewencja.html#scena-s10-automatyczna-ochrona-granicy-i-diagnostyka-spojnosci) | Automatyczna ochrona granicy i diagnostyka spójności | 5.5 Spójność i sprzężenie; 5.6 Reguła zależności (sprawdzana automatycznie); lista kontrolna prewencji ("reguła zależności sprawdzana automatycznie") | 2 |
 
-### Moduł 5. Refaktoryzacje hierarchii klas
+### Moduł 3. Testowanie a bezpieczeństwo
 
 | Scena | Tytuł | Temat ze slajdów | Kroki |
 |---|---|---|---|
-| [m5/s01](przewodnik/05-refaktoryzacje-hierarchii-klas.html#scena-s01-pull-up-method-najpierw-ujednolicic-ciala) | Pull Up Method - najpierw ujednolicić ciała | 3.1-3.3. Pull Up Method | 3 |
-| [m5/s02](przewodnik/05-refaktoryzacje-hierarchii-klas.html#scena-s02-pull-up-field-to-samo-znaczenie-typ-i-cykl-zycia) | Pull Up Field - to samo znaczenie, typ i cykl życia | 3.4-3.6. Pull Up Field i ryzyka Pull Up | 3 |
-| [m5/s03](przewodnik/05-refaktoryzacje-hierarchii-klas.html#scena-s03-push-down-methodfield-i-asymetria-przesuniec) | Push Down Method/Field i asymetria przesunięć | 4.1-4.4. Push Down Method, Push Down Field i asymetria przesunięć | 3 |
-| [m5/s04](przewodnik/05-refaktoryzacje-hierarchii-klas.html#scena-s04-extract-superclass-seans-i-wynajem-sali) | Extract Superclass - seans i wynajem sali | 5. Extract Superclass | 3 |
-| [m5/s05](przewodnik/05-refaktoryzacje-hierarchii-klas.html#scena-s05-extract-subclass-premiera-z-gosciem) | Extract Subclass - premiera z gościem | 6. Extract Subclass | 4 |
-| [m5/s06](przewodnik/05-refaktoryzacje-hierarchii-klas.html#scena-s06-extract-interface-rola-koszyka-i-metoda-domyslna) | Extract Interface - rola koszyka i metoda domyślna | 7.1-7.3. Extract Interface; 7.4. Metody domyślne | 3 |
-| [m5/s07](przewodnik/05-refaktoryzacje-hierarchii-klas.html#scena-s07-collapse-hierarchy-sala-imax) | Collapse Hierarchy - sala IMAX | 8. Collapse Hierarchy | 3 |
-| [m5/s08](przewodnik/05-refaktoryzacje-hierarchii-klas.html#scena-s08-replace-inheritance-with-composition-licznik-klikniec) | Replace Inheritance with Composition - licznik kliknięć | 9.1-9.4. Replace Inheritance with Composition, procedura i pułapki delegowania | 2 |
-| [m5/s09](przewodnik/05-refaktoryzacje-hierarchii-klas.html#scena-s09-overriding-a-overloading-pulapka-po-extract-superclass) | Overriding a overloading - pułapka po Extract Superclass | 2.1. Overriding i dynamiczna dyspozycja; 2.2-2.3. Overloading - wybór statyczny | 2 |
-| [m5/s10](przewodnik/05-refaktoryzacje-hierarchii-klas.html#scena-s10-ukrywanie-pol-i-metod-static) | Ukrywanie pól i metod static | 2.3. Pola nie są polimorficzne; 2.1. `static` jest ukrywana | 2 |
-| [m5/s11](przewodnik/05-refaktoryzacje-hierarchii-klas.html#scena-s11-konstruktor-wolajacy-metode-nadpisywalna) | Konstruktor wołający metodę nadpisywalną | 2.4. Konstruktory i inicjalizacja; 3.1-3.3 (nie wołaj override z konstruktora, żeby umożliwić Pull Up) | 2 |
-| [m5/s12](przewodnik/05-refaktoryzacje-hierarchii-klas.html#scena-s12-generyki-i-metody-bridge) | Generyki i metody bridge | 2.5-2.8. Sygnatury po erasure i metody bridge; 10.2-10.3. Refleksja | 2 |
-| [m5/s13](przewodnik/05-refaktoryzacje-hierarchii-klas.html#scena-s13-hierarchie-sealed-i-wyczerpujacy-switch) | Hierarchie sealed i wyczerpujący switch | 2.5-2.8. `sealed`, `permits`, `MatchException` | 3 |
-| [m5/s14](przewodnik/05-refaktoryzacje-hierarchii-klas.html#scena-s14-wspoldzielenie-implementacji-a-podtypowanie) | Współdzielenie implementacji a podtypowanie | 1.1-1.2. Hierarchia jest częścią zachowania; 9.1. Replace Inheritance with Composition - kiedy? | 2 |
-| [m5/s15](przewodnik/05-refaktoryzacje-hierarchii-klas.html#scena-s15-zgodnosc-binarna-refleksja-i-adnotacje) | Zgodność binarna, refleksja i adnotacje | 1.3. Warstwy zgodności; 10.2-10.3. Zgodność binarna, refleksja i adnotacje | 4 |
-| [m5/s16](przewodnik/05-refaktoryzacje-hierarchii-klas.html#scena-s16-serializacja-i-proxy-hierarchia-jako-format-danych) | Serializacja i proxy - hierarchia jako format danych | 10.4-10.6. Serializacja, ORM i DI | 3 |
+| [m3/s01](przewodnik/03-testowanie-a-bezpieczenstwo.html#scena-s01-test-charakterystyki-przed-pierwsza-zmiana) | Test charakterystyki przed pierwszą zmianą | 4.2 Testy charakteryzujące; 4.4 Dobór przypadków; 4.8 Porównanie implementacji (równoważność etapów); 4.6 Wektor obserwowalnego zachowania | 2 |
+| [m3/s02](przewodnik/03-testowanie-a-bezpieczenstwo.html#scena-s02-break-dependencies-seam-dla-zadania-przypomnien) | Break Dependencies - seam dla zadania przypomnień | 4.10 Seam, punkt aktywacji i cel rozrywania; 4.12 Minimalny szew przejściowy; 4.14 Break Dependencies - przed i po; 4.16 Bezpieczne ruchy automatami IDE, gdy brak testów | 4 |
+| [m3/s03](przewodnik/03-testowanie-a-bezpieczenstwo.html#scena-s03-wektor-obserwowalnego-zachowania-platnosc-za-bilety) | Wektor obserwowalnego zachowania - płatność za bilety | 4.6 Wektor obserwowalnego zachowania; 2.2 Weryfikacja stanu a weryfikacja zachowania; 3.4-3.5 Pokrycie: zalety, ograniczenia, progi, nadużycia | 3 |
+| [m3/s04](przewodnik/03-testowanie-a-bezpieczenstwo.html#scena-s04-rownolegla-weryfikacja-shadow-kalkulatora-cen) | Równoległa weryfikacja (shadow) kalkulatora cen | 4.18 Równoległa weryfikacja (parallel run) | 4 |
+| [m3/s05](przewodnik/03-testowanie-a-bezpieczenstwo.html#scena-s05-granice-trybu-shadow-efekty-uboczne) | Granice trybu shadow - efekty uboczne | 4.19 Granice trybu shadow | 3 |
 
-### Moduł 6. Refaktoryzacje do wzorców projektowych
+### Moduł 5. Refaktoryzacja do wzorców
 
 | Scena | Tytuł | Temat ze slajdów | Kroki |
 |---|---|---|---|
-| [m6/s01](przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s01-replace-conditional-logic-with-strategy-polityka-znizek) | Replace Conditional Logic with Strategy - polityka zniżek | Strategy - przed i po; Strategy - intencja, sekwencja, ryzyka; Istotne mechanizmy Javy 25 | 3 |
-| [m6/s02](przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s02-replace-conditional-with-polymorphism-rodzaj-seansu) | Replace Conditional with Polymorphism - rodzaj seansu | Polimorfizm - przed i po; Polimorfizm - kiedy i pułapki | 3 |
-| [m6/s03](przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s03-replace-type-code-with-class-format-jako-typ) | Replace Type Code with Class - format jako typ | Replace Type Code with Class; Type Code - decyzje i granica trwałości | 3 |
-| [m6/s04](przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s04-encapsulate-classes-with-factory-bilety) | Encapsulate Classes with Factory - bilety | Factory - publiczna granica tworzenia; Factory - intencja, procedura, pułapki | 3 |
-| [m6/s05](przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s05-extract-factory-class-tworzenie-rezerwacji) | Extract Factory Class - tworzenie rezerwacji | Factory - intencja, procedura, pułapki (Extract Factory Class) | 3 |
-| [m6/s06](przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s06-encapsulate-composite-with-builder-repertuar-dnia) | Encapsulate Composite with Builder - repertuar dnia | Encapsulate Composite with Builder | 3 |
-| [m6/s07](przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s07-move-embellishment-to-decorator-dodatki-do-biletu) | Move Embellishment to Decorator - dodatki do biletu | Move Embellishment to Decorator; Decorator - wyjątki, migracja, przezroczystość | 3 |
-| [m6/s08](przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s08-replace-state-altering-conditionals-with-state-status-rezerwacji) | Replace State-Altering Conditionals with State - status rezerwacji | Replace State-Altering Conditionals with State; State - kontekst delegujący | 3 |
-| [m6/s09](przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s09-replace-hard-coded-notifications-with-observer-po-oplaceniu) | Replace Hard-coded Notifications with Observer - po opłaceniu | Replace Hard-coded Notifications with Observer; Observer - kontrakt i migracja | 3 |
-| [m6/s10](przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s10-replace-implicit-tree-with-composite-zestawy-baru) | Replace Implicit Tree with Composite - zestawy baru | Replace Implicit Tree with Composite; Implicit Tree - mapper, procedura, ryzyka | 3 |
-| [m6/s11](przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s11-transparent-vs-safe-composite-add-na-lisciu) | Transparent vs Safe Composite - add() na liściu | Replace One/Many Distinctions with Composite (Safe i Transparent Composite) | 2 |
-| [m6/s12](przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s12-replace-onemany-distinctions-with-composite-zwroty) | Replace One/Many Distinctions with Composite - zwroty | Replace One/Many Distinctions with Composite | 3 |
-| [m6/s13](przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s13-extract-composite-kontenery-programu) | Extract Composite - kontenery programu | Extract Composite | 2 |
-| [m6/s14](przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s14-unify-interfaces-with-adapter-dwie-bramki-platnosci) | Unify Interfaces with Adapter - dwie bramki płatności | Unify Interfaces with Adapter; Adapter - co naprawdę trzeba przetłumaczyć | 3 |
-| [m6/s15](przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s15-replace-conditional-dispatcher-with-command-konsola-kasjera) | Replace Conditional Dispatcher with Command - konsola kasjera | Replace Conditional Dispatcher with Command; Command - sekwencja i ograniczenia | 3 |
-| [m6/s16](przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s16-form-template-method-raporty-csv-i-html) | Form Template Method - raporty CSV i HTML | Apply Template Method; Template Method - sekwencja i ryzyka | 2 |
-| [m6/s17](przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s17-limit-instantiation-with-singleton-cennik) | Limit Instantiation with Singleton - cennik | Limit Instantiation with Singleton | 3 |
-| [m6/s18](przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s18-move-accumulation-to-collecting-parameter-ostrzezenia-walidacji) | Move Accumulation to Collecting Parameter - ostrzeżenia walidacji | Collecting Parameter | 3 |
-| [m6/s19](przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s19-visitor-i-macierz-zmian-pozycje-zamowienia) | Visitor i macierz zmian - pozycje zamówienia | Visitor i macierz zmian | 3 |
-| [m6/s20](przewodnik/06-refaktoryzacje-do-wzorcow-projektowych.html#scena-s20-mapa-decyzji-jedna-tabela-dwie-struktury-docelowe) | Mapa decyzji - jedna tabela, dwie struktury docelowe | Najpierw rodzaj zmienności; Mapa decyzji (1/2 i 2/2); Lista kontrolna | 3 |
-
-### Moduł 7. Zaawansowane refaktoryzacje
-
-| Scena | Tytuł | Temat ze slajdów | Kroki |
-|---|---|---|---|
-| [m7/s01](przewodnik/07-zaawansowane-refaktoryzacje.html#scena-s01-break-dependencies-seam-dla-zadania-przypomnien) | Break Dependencies - seam dla zadania przypomnień | 1. Break Dependencies - intencja i ryzyka; Break Dependencies - przed i po; Java 25 w tym module (interfejs funkcyjny jako seam) | 4 |
-| [m7/s02](przewodnik/07-zaawansowane-refaktoryzacje.html#scena-s02-extract-method-object-wycena-zamowienia-grupowego) | Extract Method Object - wycena zamówienia grupowego | 2. Extract Method Object - przed; Extract Method Object - po, sekwencja i ryzyka | 3 |
-| [m7/s03](przewodnik/07-zaawansowane-refaktoryzacje.html#scena-s03-break-responsibilities-walidacja-wycena-powiadomienie) | Break Responsibilities - walidacja, wycena, powiadomienie | 3. Break Responsibilities - intencja i ryzyka; Break Responsibilities - po zmianie | 3 |
-| [m7/s04](przewodnik/07-zaawansowane-refaktoryzacje.html#scena-s04-remove-duplication-rabat-grupowy-w-kasie-i-w-sklepie) | Remove Duplication - rabat grupowy w kasie i w sklepie | 4. Remove Duplication - duplikacja wiedzy; Remove Duplication - po zmianie | 3 |
-| [m7/s05](przewodnik/07-zaawansowane-refaktoryzacje.html#scena-s05-break-method-repertuar-dnia) | Break Method - repertuar dnia | 5. Break Method - intencja; Break Method - bezpieczna sekwencja | 3 |
-| [m7/s06](przewodnik/07-zaawansowane-refaktoryzacje.html#scena-s06-introduce-parameter-object-termin-seansu) | Introduce Parameter Object - termin seansu | 6. Introduce Parameter Object - data clump jako pojęcie; Parameter Object - walidacja, migracja i ryzyka | 3 |
-| [m7/s07](przewodnik/07-zaawansowane-refaktoryzacje.html#scena-s07-remove-arrowhead-antipattern-bramka-rezerwacji) | Remove Arrowhead Antipattern - bramka rezerwacji | 7. Remove Arrowhead Antipattern; Remove Arrowhead - po zmianie | 3 |
-| [m7/s08](przewodnik/07-zaawansowane-refaktoryzacje.html#scena-s08-introduce-design-by-contract-checks-pula-miejsc) | Introduce Design by Contract Checks - pula miejsc | 8. Introduce Design by Contract Checks; Design by Contract - jawne kontrole | 2 |
-| [m7/s09](przewodnik/07-zaawansowane-refaktoryzacje.html#scena-s09-remove-double-negative-wstep-do-strefy-vip) | Remove Double Negative - wstęp do strefy VIP | 9. Remove Double Negative | 3 |
-| [m7/s10](przewodnik/07-zaawansowane-refaktoryzacje.html#scena-s10-remove-boolean-method-parameters-migracja-api) | Remove Boolean Method Parameters - migracja API | 11. Remove Boolean Method Parameters; Java 25 w tym module (zgodność binarna) | 4 |
-| [m7/s11](przewodnik/07-zaawansowane-refaktoryzacje.html#scena-s11-remove-middle-man-fasada-kina) | Remove Middle Man - fasada kina | 12. Remove Middle Man | 3 |
-| [m7/s12](przewodnik/07-zaawansowane-refaktoryzacje.html#scena-s12-return-asap-wyszukiwanie-wolnego-miejsca) | Return ASAP - wyszukiwanie wolnego miejsca | 13. Return ASAP | 2 |
-| [m7/s13](przewodnik/07-zaawansowane-refaktoryzacje.html#scena-s13-remove-god-class-kampania-na-kopii-cinemamanager) | Remove God Class - kampania na kopii CinemaManager | 10. Remove God Classes - kampania, nie pojedynczy ruch; Remove God Classes - wydzielony fragment i ryzyka; Warsztat 3 (kontekst) | 4 |
-| [m7/s14](przewodnik/07-zaawansowane-refaktoryzacje.html#scena-s14-refaktoryzacja-a-zmiana-kontraktu-zwrot-na-bigdecimal) | Refaktoryzacja a zmiana kontraktu - zwrot na BigDecimal | Refaktoryzacja a zmiana kontraktu; Pętla pracy (zmiany kontraktu w osobnych krokach) | 3 |
-| [m7/s15](przewodnik/07-zaawansowane-refaktoryzacje.html#scena-s15-wektor-obserwowalnego-zachowania-platnosc-za-bilety) | Wektor obserwowalnego zachowania - płatność za bilety | Wektor obserwowalnego zachowania; Lista kontrolna przeglądu (zachowanie) | 3 |
-
-### Moduł 8. Strategie i dobre praktyki
-
-| Scena | Tytuł | Temat ze slajdów | Kroki |
-|---|---|---|---|
-| [m8/s01](przewodnik/08-strategie-i-dobre-praktyki.html#scena-s01-branch-by-abstraction-na-cenniku-z-cinemamanager) | Branch by Abstraction na cenniku z CinemaManager | 1.3-1.4 Branch by Abstraction, Strangler Fig, architektura przejściowa | 4 |
-| [m8/s02](przewodnik/08-strategie-i-dobre-praktyki.html#scena-s02-strangler-fig-fasada-ktora-przejmuje-sciezki) | Strangler Fig - fasada, która przejmuje ścieżki | 1.3-1.4 Branch by Abstraction, Strangler Fig, architektura przejściowa | 4 |
-| [m8/s03](przewodnik/08-strategie-i-dobre-praktyki.html#scena-s03-rownolegla-weryfikacja-shadow-kalkulatora-cen) | Równoległa weryfikacja (shadow) kalkulatora cen | 1.5 Przykład: równoległa weryfikacja kalkulatora | 4 |
-| [m8/s04](przewodnik/08-strategie-i-dobre-praktyki.html#scena-s04-granice-trybu-shadow-efekty-uboczne) | Granice trybu shadow - efekty uboczne | 1.6-1.7 Granice trybu shadow i antywzorce migracji | 3 |
-| [m8/s05](przewodnik/08-strategie-i-dobre-praktyki.html#scena-s05-boy-scout-rule-mala-poprawa-i-jej-naduzycie) | Boy Scout Rule - mała poprawa i jej nadużycie | 2.1-2.4 Heurystyka, nie mandat; bezpieczna sekwencja i typowe nadużycia | 2 |
-| [m8/s06](przewodnik/08-strategie-i-dobre-praktyki.html#scena-s06-seria-malych-zmian-gotowych-do-przegladu) | Seria małych zmian gotowych do przeglądu | 3.2 Małe zestawy zmian - czego nie łączyć; 3.3-3.4 Przegląd kodu | 3 |
-| [m8/s07](przewodnik/08-strategie-i-dobre-praktyki.html#scena-s07-adr-i-wykonywalny-model-decyzji) | ADR i wykonywalny model decyzji | 4.3-4.4 Architecture Decision Record | 2 |
-| [m8/s08](przewodnik/08-strategie-i-dobre-praktyki.html#scena-s08-bramka-kompilatora-nullable-i-ostrzezenia-jako-bledy) | Bramka kompilatora - nullable i ostrzeżenia jako błędy | 5.2-5.3 Refaktoryzacje IDE i kompilator Javy 25; 5.6 Bramka kompilatora | 3 |
-| [m8/s09](przewodnik/08-strategie-i-dobre-praktyki.html#scena-s09-codemod-na-api-kompilatora-roslyn) | Codemod na API kompilatora Roslyn | 5.4-5.5 Analiza statyczna, formatowanie i automatyzacja (receptury) | 3 |
-| [m8/s10](przewodnik/08-strategie-i-dobre-praktyki.html#scena-s10-minimalna-bramka-jakosci-jako-kod) | Minimalna bramka jakości jako kod | 5.6-5.7 Bramka kompilatora i minimalna bramka jakości | 4 |
-| [m8/s11](przewodnik/08-strategie-i-dobre-praktyki.html#scena-s11-jawna-polityka-wdrozenia-etapowego) | Jawna polityka wdrożenia etapowego | 6.2 Warstwy kontroli; 6.3-6.4 Kryteria i jawna polityka wdrożenia etapowego | 3 |
-| [m8/s12](przewodnik/08-strategie-i-dobre-praktyki.html#scena-s12-expand-and-contract-format-danych-rezerwacji) | Expand and contract - format danych rezerwacji | 6.5-6.6 Dane, wycofanie i zamknięcie migracji | 4 |
-| [m8/s13](przewodnik/08-strategie-i-dobre-praktyki.html#scena-s13-dokumentacja-zywa-kontra-historyczna) | Dokumentacja żywa kontra historyczna | 4.1 Dokumentacja według trwałości; 4.5 Dokumentacja żywa i historyczna | 2 |
+| [m5/s01](przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s01-replace-conditional-logic-with-strategy-polityka-znizek) | Replace Conditional Logic with Strategy - polityka zniżek | 6.1. Kto wybiera wariant i kiedy?; 6.4. Strategy - intencja, sekwencja, ryzyka | 3 |
+| [m5/s02](przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s02-replace-conditional-with-polymorphism-rodzaj-seansu) | Replace Conditional with Polymorphism - rodzaj seansu | 17.1. Replace Conditional with Polymorphism; 6.8. Typowe pomyłki przy wyborze | 3 |
+| [m5/s03](przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s03-replace-type-code-with-class-format-jako-typ) | Replace Type Code with Class - format jako typ | 17.2. Replace Type Code with Class | 3 |
+| [m5/s04](przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s04-encapsulate-classes-with-factory-bilety) | Encapsulate Classes with Factory - bilety | 10.1. Factory - publiczna granica tworzenia; 10.2. Factory - intencja, procedura, pułapki | 3 |
+| [m5/s05](przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s05-extract-factory-class-tworzenie-rezerwacji) | Extract Factory Class - tworzenie rezerwacji | 10.2. Factory - intencja, procedura, pułapki (Extract Factory Class); 10.3. Fabryka jako strażnik spójności | 3 |
+| [m5/s06](przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s06-encapsulate-composite-with-builder-repertuar-dnia) | Encapsulate Composite with Builder - repertuar dnia | 13.1. Encapsulate Composite with Builder; 13.2. Builder - kiedy i ryzyka | 3 |
+| [m5/s07](przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s07-move-embellishment-to-decorator-dodatki-do-biletu) | Move Embellishment to Decorator - dodatki do biletu | 8.1. Move Embellishment to Decorator; 8.2. Decorator - wyjątki, migracja, przezroczystość | 3 |
+| [m5/s08](przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s08-replace-state-altering-conditionals-with-state-status-rezerwacji) | Replace State-Altering Conditionals with State - status rezerwacji | 6.5. State - tabela przejść przed hierarchią; 6.6. State - kolejność przejścia i efektów | 3 |
+| [m5/s09](przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s09-replace-hard-coded-notifications-with-observer-po-oplaceniu) | Replace Hard-coded Notifications with Observer - po opłaceniu | 14.1. Replace Hard-coded Notifications with Observer; 14.2. Observer - kontrakt i migracja | 3 |
+| [m5/s10](przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s10-replace-implicit-tree-with-composite-zestawy-baru) | Replace Implicit Tree with Composite - zestawy baru | 17.3. Replace Implicit Tree with Composite; 5.2. Test równoważności przed i po | 3 |
+| [m5/s11](przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s11-transparent-vs-safe-composite-add-na-lisciu) | Transparent vs Safe Composite - add() na liściu | 17.3. Replace Implicit Tree with Composite; 17.4. Jeden lub wiele i Extract Composite (Safe i Transparent Composite) | 2 |
+| [m5/s12](przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s12-replace-onemany-distinctions-with-composite-zwroty) | Replace One/Many Distinctions with Composite - zwroty | 17.4. Jeden lub wiele i Extract Composite (Replace One/Many Distinctions with Composite) | 3 |
+| [m5/s13](przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s13-extract-composite-kontenery-programu) | Extract Composite - kontenery programu | 17.4. Jeden lub wiele i Extract Composite (Extract Composite) | 2 |
+| [m5/s14](przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s14-unify-interfaces-with-adapter-dwie-bramki-platnosci) | Unify Interfaces with Adapter - dwie bramki płatności | 9.1. Unify Interfaces with Adapter; 9.2. Adapter - co naprawdę trzeba przetłumaczyć | 3 |
+| [m5/s15](przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s15-replace-conditional-dispatcher-with-command-konsola-kasjera) | Replace Conditional Dispatcher with Command - konsola kasjera | 6.7. Command - rejestr i ograniczenia | 3 |
+| [m5/s16](przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s16-form-template-method-raporty-csv-i-html) | Form Template Method - raporty CSV i HTML | 7.1. Apply Template Method; 7.2. Template Method - sekwencja i ryzyka | 2 |
+| [m5/s17](przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s17-limit-instantiation-with-singleton-cennik) | Limit Instantiation with Singleton - cennik | 17.6. Limit Instantiation with Singleton; 2.4-2.5. Inline Singleton (kierunek odwrotny) | 3 |
+| [m5/s18](przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s18-move-accumulation-to-collecting-parameter-ostrzezenia-walidacji) | Move Accumulation to Collecting Parameter - ostrzeżenia walidacji | 17.5. Collecting Parameter | 3 |
+| [m5/s19](przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s19-visitor-i-macierz-zmian-pozycje-zamowienia) | Visitor i macierz zmian - pozycje zamówienia | 16.1. Visitor i macierz zmian; 16.2. Do i od Visitora | 3 |
+| [m5/s20](przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s20-mapa-decyzji-jedna-tabela-dwie-struktury-docelowe) | Mapa decyzji - jedna tabela, dwie struktury docelowe | 1.2. Najpierw rodzaj zmienności; Mapa decyzji (1/3-3/3); Lista kontrolna | 3 |
+| [m5/s21](przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s21-wzorzec-jako-decyzja-odwracalna-rozliczenie-z-dystrybutorem) | Wzorzec jako decyzja odwracalna - rozliczenie z dystrybutorem | 2.1. Refaktoryzacja od wzorca; 2.2. Kierunki odwrotne; 1.4. Kiedy wzorzec się nie opłaca | 3 |
+| [m5/s22](przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s22-remove-middle-man-fasada-kina) | Remove Middle Man - fasada kina | 2.3. Remove Middle Man; 2.2. Kierunki odwrotne | 3 |
+| [m5/s23](przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s23-refaktoryzacja-a-zmiana-kontraktu-zwrot-na-bigdecimal) | Refaktoryzacja a zmiana kontraktu - zwrot na BigDecimal | 3.1. Refaktoryzacja a zmiana kontraktu; 3.2. Co trzeba zachować przy wprowadzaniu wzorca; 5.1. Bezpieczna pętla pracy | 3 |
+| [m5/s24](przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s24-rename-nazwy-ktore-zyja-poza-c) | Rename - nazwy, które żyją poza C# | 4.1. Co daje IDE, a czego nie dowodzi; 4.2. Rename - mechanika i granice | 3 |
+| [m5/s25](przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s25-extract-method-przeplyw-danych-i-wiele-wyjsc) | Extract Method - przepływ danych i wiele wyjść | 4.3. Extract Method - analiza przepływu danych; 4.4. Extract Method - mechanika i trudne przypadki | 3 |
+| [m5/s26](przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s26-strategy-command-i-state-w-jednej-klasie-pulpit-kasjera) | Strategy, Command i State w jednej klasie - pulpit kasjera | 6.1. Kto wybiera wariant i kiedy?; 6.2. Punkt wyjścia: trzy osie w jednej klasie; 6.3. Po: jeden mechanizm na każdą oś; 6.8. Typowe pomyłki przy wyborze | 3 |
+| [m5/s27](przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s27-replace-inheritance-with-delegation-raporty-sprzedazy) | Replace Inheritance with Delegation - raporty sprzedaży | 7.3. Gdy haki niosą dwie osie; 7.4. Po: szkielet w klasie finalnej, osie jako strategie; 7.5. Replace Inheritance with Delegation; 7.6. Strategy czy Template Method? | 3 |
+| [m5/s28](przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s28-replace-conditional-with-chain-of-responsibility-zatwierdzanie-zwrotow) | Replace Conditional with Chain of Responsibility - zatwierdzanie zwrotów | 8.3. Łańcuch `if/else` z ukrytą kolejnością; 8.4. Chain of Responsibility - ogniwo i złożenie; 8.5. Chain - sekwencja i ryzyka; 8.6. Chain of Responsibility czy Decorator? | 3 |
+| [m5/s29](przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s29-introduce-boundary-object-odpowiedz-terminala-platniczego) | Introduce Boundary Object - odpowiedź terminala płatniczego | 9.3. Surowy ładunek w domenie; 9.4. Boundary Object: zwalidowany obraz na granicy; 9.5. Dane na granicy - decyzje; 9.6. Adapter czy Boundary Object? | 3 |
+| [m5/s30](przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s30-extract-facade-zakup-biletow-w-sklepie-i-w-kasie) | Extract Facade - zakup biletów w sklepie i w kasie | 11.1. Klient orkiestruje podsystemy; 11.2. Po: fasada jako strażnik kolejności; 11.3. Facade - procedura i ryzyka; 3.4. Skutki strukturalne wzorców | 3 |
+| [m5/s31](przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s31-anti-corruption-layer-licencje-dystrybutora) | Anti-Corruption Layer - licencje dystrybutora | 12.1. Obcy model w regułach domeny; 12.2. ACL: port domenowy i tłumacz; 12.3. Facade a Anti-Corruption Layer; 12.4. ACL - ryzyka i Strangler Fig | 3 |
+| [m5/s32](przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s32-introduce-mediator-ekran-wyboru-miejsc) | Introduce Mediator - ekran wyboru miejsc | 15.1. Komponenty połączone każdy z każdym; 15.2. Po: reguły współpracy w jednym miejscu; 15.3. Mediator - procedura i ryzyka; 15.4. Observer czy Mediator? | 3 |
