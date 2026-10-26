@@ -2,7 +2,7 @@
 
 Każda scena ma katalog `start` z kodem wyjściowym i test (vitest), który na starcie jest zielony (wyjątek: w s02 kodu startowego nie da się uruchomić w teście - to część zadania). Kod scen leży w `typescript/src/workshop/m3/`, a testy w `typescript/test/workshop/m3/`. Pracuj tylko w `start`. Po każdym ruchu (jedna technika naraz) uruchom test sceny, na przykład `scripts/warsztat.sh --lang ts test m3/s02`, albo test z rozszerzenia Vitest w VS Code. Test ma być zielony po każdym kroku, a nie dopiero na końcu. Vitest nie sprawdza typów, więc po zmianach sygnatur uruchom też `npm run typecheck` w katalogu `typescript`. Nie zaglądaj do katalogów `stepN`, dopóki nie skończysz, bo to gotowe rozwiązania. Jeśli się zgubisz, `scripts/warsztat.sh --lang ts reset m3/s02` przywraca `start`.
 
-Przy każdej scenie zadaj sobie pytanie ze slajdu "Wektor obserwowalnego zachowania": co obserwuje test - wynik, wyjątek, stan, efekty uboczne, ich kolejność? Tam, gdzie zadanie mówi o **zmianie zachowania**, nazwij ją wprost i zrób ją jako osobny krok. Dopiero wtedy wolno zmienić oczekiwania w teście.
+Przy każdej scenie zadaj sobie pytanie ze slajdu 1.2 "Zachowanie obserwowalne to więcej niż wynik metody": co obserwuje test - wynik, wyjątek, stan, efekty uboczne, ich kolejność? Tam, gdzie zadanie mówi o **zmianie zachowania**, nazwij ją wprost i zrób ją jako osobny krok. Dopiero wtedy wolno zmienić oczekiwania w teście.
 
 W s04 i s05 część testów opisuje stan startowy (np. "start obciąża kartę dwa razy i wysyła dwa maile") - gdy naprawisz `start`, zmienią kolor na czerwony, a to znaczy, że zadanie jest zrobione.
 

@@ -1,6 +1,6 @@
 # Moduł 5. Refaktoryzacja do wzorców - warsztat CineLegacy (C#): zadania
 
-Każda scena to mały fragment systemu kina CineLegacy z zapachem, który prowadzi do wzorca projektowego (albo od wzorca, gdy przestał być potrzebny). Pracujesz w namespace `Start` danej sceny, np. `Training.Workshop.M5.S08State.Start` (katalog `csharp/src/Training.Workshop/M5/S08State/Start`). Test sceny przechodzi przez `Start` i gotowe snapshoty `StepN` - Twoja wersja jest poprawna, gdy test jest zielony, a kod spełnia warunek projektowy z zadania. Testy leżą w `csharp/tests/Training.Workshop.Tests/M5/SNN.../`.
+Każda scena to mały fragment systemu kina CineLegacy z zapachem, który prowadzi do wzorca projektowego (albo do usunięcia wzorca, gdy przestał być potrzebny). Pracujesz w namespace `Start` danej sceny, np. `Training.Workshop.M5.S08State.Start` (katalog `csharp/src/Training.Workshop/M5/S08State/Start`). Test sceny przechodzi przez `Start` i gotowe snapshoty `StepN` - Twoja wersja jest poprawna, gdy test jest zielony, a kod spełnia warunek projektowy z zadania. Testy leżą w `csharp/tests/Training.Workshop.Tests/M5/SNN.../`.
 
 Zasady pracy:
 
@@ -300,7 +300,7 @@ scripts/warsztat.sh --lang cs reset m5/s08     # przywrócenie Start do wersji z
 
 **Namespace:** `Training.Workshop.M5.S21ReversiblePattern.Start` · **Test:** `scripts/warsztat.sh --lang cs test m5/s21`
 
-**Zasada:** Wzorzec projektowy to odpowiedź na konkretne siły, a nie kod na zapas - gdy siły znikają, wzorzec można usunąć. Refaktoryzacja od wzorca jest równie poprawna jak do wzorca.
+**Zasada:** Wzorzec projektowy to odpowiedź na konkretne siły, a nie kod na zapas - gdy siły znikają, wzorzec można usunąć. Usunięcie wzorca jest równie poprawną refaktoryzacją jak jego wprowadzenie.
 
 **Zadanie:**
 1. Wprowadź Strategy dla dwóch istniejących modeli rozliczeń; dla modelu festiwalowego napisz Adapter do `FestivalTariffClient`.

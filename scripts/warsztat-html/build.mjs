@@ -1,8 +1,7 @@
 // Generator stron HTML wszystkich materiałów szkolenia z plików md:
 //   md/index.md                         -> html/index.html
-//   md/{zadania,przyklady,rozwiazania}  -> html/{zadania,przyklady,rozwiazania}
 //   md/warsztat, warsztat-csharp, warsztat-typescript -> html/warsztat* (przełącznik języka)
-//   md/slides                           -> html/slajdy (Marp CLI)
+//   md/slides/<DECK>.md                 -> html/slajdy/<DECK>.html (Marp CLI)
 // Styl (CSS) jest wspólny dla wszystkich stron: style.css obok tego pliku.
 //
 // Użycie (z katalogu głównego repozytorium):
@@ -24,26 +23,13 @@ const VARIANTS = [
     { dir: 'warsztat-typescript', label: 'TypeScript' },
 ];
 
-// Moduły szkolenia (kolejność = kolejność zajęć) i moduły, które mają sceny warsztatu.
-const MODULES = [
-    '01-wprowadzenie',
-    '02-prewencja',
-    '03-testowanie-a-bezpieczenstwo',
-    '04-wzorce-projektowe',
-    '05-refaktoryzacja-do-wzorcow',
-    '06-podsumowanie',
-];
+// Jedna prezentacja szkolenia i moduły, które mają sceny warsztatu.
+const DECK = 'refaktoryzacja-do-wzorcow-slajdy';
 const WORKSHOP_MODULES = [
     '02-prewencja',
     '03-testowanie-a-bezpieczenstwo',
     '05-refaktoryzacja-do-wzorcow',
 ];
-const KINDS = [
-    { dir: 'zadania', label: 'Zadania', prefix: 'Zadania: ' },
-    { dir: 'przyklady', label: 'Przykłady', prefix: 'Przykłady: ' },
-    { dir: 'rozwiazania', label: 'Rozwiązania', prefix: 'Rozwiązania: ' },
-];
-
 const css = fs.readFileSync(path.join(HERE, 'style.css'), 'utf8')
     + '.langs{margin-left:auto}.langs+.pager{margin-left:0}';
 
@@ -104,23 +90,6 @@ function pager(modules, module) {
         + '</div>';
 }
 
-const exists = (...parts) => fs.existsSync(path.join(ROOT, ...parts));
-
-// Pasek dla stron modułu: Slajdy | Zadania | Przykłady | Rozwiązania (tylko istniejące) + pager.
-function moduleTopbar(kind, module) {
-    const tabs = [];
-    if (exists('md', 'slides', `${module}-slajdy.md`)) {
-        tabs.push(`<a class="tab" href="../slajdy/${module}-slajdy.html">Slajdy</a>`);
-    }
-    for (const k of KINDS) {
-        if (!exists('md', k.dir, `${module}.md`)) continue;
-        const href = k.dir === kind ? `${module}.html` : `../${k.dir}/${module}.html`;
-        tabs.push(`<a class="tab${k.dir === kind ? ' active' : ''}" href="${href}">${k.label}</a>`);
-    }
-    return `<header class="topbar"><a class="home" href="../index.html">Materiały prowadzącego</a>`
-        + `<div class="tabs">${tabs.join('')}</div>${pager(MODULES.filter((m) => exists('md', kind, `${m}.md`)), module)}</header>`;
-}
-
 function workshopTopbar(kind, module, variant) {
     const up = kind === 'intro' ? '..' : '../..';
     const file = kind === 'intro' ? '00-cinelegacy.html' : `${kind}/${module}.html`;
@@ -134,7 +103,8 @@ function workshopTopbar(kind, module, variant) {
         return `<a class="tab${k === kind ? ' active' : ''}" href="${href}">${label}</a>`;
     };
     return `<header class="topbar"><a class="home" href="${up}/index.html">Materiały prowadzącego</a>`
-        + `<div class="tabs"><a class="tab${kind === 'intro' ? ' active' : ''}" href="${intro}">Warsztat CineLegacy</a>`
+        + `<div class="tabs"><a class="tab" href="${up}/slajdy/${DECK}.html">Slajdy</a>`
+        + `<a class="tab${kind === 'intro' ? ' active' : ''}" href="${intro}">Warsztat CineLegacy</a>`
         + link('zadania', 'Zadania') + link('przewodnik', 'Przewodnik') + '</div>'
         + langs + (module ? pager(WORKSHOP_MODULES, module) : '') + '</header>';
 }
@@ -189,21 +159,6 @@ render({
     topbar: '<header class="topbar"><a class="home" href="index.html">Materiały prowadzącego</a></header>',
 });
 
-// Zadania, przykłady, rozwiązania
-for (const kind of KINDS) {
-    for (const module of MODULES) {
-        const source = path.join(ROOT, 'md', kind.dir, `${module}.md`);
-        if (!fs.existsSync(source)) continue;
-        render({
-            source,
-            target: path.join(ROOT, 'html', kind.dir, `${module}.html`),
-            title: (h1) => kind.prefix + h1,
-            bodyClass: kind.dir,
-            topbar: moduleTopbar(kind.dir, module),
-        });
-    }
-}
-
 // Warsztat CineLegacy w trzech wersjach językowych
 for (const variant of VARIANTS) {
     const MD = path.join(ROOT, 'md', variant.dir);
@@ -234,14 +189,13 @@ for (const variant of VARIANTS) {
 
 // Slajdy (Marp CLI, szablon bespoke)
 const marp = path.join(HERE, 'node_modules', '.bin', 'marp');
-for (const module of MODULES) {
-    const source = path.join(ROOT, 'md', 'slides', `${module}-slajdy.md`);
-    if (missing(source)) continue;
-    if (/[–—]/.test(fs.readFileSync(source, 'utf8'))) {
-        throw new Error(`długi myślnik w ${source}`);
+const deck = path.join(ROOT, 'md', 'slides', `${DECK}.md`);
+if (!missing(deck)) {
+    if (/[–—]/.test(fs.readFileSync(deck, 'utf8'))) {
+        throw new Error(`długi myślnik w ${deck}`);
     }
-    const target = path.join(ROOT, 'html', 'slajdy', `${module}-slajdy.html`);
+    const target = path.join(ROOT, 'html', 'slajdy', `${DECK}.html`);
     fs.mkdirSync(path.dirname(target), { recursive: true });
-    execFileSync(marp, [source, '-o', target], { stdio: 'inherit' });
+    execFileSync(marp, [deck, '-o', target], { stdio: 'inherit' });
     console.log('ok', path.relative(ROOT, target));
 }

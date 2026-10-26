@@ -77,14 +77,14 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 .langs{margin-left:auto}.langs+.pager{margin-left:0}</style>
 </head>
 <body class="warsztat">
-<header class="topbar"><a class="home" href="../../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../00-cinelegacy.html">Warsztat CineLegacy</a><a class="tab" href="../zadania/03-testowanie-a-bezpieczenstwo.html">Zadania</a><a class="tab active" href="03-testowanie-a-bezpieczenstwo.html">Przewodnik</a></div><div class="tabs langs" aria-label="Język"><a class="tab" href="../../warsztat/przewodnik/03-testowanie-a-bezpieczenstwo.html">Java</a><a class="tab active" href="../../warsztat-csharp/przewodnik/03-testowanie-a-bezpieczenstwo.html">C#</a><a class="tab" href="../../warsztat-typescript/przewodnik/03-testowanie-a-bezpieczenstwo.html">TypeScript</a></div><div class="pager"><a href="02-prewencja.html" title="Poprzedni moduł">&larr; 02</a><a href="05-refaktoryzacja-do-wzorcow.html" title="Następny moduł">05 &rarr;</a></div></header>
+<header class="topbar"><a class="home" href="../../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../../slajdy/refaktoryzacja-do-wzorcow-slajdy.html">Slajdy</a><a class="tab" href="../00-cinelegacy.html">Warsztat CineLegacy</a><a class="tab" href="../zadania/03-testowanie-a-bezpieczenstwo.html">Zadania</a><a class="tab active" href="03-testowanie-a-bezpieczenstwo.html">Przewodnik</a></div><div class="tabs langs" aria-label="Język"><a class="tab" href="../../warsztat/przewodnik/03-testowanie-a-bezpieczenstwo.html">Java</a><a class="tab active" href="../../warsztat-csharp/przewodnik/03-testowanie-a-bezpieczenstwo.html">C#</a><a class="tab" href="../../warsztat-typescript/przewodnik/03-testowanie-a-bezpieczenstwo.html">TypeScript</a></div><div class="pager"><a href="02-prewencja.html" title="Poprzedni moduł">&larr; 02</a><a href="05-refaktoryzacja-do-wzorcow.html" title="Następny moduł">05 &rarr;</a></div></header>
 <div class="layout">
 <aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#jak-prowadzic-pokaz">Jak prowadzić pokaz</a></li><li class="h2"><a href="#mapa-scen">Mapa scen</a></li><li class="h2"><a href="#scena-s01-test-charakterystyki-przed-pierwsza-zmiana">Scena s01. Test charakterystyki przed pierwszą zmianą</a></li><li class="h3"><a href="#w-skrocie">W skrócie</a></li><li class="h3"><a href="#co-widzimy">Co widzimy</a></li><li class="h3"><a href="#krok-1-parameterize-constructor-wstrzykniety-timeprovider">Krok 1: Parameterize Constructor - wstrzyknięty TimeProvider</a></li><li class="h3"><a href="#krok-2-pierwsza-refaktoryzacja-pod-ochrona-testu">Krok 2: pierwsza refaktoryzacja pod ochroną testu</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali">Pytanie do sali</a></li><li class="h2"><a href="#scena-s02-break-dependencies-seam-dla-zadania-przypomnien">Scena s02. Break Dependencies - seam dla zadania przypomnień</a></li><li class="h3"><a href="#w-skrocie-1">W skrócie</a></li><li class="h3"><a href="#co-widzimy-1">Co widzimy</a></li><li class="h3"><a href="#krok-1-extract-interface-parameterize-constructor">Krok 1: Extract Interface + Parameterize Constructor</a></li><li class="h3"><a href="#krok-2-timeprovider-jako-zaleznosc">Krok 2: TimeProvider jako zależność</a></li><li class="h3"><a href="#krok-3-subclass-and-override-method-i-pierwszy-test">Krok 3: Subclass and Override Method i pierwszy test</a></li><li class="h3"><a href="#krok-4-seam-z-dziedziczenia-na-delegat">Krok 4: seam z dziedziczenia na delegat</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-1">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-1">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-1">Pytanie do sali</a></li><li class="h2"><a href="#scena-s03-wektor-obserwowalnego-zachowania-platnosc-za-bilety">Scena s03. Wektor obserwowalnego zachowania - płatność za bilety</a></li><li class="h3"><a href="#w-skrocie-2">W skrócie</a></li><li class="h3"><a href="#co-widzimy-2">Co widzimy</a></li><li class="h3"><a href="#krok-1-seam-dla-maili-regresja-staje-sie-widoczna">Krok 1: seam dla maili - regresja staje się widoczna</a></li><li class="h3"><a href="#krok-2-naprawa-regresji-pod-ochrona-testu">Krok 2: naprawa regresji pod ochroną testu</a></li><li class="h3"><a href="#krok-3-seam-dla-platnosci-i-pelny-wektor">Krok 3: seam dla płatności i pełny wektor</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-2">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-2">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-2">Pytanie do sali</a></li><li class="h2"><a href="#scena-s04-rownolegla-weryfikacja-shadow-kalkulatora-cen">Scena s04. Równoległa weryfikacja (shadow) kalkulatora cen</a></li><li class="h3"><a href="#w-skrocie-3">W skrócie</a></li><li class="h3"><a href="#co-widzimy-3">Co widzimy</a></li><li class="h3"><a href="#krok-1-dodanie-cienia">Krok 1: dodanie cienia</a></li><li class="h3"><a href="#krok-2-raport-rozbieznosci">Krok 2: raport rozbieżności</a></li><li class="h3"><a href="#krok-3-poprawka-znaleziona-przez-raport">Krok 3: poprawka znaleziona przez raport</a></li><li class="h3"><a href="#krok-4-przelaczenie">Krok 4: przełączenie</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-3">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-3">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-3">Pytanie do sali</a></li><li class="h2"><a href="#scena-s05-granice-trybu-shadow-efekty-uboczne">Scena s05. Granice trybu shadow - efekty uboczne</a></li><li class="h3"><a href="#w-skrocie-4">W skrócie</a></li><li class="h3"><a href="#co-widzimy-4">Co widzimy</a></li><li class="h3"><a href="#krok-1-port-efektow-parameterize-constructor">Krok 1: port efektów (Parameterize Constructor)</a></li><li class="h3"><a href="#krok-2-przechwycenie-efektow-w-cieniu">Krok 2: przechwycenie efektów w cieniu</a></li><li class="h3"><a href="#krok-3-separate-query-from-modifier-czysty-plan">Krok 3: Separate Query from Modifier - czysty plan</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-4">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-4">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-4">Pytanie do sali</a></li><li class="h2"><a href="#proponowana-kolejnosc-pokazu">Proponowana kolejność pokazu</a></li></ul></details></nav></aside>
 <main>
 <h1>Moduł 3. Testowanie a bezpieczeństwo - warsztat CineLegacy (C#): przewodnik prowadzącego</h1>
 <p>Pięć scen w domenie kina pokazuje na żywo, jak zbudować sieć bezpieczeństwa wokół kodu, który jej nie ma: test charakterystyki przed pierwszą zmianą, seam w klasie, której nie da się uruchomić w teście, wektor obserwowalnego zachowania, równoległą weryfikację (shadow) i jej granice przy efektach ubocznych. Każda scena ma kod wyjściowy (<code>Start</code>), kompletne snapshoty po każdym kroku (<code>StepN</code>) i test, który po każdym ruchu w IDE ma być zielony. Tam, gdzie krok świadomie zmienia zachowanie (s03 krok 2, s04 krok 4), test ma osobne oczekiwania i pokazuje różnicę wprost.</p>
 <p>Punktem odniesienia dla całego modułu jest golden master starego systemu: <code>CinemaManagerGoldenMasterTest</code> (<code>csharp/<wbr>tests/<wbr>Training.Workshop.Tests/<wbr>Legacy</code>) odtwarza &quot;jeden dzień kina&quot; na nietkniętym <code>Training.Workshop.Legacy.CinemaManager</code> i porównuje pełny wektor zachowania (wyniki wywołań, maile, SMS-y, obciążenia i zwroty, raport dzienny, rozliczenia) z zatwierdzonym plikiem <code>src/<wbr>test/<wbr>resources/<wbr>workshop/<wbr>cinema-manager.approved.txt</code>. Plik jest wspólny dla Javy, C# i TypeScript (projekt testów C# dołącza go jako link i kopiuje do katalogu wyjściowego), bo wszystkie trzy wersje starego systemu dają identyczny wektor. To odpowiedź na pytanie &quot;jak poradzić sobie bez testów?&quot; w skali całego systemu: jeden szeroki, deterministyczny test, zanim powstanie jakikolwiek test jednostkowy. Sceny poniżej pokazują te same techniki w mniejszej skali. Pokaż golden master na początku modułu (3 min) i wracaj do niego przy s01 (charakterystyka) i s03 (wektor zachowania).</p>
-<p>Sceny nie powtarzają przykładów z <code>Training.Module3</code> (<code>csharp/<wbr>src/<wbr>Training.Module3</code>) ani ćwiczeń z zadań modułu 3. Tamte ćwiczenia uczestnicy robią sami, a sceny poniżej służą do pokazu.</p>
+<p>Sceny ilustrują sekcję 3 slajdów (&quot;Siatka bezpieczeństwa&quot;) i służą do pokazu; uczestnicy powtarzają je samodzielnie według zakładki &quot;Zadania&quot;.</p>
 <p>Kod portu C# leży w <code>csharp/<wbr>src/<wbr>Training.Workshop/<wbr>M3/<wbr>SNN.../<wbr>{Start,Step1,...}</code>, testy (xUnit) w <code>csharp/<wbr>tests/<wbr>Training.Workshop.Tests/<wbr>M3/<wbr>SNN.../<wbr></code>. Port trzyma się przebiegu scen z Javy, a mechanizmy języka są tłumaczone na odpowiedniki .NET: interfejsy funkcyjne (<code>ReminderSender</code>, <code>Mailer</code>, <code>PaymentGateway</code>) to delegaty, <code>Supplier&lt;X&gt;</code> to <code>Func&lt;X&gt;</code>, <code>Clock</code> to <code>TimeProvider</code> (w testach <code>FakeTimeProvider</code> z <code>Microsoft.Extensions.Time.Testing</code>), domyślne <code>Locale</code> to <code>CultureInfo.CurrentCulture</code>, <code>sealed interface</code> z rekordami to interfejs z rekordami, a <code>final</code> to <code>sealed</code>. Kwoty to <code>decimal</code> albo wspólny typ <code>Money</code> (<code>decimal</code>, skala 2, zaokrąglenie <code>AwayFromZero</code>). Tam, gdzie scena odbiega od Javy, akapit <strong>Różnica względem Javy</strong> mówi, co i dlaczego wygląda inaczej.</p>
 <h2 id="jak-prowadzic-pokaz" tabindex="-1"><a class="header-anchor" href="#jak-prowadzic-pokaz"><span>Jak prowadzić pokaz</span></a></h2>
 <pre class="code" data-lang="bash"><code class="hljs">dotnet <span class="hljs-built_in">test</span> csharp/tests/Training.Workshop.Tests --filter <span class="hljs-string">&quot;FullyQualifiedName~CinemaManagerGoldenMasterTest&quot;</span>   <span class="hljs-comment"># golden master starego systemu</span>
@@ -104,8 +104,8 @@ scripts/warsztat.sh --lang cs reset m3/s04         <span class="hljs-comment"># 
 <li>Zasada: <strong>jeden krok - jeden test - jedno zdanie komentarza.</strong> Ruch w Rider, uruchomienie testu sceny (ikona w gutterze przy klasie testu albo okno Unit Tests), zdanie z sekcji &quot;Co powiedzieć&quot;. Zanim ruszysz kod, powiedz, jaki dowód da test po kroku.</li>
 <li><strong>Krok po kroku bez numerów:</strong> <code>scripts/<wbr>warsztat.sh --lang cs next m3/<wbr>sNN</code> wstawia do <code>Start</code> gotowy następny krok i wypisuje, co się zmieniło. <code>prev</code> cofa o krok, <code>status</code> mówi, który krok jest teraz w <code>Start</code>. Skrypt pamięta język i ostatnią scenę, więc potem wystarczy samo <code>next</code>. Ręczne zmiany w <code>Start</code> zostają nadpisane - o to chodzi, gdy krok na żywo się rozjechał.</li>
 <li>Pracujesz zawsze w katalogu (namespace) <code>Start</code>. Snapshoty <code>StepN</code> służą do <code>diff</code> albo do przeskoku (<code>next</code>, <code>jump</code>), gdy coś się rozjedzie.</li>
-<li>Zanim zaczniesz, pokaż slajd 4.6 &quot;Wektor obserwowalnego zachowania&quot; i wracaj do niego przy każdej scenie: <em>co tu obserwujemy - wynik, wyjątek, stan, efekty, kolejność?</em></li>
-<li>W s02 start <strong>nie ma prawdziwych testów</strong> i to jest puenta: test <code>StartCannotEvenRunInATest</code> tylko dokumentuje, że kodu nie da się uruchomić. Testy pojawiają się dopiero wtedy, gdy kod ma seam. Pierwsze ruchy to automaty IDE o niskim ryzyku (slajd 4.16).</li>
+<li>Zanim zaczniesz, pokaż slajd 1.2 &quot;Zachowanie obserwowalne to więcej niż wynik metody&quot; i wracaj do niego przy każdej scenie: <em>co tu obserwujemy - wynik, wyjątek, stan, efekty, kolejność?</em></li>
+<li>W s02 start <strong>nie ma prawdziwych testów</strong> i to jest puenta: test <code>StartCannotEvenRunInATest</code> tylko dokumentuje, że kodu nie da się uruchomić. Testy pojawiają się dopiero wtedy, gdy kod ma seam. Pierwsze ruchy to automaty IDE o niskim ryzyku (slajd 3.6).</li>
 <li>W s01 i s03 warto najpierw <strong>zrobić naiwny ruch na żywo</strong> (np. &quot;poprawić&quot; znalezisko z charakterystyki, sprawdzić tylko wynik), pokazać, czego test nie widzi, cofnąć (⌘Z) i dopiero wtedy wykonać krok z przewodnika.</li>
 <li>W s04 i s05 część testów to nie tylko równoważność (<code>SNNEquivalenceTest</code>), ale też dowody strategii (<code>SNNSolutionTest</code>): raport rozbieżności, dziennik efektów ubocznych. Testy, które <strong>dokumentują stan startowy</strong> (np. &quot;start obciąża kartę dwa razy&quot;), zmienią kolor na czerwony, gdy wykonasz kroki na katalogu <code>Start</code> - to znak, że start jest już naprawiony. Po pokazie: <code>scripts/<wbr>warsztat.sh --lang cs reset m3/<wbr>sNN</code>.</li>
 <li>Kroki, które zmieniają zachowanie (s03 krok 2, s04 krok 4), zapowiadaj na głos: &quot;to jest osobny commit, nie refaktoryzacja&quot;.</li>
@@ -125,35 +125,35 @@ scripts/warsztat.sh --lang cs reset m3/s04         <span class="hljs-comment"># 
 <tbody>
 <tr>
 <td>s01</td>
-<td>4.2 Testy charakteryzujące; 4.4 Dobór przypadków; 4.8 Porównanie implementacji</td>
+<td>3.1. Test charakteryzujący: zapisz, co kod robi dziś; 3.2. Wynik wzorcowy i dobór przypadków; 3.3. Test równoważności przed zmianą i po niej</td>
 <td>2</td>
 <td><code>M3.S01Characterization</code></td>
 <td>~15 min</td>
 </tr>
 <tr>
 <td>s02</td>
-<td>4.10 Seam; 4.12 Szew przejściowy; 4.14 Break Dependencies; 4.16 Ruchy IDE bez testów</td>
+<td>3.4. Szew: miejsce, w którym podstawiamy zależność; 3.5. Rozrywanie zależności: po zmianie; 3.6. Refaktoryzacje automatyczne w IDE: co dają, a czego nie widzą</td>
 <td>4</td>
 <td><code>M3.S02BreakDependencies</code></td>
 <td>~20 min</td>
 </tr>
 <tr>
 <td>s03</td>
-<td>4.6 Wektor obserwowalnego zachowania; 2.2 Weryfikacja stanu a zachowania</td>
+<td>1.2. Zachowanie obserwowalne to więcej niż wynik metody; 3.2. Wynik wzorcowy i dobór przypadków</td>
 <td>3</td>
 <td><code>M3.S03BehaviourVector</code></td>
 <td>~12 min</td>
 </tr>
 <tr>
 <td>s04</td>
-<td>4.18 Równoległa weryfikacja (parallel run)</td>
+<td>3.8. Weryfikacja w cieniu</td>
 <td>4</td>
 <td><code>M3.S04ParallelRun</code></td>
 <td>~15 min</td>
 </tr>
 <tr>
 <td>s05</td>
-<td>4.19 Granice trybu shadow</td>
+<td>3.9. Granice weryfikacji w cieniu: efekty uboczne</td>
 <td>3</td>
 <td><code>M3.S05ShadowLimits</code></td>
 <td>~12 min</td>
@@ -162,7 +162,7 @@ scripts/warsztat.sh --lang cs reset m3/s04         <span class="hljs-comment"># 
 </table></div>
 <p>Pełne nazwy namespace zaczynają się od <code>Training.Workshop.</code>, katalogi to <code>csharp/<wbr>src/<wbr>Training.Workshop/<wbr>M3/<wbr>S01Characterization</code> itd.</p>
 <h2 id="scena-s01-test-charakterystyki-przed-pierwsza-zmiana" tabindex="-1"><a class="header-anchor" href="#scena-s01-test-charakterystyki-przed-pierwsza-zmiana"><span>Scena s01. Test charakterystyki przed pierwszą zmianą</span></a></h2>
-<p><strong>Temat ze slajdów:</strong> 4.2 Testy charakteryzujące; 4.4 Dobór przypadków; 4.8 Porównanie implementacji (równoważność etapów); 4.6 Wektor obserwowalnego zachowania
+<p><strong>Temat ze slajdów:</strong> 3.1. Test charakteryzujący: zapisz, co kod robi dziś; 3.2. Wynik wzorcowy i dobór przypadków; 3.3. Test równoważności przed zmianą i po niej
 <strong>Namespace:</strong> <code>Training.Workshop.M3.S01Characterization</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m3/<wbr>s01</code> (<code>S01CharacterizationTest</code>)
 <strong>Czas:</strong> ~15 min</p>
 <h3 id="w-skrocie" tabindex="-1"><a class="header-anchor" href="#w-skrocie"><span>W skrócie</span></a></h3>
@@ -228,7 +228,7 @@ scripts/warsztat.sh --lang cs reset m3/s04         <span class="hljs-comment"># 
 <h3 id="pytanie-do-sali" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali"><span>Pytanie do sali</span></a></h3>
 <p>Znaleźliście w charakterystyce ewidentny błąd (rabat od 11 biletów). Kto decyduje, czy go poprawić, i jak powinien wyglądać commit z poprawką?</p>
 <h2 id="scena-s02-break-dependencies-seam-dla-zadania-przypomnien" tabindex="-1"><a class="header-anchor" href="#scena-s02-break-dependencies-seam-dla-zadania-przypomnien"><span>Scena s02. Break Dependencies - seam dla zadania przypomnień</span></a></h2>
-<p><strong>Temat ze slajdów:</strong> 4.10 Seam, punkt aktywacji i cel rozrywania; 4.12 Minimalny szew przejściowy; 4.14 Break Dependencies - przed i po; 4.16 Bezpieczne ruchy automatami IDE, gdy brak testów
+<p><strong>Temat ze slajdów:</strong> 3.4. Szew: miejsce, w którym podstawiamy zależność; 3.5. Rozrywanie zależności: po zmianie; 3.6. Refaktoryzacje automatyczne w IDE: co dają, a czego nie widzą
 <strong>Namespace:</strong> <code>Training.Workshop.M3.S02BreakDependencies</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m3/<wbr>s02</code> (<code>S02SeamTest</code>)
 <strong>Czas:</strong> ~20 min</p>
 <h3 id="w-skrocie-1" tabindex="-1"><a class="header-anchor" href="#w-skrocie-1"><span>W skrócie</span></a></h3>
@@ -246,7 +246,7 @@ scripts/warsztat.sh --lang cs reset m3/s04         <span class="hljs-comment"># 
             ReminderMailer.Send(booking.Email, <span class="hljs-string">&quot;Przypomnienie: &quot;</span> + booking.Title, ...);
             database.MarkReminded(booking.Id);
 </code></pre>
-<p>Sekwencja ze slajdu 4.15: nazwij zachowanie i punkt obserwacji, wprowadź najmniejszy szew bez zmiany logiki, zabezpiecz go testem z fake/spy, przenieś wybór do jawnego punktu aktywacji, usuń konstrukcję przejściową. Charakterystyki nie da się napisać przed pierwszym ruchem, więc pierwsze ruchy muszą być mechaniczne i wspierane przez IDE (slajd 4.16).</p>
+<p>Sekwencja rozrywania zależności: nazwij zachowanie i punkt obserwacji, wprowadź najmniejszy szew bez zmiany logiki, zabezpiecz go testem z fake/spy, przenieś wybór do jawnego punktu aktywacji, usuń konstrukcję przejściową. Charakterystyki nie da się napisać przed pierwszym ruchem, więc pierwsze ruchy muszą być mechaniczne i wspierane przez IDE (slajd 3.6).</p>
 <h3 id="krok-1-extract-interface-parameterize-constructor" tabindex="-1"><a class="header-anchor" href="#krok-1-extract-interface-parameterize-constructor"><span>Krok 1: Extract Interface + Parameterize Constructor</span></a></h3>
 <p><strong>W IDE:</strong> na <code>LegacyDatabase</code> Refactor This (⌃T) → Extract Interface, nazwa <code>IBookingStore</code>, zaznacz <code>PaidBookings</code> i <code>MarkReminded</code>. Potem w <code>ShowtimeReminderJob</code> ręcznie: pole <code>Func&lt;IBookingStore&gt; _stores</code>, konstruktor z parametrem i konstruktor bezargumentowy <code>: this(() =&gt; new LegacyDatabase())</code>. W <code>Run()</code> zamień <code>new LegacyDatabase()</code> na <code>_stores()</code>.
 <strong>Po:</strong></p>
@@ -304,7 +304,7 @@ scripts/warsztat.sh --lang cs reset m3/s04         <span class="hljs-comment"># 
 <h3 id="pytanie-do-sali-1" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-1"><span>Pytanie do sali</span></a></h3>
 <p>Kiedy Subclass and Override jest lepszym pierwszym ruchem niż Parameterize Constructor?</p>
 <h2 id="scena-s03-wektor-obserwowalnego-zachowania-platnosc-za-bilety" tabindex="-1"><a class="header-anchor" href="#scena-s03-wektor-obserwowalnego-zachowania-platnosc-za-bilety"><span>Scena s03. Wektor obserwowalnego zachowania - płatność za bilety</span></a></h2>
-<p><strong>Temat ze slajdów:</strong> 4.6 Wektor obserwowalnego zachowania; 2.2 Weryfikacja stanu a weryfikacja zachowania; 3.4-3.5 Pokrycie: zalety, ograniczenia, progi, nadużycia
+<p><strong>Temat ze slajdów:</strong> 1.2. Zachowanie obserwowalne to więcej niż wynik metody; 3.2. Wynik wzorcowy i dobór przypadków
 <strong>Namespace:</strong> <code>Training.Workshop.M3.S03BehaviourVector</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m3/<wbr>s03</code> (<code>S03BehaviourVectorTest</code>, <code>S03ResultOnlyTest</code>)
 <strong>Czas:</strong> ~12 min</p>
 <h3 id="w-skrocie-2" tabindex="-1"><a class="header-anchor" href="#w-skrocie-2"><span>W skrócie</span></a></h3>
@@ -326,7 +326,7 @@ scripts/warsztat.sh --lang cs reset m3/s04         <span class="hljs-comment"># 
 CinemaMailer.Send(booking.Email, <span class="hljs-string">&quot;Bilety &quot;</span> + booking.Id + <span class="hljs-string">&quot; oplacone: &quot;</span> + booking.Amount);
 <span class="hljs-keyword">return</span> charged ? <span class="hljs-string">&quot;OK&quot;</span> : <span class="hljs-string">&quot;DECLINED&quot;</span>;
 </code></pre>
-<p>Pokaż tabelę ze slajdu 4.6: wynik, wyjątki, stan, współpracownicy, czas, granice. Które z nich ten test widzi?</p>
+<p>Pokaż tabelę ze slajdu 1.2: wynik, wyjątki, stan, współpracownicy, czas, granice. Które z nich ten test widzi?</p>
 <h3 id="krok-1-seam-dla-maili-regresja-staje-sie-widoczna" tabindex="-1"><a class="header-anchor" href="#krok-1-seam-dla-maili-regresja-staje-sie-widoczna"><span>Krok 1: seam dla maili - regresja staje się widoczna</span></a></h3>
 <p><strong>W IDE:</strong> utwórz <code>public delegate void Mailer(string to, string text)</code>, Parameterize Constructor (pole <code>_mailer</code>, konstruktor z parametrem), domyślny konstruktor <code>: this(CinemaMailer.Send)</code>, zamień statyczne wywołania na <code>_mailer(...)</code>. Logika bez zmian.
 <strong>Po:</strong></p>
@@ -376,7 +376,7 @@ _mailer(booking.Email, <span class="hljs-string">&quot;Platnosc odrzucona &quot;
 <h3 id="pytanie-do-sali-2" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-2"><span>Pytanie do sali</span></a></h3>
 <p>Które elementy wektora sprawdzają testy w Waszym najważniejszym module? Czego nie widzą?</p>
 <h2 id="scena-s04-rownolegla-weryfikacja-shadow-kalkulatora-cen" tabindex="-1"><a class="header-anchor" href="#scena-s04-rownolegla-weryfikacja-shadow-kalkulatora-cen"><span>Scena s04. Równoległa weryfikacja (shadow) kalkulatora cen</span></a></h2>
-<p><strong>Temat ze slajdów:</strong> 4.18 Równoległa weryfikacja (parallel run)
+<p><strong>Temat ze slajdów:</strong> 3.8. Weryfikacja w cieniu
 <strong>Namespace:</strong> <code>Training.Workshop.M3.S04ParallelRun</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m3/<wbr>s04</code> (<code>S04EquivalenceTest</code>, <code>S04SolutionTest</code>)
 <strong>Czas:</strong> ~15 min</p>
 <h3 id="w-skrocie-3" tabindex="-1"><a class="header-anchor" href="#w-skrocie-3"><span>W skrócie</span></a></h3>
@@ -458,7 +458,7 @@ _mailer(booking.Email, <span class="hljs-string">&quot;Platnosc odrzucona &quot;
 <h3 id="pytanie-do-sali-3" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-3"><span>Pytanie do sali</span></a></h3>
 <p>Ile dni ruchu i ile zgodnych porównań wystarczy, żeby przełączyć tryb na <code>Candidate</code>? Kto o tym decyduje?</p>
 <h2 id="scena-s05-granice-trybu-shadow-efekty-uboczne" tabindex="-1"><a class="header-anchor" href="#scena-s05-granice-trybu-shadow-efekty-uboczne"><span>Scena s05. Granice trybu shadow - efekty uboczne</span></a></h2>
-<p><strong>Temat ze slajdów:</strong> 4.19 Granice trybu shadow
+<p><strong>Temat ze slajdów:</strong> 3.9. Granice weryfikacji w cieniu: efekty uboczne
 <strong>Namespace:</strong> <code>Training.Workshop.M3.S05ShadowLimits</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m3/<wbr>s05</code> (<code>S05EquivalenceTest</code>, <code>S05SolutionTest</code>)
 <strong>Czas:</strong> ~12 min</p>
 <h3 id="w-skrocie-4" tabindex="-1"><a class="header-anchor" href="#w-skrocie-4"><span>W skrócie</span></a></h3>
@@ -519,7 +519,7 @@ Compare(<span class="hljs-string">&quot;wynik&quot;</span>, [result], [plan.Resu
 <li>s03 Wektor obserwowalnego zachowania, kroki 1 i 3 (~10 min)</li>
 <li>s05 Granice trybu shadow, kroki 1 i 2 (~10 min)</li>
 </ol>
-<p><strong>Ścieżka pełna (~80 min):</strong> golden master → s01 → s02 → s03 → s04 → s05, czyli kolejność sekcji 4 slajdów. Jeśli chcesz wcześniej ustawić język wektora zachowania, pokaż s03 przed s02 (scena sama wprowadza swoje seamy). Po s03 zrób przerwę na pytania. Sceny s03 i s05 dobrze nadają się na samodzielną pracę uczestników, jeśli brakuje czasu na pokaz (patrz plik zadań modułu 3).</p>
+<p><strong>Ścieżka pełna (~80 min):</strong> golden master → s01 → s02 → s03 → s04 → s05, czyli kolejność sekcji 3 slajdów. Jeśli chcesz wcześniej ustawić język wektora zachowania, pokaż s03 przed s02 (scena sama wprowadza swoje seamy). Po s03 zrób przerwę na pytania. Sceny s03 i s05 dobrze nadają się na samodzielną pracę uczestników, jeśli brakuje czasu na pokaz (patrz plik zadań modułu 3).</p>
 
 </main>
 </div>

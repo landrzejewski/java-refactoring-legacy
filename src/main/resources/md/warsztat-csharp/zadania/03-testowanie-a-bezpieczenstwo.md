@@ -4,7 +4,7 @@ Każda scena ma katalog (namespace) `Start` z kodem wyjściowym i test, który n
 
 Kod leży w `csharp/src/Training.Workshop/M3/SNN.../Start`, testy w `csharp/tests/Training.Workshop.Tests/M3/SNN.../`. Projekt ma `TreatWarningsAsErrors`, więc każde nowe ostrzeżenie kompilatora zatrzyma build.
 
-Przy każdej scenie zadaj sobie pytanie ze slajdu "Wektor obserwowalnego zachowania": co obserwuje test - wynik, wyjątek, stan, efekty uboczne, ich kolejność? Tam, gdzie zadanie mówi o **zmianie zachowania**, nazwij ją wprost i zrób ją jako osobny krok. Dopiero wtedy wolno zmienić oczekiwania w teście.
+Przy każdej scenie zadaj sobie pytanie ze slajdu 1.2 "Zachowanie obserwowalne to więcej niż wynik metody": co obserwuje test - wynik, wyjątek, stan, efekty uboczne, ich kolejność? Tam, gdzie zadanie mówi o **zmianie zachowania**, nazwij ją wprost i zrób ją jako osobny krok. Dopiero wtedy wolno zmienić oczekiwania w teście.
 
 W s04 i s05 część testów opisuje stan startowy (np. "start obciąża kartę dwa razy i wysyła dwa maile") - gdy naprawisz `Start`, zmienią kolor na czerwony, a to znaczy, że zadanie jest zrobione.
 

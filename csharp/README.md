@@ -1,6 +1,6 @@
-# Refaktoryzacja i wzorce projektowe - przykłady w C#
+# Refaktoryzacja do wzorców - warsztat CineLegacy w C#
 
-Odpowiedniki przykładów Java z `src/main/java/pl/training/**` (oraz testów z `src/test/java/pl/training/**`) napisane w C# / .NET 10.
+Odpowiednik warsztatu Java z `src/main/java/pl/training/workshop/**` (oraz testów z `src/test/java/pl/training/workshop/**`) napisany w C# / .NET 10.
 
 ## Wymagania
 
@@ -14,42 +14,6 @@ dotnet build
 dotnet test
 ```
 
-## Uruchamianie przykładów
-
-Każdy moduł to osobna aplikacja konsolowa (punkt wejścia: klasa `ModuleNExamples`):
-
-```bash
-dotnet run --project src/Training.Module1
-dotnet run --project src/Training.Module5
-```
-
-Wzorce projektowe (moduł 4, `module4`) mają jeden punkt wejścia z wyborem przykładu:
-
-```bash
-dotnet run --project src/Training.Module4            # lista dostępnych przykładów
-dotnet run --project src/Training.Module4 -- builder # jeden przykład
-dotnet run --project src/Training.Module4 -- all     # wszystkie po kolei
-```
-
-Dostępne klucze:
-
-| Grupa | Klucze |
-|---|---|
-| Kreacyjne | `abstract-factory`, `builder`, `factory-method`, `prototype`, `singleton` |
-| Strukturalne | `adapter`, `bridge`, `composite`, `decorator`, `facade`, `flyweight`, `proxy` |
-| Behawioralne | `chain-of-responsibility`, `command`, `interpreter`, `iterator`, `mediator`, `memento`, `observer`, `state`, `strategy`, `template-method`, `visitor` |
-| Styl funkcyjny | `fn-chain`, `fn-command`, `fn-decorator`, `fn-factory`, `fn-iterator`, `fn-memento`, `fn-observer`, `fn-singleton`, `fn-state`, `fn-strategy`, `fn-template` |
-
-Przykład `decorator` czyta linię ze standardowego wejścia; jeśli wejście jest puste (lub przy `all`), używa tekstu domyślnego „Hello Decorator Pattern”.
-
-## Struktura
-
-| Java (pakiet) | C# (projekt / namespace) | Testy |
-|---|---|---|
-| `pl.training.module1` … `module5` | `src/Training.Module1` … `Training.Module5` (`Training.ModuleN.*`) | `tests/Training.ModuleN.Tests` |
-
-Foldery odpowiadają podpakietom (`before`/`after`, `stage0`…`stage3` itd.), np. `pl.training.module5.strategy.after` → `Training.Module5.Strategy.After`. Moduł 4 (`pl.training.module4`, wzorce projektowe) to `src/Training.Module4` (`Training.Module4.Creational.*`, `...Structural.*`, `...Behavioral.*`, `...Fn`).
-
 ## Konwencje tłumaczenia Java → C#
 
 - Nazwy klas, metod i testów zachowane (PascalCase); interfejsy z prefiksem `I` (np. `OrderRepository` → `IOrderRepository`), wartości enumów w PascalCase (w wydrukach zamieniane na wielkie litery, aby tekst był taki sam jak w Javie).
@@ -58,17 +22,15 @@ Foldery odpowiadają podpakietom (`before`/`after`, `stage0`…`stage3` itd.), n
 - `Optional<T>` → `T?`; `Objects.requireNonNull` → `ArgumentNullException.ThrowIfNull`; `IllegalArgumentException`/`IllegalStateException`/`UnsupportedOperationException` → `ArgumentException`/`InvalidOperationException`/`NotSupportedException`.
 - Tam, gdzie Java przekazuje lambdę jako implementację interfejsu, w C# użyto delegatów (`Action`/`Func`) albo małych klas prywatnych.
 - `final` → `sealed` / metody niewirtualne; testy refleksyjne sprawdzają `IsSealed`/`IsVirtual`.
-- `module2/tooling`: `InMemoryJavaCompiler` (javax.tools) → `InMemoryCSharpCompiler` oparty o Roslyn; odpowiednikiem ostrzeżenia `-Xlint:rawtypes` jest ostrzeżenie nullable `CS8602`.
-- `module4` (wzorce): logowanie `java.util.logging` naśladowane przez `JulLogger` (ten sam format na stderr); enumy z zachowaniem (`OrderStatus`, `MovieType`) → klasy z instancjami statycznymi.
 
 ## Testy (JUnit → xUnit)
 
 - `@Test` → `[Fact]`, `@ParameterizedTest` + `@MethodSource` → `[Theory]` + `[MemberData]`.
 - Testy przechwytujące konsolę lub zmieniające kulturę (`ar-EG`, `tr-TR`) działają w kolekcji `Console` z wyłączonym zrównolegleniem (odpowiednik `@ResourceLock`).
 
-## Warsztat CineLegacy (moduły 2, 3 i 5)
+## Warsztat CineLegacy (sceny m2, m3 i m5)
 
-Odpowiednik warsztatu Java z `src/main/java/pl/training/workshop/**`: stary system kina (`Legacy/CinemaManager`) i krótkie sceny do pokazu na żywo: `m2` (s01-s10), `m3` (s01-s05) i `m5` (s01-s25).
+Stary system kina (`Legacy/CinemaManager`) i krótkie sceny do pokazu na żywo: `m2` (s01-s10), `m3` (s01-s05) i `m5` (s01-s25).
 
 | Java | C# | Testy |
 |---|---|---|

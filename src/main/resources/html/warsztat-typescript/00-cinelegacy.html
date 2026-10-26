@@ -77,13 +77,13 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 .langs{margin-left:auto}.langs+.pager{margin-left:0}</style>
 </head>
 <body class="warsztat">
-<header class="topbar"><a class="home" href="../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab active" href="00-cinelegacy.html">Warsztat CineLegacy</a><a class="tab" href="zadania/02-prewencja.html">Zadania</a><a class="tab" href="przewodnik/02-prewencja.html">Przewodnik</a></div><div class="tabs langs" aria-label="Język"><a class="tab" href="../warsztat/00-cinelegacy.html">Java</a><a class="tab" href="../warsztat-csharp/00-cinelegacy.html">C#</a><a class="tab active" href="../warsztat-typescript/00-cinelegacy.html">TypeScript</a></div></header>
+<header class="topbar"><a class="home" href="../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../slajdy/refaktoryzacja-do-wzorcow-slajdy.html">Slajdy</a><a class="tab active" href="00-cinelegacy.html">Warsztat CineLegacy</a><a class="tab" href="zadania/02-prewencja.html">Zadania</a><a class="tab" href="przewodnik/02-prewencja.html">Przewodnik</a></div><div class="tabs langs" aria-label="Język"><a class="tab" href="../warsztat/00-cinelegacy.html">Java</a><a class="tab" href="../warsztat-csharp/00-cinelegacy.html">C#</a><a class="tab active" href="../warsztat-typescript/00-cinelegacy.html">TypeScript</a></div></header>
 <div class="layout">
 <aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#jak-zbudowana-jest-scena">Jak zbudowana jest scena</a></li><li class="h2"><a href="#narzedzie-prowadzacego-scriptswarsztatsh">Narzędzie prowadzącego: scripts/warsztat.sh</a></li><li class="h2"><a href="#reguly-biznesowe-cinelegacy">Reguły biznesowe CineLegacy</a></li><li class="h2"><a href="#stary-system-i-golden-master">Stary system i golden master</a></li><li class="h2"><a href="#materialy">Materiały</a></li><li class="h2"><a href="#macierz-pokrycia-tematow">Macierz pokrycia tematów</a></li><li class="h3"><a href="#modul-2-prewencja">Moduł 2. Prewencja</a></li><li class="h3"><a href="#modul-3-testowanie-a-bezpieczenstwo">Moduł 3. Testowanie a bezpieczeństwo</a></li><li class="h3"><a href="#modul-5-refaktoryzacja-do-wzorcow">Moduł 5. Refaktoryzacja do wzorców</a></li></ul></details></nav></aside>
 <main>
 <h1>Warsztat CineLegacy (TypeScript) - praktyczne sceny do modułów 2, 3 i 5</h1>
-<p>CineLegacy to wymyślony, stary system kina. Obsługuje seanse, sale, miejsca, bilety, zniżki, rezerwacje, płatności, powiadomienia, raporty i rozliczenia z dystrybutorem. Na jego kodzie pokazujemy na żywo techniki z modułów 2 (Prewencja), 3 (Testowanie a bezpieczeństwo) i 5 (Refaktoryzacja do wzorców). Każdy temat ze slajdów ma swoją krótką <strong>scenę</strong>: kod wyjściowy, kolejne kroki, gotowe snapshoty i testy.</p>
-<p>Ten pakiet nie powtarza ćwiczeń z zakładek &quot;Zadania&quot; i &quot;Przykłady&quot; poszczególnych modułów. Uzupełnia je o jak najwięcej małych, uruchamialnych demonstracji na nowym kodzie.</p>
+<p>CineLegacy to wymyślony, stary system kina. Obsługuje seanse, sale, miejsca, bilety, zniżki, rezerwacje, płatności, powiadomienia, raporty i rozliczenia z dystrybutorem. Na jego kodzie pokazujemy na żywo techniki ze slajdów, pogrupowane w trzy moduły warsztatu: 2 (Prewencja), 3 (Testowanie a bezpieczeństwo) i 5 (Refaktoryzacja do wzorców). Każdy temat ze slajdów ma swoją krótką <strong>scenę</strong>: kod wyjściowy, kolejne kroki, gotowe snapshoty i testy.</p>
+<p>Warsztat uzupełnia slajdy o jak najwięcej małych, uruchamialnych demonstracji: slajd wyjaśnia ideę, a scena pokazuje ją krok po kroku na kodzie.</p>
 <p>Warsztat ma trzy wersje o tych samych scenach i krokach: <a href="../warsztat/00-cinelegacy.html">Java</a>, <a href="../warsztat-csharp/00-cinelegacy.html">C#</a> i TypeScript (ta strona). Skrypt prowadzącego wybiera wersję opcją <code>--lang java|cs|ts</code>.</p>
 <p>Wersja TypeScript ma te same reguły biznesowe i oczekiwane wyniki co wersja Java. Tam, gdzie mechanizm języka jest inny, przewodnik ma w scenie akapit <strong>Różnica względem Javy</strong>.</p>
 <h2 id="jak-zbudowana-jest-scena" tabindex="-1"><a class="header-anchor" href="#jak-zbudowana-jest-scena"><span>Jak zbudowana jest scena</span></a></h2>
@@ -231,9 +231,9 @@ scripts/warsztat.sh html            <span class="hljs-comment"># wygeneruj stron
 </tr>
 </tbody>
 </table></div>
-<p>Moduły 1 (Wprowadzenie), 4 (Wzorce projektowe) i 6 (Podsumowanie) nie mają scen warsztatu: ćwiczenia tych modułów są w zakładkach &quot;Zadania&quot; i &quot;Przykłady&quot;.</p>
+<p>Numery modułów warsztatu (2, 3, 5) odpowiadają pakietom i komendom <code>scripts/<wbr>warsztat.sh</code>. Tematy ze slajdów bez osobnej sceny (np. definicja refaktoryzacji, wzorce w pigułce) omawia sama <a href="../slajdy/refaktoryzacja-do-wzorcow-slajdy.html">prezentacja</a>.</p>
 <h2 id="macierz-pokrycia-tematow" tabindex="-1"><a class="header-anchor" href="#macierz-pokrycia-tematow"><span>Macierz pokrycia tematów</span></a></h2>
-<p>Każda scena odsyła do sekcji slajdów swojego modułu. Tematy, które są wyłącznie dyskusyjne, omawiamy w przewodnikach przy pytaniach do sali.</p>
+<p>Każda scena odsyła do sekcji <a href="../slajdy/refaktoryzacja-do-wzorcow-slajdy.html">slajdów</a>, które ilustruje. Tematy, które są wyłącznie dyskusyjne, omawiamy w przewodnikach przy pytaniach do sali.</p>
 <h3 id="modul-2-prewencja" tabindex="-1"><a class="header-anchor" href="#modul-2-prewencja"><span>Moduł 2. Prewencja</span></a></h3>
 <div class="table-wrap"><table>
 <thead>
@@ -248,61 +248,61 @@ scripts/warsztat.sh html            <span class="hljs-comment"># wygeneruj stron
 <tr>
 <td><a href="przewodnik/02-prewencja.html#scena-s01-yagni-silnik-regul-dla-dwoch-regul">m2/s01</a></td>
 <td>YAGNI - silnik reguł dla dwóch reguł</td>
-<td>2.4 YAGNI: aktualna potrzeba przed przewidywaną; 2.5 Napięcia między zasadami (ogólny silnik hipotetycznych taryf); 2.6 Filtr decyzyjny przed dodaniem abstrakcji; 2.1 Ostatni odpowiedzialny moment</td>
+<td>2.3. YAGNI: buduj dla dzisiejszej potrzeby; 2.4. Pięć pytań przed dodaniem abstrakcji</td>
 <td>3</td>
 </tr>
 <tr>
 <td><a href="przewodnik/02-prewencja.html#scena-s02-adr-i-wykonywalny-model-decyzji">m2/s02</a></td>
 <td>ADR i wykonywalny model decyzji</td>
-<td>2.7 Zapis decyzji: ADR; 2.2 Decyzje odwracalne i nieodwracalne</td>
+<td>2.5. ADR: zapisz decyzję, a najlepiej ją sprawdzaj</td>
 <td>2</td>
 </tr>
 <tr>
 <td><a href="przewodnik/02-prewencja.html#scena-s03-bramka-kompilatora-opcje-strict-i-ostrzezenia-jako-bledy">m2/s03</a></td>
 <td>Bramka kompilatora - opcje strict i ostrzeżenia jako błędy</td>
-<td>1.5 Kompilator jako najszybsza bramka; 1.6 Bramki w legacy: stan bazowy i ratchet</td>
+<td>2.1. Małe kroki i szybka informacja zwrotna; 2.2. Bramki jakości w starym kodzie: stan bazowy i zapadka</td>
 <td>3</td>
 </tr>
 <tr>
 <td><a href="przewodnik/02-prewencja.html#scena-s04-minimalna-bramka-jakosci-jako-kod">m2/s04</a></td>
 <td>Minimalna bramka jakości jako kod</td>
-<td>1.4 Różne narzędzia, różne dowody; 1.6 Bramki w legacy: stan bazowy i ratchet (minimalna bramka)</td>
+<td>2.2. Bramki jakości w starym kodzie: stan bazowy i zapadka</td>
 <td>4</td>
 </tr>
 <tr>
 <td><a href="przewodnik/02-prewencja.html#scena-s05-boy-scout-rule-mala-poprawa-i-jej-naduzycie">m2/s05</a></td>
 <td>Boy Scout Rule - mała poprawa i jej nadużycie</td>
-<td>6.1 Boy Scout Rule: heurystyka, nie mandat; 6.3 Bezpieczna sekwencja i typowe nadużycia</td>
+<td>2.9. Zasada harcerza i małe porcje zmian</td>
 <td>2</td>
 </tr>
 <tr>
 <td><a href="przewodnik/02-prewencja.html#scena-s06-seria-malych-zmian-gotowych-do-przegladu">m2/s06</a></td>
 <td>Seria małych zmian gotowych do przeglądu</td>
-<td>6.4 Małe zestawy zmian - czego nie łączyć; 6.5 Przegląd kodu i informacja zwrotna</td>
+<td>2.9. Zasada harcerza i małe porcje zmian</td>
 <td>3</td>
 </tr>
 <tr>
 <td><a href="przewodnik/02-prewencja.html#scena-s07-srp-raport-dla-dwoch-aktorow">m2/s07</a></td>
 <td>SRP - raport dla dwóch aktorów</td>
-<td>5.3 SOLID jako narzędzie analizy zmian (SRP: jeden aktor zmiany); 5.4 Błędne uproszczenia SOLID (&quot;klasa robi jedną rzecz&quot;)</td>
+<td>2.6. Zasada pojedynczej odpowiedzialności: jeden aktor, jeden powód zmiany</td>
 <td>3</td>
 </tr>
 <tr>
 <td><a href="przewodnik/02-prewencja.html#scena-s08-dip-kierunek-zaleznosci-kontra-przeplyw-sterowania">m2/s08</a></td>
 <td>DIP - kierunek zależności kontra przepływ sterowania</td>
-<td>5.3 SOLID jako narzędzie analizy zmian (DIP to nie dependency injection); 5.6 Reguła zależności i composition root</td>
+<td>2.7. Zasada odwrócenia zależności: liczy się kierunek importów; 2.8. Reguła zależności, porty i korzeń kompozycji</td>
 <td>3</td>
 </tr>
 <tr>
 <td><a href="przewodnik/02-prewencja.html#scena-s09-clean-architecture-use-case-dane-na-granicy-composition-root">m2/s09</a></td>
 <td>Clean Architecture - use case, dane na granicy, composition root</td>
-<td>5.6 Reguła zależności i composition root; 5.9 Porty i przypadek użycia; 5.10 Kierunek zależności i bilans decyzji</td>
+<td>2.8. Reguła zależności, porty i korzeń kompozycji</td>
 <td>4</td>
 </tr>
 <tr>
 <td><a href="przewodnik/02-prewencja.html#scena-s10-automatyczna-ochrona-granicy-i-diagnostyka-spojnosci">m2/s10</a></td>
 <td>Automatyczna ochrona granicy i diagnostyka spójności</td>
-<td>5.5 Spójność i sprzężenie; 5.6 Reguła zależności (sprawdzana automatycznie); lista kontrolna prewencji (&quot;reguła zależności sprawdzana automatycznie&quot;)</td>
+<td>2.8. Reguła zależności, porty i korzeń kompozycji (sprawdzana automatycznie)</td>
 <td>2</td>
 </tr>
 </tbody>
@@ -321,31 +321,31 @@ scripts/warsztat.sh html            <span class="hljs-comment"># wygeneruj stron
 <tr>
 <td><a href="przewodnik/03-testowanie-a-bezpieczenstwo.html#scena-s01-test-charakterystyki-przed-pierwsza-zmiana">m3/s01</a></td>
 <td>Test charakterystyki przed pierwszą zmianą</td>
-<td>4.2 Testy charakteryzujące; 4.4 Dobór przypadków; 4.8 Porównanie implementacji (równoważność etapów); 4.6 Wektor obserwowalnego zachowania</td>
+<td>3.1. Test charakteryzujący: zapisz, co kod robi dziś; 3.2. Wynik wzorcowy i dobór przypadków; 3.3. Test równoważności przed zmianą i po niej</td>
 <td>2</td>
 </tr>
 <tr>
 <td><a href="przewodnik/03-testowanie-a-bezpieczenstwo.html#scena-s02-break-dependencies-seam-dla-zadania-przypomnien">m3/s02</a></td>
 <td>Break Dependencies - seam dla zadania przypomnień</td>
-<td>4.10 Seam, punkt aktywacji i cel rozrywania; 4.12 Minimalny szew przejściowy; 4.14 Break Dependencies - przed i po; 4.16 Bezpieczne ruchy automatami IDE, gdy brak testów</td>
+<td>3.4. Szew: miejsce, w którym podstawiamy zależność; 3.5. Rozrywanie zależności: po zmianie; 3.6. Refaktoryzacje automatyczne w IDE: co dają, a czego nie widzą</td>
 <td>4</td>
 </tr>
 <tr>
 <td><a href="przewodnik/03-testowanie-a-bezpieczenstwo.html#scena-s03-wektor-obserwowalnego-zachowania-platnosc-za-bilety">m3/s03</a></td>
 <td>Wektor obserwowalnego zachowania - płatność za bilety</td>
-<td>4.6 Wektor obserwowalnego zachowania; 2.2 Weryfikacja stanu a weryfikacja zachowania; 3.4-3.5 Pokrycie: zalety, ograniczenia, progi, nadużycia</td>
+<td>1.2. Zachowanie obserwowalne to więcej niż wynik metody; 3.2. Wynik wzorcowy i dobór przypadków</td>
 <td>3</td>
 </tr>
 <tr>
 <td><a href="przewodnik/03-testowanie-a-bezpieczenstwo.html#scena-s04-rownolegla-weryfikacja-shadow-kalkulatora-cen">m3/s04</a></td>
 <td>Równoległa weryfikacja (shadow) kalkulatora cen</td>
-<td>4.18 Równoległa weryfikacja (parallel run)</td>
+<td>3.8. Weryfikacja w cieniu</td>
 <td>4</td>
 </tr>
 <tr>
 <td><a href="przewodnik/03-testowanie-a-bezpieczenstwo.html#scena-s05-granice-trybu-shadow-efekty-uboczne">m3/s05</a></td>
 <td>Granice trybu shadow - efekty uboczne</td>
-<td>4.19 Granice trybu shadow</td>
+<td>3.9. Granice weryfikacji w cieniu: efekty uboczne</td>
 <td>3</td>
 </tr>
 </tbody>
@@ -364,193 +364,193 @@ scripts/warsztat.sh html            <span class="hljs-comment"># wygeneruj stron
 <tr>
 <td><a href="przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s01-replace-conditional-logic-with-strategy-polityka-znizek">m5/s01</a></td>
 <td>Replace Conditional Logic with Strategy - polityka zniżek</td>
-<td>6.1. Kto wybiera wariant i kiedy?; 6.4. Strategy - intencja, sekwencja, ryzyka</td>
+<td>6.1. Strategia, Polecenie czy Stan? Kto wybiera wariant i kiedy; 6.2. Strategia: sygnał w kodzie; 6.3. Strategia: kroki i wynik</td>
 <td>3</td>
 </tr>
 <tr>
 <td><a href="przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s02-replace-conditional-with-polymorphism-rodzaj-seansu">m5/s02</a></td>
 <td>Replace Conditional with Polymorphism - rodzaj seansu</td>
-<td>17.1. Replace Conditional with Polymorphism; 6.8. Typowe pomyłki przy wyborze</td>
+<td>16.1. Zastąpienie instrukcji warunkowej polimorfizmem; 6.8. Typowe pomyłki przy wyborze</td>
 <td>3</td>
 </tr>
 <tr>
 <td><a href="przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s03-replace-type-code-with-class-format-jako-typ">m5/s03</a></td>
 <td>Replace Type Code with Class - format jako typ</td>
-<td>17.2. Replace Type Code with Class</td>
+<td>16.2. Zastąpienie kodu typu klasą</td>
 <td>3</td>
 </tr>
 <tr>
 <td><a href="przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s04-encapsulate-classes-with-factory-bilety">m5/s04</a></td>
 <td>Encapsulate Classes with Factory - bilety</td>
-<td>10.1. Factory - publiczna granica tworzenia; 10.2. Factory - intencja, procedura, pułapki</td>
+<td>10.1. Ukrycie klas za Fabryką; 10.3. Fabryka jako strażnik spójności</td>
 <td>3</td>
 </tr>
 <tr>
 <td><a href="przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s05-extract-factory-class-tworzenie-rezerwacji">m5/s05</a></td>
 <td>Extract Factory Class - tworzenie rezerwacji</td>
-<td>10.2. Factory - intencja, procedura, pułapki (Extract Factory Class); 10.3. Fabryka jako strażnik spójności</td>
+<td>10.2. Wyodrębnienie klasy fabryki; 10.3. Fabryka jako strażnik spójności</td>
 <td>3</td>
 </tr>
 <tr>
 <td><a href="przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s06-encapsulate-composite-with-builder-repertuar-dnia">m5/s06</a></td>
 <td>Encapsulate Composite with Builder - repertuar dnia</td>
-<td>13.1. Encapsulate Composite with Builder; 13.2. Builder - kiedy i ryzyka</td>
+<td>12.1. Ukrycie budowy Kompozytu za Budowniczym; 12.2. Budowniczy: kiedy i na co uważać</td>
 <td>3</td>
 </tr>
 <tr>
 <td><a href="przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s07-move-embellishment-to-decorator-dodatki-do-biletu">m5/s07</a></td>
 <td>Move Embellishment to Decorator - dodatki do biletu</td>
-<td>8.1. Move Embellishment to Decorator; 8.2. Decorator - wyjątki, migracja, przezroczystość</td>
+<td>8.1. Przeniesienie dodatków do Dekoratora; 8.2. Dekorator: na co uważać</td>
 <td>3</td>
 </tr>
 <tr>
 <td><a href="przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s08-replace-state-altering-conditionals-with-state-status-rezerwacji">m5/s08</a></td>
 <td>Replace State-Altering Conditionals with State - status rezerwacji</td>
-<td>6.5. State - tabela przejść przed hierarchią; 6.6. State - kolejność przejścia i efektów</td>
+<td>6.4. Stan: sygnał i tabela przejść; 6.5. Stan: wynik</td>
 <td>3</td>
 </tr>
 <tr>
 <td><a href="przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s09-replace-hard-coded-notifications-with-observer-po-oplaceniu">m5/s09</a></td>
 <td>Replace Hard-coded Notifications with Observer - po opłaceniu</td>
-<td>14.1. Replace Hard-coded Notifications with Observer; 14.2. Observer - kontrakt i migracja</td>
+<td>13.1. Zastąpienie zakodowanych powiadomień Obserwatorem; 13.2. Obserwator: zasady powiadamiania muszą być jawne</td>
 <td>3</td>
 </tr>
 <tr>
 <td><a href="przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s10-replace-implicit-tree-with-composite-zestawy-baru">m5/s10</a></td>
 <td>Replace Implicit Tree with Composite - zestawy baru</td>
-<td>17.3. Replace Implicit Tree with Composite; 5.2. Test równoważności przed i po</td>
+<td>16.3. Zastąpienie ukrytego drzewa Kompozytem; 3.3. Test równoważności przed zmianą i po niej</td>
 <td>3</td>
 </tr>
 <tr>
 <td><a href="przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s11-transparent-vs-safe-composite-add-na-lisciu">m5/s11</a></td>
 <td>Transparent vs Safe Composite - add() na liściu</td>
-<td>17.3. Replace Implicit Tree with Composite; 17.4. Jeden lub wiele i Extract Composite (Safe i Transparent Composite)</td>
+<td>16.4. Kompozyt przezroczysty czy bezpieczny</td>
 <td>2</td>
 </tr>
 <tr>
 <td><a href="przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s12-replace-onemany-distinctions-with-composite-zwroty">m5/s12</a></td>
 <td>Replace One/Many Distinctions with Composite - zwroty</td>
-<td>17.4. Jeden lub wiele i Extract Composite (Replace One/Many Distinctions with Composite)</td>
+<td>16.5. Jeden element lub wiele oraz wyodrębnienie Kompozytu (zastąpienie rozróżnienia „jeden lub wiele” Kompozytem)</td>
 <td>3</td>
 </tr>
 <tr>
 <td><a href="przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s13-extract-composite-kontenery-programu">m5/s13</a></td>
 <td>Extract Composite - kontenery programu</td>
-<td>17.4. Jeden lub wiele i Extract Composite (Extract Composite)</td>
+<td>16.5. Jeden element lub wiele oraz wyodrębnienie Kompozytu (wyodrębnienie Kompozytu)</td>
 <td>2</td>
 </tr>
 <tr>
 <td><a href="przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s14-unify-interfaces-with-adapter-dwie-bramki-platnosci">m5/s14</a></td>
 <td>Unify Interfaces with Adapter - dwie bramki płatności</td>
-<td>9.1. Unify Interfaces with Adapter; 9.2. Adapter - co naprawdę trzeba przetłumaczyć</td>
+<td>9.1. Ujednolicenie interfejsów Adapterem; 9.2. Co adapter naprawdę musi przetłumaczyć</td>
 <td>3</td>
 </tr>
 <tr>
 <td><a href="przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s15-replace-conditional-dispatcher-with-command-konsola-kasjera">m5/s15</a></td>
 <td>Replace Conditional Dispatcher with Command - konsola kasjera</td>
-<td>6.7. Command - rejestr i ograniczenia</td>
+<td>6.6. Polecenie: łańcuch warunków zamieniony na rejestr poleceń</td>
 <td>3</td>
 </tr>
 <tr>
 <td><a href="przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s16-form-template-method-raporty-csv-i-html">m5/s16</a></td>
 <td>Form Template Method - raporty CSV i HTML</td>
-<td>7.1. Apply Template Method; 7.2. Template Method - sekwencja i ryzyka</td>
+<td>7.1. Utworzenie Metody szablonowej: wspólny szkielet, różne kroki</td>
 <td>2</td>
 </tr>
 <tr>
 <td><a href="przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s17-limit-instantiation-with-singleton-cennik">m5/s17</a></td>
 <td>Limit Instantiation with Singleton - cennik</td>
-<td>17.6. Limit Instantiation with Singleton; 2.4-2.5. Inline Singleton (kierunek odwrotny)</td>
+<td>16.7. Ograniczenie liczby instancji Singletonem; 17.4. Wchłonięcie Singletona</td>
 <td>3</td>
 </tr>
 <tr>
 <td><a href="przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s18-move-accumulation-to-collecting-parameter-ostrzezenia-walidacji">m5/s18</a></td>
 <td>Move Accumulation to Collecting Parameter - ostrzeżenia walidacji</td>
-<td>17.5. Collecting Parameter</td>
+<td>16.6. Przeniesienie zbierania wyników do parametru zbierającego</td>
 <td>3</td>
 </tr>
 <tr>
 <td><a href="przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s19-visitor-i-macierz-zmian-pozycje-zamowienia">m5/s19</a></td>
 <td>Visitor i macierz zmian - pozycje zamówienia</td>
-<td>16.1. Visitor i macierz zmian; 16.2. Do i od Visitora</td>
+<td>15.1. Odwiedzający i macierz zmian; 15.2. Odwiedzający albo hierarchia <code>sealed</code> i <code>switch</code></td>
 <td>3</td>
 </tr>
 <tr>
 <td><a href="przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s20-mapa-decyzji-jedna-tabela-dwie-struktury-docelowe">m5/s20</a></td>
 <td>Mapa decyzji - jedna tabela, dwie struktury docelowe</td>
-<td>1.2. Najpierw rodzaj zmienności; Mapa decyzji (1/3-3/3); Lista kontrolna</td>
+<td>4.2. Najpierw rodzaj zmienności, potem wzorzec; 18.1. Mapa decyzji (1/2); 18.2. Mapa decyzji (2/2); 18.3. Lista kontrolna</td>
 <td>3</td>
 </tr>
 <tr>
 <td><a href="przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s21-wzorzec-jako-decyzja-odwracalna-rozliczenie-z-dystrybutorem">m5/s21</a></td>
 <td>Wzorzec jako decyzja odwracalna - rozliczenie z dystrybutorem</td>
-<td>2.1. Refaktoryzacja od wzorca; 2.2. Kierunki odwrotne; 1.4. Kiedy wzorzec się nie opłaca</td>
+<td>17.5. Wzorzec jako decyzja odwracalna; 17.2. Refaktoryzacje, które usuwają wzorzec; 5.2. Kiedy wzorzec się nie opłaca</td>
 <td>3</td>
 </tr>
 <tr>
 <td><a href="przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s22-remove-middle-man-fasada-kina">m5/s22</a></td>
 <td>Remove Middle Man - fasada kina</td>
-<td>2.3. Remove Middle Man; 2.2. Kierunki odwrotne</td>
+<td>17.3. Usunięcie pośrednika; 17.2. Refaktoryzacje, które usuwają wzorzec</td>
 <td>3</td>
 </tr>
 <tr>
 <td><a href="przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s23-refaktoryzacja-a-zmiana-kontraktu-zwrot-na-bigdecimal">m5/s23</a></td>
 <td>Refaktoryzacja a zmiana kontraktu - zwrot na BigDecimal</td>
-<td>3.1. Refaktoryzacja a zmiana kontraktu; 3.2. Co trzeba zachować przy wprowadzaniu wzorca; 5.1. Bezpieczna pętla pracy</td>
+<td>5.3. Refaktoryzacja a zmiana kontraktu; 5.4. Co trzeba zachować przy wprowadzaniu wzorca; 3.10. Bezpieczna pętla refaktoryzacji do wzorca</td>
 <td>3</td>
 </tr>
 <tr>
 <td><a href="przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s24-rename-nazwy-ktore-zyja-poza-kodem">m5/s24</a></td>
 <td>Rename - nazwy, które żyją poza kodem</td>
-<td>4.1. Co daje IDE, a czego nie dowodzi; 4.2. Rename - mechanika i granice</td>
+<td>3.6. Refaktoryzacje automatyczne w IDE: co dają, a czego nie widzą; 3.7. Zmiana nazwy i wyodrębnienie metody w drodze do wzorca</td>
 <td>3</td>
 </tr>
 <tr>
 <td><a href="przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s25-extract-method-przeplyw-danych-i-wiele-wyjsc">m5/s25</a></td>
 <td>Extract Method - przepływ danych i wiele wyjść</td>
-<td>4.3. Extract Method - analiza przepływu danych; 4.4. Extract Method - mechanika i trudne przypadki</td>
+<td>3.7. Zmiana nazwy i wyodrębnienie metody w drodze do wzorca</td>
 <td>3</td>
 </tr>
 <tr>
 <td><a href="przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s26-strategy-command-i-state-w-jednej-klasie-pulpit-kasjera">m5/s26</a></td>
 <td>Strategy, Command i State w jednej klasie - pulpit kasjera</td>
-<td>6.1. Kto wybiera wariant i kiedy?; 6.2. Punkt wyjścia: trzy osie w jednej klasie; 6.3. Po: jeden mechanizm na każdą oś; 6.8. Typowe pomyłki przy wyborze</td>
+<td>6.1. Strategia, Polecenie czy Stan? Kto wybiera wariant i kiedy; 6.7. Trzy osie w jednej klasie: każda dostaje własny mechanizm; 6.8. Typowe pomyłki przy wyborze</td>
 <td>3</td>
 </tr>
 <tr>
 <td><a href="przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s27-replace-inheritance-with-delegation-raporty-sprzedazy">m5/s27</a></td>
 <td>Replace Inheritance with Delegation - raporty sprzedaży</td>
-<td>7.3. Gdy haki niosą dwie osie; 7.4. Po: szkielet w klasie finalnej, osie jako strategie; 7.5. Replace Inheritance with Delegation; 7.6. Strategy czy Template Method?</td>
+<td>7.2. Gdy punkty zaczepienia obejmują dwie niezależne osie; 7.3. Zastąpienie dziedziczenia delegacją: osie jako strategie; 7.4. Strategia czy Metoda szablonowa?</td>
 <td>3</td>
 </tr>
 <tr>
 <td><a href="przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s28-replace-conditional-with-chain-of-responsibility-zatwierdzanie-zwrotow">m5/s28</a></td>
 <td>Replace Conditional with Chain of Responsibility - zatwierdzanie zwrotów</td>
-<td>8.3. Łańcuch <code>if/<wbr>else</code> z ukrytą kolejnością; 8.4. Chain of Responsibility - ogniwo i złożenie; 8.5. Chain - sekwencja i ryzyka; 8.6. Chain of Responsibility czy Decorator?</td>
+<td>8.3. Łańcuch <code>if/<wbr>else</code>, w którym kolejność jest regułą; 8.4. Łańcuch zobowiązań: ogniwo i złożenie łańcucha; 8.5. Łańcuch zobowiązań czy Dekorator?</td>
 <td>3</td>
 </tr>
 <tr>
 <td><a href="przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s29-introduce-boundary-object-odpowiedz-terminala-platniczego">m5/s29</a></td>
 <td>Introduce Boundary Object - odpowiedź terminala płatniczego</td>
-<td>9.3. Surowy ładunek w domenie; 9.4. Boundary Object: zwalidowany obraz na granicy; 9.5. Dane na granicy - decyzje; 9.6. Adapter czy Boundary Object?</td>
+<td>9.3. Surowe dane z zewnątrz w kodzie domeny; 9.4. Obiekt graniczny: sprawdzone dane na granicy systemu; 9.5. Adapter czy obiekt graniczny?</td>
 <td>3</td>
 </tr>
 <tr>
 <td><a href="przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s30-extract-facade-zakup-biletow-w-sklepie-i-w-kasie">m5/s30</a></td>
 <td>Extract Facade - zakup biletów w sklepie i w kasie</td>
-<td>11.1. Klient orkiestruje podsystemy; 11.2. Po: fasada jako strażnik kolejności; 11.3. Facade - procedura i ryzyka; 3.4. Skutki strukturalne wzorców</td>
+<td>11.1. Klienci sami koordynują podsystemy; 11.2. Wyodrębnienie Fasady: jedna operacja zamiast znajomości kroków</td>
 <td>3</td>
 </tr>
 <tr>
 <td><a href="przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s31-anti-corruption-layer-licencje-dystrybutora">m5/s31</a></td>
 <td>Anti-Corruption Layer - licencje dystrybutora</td>
-<td>12.1. Obcy model w regułach domeny; 12.2. ACL: port domenowy i tłumacz; 12.3. Facade a Anti-Corruption Layer; 12.4. ACL - ryzyka i Strangler Fig</td>
+<td>11.3. Obcy model w regułach domeny; 11.4. Warstwa antykorupcyjna: port, tłumacz i model domenowy; 11.5. Fasada a warstwa antykorupcyjna</td>
 <td>3</td>
 </tr>
 <tr>
 <td><a href="przewodnik/05-refaktoryzacja-do-wzorcow.html#scena-s32-introduce-mediator-ekran-wyboru-miejsc">m5/s32</a></td>
 <td>Introduce Mediator - ekran wyboru miejsc</td>
-<td>15.1. Komponenty połączone każdy z każdym; 15.2. Po: reguły współpracy w jednym miejscu; 15.3. Mediator - procedura i ryzyka; 15.4. Observer czy Mediator?</td>
+<td>14.1. Komponenty połączone każdy z każdym; 14.2. Wprowadzenie Mediatora: reguły współpracy w jednym miejscu; 14.3. Obserwator czy Mediator?</td>
 <td>3</td>
 </tr>
 </tbody>

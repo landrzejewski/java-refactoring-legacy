@@ -4,7 +4,7 @@ Pięć scen w domenie kina pokazuje na żywo, jak zbudować sieć bezpieczeństw
 
 Punktem odniesienia dla całego modułu jest golden master starego systemu: `CinemaManagerGoldenMasterTest` (`typescript/test/workshop/legacy/CinemaManagerGoldenMasterTest.test.ts`) odtwarza "jeden dzień kina" na nietkniętym `typescript/src/workshop/legacy/CinemaManager.ts` i porównuje pełny wektor zachowania (wyniki wywołań, maile, SMS-y, obciążenia i zwroty, raport dzienny, rozliczenia) z zatwierdzonym plikiem `src/test/resources/workshop/cinema-manager.approved.txt`, wspólnym dla Javy, C# i TypeScriptu. To odpowiedź na pytanie "jak poradzić sobie bez testów?" w skali całego systemu: jeden szeroki, deterministyczny test, zanim powstanie jakikolwiek test jednostkowy. Sceny poniżej pokazują te same techniki w mniejszej skali. Pokaż golden master na początku modułu (3 min) i wracaj do niego przy s01 (charakterystyka) i s03 (wektor zachowania).
 
-Sceny nie powtarzają przykładów z `typescript/src/module3` ani ćwiczeń z zadań modułu 3. Tamte ćwiczenia uczestnicy robią sami, a sceny poniżej służą do pokazu.
+Sceny ilustrują sekcję 3 slajdów ("Siatka bezpieczeństwa") i służą do pokazu; uczestnicy powtarzają je samodzielnie według zakładki "Zadania".
 
 Port TypeScript: kod scen leży w `typescript/src/workshop/m3/sNN_.../{start,step1,...}`, testy w `typescript/test/workshop/m3/sNN_.../`, a pokaz prowadzimy w VS Code. Wspólne dla całego modułu: rekordy Javy to klasy z polami `readonly`, `@FunctionalInterface` to alias typu funkcyjnego (w teście wystarczy funkcja strzałkowa), drugi konstruktor Javy (`this(...)`) zastępują parametry domyślne jedynego konstruktora, `Clock` pochodzi z `typescript/src/workshop/shared/time.ts`, `sealed interface` z rekordami to unia klas z polem `kind` i `assertNever` w `switch`, a w oczekiwanych tekstach testów zamiast nazw wyjątków Javy stoją nazwy klas błędów portu (`IllegalArgumentError`, `IllegalStateError`, `NullPointerError` z `typescript/src/shared/errors.ts`). Tam, gdzie scena odbiega od Javy, akapit **Różnica względem Javy** mówi, co i dlaczego wygląda inaczej.
 
@@ -28,8 +28,8 @@ scripts/warsztat.sh --lang ts reset m3/s04         # przywróć start po pokazie
 - Zasada: **jeden krok - jeden test - jedno zdanie komentarza.** Ruch w VS Code, test sceny (skrypt albo rozszerzenie Vitest), zdanie z sekcji "Co powiedzieć". Zanim ruszysz kod, powiedz, jaki dowód da test po kroku.
 - **Krok po kroku bez numerów:** `scripts/warsztat.sh --lang ts next m3/sNN` wstawia do `start` gotowy następny krok i wypisuje, co się zmieniło. `prev` cofa o krok, `status` mówi, który krok jest teraz w `start`. Skrypt pamięta język i ostatnią scenę, więc potem wystarczy samo `next`. Ręczne zmiany w `start` zostają nadpisane - o to chodzi, gdy krok na żywo się rozjechał.
 - Pracujesz zawsze w katalogu `start`. Snapshoty `stepN` służą do `diff` albo do przeskoku (`next`, `jump`), gdy coś się rozjedzie.
-- Zanim zaczniesz, pokaż slajd 4.6 "Wektor obserwowalnego zachowania" i wracaj do niego przy każdej scenie: *co tu obserwujemy - wynik, wyjątek, stan, efekty, kolejność?*
-- W s02 start **nie ma prawdziwych testów** i to jest puenta: test dla `start` (`startCannotEvenRunInATest`) tylko dokumentuje, że klasy nie da się uruchomić, a testy zachowania pojawiają się dopiero wtedy, gdy kod ma seam. Pierwsze ruchy to mechaniczne ruchy o niskim ryzyku (slajd 4.16).
+- Zanim zaczniesz, pokaż slajd 1.2 "Zachowanie obserwowalne to więcej niż wynik metody" i wracaj do niego przy każdej scenie: *co tu obserwujemy - wynik, wyjątek, stan, efekty, kolejność?*
+- W s02 start **nie ma prawdziwych testów** i to jest puenta: test dla `start` (`startCannotEvenRunInATest`) tylko dokumentuje, że klasy nie da się uruchomić, a testy zachowania pojawiają się dopiero wtedy, gdy kod ma seam. Pierwsze ruchy to mechaniczne ruchy o niskim ryzyku (slajd 3.6).
 - W s01 i s03 warto najpierw **zrobić naiwny ruch na żywo** (np. "poprawić" znalezisko z charakterystyki, sprawdzić tylko wynik), pokazać, czego test nie widzi, cofnąć (⌘Z) i dopiero wtedy wykonać krok z przewodnika.
 - W s04 i s05 część testów to nie tylko równoważność (`SNNEquivalenceTest`), ale też dowody strategii (`SNNSolutionTest`): raport rozbieżności, dziennik efektów ubocznych. Testy, które **dokumentują stan startowy** (np. "start obciąża kartę dwa razy"), zmienią kolor na czerwony, gdy wykonasz kroki na katalogu `start` - to znak, że start jest już naprawiony. Po pokazie: `scripts/warsztat.sh --lang ts reset m3/sNN`.
 - Kroki, które zmieniają zachowanie (s03 krok 2, s04 krok 4), zapowiadaj na głos: "to jest osobny commit, nie refaktoryzacja".
@@ -40,17 +40,17 @@ scripts/warsztat.sh --lang ts reset m3/s04         # przywróć start po pokazie
 
 | Scena | Temat ze slajdów | Kroki | Katalog | Czas |
 |---|---|---|---|---|
-| s01 | 4.2 Testy charakteryzujące; 4.4 Dobór przypadków; 4.8 Porównanie implementacji | 2 | `m3/s01_characterization` | ~15 min |
-| s02 | 4.10 Seam; 4.12 Szew przejściowy; 4.14 Break Dependencies; 4.16 Ruchy IDE bez testów | 4 | `m3/s02_breakdependencies` | ~20 min |
-| s03 | 4.6 Wektor obserwowalnego zachowania; 2.2 Weryfikacja stanu a zachowania | 3 | `m3/s03_behaviourvector` | ~12 min |
-| s04 | 4.18 Równoległa weryfikacja (parallel run) | 4 | `m3/s04_parallelrun` | ~15 min |
-| s05 | 4.19 Granice trybu shadow | 3 | `m3/s05_shadowlimits` | ~12 min |
+| s01 | 3.1. Test charakteryzujący: zapisz, co kod robi dziś; 3.2. Wynik wzorcowy i dobór przypadków; 3.3. Test równoważności przed zmianą i po niej | 2 | `m3/s01_characterization` | ~15 min |
+| s02 | 3.4. Szew: miejsce, w którym podstawiamy zależność; 3.5. Rozrywanie zależności: po zmianie; 3.6. Refaktoryzacje automatyczne w IDE: co dają, a czego nie widzą | 4 | `m3/s02_breakdependencies` | ~20 min |
+| s03 | 1.2. Zachowanie obserwowalne to więcej niż wynik metody; 3.2. Wynik wzorcowy i dobór przypadków | 3 | `m3/s03_behaviourvector` | ~12 min |
+| s04 | 3.8. Weryfikacja w cieniu | 4 | `m3/s04_parallelrun` | ~15 min |
+| s05 | 3.9. Granice weryfikacji w cieniu: efekty uboczne | 3 | `m3/s05_shadowlimits` | ~12 min |
 
 Katalogi są względne wobec `typescript/src/workshop/`, testy leżą w odpowiednim katalogu pod `typescript/test/workshop/`.
 
 ## Scena s01. Test charakterystyki przed pierwszą zmianą
 
-**Temat ze slajdów:** 4.2 Testy charakteryzujące; 4.4 Dobór przypadków; 4.8 Porównanie implementacji (równoważność etapów); 4.6 Wektor obserwowalnego zachowania
+**Temat ze slajdów:** 3.1. Test charakteryzujący: zapisz, co kod robi dziś; 3.2. Wynik wzorcowy i dobór przypadków; 3.3. Test równoważności przed zmianą i po niej
 **Katalog:** `typescript/src/workshop/m3/s01_characterization` · **Test:** `scripts/warsztat.sh --lang ts test m3/s01` (`S01CharacterizationTest.test.ts`)
 **Czas:** ~15 min
 
@@ -149,7 +149,7 @@ Znaleźliście w charakterystyce ewidentny błąd (rabat od 11 biletów). Kto de
 
 ## Scena s02. Break Dependencies - seam dla zadania przypomnień
 
-**Temat ze slajdów:** 4.10 Seam, punkt aktywacji i cel rozrywania; 4.12 Minimalny szew przejściowy; 4.14 Break Dependencies - przed i po; 4.16 Bezpieczne ruchy automatami IDE, gdy brak testów
+**Temat ze slajdów:** 3.4. Szew: miejsce, w którym podstawiamy zależność; 3.5. Rozrywanie zależności: po zmianie; 3.6. Refaktoryzacje automatyczne w IDE: co dają, a czego nie widzą
 **Katalog:** `typescript/src/workshop/m3/s02_breakdependencies` · **Test:** `scripts/warsztat.sh --lang ts test m3/s02` (`S02SeamTest.test.ts`)
 **Czas:** ~20 min
 
@@ -177,7 +177,7 @@ run(): number {
       database.markReminded(booking.id);
 ```
 
-Sekwencja ze slajdu 4.15: nazwij zachowanie i punkt obserwacji, wprowadź najmniejszy szew bez zmiany logiki, zabezpiecz go testem z fake/spy, przenieś wybór do jawnego punktu aktywacji, usuń konstrukcję przejściową. Charakterystyki nie da się napisać przed pierwszym ruchem, więc pierwsze ruchy muszą być mechaniczne i małe (slajd 4.16). VS Code nie ma tu wszystkich automatów, więc część ruchów robimy ręcznie, a kompilator wskazuje miejsca do poprawy.
+Sekwencja rozrywania zależności: nazwij zachowanie i punkt obserwacji, wprowadź najmniejszy szew bez zmiany logiki, zabezpiecz go testem z fake/spy, przenieś wybór do jawnego punktu aktywacji, usuń konstrukcję przejściową. Charakterystyki nie da się napisać przed pierwszym ruchem, więc pierwsze ruchy muszą być mechaniczne i małe (slajd 3.6). VS Code nie ma tu wszystkich automatów, więc część ruchów robimy ręcznie, a kompilator wskazuje miejsca do poprawy.
 
 ### Krok 1: Extract Interface + Parameterize Constructor
 
@@ -259,7 +259,7 @@ Kiedy Subclass and Override jest lepszym pierwszym ruchem niż Parameterize Cons
 
 ## Scena s03. Wektor obserwowalnego zachowania - płatność za bilety
 
-**Temat ze slajdów:** 4.6 Wektor obserwowalnego zachowania; 2.2 Weryfikacja stanu a weryfikacja zachowania; 3.4-3.5 Pokrycie: zalety, ograniczenia, progi, nadużycia
+**Temat ze slajdów:** 1.2. Zachowanie obserwowalne to więcej niż wynik metody; 3.2. Wynik wzorcowy i dobór przypadków
 **Katalog:** `typescript/src/workshop/m3/s03_behaviourvector` · **Test:** `scripts/warsztat.sh --lang ts test m3/s03` (`S03ResultOnlyTest.test.ts`, `S03BehaviourVectorTest.test.ts`)
 **Czas:** ~12 min
 
@@ -288,7 +288,7 @@ CinemaMailer.send(booking.email, `Bilety ${booking.id} oplacone: ${booking.amoun
 return charged ? 'OK' : 'DECLINED';
 ```
 
-Pokaż tabelę ze slajdu 4.6: wynik, wyjątki, stan, współpracownicy, czas, granice. Które z nich ten test widzi?
+Pokaż tabelę ze slajdu 1.2: wynik, wyjątki, stan, współpracownicy, czas, granice. Które z nich ten test widzi?
 
 ### Krok 1: seam dla maili - regresja staje się widoczna
 
@@ -358,7 +358,7 @@ Które elementy wektora sprawdzają testy w Waszym najważniejszym module? Czego
 
 ## Scena s04. Równoległa weryfikacja (shadow) kalkulatora cen
 
-**Temat ze slajdów:** 4.18 Równoległa weryfikacja (parallel run)
+**Temat ze slajdów:** 3.8. Weryfikacja w cieniu
 **Katalog:** `typescript/src/workshop/m3/s04_parallelrun` · **Test:** `scripts/warsztat.sh --lang ts test m3/s04` (`S04EquivalenceTest.test.ts`, `S04SolutionTest.test.ts`)
 **Czas:** ~15 min
 
@@ -468,7 +468,7 @@ Ile dni ruchu i ile zgodnych porównań wystarczy, żeby przełączyć tryb na C
 
 ## Scena s05. Granice trybu shadow - efekty uboczne
 
-**Temat ze slajdów:** 4.19 Granice trybu shadow
+**Temat ze slajdów:** 3.9. Granice weryfikacji w cieniu: efekty uboczne
 **Katalog:** `typescript/src/workshop/m3/s05_shadowlimits` · **Test:** `scripts/warsztat.sh --lang ts test m3/s05` (`S05EquivalenceTest.test.ts`, `S05SolutionTest.test.ts`)
 **Czas:** ~12 min
 
@@ -561,4 +561,4 @@ Jakie efekty uboczne ma wasz "czysty" kod, o których zwykle nie myślicie (logi
 4. s03 Wektor obserwowalnego zachowania, kroki 1 i 3 (~10 min)
 5. s05 Granice trybu shadow, kroki 1 i 2 (~10 min)
 
-**Ścieżka pełna (~80 min):** golden master → s01 → s02 → s03 → s04 → s05, czyli kolejność sekcji 4 slajdów. Jeśli chcesz wcześniej ustawić język wektora zachowania, pokaż s03 przed s02 (scena sama wprowadza swoje seamy). Po s03 zrób przerwę na pytania. Sceny s03 i s05 dobrze nadają się na samodzielną pracę uczestników, jeśli brakuje czasu na pokaz (patrz plik zadań modułu 3).
+**Ścieżka pełna (~80 min):** golden master → s01 → s02 → s03 → s04 → s05, czyli kolejność sekcji 3 slajdów. Jeśli chcesz wcześniej ustawić język wektora zachowania, pokaż s03 przed s02 (scena sama wprowadza swoje seamy). Po s03 zrób przerwę na pytania. Sceny s03 i s05 dobrze nadają się na samodzielną pracę uczestników, jeśli brakuje czasu na pokaz (patrz plik zadań modułu 3).

@@ -4,7 +4,7 @@ Pięć scen w domenie kina pokazuje na żywo, jak zbudować sieć bezpieczeństw
 
 Punktem odniesienia dla całego modułu jest golden master starego systemu: `CinemaManagerGoldenMasterTest` odtwarza "jeden dzień kina" na nietkniętym `legacy/CinemaManager` i porównuje pełny wektor zachowania (wyniki wywołań, maile, SMS-y, obciążenia i zwroty, raport dzienny, rozliczenia) z zatwierdzonym plikiem `src/test/resources/workshop/cinema-manager.approved.txt`. To odpowiedź na pytanie "jak poradzić sobie bez testów?" w skali całego systemu: jeden szeroki, deterministyczny test, zanim powstanie jakikolwiek test jednostkowy. Sceny poniżej pokazują te same techniki w mniejszej skali. Pokaż golden master na początku modułu (3 min) i wracaj do niego przy s01 (charakterystyka) i s03 (wektor zachowania).
 
-Sceny nie powtarzają przykładów z `pl.training.module3` ani ćwiczeń z zadań modułu 3. Tamte ćwiczenia uczestnicy robią sami, a sceny poniżej służą do pokazu.
+Sceny ilustrują sekcję 3 slajdów ("Siatka bezpieczeństwa") i służą do pokazu; uczestnicy powtarzają je samodzielnie według zakładki "Zadania".
 
 ## Jak prowadzić pokaz
 
@@ -26,8 +26,8 @@ scripts/warsztat.sh reset m3/s04            # przywróć start po pokazie
 - Zasada: **jeden krok - jeden test - jedno zdanie komentarza.** Ruch w IDE, ⌃R na teście sceny, zdanie z sekcji "Co powiedzieć". Zanim ruszysz kod, powiedz, jaki dowód da test po kroku.
 - **Krok po kroku bez numerów:** `scripts/warsztat.sh next` wstawia do `start` gotowy następny krok i wypisuje, co się zmieniło. `prev` cofa o krok, `status` mówi, który krok jest teraz w `start`. Skrypt pamięta ostatnią scenę, więc po pierwszym `next m3/sNN` wystarczy samo `next`. Ręczne zmiany w `start` zostają nadpisane - o to chodzi, gdy krok na żywo się rozjechał.
 - Pracujesz zawsze w pakiecie `start`. Snapshoty `stepN` służą do `diff` albo do przeskoku (`next`, `jump`), gdy coś się rozjedzie.
-- Zanim zaczniesz, pokaż slajd 4.6 "Wektor obserwowalnego zachowania" i wracaj do niego przy każdej scenie: *co tu obserwujemy - wynik, wyjątek, stan, efekty, kolejność?*
-- W s02 start **nie ma testów** i to jest puenta: testy pojawiają się dopiero wtedy, gdy kod ma seam. Pierwsze ruchy to automaty IDE o niskim ryzyku (slajd 4.16).
+- Zanim zaczniesz, pokaż slajd 1.2 "Zachowanie obserwowalne to więcej niż wynik metody" i wracaj do niego przy każdej scenie: *co tu obserwujemy - wynik, wyjątek, stan, efekty, kolejność?*
+- W s02 start **nie ma testów** i to jest puenta: testy pojawiają się dopiero wtedy, gdy kod ma seam. Pierwsze ruchy to automaty IDE o niskim ryzyku (slajd 3.6).
 - W s01 i s03 warto najpierw **zrobić naiwny ruch na żywo** (np. "poprawić" znalezisko z charakterystyki, sprawdzić tylko wynik), pokazać, czego test nie widzi, cofnąć (⌘Z) i dopiero wtedy wykonać krok z przewodnika.
 - W s04 i s05 część testów to nie tylko równoważność (`SNNEquivalenceTest`), ale też dowody strategii (`SNNSolutionTest`): raport rozbieżności, dziennik efektów ubocznych. Testy, które **dokumentują stan startowy** (np. "start obciąża kartę dwa razy"), zmienią kolor na czerwony, gdy wykonasz kroki na pakiecie `start` - to znak, że start jest już naprawiony. Po pokazie: `scripts/warsztat.sh reset`.
 - Kroki, które zmieniają zachowanie (s03 krok 2, s04 krok 4), zapowiadaj na głos: "to jest osobny commit, nie refaktoryzacja".
@@ -36,15 +36,15 @@ scripts/warsztat.sh reset m3/s04            # przywróć start po pokazie
 
 | Scena | Temat ze slajdów | Kroki | Pakiet | Czas |
 |---|---|---|---|---|
-| s01 | 4.2 Testy charakteryzujące; 4.4 Dobór przypadków; 4.8 Porównanie implementacji | 2 | `m3.s01_characterization` | ~15 min |
-| s02 | 4.10 Seam; 4.12 Szew przejściowy; 4.14 Break Dependencies; 4.16 Ruchy IDE bez testów | 4 | `m3.s02_breakdependencies` | ~20 min |
-| s03 | 4.6 Wektor obserwowalnego zachowania; 2.2 Weryfikacja stanu a zachowania | 3 | `m3.s03_behaviourvector` | ~12 min |
-| s04 | 4.18 Równoległa weryfikacja (parallel run) | 4 | `m3.s04_parallelrun` | ~15 min |
-| s05 | 4.19 Granice trybu shadow | 3 | `m3.s05_shadowlimits` | ~12 min |
+| s01 | 3.1. Test charakteryzujący: zapisz, co kod robi dziś; 3.2. Wynik wzorcowy i dobór przypadków; 3.3. Test równoważności przed zmianą i po niej | 2 | `m3.s01_characterization` | ~15 min |
+| s02 | 3.4. Szew: miejsce, w którym podstawiamy zależność; 3.5. Rozrywanie zależności: po zmianie; 3.6. Refaktoryzacje automatyczne w IDE: co dają, a czego nie widzą | 4 | `m3.s02_breakdependencies` | ~20 min |
+| s03 | 1.2. Zachowanie obserwowalne to więcej niż wynik metody; 3.2. Wynik wzorcowy i dobór przypadków | 3 | `m3.s03_behaviourvector` | ~12 min |
+| s04 | 3.8. Weryfikacja w cieniu | 4 | `m3.s04_parallelrun` | ~15 min |
+| s05 | 3.9. Granice weryfikacji w cieniu: efekty uboczne | 3 | `m3.s05_shadowlimits` | ~12 min |
 
 ## Scena s01. Test charakterystyki przed pierwszą zmianą
 
-**Temat ze slajdów:** 4.2 Testy charakteryzujące; 4.4 Dobór przypadków; 4.8 Porównanie implementacji (równoważność etapów); 4.6 Wektor obserwowalnego zachowania
+**Temat ze slajdów:** 3.1. Test charakteryzujący: zapisz, co kod robi dziś; 3.2. Wynik wzorcowy i dobór przypadków; 3.3. Test równoważności przed zmianą i po niej
 **Pakiet:** `pl.training.workshop.m3.s01_characterization` · **Test:** `scripts/warsztat.sh test m3/s01`
 **Czas:** ~15 min
 
@@ -129,7 +129,7 @@ Znaleźliście w charakterystyce ewidentny błąd (rabat od 11 biletów). Kto de
 
 ## Scena s02. Break Dependencies - seam dla zadania przypomnień
 
-**Temat ze slajdów:** 4.10 Seam, punkt aktywacji i cel rozrywania; 4.12 Minimalny szew przejściowy; 4.14 Break Dependencies - przed i po; 4.16 Bezpieczne ruchy automatami IDE, gdy brak testów
+**Temat ze slajdów:** 3.4. Szew: miejsce, w którym podstawiamy zależność; 3.5. Rozrywanie zależności: po zmianie; 3.6. Refaktoryzacje automatyczne w IDE: co dają, a czego nie widzą
 **Pakiet:** `pl.training.workshop.m3.s02_breakdependencies` · **Test:** `scripts/warsztat.sh test m3/s02`
 **Czas:** ~20 min
 
@@ -154,7 +154,7 @@ public int run() {
             database.markReminded(booking.id());
 ```
 
-Sekwencja ze slajdu 4.15: nazwij zachowanie i punkt obserwacji, wprowadź najmniejszy szew bez zmiany logiki, zabezpiecz go testem z fake/spy, przenieś wybór do jawnego punktu aktywacji, usuń konstrukcję przejściową. Charakterystyki nie da się napisać przed pierwszym ruchem, więc pierwsze ruchy muszą być mechaniczne i wspierane przez IDE (slajd 4.16).
+Sekwencja rozrywania zależności: nazwij zachowanie i punkt obserwacji, wprowadź najmniejszy szew bez zmiany logiki, zabezpiecz go testem z fake/spy, przenieś wybór do jawnego punktu aktywacji, usuń konstrukcję przejściową. Charakterystyki nie da się napisać przed pierwszym ruchem, więc pierwsze ruchy muszą być mechaniczne i wspierane przez IDE (slajd 3.6).
 
 ### Krok 1: Extract Interface + Parameterize Constructor
 
@@ -234,7 +234,7 @@ Kiedy Subclass and Override jest lepszym pierwszym ruchem niż Parameterize Cons
 
 ## Scena s03. Wektor obserwowalnego zachowania - płatność za bilety
 
-**Temat ze slajdów:** 4.6 Wektor obserwowalnego zachowania; 2.2 Weryfikacja stanu a weryfikacja zachowania; 3.4-3.5 Pokrycie: zalety, ograniczenia, progi, nadużycia
+**Temat ze slajdów:** 1.2. Zachowanie obserwowalne to więcej niż wynik metody; 3.2. Wynik wzorcowy i dobór przypadków
 **Pakiet:** `pl.training.workshop.m3.s03_behaviourvector` · **Test:** `scripts/warsztat.sh test m3/s03`
 **Czas:** ~12 min
 
@@ -260,7 +260,7 @@ CinemaMailer.send(booking.email(), "Bilety " + booking.id() + " oplacone: " + bo
 return charged ? "OK" : "DECLINED";
 ```
 
-Pokaż tabelę ze slajdu 4.6: wynik, wyjątki, stan, współpracownicy, czas, granice. Które z nich ten test widzi?
+Pokaż tabelę ze slajdu 1.2: wynik, wyjątki, stan, współpracownicy, czas, granice. Które z nich ten test widzi?
 
 ### Krok 1: seam dla maili - regresja staje się widoczna
 
@@ -328,7 +328,7 @@ Które elementy wektora sprawdzają testy w Waszym najważniejszym module? Czego
 
 ## Scena s04. Równoległa weryfikacja (shadow) kalkulatora cen
 
-**Temat ze slajdów:** 4.18 Równoległa weryfikacja (parallel run)
+**Temat ze slajdów:** 3.8. Weryfikacja w cieniu
 **Pakiet:** `pl.training.workshop.m3.s04_parallelrun` · **Test:** `scripts/warsztat.sh test m3/s04`
 **Czas:** ~15 min
 
@@ -435,7 +435,7 @@ Ile dni ruchu i ile zgodnych porównań wystarczy, żeby przełączyć tryb na C
 
 ## Scena s05. Granice trybu shadow - efekty uboczne
 
-**Temat ze slajdów:** 4.19 Granice trybu shadow
+**Temat ze slajdów:** 3.9. Granice weryfikacji w cieniu: efekty uboczne
 **Pakiet:** `pl.training.workshop.m3.s05_shadowlimits` · **Test:** `scripts/warsztat.sh test m3/s05`
 **Czas:** ~12 min
 
@@ -524,4 +524,4 @@ Jakie efekty uboczne ma wasz "czysty" kod, o których zwykle nie myślicie (logi
 4. s03 Wektor obserwowalnego zachowania, kroki 1 i 3 (~10 min)
 5. s05 Granice trybu shadow, kroki 1 i 2 (~10 min)
 
-**Ścieżka pełna (~80 min):** golden master → s01 → s02 → s03 → s04 → s05, czyli kolejność sekcji 4 slajdów. Jeśli chcesz wcześniej ustawić język wektora zachowania, pokaż s03 przed s02 (scena sama wprowadza swoje seamy). Po s03 zrób przerwę na pytania. Sceny s03 i s05 dobrze nadają się na samodzielną pracę uczestników, jeśli brakuje czasu na pokaz (patrz plik zadań modułu 3).
+**Ścieżka pełna (~80 min):** golden master → s01 → s02 → s03 → s04 → s05, czyli kolejność sekcji 3 slajdów. Jeśli chcesz wcześniej ustawić język wektora zachowania, pokaż s03 przed s02 (scena sama wprowadza swoje seamy). Po s03 zrób przerwę na pytania. Sceny s03 i s05 dobrze nadają się na samodzielną pracę uczestników, jeśli brakuje czasu na pokaz (patrz plik zadań modułu 3).

@@ -2,7 +2,7 @@
 
 Dziesięć małych scen w domenie kina CineLegacy pokazuje prewencję z modułu 2 jako serie bezpiecznych zmian: bramki kompilatora i jakości jako najszybsze pętle informacji zwrotnej, odraczanie decyzji (YAGNI) i ich zapis (ADR z wykonywalną regułą), projekt jako hamulec degradacji (SRP, DIP, granice Clean Architecture, automatyczna kontrola granicy) oraz prewencję w codziennej pracy (Boy Scout Rule, seria zmian gotowych do przeglądu). Każda scena ma kod wyjściowy (`Start`) z zapachem lub pułapką i kompletne snapshoty po każdym kroku (`Step1`, `Step2`, ...). Prowadzący pracuje na żywo w `Start`, po każdym kroku uruchamia test sceny i porównuje wynik ze snapshotem.
 
-Sceny nie powielają ćwiczeń z `md/zadania/02-prewencja.md` (studium wyceny dostawy i formatera raportu, w C# w `csharp/src/Training.Module2`): tamte ćwiczą jeden większy przykład, tu każdy temat ma własną, kilkuminutową scenę. Sceny są pokazami prowadzącego do wyboru - nie trzeba pokazywać wszystkich. Numery scen odpowiadają przestrzeniom nazw w kodzie; poniżej są ułożone w kolejności tematów modułu.
+Sceny ilustrują sekcję 2 slajdów ("Zanim wprowadzisz wzorzec"): każdy temat ma własną, kilkuminutową scenę. Sceny są pokazami prowadzącego do wyboru - nie trzeba pokazywać wszystkich. Numery scen odpowiadają przestrzeniom nazw w kodzie; poniżej są ułożone w kolejności tematów modułu.
 
 Kod portu C# leży w `csharp/src/Training.Workshop/M2/SNN.../{Start,Step1,...}`, testy (xUnit) w `csharp/tests/Training.Workshop.Tests/M2/SNN.../`. Kwoty to `decimal` (odpowiednik `BigDecimal`) albo wspólny typ `Money` (`decimal`, skala 2, zaokrąglenie `AwayFromZero`), a wydruki kwot są formatowane jawnie z `CultureInfo.InvariantCulture`, więc oczekiwane teksty są takie same jak w wersji Java. Wyjątki: `IllegalArgumentException` -> `ArgumentException`, `IllegalStateException` -> `InvalidOperationException`. Interfejsy mają prefiks `I` (`IPricingRule`, `ICustomerNotifier`, `IReservationStore`, `IBookingNotifier`), a podpakiety `app`/`infra`/`adapter`/`domain`/`pricing`/`notification` to przestrzenie nazw (i katalogi) `App`/`Infra`/`Adapter`/`Domain`/`Pricing`/`Notification`. Największe adaptacje dotyczą scen narzędziowych: bramka kompilatora (s03) kompiluje kod sceny w pamięci przez Roslyn, a bramka jakości (s04) kompiluje próbki w pamięci i sama uruchamia ich testy. Tam, gdzie scena odbiega od Javy, akapit **Różnica względem Javy** mówi, co i dlaczego wygląda inaczej.
 
@@ -22,7 +22,7 @@ scripts/warsztat.sh status                         # który krok jest teraz w St
 scripts/warsztat.sh --lang cs reset m2/s09         # przywrócenie Start z repozytorium
 ```
 
-- Zasada pokazu: **jeden krok - jeden test - jedno zdanie komentarza**. Nie łącz kroków, nawet jeśli IDE pozwala. Zanim ruszysz kod, powiedz, jaki dowód da test po kroku - to w praktyce pętla informacji zwrotnej ze slajdu 1.3.
+- Zasada pokazu: **jeden krok - jeden test - jedno zdanie komentarza**. Nie łącz kroków, nawet jeśli IDE pozwala. Zanim ruszysz kod, powiedz, jaki dowód da test po kroku - to w praktyce pętla informacji zwrotnej ze slajdu 2.1.
 - **Krok po kroku bez numerów:** `scripts/warsztat.sh next` wstawia do `Start` gotowy następny krok i wypisuje, co się zmieniło. `prev` cofa o krok, `status` mówi, który krok jest teraz w `Start`. Skrypt pamięta język i ostatnią scenę, więc po pierwszym `--lang cs next m2/sNN` wystarczy samo `next`. Ręczne zmiany w `Start` zostają nadpisane - o to chodzi, gdy krok na żywo się rozjechał.
 - Jeśli krok na żywo się nie uda albo brakuje czasu: `next` (albo `jump` do konkretnego snapshotu) i kontynuuj od następnego kroku. Po pokazie zawsze `reset`.
 - Testy dotykają `Start` wyłącznie przez API wspólne dla wszystkich kroków, więc kompilują się w każdym stanie pośrednim. Tam, gdzie refaktoryzacja zmienia konstruktory, scena ma punkt wejścia pełniący rolę composition root: statyczna klasa `Main` (s08), `CinemaApplication` (s09), `CinemaApp` (s10). Refaktoryzacje Rider (Introduce Parameter, Move to Folder/Namespace) same aktualizują te miejsca.
@@ -35,22 +35,22 @@ scripts/warsztat.sh --lang cs reset m2/s09         # przywrócenie Start z repoz
 
 | Scena | Temat ze slajdów | Kroki | Namespace | Czas |
 | --- | --- | --- | --- | --- |
-| s03 | 1.5 Kompilator jako najszybsza bramka; 1.6 Bramki w legacy | 3 | `M2.S03CompilerGate` | ~10 min |
-| s04 | 1.4 Różne narzędzia, różne dowody; 1.6 Bramki w legacy (minimalna bramka) | 4 | `M2.S04QualityGate` | ~12 min |
-| s01 | 2.4 YAGNI, 2.5 Napięcia, 2.6 Filtr decyzyjny, 2.1 Ostatni odpowiedzialny moment | 3 | `M2.S01Yagni` | ~12 min |
-| s02 | 2.7 Zapis decyzji: ADR; 2.2 Decyzje odwracalne i nieodwracalne | 2 | `M2.S02Adr` | ~10 min |
-| s07 | 5.3 SOLID (SRP: jeden aktor zmiany); 5.4 Błędne uproszczenia SOLID | 3 | `M2.S07Srp` | ~12 min |
-| s08 | 5.3 SOLID (DIP to nie DI); 5.6 Reguła zależności i composition root | 3 | `M2.S08Dip` | ~12 min |
-| s09 | 5.6 Reguła zależności; 5.9 Porty i przypadek użycia; 5.10 Bilans decyzji | 4 | `M2.S09CleanArchitecture` | ~18 min |
-| s10 | 5.5 Spójność i sprzężenie; 5.6 Reguła zależności sprawdzana automatycznie | 2 | `M2.S10BoundaryCheck` | ~12 min |
-| s05 | 6.1 Boy Scout Rule; 6.3 Bezpieczna sekwencja i nadużycia | 2 | `M2.S05BoyScout` | ~8 min |
-| s06 | 6.4 Małe zestawy zmian; 6.5 Przegląd kodu | 3 | `M2.S06ReviewableSeries` | ~10 min |
+| s03 | 2.1. Małe kroki i szybka informacja zwrotna; 2.2. Bramki jakości w starym kodzie: stan bazowy i zapadka | 3 | `M2.S03CompilerGate` | ~10 min |
+| s04 | 2.2. Bramki jakości w starym kodzie: stan bazowy i zapadka | 4 | `M2.S04QualityGate` | ~12 min |
+| s01 | 2.3. YAGNI: buduj dla dzisiejszej potrzeby; 2.4. Pięć pytań przed dodaniem abstrakcji | 3 | `M2.S01Yagni` | ~12 min |
+| s02 | 2.5. ADR: zapisz decyzję, a najlepiej ją sprawdzaj | 2 | `M2.S02Adr` | ~10 min |
+| s07 | 2.6. Zasada pojedynczej odpowiedzialności: jeden aktor, jeden powód zmiany | 3 | `M2.S07Srp` | ~12 min |
+| s08 | 2.7. Zasada odwrócenia zależności: liczy się kierunek importów; 2.8. Reguła zależności, porty i korzeń kompozycji | 3 | `M2.S08Dip` | ~12 min |
+| s09 | 2.8. Reguła zależności, porty i korzeń kompozycji | 4 | `M2.S09CleanArchitecture` | ~18 min |
+| s10 | 2.8. Reguła zależności, porty i korzeń kompozycji (sprawdzana automatycznie) | 2 | `M2.S10BoundaryCheck` | ~12 min |
+| s05 | 2.9. Zasada harcerza i małe porcje zmian | 2 | `M2.S05BoyScout` | ~8 min |
+| s06 | 2.9. Zasada harcerza i małe porcje zmian | 3 | `M2.S06ReviewableSeries` | ~10 min |
 
 Pełne nazwy namespace zaczynają się od `Training.Workshop.`, katalogi to `csharp/src/Training.Workshop/M2/S01Yagni` itd.
 
 ## Scena s03. Bramka kompilatora - nullable i ostrzeżenia jako błędy
 
-**Temat ze slajdów:** 1.5 Kompilator jako najszybsza bramka; 1.6 Bramki w legacy: stan bazowy i ratchet
+**Temat ze slajdów:** 2.1. Małe kroki i szybka informacja zwrotna; 2.2. Bramki jakości w starym kodzie: stan bazowy i zapadka
 **Namespace:** `Training.Workshop.M2.S03CompilerGate` · **Test:** `scripts/warsztat.sh --lang cs test m2/s03` (`S03EquivalenceTest`, `S03SolutionTest`)
 **Czas:** ~10 min
 
@@ -152,7 +152,7 @@ Jak wprowadzić tę bramkę w projekcie z 3000 ostrzeżeń, nie blokując nikogo
 
 ## Scena s04. Minimalna bramka jakości jako kod
 
-**Temat ze slajdów:** 1.4 Różne narzędzia, różne dowody; 1.6 Bramki w legacy: stan bazowy i ratchet (minimalna bramka)
+**Temat ze slajdów:** 2.2. Bramki jakości w starym kodzie: stan bazowy i zapadka
 **Namespace:** `Training.Workshop.M2.S04QualityGate` · **Test:** `scripts/warsztat.sh --lang cs test m2/s04` (`S04EquivalenceTest`, `S04SolutionTest`)
 **Czas:** ~12 min
 
@@ -260,7 +260,7 @@ Które z tych czterech sprawdzeń uruchomilibyście lokalnie przed commitem, a k
 
 ## Scena s01. YAGNI - silnik reguł dla dwóch reguł
 
-**Temat ze slajdów:** 2.4 YAGNI: aktualna potrzeba przed przewidywaną; 2.5 Napięcia między zasadami (ogólny silnik hipotetycznych taryf); 2.6 Filtr decyzyjny przed dodaniem abstrakcji; 2.1 Ostatni odpowiedzialny moment
+**Temat ze slajdów:** 2.3. YAGNI: buduj dla dzisiejszej potrzeby; 2.4. Pięć pytań przed dodaniem abstrakcji
 **Namespace:** `Training.Workshop.M2.S01Yagni` · **Test:** `scripts/warsztat.sh --lang cs test m2/s01` (`S01EquivalenceTest`)
 **Czas:** ~12 min
 
@@ -354,7 +354,7 @@ public decimal Price(TicketQuote quote)
 
 ### Rozwiązanie i uzasadnienie
 
-Przejdź z salą filtr ze slajdu 2.6: aktualne wymaganie (2 reguły), nazwa w języku problemu (brak: "plugin", "registry"), czy upraszcza aktualny przypadek (nie), koszt usunięcia (niski - pokazaliśmy). Z pięciu typów została jedna klasa.
+Przejdź z salą filtr ze slajdu 2.4: aktualne wymaganie (2 reguły), nazwa w języku problemu (brak: "plugin", "registry"), czy upraszcza aktualny przypadek (nie), koszt usunięcia (niski - pokazaliśmy). Z pięciu typów została jedna klasa.
 
 ### Pułapki
 
@@ -367,7 +367,7 @@ Który mechanizm rozszerzeń w waszym systemie ma dziś jedną albo dwie impleme
 
 ## Scena s02. ADR i wykonywalny model decyzji
 
-**Temat ze slajdów:** 2.7 Zapis decyzji: ADR; 2.2 Decyzje odwracalne i nieodwracalne
+**Temat ze slajdów:** 2.5. ADR: zapisz decyzję, a najlepiej ją sprawdzaj
 **Namespace:** `Training.Workshop.M2.S02Adr` · **Test:** `scripts/warsztat.sh --lang cs test m2/s02` (`S02EquivalenceTest`, `S02SolutionTest`)
 **Czas:** ~10 min
 
@@ -442,7 +442,7 @@ Co zrobić, gdy zespół chce złamać R2 dla jednego przypadku (np. statystyk)?
 
 ## Scena s07. SRP - raport dla dwóch aktorów
 
-**Temat ze slajdów:** 5.3 SOLID jako narzędzie analizy zmian (SRP: jeden aktor zmiany); 5.4 Błędne uproszczenia SOLID ("klasa robi jedną rzecz")
+**Temat ze slajdów:** 2.6. Zasada pojedynczej odpowiedzialności: jeden aktor, jeden powód zmiany
 **Namespace:** `Training.Workshop.M2.S07Srp` · **Test:** `scripts/warsztat.sh --lang cs test m2/s07` (`S07EquivalenceTest`)
 **Czas:** ~12 min
 
@@ -500,7 +500,7 @@ private static decimal Popularity(Sale sale) { ... }
 ```
 
 **Uruchom:** test zielony.
-**Co powiedzieć:** świadomie powtarzamy kod, nie wiedzę - dziś formuły są równe przypadkiem. To lekcja z DRY (slajd 5.2: podobny kod to nie zawsze ta sama wiedza) w kontekście SRP.
+**Co powiedzieć:** świadomie powtarzamy kod, nie wiedzę - dziś formuły są równe przypadkiem. To lekcja z DRY (slajd 2.6: dwie identyczne dziś formuły to nie duplikacja wiedzy) w kontekście SRP.
 **Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m2/s07 1 2`
 
 ### Krok 3: Extract Class - klasa na aktora
@@ -540,7 +540,7 @@ Kto w waszej organizacji zgłasza zmiany do największej klasy w systemie? Ilu t
 
 ## Scena s08. DIP - kierunek zależności kontra przepływ sterowania
 
-**Temat ze slajdów:** 5.3 SOLID jako narzędzie analizy zmian (DIP to nie dependency injection); 5.6 Reguła zależności i composition root
+**Temat ze slajdów:** 2.7. Zasada odwrócenia zależności: liczy się kierunek importów; 2.8. Reguła zależności, porty i korzeń kompozycji
 **Namespace:** `Training.Workshop.M2.S08Dip` · **Test:** `scripts/warsztat.sh --lang cs test m2/s08` (`S08DependencyDirectionTest`, `S08EquivalenceTest`)
 **Czas:** ~12 min
 
@@ -634,7 +634,7 @@ Narysujcie strzałki `using` (zależności) i strzałki wywołań dla jednego wa
 
 ## Scena s09. Clean Architecture - use case, dane na granicy, composition root
 
-**Temat ze slajdów:** 5.6 Reguła zależności i composition root; 5.9 Porty i przypadek użycia; 5.10 Kierunek zależności i bilans decyzji
+**Temat ze slajdów:** 2.8. Reguła zależności, porty i korzeń kompozycji
 **Namespace:** `Training.Workshop.M2.S09CleanArchitecture` · **Test:** `scripts/warsztat.sh --lang cs test m2/s09` (`S09EquivalenceTest`, `S09UseCaseTest`)
 **Czas:** ~18 min
 
@@ -741,7 +741,7 @@ public static ReservationController ReservationController(RowStore db, Outbox ou
 
 ### Rozwiązanie i uzasadnienie
 
-Przypadek użycia testowany bez HTTP i bazy, adaptery wymienialne w jednym miejscu, dane na granicy jako rekordy. Koszt: siedem typów więcej. Uzasadnia go to, że dwa efekty zewnętrzne i protokół ich kolejności już istnieją (slajd 5.10).
+Przypadek użycia testowany bez HTTP i bazy, adaptery wymienialne w jednym miejscu, dane na granicy jako rekordy. Koszt: siedem typów więcej. Uzasadnia go to, że dwa efekty zewnętrzne i protokół ich kolejności już istnieją (slajd 2.4, pytanie o koszt abstrakcji).
 
 ### Pułapki
 
@@ -755,7 +755,7 @@ Czy wasz przypadek użycia da się uruchomić w teście bez ASP.NET Core i bazy?
 
 ## Scena s10. Automatyczna ochrona granicy i diagnostyka spójności
 
-**Temat ze slajdów:** 5.5 Spójność i sprzężenie; 5.6 Reguła zależności (sprawdzana automatycznie); lista kontrolna prewencji ("reguła zależności sprawdzana automatycznie")
+**Temat ze slajdów:** 2.8. Reguła zależności, porty i korzeń kompozycji (sprawdzana automatycznie)
 **Namespace:** `Training.Workshop.M2.S10BoundaryCheck` · **Test:** `scripts/warsztat.sh --lang cs test m2/s10` (`S10ArchitectureTest`, `S10EquivalenceTest`, `S10ToolsTest`)
 **Czas:** ~12 min
 
@@ -838,7 +838,7 @@ Która reguła architektury w waszym projekcie istnieje tylko w głowach lub na 
 
 ## Scena s05. Boy Scout Rule - mała poprawa i jej nadużycie
 
-**Temat ze slajdów:** 6.1 Boy Scout Rule: heurystyka, nie mandat; 6.3 Bezpieczna sekwencja i typowe nadużycia
+**Temat ze slajdów:** 2.9. Zasada harcerza i małe porcje zmian
 **Namespace:** `Training.Workshop.M2.S05BoyScout` · **Test:** `scripts/warsztat.sh --lang cs test m2/s05` (`S05EquivalenceTest`, `S05SolutionTest`)
 **Czas:** ~8 min
 
@@ -913,7 +913,7 @@ Posortowane miejsca są czytelniejsze. Jak wprowadzić tę zmianę uczciwie?
 
 ## Scena s06. Seria małych zmian gotowych do przeglądu
 
-**Temat ze slajdów:** 6.4 Małe zestawy zmian - czego nie łączyć; 6.5 Przegląd kodu i informacja zwrotna
+**Temat ze slajdów:** 2.9. Zasada harcerza i małe porcje zmian
 **Namespace:** `Training.Workshop.M2.S06ReviewableSeries` · **Test:** `scripts/warsztat.sh --lang cs test m2/s06` (`S06EquivalenceTest`, `S06SolutionTest`)
 **Czas:** ~10 min
 
@@ -993,7 +993,7 @@ Trzy zestawy zmian, każdy z jedną intencją i zielonym buildem. Refaktoryzacje
 
 ### Pytanie do sali
 
-Jak opisalibyście commit 3 według pięciu pytań ze slajdu 6.5 (dlaczego, co i czego nie, kontrakt, dowody, wdrożenie i wycofanie)?
+Jak opisalibyście commit 3 według pięciu pytań (dlaczego, co i czego nie, kontrakt, dowody, wdrożenie i wycofanie)?
 
 ## Proponowana kolejność pokazu
 
@@ -1002,7 +1002,7 @@ Jak opisalibyście commit 3 według pięciu pytań ze slajdu 6.5 (dlaczego, co i
 **Ścieżka pełna (~115 min, z przerwą):**
 
 1. Fast feedback: s03, s04 (~22 min) - na koniec pytanie, które sprawdzenia uruchamiać lokalnie, a które w CI.
-2. Decyzje: s01, s02 (~22 min) - filtr decyzyjny ze slajdu 2.6 na przykładzie s01, potem decyzja trwała zapisana w ADR i pilnowana testem.
+2. Decyzje: s01, s02 (~22 min) - filtr decyzyjny ze slajdu 2.4 na przykładzie s01, potem decyzja trwała zapisana w ADR i pilnowana testem.
 3. Projekt: s07, s08, s09, s10 (~54 min) - od jednego aktora zmiany, przez kierunek zależności, do granicy sprawdzanej automatycznie.
 4. Prewencja codzienna: s05, s06 (~18 min) jako podsumowanie - mała poprawa w dotykanym kodzie i seria zmian z osobnymi dowodami.
 

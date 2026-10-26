@@ -6,7 +6,7 @@ import java.math.RoundingMode;
 import pl.training.workshop.m5.s21_reversiblepattern.Deal;
 
 /**
- * Krok 3 (rozwiązanie): refaktoryzacja OD wzorca. Inline Class PercentageModel,
+ * Krok 3 (rozwiązanie): usunięcie wzorca. Inline Class PercentageModel,
  * Safe Delete interfejsu SettlementModel i mapy. Jeden algorytm = jedna metoda.
  * Gdy wróci drugi model, Strategy da się przywrócić tymi samymi krokami w przód.
  */

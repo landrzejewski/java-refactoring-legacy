@@ -77,13 +77,13 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 .langs{margin-left:auto}.langs+.pager{margin-left:0}</style>
 </head>
 <body class="warsztat">
-<header class="topbar"><a class="home" href="../../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../00-cinelegacy.html">Warsztat CineLegacy</a><a class="tab" href="../zadania/02-prewencja.html">Zadania</a><a class="tab active" href="02-prewencja.html">Przewodnik</a></div><div class="tabs langs" aria-label="Język"><a class="tab" href="../../warsztat/przewodnik/02-prewencja.html">Java</a><a class="tab active" href="../../warsztat-csharp/przewodnik/02-prewencja.html">C#</a><a class="tab" href="../../warsztat-typescript/przewodnik/02-prewencja.html">TypeScript</a></div><div class="pager"><a href="03-testowanie-a-bezpieczenstwo.html" title="Następny moduł">03 &rarr;</a></div></header>
+<header class="topbar"><a class="home" href="../../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../../slajdy/refaktoryzacja-do-wzorcow-slajdy.html">Slajdy</a><a class="tab" href="../00-cinelegacy.html">Warsztat CineLegacy</a><a class="tab" href="../zadania/02-prewencja.html">Zadania</a><a class="tab active" href="02-prewencja.html">Przewodnik</a></div><div class="tabs langs" aria-label="Język"><a class="tab" href="../../warsztat/przewodnik/02-prewencja.html">Java</a><a class="tab active" href="../../warsztat-csharp/przewodnik/02-prewencja.html">C#</a><a class="tab" href="../../warsztat-typescript/przewodnik/02-prewencja.html">TypeScript</a></div><div class="pager"><a href="03-testowanie-a-bezpieczenstwo.html" title="Następny moduł">03 &rarr;</a></div></header>
 <div class="layout">
 <aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#jak-prowadzic-pokaz">Jak prowadzić pokaz</a></li><li class="h2"><a href="#mapa-scen">Mapa scen</a></li><li class="h2"><a href="#scena-s03-bramka-kompilatora-nullable-i-ostrzezenia-jako-bledy">Scena s03. Bramka kompilatora - nullable i ostrzeżenia jako błędy</a></li><li class="h3"><a href="#w-skrocie">W skrócie</a></li><li class="h3"><a href="#co-widzimy">Co widzimy</a></li><li class="h3"><a href="#krok-1-typy-generyczne">Krok 1: typy generyczne</a></li><li class="h3"><a href="#krok-2-nowe-api-zamiast-przestarzalego">Krok 2: nowe API zamiast przestarzałego</a></li><li class="h3"><a href="#krok-3-switch-expression">Krok 3: switch expression</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali">Pytanie do sali</a></li><li class="h2"><a href="#scena-s04-minimalna-bramka-jakosci-jako-kod">Scena s04. Minimalna bramka jakości jako kod</a></li><li class="h3"><a href="#w-skrocie-1">W skrócie</a></li><li class="h3"><a href="#co-widzimy-1">Co widzimy</a></li><li class="h3"><a href="#krok-1-skan-zrodel-todo-i-console">Krok 1: skan źródeł - TODO i Console</a></li><li class="h3"><a href="#krok-2-ostrzezenia-kompilatora">Krok 2: ostrzeżenia kompilatora</a></li><li class="h3"><a href="#krok-3-pokrycie-kluczowej-klasy-przyblizenie">Krok 3: pokrycie kluczowej klasy (przybliżenie)</a></li><li class="h3"><a href="#krok-4-testy-zielone">Krok 4: testy zielone</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-1">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-1">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-1">Pytanie do sali</a></li><li class="h2"><a href="#scena-s01-yagni-silnik-regul-dla-dwoch-regul">Scena s01. YAGNI - silnik reguł dla dwóch reguł</a></li><li class="h3"><a href="#w-skrocie-2">W skrócie</a></li><li class="h3"><a href="#co-widzimy-2">Co widzimy</a></li><li class="h3"><a href="#krok-1-inline-class-rejestr-pluginow-znika">Krok 1: Inline Class - rejestr pluginów znika</a></li><li class="h3"><a href="#krok-2-change-signature-typowane-dane-zamiast-slownika">Krok 2: Change Signature - typowane dane zamiast słownika</a></li><li class="h3"><a href="#krok-3-inline-class-dla-regul-safe-delete-interfejsu">Krok 3: Inline Class dla reguł, Safe Delete interfejsu</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-2">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-2">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-2">Pytanie do sali</a></li><li class="h2"><a href="#scena-s02-adr-i-wykonywalny-model-decyzji">Scena s02. ADR i wykonywalny model decyzji</a></li><li class="h3"><a href="#w-skrocie-3">W skrócie</a></li><li class="h3"><a href="#co-widzimy-3">Co widzimy</a></li><li class="h3"><a href="#krok-1-spelnienie-r1-wynik-zamiast-efektu">Krok 1: spełnienie R1 - wynik zamiast efektu</a></li><li class="h3"><a href="#krok-2-spelnienie-r2-money">Krok 2: spełnienie R2 - Money</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-3">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-3">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-3">Pytanie do sali</a></li><li class="h2"><a href="#scena-s07-srp-raport-dla-dwoch-aktorow">Scena s07. SRP - raport dla dwóch aktorów</a></li><li class="h3"><a href="#w-skrocie-4">W skrócie</a></li><li class="h3"><a href="#co-widzimy-4">Co widzimy</a></li><li class="h3"><a href="#krok-1-extract-method-wedlug-aktora">Krok 1: Extract Method według aktora</a></li><li class="h3"><a href="#krok-2-rozdziel-wspolny-helper-wedlug-aktora">Krok 2: Rozdziel wspólny helper według aktora</a></li><li class="h3"><a href="#krok-3-extract-class-klasa-na-aktora">Krok 3: Extract Class - klasa na aktora</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-4">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-4">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-4">Pytanie do sali</a></li><li class="h2"><a href="#scena-s08-dip-kierunek-zaleznosci-kontra-przeplyw-sterowania">Scena s08. DIP - kierunek zależności kontra przepływ sterowania</a></li><li class="h3"><a href="#w-skrocie-5">W skrócie</a></li><li class="h3"><a href="#co-widzimy-5">Co widzimy</a></li><li class="h3"><a href="#krok-1-introduce-parameter-dependency-injection">Krok 1: Introduce Parameter - dependency injection</a></li><li class="h3"><a href="#krok-2-extract-method-nazwij-potrzebe-polityki">Krok 2: Extract Method - nazwij potrzebę polityki</a></li><li class="h3"><a href="#krok-3-port-po-stronie-polityki-adapter-w-infra">Krok 3: Port po stronie polityki, adapter w Infra</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-5">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-5">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-5">Pytanie do sali</a></li><li class="h2"><a href="#scena-s09-clean-architecture-use-case-dane-na-granicy-composition-root">Scena s09. Clean Architecture - use case, dane na granicy, composition root</a></li><li class="h3"><a href="#w-skrocie-6">W skrócie</a></li><li class="h3"><a href="#co-widzimy-6">Co widzimy</a></li><li class="h3"><a href="#krok-1-extract-class-przypadek-uzycia-jako-jawna-orkiestracja">Krok 1: Extract Class - przypadek użycia jako jawna orkiestracja</a></li><li class="h3"><a href="#krok-2-porty-zdefiniowane-przez-potrzebe-adaptery">Krok 2: Porty zdefiniowane przez potrzebę, adaptery</a></li><li class="h3"><a href="#krok-3-move-to-namespace-granica-widoczna-w-przestrzeniach-nazw">Krok 3: Move to Namespace - granica widoczna w przestrzeniach nazw</a></li><li class="h3"><a href="#krok-4-composition-root">Krok 4: Composition root</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-6">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-6">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-6">Pytanie do sali</a></li><li class="h2"><a href="#scena-s10-automatyczna-ochrona-granicy-i-diagnostyka-spojnosci">Scena s10. Automatyczna ochrona granicy i diagnostyka spójności</a></li><li class="h3"><a href="#w-skrocie-7">W skrócie</a></li><li class="h3"><a href="#co-widzimy-7">Co widzimy</a></li><li class="h3"><a href="#krok-1-extract-class-spojnosc">Krok 1: Extract Class - spójność</a></li><li class="h3"><a href="#krok-2-move-to-namespace-maper-do-adaptera">Krok 2: Move to Namespace - maper do adaptera</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-7">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-7">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-7">Pytanie do sali</a></li><li class="h2"><a href="#scena-s05-boy-scout-rule-mala-poprawa-i-jej-naduzycie">Scena s05. Boy Scout Rule - mała poprawa i jej nadużycie</a></li><li class="h3"><a href="#w-skrocie-8">W skrócie</a></li><li class="h3"><a href="#co-widzimy-8">Co widzimy</a></li><li class="h3"><a href="#krok-1-naduzycie-skoro-juz-tu-jestem">Krok 1: nadużycie - &quot;skoro już tu jestem&quot;</a></li><li class="h3"><a href="#krok-2-poprawna-mala-poprawa">Krok 2: poprawna, mała poprawa</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-8">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-8">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-8">Pytanie do sali</a></li><li class="h2"><a href="#scena-s06-seria-malych-zmian-gotowych-do-przegladu">Scena s06. Seria małych zmian gotowych do przeglądu</a></li><li class="h3"><a href="#w-skrocie-9">W skrócie</a></li><li class="h3"><a href="#co-widzimy-9">Co widzimy</a></li><li class="h3"><a href="#krok-1-commit-1-refaktoryzacja-extract-method">Krok 1: commit 1 - refaktoryzacja (Extract Method)</a></li><li class="h3"><a href="#krok-2-commit-2-refaktoryzacja-przygotowawcza-change-signature">Krok 2: commit 2 - refaktoryzacja przygotowawcza (Change Signature)</a></li><li class="h3"><a href="#krok-3-commit-3-zmiana-zachowania">Krok 3: commit 3 - zmiana zachowania</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-9">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-9">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-9">Pytanie do sali</a></li><li class="h2"><a href="#proponowana-kolejnosc-pokazu">Proponowana kolejność pokazu</a></li></ul></details></nav></aside>
 <main>
 <h1>Moduł 2. Prewencja - warsztat CineLegacy (C#): przewodnik prowadzącego</h1>
 <p>Dziesięć małych scen w domenie kina CineLegacy pokazuje prewencję z modułu 2 jako serie bezpiecznych zmian: bramki kompilatora i jakości jako najszybsze pętle informacji zwrotnej, odraczanie decyzji (YAGNI) i ich zapis (ADR z wykonywalną regułą), projekt jako hamulec degradacji (SRP, DIP, granice Clean Architecture, automatyczna kontrola granicy) oraz prewencję w codziennej pracy (Boy Scout Rule, seria zmian gotowych do przeglądu). Każda scena ma kod wyjściowy (<code>Start</code>) z zapachem lub pułapką i kompletne snapshoty po każdym kroku (<code>Step1</code>, <code>Step2</code>, ...). Prowadzący pracuje na żywo w <code>Start</code>, po każdym kroku uruchamia test sceny i porównuje wynik ze snapshotem.</p>
-<p>Sceny nie powielają ćwiczeń z <code>md/<wbr>zadania/<wbr>02-prewencja.md</code> (studium wyceny dostawy i formatera raportu, w C# w <code>csharp/<wbr>src/<wbr>Training.Module2</code>): tamte ćwiczą jeden większy przykład, tu każdy temat ma własną, kilkuminutową scenę. Sceny są pokazami prowadzącego do wyboru - nie trzeba pokazywać wszystkich. Numery scen odpowiadają przestrzeniom nazw w kodzie; poniżej są ułożone w kolejności tematów modułu.</p>
+<p>Sceny ilustrują sekcję 2 slajdów (&quot;Zanim wprowadzisz wzorzec&quot;): każdy temat ma własną, kilkuminutową scenę. Sceny są pokazami prowadzącego do wyboru - nie trzeba pokazywać wszystkich. Numery scen odpowiadają przestrzeniom nazw w kodzie; poniżej są ułożone w kolejności tematów modułu.</p>
 <p>Kod portu C# leży w <code>csharp/<wbr>src/<wbr>Training.Workshop/<wbr>M2/<wbr>SNN.../<wbr>{Start,Step1,...}</code>, testy (xUnit) w <code>csharp/<wbr>tests/<wbr>Training.Workshop.Tests/<wbr>M2/<wbr>SNN.../<wbr></code>. Kwoty to <code>decimal</code> (odpowiednik <code>BigDecimal</code>) albo wspólny typ <code>Money</code> (<code>decimal</code>, skala 2, zaokrąglenie <code>AwayFromZero</code>), a wydruki kwot są formatowane jawnie z <code>CultureInfo.InvariantCulture</code>, więc oczekiwane teksty są takie same jak w wersji Java. Wyjątki: <code>IllegalArgumentException</code> -&gt; <code>ArgumentException</code>, <code>IllegalStateException</code> -&gt; <code>InvalidOperationException</code>. Interfejsy mają prefiks <code>I</code> (<code>IPricingRule</code>, <code>ICustomerNotifier</code>, <code>IReservationStore</code>, <code>IBookingNotifier</code>), a podpakiety <code>app</code>/<code>infra</code>/<code>adapter</code>/<code>domain</code>/<code>pricing</code>/<code>notification</code> to przestrzenie nazw (i katalogi) <code>App</code>/<code>Infra</code>/<code>Adapter</code>/<code>Domain</code>/<code>Pricing</code>/<code>Notification</code>. Największe adaptacje dotyczą scen narzędziowych: bramka kompilatora (s03) kompiluje kod sceny w pamięci przez Roslyn, a bramka jakości (s04) kompiluje próbki w pamięci i sama uruchamia ich testy. Tam, gdzie scena odbiega od Javy, akapit <strong>Różnica względem Javy</strong> mówi, co i dlaczego wygląda inaczej.</p>
 <h2 id="jak-prowadzic-pokaz" tabindex="-1"><a class="header-anchor" href="#jak-prowadzic-pokaz"><span>Jak prowadzić pokaz</span></a></h2>
 <pre class="code" data-lang="bash"><code class="hljs">scripts/warsztat.sh --lang cs list m2              <span class="hljs-comment"># sceny i kroki modułu 2</span>
@@ -99,7 +99,7 @@ scripts/warsztat.sh status                         <span class="hljs-comment"># 
 scripts/warsztat.sh --lang cs reset m2/s09         <span class="hljs-comment"># przywrócenie Start z repozytorium</span>
 </code></pre>
 <ul>
-<li>Zasada pokazu: <strong>jeden krok - jeden test - jedno zdanie komentarza</strong>. Nie łącz kroków, nawet jeśli IDE pozwala. Zanim ruszysz kod, powiedz, jaki dowód da test po kroku - to w praktyce pętla informacji zwrotnej ze slajdu 1.3.</li>
+<li>Zasada pokazu: <strong>jeden krok - jeden test - jedno zdanie komentarza</strong>. Nie łącz kroków, nawet jeśli IDE pozwala. Zanim ruszysz kod, powiedz, jaki dowód da test po kroku - to w praktyce pętla informacji zwrotnej ze slajdu 2.1.</li>
 <li><strong>Krok po kroku bez numerów:</strong> <code>scripts/<wbr>warsztat.sh next</code> wstawia do <code>Start</code> gotowy następny krok i wypisuje, co się zmieniło. <code>prev</code> cofa o krok, <code>status</code> mówi, który krok jest teraz w <code>Start</code>. Skrypt pamięta język i ostatnią scenę, więc po pierwszym <code>--lang cs next m2/<wbr>sNN</code> wystarczy samo <code>next</code>. Ręczne zmiany w <code>Start</code> zostają nadpisane - o to chodzi, gdy krok na żywo się rozjechał.</li>
 <li>Jeśli krok na żywo się nie uda albo brakuje czasu: <code>next</code> (albo <code>jump</code> do konkretnego snapshotu) i kontynuuj od następnego kroku. Po pokazie zawsze <code>reset</code>.</li>
 <li>Testy dotykają <code>Start</code> wyłącznie przez API wspólne dla wszystkich kroków, więc kompilują się w każdym stanie pośrednim. Tam, gdzie refaktoryzacja zmienia konstruktory, scena ma punkt wejścia pełniący rolę composition root: statyczna klasa <code>Main</code> (s08), <code>CinemaApplication</code> (s09), <code>CinemaApp</code> (s10). Refaktoryzacje Rider (Introduce Parameter, Move to Folder/Namespace) same aktualizują te miejsca.</li>
@@ -122,70 +122,70 @@ scripts/warsztat.sh --lang cs reset m2/s09         <span class="hljs-comment"># 
 <tbody>
 <tr>
 <td>s03</td>
-<td>1.5 Kompilator jako najszybsza bramka; 1.6 Bramki w legacy</td>
+<td>2.1. Małe kroki i szybka informacja zwrotna; 2.2. Bramki jakości w starym kodzie: stan bazowy i zapadka</td>
 <td>3</td>
 <td><code>M2.S03CompilerGate</code></td>
 <td>~10 min</td>
 </tr>
 <tr>
 <td>s04</td>
-<td>1.4 Różne narzędzia, różne dowody; 1.6 Bramki w legacy (minimalna bramka)</td>
+<td>2.2. Bramki jakości w starym kodzie: stan bazowy i zapadka</td>
 <td>4</td>
 <td><code>M2.S04QualityGate</code></td>
 <td>~12 min</td>
 </tr>
 <tr>
 <td>s01</td>
-<td>2.4 YAGNI, 2.5 Napięcia, 2.6 Filtr decyzyjny, 2.1 Ostatni odpowiedzialny moment</td>
+<td>2.3. YAGNI: buduj dla dzisiejszej potrzeby; 2.4. Pięć pytań przed dodaniem abstrakcji</td>
 <td>3</td>
 <td><code>M2.S01Yagni</code></td>
 <td>~12 min</td>
 </tr>
 <tr>
 <td>s02</td>
-<td>2.7 Zapis decyzji: ADR; 2.2 Decyzje odwracalne i nieodwracalne</td>
+<td>2.5. ADR: zapisz decyzję, a najlepiej ją sprawdzaj</td>
 <td>2</td>
 <td><code>M2.S02Adr</code></td>
 <td>~10 min</td>
 </tr>
 <tr>
 <td>s07</td>
-<td>5.3 SOLID (SRP: jeden aktor zmiany); 5.4 Błędne uproszczenia SOLID</td>
+<td>2.6. Zasada pojedynczej odpowiedzialności: jeden aktor, jeden powód zmiany</td>
 <td>3</td>
 <td><code>M2.S07Srp</code></td>
 <td>~12 min</td>
 </tr>
 <tr>
 <td>s08</td>
-<td>5.3 SOLID (DIP to nie DI); 5.6 Reguła zależności i composition root</td>
+<td>2.7. Zasada odwrócenia zależności: liczy się kierunek importów; 2.8. Reguła zależności, porty i korzeń kompozycji</td>
 <td>3</td>
 <td><code>M2.S08Dip</code></td>
 <td>~12 min</td>
 </tr>
 <tr>
 <td>s09</td>
-<td>5.6 Reguła zależności; 5.9 Porty i przypadek użycia; 5.10 Bilans decyzji</td>
+<td>2.8. Reguła zależności, porty i korzeń kompozycji</td>
 <td>4</td>
 <td><code>M2.S09CleanArchitecture</code></td>
 <td>~18 min</td>
 </tr>
 <tr>
 <td>s10</td>
-<td>5.5 Spójność i sprzężenie; 5.6 Reguła zależności sprawdzana automatycznie</td>
+<td>2.8. Reguła zależności, porty i korzeń kompozycji (sprawdzana automatycznie)</td>
 <td>2</td>
 <td><code>M2.S10BoundaryCheck</code></td>
 <td>~12 min</td>
 </tr>
 <tr>
 <td>s05</td>
-<td>6.1 Boy Scout Rule; 6.3 Bezpieczna sekwencja i nadużycia</td>
+<td>2.9. Zasada harcerza i małe porcje zmian</td>
 <td>2</td>
 <td><code>M2.S05BoyScout</code></td>
 <td>~8 min</td>
 </tr>
 <tr>
 <td>s06</td>
-<td>6.4 Małe zestawy zmian; 6.5 Przegląd kodu</td>
+<td>2.9. Zasada harcerza i małe porcje zmian</td>
 <td>3</td>
 <td><code>M2.S06ReviewableSeries</code></td>
 <td>~10 min</td>
@@ -194,7 +194,7 @@ scripts/warsztat.sh --lang cs reset m2/s09         <span class="hljs-comment"># 
 </table></div>
 <p>Pełne nazwy namespace zaczynają się od <code>Training.Workshop.</code>, katalogi to <code>csharp/<wbr>src/<wbr>Training.Workshop/<wbr>M2/<wbr>S01Yagni</code> itd.</p>
 <h2 id="scena-s03-bramka-kompilatora-nullable-i-ostrzezenia-jako-bledy" tabindex="-1"><a class="header-anchor" href="#scena-s03-bramka-kompilatora-nullable-i-ostrzezenia-jako-bledy"><span>Scena s03. Bramka kompilatora - nullable i ostrzeżenia jako błędy</span></a></h2>
-<p><strong>Temat ze slajdów:</strong> 1.5 Kompilator jako najszybsza bramka; 1.6 Bramki w legacy: stan bazowy i ratchet
+<p><strong>Temat ze slajdów:</strong> 2.1. Małe kroki i szybka informacja zwrotna; 2.2. Bramki jakości w starym kodzie: stan bazowy i zapadka
 <strong>Namespace:</strong> <code>Training.Workshop.M2.S03CompilerGate</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m2/<wbr>s03</code> (<code>S03EquivalenceTest</code>, <code>S03SolutionTest</code>)
 <strong>Czas:</strong> ~10 min</p>
 <h3 id="w-skrocie" tabindex="-1"><a class="header-anchor" href="#w-skrocie"><span>W skrócie</span></a></h3>
@@ -265,7 +265,7 @@ seats.Add(seat);
 <h3 id="pytanie-do-sali" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali"><span>Pytanie do sali</span></a></h3>
 <p>Jak wprowadzić tę bramkę w projekcie z 3000 ostrzeżeń, nie blokując nikogo od jutra?</p>
 <h2 id="scena-s04-minimalna-bramka-jakosci-jako-kod" tabindex="-1"><a class="header-anchor" href="#scena-s04-minimalna-bramka-jakosci-jako-kod"><span>Scena s04. Minimalna bramka jakości jako kod</span></a></h2>
-<p><strong>Temat ze slajdów:</strong> 1.4 Różne narzędzia, różne dowody; 1.6 Bramki w legacy: stan bazowy i ratchet (minimalna bramka)
+<p><strong>Temat ze slajdów:</strong> 2.2. Bramki jakości w starym kodzie: stan bazowy i zapadka
 <strong>Namespace:</strong> <code>Training.Workshop.M2.S04QualityGate</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m2/<wbr>s04</code> (<code>S04EquivalenceTest</code>, <code>S04SolutionTest</code>)
 <strong>Czas:</strong> ~12 min</p>
 <h3 id="w-skrocie-1" tabindex="-1"><a class="header-anchor" href="#w-skrocie-1"><span>W skrócie</span></a></h3>
@@ -338,7 +338,7 @@ seats.Add(seat);
 <h3 id="pytanie-do-sali-1" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-1"><span>Pytanie do sali</span></a></h3>
 <p>Które z tych czterech sprawdzeń uruchomilibyście lokalnie przed commitem, a które tylko w CI?</p>
 <h2 id="scena-s01-yagni-silnik-regul-dla-dwoch-regul" tabindex="-1"><a class="header-anchor" href="#scena-s01-yagni-silnik-regul-dla-dwoch-regul"><span>Scena s01. YAGNI - silnik reguł dla dwóch reguł</span></a></h2>
-<p><strong>Temat ze slajdów:</strong> 2.4 YAGNI: aktualna potrzeba przed przewidywaną; 2.5 Napięcia między zasadami (ogólny silnik hipotetycznych taryf); 2.6 Filtr decyzyjny przed dodaniem abstrakcji; 2.1 Ostatni odpowiedzialny moment
+<p><strong>Temat ze slajdów:</strong> 2.3. YAGNI: buduj dla dzisiejszej potrzeby; 2.4. Pięć pytań przed dodaniem abstrakcji
 <strong>Namespace:</strong> <code>Training.Workshop.M2.S01Yagni</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m2/<wbr>s01</code> (<code>S01EquivalenceTest</code>)
 <strong>Czas:</strong> ~12 min</p>
 <h3 id="w-skrocie-2" tabindex="-1"><a class="header-anchor" href="#w-skrocie-2"><span>W skrócie</span></a></h3>
@@ -405,7 +405,7 @@ seats.Add(seat);
 <strong>Co powiedzieć:</strong> YAGNI nie zabrania testów, nazwanych metod ani szwu testowego - cena liczona jest z danych wejściowych, bez zegara i stanu statycznego, więc każdą regułę łatwo sprawdzić. Gdy pojawi się trzecia reguła z innym właścicielem, wydzielimy abstrakcję wtedy.
 <strong>Snapshot:</strong> <code>Step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m2/<wbr>s01 2 3</code></p>
 <h3 id="rozwiazanie-i-uzasadnienie-2" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-2"><span>Rozwiązanie i uzasadnienie</span></a></h3>
-<p>Przejdź z salą filtr ze slajdu 2.6: aktualne wymaganie (2 reguły), nazwa w języku problemu (brak: &quot;plugin&quot;, &quot;registry&quot;), czy upraszcza aktualny przypadek (nie), koszt usunięcia (niski - pokazaliśmy). Z pięciu typów została jedna klasa.</p>
+<p>Przejdź z salą filtr ze slajdu 2.4: aktualne wymaganie (2 reguły), nazwa w języku problemu (brak: &quot;plugin&quot;, &quot;registry&quot;), czy upraszcza aktualny przypadek (nie), koszt usunięcia (niski - pokazaliśmy). Z pięciu typów została jedna klasa.</p>
 <h3 id="pulapki-2" tabindex="-1"><a class="header-anchor" href="#pulapki-2"><span>Pułapki</span></a></h3>
 <ul>
 <li>&quot;YAGNI, więc bez testów&quot; - odwrotnie: testy i małe kroki pozwalają bezpiecznie odraczać decyzje.</li>
@@ -414,7 +414,7 @@ seats.Add(seat);
 <h3 id="pytanie-do-sali-2" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-2"><span>Pytanie do sali</span></a></h3>
 <p>Który mechanizm rozszerzeń w waszym systemie ma dziś jedną albo dwie implementacje? Jaki sygnał powiedziałby, że czas go wprowadzić ponownie?</p>
 <h2 id="scena-s02-adr-i-wykonywalny-model-decyzji" tabindex="-1"><a class="header-anchor" href="#scena-s02-adr-i-wykonywalny-model-decyzji"><span>Scena s02. ADR i wykonywalny model decyzji</span></a></h2>
-<p><strong>Temat ze slajdów:</strong> 2.7 Zapis decyzji: ADR; 2.2 Decyzje odwracalne i nieodwracalne
+<p><strong>Temat ze slajdów:</strong> 2.5. ADR: zapisz decyzję, a najlepiej ją sprawdzaj
 <strong>Namespace:</strong> <code>Training.Workshop.M2.S02Adr</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m2/<wbr>s02</code> (<code>S02EquivalenceTest</code>, <code>S02SolutionTest</code>)
 <strong>Czas:</strong> ~10 min</p>
 <h3 id="w-skrocie-3" tabindex="-1"><a class="header-anchor" href="#w-skrocie-3"><span>W skrócie</span></a></h3>
@@ -464,7 +464,7 @@ seats.Add(seat);
 <h3 id="pytanie-do-sali-3" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-3"><span>Pytanie do sali</span></a></h3>
 <p>Co zrobić, gdy zespół chce złamać R2 dla jednego przypadku (np. statystyk)? Wyjątek w teście czy nowy ADR?</p>
 <h2 id="scena-s07-srp-raport-dla-dwoch-aktorow" tabindex="-1"><a class="header-anchor" href="#scena-s07-srp-raport-dla-dwoch-aktorow"><span>Scena s07. SRP - raport dla dwóch aktorów</span></a></h2>
-<p><strong>Temat ze slajdów:</strong> 5.3 SOLID jako narzędzie analizy zmian (SRP: jeden aktor zmiany); 5.4 Błędne uproszczenia SOLID (&quot;klasa robi jedną rzecz&quot;)
+<p><strong>Temat ze slajdów:</strong> 2.6. Zasada pojedynczej odpowiedzialności: jeden aktor, jeden powód zmiany
 <strong>Namespace:</strong> <code>Training.Workshop.M2.S07Srp</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m2/<wbr>s07</code> (<code>S07EquivalenceTest</code>)
 <strong>Czas:</strong> ~12 min</p>
 <h3 id="w-skrocie-4" tabindex="-1"><a class="header-anchor" href="#w-skrocie-4"><span>W skrócie</span></a></h3>
@@ -503,7 +503,7 @@ byTitle[sale.Title] = byTitle.GetValueOrDefault(sale.Title) + Revenue(sale); <sp
 <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-built_in">decimal</span> <span class="hljs-title">Popularity</span>(<span class="hljs-params">Sale sale</span>)</span> { ... }
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony.
-<strong>Co powiedzieć:</strong> świadomie powtarzamy kod, nie wiedzę - dziś formuły są równe przypadkiem. To lekcja z DRY (slajd 5.2: podobny kod to nie zawsze ta sama wiedza) w kontekście SRP.
+<strong>Co powiedzieć:</strong> świadomie powtarzamy kod, nie wiedzę - dziś formuły są równe przypadkiem. To lekcja z DRY (slajd 2.6: dwie identyczne dziś formuły to nie duplikacja wiedzy) w kontekście SRP.
 <strong>Snapshot:</strong> <code>Step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m2/<wbr>s07 1 2</code></p>
 <h3 id="krok-3-extract-class-klasa-na-aktora" tabindex="-1"><a class="header-anchor" href="#krok-3-extract-class-klasa-na-aktora"><span>Krok 3: Extract Class - klasa na aktora</span></a></h3>
 <p><strong>W IDE:</strong> ⌃T &gt; Extract Class dla <code>AccountingSection</code>, <code>Revenue</code>, <code>Net</code> -&gt; klasa <code>AccountingSection</code>; to samo dla <code>MarketingSection</code>, <code>Popularity</code> -&gt; <code>MarketingSection</code>. Metody nazwij <code>Render</code>, klasy oznacz <code>internal</code>.
@@ -532,7 +532,7 @@ byTitle[sale.Title] = byTitle.GetValueOrDefault(sale.Title) + Revenue(sale); <sp
 <h3 id="pytanie-do-sali-4" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-4"><span>Pytanie do sali</span></a></h3>
 <p>Kto w waszej organizacji zgłasza zmiany do największej klasy w systemie? Ilu to różnych aktorów?</p>
 <h2 id="scena-s08-dip-kierunek-zaleznosci-kontra-przeplyw-sterowania" tabindex="-1"><a class="header-anchor" href="#scena-s08-dip-kierunek-zaleznosci-kontra-przeplyw-sterowania"><span>Scena s08. DIP - kierunek zależności kontra przepływ sterowania</span></a></h2>
-<p><strong>Temat ze slajdów:</strong> 5.3 SOLID jako narzędzie analizy zmian (DIP to nie dependency injection); 5.6 Reguła zależności i composition root
+<p><strong>Temat ze slajdów:</strong> 2.7. Zasada odwrócenia zależności: liczy się kierunek importów; 2.8. Reguła zależności, porty i korzeń kompozycji
 <strong>Namespace:</strong> <code>Training.Workshop.M2.S08Dip</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m2/<wbr>s08</code> (<code>S08DependencyDirectionTest</code>, <code>S08EquivalenceTest</code>)
 <strong>Czas:</strong> ~12 min</p>
 <h3 id="w-skrocie-5" tabindex="-1"><a class="header-anchor" href="#w-skrocie-5"><span>W skrócie</span></a></h3>
@@ -596,7 +596,7 @@ byTitle[sale.Title] = byTitle.GetValueOrDefault(sale.Title) + Revenue(sale); <sp
 <h3 id="pytanie-do-sali-5" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-5"><span>Pytanie do sali</span></a></h3>
 <p>Narysujcie strzałki <code>using</code> (zależności) i strzałki wywołań dla jednego waszego przypadku użycia. W którym miejscu biegną w tę samą stronę przez granicę?</p>
 <h2 id="scena-s09-clean-architecture-use-case-dane-na-granicy-composition-root" tabindex="-1"><a class="header-anchor" href="#scena-s09-clean-architecture-use-case-dane-na-granicy-composition-root"><span>Scena s09. Clean Architecture - use case, dane na granicy, composition root</span></a></h2>
-<p><strong>Temat ze slajdów:</strong> 5.6 Reguła zależności i composition root; 5.9 Porty i przypadek użycia; 5.10 Kierunek zależności i bilans decyzji
+<p><strong>Temat ze slajdów:</strong> 2.8. Reguła zależności, porty i korzeń kompozycji
 <strong>Namespace:</strong> <code>Training.Workshop.M2.S09CleanArchitecture</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m2/<wbr>s09</code> (<code>S09EquivalenceTest</code>, <code>S09UseCaseTest</code>)
 <strong>Czas:</strong> ~18 min</p>
 <h3 id="w-skrocie-6" tabindex="-1"><a class="header-anchor" href="#w-skrocie-6"><span>W skrócie</span></a></h3>
@@ -672,7 +672,7 @@ Step3/Adapter/   ReservationController, RowStoreReservationStore, OutboxBookingN
 <strong>Co powiedzieć:</strong> composition root zna wszystkie konkrety i nie zawiera reguł biznesowych. Podmiana bazy to zmiana tylko tutaj. Kontener DI nie jest potrzebny (a jeśli jest, to rejestracje w <code>Program.cs</code> pełnią tę samą rolę).
 <strong>Snapshot:</strong> <code>Step4/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m2/<wbr>s09 3 4</code></p>
 <h3 id="rozwiazanie-i-uzasadnienie-6" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-6"><span>Rozwiązanie i uzasadnienie</span></a></h3>
-<p>Przypadek użycia testowany bez HTTP i bazy, adaptery wymienialne w jednym miejscu, dane na granicy jako rekordy. Koszt: siedem typów więcej. Uzasadnia go to, że dwa efekty zewnętrzne i protokół ich kolejności już istnieją (slajd 5.10).</p>
+<p>Przypadek użycia testowany bez HTTP i bazy, adaptery wymienialne w jednym miejscu, dane na granicy jako rekordy. Koszt: siedem typów więcej. Uzasadnia go to, że dwa efekty zewnętrzne i protokół ich kolejności już istnieją (slajd 2.4, pytanie o koszt abstrakcji).</p>
 <h3 id="pulapki-6" tabindex="-1"><a class="header-anchor" href="#pulapki-6"><span>Pułapki</span></a></h3>
 <ul>
 <li>Kopiowanie szablonu czterech folderów (albo czterech projektów) bez sprawdzenia kierunku zależności.</li>
@@ -682,7 +682,7 @@ Step3/Adapter/   ReservationController, RowStoreReservationStore, OutboxBookingN
 <h3 id="pytanie-do-sali-6" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-6"><span>Pytanie do sali</span></a></h3>
 <p>Czy wasz przypadek użycia da się uruchomić w teście bez ASP.NET Core i bazy? Co trzeba by przenieść, żeby się dało?</p>
 <h2 id="scena-s10-automatyczna-ochrona-granicy-i-diagnostyka-spojnosci" tabindex="-1"><a class="header-anchor" href="#scena-s10-automatyczna-ochrona-granicy-i-diagnostyka-spojnosci"><span>Scena s10. Automatyczna ochrona granicy i diagnostyka spójności</span></a></h2>
-<p><strong>Temat ze slajdów:</strong> 5.5 Spójność i sprzężenie; 5.6 Reguła zależności (sprawdzana automatycznie); lista kontrolna prewencji (&quot;reguła zależności sprawdzana automatycznie&quot;)
+<p><strong>Temat ze slajdów:</strong> 2.8. Reguła zależności, porty i korzeń kompozycji (sprawdzana automatycznie)
 <strong>Namespace:</strong> <code>Training.Workshop.M2.S10BoundaryCheck</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m2/<wbr>s10</code> (<code>S10ArchitectureTest</code>, <code>S10EquivalenceTest</code>, <code>S10ToolsTest</code>)
 <strong>Czas:</strong> ~12 min</p>
 <h3 id="w-skrocie-7" tabindex="-1"><a class="header-anchor" href="#w-skrocie-7"><span>W skrócie</span></a></h3>
@@ -739,7 +739,7 @@ Step3/Adapter/   ReservationController, RowStoreReservationStore, OutboxBookingN
 <h3 id="pytanie-do-sali-7" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-7"><span>Pytanie do sali</span></a></h3>
 <p>Która reguła architektury w waszym projekcie istnieje tylko w głowach lub na wiki? Jak najtaniej zamienić ją w test?</p>
 <h2 id="scena-s05-boy-scout-rule-mala-poprawa-i-jej-naduzycie" tabindex="-1"><a class="header-anchor" href="#scena-s05-boy-scout-rule-mala-poprawa-i-jej-naduzycie"><span>Scena s05. Boy Scout Rule - mała poprawa i jej nadużycie</span></a></h2>
-<p><strong>Temat ze slajdów:</strong> 6.1 Boy Scout Rule: heurystyka, nie mandat; 6.3 Bezpieczna sekwencja i typowe nadużycia
+<p><strong>Temat ze slajdów:</strong> 2.9. Zasada harcerza i małe porcje zmian
 <strong>Namespace:</strong> <code>Training.Workshop.M2.S05BoyScout</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m2/<wbr>s05</code> (<code>S05EquivalenceTest</code>, <code>S05SolutionTest</code>)
 <strong>Czas:</strong> ~8 min</p>
 <h3 id="w-skrocie-8" tabindex="-1"><a class="header-anchor" href="#w-skrocie-8"><span>W skrócie</span></a></h3>
@@ -789,7 +789,7 @@ text.Append(<span class="hljs-string">&quot;Klient: &quot;</span>).Append(ticket
 <h3 id="pytanie-do-sali-8" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-8"><span>Pytanie do sali</span></a></h3>
 <p>Posortowane miejsca są czytelniejsze. Jak wprowadzić tę zmianę uczciwie?</p>
 <h2 id="scena-s06-seria-malych-zmian-gotowych-do-przegladu" tabindex="-1"><a class="header-anchor" href="#scena-s06-seria-malych-zmian-gotowych-do-przegladu"><span>Scena s06. Seria małych zmian gotowych do przeglądu</span></a></h2>
-<p><strong>Temat ze slajdów:</strong> 6.4 Małe zestawy zmian - czego nie łączyć; 6.5 Przegląd kodu i informacja zwrotna
+<p><strong>Temat ze slajdów:</strong> 2.9. Zasada harcerza i małe porcje zmian
 <strong>Namespace:</strong> <code>Training.Workshop.M2.S06ReviewableSeries</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m2/<wbr>s06</code> (<code>S06EquivalenceTest</code>, <code>S06SolutionTest</code>)
 <strong>Czas:</strong> ~10 min</p>
 <h3 id="w-skrocie-9" tabindex="-1"><a class="header-anchor" href="#w-skrocie-9"><span>W skrócie</span></a></h3>
@@ -842,13 +842,13 @@ Money price = @base.Minus(@base.Percent(DiscountPercent(query.Type)));
 <li>Commit przygotowawczy, który &quot;przy okazji&quot; poprawia regułę.</li>
 </ul>
 <h3 id="pytanie-do-sali-9" tabindex="-1"><a class="header-anchor" href="#pytanie-do-sali-9"><span>Pytanie do sali</span></a></h3>
-<p>Jak opisalibyście commit 3 według pięciu pytań ze slajdu 6.5 (dlaczego, co i czego nie, kontrakt, dowody, wdrożenie i wycofanie)?</p>
+<p>Jak opisalibyście commit 3 według pięciu pytań (dlaczego, co i czego nie, kontrakt, dowody, wdrożenie i wycofanie)?</p>
 <h2 id="proponowana-kolejnosc-pokazu" tabindex="-1"><a class="header-anchor" href="#proponowana-kolejnosc-pokazu"><span>Proponowana kolejność pokazu</span></a></h2>
 <p><strong>Ścieżka krótka (~55 min):</strong> s03 (bramka kompilatora, 10) -&gt; s01 (YAGNI, 12) -&gt; s08 (DIP, 12) -&gt; s05 (Boy Scout, 8) -&gt; s06 (seria zmian, 10). Pokazuje pełny łuk prewencji: najszybsza pętla, odłożona decyzja, kierunek zależności, mała poprawa i zestaw zmian gotowy do przeglądu. Jeśli zostanie czas, z s09 pokaż tylko <code>scripts/<wbr>warsztat.sh --lang cs diff m2/<wbr>s09 3 4</code> i <code>S09UseCaseTest</code> (5 min).</p>
 <p><strong>Ścieżka pełna (~115 min, z przerwą):</strong></p>
 <ol>
 <li>Fast feedback: s03, s04 (~22 min) - na koniec pytanie, które sprawdzenia uruchamiać lokalnie, a które w CI.</li>
-<li>Decyzje: s01, s02 (~22 min) - filtr decyzyjny ze slajdu 2.6 na przykładzie s01, potem decyzja trwała zapisana w ADR i pilnowana testem.</li>
+<li>Decyzje: s01, s02 (~22 min) - filtr decyzyjny ze slajdu 2.4 na przykładzie s01, potem decyzja trwała zapisana w ADR i pilnowana testem.</li>
 <li>Projekt: s07, s08, s09, s10 (~54 min) - od jednego aktora zmiany, przez kierunek zależności, do granicy sprawdzanej automatycznie.</li>
 <li>Prewencja codzienna: s05, s06 (~18 min) jako podsumowanie - mała poprawa w dotykanym kodzie i seria zmian z osobnymi dowodami.</li>
 </ol>

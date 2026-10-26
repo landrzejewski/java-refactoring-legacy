@@ -1,6 +1,6 @@
 # Moduł 5. Refaktoryzacja do wzorców - warsztat CineLegacy (C#): przewodnik prowadzącego
 
-Trzydzieści dwie małe sceny w domenie kina CineLegacy. Każda pokazuje jedną refaktoryzację do wzorca (albo od wzorca) ze slajdów modułu 5: od pytania "czy zawsze warto?" i usuwania zbędnych wzorców, przez ryzyka zmiany kontraktu i automaty IDE, po wybór między podobnymi wzorcami (Command, Strategy, State; Strategy i Template Method; Chain of Responsibility i Decorator), granice systemu (Adapter, Boundary Object, Facade, Anti-Corruption Layer) oraz Builder, Observer, Mediator i Visitor. Każda scena ma kod wyjściowy `Start` z zapachem lub pułapką i gotowe snapshoty `StepN` po każdym ruchu, więc w dowolnym momencie można przeskoczyć do kolejnego kroku. Test równoważności pilnuje, że wzorzec wprowadzamy bez zmiany obserwowalnego zachowania, a tam, gdzie zachowanie celowo się zmienia (moment wyboru strategii, nowy niezmiennik buildera, wygaszony wariant, naprawiony błąd skopiowanej orkiestracji, zaostrzona walidacja na granicy), osobny test to dokumentuje.
+Trzydzieści dwie małe sceny w domenie kina CineLegacy. Każda pokazuje jedną refaktoryzację do wzorca (albo usunięcie wzorca) ze slajdów: od pytania "czy zawsze warto?" i usuwania zbędnych wzorców, przez ryzyka zmiany kontraktu i automaty IDE, po wybór między podobnymi wzorcami (Command, Strategy, State; Strategy i Template Method; Chain of Responsibility i Decorator), granice systemu (Adapter, Boundary Object, Facade, Anti-Corruption Layer) oraz Builder, Observer, Mediator i Visitor. Każda scena ma kod wyjściowy `Start` z zapachem lub pułapką i gotowe snapshoty `StepN` po każdym ruchu, więc w dowolnym momencie można przeskoczyć do kolejnego kroku. Test równoważności pilnuje, że wzorzec wprowadzamy bez zmiany obserwowalnego zachowania, a tam, gdzie zachowanie celowo się zmienia (moment wyboru strategii, nowy niezmiennik buildera, wygaszony wariant, naprawiony błąd skopiowanej orkiestracji, zaostrzona walidacja na granicy), osobny test to dokumentuje.
 
 Port C# żyje w `csharp/src/Training.Workshop/M5/SNN.../{Start,Step1,...}` (testy xUnit w `csharp/tests/Training.Workshop.Tests/M5/SNN.../`), pracujemy w JetBrains Rider (keymap macOS zgodny z IntelliJ: ⇧F6 Rename, ⌥⌘M Extract Method, ⌥⌘V Introduce Variable, ⌥⌘C Introduce Constant, ⌥⌘P Introduce Parameter, ⌥⌘N Inline, F6 Move, ⌘F6 Change Signature, ⌘⌦ Safe Delete, ⌥⌘T Surround With, ⌥F7 Find Usages, ⌥⏎ akcje kontekstowe, ⌃T Refactor This). Projekt ma `TreatWarningsAsErrors` (`csharp/Directory.Build.props`), więc każde ostrzeżenie kompilatora (np. niewyczerpujący `switch`, wywołanie metody `[Obsolete]`, pole nieustawione w konstruktorze przy włączonym nullable) zatrzymuje build - kilka scen korzysta z tego świadomie.
 
@@ -25,46 +25,46 @@ scripts/warsztat.sh --lang cs reset m5/s08         # przywraca Start z repozytor
 - Pracujemy na namespace `Start` sceny (np. `Training.Workshop.M5.S08State.Start`). Gdy coś pójdzie nie tak, `next` (albo `jump` do właściwego kroku), a po scenie `reset`.
 - Test równoważności przechodzi przez `Start` i wszystkie kroki (xUnit `[Theory]` z wariantami `start`, `step1`...). Jeśli uczestnicy pracują równolegle, to ten sam test jest ich kryterium ukończenia.
 - Testy wołają sceny przez stabilne punkty wejścia (klient w rodzaju `PriceBoard`, `CancellationDesk`, `PaymentServices`, `Reports`, `Cinema`, `PaymentModule`, `SettlementModule` albo zachowany konstruktor), dzięki czemu `jump` do dowolnego kroku kompiluje się i przechodzi. Testy dokumentujące pułapkę samego `Start` (s11, s17, s30) po `jump` kończą się bez sprawdzeń i są zielone - xUnit 2 nie ma odpowiednika `assumeTrue` z JUnit (w Javie te testy są "aborted"), więc test sam wykrywa refleksją, że `Start` nie ma już pułapki, i wychodzi wcześniej. To zamierzone.
-- Motyw przewodni modułu: **najpierw kontrakt, potem diagram klas**. W każdej scenie zaczynamy od pytania "co jest obserwowalne?" (wyjątek, kolejność efektów, moment wyboru, format trwały, typ i moment błędu na granicy). Sekcja 5 slajdów ("Refaktoryzacja a testowanie") nie ma osobnej sceny - ćwiczy ją każda scena: test równoważności przed pierwszym ruchem, test różnicowy w s10, testy struktury w s26-s32.
+- Motyw przewodni modułu: **najpierw kontrakt, potem diagram klas**. W każdej scenie zaczynamy od pytania "co jest obserwowalne?" (wyjątek, kolejność efektów, moment wyboru, format trwały, typ i moment błędu na granicy). Siatkę bezpieczeństwa z sekcji 3 slajdów ćwiczy każda scena: test równoważności przed pierwszym ruchem, test różnicowy w s10, testy struktury w s26-s32.
 
 ## Mapa scen
 
-Kolejność wierszy odpowiada sekcjom slajdów, numery scen zostają bez zmian (przestrzenie nazw i skrypt).
+Numery scen zostają bez zmian (przestrzenie nazw i skrypt).
 
 | Scena | Temat ze slajdów | Kroki | Namespace | Czas |
 | --- | --- | --- | --- | --- |
-| s20 | 1.2. Najpierw rodzaj zmienności; mapa decyzji, lista kontrolna | 3 | `M5.S20DecisionMap` | ~12 min |
-| s21 | 2.1. Refaktoryzacja od wzorca; 2.2. Kierunki odwrotne | 3 | `M5.S21ReversiblePattern` | ~12 min |
-| s22 | 2.3. Remove Middle Man | 3 | `M5.S22MiddleMan` | ~8 min |
-| s23 | 3.1. Refaktoryzacja a zmiana kontraktu; 3.2. Co trzeba zachować | 3 | `M5.S23ContractChange` | ~10 min |
-| s24 | 4.1. Co daje IDE; 4.2. Rename - mechanika i granice | 3 | `M5.S24Rename` | ~12 min |
-| s25 | 4.3-4.4. Extract Method - przepływ danych, mechanika | 3 | `M5.S25ExtractMethod` | ~15 min |
-| s26 | 6.1-6.3, 6.8. Command, Strategy czy State - trzy osie w jednej klasie | 3 | `M5.S26Variability` | ~15 min |
-| s01 | 6.4. Strategy - intencja, sekwencja, ryzyka | 3 | `M5.S01Strategy` | ~12 min |
-| s08 | 6.5-6.6. State - tabela przejść, kolejność efektów | 3 | `M5.S08State` | ~15 min |
-| s15 | 6.7. Command - rejestr i ograniczenia | 3 | `M5.S15Command` | ~12 min |
-| s27 | 7.3-7.6. Template Method z dwiema osiami → Strategy | 3 | `M5.S27TemplateToStrategy` | ~12 min |
-| s16 | 7.1-7.2. Apply Template Method | 2 | `M5.S16TemplateMethod` | ~8 min |
-| s28 | 8.3-8.6. Chain of Responsibility czy Decorator | 3 | `M5.S28Chain` | ~12 min |
-| s07 | 8.1-8.2. Move Embellishment to Decorator; przezroczystość | 3 | `M5.S07Decorator` | ~12 min |
-| s14 | 9.1-9.2. Unify Interfaces with Adapter | 3 | `M5.S14Adapter` | ~12 min |
-| s29 | 9.3-9.6. Boundary Object; Adapter czy Boundary Object | 3 | `M5.S29BoundaryObject` | ~12 min |
-| s04 | 10.1-10.2. Factory - Encapsulate Classes with Factory | 3 | `M5.S04EncapsulateFactory` | ~10 min |
-| s05 | 10.2-10.3. Factory - Extract Factory Class, strażnik spójności | 3 | `M5.S05ExtractFactory` | ~10 min |
-| s30 | 11.1-11.3. Facade jako strażnik kolejności i spójności | 3 | `M5.S30Facade` | ~12 min |
-| s31 | 12.1-12.4. Facade a Anti-Corruption Layer | 3 | `M5.S31AntiCorruptionLayer` | ~12 min |
-| s06 | 13.1-13.2. Encapsulate Composite with Builder | 3 | `M5.S06Builder` | ~12 min |
-| s09 | 14.1-14.2. Replace Hard-coded Notifications with Observer | 3 | `M5.S09Observer` | ~15 min |
-| s32 | 15.1-15.4. Mediator; Observer czy Mediator | 3 | `M5.S32Mediator` | ~12 min |
-| s19 | 16.1-16.2. Visitor i macierz zmian | 3 | `M5.S19Visitor` | ~12 min |
-| s02 | 17.1. Replace Conditional with Polymorphism | 3 | `M5.S02Polymorphism` | ~12 min |
-| s03 | 17.2. Replace Type Code with Class | 3 | `M5.S03TypeCode` | ~12 min |
-| s10 | 17.3. Replace Implicit Tree with Composite; mapper | 3 | `M5.S10ImplicitTree` | ~15 min |
-| s11 | 17.3-17.4. Safe vs Transparent Composite | 2 | `M5.S11SafeComposite` | ~8 min |
-| s12 | 17.4. Replace One/Many Distinctions with Composite | 3 | `M5.S12OneMany` | ~10 min |
-| s13 | 17.4. Extract Composite | 2 | `M5.S13ExtractComposite` | ~8 min |
-| s18 | 17.5. Move Accumulation to Collecting Parameter | 3 | `M5.S18CollectingParameter` | ~8 min |
-| s17 | 17.6. Limit Instantiation with Singleton (odwrotnie: 2.4-2.5) | 3 | `M5.S17Singleton` | ~10 min |
+| s20 | 4.2. Najpierw rodzaj zmienności, potem wzorzec; 18.1. Mapa decyzji (1/2); 18.2. Mapa decyzji (2/2); 18.3. Lista kontrolna | 3 | `M5.S20DecisionMap` | ~12 min |
+| s21 | 17.5. Wzorzec jako decyzja odwracalna; 17.2. Refaktoryzacje, które usuwają wzorzec; 5.2. Kiedy wzorzec się nie opłaca | 3 | `M5.S21ReversiblePattern` | ~12 min |
+| s22 | 17.3. Usunięcie pośrednika; 17.2. Refaktoryzacje, które usuwają wzorzec | 3 | `M5.S22MiddleMan` | ~8 min |
+| s23 | 5.3. Refaktoryzacja a zmiana kontraktu; 5.4. Co trzeba zachować przy wprowadzaniu wzorca; 3.10. Bezpieczna pętla refaktoryzacji do wzorca | 3 | `M5.S23ContractChange` | ~10 min |
+| s24 | 3.6. Refaktoryzacje automatyczne w IDE: co dają, a czego nie widzą; 3.7. Zmiana nazwy i wyodrębnienie metody w drodze do wzorca | 3 | `M5.S24Rename` | ~12 min |
+| s25 | 3.7. Zmiana nazwy i wyodrębnienie metody w drodze do wzorca | 3 | `M5.S25ExtractMethod` | ~15 min |
+| s26 | 6.1. Strategia, Polecenie czy Stan? Kto wybiera wariant i kiedy; 6.7. Trzy osie w jednej klasie: każda dostaje własny mechanizm; 6.8. Typowe pomyłki przy wyborze | 3 | `M5.S26Variability` | ~15 min |
+| s01 | 6.1. Strategia, Polecenie czy Stan? Kto wybiera wariant i kiedy; 6.2. Strategia: sygnał w kodzie; 6.3. Strategia: kroki i wynik | 3 | `M5.S01Strategy` | ~12 min |
+| s08 | 6.4. Stan: sygnał i tabela przejść; 6.5. Stan: wynik | 3 | `M5.S08State` | ~15 min |
+| s15 | 6.6. Polecenie: łańcuch warunków zamieniony na rejestr poleceń | 3 | `M5.S15Command` | ~12 min |
+| s27 | 7.2. Gdy punkty zaczepienia obejmują dwie niezależne osie; 7.3. Zastąpienie dziedziczenia delegacją: osie jako strategie; 7.4. Strategia czy Metoda szablonowa? | 3 | `M5.S27TemplateToStrategy` | ~12 min |
+| s16 | 7.1. Utworzenie Metody szablonowej: wspólny szkielet, różne kroki | 2 | `M5.S16TemplateMethod` | ~8 min |
+| s28 | 8.3. Łańcuch `if/else`, w którym kolejność jest regułą; 8.4. Łańcuch zobowiązań: ogniwo i złożenie łańcucha; 8.5. Łańcuch zobowiązań czy Dekorator? | 3 | `M5.S28Chain` | ~12 min |
+| s07 | 8.1. Przeniesienie dodatków do Dekoratora; 8.2. Dekorator: na co uważać | 3 | `M5.S07Decorator` | ~12 min |
+| s14 | 9.1. Ujednolicenie interfejsów Adapterem; 9.2. Co adapter naprawdę musi przetłumaczyć | 3 | `M5.S14Adapter` | ~12 min |
+| s29 | 9.3. Surowe dane z zewnątrz w kodzie domeny; 9.4. Obiekt graniczny: sprawdzone dane na granicy systemu; 9.5. Adapter czy obiekt graniczny? | 3 | `M5.S29BoundaryObject` | ~12 min |
+| s04 | 10.1. Ukrycie klas za Fabryką; 10.3. Fabryka jako strażnik spójności | 3 | `M5.S04EncapsulateFactory` | ~10 min |
+| s05 | 10.2. Wyodrębnienie klasy fabryki; 10.3. Fabryka jako strażnik spójności | 3 | `M5.S05ExtractFactory` | ~10 min |
+| s30 | 11.1. Klienci sami koordynują podsystemy; 11.2. Wyodrębnienie Fasady: jedna operacja zamiast znajomości kroków | 3 | `M5.S30Facade` | ~12 min |
+| s31 | 11.3. Obcy model w regułach domeny; 11.4. Warstwa antykorupcyjna: port, tłumacz i model domenowy; 11.5. Fasada a warstwa antykorupcyjna | 3 | `M5.S31AntiCorruptionLayer` | ~12 min |
+| s06 | 12.1. Ukrycie budowy Kompozytu za Budowniczym; 12.2. Budowniczy: kiedy i na co uważać | 3 | `M5.S06Builder` | ~12 min |
+| s09 | 13.1. Zastąpienie zakodowanych powiadomień Obserwatorem; 13.2. Obserwator: zasady powiadamiania muszą być jawne | 3 | `M5.S09Observer` | ~15 min |
+| s32 | 14.1. Komponenty połączone każdy z każdym; 14.2. Wprowadzenie Mediatora: reguły współpracy w jednym miejscu; 14.3. Obserwator czy Mediator? | 3 | `M5.S32Mediator` | ~12 min |
+| s19 | 15.1. Odwiedzający i macierz zmian; 15.2. Odwiedzający albo hierarchia `sealed` i `switch` | 3 | `M5.S19Visitor` | ~12 min |
+| s02 | 16.1. Zastąpienie instrukcji warunkowej polimorfizmem; 6.8. Typowe pomyłki przy wyborze | 3 | `M5.S02Polymorphism` | ~12 min |
+| s03 | 16.2. Zastąpienie kodu typu klasą | 3 | `M5.S03TypeCode` | ~12 min |
+| s10 | 16.3. Zastąpienie ukrytego drzewa Kompozytem; 3.3. Test równoważności przed zmianą i po niej | 3 | `M5.S10ImplicitTree` | ~15 min |
+| s11 | 16.4. Kompozyt przezroczysty czy bezpieczny | 2 | `M5.S11SafeComposite` | ~8 min |
+| s12 | 16.5. Jeden element lub wiele oraz wyodrębnienie Kompozytu (zastąpienie rozróżnienia „jeden lub wiele” Kompozytem) | 3 | `M5.S12OneMany` | ~10 min |
+| s13 | 16.5. Jeden element lub wiele oraz wyodrębnienie Kompozytu (wyodrębnienie Kompozytu) | 2 | `M5.S13ExtractComposite` | ~8 min |
+| s18 | 16.6. Przeniesienie zbierania wyników do parametru zbierającego | 3 | `M5.S18CollectingParameter` | ~8 min |
+| s17 | 16.7. Ograniczenie liczby instancji Singletonem; 17.4. Wchłonięcie Singletona | 3 | `M5.S17Singleton` | ~10 min |
 
 Pełne namespace mają prefiks `Training.Workshop.` (np. `Training.Workshop.M5.S01Strategy`), katalogi to `csharp/src/Training.Workshop/M5/S01Strategy` itd. Liczby domeny (ceny formatów, zniżki, VIP, okulary, opłata online, punkty lojalnościowe, zwroty, VAT) są wspólne dla całego warsztatu. Wartości spoza wspólnej listy (program "tydzień studenta" 50%, ubezpieczenie biletu 4.00, "tani wtorek" -30%, weekend +2.00, ceny premier i maratonów, limity zatwierdzania zwrotów 100.00 i 1000.00, autoryzacja częściowa terminala do 300.00, voucher KINO10) są przykładowe i opisane w komentarzach XML (`/// <summary>`) sceny.
 
@@ -72,25 +72,25 @@ Konwencje portu, które wracają w wielu scenach: interfejsy mają prefiks `I` (
 
 ## Wybór scen na 3-dniowe szkolenie
 
-Wszystkie sceny razem to ponad 6 h samego pokazu (około 370 min) - więcej, niż mieści moduł (ok. 6 h razem z wykładem i ćwiczeniami ze slajdów). Na szkoleniu 3-dniowym pokazujemy **rdzeń: 11 scen, około 2 h 20 min**, po jednej scenie z kluczowych sekcji slajdów, w kolejności agendy:
+Wszystkie sceny razem to ponad 6 h samego pokazu (około 370 min) - więcej, niż zmieści się w jednym dniu szkolenia razem ze slajdami. Na szkoleniu 3-dniowym pokazujemy **rdzeń: 11 scen, około 2 h 20 min**, po jednej scenie z kluczowych sekcji slajdów, w kolejności agendy:
 
 1. s20 mapa decyzji (12 min) - ustawia pytanie "jaki rodzaj zmienności?" na cały moduł.
-2. s21 wzorzec jako decyzja odwracalna (12 min) - refaktoryzacja od wzorca; wprowadzenie do Ćwiczenia 1.
+2. s21 wzorzec jako decyzja odwracalna (12 min): usunięcie wzorca, który przestał być potrzebny.
 3. s23 zmiana kontraktu (10 min) - "przy okazji" zmienia dwie rzeczy naraz.
 4. s25 Extract Method (15 min) - przepływ danych i moment, w którym IDE proponuje parametr `out` albo krotkę.
-5. s26 pulpit kasjera (15 min) - Command, Strategy i State w jednej klasie; wariant Ćwiczenia 2.
-6. s27 raporty sprzedaży (12 min) - Template Method z dwiema osiami → Strategy; wariant Ćwiczenia 3A.
-7. s28 zatwierdzanie zwrotów (12 min) - Chain of Responsibility a Decorator; wariant Ćwiczenia 3B-C.
-8. s29 odpowiedź terminala (12 min) - Adapter i Boundary Object; wariant Ćwiczenia 4A.
-9. s30 zakup w sklepie i w kasie (12 min) - Facade i świadoma naprawa błędu kopii; wariant Ćwiczenia 4B.
-10. s31 licencje dystrybutora (12 min) - Facade a ACL; wariant Ćwiczenia 4C.
+5. s26 pulpit kasjera (15 min) - Command, Strategy i State w jednej klasie.
+6. s27 raporty sprzedaży (12 min) - Template Method z dwiema osiami → Strategy.
+7. s28 zatwierdzanie zwrotów (12 min) - Chain of Responsibility a Decorator.
+8. s29 odpowiedź terminala (12 min) - Adapter i Boundary Object.
+9. s30 zakup w sklepie i w kasie (12 min) - Facade i świadoma naprawa błędu kopii.
+10. s31 licencje dystrybutora (12 min) - Facade a ACL.
 11. s32 ekran wyboru miejsc (12 min) - Mediator i ryzyko God Mediator.
 
-**Sceny opcjonalne**, gdy grupa pracuje szybciej albo pyta o konkretny wzorzec: s22 i s17 (od wzorca: Remove Middle Man, Singleton i jego odwrotność), s24 (Rename i nazwy poza C#), s01, s08 i s15 (każdy z trzech wzorców sekcji 6 osobno, w szczegółach), s16 (klasyczny Template Method), s07 (Decorator), s14 (Adapter), s04 i s05 (jeden blok "Factory" z porównaniem obu refaktoryzacji), s06 (Builder), s09 (Observer, dobry kontrast do s32), s19 (Visitor). Sceny z sekcji 17 "Pozostałe refaktoryzacje do wzorców" (s02, s03, s10-s13, s18) zostawiamy do samodzielnej pracy w parach albo jako zadanie domowe - s11 i s13 mają po 2 kroki i dobrze sprawdzają się jako krótkie ćwiczenie. Na podsumowanie wróć do s20 i poproś salę o przypisanie każdej pokazanej sceny do wiersza mapy decyzji.
+**Sceny opcjonalne**, gdy grupa pracuje szybciej albo pyta o konkretny wzorzec: s22 i s17 (usuwanie wzorca: Remove Middle Man, Singleton i jego odwrotność), s24 (Rename i nazwy poza C#), s01, s08 i s15 (każdy z trzech wzorców sekcji 6 osobno, w szczegółach), s16 (klasyczny Template Method), s07 (Decorator), s14 (Adapter), s04 i s05 (jeden blok "Factory" z porównaniem obu refaktoryzacji), s06 (Builder), s09 (Observer, dobry kontrast do s32), s19 (Visitor). Sceny z sekcji 16 "Pozostałe refaktoryzacje do wzorców" (s02, s03, s10-s13, s18) zostawiamy do samodzielnej pracy w parach albo jako zadanie domowe - s11 i s13 mają po 2 kroki i dobrze sprawdzają się jako krótkie ćwiczenie. Na podsumowanie wróć do s20 i poproś salę o przypisanie każdej pokazanej sceny do wiersza mapy decyzji.
 
 ## Scena s01. Replace Conditional Logic with Strategy - polityka zniżek
 
-**Temat ze slajdów:** 6.1. Kto wybiera wariant i kiedy?; 6.4. Strategy - intencja, sekwencja, ryzyka
+**Temat ze slajdów:** 6.1. Strategia, Polecenie czy Stan? Kto wybiera wariant i kiedy; 6.2. Strategia: sygnał w kodzie; 6.3. Strategia: kroki i wynik
 **Namespace:** `Training.Workshop.M5.S01Strategy` · **Test:** `scripts/warsztat.sh --lang cs test m5/s01` (`S01EquivalenceTest`, `S01SolutionTest`)
 **Czas:** ~12 min
 
@@ -199,7 +199,7 @@ Czy przy dwóch programach i jednym `if` Strategy nadal byłaby uzasadniona? Co 
 
 ## Scena s02. Replace Conditional with Polymorphism - rodzaj seansu
 
-**Temat ze slajdów:** 17.1. Replace Conditional with Polymorphism; 6.8. Typowe pomyłki przy wyborze
+**Temat ze slajdów:** 16.1. Zastąpienie instrukcji warunkowej polimorfizmem; 6.8. Typowe pomyłki przy wyborze
 **Namespace:** `Training.Workshop.M5.S02Polymorphism` · **Test:** `scripts/warsztat.sh --lang cs test m5/s02` (`S02EquivalenceTest`, `S02SolutionTest`)
 **Czas:** ~12 min
 
@@ -293,7 +293,7 @@ Seans może zmienić się z "premiery" w "zwykły" po tygodniu. Czy to nadal pol
 
 ## Scena s03. Replace Type Code with Class - format jako typ
 
-**Temat ze slajdów:** 17.2. Replace Type Code with Class
+**Temat ze slajdów:** 16.2. Zastąpienie kodu typu klasą
 **Namespace:** `Training.Workshop.M5.S03TypeCode` · **Test:** `scripts/warsztat.sh --lang cs test m5/s03` (`S03EquivalenceTest`, `S03SolutionTest`)
 **Czas:** ~12 min
 
@@ -373,7 +373,7 @@ var format = FormatCodes.FromCode(int.Parse(parts[1].Trim(), CultureInfo.Invaria
 
 ### Rozwiązanie i uzasadnienie
 
-Typ domenowy bez wiedzy o bazie plus mapper na granicy. Enum, bo zestaw jest zamknięty. Klasę z prywatnym konstruktorem i instancjami statycznymi (jak `DeploymentZone` ze slajdów, a w tym porcie `Format` ze sceny s20) wybralibyśmy przy aliasach, kodach zewnętrznych albo gdy lista wartości pochodzi z konfiguracji.
+Typ domenowy bez wiedzy o bazie plus mapper na granicy. Enum, bo zestaw jest zamknięty. Klasę z prywatnym konstruktorem i instancjami statycznymi (w tym porcie `Format` ze sceny s20) wybralibyśmy przy aliasach, kodach zewnętrznych albo gdy lista wartości pochodzi z konfiguracji.
 
 ### Pułapki
 
@@ -387,7 +387,7 @@ Kiedy wybralibyście klasę zamiast enuma dla formatu? Co w domenie kina mogłob
 
 ## Scena s04. Encapsulate Classes with Factory - bilety
 
-**Temat ze slajdów:** 10.1. Factory - publiczna granica tworzenia; 10.2. Factory - intencja, procedura, pułapki
+**Temat ze slajdów:** 10.1. Ukrycie klas za Fabryką; 10.3. Fabryka jako strażnik spójności
 **Namespace:** `Training.Workshop.M5.S04EncapsulateFactory` · **Test:** `scripts/warsztat.sh --lang cs test m5/s04` (`S04EquivalenceTest`, `S04SolutionTest`)
 **Czas:** ~10 min
 
@@ -472,7 +472,7 @@ Co się zmienia, jeśli klasy biletów są używane przez ORM (np. Entity Framew
 
 ## Scena s05. Extract Factory Class - tworzenie rezerwacji
 
-**Temat ze slajdów:** 10.2. Factory - intencja, procedura, pułapki (Extract Factory Class); 10.3. Fabryka jako strażnik spójności
+**Temat ze slajdów:** 10.2. Wyodrębnienie klasy fabryki; 10.3. Fabryka jako strażnik spójności
 **Namespace:** `Training.Workshop.M5.S05ExtractFactory` · **Test:** `scripts/warsztat.sh --lang cs test m5/s05` (`S05EquivalenceTest`, `S05SolutionTest`)
 **Czas:** ~10 min
 
@@ -566,7 +566,7 @@ Czy numeracja rezerwacji powinna należeć do fabryki, czy do repozytorium? Co p
 
 ## Scena s06. Encapsulate Composite with Builder - repertuar dnia
 
-**Temat ze slajdów:** 13.1. Encapsulate Composite with Builder; 13.2. Builder - kiedy i ryzyka
+**Temat ze slajdów:** 12.1. Ukrycie budowy Kompozytu za Budowniczym; 12.2. Budowniczy: kiedy i na co uważać
 **Namespace:** `Training.Workshop.M5.S06Builder` · **Test:** `scripts/warsztat.sh --lang cs test m5/s06` (`S06EquivalenceTest`, `S06SolutionTest`)
 **Czas:** ~12 min
 
@@ -660,7 +660,7 @@ Czy pusta sala w repertuarze to poprawny stan, czy błąd? Kto powinien o tym zd
 
 ## Scena s07. Move Embellishment to Decorator - dodatki do biletu
 
-**Temat ze slajdów:** 8.1. Move Embellishment to Decorator; 8.2. Decorator - wyjątki, migracja, przezroczystość
+**Temat ze slajdów:** 8.1. Przeniesienie dodatków do Dekoratora; 8.2. Dekorator: na co uważać
 **Namespace:** `Training.Workshop.M5.S07Decorator` · **Test:** `scripts/warsztat.sh --lang cs test m5/s07` (`S07EquivalenceTest`, `S07SolutionTest`)
 **Czas:** ~12 min
 
@@ -749,7 +749,7 @@ Kasa chce wydrukować "Miejsce VIP" na bilecie. Jak to zrobić, nie używając `
 
 ## Scena s08. Replace State-Altering Conditionals with State - status rezerwacji
 
-**Temat ze slajdów:** 6.5. State - tabela przejść przed hierarchią; 6.6. State - kolejność przejścia i efektów
+**Temat ze slajdów:** 6.4. Stan: sygnał i tabela przejść; 6.5. Stan: wynik
 **Namespace:** `Training.Workshop.M5.S08State` · **Test:** `scripts/warsztat.sh --lang cs test m5/s08` (`S08EquivalenceTest`)
 **Czas:** ~15 min
 
@@ -858,7 +858,7 @@ Czym różni się State od Strategy, skoro oba to "obiekt, któremu delegujemy"?
 
 ## Scena s09. Replace Hard-coded Notifications with Observer - po opłaceniu
 
-**Temat ze slajdów:** 14.1. Replace Hard-coded Notifications with Observer; 14.2. Observer - kontrakt i migracja
+**Temat ze slajdów:** 13.1. Zastąpienie zakodowanych powiadomień Obserwatorem; 13.2. Obserwator: zasady powiadamiania muszą być jawne
 **Namespace:** `Training.Workshop.M5.S09Observer` · **Test:** `scripts/warsztat.sh --lang cs test m5/s09` (`S09EquivalenceTest`, `S09SolutionTest`)
 **Czas:** ~15 min
 
@@ -949,7 +949,7 @@ Czy błąd wysyłki SMS powinien przerywać naliczanie punktów? Kto o tym decyd
 
 ## Scena s10. Replace Implicit Tree with Composite - zestawy baru
 
-**Temat ze slajdów:** 17.3. Replace Implicit Tree with Composite; 5.2. Test równoważności przed i po
+**Temat ze slajdów:** 16.3. Zastąpienie ukrytego drzewa Kompozytem; 3.3. Test równoważności przed zmianą i po niej
 **Namespace:** `Training.Workshop.M5.S10ImplicitTree` · **Test:** `scripts/warsztat.sh --lang cs test m5/s10` (`S10DifferentialTest`, `S10EquivalenceTest`)
 **Czas:** ~15 min
 
@@ -1039,7 +1039,7 @@ Co zrobić, gdy mapper natrafi na dane, których nie da się wiernie odwzorować
 
 ## Scena s11. Transparent vs Safe Composite - add() na liściu
 
-**Temat ze slajdów:** 17.3. Replace Implicit Tree with Composite; 17.4. Jeden lub wiele i Extract Composite (Safe i Transparent Composite)
+**Temat ze slajdów:** 16.4. Kompozyt przezroczysty czy bezpieczny
 **Namespace:** `Training.Workshop.M5.S11SafeComposite` · **Test:** `scripts/warsztat.sh --lang cs test m5/s11` (`S11EquivalenceTest`, `S11SolutionTest`)
 **Czas:** ~8 min
 
@@ -1109,7 +1109,7 @@ Kiedy Transparent Composite jest lepszym wyborem mimo ryzyka błędu w runtime?
 
 ## Scena s12. Replace One/Many Distinctions with Composite - zwroty
 
-**Temat ze slajdów:** 17.4. Jeden lub wiele i Extract Composite (Replace One/Many Distinctions with Composite)
+**Temat ze slajdów:** 16.5. Jeden element lub wiele oraz wyodrębnienie Kompozytu (zastąpienie rozróżnienia „jeden lub wiele” Kompozytem)
 **Namespace:** `Training.Workshop.M5.S12OneMany` · **Test:** `scripts/warsztat.sh --lang cs test m5/s12` (`S12EquivalenceTest`, `S12SolutionTest`)
 **Czas:** ~10 min
 
@@ -1198,7 +1198,7 @@ Co, jeśli biznes chce potrącenia za każdą rezerwację, a jedna grupa obejmuj
 
 ## Scena s13. Extract Composite - kontenery programu
 
-**Temat ze slajdów:** 17.4. Jeden lub wiele i Extract Composite (Extract Composite)
+**Temat ze slajdów:** 16.5. Jeden element lub wiele oraz wyodrębnienie Kompozytu (wyodrębnienie Kompozytu)
 **Namespace:** `Training.Workshop.M5.S13ExtractComposite` · **Test:** `scripts/warsztat.sh --lang cs test m5/s13` (`S13EquivalenceTest`, `S13SolutionTest`)
 **Czas:** ~8 min
 
@@ -1271,7 +1271,7 @@ Trzeci kontener "blok z przerwą na reklamy co drugi film" - czy nadal pasuje do
 
 ## Scena s14. Unify Interfaces with Adapter - dwie bramki płatności
 
-**Temat ze slajdów:** 9.1. Unify Interfaces with Adapter; 9.2. Adapter - co naprawdę trzeba przetłumaczyć
+**Temat ze slajdów:** 9.1. Ujednolicenie interfejsów Adapterem; 9.2. Co adapter naprawdę musi przetłumaczyć
 **Namespace:** `Training.Workshop.M5.S14Adapter` · **Test:** `scripts/warsztat.sh --lang cs test m5/s14` (`S14EquivalenceTest`, `S14SolutionTest`)
 **Czas:** ~12 min
 
@@ -1365,7 +1365,7 @@ Stara bramka zwraca `status='ERROR'` przy błędnym XML. Jak to zamapować - na 
 
 ## Scena s15. Replace Conditional Dispatcher with Command - konsola kasjera
 
-**Temat ze slajdów:** 6.7. Command - rejestr i ograniczenia
+**Temat ze slajdów:** 6.6. Polecenie: łańcuch warunków zamieniony na rejestr poleceń
 **Namespace:** `Training.Workshop.M5.S15Command` · **Test:** `scripts/warsztat.sh --lang cs test m5/s15` (`S15EquivalenceTest`, `S15SolutionTest`)
 **Czas:** ~12 min
 
@@ -1462,7 +1462,7 @@ Jak dodalibyście `UNDO` dla ostatniej sprzedaży? Czego wymaga to od komend?
 
 ## Scena s16. Form Template Method - raporty CSV i HTML
 
-**Temat ze slajdów:** 7.1. Apply Template Method; 7.2. Template Method - sekwencja i ryzyka
+**Temat ze slajdów:** 7.1. Utworzenie Metody szablonowej: wspólny szkielet, różne kroki
 **Namespace:** `Training.Workshop.M5.S16TemplateMethod` · **Test:** `scripts/warsztat.sh --lang cs test m5/s16` (`S16EquivalenceTest`, `S16SolutionTest`)
 **Czas:** ~8 min
 
@@ -1531,7 +1531,7 @@ Raport PDF potrzebuje stronicowania co 30 wierszy. Czy to jeszcze Template Metho
 
 ## Scena s17. Limit Instantiation with Singleton - cennik
 
-**Temat ze slajdów:** 17.6. Limit Instantiation with Singleton; 2.4-2.5. Inline Singleton (kierunek odwrotny)
+**Temat ze slajdów:** 16.7. Ograniczenie liczby instancji Singletonem; 17.4. Wchłonięcie Singletona
 **Namespace:** `Training.Workshop.M5.S17Singleton` · **Test:** `scripts/warsztat.sh --lang cs test m5/s17` (`S17EquivalenceTest`, `S17SolutionTest`)
 **Czas:** ~10 min
 
@@ -1611,7 +1611,7 @@ Cennik ma się zmieniać o północy bez restartu. Co wtedy z singletonem?
 
 ## Scena s18. Move Accumulation to Collecting Parameter - ostrzeżenia walidacji
 
-**Temat ze slajdów:** 17.5. Collecting Parameter
+**Temat ze slajdów:** 16.6. Przeniesienie zbierania wyników do parametru zbierającego
 **Namespace:** `Training.Workshop.M5.S18CollectingParameter` · **Test:** `scripts/warsztat.sh --lang cs test m5/s18` (`S18EquivalenceTest`)
 **Czas:** ~8 min
 
@@ -1698,7 +1698,7 @@ Czy `Warnings` powinno pozwalać na poziomy (błąd kontra ostrzeżenie)? Jak to
 
 ## Scena s19. Visitor i macierz zmian - pozycje zamówienia
 
-**Temat ze slajdów:** 16.1. Visitor i macierz zmian; 16.2. Do i od Visitora
+**Temat ze slajdów:** 15.1. Odwiedzający i macierz zmian; 15.2. Odwiedzający albo hierarchia `sealed` i `switch`
 **Namespace:** `Training.Workshop.M5.S19Visitor` · **Test:** `scripts/warsztat.sh --lang cs test m5/s19` (`S19EquivalenceTest`, `S19SolutionTest`)
 **Czas:** ~12 min
 
@@ -1800,7 +1800,7 @@ Dochodzi pozycja "karta podarunkowa" i operacja "eksport do księgowości". Któ
 
 ## Scena s20. Mapa decyzji - jedna tabela, dwie struktury docelowe
 
-**Temat ze slajdów:** 1.2. Najpierw rodzaj zmienności; Mapa decyzji (1/3-3/3); Lista kontrolna
+**Temat ze slajdów:** 4.2. Najpierw rodzaj zmienności, potem wzorzec; 18.1. Mapa decyzji (1/2); 18.2. Mapa decyzji (2/2); 18.3. Lista kontrolna
 **Namespace:** `Training.Workshop.M5.S20DecisionMap` · **Test:** `scripts/warsztat.sh --lang cs test m5/s20` (`S20EquivalenceTest`, `S20SolutionTest`)
 **Czas:** ~12 min
 
@@ -1900,7 +1900,7 @@ Biznes zapowiada "IMAX we wtorek bez zniżki". Która ścieżka przyjmie to łat
 
 ## Scena s21. Wzorzec jako decyzja odwracalna - rozliczenie z dystrybutorem
 
-**Temat ze slajdów:** 2.1. Refaktoryzacja od wzorca; 2.2. Kierunki odwrotne; 1.4. Kiedy wzorzec się nie opłaca
+**Temat ze slajdów:** 17.5. Wzorzec jako decyzja odwracalna; 17.2. Refaktoryzacje, które usuwają wzorzec; 5.2. Kiedy wzorzec się nie opłaca
 **Namespace:** `Training.Workshop.M5.S21ReversiblePattern` · **Test:** `scripts/warsztat.sh --lang cs test m5/s21` (`S21EquivalenceTest`, `S21FestivalVariantTest`)
 **Czas:** ~12 min
 
@@ -1908,7 +1908,7 @@ Biznes zapowiada "IMAX we wtorek bez zniżki". Która ścieżka przyjmie to łat
 
 **Co robimy:** Rozliczenie z dystrybutorem ma dwa modele w jednym `switch`, w tym festiwalowy z obcego systemu w groszach. Wprowadzamy Strategy z Adapterem, a gdy umowy festiwalowe wygasają, usuwamy wariant i cały wzorzec.
 
-**Zasada:** Wzorzec to odpowiedź na konkretne siły (tu: dwa istniejące warianty i obcy interfejs), a nie kod do skopiowania. Strategy opłaca się dla rodziny wymiennych algorytmów, Adapter dla realnego tłumaczenia obcego modelu, a refaktoryzacja od wzorca jest równie poprawna jak do niego.
+**Zasada:** Wzorzec to odpowiedź na konkretne siły (tu: dwa istniejące warianty i obcy interfejs), a nie kod do skopiowania. Strategy opłaca się dla rodziny wymiennych algorytmów, Adapter dla realnego tłumaczenia obcego modelu, a usunięcie wzorca jest równie poprawną refaktoryzacją jak jego wprowadzenie.
 
 **Efekt:** Zachowanie świadomie się zmienia: umowy FESTIVAL są teraz odrzucane, a model procentowy liczy tak samo na każdym etapie. Zostaje prosta metoda bez interfejsu i słownika, którą w razie potrzeby rozbudujemy tymi samymi krokami w przód.
 
@@ -1956,10 +1956,10 @@ private readonly IReadOnlyDictionary<string, ISettlementModel> _models = new Dic
 ```
 
 **Uruchom:** test zielony; `AfterTheVariantIsGoneFestivalDealsAreRejected` - to świadoma zmiana zachowania, dlatego sprawdzana osobno, a nie testem równoważności.
-**Co powiedzieć:** zostaje Strategy z jedną implementacją i słownikiem z jednym wpisem - klasyczny sygnał nadmiaru wzorca ze slajdu 2.1.
+**Co powiedzieć:** zostaje Strategy z jedną implementacją i słownikiem z jednym wpisem - klasyczny sygnał nadmiaru wzorca ze slajdu 17.1.
 **Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s21 1 2`
 
-### Krok 3: Refaktoryzacja od wzorca
+### Krok 3: Usunięcie wzorca
 
 **W IDE:** ⌥⌘N (Inline Method) na `PercentageModel.Payout` w miejscu wywołania (albo ręcznie wklej ciało), usuń słownik, Safe Delete na `PercentageModel` i `ISettlementModel`. Przenieś stałą `MinimumGuarantee` do `DistributorSettlement` (F6 na stałej albo ręcznie).
 **Po:**
@@ -1975,7 +1975,7 @@ public decimal Payout(Deal deal, int week, decimal ticketRevenue)
 ```
 
 **Uruchom:** test zielony - model procentowy rozlicza się tak samo przed wzorcem, ze wzorcem i po jego usunięciu.
-**Co powiedzieć:** refaktoryzacja od wzorca jest równie poprawna jak do wzorca. Gdy wróci drugi model, przywrócimy Strategy tymi samymi krokami w przód.
+**Co powiedzieć:** usunięcie wzorca jest równie poprawną refaktoryzacją jak jego wprowadzenie. Gdy wróci drugi model, przywrócimy Strategy tymi samymi krokami w przód.
 **Snapshot:** `Step3/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m5/s21 2 3`
 
 ### Rozwiązanie i uzasadnienie
@@ -1994,7 +1994,7 @@ Który wzorzec w waszym kodzie przeżył powód, dla którego go wprowadzono? Co
 
 ## Scena s22. Remove Middle Man - fasada kina
 
-**Temat ze slajdów:** 2.3. Remove Middle Man; 2.2. Kierunki odwrotne
+**Temat ze slajdów:** 17.3. Usunięcie pośrednika; 17.2. Refaktoryzacje, które usuwają wzorzec
 **Namespace:** `Training.Workshop.M5.S22MiddleMan` · **Test:** `scripts/warsztat.sh --lang cs test m5/s22` (`S22EquivalenceTest`)
 **Czas:** ~8 min
 
@@ -2097,7 +2097,7 @@ Czy "nieznany seans = WYPRZEDANE" to błąd? Kiedy wolno go poprawić?
 
 ## Scena s23. Refaktoryzacja a zmiana kontraktu - zwrot na BigDecimal
 
-**Temat ze slajdów:** 3.1. Refaktoryzacja a zmiana kontraktu; 3.2. Co trzeba zachować przy wprowadzaniu wzorca; 5.1. Bezpieczna pętla pracy
+**Temat ze slajdów:** 5.3. Refaktoryzacja a zmiana kontraktu; 5.4. Co trzeba zachować przy wprowadzaniu wzorca; 3.10. Bezpieczna pętla refaktoryzacji do wzorca
 **Namespace:** `Training.Workshop.M5.S23ContractChange` · **Test:** `scripts/warsztat.sh --lang cs test m5/s23` (`S23ContractTest`)
 **Czas:** ~10 min
 
@@ -2188,7 +2188,7 @@ Kto zatwierdza zmianę kontraktu o 1 grosz: programista, księgowość czy klien
 
 ## Scena s24. Rename - nazwy, które żyją poza C#
 
-**Temat ze slajdów:** 4.1. Co daje IDE, a czego nie dowodzi; 4.2. Rename - mechanika i granice
+**Temat ze slajdów:** 3.6. Refaktoryzacje automatyczne w IDE: co dają, a czego nie widzą; 3.7. Zmiana nazwy i wyodrębnienie metody w drodze do wzorca
 **Namespace:** `Training.Workshop.M5.S24Rename` · **Test:** `scripts/warsztat.sh --lang cs test m5/s24` (`S24EquivalenceTest`, `S24RenameLimitsTest`)
 **Czas:** ~12 min
 
@@ -2299,7 +2299,7 @@ Jak w waszym systemie sprawdzić, czy nazwa klasy albo metody nie jest użyta w 
 
 ## Scena s25. Extract Method - przepływ danych i wiele wyjść
 
-**Temat ze slajdów:** 4.3. Extract Method - analiza przepływu danych; 4.4. Extract Method - mechanika i trudne przypadki
+**Temat ze slajdów:** 3.7. Zmiana nazwy i wyodrębnienie metody w drodze do wzorca
 **Namespace:** `Training.Workshop.M5.S25ExtractMethod` · **Test:** `scripts/warsztat.sh --lang cs test m5/s25` (`S25EquivalenceTest`)
 **Czas:** ~15 min
 
@@ -2395,7 +2395,7 @@ Kiedy zamiast Split Loop lepiej zwrócić record (albo nazwaną krotkę) z dwoma
 
 ## Scena s26. Strategy, Command i State w jednej klasie - pulpit kasjera
 
-**Temat ze slajdów:** 6.1. Kto wybiera wariant i kiedy?; 6.2. Punkt wyjścia: trzy osie w jednej klasie; 6.3. Po: jeden mechanizm na każdą oś; 6.8. Typowe pomyłki przy wyborze
+**Temat ze slajdów:** 6.1. Strategia, Polecenie czy Stan? Kto wybiera wariant i kiedy; 6.7. Trzy osie w jednej klasie: każda dostaje własny mechanizm; 6.8. Typowe pomyłki przy wyborze
 **Namespace:** `Training.Workshop.M5.S26Variability` · **Test:** `scripts/warsztat.sh --lang cs test m5/s26` (`S26EquivalenceTest`, `S26SolutionTest`)
 **Czas:** ~15 min
 
@@ -2529,7 +2529,7 @@ Kierownik chce zwrotu z potrąceniem 10% dla rezerwacji opłaconej, ale tylko w 
 
 ## Scena s27. Replace Inheritance with Delegation - raporty sprzedaży
 
-**Temat ze slajdów:** 7.3. Gdy haki niosą dwie osie; 7.4. Po: szkielet w klasie finalnej, osie jako strategie; 7.5. Replace Inheritance with Delegation; 7.6. Strategy czy Template Method?
+**Temat ze slajdów:** 7.2. Gdy punkty zaczepienia obejmują dwie niezależne osie; 7.3. Zastąpienie dziedziczenia delegacją: osie jako strategie; 7.4. Strategia czy Metoda szablonowa?
 **Namespace:** `Training.Workshop.M5.S27TemplateToStrategy` · **Test:** `scripts/warsztat.sh --lang cs test m5/s27` (`S27EquivalenceTest`, `S27SolutionTest`)
 **Czas:** ~12 min
 
@@ -2633,7 +2633,7 @@ Kiedy zostawilibyście Template Method mimo dwóch osi w hakach? Co musiałoby b
 
 ## Scena s28. Replace Conditional with Chain of Responsibility - zatwierdzanie zwrotów
 
-**Temat ze slajdów:** 8.3. Łańcuch `if/else` z ukrytą kolejnością; 8.4. Chain of Responsibility - ogniwo i złożenie; 8.5. Chain - sekwencja i ryzyka; 8.6. Chain of Responsibility czy Decorator?
+**Temat ze slajdów:** 8.3. Łańcuch `if/else`, w którym kolejność jest regułą; 8.4. Łańcuch zobowiązań: ogniwo i złożenie łańcucha; 8.5. Łańcuch zobowiązań czy Dekorator?
 **Namespace:** `Training.Workshop.M5.S28Chain` · **Test:** `scripts/warsztat.sh --lang cs test m5/s28` (`S28EquivalenceTest`, `S28SolutionTest`)
 **Czas:** ~12 min
 
@@ -2740,7 +2740,7 @@ public RefundApprover()
 ### Pułapki
 
 - Przestawienie ogniw "dla porządku" (kasjer przed AUTO) - 5000.00 trzy dni przed seansem przestaje być zwrotem automatycznym; wychwyci to przypadek "AUTO nie ma limitu kwoty".
-- Ogniwa z mutowalnym `next` (setter `Then(...)` jak na slajdzie 8.4) współdzielone między dwoma łańcuchami - drugie złożenie zmienia pierwsze. Tu `_next` jest `readonly`.
+- Ogniwa z mutowalnym `next` (setter `Then(...)`) współdzielone między dwoma łańcuchami - drugie złożenie zmienia pierwsze. Tu `_next` jest `readonly`.
 - Walidacja kwoty jako pierwsze ogniwo - łańcuch podany z zewnątrz mógłby ją pominąć.
 - Granica 24 h: `TotalHours` to ułamek godzin (Java `toHours()` obcina minuty, przy progu całkowitym wynik jest ten sam). Przepisanie na `.Hours >= 24` (składowa godzin, zawsze 0-23) albo zaokrąglanie łatwo zmienia wynik dla 23 h 59 min albo 3 dni - wychwyci to tabela granic.
 
@@ -2750,7 +2750,7 @@ Biznes chce logować każdą decyzję o zwrocie razem z tym, kto ją podjął. O
 
 ## Scena s29. Introduce Boundary Object - odpowiedź terminala płatniczego
 
-**Temat ze slajdów:** 9.3. Surowy ładunek w domenie; 9.4. Boundary Object: zwalidowany obraz na granicy; 9.5. Dane na granicy - decyzje; 9.6. Adapter czy Boundary Object?
+**Temat ze slajdów:** 9.3. Surowe dane z zewnątrz w kodzie domeny; 9.4. Obiekt graniczny: sprawdzone dane na granicy systemu; 9.5. Adapter czy obiekt graniczny?
 **Namespace:** `Training.Workshop.M5.S29BoundaryObject` · **Test:** `scripts/warsztat.sh --lang cs test m5/s29` (`S29EquivalenceTest`, `S29SolutionTest`)
 **Czas:** ~12 min
 
@@ -2857,7 +2857,7 @@ Terminal zaczyna zwracać nowy status `PENDING`. W którym miejscu kodu to zobac
 
 ## Scena s30. Extract Facade - zakup biletów w sklepie i w kasie
 
-**Temat ze slajdów:** 11.1. Klient orkiestruje podsystemy; 11.2. Po: fasada jako strażnik kolejności; 11.3. Facade - procedura i ryzyka; 3.4. Skutki strukturalne wzorców
+**Temat ze slajdów:** 11.1. Klienci sami koordynują podsystemy; 11.2. Wyodrębnienie Fasady: jedna operacja zamiast znajomości kroków
 **Namespace:** `Training.Workshop.M5.S30Facade` · **Test:** `scripts/warsztat.sh --lang cs test m5/s30` (`S30BehaviourChangeTest`, `S30EquivalenceTest`, `S30SolutionTest`)
 **Czas:** ~12 min
 
@@ -2969,7 +2969,7 @@ Kasa chce sprzedawać bilety bez maila, gdy klient nie poda adresu. Parametr fas
 
 ## Scena s31. Anti-Corruption Layer - licencje dystrybutora
 
-**Temat ze slajdów:** 12.1. Obcy model w regułach domeny; 12.2. ACL: port domenowy i tłumacz; 12.3. Facade a Anti-Corruption Layer; 12.4. ACL - ryzyka i Strangler Fig
+**Temat ze slajdów:** 11.3. Obcy model w regułach domeny; 11.4. Warstwa antykorupcyjna: port, tłumacz i model domenowy; 11.5. Fasada a warstwa antykorupcyjna
 **Namespace:** `Training.Workshop.M5.S31AntiCorruptionLayer` · **Test:** `scripts/warsztat.sh --lang cs test m5/s31` (`S31EquivalenceTest`, `S31SolutionTest`)
 **Czas:** ~12 min
 
@@ -3080,7 +3080,7 @@ Dystrybutor dodaje status `T` (licencja tylko na pokazy prasowe). Gdzie pojawi s
 
 ## Scena s32. Introduce Mediator - ekran wyboru miejsc
 
-**Temat ze slajdów:** 15.1. Komponenty połączone każdy z każdym; 15.2. Po: reguły współpracy w jednym miejscu; 15.3. Mediator - procedura i ryzyka; 15.4. Observer czy Mediator?
+**Temat ze slajdów:** 14.1. Komponenty połączone każdy z każdym; 14.2. Wprowadzenie Mediatora: reguły współpracy w jednym miejscu; 14.3. Obserwator czy Mediator?
 **Namespace:** `Training.Workshop.M5.S32Mediator` · **Test:** `scripts/warsztat.sh --lang cs test m5/s32` (`S32EquivalenceTest`, `S32SolutionTest`)
 **Czas:** ~12 min
 

@@ -1,6 +1,6 @@
 # Moduł 5. Refaktoryzacja do wzorców - warsztat CineLegacy (TypeScript): zadania
 
-Każda scena to mały fragment systemu kina CineLegacy z zapachem, który prowadzi do wzorca projektowego (albo od wzorca, gdy przestał być potrzebny). Pracujesz w katalogu `start` danej sceny, np. `typescript/src/workshop/m5/s08_state/start`. Test sceny (vitest, `typescript/test/workshop/m5/sNN_.../`) przechodzi przez `start` i gotowe snapshoty `stepN` - Twoja wersja jest poprawna, gdy test jest zielony, a kod spełnia warunek projektowy z zadania.
+Każda scena to mały fragment systemu kina CineLegacy z zapachem, który prowadzi do wzorca projektowego (albo do usunięcia wzorca, gdy przestał być potrzebny). Pracujesz w katalogu `start` danej sceny, np. `typescript/src/workshop/m5/s08_state/start`. Test sceny (vitest, `typescript/test/workshop/m5/sNN_.../`) przechodzi przez `start` i gotowe snapshoty `stepN` - Twoja wersja jest poprawna, gdy test jest zielony, a kod spełnia warunek projektowy z zadania.
 
 Zasady pracy:
 
@@ -300,7 +300,7 @@ scripts/warsztat.sh --lang ts reset m5/s08     # przywrócenie start do wersji z
 
 **Katalog:** `typescript/src/workshop/m5/s21_reversiblepattern/start` · **Test:** `scripts/warsztat.sh --lang ts test m5/s21`
 
-**Zasada:** Wzorzec projektowy to odpowiedź na konkretne siły, a nie kod na zapas - gdy siły znikają, wzorzec można usunąć. Refaktoryzacja od wzorca jest równie poprawna jak do wzorca.
+**Zasada:** Wzorzec projektowy to odpowiedź na konkretne siły, a nie kod na zapas - gdy siły znikają, wzorzec można usunąć. Usunięcie wzorca jest równie poprawną refaktoryzacją jak jego wprowadzenie.
 
 **Zadanie:**
 1. Wprowadź Strategy dla dwóch istniejących modeli rozliczeń; dla modelu festiwalowego napisz Adapter do `FestivalTariffClient`.
