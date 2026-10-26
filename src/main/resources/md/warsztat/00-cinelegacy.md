@@ -1,4 +1,4 @@
-# Warsztat CineLegacy - praktyczne sceny do modułów 2, 3 i 5
+# Warsztat CineLegacy: sceny do prezentacji „Refaktoryzacja do wzorców”
 
 CineLegacy to wymyślony, stary system kina. Obsługuje seanse, sale, miejsca, bilety, zniżki, rezerwacje, płatności, powiadomienia, raporty i rozliczenia z dystrybutorem. Na jego kodzie pokazujemy na żywo techniki ze slajdów, pogrupowane w trzy moduły warsztatu: 2 (Prewencja), 3 (Testowanie a bezpieczeństwo) i 5 (Refaktoryzacja do wzorców). Każdy temat ze slajdów ma swoją krótką **scenę**: kod wyjściowy, kolejne kroki, gotowe snapshoty i testy.
 
@@ -81,9 +81,9 @@ Filmy w przykładach: "Diuna" (IMAX, wieczór), "Kraina Lodu" (3D, rano), "Amato
 
 ## Stary system i golden master
 
-`legacy/CinemaManager` to "serce" starego systemu. Ma kody `int` i `String`, tablice `Object[]` jako rekordy, statyczną "bazę", maile wysyłane z logiki biznesowej, `double` na pieniądze i zagnieżdżone warunki. Z niego wycięto większość scen. Ten sam kod jest też materiałem ćwiczenia końcowego (moduł 6. Podsumowanie).
+`legacy/CinemaManager` to "serce" starego systemu. Ma kody `int` i `String`, tablice `Object[]` jako rekordy, statyczną "bazę", maile wysyłane z logiki biznesowej, `double` na pieniądze i zagnieżdżone warunki. Z niego wycięto większość scen. Ten sam kod nadaje się też na ćwiczenie końcowe: uczestnicy refaktoryzują wybrany fragment `CinemaManager` pod ochroną testu z wynikiem wzorcowym.
 
-`CinemaManagerGoldenMasterTest` odtwarza "jeden dzień kina" i porównuje pełny wektor zachowania z plikiem `src/test/resources/workshop/cinema-manager.approved.txt`. Wektor obejmuje wyniki wywołań, maile, SMS-y, obciążenia i zwroty na bramce płatności, raport dzienny i rozliczenia. Warto go pokazać w module 3 ("Jak poradzić sobie bez testów?") jako punkt odniesienia dla całego warsztatu.
+`CinemaManagerGoldenMasterTest` odtwarza "jeden dzień kina" i porównuje pełny wektor zachowania z plikiem `src/test/resources/workshop/cinema-manager.approved.txt`. Wektor obejmuje wyniki wywołań, maile, SMS-y, obciążenia i zwroty na bramce płatności, raport dzienny i rozliczenia. Warto go pokazać przy części III prezentacji („Siatka bezpieczeństwa”, slajd 3.2 o wyniku wzorcowym) jako punkt odniesienia dla całego warsztatu.
 
 ```bash
 mvn -q test -Dtest=CinemaManagerGoldenMasterTest

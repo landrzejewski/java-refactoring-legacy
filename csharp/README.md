@@ -30,7 +30,7 @@ dotnet test
 
 ## Warsztat CineLegacy (sceny m2, m3 i m5)
 
-Stary system kina (`Legacy/CinemaManager`) i krótkie sceny do pokazu na żywo: `m2` (s01-s10), `m3` (s01-s05) i `m5` (s01-s25).
+Stary system kina (`Legacy/CinemaManager`) i krótkie sceny do pokazu na żywo: `m2` (s01-s10), `m3` (s01-s05) i `m5` (s01-s32).
 
 | Java | C# | Testy |
 |---|---|---|

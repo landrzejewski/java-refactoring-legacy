@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Warsztat CineLegacy (TypeScript) - praktyczne sceny do modułów 2, 3 i 5 (TypeScript)</title>
+<title>Warsztat CineLegacy (TypeScript): sceny do prezentacji „Refaktoryzacja do wzorców” (TypeScript)</title>
 <style>:root{--bg:#fbfbfa;--fg:#1d1f23;--muted:#5f6670;--line:#e3e5e8;--card:#ffffff;--accent:#2457c5;--accent-bg:#eef3fd;
 --code-bg:#f4f5f7;--note-bg:#fff7e6;--note-line:#e6a700;--th:#f1f3f6;
 --k:#b3246b;--s:#1a7f37;--c:#6e7781;--n:#0550ae;--t:#8250df;--f:#6639ba;--a:#953800;
@@ -81,7 +81,7 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <div class="layout">
 <aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#jak-zbudowana-jest-scena">Jak zbudowana jest scena</a></li><li class="h2"><a href="#narzedzie-prowadzacego-scriptswarsztatsh">Narzędzie prowadzącego: scripts/warsztat.sh</a></li><li class="h2"><a href="#reguly-biznesowe-cinelegacy">Reguły biznesowe CineLegacy</a></li><li class="h2"><a href="#stary-system-i-golden-master">Stary system i golden master</a></li><li class="h2"><a href="#materialy">Materiały</a></li><li class="h2"><a href="#macierz-pokrycia-tematow">Macierz pokrycia tematów</a></li><li class="h3"><a href="#modul-2-prewencja">Moduł 2. Prewencja</a></li><li class="h3"><a href="#modul-3-testowanie-a-bezpieczenstwo">Moduł 3. Testowanie a bezpieczeństwo</a></li><li class="h3"><a href="#modul-5-refaktoryzacja-do-wzorcow">Moduł 5. Refaktoryzacja do wzorców</a></li></ul></details></nav></aside>
 <main>
-<h1>Warsztat CineLegacy (TypeScript) - praktyczne sceny do modułów 2, 3 i 5</h1>
+<h1>Warsztat CineLegacy (TypeScript): sceny do prezentacji „Refaktoryzacja do wzorców”</h1>
 <p>CineLegacy to wymyślony, stary system kina. Obsługuje seanse, sale, miejsca, bilety, zniżki, rezerwacje, płatności, powiadomienia, raporty i rozliczenia z dystrybutorem. Na jego kodzie pokazujemy na żywo techniki ze slajdów, pogrupowane w trzy moduły warsztatu: 2 (Prewencja), 3 (Testowanie a bezpieczeństwo) i 5 (Refaktoryzacja do wzorców). Każdy temat ze slajdów ma swoją krótką <strong>scenę</strong>: kod wyjściowy, kolejne kroki, gotowe snapshoty i testy.</p>
 <p>Warsztat uzupełnia slajdy o jak najwięcej małych, uruchamialnych demonstracji: slajd wyjaśnia ideę, a scena pokazuje ją krok po kroku na kodzie.</p>
 <p>Warsztat ma trzy wersje o tych samych scenach i krokach: <a href="../warsztat/00-cinelegacy.html">Java</a>, <a href="../warsztat-csharp/00-cinelegacy.html">C#</a> i TypeScript (ta strona). Skrypt prowadzącego wybiera wersję opcją <code>--lang java|cs|ts</code>.</p>
@@ -196,8 +196,8 @@ scripts/warsztat.sh html            <span class="hljs-comment"># wygeneruj stron
 </table></div>
 <p>Filmy w przykładach: &quot;Diuna&quot; (IMAX, wieczór), &quot;Kraina Lodu&quot; (3D, rano), &quot;Amator&quot; (2D).</p>
 <h2 id="stary-system-i-golden-master" tabindex="-1"><a class="header-anchor" href="#stary-system-i-golden-master"><span>Stary system i golden master</span></a></h2>
-<p><code>legacy/<wbr>CinemaManager</code> to &quot;serce&quot; starego systemu. Ma kody liczbowe i tekstowe, tablice <code>unknown[]</code> jako rekordy, statyczną &quot;bazę&quot;, maile wysyłane z logiki biznesowej, <code>number</code> na pieniądze i zagnieżdżone warunki. Z niego wycięto większość scen. Ten sam kod jest też materiałem ćwiczenia końcowego (moduł 6. Podsumowanie).</p>
-<p><code>CinemaManagerGoldenMasterTest</code> odtwarza &quot;jeden dzień kina&quot; i porównuje pełny wektor zachowania z plikiem <code>src/<wbr>test/<wbr>resources/<wbr>workshop/<wbr>cinema-manager.approved.txt</code>. Wektor obejmuje wyniki wywołań, maile, SMS-y, obciążenia i zwroty na bramce płatności, raport dzienny i rozliczenia. Warto go pokazać w module 3 (&quot;Jak poradzić sobie bez testów?&quot;) jako punkt odniesienia dla całego warsztatu. Plik zatwierdzonego wyniku jest wspólny dla Javy, C# i TypeScript - wszystkie trzy wersje starego systemu dają identyczny wektor zachowania.</p>
+<p><code>legacy/<wbr>CinemaManager</code> to &quot;serce&quot; starego systemu. Ma kody liczbowe i tekstowe, tablice <code>unknown[]</code> jako rekordy, statyczną &quot;bazę&quot;, maile wysyłane z logiki biznesowej, <code>number</code> na pieniądze i zagnieżdżone warunki. Z niego wycięto większość scen. Ten sam kod nadaje się też na ćwiczenie końcowe: uczestnicy refaktoryzują wybrany fragment <code>CinemaManager</code> pod ochroną testu z wynikiem wzorcowym.</p>
+<p><code>CinemaManagerGoldenMasterTest</code> odtwarza &quot;jeden dzień kina&quot; i porównuje pełny wektor zachowania z plikiem <code>src/<wbr>test/<wbr>resources/<wbr>workshop/<wbr>cinema-manager.approved.txt</code>. Wektor obejmuje wyniki wywołań, maile, SMS-y, obciążenia i zwroty na bramce płatności, raport dzienny i rozliczenia. Warto go pokazać przy części III prezentacji („Siatka bezpieczeństwa”, slajd 3.2 o wyniku wzorcowym) jako punkt odniesienia dla całego warsztatu. Plik zatwierdzonego wyniku jest wspólny dla Javy, C# i TypeScript - wszystkie trzy wersje starego systemu dają identyczny wektor zachowania.</p>
 <pre class="code" data-lang="bash"><code class="hljs"><span class="hljs-built_in">cd</span> typescript &amp;&amp; npx vitest run <span class="hljs-built_in">test</span>/workshop/legacy
 </code></pre>
 <h2 id="materialy" tabindex="-1"><a class="header-anchor" href="#materialy"><span>Materiały</span></a></h2>

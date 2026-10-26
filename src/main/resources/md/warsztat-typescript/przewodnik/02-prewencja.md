@@ -1,8 +1,8 @@
 # Moduł 2. Prewencja - warsztat CineLegacy (TypeScript): przewodnik prowadzącego
 
-Dziesięć małych scen w domenie kina CineLegacy pokazuje prewencję z modułu 2 jako serie bezpiecznych zmian: bramki kompilatora i jakości jako najszybsze pętle informacji zwrotnej, odraczanie decyzji (YAGNI) i ich zapis (ADR z wykonywalną regułą), projekt jako hamulec degradacji (SRP, DIP, granice Clean Architecture, automatyczna kontrola granicy) oraz prewencję w codziennej pracy (Boy Scout Rule, seria zmian gotowych do przeglądu). Każda scena ma kod wyjściowy (`start`) z zapachem lub pułapką i kompletne snapshoty po każdym kroku (`step1`, `step2`, ...). Prowadzący pracuje na żywo w `start`, po każdym kroku uruchamia test sceny i porównuje wynik ze snapshotem.
+Dziesięć małych scen w domenie kina CineLegacy pokazuje tematy z części II prezentacji („Zanim wprowadzisz wzorzec”) jako serie bezpiecznych zmian: bramki kompilatora i jakości jako najszybsze pętle informacji zwrotnej, odraczanie decyzji (YAGNI) i ich zapis (ADR z regułą sprawdzaną przez test), projekt, który hamuje degradację kodu (zasada pojedynczej odpowiedzialności, zasada odwrócenia zależności, granice czystej architektury, automatyczna kontrola granicy) oraz codzienną dbałość o kod (zasada harcerza, seria zmian gotowych do przeglądu). Każda scena ma kod wyjściowy (`start`) z zapachem lub pułapką i kompletne snapshoty po każdym kroku (`step1`, `step2`, ...). Prowadzący pracuje na żywo w `start`, po każdym kroku uruchamia test sceny i porównuje wynik ze snapshotem.
 
-Sceny ilustrują sekcję 2 slajdów ("Zanim wprowadzisz wzorzec"): każdy temat ma własną, kilkuminutową scenę. Sceny są pokazami prowadzącego do wyboru - nie trzeba pokazywać wszystkich. Numery scen odpowiadają katalogom w kodzie; poniżej są ułożone w kolejności tematów modułu.
+Sceny ilustrują sekcję 2 slajdów ("Zanim wprowadzisz wzorzec"): każdy temat ma własną, kilkuminutową scenę. Sceny są pokazami prowadzącego do wyboru - nie trzeba pokazywać wszystkich. Numery scen odpowiadają katalogom w kodzie i w tej kolejności sceny są opisane poniżej. Kolejność pokazu, zgodną z kolejnością slajdów, podaje sekcja „Proponowana kolejność pokazu” na końcu.
 
 Port TypeScript: kod scen leży w `typescript/src/workshop/m2/sNN_.../{start,step1,...}`, testy vitest w `typescript/test/workshop/m2/sNN_.../`, a pokaz prowadzimy w VS Code. Kwoty to `Decimal` z biblioteki decimal.js (odpowiednik `BigDecimal`) albo `Money` z `typescript/src/workshop/shared/Money.ts`. `Decimal` nie pamięta skali, więc tam, gdzie Java drukuje kwotę przez `toString()`, port drukuje `toFixed(2)`. Rekordy Javy to klasy z polami `readonly` w konstruktorze, a statyczne metody klas-punktów wejścia to funkcje modułu. Największe adaptacje dotyczą scen narzędziowych: bramka kompilatora (s03) i bramka jakości (s04) korzystają z API kompilatora TypeScript (pakiet `typescript-api`), a bramka jakości także z zestawów przypadków testowych ładowanych jako moduły. Tam, gdzie scena odbiega od Javy, akapit **Różnica względem Javy** mówi, co i dlaczego wygląda inaczej.
 
@@ -37,18 +37,187 @@ scripts/warsztat.sh --lang ts reset m2/s09         # przywrócenie start z repoz
 
 | Scena | Temat ze slajdów | Kroki | Katalog | Czas |
 | --- | --- | --- | --- | --- |
-| s03 | 2.1. Małe kroki i szybka informacja zwrotna; 2.2. Bramki jakości w starym kodzie: stan bazowy i zapadka | 3 | `m2/s03_compilergate` | ~10 min |
-| s04 | 2.2. Bramki jakości w starym kodzie: stan bazowy i zapadka | 4 | `m2/s04_qualitygate` | ~12 min |
 | s01 | 2.3. YAGNI: buduj dla dzisiejszej potrzeby; 2.4. Pięć pytań przed dodaniem abstrakcji | 3 | `m2/s01_yagni` | ~12 min |
 | s02 | 2.5. ADR: zapisz decyzję, a najlepiej ją sprawdzaj | 2 | `m2/s02_adr` | ~10 min |
+| s03 | 2.1. Małe kroki i szybka informacja zwrotna; 2.2. Bramki jakości w starym kodzie: stan bazowy i zapadka | 3 | `m2/s03_compilergate` | ~10 min |
+| s04 | 2.2. Bramki jakości w starym kodzie: stan bazowy i zapadka | 4 | `m2/s04_qualitygate` | ~12 min |
+| s05 | 2.9. Zasada harcerza i małe porcje zmian | 2 | `m2/s05_boyscout` | ~8 min |
+| s06 | 2.9. Zasada harcerza i małe porcje zmian | 3 | `m2/s06_reviewableseries` | ~10 min |
 | s07 | 2.6. Zasada pojedynczej odpowiedzialności: jeden aktor, jeden powód zmiany | 3 | `m2/s07_srp` | ~12 min |
 | s08 | 2.7. Zasada odwrócenia zależności: liczy się kierunek importów; 2.8. Reguła zależności, porty i korzeń kompozycji | 3 | `m2/s08_dip` | ~12 min |
 | s09 | 2.8. Reguła zależności, porty i korzeń kompozycji | 4 | `m2/s09_cleanarchitecture` | ~18 min |
 | s10 | 2.8. Reguła zależności, porty i korzeń kompozycji (sprawdzana automatycznie) | 2 | `m2/s10_boundarycheck` | ~12 min |
-| s05 | 2.9. Zasada harcerza i małe porcje zmian | 2 | `m2/s05_boyscout` | ~8 min |
-| s06 | 2.9. Zasada harcerza i małe porcje zmian | 3 | `m2/s06_reviewableseries` | ~10 min |
 
 Katalogi są względne wobec `typescript/src/workshop/`, testy leżą w odpowiednim katalogu pod `typescript/test/workshop/`.
+
+## Scena s01. YAGNI - silnik reguł dla dwóch reguł
+
+**Temat ze slajdów:** 2.3. YAGNI: buduj dla dzisiejszej potrzeby; 2.4. Pięć pytań przed dodaniem abstrakcji
+**Katalog:** `typescript/src/workshop/m2/s01_yagni` · **Test:** `scripts/warsztat.sh --lang ts test m2/s01` (`S01EquivalenceTest.test.ts`)
+**Czas:** ~12 min
+
+### W skrócie
+
+**Co robimy:** `TicketPricer` to silnik z rejestrem pluginów, konfiguracją napisem i kontekstem `Map` - dla dokładnie dwóch reguł. W trzech krokach usuwamy rejestr, zastępujemy mapę typowanymi danymi i wklejamy reguły do jednej klasy.
+
+**Zasada:** YAGNI mówi, żeby nie budować zdolności potrzebnej tylko dla przewidywanego wymagania. Nie zabrania testów, refaktoryzacji ani nazwanych metod - to one pozwalają bezpiecznie odłożyć abstrakcję do chwili, gdy pojawi się realna potrzeba. To praktyczna wersja ostatniego odpowiedzialnego momentu: decyzję o mechanizmie rozszerzeń odkładamy, dopóki nie znamy jego kształtu, a usunięcie spekulacji jest drzwiami dwukierunkowymi.
+
+**Efekt:** Z pięciu typów zostaje jedna klasa z dwiema nazwanymi regułami, a literówka w nazwie reguły nie skompiluje się. Gdy przyjdzie trzecia reguła z innym właścicielem, abstrakcję trzeba będzie wprowadzić ponownie.
+
+**Różnica względem Javy:** kontekst `Map<String, Object>` to `ReadonlyMap<string, unknown>` z rzutowaniami `as LocalTime` / `as number` - te same "rzutowania z mapy", które znikają w kroku 2. Dwa konstruktory `TicketPricer` z Javy to jeden konstruktor z parametrami domyślnymi, a `Supplier<PricingRule>` to funkcja `() => PricingRule`.
+
+### Co widzimy
+
+`TicketPricer` to spekulatywny silnik: rejestr pluginów, konfiguracja napisem `'morning,vip'`, priorytety i kontekst `Map<string, unknown>`. Obsługuje dokładnie dwie reguły (poranek -5.00, VIP +10.00), które nie zależą od kolejności.
+
+```typescript
+const context = new Map<string, unknown>();
+context.set('start', quote.start);
+context.set('row', quote.row);
+...
+for (const rule of this.registry.resolve(this.activeRules)) {
+  if (rule.appliesTo(context)) {
+    price = rule.apply(context, price);
+  }
+}
+```
+
+Na żywo: zmień w konstruktorze wartość domyślną `'morning,vip'` na `'morning,vlp'` i uruchom test - błąd konfiguracji wychodzi dopiero w runtime (`IllegalArgumentError: brak reguly: vlp`). Cofnij zmianę.
+
+### Krok 1: Inline Class - rejestr pluginów znika
+
+**W IDE:** w `TicketPricer` zastąp parametry konstruktora `registry` i `activeRules` polem z listą `Object.freeze([new MorningRule(), new VipRule()])` (ręcznie, konstruktor usuń). Usuń `RuleRegistry.ts` i metodę `priority()` z interfejsu i obu reguł (była potrzebna tylko do sortowania) - przed usunięciem sprawdź ⇧⌥F12.
+**Po:**
+
+```typescript
+private readonly rules: readonly PricingRule[] = Object.freeze([new MorningRule(), new VipRule()]);
+```
+
+**Uruchom:** `scripts/warsztat.sh --lang ts test m2/s01` - 16 testów zielonych.
+**Co powiedzieć:** konfiguracja napisem nie miała żadnego klienta. Teraz literówka w nazwie reguły nie skompiluje się.
+**Snapshot:** `step1/` · **Różnica:** `scripts/warsztat.sh --lang ts diff m2/s01 0 1`
+
+### Krok 2: Change Signature - typowane dane zamiast mapy
+
+**W IDE:** ręcznie (VS Code nie ma Change Signature): w `PricingRule.appliesTo` zmień typ parametru z `ReadonlyMap<string, unknown>` na `TicketQuote`, z `apply` usuń parametr kontekstu. Kompilator wskaże obie implementacje i wywołania - popraw je (rzutowania znikają) i usuń budowanie mapy w `TicketPricer`.
+**Po:**
+
+```typescript
+appliesTo(quote: TicketQuote): boolean {
+  return quote.row >= quote.vipFromRow;
+}
+```
+
+**Uruchom:** test zielony.
+**Co powiedzieć:** generyczny kontekst to typowa spekulacja "reguła może potrzebować czegokolwiek". Kompilator znów pilnuje nazw pól.
+**Snapshot:** `step2/` · **Różnica:** `scripts/warsztat.sh --lang ts diff m2/s01 1 2`
+
+### Krok 3: Inline Class dla reguł, usunięcie interfejsu
+
+**W IDE:** ręcznie: dwa `if` w `price` z metodami `isMorning` i `isVip` (ciała z `appliesTo` obu reguł, ⌃⇧R > Extract to method in class). Usuń `MorningRule.ts`, `VipRule.ts` i `PricingRule.ts`. Stałe przez ⌃⇧R > Extract to constant (pola `private static readonly`).
+**Po:**
+
+```typescript
+price(quote: TicketQuote): Decimal {
+  let price = this.basePrice(quote.format);
+  if (this.isMorning(quote)) {
+    price = price.minus(TicketPricer.MORNING_DISCOUNT);
+  }
+  if (this.isVip(quote)) {
+    price = price.plus(TicketPricer.VIP_SURCHARGE);
+  }
+  return price;
+}
+```
+
+**Uruchom:** test zielony.
+**Co powiedzieć:** YAGNI nie zabrania testów, nazwanych metod ani szwu testowego - cena liczona jest z danych wejściowych, bez zegara i stanu statycznego, więc każdą regułę łatwo sprawdzić. Gdy pojawi się trzecia reguła z innym właścicielem, wydzielimy abstrakcję wtedy.
+**Snapshot:** `step3/` · **Różnica:** `scripts/warsztat.sh --lang ts diff m2/s01 2 3`
+
+### Rozwiązanie i uzasadnienie
+
+Przejdź z salą pięć pytań ze slajdu 2.4: aktualne wymaganie (2 reguły), nazwa w języku problemu (brak: "plugin", "registry"), czy upraszcza aktualny przypadek (nie), koszt usunięcia (niski - pokazaliśmy). Z pięciu typów została jedna klasa.
+
+### Pułapki
+
+- "YAGNI, więc bez testów" - odwrotnie: testy i małe kroki pozwalają bezpiecznie odraczać decyzje.
+- Usunięcie abstrakcji, która chroni aktualną, realną granicę (np. port do bazy) - to nie spekulacja.
+
+### Pytanie do sali
+
+Który mechanizm rozszerzeń w waszym systemie ma dziś jedną albo dwie implementacje? Jaki sygnał powiedziałby, że czas go wprowadzić ponownie?
+
+## Scena s02. ADR i wykonywalny model decyzji
+
+**Temat ze slajdów:** 2.5. ADR: zapisz decyzję, a najlepiej ją sprawdzaj
+**Katalog:** `typescript/src/workshop/m2/s02_adr` · **Test:** `scripts/warsztat.sh --lang ts test m2/s02` (`S02EquivalenceTest.test.ts`, `S02SolutionTest.test.ts`)
+**Czas:** ~10 min
+
+### W skrócie
+
+**Co robimy:** ADR-0007 mówi, że cennik nie zależy od `notification` i nie trzyma kwot w `number`, a cennik w `start` sam wysyła mail o rabacie grupowym i liczy w `number`. Cennik zaczyna zwracać `Quote` z informacją o rabacie, mail wysyła `BookingService`, a kwoty przechodzą na `Money`.
+
+**Zasada:** ADR zapisuje decyzję o trwałym wpływie: kontekst, opcje, decyzję i konsekwencje - to dokument historyczny, którego się nie edytuje, tylko zastępuje nowym. Regułę z ADR warto uczynić wykonywalną, żeby build pilnował jej na co dzień. Nie pisze się ADR dla każdego Rename.
+
+**Efekt:** `ArchitectureRules` zwraca pustą listę naruszeń, a maile i odpowiedzi są takie same jak przed zmianą. Reguła tekstowa ma swoje granice (dynamiczny `import()`, re-eksport z innego katalogu albo kwota w `number` pod inną nazwą ją ominą) i ADR opisuje to w konsekwencjach.
+
+**Różnica względem Javy:** reguły działają na tekście plików `.ts`. R1 zakazuje linii `import ... '.../notification/...'` w katalogu `pricing`. R2 w Javie szuka słowa `double`; w TypeScripcie `number` jest też typem liczby sztuk, która w kroku 2 zostaje, więc reguła zakazuje adnotacji `number` przy nazwie kwoty (`total`, `sum`, `price`, `amount`, `unitPrice`). ADR mówi o "katalogu" zamiast "pakietu" i o pakiecie npm (workspace) zamiast modułu Maven. Enum reguł z polami (`ArchitectureRules.Rule`) to klasa `Rule` ze statycznymi instancjami i metodą `values()`. Naruszenie R1 w starcie wskazuje `TicketPricing.ts:1` (w Javie `:3`, bo import stoi pod linią `package`).
+
+### Co widzimy
+
+Obok kodu sceny leży `ADR-0007-cennik-jako-czysty-modul.md` (status: Zaakceptowana) z dwiema regułami: **R1** katalog `pricing` nie zależy od katalogu `notification`, **R2** `pricing` nie używa `number` do kwot. `ArchitectureRules` to wykonywalny model tych reguł. W `start` cennik sam wysyła mail o rabacie grupowym i liczy w `number`:
+
+```typescript
+import type { GroupMailer } from '../notification/GroupMailer.js';
+...
+total(organizer: string, tickets: number, unitPrice: number): number {
+  ...
+  this.mailer.groupDiscountGranted(organizer, tickets);
+```
+
+### Krok 1: spełnienie R1 - wynik zamiast efektu
+
+**W IDE:** nowa klasa `Quote` (`readonly total: number`, `readonly groupDiscount: boolean`) w `pricing`; ręcznie zmieniamy sygnaturę `total` - bez `organizer`, zwraca `Quote` (Change Signature w VS Code nie ma, wywołania wskaże `npm run typecheck`). Wywołanie `mailer` przenieś do `BookingService` (warstwa aplikacji). Usuń import `notification` z cennika.
+**Po:**
+
+```typescript
+const quote = this.pricing.total(tickets, unitPrice);
+if (quote.groupDiscount) {
+  this.mailer.groupDiscountGranted(organizer, tickets);
+}
+```
+
+**Uruchom:** test zielony; `step1RemovesDependencyOnNotification` - zostało tylko naruszenie `ADR-0007/R2`.
+**Co powiedzieć:** naruszenie w teście prowadzi wprost do identyfikatora decyzji i jej uzasadnienia.
+**Snapshot:** `step1/` · **Różnica:** `scripts/warsztat.sh --lang ts diff m2/s02 0 1`
+
+### Krok 2: spełnienie R2 - Money
+
+**W IDE:** VS Code nie ma Type Migration: zmieniamy ręcznie typ `number` → `Money` w `Quote.total` i parametrze `unitPrice` w `TicketPricing`, a `npm run typecheck` prowadzi przez kolejne miejsca. Nazwane stałe dla progu i procentu grupy; `BookingService` podaje cenę jednostkową jako `Money.of('25.00')` (metoda `unitPrice(format)`).
+**Po:**
+
+```typescript
+total(tickets: number, unitPrice: Money): Quote {
+  let sum = unitPrice.times(tickets);
+```
+
+**Uruchom:** test zielony; `step2CompliesWithTheDecision` - pusta lista naruszeń.
+**Co powiedzieć:** moduł jest zgodny z decyzją, a test pilnuje, żeby tak zostało.
+**Snapshot:** `step2/` · **Różnica:** `scripts/warsztat.sh --lang ts diff m2/s02 1 2`
+
+### Rozwiązanie i uzasadnienie
+
+ADR opisuje kontekst, opcje i konsekwencje (historia), a `ArchitectureRules` sprawdza regułę w każdym buildzie. `adrDocumentsEveryExecutableRule` pilnuje, żeby każda reguła w kodzie miała opis w ADR.
+
+### Pułapki
+
+- ADR dla każdego Rename - dokumentuje się decyzje o trwałym wpływie.
+- Edycja zaakceptowanego ADR zamiast nowego zapisu, który go zastępuje.
+- Reguła tekstowa ma granice: dynamiczny `import()`, re-eksport z innego katalogu albo kwota w `number` pod inną nazwą ją ominą (opisane w "Konsekwencjach").
+
+### Pytanie do sali
+
+Co zrobić, gdy zespół chce złamać R2 dla jednego przypadku (np. statystyk)? Wyjątek w teście czy nowy ADR?
 
 ## Scena s03. Bramka kompilatora - opcje strict i ostrzeżenia jako błędy
 
@@ -247,174 +416,162 @@ Bramka łączy kilka niezależnych sygnałów. `S04EquivalenceTest` pilnuje drug
 
 Które z tych czterech sprawdzeń uruchomilibyście lokalnie przed commitem, a które tylko w CI?
 
-## Scena s01. YAGNI - silnik reguł dla dwóch reguł
+## Scena s05. Boy Scout Rule - mała poprawa i jej nadużycie
 
-**Temat ze slajdów:** 2.3. YAGNI: buduj dla dzisiejszej potrzeby; 2.4. Pięć pytań przed dodaniem abstrakcji
-**Katalog:** `typescript/src/workshop/m2/s01_yagni` · **Test:** `scripts/warsztat.sh --lang ts test m2/s01` (`S01EquivalenceTest.test.ts`)
-**Czas:** ~12 min
+**Temat ze slajdów:** 2.9. Zasada harcerza i małe porcje zmian
+**Katalog:** `typescript/src/workshop/m2/s05_boyscout` · **Test:** `scripts/warsztat.sh --lang ts test m2/s05` (`S05EquivalenceTest.test.ts`, `S05SolutionTest.test.ts`)
+**Czas:** ~8 min
 
 ### W skrócie
 
-**Co robimy:** `TicketPricer` to silnik z rejestrem pluginów, konfiguracją napisem i kontekstem `Map` - dla dokładnie dwóch reguł. W trzech krokach usuwamy rejestr, zastępujemy mapę typowanymi danymi i wklejamy reguły do jednej klasy.
+**Co robimy:** `TicketPrinter.print` i tak otwieramy dla nowej linii "Sala", a kod ma nazwy `s`, `d`, `x` i ręczne sklejanie listy miejsc. Najpierw pokazujemy antyprzykład "skoro już tu jestem", który po cichu zmienia wydruk, a potem robimy małą poprawę tylko w tej metodzie.
 
-**Zasada:** YAGNI mówi, żeby nie budować zdolności potrzebnej tylko dla przewidywanego wymagania. Nie zabrania testów, refaktoryzacji ani nazwanych metod - to one pozwalają bezpiecznie odłożyć abstrakcję do chwili, gdy pojawi się realna potrzeba. To praktyczna wersja ostatniego odpowiedzialnego momentu: decyzję o mechanizmie rozszerzeń odkładamy, dopóki nie znamy jego kształtu, a usunięcie spekulacji jest drzwiami dwukierunkowymi.
+**Zasada:** Boy Scout Rule mówi: dotykany kod zostaw w nieco lepszym stanie - to heurystyka, nie licencja na przebudowę. Poprawa jest mała, lokalna, dotyczy kodu bieżącej zmiany i nie zmienia zachowania; zmiana reguły biznesowej pod etykietą sprzątania to nadużycie.
 
-**Efekt:** Z pięciu typów zostaje jedna klasa z dwiema nazwanymi regułami, a literówka w nazwie reguły nie skompiluje się. Gdy przyjdzie trzecia reguła z innym właścicielem, abstrakcję trzeba będzie wprowadzić ponownie.
+**Efekt:** Metoda ma czytelne nazwy, `join`, tablicę linii i `phoneLine`, a test równoważności potwierdza identyczny wydruk. Sortowanie miejsc czy małe litery w e-mailu mogą być dobrymi pomysłami, ale trafiają do osobnego commita jako świadoma zmiana zachowania.
 
-**Różnica względem Javy:** kontekst `Map<String, Object>` to `ReadonlyMap<string, unknown>` z rzutowaniami `as LocalTime` / `as number` - te same "rzutowania z mapy", które znikają w kroku 2. Dwa konstruktory `TicketPricer` z Javy to jeden konstruktor z parametrami domyślnymi, a `Supplier<PricingRule>` to funkcja `() => PricingRule`.
+**Różnica względem Javy:** javowy `StringBuilder` zamiast konkatenacji ma w TypeScripcie idiomatyczny odpowiednik: tablicę linii złączoną `join` (w kroku 2 literał tablicy z szablonami tekstowymi). Rename to F2 (Rename Symbol w VS Code). Antyprzykład w kroku 1 jest taki sam jak w Javie: sortowanie miejsc, `toLowerCase()` e-maila i pominięta linia "Tel".
 
 ### Co widzimy
 
-`TicketPricer` to spekulatywny silnik: rejestr pluginów, konfiguracja napisem `'morning,vip'`, priorytety i kontekst `Map<string, unknown>`. Obsługuje dokładnie dwie reguły (poranek -5.00, VIP +10.00), które nie zależą od kolejności.
+`start/TicketPrinter.ts` - metodę `print` trzeba i tak otworzyć, bo w sprincie dochodzi linia "Sala". Kod ma nazwy `s`, `d`, `x`, konkatenację w pętli i ręczne sklejanie listy miejsc. Kusi, żeby "posprzątać wszystko".
 
 ```typescript
-const context = new Map<string, unknown>();
-context.set('start', quote.start);
-context.set('row', quote.row);
-...
-for (const rule of this.registry.resolve(this.activeRules)) {
-  if (rule.appliesTo(context)) {
-    price = rule.apply(context, price);
+let x = '';
+for (let i = 0; i < t.seats.length; i++) {
+  if (i > 0) {
+    x = x + ', ';
   }
+  x = x + t.seats[i]!;
 }
 ```
 
-Na żywo: zmień w konstruktorze wartość domyślną `'morning,vip'` na `'morning,vlp'` i uruchom test - błąd konfiguracji wychodzi dopiero w runtime (`IllegalArgumentError: brak reguly: vlp`). Cofnij zmianę.
+### Krok 1: nadużycie - "skoro już tu jestem"
 
-### Krok 1: Inline Class - rejestr pluginów znika
-
-**W IDE:** w `TicketPricer` zastąp parametry konstruktora `registry` i `activeRules` polem z listą `Object.freeze([new MorningRule(), new VipRule()])` (ręcznie, konstruktor usuń). Usuń `RuleRegistry.ts` i metodę `priority()` z interfejsu i obu reguł (była potrzebna tylko do sortowania) - przed usunięciem sprawdź ⇧⌥F12.
+**W IDE:** pokaż antyprzykład: `scripts/warsztat.sh --lang ts jump m2/s05 1`. Obok dobrych ruchów przemycono sortowanie miejsc, e-mail małymi literami i pominięcie linii "Tel" bez telefonu.
 **Po:**
 
 ```typescript
-private readonly rules: readonly PricingRule[] = Object.freeze([new MorningRule(), new VipRule()]);
+const sortedSeats = [...ticket.seats].sort();
+lines.push(`Miejsca: ${sortedSeats.join(', ')}`);
+lines.push(`Klient: ${ticket.email.trim().toLowerCase()}`);
 ```
 
-**Uruchom:** `scripts/warsztat.sh --lang ts test m2/s01` - 16 testów zielonych.
-**Co powiedzieć:** konfiguracja napisem nie miała żadnego klienta. Teraz literówka w nazwie reguły nie skompiluje się.
-**Snapshot:** `step1/` · **Różnica:** `scripts/warsztat.sh --lang ts diff m2/s01 0 1`
+**Uruchom:** `scripts/warsztat.sh --lang ts test m2/s05` - równoważność czerwona w trzech przypadkach (m.in. `A9, A10` staje się `A10, A9`). `S05SolutionTest` → `abusiveCleanupChangesBehaviourInThreeCases` dokumentuje, które.
+**Co powiedzieć:** każda z tych zmian może być dobrym pomysłem, ale to decyzje biznesowe, nie sprzątanie. Cofamy: `scripts/warsztat.sh --lang ts reset m2/s05`.
+**Snapshot:** `step1/` · **Różnica:** `scripts/warsztat.sh --lang ts diff m2/s05 0 1`
 
-### Krok 2: Change Signature - typowane dane zamiast mapy
+### Krok 2: poprawna, mała poprawa
 
-**W IDE:** ręcznie (VS Code nie ma Change Signature): w `PricingRule.appliesTo` zmień typ parametru z `ReadonlyMap<string, unknown>` na `TicketQuote`, z `apply` usuń parametr kontekstu. Kompilator wskaże obie implementacje i wywołania - popraw je (rzutowania znikają) i usuń budowanie mapy w `TicketPricer`.
+**W IDE:** Rename Symbol (F2) `t` → `ticket`; pętlę sklejającą miejsca zamień ręcznie na `ticket.seats.join(', ')`; tablica linii złączona `join` zamiast konkatenacji; ⌃⇧R → Extract to method `phoneLine`.
 **Po:**
 
 ```typescript
-appliesTo(quote: TicketQuote): boolean {
-  return quote.row >= quote.vipFromRow;
-}
+`Miejsca: ${ticket.seats.join(', ')}`,
+`Klient: ${ticket.email.trim()}`,
+TicketPrinter.phoneLine(ticket),
 ```
 
 **Uruchom:** test zielony.
-**Co powiedzieć:** generyczny kontekst to typowa spekulacja "reguła może potrzebować czegokolwiek". Kompilator znów pilnuje nazw pól.
-**Snapshot:** `step2/` · **Różnica:** `scripts/warsztat.sh --lang ts diff m2/s01 1 2`
-
-### Krok 3: Inline Class dla reguł, usunięcie interfejsu
-
-**W IDE:** ręcznie: dwa `if` w `price` z metodami `isMorning` i `isVip` (ciała z `appliesTo` obu reguł, ⌃⇧R > Extract to method in class). Usuń `MorningRule.ts`, `VipRule.ts` i `PricingRule.ts`. Stałe przez ⌃⇧R > Extract to constant (pola `private static readonly`).
-**Po:**
-
-```typescript
-price(quote: TicketQuote): Decimal {
-  let price = this.basePrice(quote.format);
-  if (this.isMorning(quote)) {
-    price = price.minus(TicketPricer.MORNING_DISCOUNT);
-  }
-  if (this.isVip(quote)) {
-    price = price.plus(TicketPricer.VIP_SURCHARGE);
-  }
-  return price;
-}
-```
-
-**Uruchom:** test zielony.
-**Co powiedzieć:** YAGNI nie zabrania testów, nazwanych metod ani szwu testowego - cena liczona jest z danych wejściowych, bez zegara i stanu statycznego, więc każdą regułę łatwo sprawdzić. Gdy pojawi się trzecia reguła z innym właścicielem, wydzielimy abstrakcję wtedy.
-**Snapshot:** `step3/` · **Różnica:** `scripts/warsztat.sh --lang ts diff m2/s01 2 3`
+**Co powiedzieć:** tylko dotykana metoda, bez zmiany kontraktu, diff do przejrzenia w minutę. Nowa linia "Sala" to osobny commit (patrz s06).
+**Snapshot:** `step2/` · **Różnica:** `scripts/warsztat.sh --lang ts diff m2/s05 0 2`
 
 ### Rozwiązanie i uzasadnienie
 
-Przejdź z salą filtr ze slajdu 2.4: aktualne wymaganie (2 reguły), nazwa w języku problemu (brak: "plugin", "registry"), czy upraszcza aktualny przypadek (nie), koszt usunięcia (niski - pokazaliśmy). Z pięciu typów została jedna klasa.
+Boy Scout Rule to heurystyka: mała, lokalna, weryfikowalna poprawa w kodzie bieżącej zmiany. Test różnicowy (start kontra krok) jest bezstronnym arbitrem, czy "sprzątanie" nie zmieniło zachowania.
 
 ### Pułapki
 
-- "YAGNI, więc bez testów" - odwrotnie: testy i małe kroki pozwalają bezpiecznie odraczać decyzje.
-- Usunięcie abstrakcji, która chroni aktualną, realną granicę (np. port do bazy) - to nie spekulacja.
+- Zmiana zachowania pod etykietą refaktoryzacji.
+- Masowe formatowanie całego pliku razem z poprawką - recenzent nie znajdzie zmiany merytorycznej.
+- "Sprzątanie" cudzego modułu bez uzgodnienia.
 
 ### Pytanie do sali
 
-Który mechanizm rozszerzeń w waszym systemie ma dziś jedną albo dwie implementacje? Jaki sygnał powiedziałby, że czas go wprowadzić ponownie?
+Posortowane miejsca są czytelniejsze. Jak wprowadzić tę zmianę uczciwie?
 
-## Scena s02. ADR i wykonywalny model decyzji
+## Scena s06. Seria małych zmian gotowych do przeglądu
 
-**Temat ze slajdów:** 2.5. ADR: zapisz decyzję, a najlepiej ją sprawdzaj
-**Katalog:** `typescript/src/workshop/m2/s02_adr` · **Test:** `scripts/warsztat.sh --lang ts test m2/s02` (`S02EquivalenceTest.test.ts`, `S02SolutionTest.test.ts`)
+**Temat ze slajdów:** 2.9. Zasada harcerza i małe porcje zmian
+**Katalog:** `typescript/src/workshop/m2/s06_reviewableseries` · **Test:** `scripts/warsztat.sh --lang ts test m2/s06` (`S06EquivalenceTest.test.ts`, `S06SolutionTest.test.ts`)
 **Czas:** ~10 min
 
 ### W skrócie
 
-**Co robimy:** ADR-0007 mówi, że cennik nie zależy od `notification` i nie trzyma kwot w `number`, a cennik w `start` sam wysyła mail o rabacie grupowym i liczy w `number`. Cennik zaczyna zwracać `Quote` z informacją o rabacie, mail wysyła `BookingService`, a kwoty przechodzą na `Money`.
+**Co robimy:** `PriceList.price` ma dostać "Tani wtorek" (NORMAL -20% we wtorek), a zniżki są wplecione w jedną metodę i nie widzą daty. Zamiast jednego commita "porządki + tani wtorek" robimy serię: Extract Method, Change Signature, a dopiero potem nowa reguła.
 
-**Zasada:** ADR zapisuje decyzję o trwałym wpływie: kontekst, opcje, decyzję i konsekwencje - to dokument historyczny, którego się nie edytuje, tylko zastępuje nowym. Regułę z ADR warto uczynić wykonywalną, żeby build pilnował jej na co dzień. Nie pisze się ADR dla każdego Rename.
+**Zasada:** Dobry zestaw zmian ma jedną intencję, własny dowód i zielony build po integracji. Refaktoryzację oddziela się od zmiany funkcjonalnej, formatowanie od logiki, a diff automatyczny od ręcznego - najpierw ułatw zmianę, potem zrób łatwą zmianę.
 
-**Efekt:** `ArchitectureRules` zwraca pustą listę naruszeń, a maile i odpowiedzi są takie same jak przed zmianą. Reguła tekstowa ma swoje granice (dynamiczny `import()`, re-eksport z innego katalogu albo kwota w `number` pod inną nazwą ją ominą) i ADR opisuje to w konsekwencjach.
+**Efekt:** Dwa pierwsze commity dowodzi test równoważności, a trzeci świadomie zmienia zachowanie: test różnicowy pokazuje, że zmieniło się dokładnie 12 przypadków, wszystkie NORMAL we wtorek. Kosztem jest więcej commitów, ale recenzent sprawdza w każdym tylko jedną rzecz.
 
-**Różnica względem Javy:** reguły działają na tekście plików `.ts`. R1 zakazuje linii `import ... '.../notification/...'` w katalogu `pricing`. R2 w Javie szuka słowa `double`; w TypeScripcie `number` jest też typem liczby sztuk, która w kroku 2 zostaje, więc reguła zakazuje adnotacji `number` przy nazwie kwoty (`total`, `sum`, `price`, `amount`, `unitPrice`). ADR mówi o "katalogu" zamiast "pakietu" i o pakiecie npm (workspace) zamiast modułu Maven. Enum reguł z polami (`ArchitectureRules.Rule`) to klasa `Rule` ze statycznymi instancjami i metodą `values()`. Naruszenie R1 w starcie wskazuje `TicketPricing.ts:1` (w Javie `:3`, bo import stoi pod linią `package`).
+**Różnica względem Javy:** start liczy na `Decimal` z biblioteki `decimal.js` (odpowiednik `BigDecimal`), a wydzielone metody to `private static` z instrukcją `switch` i `return` w każdym `case` (TypeScript nie ma wyrażenia `switch`).
 
 ### Co widzimy
 
-Obok kodu sceny leży `ADR-0007-cennik-jako-czysty-modul.md` (status: Zaakceptowana) z dwiema regułami: **R1** katalog `pricing` nie zależy od katalogu `notification`, **R2** `pricing` nie używa `number` do kwot. `ArchitectureRules` to wykonywalny model tych reguł. W `start` cennik sam wysyła mail o rabacie grupowym i liczy w `number`:
+`start/PriceList.ts` - metoda `price` ma dostać promocję "Tani wtorek": bilet NORMAL -20% ceny bazowej we wtorek. Zniżki są wplecione w jedną metodę i zależą tylko od typu biletu, a nowa reguła potrzebuje daty. Pokusa: jeden commit "porządki + tani wtorek".
 
 ```typescript
-import type { GroupMailer } from '../notification/GroupMailer.js';
-...
-total(organizer: string, tickets: number, unitPrice: number): number {
-  ...
-  this.mailer.groupDiscountGranted(organizer, tickets);
+let d: Decimal;
+if (q.type === 'STUDENT') {
+  d = p.times(new Decimal('0.25'));
+} else if ...
 ```
 
-### Krok 1: spełnienie R1 - wynik zamiast efektu
+### Krok 1: commit 1 - refaktoryzacja (Extract Method)
 
-**W IDE:** nowa klasa `Quote` (`readonly total: number`, `readonly groupDiscount: boolean`) w `pricing`; ręcznie zmieniamy sygnaturę `total` - bez `organizer`, zwraca `Quote` (Change Signature w VS Code nie ma, wywołania wskaże `npm run typecheck`). Wywołanie `mailer` przenieś do `BookingService` (warstwa aplikacji). Usuń import `notification` z cennika.
+**W IDE:** ⌃⇧R → Extract to method na wyborze ceny bazowej → `basePrice(format: string)`; to samo na wyborze zniżki → `discountPercent(type: string)` zwracające procent; Money zamiast Decimal.
 **Po:**
 
 ```typescript
-const quote = this.pricing.total(tickets, unitPrice);
-if (quote.groupDiscount) {
-  this.mailer.groupDiscountGranted(organizer, tickets);
+const base = PriceList.basePrice(query.format);
+let price = base.minus(base.percent(PriceList.discountPercent(query.type)));
+```
+
+**Uruchom:** test zielony - równoważność na przypadkach, w tym wtorkowych.
+**Co powiedzieć:** opis commita: "refaktoryzacja, bez zmiany zachowania, dowód: S06EquivalenceTest". Recenzent sprawdza tylko mechanikę.
+**Snapshot:** `step1/` · **Różnica:** `scripts/warsztat.sh --lang ts diff m2/s06 0 1`
+
+### Krok 2: commit 2 - refaktoryzacja przygotowawcza (Change Signature)
+
+**W IDE:** VS Code nie ma Change Signature, więc ręcznie: parametr `query: TicketQuery` zamiast `type: string`, w ciele `switch (query.type)`, w wywołaniu `discountPercent(query)`; `npm run typecheck` pokaże pominięte wywołania.
+**Po:**
+
+```typescript
+private static discountPercent(query: TicketQuery): number {
+  switch (query.type) { ... }
 }
 ```
 
-**Uruchom:** test zielony; `step1RemovesDependencyOnNotification` - zostało tylko naruszenie `ADR-0007/R2`.
-**Co powiedzieć:** naruszenie w teście prowadzi wprost do identyfikatora decyzji i jej uzasadnienia.
-**Snapshot:** `step1/` · **Różnica:** `scripts/warsztat.sh --lang ts diff m2/s02 0 1`
+**Uruchom:** test zielony.
+**Co powiedzieć:** "make the change easy, then make the easy change". Ten commit nadal nie zmienia zachowania.
+**Snapshot:** `step2/` · **Różnica:** `scripts/warsztat.sh --lang ts diff m2/s06 1 2`
 
-### Krok 2: spełnienie R2 - Money
+### Krok 3: commit 3 - zmiana zachowania
 
-**W IDE:** VS Code nie ma Type Migration: zmieniamy ręcznie typ `number` → `Money` w `Quote.total` i parametrze `unitPrice` w `TicketPricing`, a `npm run typecheck` prowadzi przez kolejne miejsca. Nazwane stałe dla progu i procentu grupy; `BookingService` podaje cenę jednostkową jako `Money.of('25.00')` (metoda `unitPrice(format)`).
+**W IDE:** w gałęzi `default` warunek `isCheapTuesday(query) ? 20 : 0`, metoda pomocnicza, stała `CHEAP_TUESDAY_PERCENT`.
 **Po:**
 
 ```typescript
-total(tickets: number, unitPrice: Money): Quote {
-  let sum = unitPrice.times(tickets);
+default: return PriceList.isCheapTuesday(query) ? PriceList.CHEAP_TUESDAY_PERCENT : 0;
 ```
 
-**Uruchom:** test zielony; `step2CompliesWithTheDecision` - pusta lista naruszeń.
-**Co powiedzieć:** moduł jest zgodny z decyzją, a test pilnuje, żeby tak zostało.
-**Snapshot:** `step2/` · **Różnica:** `scripts/warsztat.sh --lang ts diff m2/s02 1 2`
+**Uruchom:** test zielony; `S06SolutionTest` → `cheapTuesdayGivesNormalTicketTwentyPercentOff` (2D wtorek 20.00) i `behaviourChangeIsLimitedToNormalTicketsOnTuesday` - na siatce 336 przypadków zmieniło się dokładnie 12, wszystkie NORMAL we wtorek.
+**Co powiedzieć:** diff to kilka linii. Test różnicowy commitu 2 kontra 3 mówi recenzentowi dokładnie, gdzie zmieniło się zachowanie.
+**Snapshot:** `step3/` · **Różnica:** `scripts/warsztat.sh --lang ts diff m2/s06 2 3`
 
 ### Rozwiązanie i uzasadnienie
 
-ADR opisuje kontekst, opcje i konsekwencje (historia), a `ArchitectureRules` sprawdza regułę w każdym buildzie. `adrDocumentsEveryExecutableRule` pilnuje, żeby każda reguła w kodzie miała opis w ADR.
+Trzy zestawy zmian, każdy z jedną intencją i zielonym buildem. Refaktoryzacje dowodzi test równoważności, zmianę zachowania - test nowej reguły i test różnicowy ograniczający jej zasięg.
 
 ### Pułapki
 
-- ADR dla każdego Rename - dokumentuje się decyzje o trwałym wpływie.
-- Edycja zaakceptowanego ADR zamiast nowego zapisu, który go zastępuje.
-- Reguła tekstowa ma granice: dynamiczny `import()`, re-eksport z innego katalogu albo kwota w `number` pod inną nazwą ją ominą (opisane w "Konsekwencjach").
+- Łączenie refaktoryzacji ze zmianą zachowania: recenzent nie odróżni ruchu mechanicznego od nowej reguły.
+- Łączenie formatowania z logiką, diffu automatycznego z ręcznym.
+- Commit przygotowawczy, który "przy okazji" poprawia regułę.
 
 ### Pytanie do sali
 
-Co zrobić, gdy zespół chce złamać R2 dla jednego przypadku (np. statystyk)? Wyjątek w teście czy nowy ADR?
+Jak opisalibyście commit 3 według pięciu pytań (dlaczego, co i czego nie, kontrakt, dowody, wdrożenie i wycofanie)?
 
 ## Scena s07. SRP - raport dla dwóch aktorów
 
@@ -797,172 +954,15 @@ Domena bez `sql` i bez typów adaptera, każda klasa opisuje jedno pojęcie. `S1
 
 Która reguła architektury w waszym projekcie istnieje tylko w głowach lub na wiki? Jak najtaniej zamienić ją w test?
 
-## Scena s05. Boy Scout Rule - mała poprawa i jej nadużycie
-
-**Temat ze slajdów:** 2.9. Zasada harcerza i małe porcje zmian
-**Katalog:** `typescript/src/workshop/m2/s05_boyscout` · **Test:** `scripts/warsztat.sh --lang ts test m2/s05` (`S05EquivalenceTest.test.ts`, `S05SolutionTest.test.ts`)
-**Czas:** ~8 min
-
-### W skrócie
-
-**Co robimy:** `TicketPrinter.print` i tak otwieramy dla nowej linii "Sala", a kod ma nazwy `s`, `d`, `x` i ręczne sklejanie listy miejsc. Najpierw pokazujemy antyprzykład "skoro już tu jestem", który po cichu zmienia wydruk, a potem robimy małą poprawę tylko w tej metodzie.
-
-**Zasada:** Boy Scout Rule mówi: dotykany kod zostaw w nieco lepszym stanie - to heurystyka, nie licencja na przebudowę. Poprawa jest mała, lokalna, dotyczy kodu bieżącej zmiany i nie zmienia zachowania; zmiana reguły biznesowej pod etykietą sprzątania to nadużycie.
-
-**Efekt:** Metoda ma czytelne nazwy, `join`, tablicę linii i `phoneLine`, a test równoważności potwierdza identyczny wydruk. Sortowanie miejsc czy małe litery w e-mailu mogą być dobrymi pomysłami, ale trafiają do osobnego commita jako świadoma zmiana zachowania.
-
-**Różnica względem Javy:** javowy `StringBuilder` zamiast konkatenacji ma w TypeScripcie idiomatyczny odpowiednik: tablicę linii złączoną `join` (w kroku 2 literał tablicy z szablonami tekstowymi). Rename to F2 (Rename Symbol w VS Code). Antyprzykład w kroku 1 jest taki sam jak w Javie: sortowanie miejsc, `toLowerCase()` e-maila i pominięta linia "Tel".
-
-### Co widzimy
-
-`start/TicketPrinter.ts` - metodę `print` trzeba i tak otworzyć, bo w sprincie dochodzi linia "Sala". Kod ma nazwy `s`, `d`, `x`, konkatenację w pętli i ręczne sklejanie listy miejsc. Kusi, żeby "posprzątać wszystko".
-
-```typescript
-let x = '';
-for (let i = 0; i < t.seats.length; i++) {
-  if (i > 0) {
-    x = x + ', ';
-  }
-  x = x + t.seats[i]!;
-}
-```
-
-### Krok 1: nadużycie - "skoro już tu jestem"
-
-**W IDE:** pokaż antyprzykład: `scripts/warsztat.sh --lang ts jump m2/s05 1`. Obok dobrych ruchów przemycono sortowanie miejsc, e-mail małymi literami i pominięcie linii "Tel" bez telefonu.
-**Po:**
-
-```typescript
-const sortedSeats = [...ticket.seats].sort();
-lines.push(`Miejsca: ${sortedSeats.join(', ')}`);
-lines.push(`Klient: ${ticket.email.trim().toLowerCase()}`);
-```
-
-**Uruchom:** `scripts/warsztat.sh --lang ts test m2/s05` - równoważność czerwona w trzech przypadkach (m.in. `A9, A10` staje się `A10, A9`). `S05SolutionTest` → `abusiveCleanupChangesBehaviourInThreeCases` dokumentuje, które.
-**Co powiedzieć:** każda z tych zmian może być dobrym pomysłem, ale to decyzje biznesowe, nie sprzątanie. Cofamy: `scripts/warsztat.sh --lang ts reset m2/s05`.
-**Snapshot:** `step1/` · **Różnica:** `scripts/warsztat.sh --lang ts diff m2/s05 0 1`
-
-### Krok 2: poprawna, mała poprawa
-
-**W IDE:** Rename Symbol (F2) `t` → `ticket`; pętlę sklejającą miejsca zamień ręcznie na `ticket.seats.join(', ')`; tablica linii złączona `join` zamiast konkatenacji; ⌃⇧R → Extract to method `phoneLine`.
-**Po:**
-
-```typescript
-`Miejsca: ${ticket.seats.join(', ')}`,
-`Klient: ${ticket.email.trim()}`,
-TicketPrinter.phoneLine(ticket),
-```
-
-**Uruchom:** test zielony.
-**Co powiedzieć:** tylko dotykana metoda, bez zmiany kontraktu, diff do przejrzenia w minutę. Nowa linia "Sala" to osobny commit (patrz s06).
-**Snapshot:** `step2/` · **Różnica:** `scripts/warsztat.sh --lang ts diff m2/s05 0 2`
-
-### Rozwiązanie i uzasadnienie
-
-Boy Scout Rule to heurystyka: mała, lokalna, weryfikowalna poprawa w kodzie bieżącej zmiany. Test różnicowy (start kontra krok) jest bezstronnym arbitrem, czy "sprzątanie" nie zmieniło zachowania.
-
-### Pułapki
-
-- Zmiana zachowania pod etykietą refaktoryzacji.
-- Masowe formatowanie całego pliku razem z poprawką - recenzent nie znajdzie zmiany merytorycznej.
-- "Sprzątanie" cudzego modułu bez uzgodnienia.
-
-### Pytanie do sali
-
-Posortowane miejsca są czytelniejsze. Jak wprowadzić tę zmianę uczciwie?
-
-## Scena s06. Seria małych zmian gotowych do przeglądu
-
-**Temat ze slajdów:** 2.9. Zasada harcerza i małe porcje zmian
-**Katalog:** `typescript/src/workshop/m2/s06_reviewableseries` · **Test:** `scripts/warsztat.sh --lang ts test m2/s06` (`S06EquivalenceTest.test.ts`, `S06SolutionTest.test.ts`)
-**Czas:** ~10 min
-
-### W skrócie
-
-**Co robimy:** `PriceList.price` ma dostać "Tani wtorek" (NORMAL -20% we wtorek), a zniżki są wplecione w jedną metodę i nie widzą daty. Zamiast jednego commita "porządki + tani wtorek" robimy serię: Extract Method, Change Signature, a dopiero potem nowa reguła.
-
-**Zasada:** Dobry zestaw zmian ma jedną intencję, własny dowód i zielony build po integracji. Refaktoryzację oddziela się od zmiany funkcjonalnej, formatowanie od logiki, a diff automatyczny od ręcznego - najpierw ułatw zmianę, potem zrób łatwą zmianę.
-
-**Efekt:** Dwa pierwsze commity dowodzi test równoważności, a trzeci świadomie zmienia zachowanie: test różnicowy pokazuje, że zmieniło się dokładnie 12 przypadków, wszystkie NORMAL we wtorek. Kosztem jest więcej commitów, ale recenzent sprawdza w każdym tylko jedną rzecz.
-
-**Różnica względem Javy:** start liczy na `Decimal` z biblioteki `decimal.js` (odpowiednik `BigDecimal`), a wydzielone metody to `private static` z instrukcją `switch` i `return` w każdym `case` (TypeScript nie ma wyrażenia `switch`).
-
-### Co widzimy
-
-`start/PriceList.ts` - metoda `price` ma dostać promocję "Tani wtorek": bilet NORMAL -20% ceny bazowej we wtorek. Zniżki są wplecione w jedną metodę i zależą tylko od typu biletu, a nowa reguła potrzebuje daty. Pokusa: jeden commit "porządki + tani wtorek".
-
-```typescript
-let d: Decimal;
-if (q.type === 'STUDENT') {
-  d = p.times(new Decimal('0.25'));
-} else if ...
-```
-
-### Krok 1: commit 1 - refaktoryzacja (Extract Method)
-
-**W IDE:** ⌃⇧R → Extract to method na wyborze ceny bazowej → `basePrice(format: string)`; to samo na wyborze zniżki → `discountPercent(type: string)` zwracające procent; Money zamiast Decimal.
-**Po:**
-
-```typescript
-const base = PriceList.basePrice(query.format);
-let price = base.minus(base.percent(PriceList.discountPercent(query.type)));
-```
-
-**Uruchom:** test zielony - równoważność na przypadkach, w tym wtorkowych.
-**Co powiedzieć:** opis commita: "refaktoryzacja, bez zmiany zachowania, dowód: S06EquivalenceTest". Recenzent sprawdza tylko mechanikę.
-**Snapshot:** `step1/` · **Różnica:** `scripts/warsztat.sh --lang ts diff m2/s06 0 1`
-
-### Krok 2: commit 2 - refaktoryzacja przygotowawcza (Change Signature)
-
-**W IDE:** VS Code nie ma Change Signature, więc ręcznie: parametr `query: TicketQuery` zamiast `type: string`, w ciele `switch (query.type)`, w wywołaniu `discountPercent(query)`; `npm run typecheck` pokaże pominięte wywołania.
-**Po:**
-
-```typescript
-private static discountPercent(query: TicketQuery): number {
-  switch (query.type) { ... }
-}
-```
-
-**Uruchom:** test zielony.
-**Co powiedzieć:** "make the change easy, then make the easy change". Ten commit nadal nie zmienia zachowania.
-**Snapshot:** `step2/` · **Różnica:** `scripts/warsztat.sh --lang ts diff m2/s06 1 2`
-
-### Krok 3: commit 3 - zmiana zachowania
-
-**W IDE:** w gałęzi `default` warunek `isCheapTuesday(query) ? 20 : 0`, metoda pomocnicza, stała `CHEAP_TUESDAY_PERCENT`.
-**Po:**
-
-```typescript
-default: return PriceList.isCheapTuesday(query) ? PriceList.CHEAP_TUESDAY_PERCENT : 0;
-```
-
-**Uruchom:** test zielony; `S06SolutionTest` → `cheapTuesdayGivesNormalTicketTwentyPercentOff` (2D wtorek 20.00) i `behaviourChangeIsLimitedToNormalTicketsOnTuesday` - na siatce 336 przypadków zmieniło się dokładnie 12, wszystkie NORMAL we wtorek.
-**Co powiedzieć:** diff to kilka linii. Test różnicowy commitu 2 kontra 3 mówi recenzentowi dokładnie, gdzie zmieniło się zachowanie.
-**Snapshot:** `step3/` · **Różnica:** `scripts/warsztat.sh --lang ts diff m2/s06 2 3`
-
-### Rozwiązanie i uzasadnienie
-
-Trzy zestawy zmian, każdy z jedną intencją i zielonym buildem. Refaktoryzacje dowodzi test równoważności, zmianę zachowania - test nowej reguły i test różnicowy ograniczający jej zasięg.
-
-### Pułapki
-
-- Łączenie refaktoryzacji ze zmianą zachowania: recenzent nie odróżni ruchu mechanicznego od nowej reguły.
-- Łączenie formatowania z logiką, diffu automatycznego z ręcznym.
-- Commit przygotowawczy, który "przy okazji" poprawia regułę.
-
-### Pytanie do sali
-
-Jak opisalibyście commit 3 według pięciu pytań (dlaczego, co i czego nie, kontrakt, dowody, wdrożenie i wycofanie)?
-
 ## Proponowana kolejność pokazu
 
-**Ścieżka krótka (~55 min):** s03 (bramka kompilatora, 10) -> s01 (YAGNI, 12) -> s08 (DIP, 12) -> s05 (Boy Scout, 8) -> s06 (seria zmian, 10). Pokazuje pełny łuk prewencji: najszybsza pętla, odłożona decyzja, kierunek zależności, mała poprawa i zestaw zmian gotowy do przeglądu. Jeśli zostanie czas, z s09 pokaż tylko `scripts/warsztat.sh --lang ts diff m2/s09 3 4` i `S09UseCaseTest.test.ts` (5 min).
+**Ścieżka krótka (~55 min):** s03 (bramka kompilatora, 10) → s01 (YAGNI, 12) → s08 (odwrócenie zależności, 12) → s05 (zasada harcerza, 8) → s06 (seria zmian, 10). Pokazuje pełny łuk prewencji: najszybsza pętla, odłożona decyzja, kierunek zależności, mała poprawa i zestaw zmian gotowy do przeglądu. Jeśli zostanie czas, z s09 pokaż tylko `scripts/warsztat.sh --lang ts diff m2/s09 3 4` i `S09UseCaseTest.test.ts` (5 min).
 
 **Ścieżka pełna (~115 min, z przerwą):**
 
-1. Fast feedback: s03, s04 (~22 min) - na koniec pytanie, które sprawdzenia uruchamiać lokalnie, a które w CI.
-2. Decyzje: s01, s02 (~22 min) - filtr decyzyjny ze slajdu 2.4 na przykładzie s01, potem decyzja trwała zapisana w ADR i pilnowana testem.
+1. Szybka informacja zwrotna: s03, s04 (~22 min) - na koniec pytanie, które sprawdzenia uruchamiać lokalnie, a które w CI.
+2. Decyzje: s01, s02 (~22 min) - pięć pytań ze slajdu 2.4 na przykładzie s01, potem decyzja trwała zapisana w ADR i pilnowana testem.
 3. Projekt: s07, s08, s09, s10 (~54 min) - od jednego aktora zmiany, przez kierunek zależności, do granicy sprawdzanej automatycznie.
-4. Prewencja codzienna: s05, s06 (~18 min) jako podsumowanie - mała poprawa w dotykanym kodzie i seria zmian z osobnymi dowodami.
+4. Codzienna dbałość o kod: s05, s06 (~18 min) jako podsumowanie - mała poprawa w dotykanym kodzie i seria zmian z osobnymi dowodami.
 
 Sceny s09 i s10 dobrze łączyć: po s09 zapytaj, jak upewnić się, że `app` nigdy nie zaimportuje `adapter`, i przejdź do s10. Podobnie s05 i s06: po s05 zapytaj, jak uczciwie wprowadzić posortowane miejsca, i pokaż, jak s06 oddziela refaktoryzację od zmiany zachowania.

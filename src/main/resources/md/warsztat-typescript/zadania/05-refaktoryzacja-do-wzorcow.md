@@ -281,7 +281,7 @@ scripts/warsztat.sh --lang ts reset m5/s08     # przywrócenie start do wersji z
 **Podpowiedź:** VAT liczymy od ceny brutto każdej pozycji osobno i dopiero potem sumujemy. Zwykły `default` bez `assertNever` wyłącza kontrolę kompilatora.
 **Gotowe, gdy:** test zielony dla wybranej wersji, w kodzie nie ma `instanceof`, a dodanie typu pozycji bez obsługi kończy się błędem kompilacji (`npm run typecheck`).
 
-## Scena s20. Mapa decyzji - jedna tabela, dwie struktury
+## Scena s20. Mapa decyzji - jedna tabela, dwie struktury docelowe
 
 **Katalog:** `typescript/src/workshop/m5/s20_decisionmap/start` · **Test:** `scripts/warsztat.sh --lang ts test m5/s20`
 

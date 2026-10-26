@@ -1,8 +1,8 @@
 # Moduł 2. Prewencja - warsztat CineLegacy: przewodnik prowadzącego
 
-Dziesięć małych scen w domenie kina CineLegacy pokazuje prewencję z modułu 2 jako serie bezpiecznych zmian: bramki kompilatora i jakości jako najszybsze pętle informacji zwrotnej, odraczanie decyzji (YAGNI) i ich zapis (ADR z wykonywalną regułą), projekt jako hamulec degradacji (SRP, DIP, granice Clean Architecture, automatyczna kontrola granicy) oraz prewencję w codziennej pracy (Boy Scout Rule, seria zmian gotowych do przeglądu). Każda scena ma kod wyjściowy (`start`) z zapachem lub pułapką i kompletne snapshoty po każdym kroku (`step1`, `step2`, ...). Prowadzący pracuje na żywo w `start`, po każdym kroku uruchamia test sceny i porównuje wynik ze snapshotem.
+Dziesięć małych scen w domenie kina CineLegacy pokazuje tematy z części II prezentacji („Zanim wprowadzisz wzorzec”) jako serie bezpiecznych zmian: bramki kompilatora i jakości jako najszybsze pętle informacji zwrotnej, odraczanie decyzji (YAGNI) i ich zapis (ADR z regułą sprawdzaną przez test), projekt, który hamuje degradację kodu (zasada pojedynczej odpowiedzialności, zasada odwrócenia zależności, granice czystej architektury, automatyczna kontrola granicy) oraz codzienną dbałość o kod (zasada harcerza, seria zmian gotowych do przeglądu). Każda scena ma kod wyjściowy (`start`) z zapachem lub pułapką i kompletne snapshoty po każdym kroku (`step1`, `step2`, ...). Prowadzący pracuje na żywo w `start`, po każdym kroku uruchamia test sceny i porównuje wynik ze snapshotem.
 
-Sceny ilustrują sekcję 2 slajdów ("Zanim wprowadzisz wzorzec"): każdy temat ma własną, kilkuminutową scenę. Sceny są pokazami prowadzącego do wyboru - nie trzeba pokazywać wszystkich. Numery scen odpowiadają pakietom w kodzie; poniżej są ułożone w kolejności tematów modułu.
+Sceny ilustrują sekcję 2 slajdów ("Zanim wprowadzisz wzorzec"): każdy temat ma własną, kilkuminutową scenę. Sceny są pokazami prowadzącego do wyboru - nie trzeba pokazywać wszystkich. Numery scen odpowiadają pakietom w kodzie i w tej kolejności sceny są opisane poniżej. Kolejność pokazu, zgodną z kolejnością slajdów, podaje sekcja „Proponowana kolejność pokazu” na końcu.
 
 ## Jak prowadzić pokaz
 
@@ -32,16 +32,181 @@ scripts/warsztat.sh reset m2/s09            # przywrócenie start z repozytorium
 
 | Scena | Temat ze slajdów | Kroki | Pakiet | Czas |
 | --- | --- | --- | --- | --- |
-| s03 | 2.1. Małe kroki i szybka informacja zwrotna; 2.2. Bramki jakości w starym kodzie: stan bazowy i zapadka | 3 | `m2.s03_compilergate` | ~10 min |
-| s04 | 2.2. Bramki jakości w starym kodzie: stan bazowy i zapadka | 4 | `m2.s04_qualitygate` | ~12 min |
 | s01 | 2.3. YAGNI: buduj dla dzisiejszej potrzeby; 2.4. Pięć pytań przed dodaniem abstrakcji | 3 | `m2.s01_yagni` | ~12 min |
 | s02 | 2.5. ADR: zapisz decyzję, a najlepiej ją sprawdzaj | 2 | `m2.s02_adr` | ~10 min |
+| s03 | 2.1. Małe kroki i szybka informacja zwrotna; 2.2. Bramki jakości w starym kodzie: stan bazowy i zapadka | 3 | `m2.s03_compilergate` | ~10 min |
+| s04 | 2.2. Bramki jakości w starym kodzie: stan bazowy i zapadka | 4 | `m2.s04_qualitygate` | ~12 min |
+| s05 | 2.9. Zasada harcerza i małe porcje zmian | 2 | `m2.s05_boyscout` | ~8 min |
+| s06 | 2.9. Zasada harcerza i małe porcje zmian | 3 | `m2.s06_reviewableseries` | ~10 min |
 | s07 | 2.6. Zasada pojedynczej odpowiedzialności: jeden aktor, jeden powód zmiany | 3 | `m2.s07_srp` | ~12 min |
 | s08 | 2.7. Zasada odwrócenia zależności: liczy się kierunek importów; 2.8. Reguła zależności, porty i korzeń kompozycji | 3 | `m2.s08_dip` | ~12 min |
 | s09 | 2.8. Reguła zależności, porty i korzeń kompozycji | 4 | `m2.s09_cleanarchitecture` | ~18 min |
 | s10 | 2.8. Reguła zależności, porty i korzeń kompozycji (sprawdzana automatycznie) | 2 | `m2.s10_boundarycheck` | ~12 min |
-| s05 | 2.9. Zasada harcerza i małe porcje zmian | 2 | `m2.s05_boyscout` | ~8 min |
-| s06 | 2.9. Zasada harcerza i małe porcje zmian | 3 | `m2.s06_reviewableseries` | ~10 min |
+
+## Scena s01. YAGNI - silnik reguł dla dwóch reguł
+
+**Temat ze slajdów:** 2.3. YAGNI: buduj dla dzisiejszej potrzeby; 2.4. Pięć pytań przed dodaniem abstrakcji
+**Pakiet:** `pl.training.workshop.m2.s01_yagni` · **Test:** `scripts/warsztat.sh test m2/s01`
+**Czas:** ~12 min
+
+### W skrócie
+
+**Co robimy:** `TicketPricer` to silnik z rejestrem pluginów, konfiguracją napisem i kontekstem `Map` - dla dokładnie dwóch reguł. W trzech krokach usuwamy rejestr, zastępujemy mapę typowanymi danymi i wklejamy reguły do jednej klasy.
+
+**Zasada:** YAGNI mówi, żeby nie budować zdolności potrzebnej tylko dla przewidywanego wymagania. Nie zabrania testów, refaktoryzacji ani nazwanych metod - to one pozwalają bezpiecznie odłożyć abstrakcję do chwili, gdy pojawi się realna potrzeba. To praktyczna wersja ostatniego odpowiedzialnego momentu: decyzję o mechanizmie rozszerzeń odkładamy, dopóki nie znamy jego kształtu, a usunięcie spekulacji jest drzwiami dwukierunkowymi.
+
+**Efekt:** Z pięciu klas zostaje jedna z dwiema nazwanymi regułami, a literówka w nazwie reguły nie skompiluje się. Gdy przyjdzie trzecia reguła z innym właścicielem, abstrakcję trzeba będzie wprowadzić ponownie.
+
+### Co widzimy
+
+`TicketPricer` to spekulatywny silnik: rejestr pluginów, konfiguracja napisem `"morning,vip"`, priorytety i kontekst `Map<String, Object>`. Obsługuje dokładnie dwie reguły (poranek -5.00, VIP +10.00), które nie zależą od kolejności.
+
+```java
+Map<String, Object> context = new HashMap<>();
+context.put("start", quote.start());
+context.put("row", quote.row());
+...
+for (PricingRule rule : registry.resolve(activeRules)) {
+    if (rule.appliesTo(context)) {
+        price = rule.apply(context, price);
+    }
+}
+```
+
+Na żywo: zmień w konstruktorze `"morning,vip"` na `"morning,vlp"` i uruchom test - błąd konfiguracji wychodzi dopiero w runtime (`IllegalArgumentException: brak reguly: vlp`). Cofnij zmianę.
+
+### Krok 1: Inline Class - rejestr pluginów znika
+
+**W IDE:** w `TicketPricer` zastąp pola `registry` i `activeRules` listą `List.of(new MorningRule(), new VipRule())` (ręcznie, konstruktory usuń). Safe Delete (⌘⌦) na `RuleRegistry` i na `priority()` w interfejsie (był potrzebny tylko do sortowania).
+**Po:**
+
+```java
+private final List<PricingRule> rules = List.of(new MorningRule(), new VipRule());
+```
+
+**Uruchom:** `scripts/warsztat.sh test m2/s01` - 16 testów zielonych.
+**Co powiedzieć:** konfiguracja napisem nie miała żadnego klienta. Teraz literówka w nazwie reguły nie skompiluje się.
+**Snapshot:** `step1/` · **Różnica:** `scripts/warsztat.sh diff m2/s01 0 1`
+
+### Krok 2: Change Signature - typowane dane zamiast mapy
+
+**W IDE:** ⌘F6 na `PricingRule.appliesTo`: typ parametru `Map<String, Object>` -> `TicketQuote`; na `apply` usuń parametr kontekstu. Popraw implementacje (rzutowania znikają), usuń budowanie mapy w `TicketPricer`.
+**Po:**
+
+```java
+public boolean appliesTo(TicketQuote quote) {
+    return quote.row() >= quote.vipFromRow();
+}
+```
+
+**Uruchom:** test zielony.
+**Co powiedzieć:** generyczny kontekst to typowa spekulacja "reguła może potrzebować czegokolwiek". Kompilator znów pilnuje nazw pól.
+**Snapshot:** `step2/` · **Różnica:** `scripts/warsztat.sh diff m2/s01 1 2`
+
+### Krok 3: Inline Class dla reguł, Safe Delete interfejsu
+
+**W IDE:** ⌥⌘N na `MorningRule` i `VipRule` (Inline Class) albo ręcznie: dwa `if` w `price` z metodami `isMorning` i `isVip`. Safe Delete na `PricingRule`. Stałe przez ⌥⌘C.
+**Po:**
+
+```java
+public BigDecimal price(TicketQuote quote) {
+    BigDecimal price = basePrice(quote.format());
+    if (isMorning(quote)) {
+        price = price.subtract(MORNING_DISCOUNT);
+    }
+    if (isVip(quote)) {
+        price = price.add(VIP_SURCHARGE);
+    }
+    return price;
+}
+```
+
+**Uruchom:** test zielony.
+**Co powiedzieć:** YAGNI nie zabrania testów, nazwanych metod ani szwu testowego - cena liczona jest z danych wejściowych, bez zegara i stanu statycznego, więc każdą regułę łatwo sprawdzić. Gdy pojawi się trzecia reguła z innym właścicielem, wydzielimy abstrakcję wtedy.
+**Snapshot:** `step3/` · **Różnica:** `scripts/warsztat.sh diff m2/s01 2 3`
+
+### Rozwiązanie i uzasadnienie
+
+Przejdź z salą pięć pytań ze slajdu 2.4: aktualne wymaganie (2 reguły), nazwa w języku problemu (brak: "plugin", "registry"), czy upraszcza aktualny przypadek (nie), koszt usunięcia (niski - pokazaliśmy). Z pięciu klas została jedna.
+
+### Pułapki
+
+- "YAGNI, więc bez testów" - odwrotnie: testy i małe kroki pozwalają bezpiecznie odraczać decyzje.
+- Usunięcie abstrakcji, która chroni aktualną, realną granicę (np. port do bazy) - to nie spekulacja.
+
+### Pytanie do sali
+
+Który mechanizm rozszerzeń w waszym systemie ma dziś jedną albo dwie implementacje? Jaki sygnał powiedziałby, że czas go wprowadzić ponownie?
+
+## Scena s02. ADR i wykonywalny model decyzji
+
+**Temat ze slajdów:** 2.5. ADR: zapisz decyzję, a najlepiej ją sprawdzaj
+**Pakiet:** `pl.training.workshop.m2.s02_adr` · **Test:** `scripts/warsztat.sh test m2/s02`
+**Czas:** ~10 min
+
+### W skrócie
+
+**Co robimy:** ADR-0007 mówi, że cennik nie zależy od `notification` i nie używa `double`, a cennik w `start` sam wysyła mail o rabacie grupowym i liczy w `double`. Cennik zaczyna zwracać `Quote` z informacją o rabacie, mail wysyła `BookingService`, a kwoty przechodzą na `Money`.
+
+**Zasada:** ADR zapisuje decyzję o trwałym wpływie: kontekst, opcje, decyzję i konsekwencje - to dokument historyczny, którego się nie edytuje, tylko zastępuje nowym. Regułę z ADR warto uczynić wykonywalną, żeby build pilnował jej na co dzień. Nie pisze się ADR dla każdego Rename.
+
+**Efekt:** `ArchitectureRules` zwraca pustą listę naruszeń, a maile i odpowiedzi są takie same jak przed zmianą. Reguła tekstowa ma swoje granice (pełna nazwa klasy bez importu albo refleksja ją ominą) i ADR opisuje to w konsekwencjach.
+
+### Co widzimy
+
+Obok kodu sceny leży `ADR-0007-cennik-jako-czysty-modul.md` (status: Zaakceptowana) z dwiema regułami: **R1** pakiet `pricing` nie zależy od `notification`, **R2** `pricing` nie używa `double`. `ArchitectureRules` to wykonywalny model tych reguł. W `start` cennik sam wysyła mail o rabacie grupowym i liczy w `double`:
+
+```java
+import pl.training.workshop.m2.s02_adr.start.notification.GroupMailer;
+...
+public double total(String organizer, int tickets, double unitPrice) {
+    ...
+    mailer.groupDiscountGranted(organizer, tickets);
+```
+
+### Krok 1: spełnienie R1 - wynik zamiast efektu
+
+**W IDE:** nowy record `Quote(double total, boolean groupDiscount)` w `pricing`; ⌘F6 na `total` - bez `organizer`, zwraca `Quote`. Wywołanie `mailer` przenieś do `BookingService` (warstwa aplikacji). Usuń import `notification` z cennika.
+**Po:**
+
+```java
+Quote quote = pricing.total(tickets, unitPrice);
+if (quote.groupDiscount()) {
+    mailer.groupDiscountGranted(organizer, tickets);
+}
+```
+
+**Uruchom:** test zielony; `step1RemovesDependencyOnNotification` - zostało tylko naruszenie `ADR-0007/R2`.
+**Co powiedzieć:** naruszenie w teście prowadzi wprost do identyfikatora decyzji i jej uzasadnienia.
+**Snapshot:** `step1/` · **Różnica:** `scripts/warsztat.sh diff m2/s02 0 1`
+
+### Krok 2: spełnienie R2 - Money
+
+**W IDE:** Type Migration (⇧⌘F6) `double` → `Money` w `Quote` i `TicketPricing`; nazwane stałe dla progu i procentu grupy; `BookingService` podaje `Money.of("25.00")`.
+**Po:**
+
+```java
+public Quote total(int tickets, Money unitPrice) {
+    Money sum = unitPrice.times(tickets);
+```
+
+**Uruchom:** test zielony; `step2CompliesWithTheDecision` - pusta lista naruszeń.
+**Co powiedzieć:** moduł jest zgodny z decyzją, a test pilnuje, żeby tak zostało.
+**Snapshot:** `step2/` · **Różnica:** `scripts/warsztat.sh diff m2/s02 1 2`
+
+### Rozwiązanie i uzasadnienie
+
+ADR opisuje kontekst, opcje i konsekwencje (historia), a `ArchitectureRules` sprawdza regułę w każdym buildzie. `adrDocumentsEveryExecutableRule` pilnuje, żeby każda reguła w kodzie miała opis w ADR.
+
+### Pułapki
+
+- ADR dla każdego Rename - dokumentuje się decyzje o trwałym wpływie.
+- Edycja zaakceptowanego ADR zamiast nowego zapisu, który go zastępuje.
+- Reguła tekstowa ma granice: pełna nazwa klasy bez importu albo refleksja ją ominą (opisane w "Konsekwencjach").
+
+### Pytanie do sali
+
+Co zrobić, gdy zespół chce złamać R2 dla jednego przypadku (np. statystyk)? Wyjątek w teście czy nowy ADR?
 
 ## Scena s03. Bramka kompilatora -Xlint:all -Werror
 
@@ -230,170 +395,157 @@ Bramka łączy kilka niezależnych sygnałów. `S04EquivalenceTest` pilnuje drug
 
 Które z tych czterech sprawdzeń uruchomilibyście lokalnie przed commitem, a które tylko w CI?
 
-## Scena s01. YAGNI - silnik reguł dla dwóch reguł
+## Scena s05. Boy Scout Rule - mała poprawa i jej nadużycie
 
-**Temat ze slajdów:** 2.3. YAGNI: buduj dla dzisiejszej potrzeby; 2.4. Pięć pytań przed dodaniem abstrakcji
-**Pakiet:** `pl.training.workshop.m2.s01_yagni` · **Test:** `scripts/warsztat.sh test m2/s01`
-**Czas:** ~12 min
+**Temat ze slajdów:** 2.9. Zasada harcerza i małe porcje zmian
+**Pakiet:** `pl.training.workshop.m2.s05_boyscout` · **Test:** `scripts/warsztat.sh test m2/s05`
+**Czas:** ~8 min
 
 ### W skrócie
 
-**Co robimy:** `TicketPricer` to silnik z rejestrem pluginów, konfiguracją napisem i kontekstem `Map` - dla dokładnie dwóch reguł. W trzech krokach usuwamy rejestr, zastępujemy mapę typowanymi danymi i wklejamy reguły do jednej klasy.
+**Co robimy:** `TicketPrinter.print` i tak otwieramy dla nowej linii "Sala", a kod ma nazwy `s`, `d`, `x` i ręczne sklejanie listy miejsc. Najpierw pokazujemy antyprzykład "skoro już tu jestem", który po cichu zmienia wydruk, a potem robimy małą poprawę tylko w tej metodzie.
 
-**Zasada:** YAGNI mówi, żeby nie budować zdolności potrzebnej tylko dla przewidywanego wymagania. Nie zabrania testów, refaktoryzacji ani nazwanych metod - to one pozwalają bezpiecznie odłożyć abstrakcję do chwili, gdy pojawi się realna potrzeba. To praktyczna wersja ostatniego odpowiedzialnego momentu: decyzję o mechanizmie rozszerzeń odkładamy, dopóki nie znamy jego kształtu, a usunięcie spekulacji jest drzwiami dwukierunkowymi.
+**Zasada:** Boy Scout Rule mówi: dotykany kod zostaw w nieco lepszym stanie - to heurystyka, nie licencja na przebudowę. Poprawa jest mała, lokalna, dotyczy kodu bieżącej zmiany i nie zmienia zachowania; zmiana reguły biznesowej pod etykietą sprzątania to nadużycie.
 
-**Efekt:** Z pięciu klas zostaje jedna z dwiema nazwanymi regułami, a literówka w nazwie reguły nie skompiluje się. Gdy przyjdzie trzecia reguła z innym właścicielem, abstrakcję trzeba będzie wprowadzić ponownie.
+**Efekt:** Metoda ma czytelne nazwy, `String.join`, `StringBuilder` i `phoneLine`, a test równoważności potwierdza identyczny wydruk. Sortowanie miejsc czy małe litery w e-mailu mogą być dobrymi pomysłami, ale trafiają do osobnego commita jako świadoma zmiana zachowania.
 
 ### Co widzimy
 
-`TicketPricer` to spekulatywny silnik: rejestr pluginów, konfiguracja napisem `"morning,vip"`, priorytety i kontekst `Map<String, Object>`. Obsługuje dokładnie dwie reguły (poranek -5.00, VIP +10.00), które nie zależą od kolejności.
+`start.TicketPrinter.print` trzeba i tak otworzyć, bo w sprincie dochodzi linia "Sala". Kod ma nazwy `s`, `d`, `x`, konkatenację w pętli i ręczne sklejanie listy miejsc. Kusi, żeby "posprzątać wszystko".
 
 ```java
-Map<String, Object> context = new HashMap<>();
-context.put("start", quote.start());
-context.put("row", quote.row());
-...
-for (PricingRule rule : registry.resolve(activeRules)) {
-    if (rule.appliesTo(context)) {
-        price = rule.apply(context, price);
+String x = "";
+for (int i = 0; i < t.seats().size(); i++) {
+    if (i > 0) {
+        x = x + ", ";
     }
+    x = x + t.seats().get(i);
 }
 ```
 
-Na żywo: zmień w konstruktorze `"morning,vip"` na `"morning,vlp"` i uruchom test - błąd konfiguracji wychodzi dopiero w runtime (`IllegalArgumentException: brak reguly: vlp`). Cofnij zmianę.
+### Krok 1: nadużycie - "skoro już tu jestem"
 
-### Krok 1: Inline Class - rejestr pluginów znika
-
-**W IDE:** w `TicketPricer` zastąp pola `registry` i `activeRules` listą `List.of(new MorningRule(), new VipRule())` (ręcznie, konstruktory usuń). Safe Delete (⌘⌦) na `RuleRegistry` i na `priority()` w interfejsie (był potrzebny tylko do sortowania).
+**W IDE:** pokaż antyprzykład: `scripts/warsztat.sh jump m2/s05 1`. Obok dobrych ruchów przemycono sortowanie miejsc, e-mail małymi literami i pominięcie linii "Tel" bez telefonu.
 **Po:**
 
 ```java
-private final List<PricingRule> rules = List.of(new MorningRule(), new VipRule());
+List<String> sortedSeats = ticket.seats().stream().sorted().toList();
+text.append("Klient: ").append(ticket.email().trim().toLowerCase(Locale.ROOT)).append('\n');
 ```
 
-**Uruchom:** `scripts/warsztat.sh test m2/s01` - 16 testów zielonych.
-**Co powiedzieć:** konfiguracja napisem nie miała żadnego klienta. Teraz literówka w nazwie reguły nie skompiluje się.
-**Snapshot:** `step1/` · **Różnica:** `scripts/warsztat.sh diff m2/s01 0 1`
+**Uruchom:** `scripts/warsztat.sh test m2/s05` - równoważność czerwona w trzech przypadkach (m.in. `A9, A10` staje się `A10, A9`). `S05SolutionTest.abusiveCleanupChangesBehaviourInThreeCases` dokumentuje, które.
+**Co powiedzieć:** każda z tych zmian może być dobrym pomysłem, ale to decyzje biznesowe, nie sprzątanie. Cofamy: `scripts/warsztat.sh reset m2/s05`.
+**Snapshot:** `step1/` · **Różnica:** `scripts/warsztat.sh diff m2/s05 0 1`
 
-### Krok 2: Change Signature - typowane dane zamiast mapy
+### Krok 2: poprawna, mała poprawa
 
-**W IDE:** ⌘F6 na `PricingRule.appliesTo`: typ parametru `Map<String, Object>` -> `TicketQuote`; na `apply` usuń parametr kontekstu. Popraw implementacje (rzutowania znikają), usuń budowanie mapy w `TicketPricer`.
+**W IDE:** Rename (⇧F6) `t` → `ticket`; Replace loop with `String.join` (⌥⏎ na pętli albo ręcznie); `StringBuilder` zamiast konkatenacji; Extract Method (⌥⌘M) `phoneLine`.
 **Po:**
 
 ```java
-public boolean appliesTo(TicketQuote quote) {
-    return quote.row() >= quote.vipFromRow();
-}
+.append("Miejsca: ").append(String.join(", ", ticket.seats())).append('\n')
+.append("Klient: ").append(ticket.email().trim()).append('\n')
+.append(phoneLine(ticket)).append('\n')
 ```
 
 **Uruchom:** test zielony.
-**Co powiedzieć:** generyczny kontekst to typowa spekulacja "reguła może potrzebować czegokolwiek". Kompilator znów pilnuje nazw pól.
-**Snapshot:** `step2/` · **Różnica:** `scripts/warsztat.sh diff m2/s01 1 2`
-
-### Krok 3: Inline Class dla reguł, Safe Delete interfejsu
-
-**W IDE:** ⌥⌘N na `MorningRule` i `VipRule` (Inline Class) albo ręcznie: dwa `if` w `price` z metodami `isMorning` i `isVip`. Safe Delete na `PricingRule`. Stałe przez ⌥⌘C.
-**Po:**
-
-```java
-public BigDecimal price(TicketQuote quote) {
-    BigDecimal price = basePrice(quote.format());
-    if (isMorning(quote)) {
-        price = price.subtract(MORNING_DISCOUNT);
-    }
-    if (isVip(quote)) {
-        price = price.add(VIP_SURCHARGE);
-    }
-    return price;
-}
-```
-
-**Uruchom:** test zielony.
-**Co powiedzieć:** YAGNI nie zabrania testów, nazwanych metod ani szwu testowego - cena liczona jest z danych wejściowych, bez zegara i stanu statycznego, więc każdą regułę łatwo sprawdzić. Gdy pojawi się trzecia reguła z innym właścicielem, wydzielimy abstrakcję wtedy.
-**Snapshot:** `step3/` · **Różnica:** `scripts/warsztat.sh diff m2/s01 2 3`
+**Co powiedzieć:** tylko dotykana metoda, bez zmiany kontraktu, diff do przejrzenia w minutę. Nowa linia "Sala" to osobny commit (patrz s06).
+**Snapshot:** `step2/` · **Różnica:** `scripts/warsztat.sh diff m2/s05 0 2`
 
 ### Rozwiązanie i uzasadnienie
 
-Przejdź z salą filtr ze slajdu 2.4: aktualne wymaganie (2 reguły), nazwa w języku problemu (brak: "plugin", "registry"), czy upraszcza aktualny przypadek (nie), koszt usunięcia (niski - pokazaliśmy). Z pięciu klas została jedna.
+Boy Scout Rule to heurystyka: mała, lokalna, weryfikowalna poprawa w kodzie bieżącej zmiany. Test różnicowy (start kontra krok) jest bezstronnym arbitrem, czy "sprzątanie" nie zmieniło zachowania.
 
 ### Pułapki
 
-- "YAGNI, więc bez testów" - odwrotnie: testy i małe kroki pozwalają bezpiecznie odraczać decyzje.
-- Usunięcie abstrakcji, która chroni aktualną, realną granicę (np. port do bazy) - to nie spekulacja.
+- Zmiana zachowania pod etykietą refaktoryzacji.
+- Masowe formatowanie całego pliku razem z poprawką - recenzent nie znajdzie zmiany merytorycznej.
+- "Sprzątanie" cudzego modułu bez uzgodnienia.
 
 ### Pytanie do sali
 
-Który mechanizm rozszerzeń w waszym systemie ma dziś jedną albo dwie implementacje? Jaki sygnał powiedziałby, że czas go wprowadzić ponownie?
+Posortowane miejsca są czytelniejsze. Jak wprowadzić tę zmianę uczciwie?
 
-## Scena s02. ADR i wykonywalny model decyzji
+## Scena s06. Seria małych zmian gotowych do przeglądu
 
-**Temat ze slajdów:** 2.5. ADR: zapisz decyzję, a najlepiej ją sprawdzaj
-**Pakiet:** `pl.training.workshop.m2.s02_adr` · **Test:** `scripts/warsztat.sh test m2/s02`
+**Temat ze slajdów:** 2.9. Zasada harcerza i małe porcje zmian
+**Pakiet:** `pl.training.workshop.m2.s06_reviewableseries` · **Test:** `scripts/warsztat.sh test m2/s06`
 **Czas:** ~10 min
 
 ### W skrócie
 
-**Co robimy:** ADR-0007 mówi, że cennik nie zależy od `notification` i nie używa `double`, a cennik w `start` sam wysyła mail o rabacie grupowym i liczy w `double`. Cennik zaczyna zwracać `Quote` z informacją o rabacie, mail wysyła `BookingService`, a kwoty przechodzą na `Money`.
+**Co robimy:** `PriceList.price` ma dostać "Tani wtorek" (NORMAL -20% we wtorek), a zniżki są wplecione w jedną metodę i nie widzą daty. Zamiast jednego commita "porządki + tani wtorek" robimy serię: Extract Method, Change Signature, a dopiero potem nowa reguła.
 
-**Zasada:** ADR zapisuje decyzję o trwałym wpływie: kontekst, opcje, decyzję i konsekwencje - to dokument historyczny, którego się nie edytuje, tylko zastępuje nowym. Regułę z ADR warto uczynić wykonywalną, żeby build pilnował jej na co dzień. Nie pisze się ADR dla każdego Rename.
+**Zasada:** Dobry zestaw zmian ma jedną intencję, własny dowód i zielony build po integracji. Refaktoryzację oddziela się od zmiany funkcjonalnej, formatowanie od logiki, a diff automatyczny od ręcznego - najpierw ułatw zmianę, potem zrób łatwą zmianę.
 
-**Efekt:** `ArchitectureRules` zwraca pustą listę naruszeń, a maile i odpowiedzi są takie same jak przed zmianą. Reguła tekstowa ma swoje granice (pełna nazwa klasy bez importu albo refleksja ją ominą) i ADR opisuje to w konsekwencjach.
+**Efekt:** Dwa pierwsze commity dowodzi test równoważności, a trzeci świadomie zmienia zachowanie: test różnicowy pokazuje, że zmieniło się dokładnie 12 przypadków, wszystkie NORMAL we wtorek. Kosztem jest więcej commitów, ale recenzent sprawdza w każdym tylko jedną rzecz.
 
 ### Co widzimy
 
-Obok kodu sceny leży `ADR-0007-cennik-jako-czysty-modul.md` (status: Zaakceptowana) z dwiema regułami: **R1** pakiet `pricing` nie zależy od `notification`, **R2** `pricing` nie używa `double`. `ArchitectureRules` to wykonywalny model tych reguł. W `start` cennik sam wysyła mail o rabacie grupowym i liczy w `double`:
+`start.PriceList.price` ma dostać promocję "Tani wtorek": bilet NORMAL -20% ceny bazowej we wtorek. Zniżki są wplecione w jedną metodę i zależą tylko od typu biletu, a nowa reguła potrzebuje daty. Pokusa: jeden commit "porządki + tani wtorek".
 
 ```java
-import pl.training.workshop.m2.s02_adr.start.notification.GroupMailer;
-...
-public double total(String organizer, int tickets, double unitPrice) {
-    ...
-    mailer.groupDiscountGranted(organizer, tickets);
+BigDecimal d;
+if (q.type().equals("STUDENT")) {
+    d = p.multiply(new BigDecimal("0.25"));
+} else if ...
 ```
 
-### Krok 1: spełnienie R1 - wynik zamiast efektu
+### Krok 1: commit 1 - refaktoryzacja (Extract Method)
 
-**W IDE:** nowy record `Quote(double total, boolean groupDiscount)` w `pricing`; ⌘F6 na `total` - bez `organizer`, zwraca `Quote`. Wywołanie `mailer` przenieś do `BookingService` (warstwa aplikacji). Usuń import `notification` z cennika.
+**W IDE:** ⌥⌘M na wyborze ceny bazowej → `basePrice(String format)`; ⌥⌘M na wyborze zniżki → `discountPercent(String type)` zwracające procent; Money zamiast BigDecimal.
 **Po:**
 
 ```java
-Quote quote = pricing.total(tickets, unitPrice);
-if (quote.groupDiscount()) {
-    mailer.groupDiscountGranted(organizer, tickets);
+Money base = basePrice(query.format());
+Money price = base.minus(base.percent(discountPercent(query.type())));
+```
+
+**Uruchom:** test zielony - równoważność na przypadkach, w tym wtorkowych.
+**Co powiedzieć:** opis commita: "refaktoryzacja, bez zmiany zachowania, dowód: S06EquivalenceTest". Recenzent sprawdza tylko mechanikę.
+**Snapshot:** `step1/` · **Różnica:** `scripts/warsztat.sh diff m2/s06 0 1`
+
+### Krok 2: commit 2 - refaktoryzacja przygotowawcza (Change Signature)
+
+**W IDE:** ⌘F6 na `discountPercent`: parametr `TicketQuery query` zamiast `String type`, w ciele `switch (query.type())`.
+**Po:**
+
+```java
+private static int discountPercent(TicketQuery query) {
+    return switch (query.type()) { ... };
 }
 ```
 
-**Uruchom:** test zielony; `step1RemovesDependencyOnNotification` - zostało tylko naruszenie `ADR-0007/R2`.
-**Co powiedzieć:** naruszenie w teście prowadzi wprost do identyfikatora decyzji i jej uzasadnienia.
-**Snapshot:** `step1/` · **Różnica:** `scripts/warsztat.sh diff m2/s02 0 1`
+**Uruchom:** test zielony.
+**Co powiedzieć:** "make the change easy, then make the easy change". Ten commit nadal nie zmienia zachowania.
+**Snapshot:** `step2/` · **Różnica:** `scripts/warsztat.sh diff m2/s06 1 2`
 
-### Krok 2: spełnienie R2 - Money
+### Krok 3: commit 3 - zmiana zachowania
 
-**W IDE:** Type Migration (⇧⌘F6) `double` → `Money` w `Quote` i `TicketPricing`; nazwane stałe dla progu i procentu grupy; `BookingService` podaje `Money.of("25.00")`.
+**W IDE:** w gałęzi `default` warunek `isCheapTuesday(query) ? 20 : 0`, metoda pomocnicza, stała `CHEAP_TUESDAY_PERCENT`.
 **Po:**
 
 ```java
-public Quote total(int tickets, Money unitPrice) {
-    Money sum = unitPrice.times(tickets);
+default -> isCheapTuesday(query) ? CHEAP_TUESDAY_PERCENT : 0;
 ```
 
-**Uruchom:** test zielony; `step2CompliesWithTheDecision` - pusta lista naruszeń.
-**Co powiedzieć:** moduł jest zgodny z decyzją, a test pilnuje, żeby tak zostało.
-**Snapshot:** `step2/` · **Różnica:** `scripts/warsztat.sh diff m2/s02 1 2`
+**Uruchom:** test zielony; `S06SolutionTest.cheapTuesdayGivesNormalTicketTwentyPercentOff` (2D wtorek 20.00) i `behaviourChangeIsLimitedToNormalTicketsOnTuesday` - na siatce 336 przypadków zmieniło się dokładnie 12, wszystkie NORMAL we wtorek.
+**Co powiedzieć:** diff to kilka linii. Test różnicowy commitu 2 kontra 3 mówi recenzentowi dokładnie, gdzie zmieniło się zachowanie.
+**Snapshot:** `step3/` · **Różnica:** `scripts/warsztat.sh diff m2/s06 2 3`
 
 ### Rozwiązanie i uzasadnienie
 
-ADR opisuje kontekst, opcje i konsekwencje (historia), a `ArchitectureRules` sprawdza regułę w każdym buildzie. `adrDocumentsEveryExecutableRule` pilnuje, żeby każda reguła w kodzie miała opis w ADR.
+Trzy zestawy zmian, każdy z jedną intencją i zielonym buildem. Refaktoryzacje dowodzi test równoważności, zmianę zachowania - test nowej reguły i test różnicowy ograniczający jej zasięg.
 
 ### Pułapki
 
-- ADR dla każdego Rename - dokumentuje się decyzje o trwałym wpływie.
-- Edycja zaakceptowanego ADR zamiast nowego zapisu, który go zastępuje.
-- Reguła tekstowa ma granice: pełna nazwa klasy bez importu albo refleksja ją ominą (opisane w "Konsekwencjach").
+- Łączenie refaktoryzacji ze zmianą zachowania: recenzent nie odróżni ruchu mechanicznego od nowej reguły.
+- Łączenie formatowania z logiką, diffu automatycznego z ręcznym.
+- Commit przygotowawczy, który "przy okazji" poprawia regułę.
 
 ### Pytanie do sali
 
-Co zrobić, gdy zespół chce złamać R2 dla jednego przypadku (np. statystyk)? Wyjątek w teście czy nowy ADR?
+Jak opisalibyście commit 3 według pięciu pytań (dlaczego, co i czego nie, kontrakt, dowody, wdrożenie i wycofanie)?
 
 ## Scena s07. SRP - raport dla dwóch aktorów
 
@@ -765,167 +917,15 @@ Domena bez `java.sql` i bez typów adaptera, każda klasa opisuje jedno pojęcie
 
 Która reguła architektury w waszym projekcie istnieje tylko w głowach lub na wiki? Jak najtaniej zamienić ją w test?
 
-## Scena s05. Boy Scout Rule - mała poprawa i jej nadużycie
-
-**Temat ze slajdów:** 2.9. Zasada harcerza i małe porcje zmian
-**Pakiet:** `pl.training.workshop.m2.s05_boyscout` · **Test:** `scripts/warsztat.sh test m2/s05`
-**Czas:** ~8 min
-
-### W skrócie
-
-**Co robimy:** `TicketPrinter.print` i tak otwieramy dla nowej linii "Sala", a kod ma nazwy `s`, `d`, `x` i ręczne sklejanie listy miejsc. Najpierw pokazujemy antyprzykład "skoro już tu jestem", który po cichu zmienia wydruk, a potem robimy małą poprawę tylko w tej metodzie.
-
-**Zasada:** Boy Scout Rule mówi: dotykany kod zostaw w nieco lepszym stanie - to heurystyka, nie licencja na przebudowę. Poprawa jest mała, lokalna, dotyczy kodu bieżącej zmiany i nie zmienia zachowania; zmiana reguły biznesowej pod etykietą sprzątania to nadużycie.
-
-**Efekt:** Metoda ma czytelne nazwy, `String.join`, `StringBuilder` i `phoneLine`, a test równoważności potwierdza identyczny wydruk. Sortowanie miejsc czy małe litery w e-mailu mogą być dobrymi pomysłami, ale trafiają do osobnego commita jako świadoma zmiana zachowania.
-
-### Co widzimy
-
-`start.TicketPrinter.print` trzeba i tak otworzyć, bo w sprincie dochodzi linia "Sala". Kod ma nazwy `s`, `d`, `x`, konkatenację w pętli i ręczne sklejanie listy miejsc. Kusi, żeby "posprzątać wszystko".
-
-```java
-String x = "";
-for (int i = 0; i < t.seats().size(); i++) {
-    if (i > 0) {
-        x = x + ", ";
-    }
-    x = x + t.seats().get(i);
-}
-```
-
-### Krok 1: nadużycie - "skoro już tu jestem"
-
-**W IDE:** pokaż antyprzykład: `scripts/warsztat.sh jump m2/s05 1`. Obok dobrych ruchów przemycono sortowanie miejsc, e-mail małymi literami i pominięcie linii "Tel" bez telefonu.
-**Po:**
-
-```java
-List<String> sortedSeats = ticket.seats().stream().sorted().toList();
-text.append("Klient: ").append(ticket.email().trim().toLowerCase(Locale.ROOT)).append('\n');
-```
-
-**Uruchom:** `scripts/warsztat.sh test m2/s05` - równoważność czerwona w trzech przypadkach (m.in. `A9, A10` staje się `A10, A9`). `S05SolutionTest.abusiveCleanupChangesBehaviourInThreeCases` dokumentuje, które.
-**Co powiedzieć:** każda z tych zmian może być dobrym pomysłem, ale to decyzje biznesowe, nie sprzątanie. Cofamy: `scripts/warsztat.sh reset m2/s05`.
-**Snapshot:** `step1/` · **Różnica:** `scripts/warsztat.sh diff m2/s05 0 1`
-
-### Krok 2: poprawna, mała poprawa
-
-**W IDE:** Rename (⇧F6) `t` → `ticket`; Replace loop with `String.join` (⌥⏎ na pętli albo ręcznie); `StringBuilder` zamiast konkatenacji; Extract Method (⌥⌘M) `phoneLine`.
-**Po:**
-
-```java
-.append("Miejsca: ").append(String.join(", ", ticket.seats())).append('\n')
-.append("Klient: ").append(ticket.email().trim()).append('\n')
-.append(phoneLine(ticket)).append('\n')
-```
-
-**Uruchom:** test zielony.
-**Co powiedzieć:** tylko dotykana metoda, bez zmiany kontraktu, diff do przejrzenia w minutę. Nowa linia "Sala" to osobny commit (patrz s06).
-**Snapshot:** `step2/` · **Różnica:** `scripts/warsztat.sh diff m2/s05 0 2`
-
-### Rozwiązanie i uzasadnienie
-
-Boy Scout Rule to heurystyka: mała, lokalna, weryfikowalna poprawa w kodzie bieżącej zmiany. Test różnicowy (start kontra krok) jest bezstronnym arbitrem, czy "sprzątanie" nie zmieniło zachowania.
-
-### Pułapki
-
-- Zmiana zachowania pod etykietą refaktoryzacji.
-- Masowe formatowanie całego pliku razem z poprawką - recenzent nie znajdzie zmiany merytorycznej.
-- "Sprzątanie" cudzego modułu bez uzgodnienia.
-
-### Pytanie do sali
-
-Posortowane miejsca są czytelniejsze. Jak wprowadzić tę zmianę uczciwie?
-
-## Scena s06. Seria małych zmian gotowych do przeglądu
-
-**Temat ze slajdów:** 2.9. Zasada harcerza i małe porcje zmian
-**Pakiet:** `pl.training.workshop.m2.s06_reviewableseries` · **Test:** `scripts/warsztat.sh test m2/s06`
-**Czas:** ~10 min
-
-### W skrócie
-
-**Co robimy:** `PriceList.price` ma dostać "Tani wtorek" (NORMAL -20% we wtorek), a zniżki są wplecione w jedną metodę i nie widzą daty. Zamiast jednego commita "porządki + tani wtorek" robimy serię: Extract Method, Change Signature, a dopiero potem nowa reguła.
-
-**Zasada:** Dobry zestaw zmian ma jedną intencję, własny dowód i zielony build po integracji. Refaktoryzację oddziela się od zmiany funkcjonalnej, formatowanie od logiki, a diff automatyczny od ręcznego - najpierw ułatw zmianę, potem zrób łatwą zmianę.
-
-**Efekt:** Dwa pierwsze commity dowodzi test równoważności, a trzeci świadomie zmienia zachowanie: test różnicowy pokazuje, że zmieniło się dokładnie 12 przypadków, wszystkie NORMAL we wtorek. Kosztem jest więcej commitów, ale recenzent sprawdza w każdym tylko jedną rzecz.
-
-### Co widzimy
-
-`start.PriceList.price` ma dostać promocję "Tani wtorek": bilet NORMAL -20% ceny bazowej we wtorek. Zniżki są wplecione w jedną metodę i zależą tylko od typu biletu, a nowa reguła potrzebuje daty. Pokusa: jeden commit "porządki + tani wtorek".
-
-```java
-BigDecimal d;
-if (q.type().equals("STUDENT")) {
-    d = p.multiply(new BigDecimal("0.25"));
-} else if ...
-```
-
-### Krok 1: commit 1 - refaktoryzacja (Extract Method)
-
-**W IDE:** ⌥⌘M na wyborze ceny bazowej → `basePrice(String format)`; ⌥⌘M na wyborze zniżki → `discountPercent(String type)` zwracające procent; Money zamiast BigDecimal.
-**Po:**
-
-```java
-Money base = basePrice(query.format());
-Money price = base.minus(base.percent(discountPercent(query.type())));
-```
-
-**Uruchom:** test zielony - równoważność na przypadkach, w tym wtorkowych.
-**Co powiedzieć:** opis commita: "refaktoryzacja, bez zmiany zachowania, dowód: S06EquivalenceTest". Recenzent sprawdza tylko mechanikę.
-**Snapshot:** `step1/` · **Różnica:** `scripts/warsztat.sh diff m2/s06 0 1`
-
-### Krok 2: commit 2 - refaktoryzacja przygotowawcza (Change Signature)
-
-**W IDE:** ⌘F6 na `discountPercent`: parametr `TicketQuery query` zamiast `String type`, w ciele `switch (query.type())`.
-**Po:**
-
-```java
-private static int discountPercent(TicketQuery query) {
-    return switch (query.type()) { ... };
-}
-```
-
-**Uruchom:** test zielony.
-**Co powiedzieć:** "make the change easy, then make the easy change". Ten commit nadal nie zmienia zachowania.
-**Snapshot:** `step2/` · **Różnica:** `scripts/warsztat.sh diff m2/s06 1 2`
-
-### Krok 3: commit 3 - zmiana zachowania
-
-**W IDE:** w gałęzi `default` warunek `isCheapTuesday(query) ? 20 : 0`, metoda pomocnicza, stała `CHEAP_TUESDAY_PERCENT`.
-**Po:**
-
-```java
-default -> isCheapTuesday(query) ? CHEAP_TUESDAY_PERCENT : 0;
-```
-
-**Uruchom:** test zielony; `S06SolutionTest.cheapTuesdayGivesNormalTicketTwentyPercentOff` (2D wtorek 20.00) i `behaviourChangeIsLimitedToNormalTicketsOnTuesday` - na siatce 336 przypadków zmieniło się dokładnie 12, wszystkie NORMAL we wtorek.
-**Co powiedzieć:** diff to kilka linii. Test różnicowy commitu 2 kontra 3 mówi recenzentowi dokładnie, gdzie zmieniło się zachowanie.
-**Snapshot:** `step3/` · **Różnica:** `scripts/warsztat.sh diff m2/s06 2 3`
-
-### Rozwiązanie i uzasadnienie
-
-Trzy zestawy zmian, każdy z jedną intencją i zielonym buildem. Refaktoryzacje dowodzi test równoważności, zmianę zachowania - test nowej reguły i test różnicowy ograniczający jej zasięg.
-
-### Pułapki
-
-- Łączenie refaktoryzacji ze zmianą zachowania: recenzent nie odróżni ruchu mechanicznego od nowej reguły.
-- Łączenie formatowania z logiką, diffu automatycznego z ręcznym.
-- Commit przygotowawczy, który "przy okazji" poprawia regułę.
-
-### Pytanie do sali
-
-Jak opisalibyście commit 3 według pięciu pytań (dlaczego, co i czego nie, kontrakt, dowody, wdrożenie i wycofanie)?
-
 ## Proponowana kolejność pokazu
 
-**Ścieżka krótka (~55 min):** s03 (bramka kompilatora, 10) -> s01 (YAGNI, 12) -> s08 (DIP, 12) -> s05 (Boy Scout, 8) -> s06 (seria zmian, 10). Pokazuje pełny łuk prewencji: najszybsza pętla, odłożona decyzja, kierunek zależności, mała poprawa i zestaw zmian gotowy do przeglądu. Jeśli zostanie czas, z s09 pokaż tylko `diff m2/s09 3 4` i `S09UseCaseTest` (5 min).
+**Ścieżka krótka (~55 min):** s03 (bramka kompilatora, 10) → s01 (YAGNI, 12) → s08 (odwrócenie zależności, 12) → s05 (zasada harcerza, 8) → s06 (seria zmian, 10). Pokazuje pełny łuk prewencji: najszybsza pętla, odłożona decyzja, kierunek zależności, mała poprawa i zestaw zmian gotowy do przeglądu. Jeśli zostanie czas, z s09 pokaż tylko `diff m2/s09 3 4` i `S09UseCaseTest` (5 min).
 
 **Ścieżka pełna (~115 min, z przerwą):**
 
-1. Fast feedback: s03, s04 (~22 min) - na koniec pytanie, które sprawdzenia uruchamiać lokalnie, a które w CI.
-2. Decyzje: s01, s02 (~22 min) - filtr decyzyjny ze slajdu 2.4 na przykładzie s01, potem decyzja trwała zapisana w ADR i pilnowana testem.
+1. Szybka informacja zwrotna: s03, s04 (~22 min) - na koniec pytanie, które sprawdzenia uruchamiać lokalnie, a które w CI.
+2. Decyzje: s01, s02 (~22 min) - pięć pytań ze slajdu 2.4 na przykładzie s01, potem decyzja trwała zapisana w ADR i pilnowana testem.
 3. Projekt: s07, s08, s09, s10 (~54 min) - od jednego aktora zmiany, przez kierunek zależności, do granicy sprawdzanej automatycznie.
-4. Prewencja codzienna: s05, s06 (~18 min) jako podsumowanie - mała poprawa w dotykanym kodzie i seria zmian z osobnymi dowodami.
+4. Codzienna dbałość o kod: s05, s06 (~18 min) jako podsumowanie - mała poprawa w dotykanym kodzie i seria zmian z osobnymi dowodami.
 
 Sceny s09 i s10 dobrze łączyć: po s09 zapytaj, jak upewnić się, że `app` nigdy nie zaimportuje `adapter`, i przejdź do s10. Podobnie s05 i s06: po s05 zapytaj, jak uczciwie wprowadzić posortowane miejsca, i pokaż, jak s06 oddziela refaktoryzację od zmiany zachowania.

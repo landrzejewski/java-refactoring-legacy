@@ -1,8 +1,8 @@
 # Moduł 2. Prewencja - warsztat CineLegacy (C#): przewodnik prowadzącego
 
-Dziesięć małych scen w domenie kina CineLegacy pokazuje prewencję z modułu 2 jako serie bezpiecznych zmian: bramki kompilatora i jakości jako najszybsze pętle informacji zwrotnej, odraczanie decyzji (YAGNI) i ich zapis (ADR z wykonywalną regułą), projekt jako hamulec degradacji (SRP, DIP, granice Clean Architecture, automatyczna kontrola granicy) oraz prewencję w codziennej pracy (Boy Scout Rule, seria zmian gotowych do przeglądu). Każda scena ma kod wyjściowy (`Start`) z zapachem lub pułapką i kompletne snapshoty po każdym kroku (`Step1`, `Step2`, ...). Prowadzący pracuje na żywo w `Start`, po każdym kroku uruchamia test sceny i porównuje wynik ze snapshotem.
+Dziesięć małych scen w domenie kina CineLegacy pokazuje tematy z części II prezentacji („Zanim wprowadzisz wzorzec”) jako serie bezpiecznych zmian: bramki kompilatora i jakości jako najszybsze pętle informacji zwrotnej, odraczanie decyzji (YAGNI) i ich zapis (ADR z regułą sprawdzaną przez test), projekt, który hamuje degradację kodu (zasada pojedynczej odpowiedzialności, zasada odwrócenia zależności, granice czystej architektury, automatyczna kontrola granicy) oraz codzienną dbałość o kod (zasada harcerza, seria zmian gotowych do przeglądu). Każda scena ma kod wyjściowy (`Start`) z zapachem lub pułapką i kompletne snapshoty po każdym kroku (`Step1`, `Step2`, ...). Prowadzący pracuje na żywo w `Start`, po każdym kroku uruchamia test sceny i porównuje wynik ze snapshotem.
 
-Sceny ilustrują sekcję 2 slajdów ("Zanim wprowadzisz wzorzec"): każdy temat ma własną, kilkuminutową scenę. Sceny są pokazami prowadzącego do wyboru - nie trzeba pokazywać wszystkich. Numery scen odpowiadają przestrzeniom nazw w kodzie; poniżej są ułożone w kolejności tematów modułu.
+Sceny ilustrują sekcję 2 slajdów ("Zanim wprowadzisz wzorzec"): każdy temat ma własną, kilkuminutową scenę. Sceny są pokazami prowadzącego do wyboru - nie trzeba pokazywać wszystkich. Numery scen odpowiadają przestrzeniom nazw w kodzie i w tej kolejności sceny są opisane poniżej. Kolejność pokazu, zgodną z kolejnością slajdów, podaje sekcja „Proponowana kolejność pokazu” na końcu.
 
 Kod portu C# leży w `csharp/src/Training.Workshop/M2/SNN.../{Start,Step1,...}`, testy (xUnit) w `csharp/tests/Training.Workshop.Tests/M2/SNN.../`. Kwoty to `decimal` (odpowiednik `BigDecimal`) albo wspólny typ `Money` (`decimal`, skala 2, zaokrąglenie `AwayFromZero`), a wydruki kwot są formatowane jawnie z `CultureInfo.InvariantCulture`, więc oczekiwane teksty są takie same jak w wersji Java. Wyjątki: `IllegalArgumentException` -> `ArgumentException`, `IllegalStateException` -> `InvalidOperationException`. Interfejsy mają prefiks `I` (`IPricingRule`, `ICustomerNotifier`, `IReservationStore`, `IBookingNotifier`), a podpakiety `app`/`infra`/`adapter`/`domain`/`pricing`/`notification` to przestrzenie nazw (i katalogi) `App`/`Infra`/`Adapter`/`Domain`/`Pricing`/`Notification`. Największe adaptacje dotyczą scen narzędziowych: bramka kompilatora (s03) kompiluje kod sceny w pamięci przez Roslyn, a bramka jakości (s04) kompiluje próbki w pamięci i sama uruchamia ich testy. Tam, gdzie scena odbiega od Javy, akapit **Różnica względem Javy** mówi, co i dlaczego wygląda inaczej.
 
@@ -35,18 +35,200 @@ scripts/warsztat.sh --lang cs reset m2/s09         # przywrócenie Start z repoz
 
 | Scena | Temat ze slajdów | Kroki | Namespace | Czas |
 | --- | --- | --- | --- | --- |
-| s03 | 2.1. Małe kroki i szybka informacja zwrotna; 2.2. Bramki jakości w starym kodzie: stan bazowy i zapadka | 3 | `M2.S03CompilerGate` | ~10 min |
-| s04 | 2.2. Bramki jakości w starym kodzie: stan bazowy i zapadka | 4 | `M2.S04QualityGate` | ~12 min |
 | s01 | 2.3. YAGNI: buduj dla dzisiejszej potrzeby; 2.4. Pięć pytań przed dodaniem abstrakcji | 3 | `M2.S01Yagni` | ~12 min |
 | s02 | 2.5. ADR: zapisz decyzję, a najlepiej ją sprawdzaj | 2 | `M2.S02Adr` | ~10 min |
+| s03 | 2.1. Małe kroki i szybka informacja zwrotna; 2.2. Bramki jakości w starym kodzie: stan bazowy i zapadka | 3 | `M2.S03CompilerGate` | ~10 min |
+| s04 | 2.2. Bramki jakości w starym kodzie: stan bazowy i zapadka | 4 | `M2.S04QualityGate` | ~12 min |
+| s05 | 2.9. Zasada harcerza i małe porcje zmian | 2 | `M2.S05BoyScout` | ~8 min |
+| s06 | 2.9. Zasada harcerza i małe porcje zmian | 3 | `M2.S06ReviewableSeries` | ~10 min |
 | s07 | 2.6. Zasada pojedynczej odpowiedzialności: jeden aktor, jeden powód zmiany | 3 | `M2.S07Srp` | ~12 min |
 | s08 | 2.7. Zasada odwrócenia zależności: liczy się kierunek importów; 2.8. Reguła zależności, porty i korzeń kompozycji | 3 | `M2.S08Dip` | ~12 min |
 | s09 | 2.8. Reguła zależności, porty i korzeń kompozycji | 4 | `M2.S09CleanArchitecture` | ~18 min |
 | s10 | 2.8. Reguła zależności, porty i korzeń kompozycji (sprawdzana automatycznie) | 2 | `M2.S10BoundaryCheck` | ~12 min |
-| s05 | 2.9. Zasada harcerza i małe porcje zmian | 2 | `M2.S05BoyScout` | ~8 min |
-| s06 | 2.9. Zasada harcerza i małe porcje zmian | 3 | `M2.S06ReviewableSeries` | ~10 min |
 
 Pełne nazwy namespace zaczynają się od `Training.Workshop.`, katalogi to `csharp/src/Training.Workshop/M2/S01Yagni` itd.
+
+## Scena s01. YAGNI - silnik reguł dla dwóch reguł
+
+**Temat ze slajdów:** 2.3. YAGNI: buduj dla dzisiejszej potrzeby; 2.4. Pięć pytań przed dodaniem abstrakcji
+**Namespace:** `Training.Workshop.M2.S01Yagni` · **Test:** `scripts/warsztat.sh --lang cs test m2/s01` (`S01EquivalenceTest`)
+**Czas:** ~12 min
+
+### W skrócie
+
+**Co robimy:** `TicketPricer` to silnik z rejestrem pluginów, konfiguracją napisem i kontekstem `IDictionary` - dla dokładnie dwóch reguł. W trzech krokach usuwamy rejestr, zastępujemy słownik typowanymi danymi i wklejamy reguły do jednej klasy.
+
+**Zasada:** YAGNI mówi, żeby nie budować zdolności potrzebnej tylko dla przewidywanego wymagania. Nie zabrania testów, refaktoryzacji ani nazwanych metod - to one pozwalają bezpiecznie odłożyć abstrakcję do chwili, gdy pojawi się realna potrzeba. To praktyczna wersja ostatniego odpowiedzialnego momentu: decyzję o mechanizmie rozszerzeń odkładamy, dopóki nie znamy jego kształtu, a usunięcie spekulacji jest drzwiami dwukierunkowymi.
+
+**Efekt:** Z pięciu typów zostaje jedna klasa z dwiema nazwanymi regułami, a literówka w nazwie reguły nie skompiluje się. Gdy przyjdzie trzecia reguła z innym właścicielem, abstrakcję trzeba będzie wprowadzić ponownie.
+
+**Różnica względem Javy:** kontekst to `IDictionary<string, object>` z rzutowaniami `(TimeOnly)` i `(int)`, fabryki pluginów to `Func<IPricingRule>`, a priorytet reguły to właściwość `Priority`.
+
+### Co widzimy
+
+`TicketPricer` to spekulatywny silnik: rejestr pluginów, konfiguracja napisem `"morning,vip"`, priorytety i kontekst `IDictionary<string, object>`. Obsługuje dokładnie dwie reguły (poranek -5.00, VIP +10.00), które nie zależą od kolejności.
+
+```csharp
+var context = new Dictionary<string, object>
+{
+    ["format"] = quote.Format,
+    ["start"] = quote.Start,
+    ["row"] = quote.Row,
+    ["vipFromRow"] = quote.VipFromRow,
+};
+var price = BasePrice(quote.Format);
+foreach (var rule in _registry.Resolve(_activeRules))
+{
+    if (rule.AppliesTo(context))
+    {
+        price = rule.Apply(context, price);
+    }
+}
+```
+
+Na żywo: zmień w konstruktorze `"morning,vip"` na `"morning,vlp"` i uruchom test - błąd konfiguracji wychodzi dopiero w runtime (`ArgumentException: brak reguly: vlp`). Cofnij zmianę.
+
+### Krok 1: Inline Class - rejestr pluginów znika
+
+**W IDE:** w `TicketPricer` zastąp pola `_registry` i `_activeRules` listą `[new MorningRule(), new VipRule()]` (ręcznie - Rider nie ma Inline Class; oba konstruktory usuń). Safe Delete (⌘⌦) na `RuleRegistry` i na właściwości `Priority` w interfejsie (była potrzebna tylko do sortowania).
+**Po:**
+
+```csharp
+private readonly IReadOnlyList<IPricingRule> _rules = [new MorningRule(), new VipRule()];
+```
+
+**Uruchom:** `scripts/warsztat.sh --lang cs test m2/s01` - 16 testów zielonych.
+**Co powiedzieć:** konfiguracja napisem nie miała żadnego klienta. Teraz literówka w nazwie reguły nie skompiluje się.
+**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m2/s01 0 1`
+
+### Krok 2: Change Signature - typowane dane zamiast słownika
+
+**W IDE:** ⌘F6 na `IPricingRule.AppliesTo`: typ parametru `IDictionary<string, object>` -> `TicketQuote`; na `Apply` usuń parametr kontekstu. Popraw implementacje (rzutowania znikają), usuń budowanie słownika w `TicketPricer`.
+**Po:**
+
+```csharp
+public bool AppliesTo(TicketQuote quote)
+{
+    return quote.Row >= quote.VipFromRow;
+}
+```
+
+**Uruchom:** test zielony.
+**Co powiedzieć:** generyczny kontekst to typowa spekulacja "reguła może potrzebować czegokolwiek". Kompilator znów pilnuje nazw pól.
+**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m2/s01 1 2`
+
+### Krok 3: Inline Class dla reguł, Safe Delete interfejsu
+
+**W IDE:** ręcznie (Rider nie ma Inline Class): dwa `if` w `Price` z metodami `IsMorning` i `IsVip` - ciała wklej z `AppliesTo` i `Apply` obu reguł. Safe Delete na `MorningRule`, `VipRule` i `IPricingRule`. Stałe przez ⌥⌘C.
+**Po:**
+
+```csharp
+public decimal Price(TicketQuote quote)
+{
+    var price = BasePrice(quote.Format);
+    if (IsMorning(quote))
+    {
+        price -= MorningDiscount;
+    }
+    if (IsVip(quote))
+    {
+        price += VipSurcharge;
+    }
+    return price;
+}
+```
+
+**Uruchom:** test zielony.
+**Co powiedzieć:** YAGNI nie zabrania testów, nazwanych metod ani szwu testowego - cena liczona jest z danych wejściowych, bez zegara i stanu statycznego, więc każdą regułę łatwo sprawdzić. Gdy pojawi się trzecia reguła z innym właścicielem, wydzielimy abstrakcję wtedy.
+**Snapshot:** `Step3/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m2/s01 2 3`
+
+### Rozwiązanie i uzasadnienie
+
+Przejdź z salą pięć pytań ze slajdu 2.4: aktualne wymaganie (2 reguły), nazwa w języku problemu (brak: "plugin", "registry"), czy upraszcza aktualny przypadek (nie), koszt usunięcia (niski - pokazaliśmy). Z pięciu typów została jedna klasa.
+
+### Pułapki
+
+- "YAGNI, więc bez testów" - odwrotnie: testy i małe kroki pozwalają bezpiecznie odraczać decyzje.
+- Usunięcie abstrakcji, która chroni aktualną, realną granicę (np. port do bazy) - to nie spekulacja.
+
+### Pytanie do sali
+
+Który mechanizm rozszerzeń w waszym systemie ma dziś jedną albo dwie implementacje? Jaki sygnał powiedziałby, że czas go wprowadzić ponownie?
+
+## Scena s02. ADR i wykonywalny model decyzji
+
+**Temat ze slajdów:** 2.5. ADR: zapisz decyzję, a najlepiej ją sprawdzaj
+**Namespace:** `Training.Workshop.M2.S02Adr` · **Test:** `scripts/warsztat.sh --lang cs test m2/s02` (`S02EquivalenceTest`, `S02SolutionTest`)
+**Czas:** ~10 min
+
+### W skrócie
+
+**Co robimy:** ADR-0007 mówi, że cennik nie zależy od `Notification` i nie używa `double`, a cennik w `Start` sam wysyła mail o rabacie grupowym i liczy w `double`. Cennik zaczyna zwracać `Quote` z informacją o rabacie, mail wysyła `BookingService`, a kwoty przechodzą na `Money`.
+
+**Zasada:** ADR zapisuje decyzję o trwałym wpływie: kontekst, opcje, decyzję i konsekwencje - to dokument historyczny, którego się nie edytuje, tylko zastępuje nowym. Regułę z ADR warto uczynić wykonywalną, żeby build pilnował jej na co dzień. Nie pisze się ADR dla każdego Rename.
+
+**Efekt:** `ArchitectureRules` zwraca pustą listę naruszeń, a maile i odpowiedzi są takie same jak przed zmianą. Reguła tekstowa ma swoje granice (pełna nazwa typu bez dyrektywy `using` albo refleksja ją ominą) i ADR opisuje to w konsekwencjach.
+
+**Różnica względem Javy:** pakiety `pricing`/`notification` to w porcie podprzestrzenie nazw i katalogi `Pricing`/`Notification`. Reguła R1 szuka dyrektywy `using` (regex `^using .*\.Notification\b` zamiast `import ...notification.`), a ponieważ w C# dyrektywa `using` stoi w pierwszej linii pliku, naruszenie startu to `ADR-0007/R1 TicketPricing.cs:1`. Enum `Rule` z polami to klasa `ArchitectureRules.Rule` z instancjami statycznymi i listą `Values`. ADR mówi o przestrzeni nazw zamiast pakietu i o osobnym projekcie (assembly) zamiast modułu Maven.
+
+### Co widzimy
+
+Obok kodu sceny leży `ADR-0007-cennik-jako-czysty-modul.md` (status: Zaakceptowana) z dwiema regułami: **R1** przestrzeń nazw `Pricing` nie zależy od `Notification`, **R2** `Pricing` nie używa `double`. `ArchitectureRules` to wykonywalny model tych reguł. W `Start` cennik sam wysyła mail o rabacie grupowym i liczy w `double`:
+
+```csharp
+using Training.Workshop.M2.S02Adr.Start.Notification;
+...
+public double Total(string organizer, int tickets, double unitPrice)
+{
+    ...
+    _mailer.GroupDiscountGranted(organizer, tickets);
+```
+
+### Krok 1: spełnienie R1 - wynik zamiast efektu
+
+**W IDE:** nowy rekord `Quote(double Total, bool GroupDiscount)` w `Pricing`; ⌘F6 na `Total` - bez `organizer`, zwraca `Quote`. Wywołanie `_mailer` przenieś do `BookingService` (warstwa aplikacji). Usuń dyrektywę `using ...Notification` z cennika.
+**Po:**
+
+```csharp
+Quote quote = _pricing.Total(tickets, unitPrice);
+if (quote.GroupDiscount)
+{
+    _mailer.GroupDiscountGranted(organizer, tickets);
+}
+```
+
+**Uruchom:** test zielony; `Step1RemovesDependencyOnNotification` - zostało tylko naruszenie `ADR-0007/R2`.
+**Co powiedzieć:** naruszenie w teście prowadzi wprost do identyfikatora decyzji i jej uzasadnienia.
+**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m2/s02 0 1`
+
+### Krok 2: spełnienie R2 - Money
+
+**W IDE:** ręcznie zmień typ `double` → `Money` w `Quote` i `TicketPricing` (Rider nie ma Type Migration - build wskaże resztę miejsc); nazwane stałe dla progu i procentu grupy; `BookingService` wybiera cenę jednostkową jako `Money` (`Money.Of("25.00")` itd.).
+**Po:**
+
+```csharp
+public Quote Total(int tickets, Money unitPrice)
+{
+    Money sum = unitPrice.Times(tickets);
+```
+
+**Uruchom:** test zielony; `Step2CompliesWithTheDecision` - pusta lista naruszeń.
+**Co powiedzieć:** moduł jest zgodny z decyzją, a test pilnuje, żeby tak zostało.
+**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m2/s02 1 2`
+
+### Rozwiązanie i uzasadnienie
+
+ADR opisuje kontekst, opcje i konsekwencje (historia), a `ArchitectureRules` sprawdza regułę w każdym buildzie. `AdrDocumentsEveryExecutableRule` pilnuje, żeby każda reguła w kodzie miała opis w ADR.
+
+### Pułapki
+
+- ADR dla każdego Rename - dokumentuje się decyzje o trwałym wpływie.
+- Edycja zaakceptowanego ADR zamiast nowego zapisu, który go zastępuje.
+- Reguła tekstowa ma granice: pełna nazwa typu bez dyrektywy `using` (`Training.Workshop...Notification.GroupMailer`) albo refleksja ją ominą (opisane w "Konsekwencjach").
+
+### Pytanie do sali
+
+Co zrobić, gdy zespół chce złamać R2 dla jednego przypadku (np. statystyk)? Wyjątek w teście czy nowy ADR?
 
 ## Scena s03. Bramka kompilatora - nullable i ostrzeżenia jako błędy
 
@@ -258,187 +440,164 @@ Bramka łączy kilka niezależnych sygnałów. `S04EquivalenceTest` pilnuje drug
 
 Które z tych czterech sprawdzeń uruchomilibyście lokalnie przed commitem, a które tylko w CI?
 
-## Scena s01. YAGNI - silnik reguł dla dwóch reguł
+## Scena s05. Boy Scout Rule - mała poprawa i jej nadużycie
 
-**Temat ze slajdów:** 2.3. YAGNI: buduj dla dzisiejszej potrzeby; 2.4. Pięć pytań przed dodaniem abstrakcji
-**Namespace:** `Training.Workshop.M2.S01Yagni` · **Test:** `scripts/warsztat.sh --lang cs test m2/s01` (`S01EquivalenceTest`)
-**Czas:** ~12 min
+**Temat ze slajdów:** 2.9. Zasada harcerza i małe porcje zmian
+**Namespace:** `Training.Workshop.M2.S05BoyScout` · **Test:** `scripts/warsztat.sh --lang cs test m2/s05` (`S05EquivalenceTest`, `S05SolutionTest`)
+**Czas:** ~8 min
 
 ### W skrócie
 
-**Co robimy:** `TicketPricer` to silnik z rejestrem pluginów, konfiguracją napisem i kontekstem `IDictionary` - dla dokładnie dwóch reguł. W trzech krokach usuwamy rejestr, zastępujemy słownik typowanymi danymi i wklejamy reguły do jednej klasy.
+**Co robimy:** `TicketPrinter.Print` i tak otwieramy dla nowej linii "Sala", a kod ma nazwy `s`, `d`, `x` i ręczne sklejanie listy miejsc. Najpierw pokazujemy antyprzykład "skoro już tu jestem", który po cichu zmienia wydruk, a potem robimy małą poprawę tylko w tej metodzie.
 
-**Zasada:** YAGNI mówi, żeby nie budować zdolności potrzebnej tylko dla przewidywanego wymagania. Nie zabrania testów, refaktoryzacji ani nazwanych metod - to one pozwalają bezpiecznie odłożyć abstrakcję do chwili, gdy pojawi się realna potrzeba. To praktyczna wersja ostatniego odpowiedzialnego momentu: decyzję o mechanizmie rozszerzeń odkładamy, dopóki nie znamy jego kształtu, a usunięcie spekulacji jest drzwiami dwukierunkowymi.
+**Zasada:** Boy Scout Rule mówi: dotykany kod zostaw w nieco lepszym stanie - to heurystyka, nie licencja na przebudowę. Poprawa jest mała, lokalna, dotyczy kodu bieżącej zmiany i nie zmienia zachowania; zmiana reguły biznesowej pod etykietą sprzątania to nadużycie.
 
-**Efekt:** Z pięciu typów zostaje jedna klasa z dwiema nazwanymi regułami, a literówka w nazwie reguły nie skompiluje się. Gdy przyjdzie trzecia reguła z innym właścicielem, abstrakcję trzeba będzie wprowadzić ponownie.
+**Efekt:** Metoda ma czytelne nazwy, `string.Join`, `StringBuilder` i `PhoneLine`, a test równoważności potwierdza identyczny wydruk. Sortowanie miejsc czy małe litery w e-mailu mogą być dobrymi pomysłami, ale trafiają do osobnego commita jako świadoma zmiana zachowania.
 
-**Różnica względem Javy:** kontekst to `IDictionary<string, object>` z rzutowaniami `(TimeOnly)` i `(int)`, fabryki pluginów to `Func<IPricingRule>`, a priorytet reguły to właściwość `Priority`.
+**Różnica względem Javy:** data i godzina seansu są w wydruku formatowane jawnie (`yyyy-MM-dd` i `HH:mm` z `CultureInfo.InvariantCulture`) - to odpowiednik `LocalDate.toString()`/`LocalTime.toString()`, który w C# nie istnieje bez podania formatu. Antyprzykład sortuje miejsca porządkiem ordinalnym (`Order(StringComparer.Ordinal)`), tak jak `sorted()` w Javie, więc `A9, A10` staje się `A10, A9`.
 
 ### Co widzimy
 
-`TicketPricer` to spekulatywny silnik: rejestr pluginów, konfiguracja napisem `"morning,vip"`, priorytety i kontekst `IDictionary<string, object>`. Obsługuje dokładnie dwie reguły (poranek -5.00, VIP +10.00), które nie zależą od kolejności.
+`Start.TicketPrinter.Print` trzeba i tak otworzyć, bo w sprincie dochodzi linia "Sala". Kod ma nazwy `s`, `d`, `x`, konkatenację w pętli i ręczne sklejanie listy miejsc. Kusi, żeby "posprzątać wszystko".
 
 ```csharp
-var context = new Dictionary<string, object>
+string x = "";
+for (int i = 0; i < t.Seats.Count; i++)
 {
-    ["format"] = quote.Format,
-    ["start"] = quote.Start,
-    ["row"] = quote.Row,
-    ["vipFromRow"] = quote.VipFromRow,
-};
-var price = BasePrice(quote.Format);
-foreach (var rule in _registry.Resolve(_activeRules))
-{
-    if (rule.AppliesTo(context))
+    if (i > 0)
     {
-        price = rule.Apply(context, price);
+        x = x + ", ";
     }
+    x = x + t.Seats[i];
 }
 ```
 
-Na żywo: zmień w konstruktorze `"morning,vip"` na `"morning,vlp"` i uruchom test - błąd konfiguracji wychodzi dopiero w runtime (`ArgumentException: brak reguly: vlp`). Cofnij zmianę.
+### Krok 1: nadużycie - "skoro już tu jestem"
 
-### Krok 1: Inline Class - rejestr pluginów znika
-
-**W IDE:** w `TicketPricer` zastąp pola `_registry` i `_activeRules` listą `[new MorningRule(), new VipRule()]` (ręcznie - Rider nie ma Inline Class; oba konstruktory usuń). Safe Delete (⌘⌦) na `RuleRegistry` i na właściwości `Priority` w interfejsie (była potrzebna tylko do sortowania).
+**W IDE:** pokaż antyprzykład: `scripts/warsztat.sh --lang cs jump m2/s05 1`. Obok dobrych ruchów przemycono sortowanie miejsc, e-mail małymi literami i pominięcie linii "Tel" bez telefonu.
 **Po:**
 
 ```csharp
-private readonly IReadOnlyList<IPricingRule> _rules = [new MorningRule(), new VipRule()];
+IReadOnlyList<string> sortedSeats = ticket.Seats.Order(StringComparer.Ordinal).ToList();
+text.Append("Klient: ").Append(ticket.Email.Trim().ToLowerInvariant()).Append('\n');
 ```
 
-**Uruchom:** `scripts/warsztat.sh --lang cs test m2/s01` - 16 testów zielonych.
-**Co powiedzieć:** konfiguracja napisem nie miała żadnego klienta. Teraz literówka w nazwie reguły nie skompiluje się.
-**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m2/s01 0 1`
+**Uruchom:** `scripts/warsztat.sh --lang cs test m2/s05` - równoważność czerwona w trzech przypadkach (m.in. `A9, A10` staje się `A10, A9`). `S05SolutionTest.AbusiveCleanupChangesBehaviourInThreeCases` dokumentuje, które.
+**Co powiedzieć:** każda z tych zmian może być dobrym pomysłem, ale to decyzje biznesowe, nie sprzątanie. Cofamy: `scripts/warsztat.sh --lang cs reset m2/s05`.
+**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m2/s05 0 1`
 
-### Krok 2: Change Signature - typowane dane zamiast słownika
+### Krok 2: poprawna, mała poprawa
 
-**W IDE:** ⌘F6 na `IPricingRule.AppliesTo`: typ parametru `IDictionary<string, object>` -> `TicketQuote`; na `Apply` usuń parametr kontekstu. Popraw implementacje (rzutowania znikają), usuń budowanie słownika w `TicketPricer`.
+**W IDE:** Rename (⇧F6) `t` → `ticket`; pętlę zamień ręcznie na `string.Join`; `StringBuilder` zamiast konkatenacji; Extract Method (⌥⌘M) `PhoneLine`.
 **Po:**
 
 ```csharp
-public bool AppliesTo(TicketQuote quote)
-{
-    return quote.Row >= quote.VipFromRow;
-}
+.Append("Miejsca: ").Append(string.Join(", ", ticket.Seats)).Append('\n')
+.Append("Klient: ").Append(ticket.Email.Trim()).Append('\n')
+.Append(PhoneLine(ticket)).Append('\n')
 ```
 
 **Uruchom:** test zielony.
-**Co powiedzieć:** generyczny kontekst to typowa spekulacja "reguła może potrzebować czegokolwiek". Kompilator znów pilnuje nazw pól.
-**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m2/s01 1 2`
-
-### Krok 3: Inline Class dla reguł, Safe Delete interfejsu
-
-**W IDE:** ręcznie (Rider nie ma Inline Class): dwa `if` w `Price` z metodami `IsMorning` i `IsVip` - ciała wklej z `AppliesTo` i `Apply` obu reguł. Safe Delete na `MorningRule`, `VipRule` i `IPricingRule`. Stałe przez ⌥⌘C.
-**Po:**
-
-```csharp
-public decimal Price(TicketQuote quote)
-{
-    var price = BasePrice(quote.Format);
-    if (IsMorning(quote))
-    {
-        price -= MorningDiscount;
-    }
-    if (IsVip(quote))
-    {
-        price += VipSurcharge;
-    }
-    return price;
-}
-```
-
-**Uruchom:** test zielony.
-**Co powiedzieć:** YAGNI nie zabrania testów, nazwanych metod ani szwu testowego - cena liczona jest z danych wejściowych, bez zegara i stanu statycznego, więc każdą regułę łatwo sprawdzić. Gdy pojawi się trzecia reguła z innym właścicielem, wydzielimy abstrakcję wtedy.
-**Snapshot:** `Step3/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m2/s01 2 3`
+**Co powiedzieć:** tylko dotykana metoda, bez zmiany kontraktu, diff do przejrzenia w minutę. Nowa linia "Sala" to osobny commit (patrz s06).
+**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m2/s05 0 2`
 
 ### Rozwiązanie i uzasadnienie
 
-Przejdź z salą filtr ze slajdu 2.4: aktualne wymaganie (2 reguły), nazwa w języku problemu (brak: "plugin", "registry"), czy upraszcza aktualny przypadek (nie), koszt usunięcia (niski - pokazaliśmy). Z pięciu typów została jedna klasa.
+Boy Scout Rule to heurystyka: mała, lokalna, weryfikowalna poprawa w kodzie bieżącej zmiany. Test różnicowy (start kontra krok) jest bezstronnym arbitrem, czy "sprzątanie" nie zmieniło zachowania.
 
 ### Pułapki
 
-- "YAGNI, więc bez testów" - odwrotnie: testy i małe kroki pozwalają bezpiecznie odraczać decyzje.
-- Usunięcie abstrakcji, która chroni aktualną, realną granicę (np. port do bazy) - to nie spekulacja.
+- Zmiana zachowania pod etykietą refaktoryzacji.
+- Masowe formatowanie całego pliku (np. Reformat and Cleanup Code na całym projekcie) razem z poprawką - recenzent nie znajdzie zmiany merytorycznej.
+- "Sprzątanie" cudzego modułu bez uzgodnienia.
 
 ### Pytanie do sali
 
-Który mechanizm rozszerzeń w waszym systemie ma dziś jedną albo dwie implementacje? Jaki sygnał powiedziałby, że czas go wprowadzić ponownie?
+Posortowane miejsca są czytelniejsze. Jak wprowadzić tę zmianę uczciwie?
 
-## Scena s02. ADR i wykonywalny model decyzji
+## Scena s06. Seria małych zmian gotowych do przeglądu
 
-**Temat ze slajdów:** 2.5. ADR: zapisz decyzję, a najlepiej ją sprawdzaj
-**Namespace:** `Training.Workshop.M2.S02Adr` · **Test:** `scripts/warsztat.sh --lang cs test m2/s02` (`S02EquivalenceTest`, `S02SolutionTest`)
+**Temat ze slajdów:** 2.9. Zasada harcerza i małe porcje zmian
+**Namespace:** `Training.Workshop.M2.S06ReviewableSeries` · **Test:** `scripts/warsztat.sh --lang cs test m2/s06` (`S06EquivalenceTest`, `S06SolutionTest`)
 **Czas:** ~10 min
 
 ### W skrócie
 
-**Co robimy:** ADR-0007 mówi, że cennik nie zależy od `Notification` i nie używa `double`, a cennik w `Start` sam wysyła mail o rabacie grupowym i liczy w `double`. Cennik zaczyna zwracać `Quote` z informacją o rabacie, mail wysyła `BookingService`, a kwoty przechodzą na `Money`.
+**Co robimy:** `PriceList.Price` ma dostać "Tani wtorek" (NORMAL -20% we wtorek), a zniżki są wplecione w jedną metodę i nie widzą daty. Zamiast jednego commita "porządki + tani wtorek" robimy serię: Extract Method, Change Signature, a dopiero potem nowa reguła.
 
-**Zasada:** ADR zapisuje decyzję o trwałym wpływie: kontekst, opcje, decyzję i konsekwencje - to dokument historyczny, którego się nie edytuje, tylko zastępuje nowym. Regułę z ADR warto uczynić wykonywalną, żeby build pilnował jej na co dzień. Nie pisze się ADR dla każdego Rename.
+**Zasada:** Dobry zestaw zmian ma jedną intencję, własny dowód i zielony build po integracji. Refaktoryzację oddziela się od zmiany funkcjonalnej, formatowanie od logiki, a diff automatyczny od ręcznego - najpierw ułatw zmianę, potem zrób łatwą zmianę.
 
-**Efekt:** `ArchitectureRules` zwraca pustą listę naruszeń, a maile i odpowiedzi są takie same jak przed zmianą. Reguła tekstowa ma swoje granice (pełna nazwa typu bez dyrektywy `using` albo refleksja ją ominą) i ADR opisuje to w konsekwencjach.
-
-**Różnica względem Javy:** pakiety `pricing`/`notification` to w porcie podprzestrzenie nazw i katalogi `Pricing`/`Notification`. Reguła R1 szuka dyrektywy `using` (regex `^using .*\.Notification\b` zamiast `import ...notification.`), a ponieważ w C# dyrektywa `using` stoi w pierwszej linii pliku, naruszenie startu to `ADR-0007/R1 TicketPricing.cs:1`. Enum `Rule` z polami to klasa `ArchitectureRules.Rule` z instancjami statycznymi i listą `Values`. ADR mówi o przestrzeni nazw zamiast pakietu i o osobnym projekcie (assembly) zamiast modułu Maven.
+**Efekt:** Dwa pierwsze commity dowodzi test równoważności, a trzeci świadomie zmienia zachowanie: test różnicowy pokazuje, że zmieniło się dokładnie 12 przypadków, wszystkie NORMAL we wtorek. Kosztem jest więcej commitów, ale recenzent sprawdza w każdym tylko jedną rzecz.
 
 ### Co widzimy
 
-Obok kodu sceny leży `ADR-0007-cennik-jako-czysty-modul.md` (status: Zaakceptowana) z dwiema regułami: **R1** przestrzeń nazw `Pricing` nie zależy od `Notification`, **R2** `Pricing` nie używa `double`. `ArchitectureRules` to wykonywalny model tych reguł. W `Start` cennik sam wysyła mail o rabacie grupowym i liczy w `double`:
+`Start.PriceList.Price` ma dostać promocję "Tani wtorek": bilet NORMAL -20% ceny bazowej we wtorek. Zniżki są wplecione w jedną metodę i zależą tylko od typu biletu, a nowa reguła potrzebuje daty. Pokusa: jeden commit "porządki + tani wtorek".
 
 ```csharp
-using Training.Workshop.M2.S02Adr.Start.Notification;
-...
-public double Total(string organizer, int tickets, double unitPrice)
+decimal d;
+if (q.Type.Equals("STUDENT"))
+{
+    d = p * 0.25m;
+}
+else if ...
+```
+
+### Krok 1: commit 1 - refaktoryzacja (Extract Method)
+
+**W IDE:** ⌥⌘M na wyborze ceny bazowej → `BasePrice(string format)`; ⌥⌘M na wyborze zniżki → `DiscountPercent(string type)` zwracające procent; Money zamiast `decimal`.
+**Po:**
+
+```csharp
+Money @base = BasePrice(query.Format);
+Money price = @base.Minus(@base.Percent(DiscountPercent(query.Type)));
+```
+
+**Uruchom:** test zielony - równoważność na przypadkach, w tym wtorkowych.
+**Co powiedzieć:** opis commita: "refaktoryzacja, bez zmiany zachowania, dowód: S06EquivalenceTest". Recenzent sprawdza tylko mechanikę.
+**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m2/s06 0 1`
+
+### Krok 2: commit 2 - refaktoryzacja przygotowawcza (Change Signature)
+
+**W IDE:** ⌘F6 na `DiscountPercent`: parametr `TicketQuery query` zamiast `string type`, w ciele `query.Type switch`.
+**Po:**
+
+```csharp
+private static int DiscountPercent(TicketQuery query) => query.Type switch
 {
     ...
-    _mailer.GroupDiscountGranted(organizer, tickets);
+};
 ```
 
-### Krok 1: spełnienie R1 - wynik zamiast efektu
+**Uruchom:** test zielony.
+**Co powiedzieć:** "make the change easy, then make the easy change". Ten commit nadal nie zmienia zachowania.
+**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m2/s06 1 2`
 
-**W IDE:** nowy rekord `Quote(double Total, bool GroupDiscount)` w `Pricing`; ⌘F6 na `Total` - bez `organizer`, zwraca `Quote`. Wywołanie `_mailer` przenieś do `BookingService` (warstwa aplikacji). Usuń dyrektywę `using ...Notification` z cennika.
+### Krok 3: commit 3 - zmiana zachowania
+
+**W IDE:** w ramieniu `_` warunek `IsCheapTuesday(query) ? CheapTuesdayPercent : 0`, metoda pomocnicza, stała `CheapTuesdayPercent`.
 **Po:**
 
 ```csharp
-Quote quote = _pricing.Total(tickets, unitPrice);
-if (quote.GroupDiscount)
-{
-    _mailer.GroupDiscountGranted(organizer, tickets);
-}
+_ => IsCheapTuesday(query) ? CheapTuesdayPercent : 0,
 ```
 
-**Uruchom:** test zielony; `Step1RemovesDependencyOnNotification` - zostało tylko naruszenie `ADR-0007/R2`.
-**Co powiedzieć:** naruszenie w teście prowadzi wprost do identyfikatora decyzji i jej uzasadnienia.
-**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m2/s02 0 1`
-
-### Krok 2: spełnienie R2 - Money
-
-**W IDE:** ręcznie zmień typ `double` → `Money` w `Quote` i `TicketPricing` (Rider nie ma Type Migration - build wskaże resztę miejsc); nazwane stałe dla progu i procentu grupy; `BookingService` wybiera cenę jednostkową jako `Money` (`Money.Of("25.00")` itd.).
-**Po:**
-
-```csharp
-public Quote Total(int tickets, Money unitPrice)
-{
-    Money sum = unitPrice.Times(tickets);
-```
-
-**Uruchom:** test zielony; `Step2CompliesWithTheDecision` - pusta lista naruszeń.
-**Co powiedzieć:** moduł jest zgodny z decyzją, a test pilnuje, żeby tak zostało.
-**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m2/s02 1 2`
+**Uruchom:** test zielony; `S06SolutionTest.CheapTuesdayGivesNormalTicketTwentyPercentOff` (2D wtorek 20.00) i `BehaviourChangeIsLimitedToNormalTicketsOnTuesday` - na siatce 336 przypadków zmieniło się dokładnie 12, wszystkie NORMAL we wtorek.
+**Co powiedzieć:** diff to kilka linii. Test różnicowy commitu 2 kontra 3 mówi recenzentowi dokładnie, gdzie zmieniło się zachowanie.
+**Snapshot:** `Step3/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m2/s06 2 3`
 
 ### Rozwiązanie i uzasadnienie
 
-ADR opisuje kontekst, opcje i konsekwencje (historia), a `ArchitectureRules` sprawdza regułę w każdym buildzie. `AdrDocumentsEveryExecutableRule` pilnuje, żeby każda reguła w kodzie miała opis w ADR.
+Trzy zestawy zmian, każdy z jedną intencją i zielonym buildem. Refaktoryzacje dowodzi test równoważności, zmianę zachowania - test nowej reguły i test różnicowy ograniczający jej zasięg.
 
 ### Pułapki
 
-- ADR dla każdego Rename - dokumentuje się decyzje o trwałym wpływie.
-- Edycja zaakceptowanego ADR zamiast nowego zapisu, który go zastępuje.
-- Reguła tekstowa ma granice: pełna nazwa typu bez dyrektywy `using` (`Training.Workshop...Notification.GroupMailer`) albo refleksja ją ominą (opisane w "Konsekwencjach").
+- Łączenie refaktoryzacji ze zmianą zachowania: recenzent nie odróżni ruchu mechanicznego od nowej reguły.
+- Łączenie formatowania z logiką, diffu automatycznego z ręcznym.
+- Commit przygotowawczy, który "przy okazji" poprawia regułę.
 
 ### Pytanie do sali
 
-Co zrobić, gdy zespół chce złamać R2 dla jednego przypadku (np. statystyk)? Wyjątek w teście czy nowy ADR?
+Jak opisalibyście commit 3 według pięciu pytań (dlaczego, co i czego nie, kontrakt, dowody, wdrożenie i wycofanie)?
 
 ## Scena s07. SRP - raport dla dwóch aktorów
 
@@ -836,174 +995,15 @@ Domena bez `System.Data` i bez typów adaptera, każda klasa opisuje jedno poję
 
 Która reguła architektury w waszym projekcie istnieje tylko w głowach lub na wiki? Jak najtaniej zamienić ją w test?
 
-## Scena s05. Boy Scout Rule - mała poprawa i jej nadużycie
-
-**Temat ze slajdów:** 2.9. Zasada harcerza i małe porcje zmian
-**Namespace:** `Training.Workshop.M2.S05BoyScout` · **Test:** `scripts/warsztat.sh --lang cs test m2/s05` (`S05EquivalenceTest`, `S05SolutionTest`)
-**Czas:** ~8 min
-
-### W skrócie
-
-**Co robimy:** `TicketPrinter.Print` i tak otwieramy dla nowej linii "Sala", a kod ma nazwy `s`, `d`, `x` i ręczne sklejanie listy miejsc. Najpierw pokazujemy antyprzykład "skoro już tu jestem", który po cichu zmienia wydruk, a potem robimy małą poprawę tylko w tej metodzie.
-
-**Zasada:** Boy Scout Rule mówi: dotykany kod zostaw w nieco lepszym stanie - to heurystyka, nie licencja na przebudowę. Poprawa jest mała, lokalna, dotyczy kodu bieżącej zmiany i nie zmienia zachowania; zmiana reguły biznesowej pod etykietą sprzątania to nadużycie.
-
-**Efekt:** Metoda ma czytelne nazwy, `string.Join`, `StringBuilder` i `PhoneLine`, a test równoważności potwierdza identyczny wydruk. Sortowanie miejsc czy małe litery w e-mailu mogą być dobrymi pomysłami, ale trafiają do osobnego commita jako świadoma zmiana zachowania.
-
-**Różnica względem Javy:** data i godzina seansu są w wydruku formatowane jawnie (`yyyy-MM-dd` i `HH:mm` z `CultureInfo.InvariantCulture`) - to odpowiednik `LocalDate.toString()`/`LocalTime.toString()`, który w C# nie istnieje bez podania formatu. Antyprzykład sortuje miejsca porządkiem ordinalnym (`Order(StringComparer.Ordinal)`), tak jak `sorted()` w Javie, więc `A9, A10` staje się `A10, A9`.
-
-### Co widzimy
-
-`Start.TicketPrinter.Print` trzeba i tak otworzyć, bo w sprincie dochodzi linia "Sala". Kod ma nazwy `s`, `d`, `x`, konkatenację w pętli i ręczne sklejanie listy miejsc. Kusi, żeby "posprzątać wszystko".
-
-```csharp
-string x = "";
-for (int i = 0; i < t.Seats.Count; i++)
-{
-    if (i > 0)
-    {
-        x = x + ", ";
-    }
-    x = x + t.Seats[i];
-}
-```
-
-### Krok 1: nadużycie - "skoro już tu jestem"
-
-**W IDE:** pokaż antyprzykład: `scripts/warsztat.sh --lang cs jump m2/s05 1`. Obok dobrych ruchów przemycono sortowanie miejsc, e-mail małymi literami i pominięcie linii "Tel" bez telefonu.
-**Po:**
-
-```csharp
-IReadOnlyList<string> sortedSeats = ticket.Seats.Order(StringComparer.Ordinal).ToList();
-text.Append("Klient: ").Append(ticket.Email.Trim().ToLowerInvariant()).Append('\n');
-```
-
-**Uruchom:** `scripts/warsztat.sh --lang cs test m2/s05` - równoważność czerwona w trzech przypadkach (m.in. `A9, A10` staje się `A10, A9`). `S05SolutionTest.AbusiveCleanupChangesBehaviourInThreeCases` dokumentuje, które.
-**Co powiedzieć:** każda z tych zmian może być dobrym pomysłem, ale to decyzje biznesowe, nie sprzątanie. Cofamy: `scripts/warsztat.sh --lang cs reset m2/s05`.
-**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m2/s05 0 1`
-
-### Krok 2: poprawna, mała poprawa
-
-**W IDE:** Rename (⇧F6) `t` → `ticket`; pętlę zamień ręcznie na `string.Join`; `StringBuilder` zamiast konkatenacji; Extract Method (⌥⌘M) `PhoneLine`.
-**Po:**
-
-```csharp
-.Append("Miejsca: ").Append(string.Join(", ", ticket.Seats)).Append('\n')
-.Append("Klient: ").Append(ticket.Email.Trim()).Append('\n')
-.Append(PhoneLine(ticket)).Append('\n')
-```
-
-**Uruchom:** test zielony.
-**Co powiedzieć:** tylko dotykana metoda, bez zmiany kontraktu, diff do przejrzenia w minutę. Nowa linia "Sala" to osobny commit (patrz s06).
-**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m2/s05 0 2`
-
-### Rozwiązanie i uzasadnienie
-
-Boy Scout Rule to heurystyka: mała, lokalna, weryfikowalna poprawa w kodzie bieżącej zmiany. Test różnicowy (start kontra krok) jest bezstronnym arbitrem, czy "sprzątanie" nie zmieniło zachowania.
-
-### Pułapki
-
-- Zmiana zachowania pod etykietą refaktoryzacji.
-- Masowe formatowanie całego pliku (np. Reformat and Cleanup Code na całym projekcie) razem z poprawką - recenzent nie znajdzie zmiany merytorycznej.
-- "Sprzątanie" cudzego modułu bez uzgodnienia.
-
-### Pytanie do sali
-
-Posortowane miejsca są czytelniejsze. Jak wprowadzić tę zmianę uczciwie?
-
-## Scena s06. Seria małych zmian gotowych do przeglądu
-
-**Temat ze slajdów:** 2.9. Zasada harcerza i małe porcje zmian
-**Namespace:** `Training.Workshop.M2.S06ReviewableSeries` · **Test:** `scripts/warsztat.sh --lang cs test m2/s06` (`S06EquivalenceTest`, `S06SolutionTest`)
-**Czas:** ~10 min
-
-### W skrócie
-
-**Co robimy:** `PriceList.Price` ma dostać "Tani wtorek" (NORMAL -20% we wtorek), a zniżki są wplecione w jedną metodę i nie widzą daty. Zamiast jednego commita "porządki + tani wtorek" robimy serię: Extract Method, Change Signature, a dopiero potem nowa reguła.
-
-**Zasada:** Dobry zestaw zmian ma jedną intencję, własny dowód i zielony build po integracji. Refaktoryzację oddziela się od zmiany funkcjonalnej, formatowanie od logiki, a diff automatyczny od ręcznego - najpierw ułatw zmianę, potem zrób łatwą zmianę.
-
-**Efekt:** Dwa pierwsze commity dowodzi test równoważności, a trzeci świadomie zmienia zachowanie: test różnicowy pokazuje, że zmieniło się dokładnie 12 przypadków, wszystkie NORMAL we wtorek. Kosztem jest więcej commitów, ale recenzent sprawdza w każdym tylko jedną rzecz.
-
-### Co widzimy
-
-`Start.PriceList.Price` ma dostać promocję "Tani wtorek": bilet NORMAL -20% ceny bazowej we wtorek. Zniżki są wplecione w jedną metodę i zależą tylko od typu biletu, a nowa reguła potrzebuje daty. Pokusa: jeden commit "porządki + tani wtorek".
-
-```csharp
-decimal d;
-if (q.Type.Equals("STUDENT"))
-{
-    d = p * 0.25m;
-}
-else if ...
-```
-
-### Krok 1: commit 1 - refaktoryzacja (Extract Method)
-
-**W IDE:** ⌥⌘M na wyborze ceny bazowej → `BasePrice(string format)`; ⌥⌘M na wyborze zniżki → `DiscountPercent(string type)` zwracające procent; Money zamiast `decimal`.
-**Po:**
-
-```csharp
-Money @base = BasePrice(query.Format);
-Money price = @base.Minus(@base.Percent(DiscountPercent(query.Type)));
-```
-
-**Uruchom:** test zielony - równoważność na przypadkach, w tym wtorkowych.
-**Co powiedzieć:** opis commita: "refaktoryzacja, bez zmiany zachowania, dowód: S06EquivalenceTest". Recenzent sprawdza tylko mechanikę.
-**Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m2/s06 0 1`
-
-### Krok 2: commit 2 - refaktoryzacja przygotowawcza (Change Signature)
-
-**W IDE:** ⌘F6 na `DiscountPercent`: parametr `TicketQuery query` zamiast `string type`, w ciele `query.Type switch`.
-**Po:**
-
-```csharp
-private static int DiscountPercent(TicketQuery query) => query.Type switch
-{
-    ...
-};
-```
-
-**Uruchom:** test zielony.
-**Co powiedzieć:** "make the change easy, then make the easy change". Ten commit nadal nie zmienia zachowania.
-**Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m2/s06 1 2`
-
-### Krok 3: commit 3 - zmiana zachowania
-
-**W IDE:** w ramieniu `_` warunek `IsCheapTuesday(query) ? CheapTuesdayPercent : 0`, metoda pomocnicza, stała `CheapTuesdayPercent`.
-**Po:**
-
-```csharp
-_ => IsCheapTuesday(query) ? CheapTuesdayPercent : 0,
-```
-
-**Uruchom:** test zielony; `S06SolutionTest.CheapTuesdayGivesNormalTicketTwentyPercentOff` (2D wtorek 20.00) i `BehaviourChangeIsLimitedToNormalTicketsOnTuesday` - na siatce 336 przypadków zmieniło się dokładnie 12, wszystkie NORMAL we wtorek.
-**Co powiedzieć:** diff to kilka linii. Test różnicowy commitu 2 kontra 3 mówi recenzentowi dokładnie, gdzie zmieniło się zachowanie.
-**Snapshot:** `Step3/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m2/s06 2 3`
-
-### Rozwiązanie i uzasadnienie
-
-Trzy zestawy zmian, każdy z jedną intencją i zielonym buildem. Refaktoryzacje dowodzi test równoważności, zmianę zachowania - test nowej reguły i test różnicowy ograniczający jej zasięg.
-
-### Pułapki
-
-- Łączenie refaktoryzacji ze zmianą zachowania: recenzent nie odróżni ruchu mechanicznego od nowej reguły.
-- Łączenie formatowania z logiką, diffu automatycznego z ręcznym.
-- Commit przygotowawczy, który "przy okazji" poprawia regułę.
-
-### Pytanie do sali
-
-Jak opisalibyście commit 3 według pięciu pytań (dlaczego, co i czego nie, kontrakt, dowody, wdrożenie i wycofanie)?
-
 ## Proponowana kolejność pokazu
 
-**Ścieżka krótka (~55 min):** s03 (bramka kompilatora, 10) -> s01 (YAGNI, 12) -> s08 (DIP, 12) -> s05 (Boy Scout, 8) -> s06 (seria zmian, 10). Pokazuje pełny łuk prewencji: najszybsza pętla, odłożona decyzja, kierunek zależności, mała poprawa i zestaw zmian gotowy do przeglądu. Jeśli zostanie czas, z s09 pokaż tylko `scripts/warsztat.sh --lang cs diff m2/s09 3 4` i `S09UseCaseTest` (5 min).
+**Ścieżka krótka (~55 min):** s03 (bramka kompilatora, 10) → s01 (YAGNI, 12) → s08 (odwrócenie zależności, 12) → s05 (zasada harcerza, 8) → s06 (seria zmian, 10). Pokazuje pełny łuk prewencji: najszybsza pętla, odłożona decyzja, kierunek zależności, mała poprawa i zestaw zmian gotowy do przeglądu. Jeśli zostanie czas, z s09 pokaż tylko `scripts/warsztat.sh --lang cs diff m2/s09 3 4` i `S09UseCaseTest` (5 min).
 
 **Ścieżka pełna (~115 min, z przerwą):**
 
-1. Fast feedback: s03, s04 (~22 min) - na koniec pytanie, które sprawdzenia uruchamiać lokalnie, a które w CI.
-2. Decyzje: s01, s02 (~22 min) - filtr decyzyjny ze slajdu 2.4 na przykładzie s01, potem decyzja trwała zapisana w ADR i pilnowana testem.
+1. Szybka informacja zwrotna: s03, s04 (~22 min) - na koniec pytanie, które sprawdzenia uruchamiać lokalnie, a które w CI.
+2. Decyzje: s01, s02 (~22 min) - pięć pytań ze slajdu 2.4 na przykładzie s01, potem decyzja trwała zapisana w ADR i pilnowana testem.
 3. Projekt: s07, s08, s09, s10 (~54 min) - od jednego aktora zmiany, przez kierunek zależności, do granicy sprawdzanej automatycznie.
-4. Prewencja codzienna: s05, s06 (~18 min) jako podsumowanie - mała poprawa w dotykanym kodzie i seria zmian z osobnymi dowodami.
+4. Codzienna dbałość o kod: s05, s06 (~18 min) jako podsumowanie - mała poprawa w dotykanym kodzie i seria zmian z osobnymi dowodami.
 
 Sceny s09 i s10 dobrze łączyć: po s09 zapytaj, jak upewnić się, że `App` nigdy nie użyje `Adapter` (w jednym projekcie kompilator tego nie pilnuje), i przejdź do s10. Podobnie s05 i s06: po s05 zapytaj, jak uczciwie wprowadzić posortowane miejsca, i pokaż, jak s06 oddziela refaktoryzację od zmiany zachowania.

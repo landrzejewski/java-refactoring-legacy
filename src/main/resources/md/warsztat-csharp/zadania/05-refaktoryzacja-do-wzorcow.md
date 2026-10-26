@@ -281,7 +281,7 @@ scripts/warsztat.sh --lang cs reset m5/s08     # przywrócenie Start do wersji z
 **Podpowiedź:** VAT liczymy od ceny brutto każdej pozycji osobno i dopiero potem sumujemy.
 **Gotowe, gdy:** test zielony dla wybranej wersji, w kodzie nie ma łańcuchów `is`, a dodanie typu pozycji bez obsługi kończy się błędem kompilacji (Visitor) albo co najmniej `UnreachableException` wskazującym brakujący typ (switch expression).
 
-## Scena s20. Mapa decyzji - jedna tabela, dwie struktury
+## Scena s20. Mapa decyzji - jedna tabela, dwie struktury docelowe
 
 **Namespace:** `Training.Workshop.M5.S20DecisionMap.Start` · **Test:** `scripts/warsztat.sh --lang cs test m5/s20`
 

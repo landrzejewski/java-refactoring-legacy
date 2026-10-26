@@ -38,7 +38,7 @@ Foldery odpowiadają podpakietom (`start`, `step1`…`stepN`), pliki mają nazwy
 
 ## Warsztat CineLegacy (sceny m2, m3 i m5)
 
-Stary system kina (`src/workshop/legacy/CinemaManager.ts`) i 40 krótkich scen (m2, m3, m5) do pokazu na żywo.
+Stary system kina (`src/workshop/legacy/CinemaManager.ts`) i 47 krótkich scen do pokazu na żywo: `m2` (s01-s10), `m3` (s01-s05) i `m5` (s01-s32).
 
 | Java | TypeScript | Testy |
 |---|---|---|

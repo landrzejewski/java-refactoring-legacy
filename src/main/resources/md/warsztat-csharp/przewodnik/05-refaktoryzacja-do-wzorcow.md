@@ -1,6 +1,6 @@
 # Moduł 5. Refaktoryzacja do wzorców - warsztat CineLegacy (C#): przewodnik prowadzącego
 
-Trzydzieści dwie małe sceny w domenie kina CineLegacy. Każda pokazuje jedną refaktoryzację do wzorca (albo usunięcie wzorca) ze slajdów: od pytania "czy zawsze warto?" i usuwania zbędnych wzorców, przez ryzyka zmiany kontraktu i automaty IDE, po wybór między podobnymi wzorcami (Command, Strategy, State; Strategy i Template Method; Chain of Responsibility i Decorator), granice systemu (Adapter, Boundary Object, Facade, Anti-Corruption Layer) oraz Builder, Observer, Mediator i Visitor. Każda scena ma kod wyjściowy `Start` z zapachem lub pułapką i gotowe snapshoty `StepN` po każdym ruchu, więc w dowolnym momencie można przeskoczyć do kolejnego kroku. Test równoważności pilnuje, że wzorzec wprowadzamy bez zmiany obserwowalnego zachowania, a tam, gdzie zachowanie celowo się zmienia (moment wyboru strategii, nowy niezmiennik buildera, wygaszony wariant, naprawiony błąd skopiowanej orkiestracji, zaostrzona walidacja na granicy), osobny test to dokumentuje.
+Trzydzieści dwie małe sceny w domenie kina CineLegacy. Każda pokazuje jedną refaktoryzację do wzorca (albo usunięcie wzorca) ze slajdów: od pytania "czy zawsze warto?" i usuwania zbędnych wzorców, przez ryzyka zmiany kontraktu i refaktoryzacje automatyczne w IDE, po wybór między podobnymi wzorcami (Polecenie, Strategia, Stan; Strategia i Metoda szablonowa; Łańcuch zobowiązań i Dekorator), granice systemu (Adapter, obiekt graniczny, Fasada, warstwa antykorupcyjna) oraz Budowniczego, Obserwatora, Mediatora i Odwiedzającego. Polskie nazwy wzorców i refaktoryzacji są takie jak na slajdach; tytuły scen zostają w wersji angielskiej, bo tak nazywają się refaktoryzacje w katalogu Kerievsky’ego i w IDE. Każda scena ma kod wyjściowy `Start` z zapachem lub pułapką i gotowe snapshoty `StepN` po każdym ruchu, więc w dowolnym momencie można przeskoczyć do kolejnego kroku. Test równoważności pilnuje, że wzorzec wprowadzamy bez zmiany obserwowalnego zachowania, a tam, gdzie zachowanie celowo się zmienia (moment wyboru strategii, nowy niezmiennik buildera, wygaszony wariant, naprawiony błąd skopiowanej orkiestracji, zaostrzona walidacja na granicy), osobny test to dokumentuje.
 
 Port C# żyje w `csharp/src/Training.Workshop/M5/SNN.../{Start,Step1,...}` (testy xUnit w `csharp/tests/Training.Workshop.Tests/M5/SNN.../`), pracujemy w JetBrains Rider (keymap macOS zgodny z IntelliJ: ⇧F6 Rename, ⌥⌘M Extract Method, ⌥⌘V Introduce Variable, ⌥⌘C Introduce Constant, ⌥⌘P Introduce Parameter, ⌥⌘N Inline, F6 Move, ⌘F6 Change Signature, ⌘⌦ Safe Delete, ⌥⌘T Surround With, ⌥F7 Find Usages, ⌥⏎ akcje kontekstowe, ⌃T Refactor This). Projekt ma `TreatWarningsAsErrors` (`csharp/Directory.Build.props`), więc każde ostrzeżenie kompilatora (np. niewyczerpujący `switch`, wywołanie metody `[Obsolete]`, pole nieustawione w konstruktorze przy włączonym nullable) zatrzymuje build - kilka scen korzysta z tego świadomie.
 
@@ -25,14 +25,33 @@ scripts/warsztat.sh --lang cs reset m5/s08         # przywraca Start z repozytor
 - Pracujemy na namespace `Start` sceny (np. `Training.Workshop.M5.S08State.Start`). Gdy coś pójdzie nie tak, `next` (albo `jump` do właściwego kroku), a po scenie `reset`.
 - Test równoważności przechodzi przez `Start` i wszystkie kroki (xUnit `[Theory]` z wariantami `start`, `step1`...). Jeśli uczestnicy pracują równolegle, to ten sam test jest ich kryterium ukończenia.
 - Testy wołają sceny przez stabilne punkty wejścia (klient w rodzaju `PriceBoard`, `CancellationDesk`, `PaymentServices`, `Reports`, `Cinema`, `PaymentModule`, `SettlementModule` albo zachowany konstruktor), dzięki czemu `jump` do dowolnego kroku kompiluje się i przechodzi. Testy dokumentujące pułapkę samego `Start` (s11, s17, s30) po `jump` kończą się bez sprawdzeń i są zielone - xUnit 2 nie ma odpowiednika `assumeTrue` z JUnit (w Javie te testy są "aborted"), więc test sam wykrywa refleksją, że `Start` nie ma już pułapki, i wychodzi wcześniej. To zamierzone.
-- Motyw przewodni modułu: **najpierw kontrakt, potem diagram klas**. W każdej scenie zaczynamy od pytania "co jest obserwowalne?" (wyjątek, kolejność efektów, moment wyboru, format trwały, typ i moment błędu na granicy). Siatkę bezpieczeństwa z sekcji 3 slajdów ćwiczy każda scena: test równoważności przed pierwszym ruchem, test różnicowy w s10, testy struktury w s26-s32.
+- Motyw przewodni: **najpierw kontrakt, potem diagram klas**. W każdej scenie zaczynamy od pytania "co jest obserwowalne?" (wyjątek, kolejność efektów, moment wyboru, format trwały, typ i moment błędu na granicy). Siatkę bezpieczeństwa z sekcji 3 slajdów ćwiczy każda scena: test równoważności przed pierwszym ruchem, test różnicowy w s10, testy struktury w s26-s32.
 
 ## Mapa scen
 
-Numery scen zostają bez zmian (przestrzenie nazw i skrypt).
+Sceny są ułożone według numerów, tak jak przestrzenie nazw i skrypt. Kolejność pokazu, zgodną z kolejnością slajdów, podaje sekcja „Wybór scen”.
 
 | Scena | Temat ze slajdów | Kroki | Namespace | Czas |
 | --- | --- | --- | --- | --- |
+| s01 | 6.1. Strategia, Polecenie czy Stan? Kto wybiera wariant i kiedy; 6.2. Strategia: sygnał w kodzie; 6.3. Strategia: kroki i wynik | 3 | `M5.S01Strategy` | ~12 min |
+| s02 | 16.1. Zastąpienie instrukcji warunkowej polimorfizmem; 6.8. Typowe pomyłki przy wyborze | 3 | `M5.S02Polymorphism` | ~12 min |
+| s03 | 16.2. Zastąpienie kodu typu klasą | 3 | `M5.S03TypeCode` | ~12 min |
+| s04 | 10.1. Ukrycie klas za Fabryką; 10.3. Fabryka jako strażnik spójności | 3 | `M5.S04EncapsulateFactory` | ~10 min |
+| s05 | 10.2. Wyodrębnienie klasy fabryki; 10.3. Fabryka jako strażnik spójności | 3 | `M5.S05ExtractFactory` | ~10 min |
+| s06 | 12.1. Ukrycie budowy Kompozytu za Budowniczym; 12.2. Budowniczy: kiedy i na co uważać | 3 | `M5.S06Builder` | ~12 min |
+| s07 | 8.1. Przeniesienie dodatków do Dekoratora; 8.2. Dekorator: na co uważać | 3 | `M5.S07Decorator` | ~12 min |
+| s08 | 6.4. Stan: sygnał i tabela przejść; 6.5. Stan: wynik | 3 | `M5.S08State` | ~15 min |
+| s09 | 13.1. Zastąpienie zakodowanych powiadomień Obserwatorem; 13.2. Obserwator: zasady powiadamiania muszą być jawne | 3 | `M5.S09Observer` | ~15 min |
+| s10 | 16.3. Zastąpienie ukrytego drzewa Kompozytem; 3.3. Test równoważności przed zmianą i po niej | 3 | `M5.S10ImplicitTree` | ~15 min |
+| s11 | 16.4. Kompozyt przezroczysty czy bezpieczny | 2 | `M5.S11SafeComposite` | ~8 min |
+| s12 | 16.5. Jeden element lub wiele oraz wyodrębnienie Kompozytu (zastąpienie rozróżnienia „jeden lub wiele” Kompozytem) | 3 | `M5.S12OneMany` | ~10 min |
+| s13 | 16.5. Jeden element lub wiele oraz wyodrębnienie Kompozytu (wyodrębnienie Kompozytu) | 2 | `M5.S13ExtractComposite` | ~8 min |
+| s14 | 9.1. Ujednolicenie interfejsów Adapterem; 9.2. Co adapter naprawdę musi przetłumaczyć | 3 | `M5.S14Adapter` | ~12 min |
+| s15 | 6.6. Polecenie: łańcuch warunków zamieniony na rejestr poleceń | 3 | `M5.S15Command` | ~12 min |
+| s16 | 7.1. Utworzenie Metody szablonowej: wspólny szkielet, różne kroki | 2 | `M5.S16TemplateMethod` | ~8 min |
+| s17 | 16.7. Ograniczenie liczby instancji Singletonem; 17.4. Wchłonięcie Singletona | 3 | `M5.S17Singleton` | ~10 min |
+| s18 | 16.6. Przeniesienie zbierania wyników do parametru zbierającego | 3 | `M5.S18CollectingParameter` | ~8 min |
+| s19 | 15.1. Odwiedzający i macierz zmian; 15.2. Odwiedzający albo hierarchia `sealed` i `switch` | 3 | `M5.S19Visitor` | ~12 min |
 | s20 | 4.2. Najpierw rodzaj zmienności, potem wzorzec; 18.1. Mapa decyzji (1/2); 18.2. Mapa decyzji (2/2); 18.3. Lista kontrolna | 3 | `M5.S20DecisionMap` | ~12 min |
 | s21 | 17.5. Wzorzec jako decyzja odwracalna; 17.2. Refaktoryzacje, które usuwają wzorzec; 5.2. Kiedy wzorzec się nie opłaca | 3 | `M5.S21ReversiblePattern` | ~12 min |
 | s22 | 17.3. Usunięcie pośrednika; 17.2. Refaktoryzacje, które usuwają wzorzec | 3 | `M5.S22MiddleMan` | ~8 min |
@@ -40,53 +59,34 @@ Numery scen zostają bez zmian (przestrzenie nazw i skrypt).
 | s24 | 3.6. Refaktoryzacje automatyczne w IDE: co dają, a czego nie widzą; 3.7. Zmiana nazwy i wyodrębnienie metody w drodze do wzorca | 3 | `M5.S24Rename` | ~12 min |
 | s25 | 3.7. Zmiana nazwy i wyodrębnienie metody w drodze do wzorca | 3 | `M5.S25ExtractMethod` | ~15 min |
 | s26 | 6.1. Strategia, Polecenie czy Stan? Kto wybiera wariant i kiedy; 6.7. Trzy osie w jednej klasie: każda dostaje własny mechanizm; 6.8. Typowe pomyłki przy wyborze | 3 | `M5.S26Variability` | ~15 min |
-| s01 | 6.1. Strategia, Polecenie czy Stan? Kto wybiera wariant i kiedy; 6.2. Strategia: sygnał w kodzie; 6.3. Strategia: kroki i wynik | 3 | `M5.S01Strategy` | ~12 min |
-| s08 | 6.4. Stan: sygnał i tabela przejść; 6.5. Stan: wynik | 3 | `M5.S08State` | ~15 min |
-| s15 | 6.6. Polecenie: łańcuch warunków zamieniony na rejestr poleceń | 3 | `M5.S15Command` | ~12 min |
 | s27 | 7.2. Gdy punkty zaczepienia obejmują dwie niezależne osie; 7.3. Zastąpienie dziedziczenia delegacją: osie jako strategie; 7.4. Strategia czy Metoda szablonowa? | 3 | `M5.S27TemplateToStrategy` | ~12 min |
-| s16 | 7.1. Utworzenie Metody szablonowej: wspólny szkielet, różne kroki | 2 | `M5.S16TemplateMethod` | ~8 min |
 | s28 | 8.3. Łańcuch `if/else`, w którym kolejność jest regułą; 8.4. Łańcuch zobowiązań: ogniwo i złożenie łańcucha; 8.5. Łańcuch zobowiązań czy Dekorator? | 3 | `M5.S28Chain` | ~12 min |
-| s07 | 8.1. Przeniesienie dodatków do Dekoratora; 8.2. Dekorator: na co uważać | 3 | `M5.S07Decorator` | ~12 min |
-| s14 | 9.1. Ujednolicenie interfejsów Adapterem; 9.2. Co adapter naprawdę musi przetłumaczyć | 3 | `M5.S14Adapter` | ~12 min |
 | s29 | 9.3. Surowe dane z zewnątrz w kodzie domeny; 9.4. Obiekt graniczny: sprawdzone dane na granicy systemu; 9.5. Adapter czy obiekt graniczny? | 3 | `M5.S29BoundaryObject` | ~12 min |
-| s04 | 10.1. Ukrycie klas za Fabryką; 10.3. Fabryka jako strażnik spójności | 3 | `M5.S04EncapsulateFactory` | ~10 min |
-| s05 | 10.2. Wyodrębnienie klasy fabryki; 10.3. Fabryka jako strażnik spójności | 3 | `M5.S05ExtractFactory` | ~10 min |
 | s30 | 11.1. Klienci sami koordynują podsystemy; 11.2. Wyodrębnienie Fasady: jedna operacja zamiast znajomości kroków | 3 | `M5.S30Facade` | ~12 min |
 | s31 | 11.3. Obcy model w regułach domeny; 11.4. Warstwa antykorupcyjna: port, tłumacz i model domenowy; 11.5. Fasada a warstwa antykorupcyjna | 3 | `M5.S31AntiCorruptionLayer` | ~12 min |
-| s06 | 12.1. Ukrycie budowy Kompozytu za Budowniczym; 12.2. Budowniczy: kiedy i na co uważać | 3 | `M5.S06Builder` | ~12 min |
-| s09 | 13.1. Zastąpienie zakodowanych powiadomień Obserwatorem; 13.2. Obserwator: zasady powiadamiania muszą być jawne | 3 | `M5.S09Observer` | ~15 min |
 | s32 | 14.1. Komponenty połączone każdy z każdym; 14.2. Wprowadzenie Mediatora: reguły współpracy w jednym miejscu; 14.3. Obserwator czy Mediator? | 3 | `M5.S32Mediator` | ~12 min |
-| s19 | 15.1. Odwiedzający i macierz zmian; 15.2. Odwiedzający albo hierarchia `sealed` i `switch` | 3 | `M5.S19Visitor` | ~12 min |
-| s02 | 16.1. Zastąpienie instrukcji warunkowej polimorfizmem; 6.8. Typowe pomyłki przy wyborze | 3 | `M5.S02Polymorphism` | ~12 min |
-| s03 | 16.2. Zastąpienie kodu typu klasą | 3 | `M5.S03TypeCode` | ~12 min |
-| s10 | 16.3. Zastąpienie ukrytego drzewa Kompozytem; 3.3. Test równoważności przed zmianą i po niej | 3 | `M5.S10ImplicitTree` | ~15 min |
-| s11 | 16.4. Kompozyt przezroczysty czy bezpieczny | 2 | `M5.S11SafeComposite` | ~8 min |
-| s12 | 16.5. Jeden element lub wiele oraz wyodrębnienie Kompozytu (zastąpienie rozróżnienia „jeden lub wiele” Kompozytem) | 3 | `M5.S12OneMany` | ~10 min |
-| s13 | 16.5. Jeden element lub wiele oraz wyodrębnienie Kompozytu (wyodrębnienie Kompozytu) | 2 | `M5.S13ExtractComposite` | ~8 min |
-| s18 | 16.6. Przeniesienie zbierania wyników do parametru zbierającego | 3 | `M5.S18CollectingParameter` | ~8 min |
-| s17 | 16.7. Ograniczenie liczby instancji Singletonem; 17.4. Wchłonięcie Singletona | 3 | `M5.S17Singleton` | ~10 min |
 
 Pełne namespace mają prefiks `Training.Workshop.` (np. `Training.Workshop.M5.S01Strategy`), katalogi to `csharp/src/Training.Workshop/M5/S01Strategy` itd. Liczby domeny (ceny formatów, zniżki, VIP, okulary, opłata online, punkty lojalnościowe, zwroty, VAT) są wspólne dla całego warsztatu. Wartości spoza wspólnej listy (program "tydzień studenta" 50%, ubezpieczenie biletu 4.00, "tani wtorek" -30%, weekend +2.00, ceny premier i maratonów, limity zatwierdzania zwrotów 100.00 i 1000.00, autoryzacja częściowa terminala do 300.00, voucher KINO10) są przykładowe i opisane w komentarzach XML (`/// <summary>`) sceny.
 
 Konwencje portu, które wracają w wielu scenach: interfejsy mają prefiks `I` (`IDiscountPolicy`, `IPricedTicket`, `IPaymentListener`, `IDeskCommand`, `IReportFormat`, `IRefundHandler`, `IPaymentTerminal`, `IFilmLicenses`, `ISelectionMediator`...), gettery z Javy są właściwościami (`Name`, `Price`, `Minutes`), wyjątki to `ArgumentException` (Java `IllegalArgumentException`), `InvalidOperationException` (`IllegalStateException`) i `NotSupportedException` (`UnsupportedOperationException`), `Optional<T>` to typ dopuszczający `null` (`RefundDecision?`, `FilmLicense?`), a parametr `base` nazywa się `basePrice`, bo `base` to słowo kluczowe C#. Tam, gdzie Java przekazuje lambdę jako implementację interfejsu, C# potrzebuje klasy (lambda pasuje tylko do typu delegata) - w porcie i w testach są to małe prywatne klasy. Widoczność pakietowa to `internal`, ale warsztat jest jednym projektem, więc tam, gdzie scena ukrywa typy (s30, s31), granicę pilnuje test refleksji. Wyniki tekstowe (kwoty, daty, statusy) są takie same jak w wersji Java. Tam, gdzie scena odbiega od Javy, akapit **Różnica względem Javy** mówi, co i dlaczego wygląda inaczej.
 
-## Wybór scen na 3-dniowe szkolenie
+## Wybór scen
 
-Wszystkie sceny razem to ponad 6 h samego pokazu (około 370 min) - więcej, niż zmieści się w jednym dniu szkolenia razem ze slajdami. Na szkoleniu 3-dniowym pokazujemy **rdzeń: 11 scen, około 2 h 20 min**, po jednej scenie z kluczowych sekcji slajdów, w kolejności agendy:
+Wszystkie sceny razem to ponad 6 h samego pokazu (około 370 min), więc na szkoleniu pokazujemy **rdzeń: 11 scen, około 2 h 20 min**, po jednej z kluczowych sekcji slajdów, w kolejności prezentacji:
 
-1. s20 mapa decyzji (12 min) - ustawia pytanie "jaki rodzaj zmienności?" na cały moduł.
-2. s21 wzorzec jako decyzja odwracalna (12 min): usunięcie wzorca, który przestał być potrzebny.
-3. s23 zmiana kontraktu (10 min) - "przy okazji" zmienia dwie rzeczy naraz.
-4. s25 Extract Method (15 min) - przepływ danych i moment, w którym IDE proponuje parametr `out` albo krotkę.
-5. s26 pulpit kasjera (15 min) - Command, Strategy i State w jednej klasie.
-6. s27 raporty sprzedaży (12 min) - Template Method z dwiema osiami → Strategy.
-7. s28 zatwierdzanie zwrotów (12 min) - Chain of Responsibility a Decorator.
-8. s29 odpowiedź terminala (12 min) - Adapter i Boundary Object.
-9. s30 zakup w sklepie i w kasie (12 min) - Facade i świadoma naprawa błędu kopii.
-10. s31 licencje dystrybutora (12 min) - Facade a ACL.
-11. s32 ekran wyboru miejsc (12 min) - Mediator i ryzyko God Mediator.
+1. s25 podsumowanie zamówienia biletów (15 min): wyodrębnienie metody, przepływ danych i moment, w którym IDE odmawia (slajd 3.7).
+2. s20 mapa decyzji (12 min): pytanie „jaki rodzaj zmienności?” na cały warsztat (slajd 4.2).
+3. s23 zmiana kontraktu (10 min): krok „przy okazji” zmienia dwie rzeczy naraz (slajdy 5.3-5.4).
+4. s26 pulpit kasjera (15 min): Polecenie, Strategia i Stan w jednej klasie (slajdy 6.1, 6.7).
+5. s27 raporty sprzedaży (12 min): Metoda szablonowa z dwiema osiami zamieniona na Strategie (slajdy 7.2-7.4).
+6. s28 zatwierdzanie zwrotów (12 min): Łańcuch zobowiązań a Dekorator (slajdy 8.3-8.5).
+7. s29 odpowiedź terminala (12 min): Adapter i obiekt graniczny (slajdy 9.3-9.5).
+8. s30 zakup w sklepie i w kasie (12 min): Fasada i świadoma naprawa błędu w kopii (slajdy 11.1-11.2).
+9. s31 licencje dystrybutora (12 min): Fasada a warstwa antykorupcyjna (slajdy 11.3-11.5).
+10. s32 ekran wyboru miejsc (12 min): Mediator i ryzyko mediatora, który robi wszystko (slajdy 14.1-14.3).
+11. s21 rozliczenie z dystrybutorem (12 min): usunięcie wzorca, który przestał być potrzebny (slajd 17.5).
 
-**Sceny opcjonalne**, gdy grupa pracuje szybciej albo pyta o konkretny wzorzec: s22 i s17 (usuwanie wzorca: Remove Middle Man, Singleton i jego odwrotność), s24 (Rename i nazwy poza C#), s01, s08 i s15 (każdy z trzech wzorców sekcji 6 osobno, w szczegółach), s16 (klasyczny Template Method), s07 (Decorator), s14 (Adapter), s04 i s05 (jeden blok "Factory" z porównaniem obu refaktoryzacji), s06 (Builder), s09 (Observer, dobry kontrast do s32), s19 (Visitor). Sceny z sekcji 16 "Pozostałe refaktoryzacje do wzorców" (s02, s03, s10-s13, s18) zostawiamy do samodzielnej pracy w parach albo jako zadanie domowe - s11 i s13 mają po 2 kroki i dobrze sprawdzają się jako krótkie ćwiczenie. Na podsumowanie wróć do s20 i poproś salę o przypisanie każdej pokazanej sceny do wiersza mapy decyzji.
+**Sceny opcjonalne**, gdy grupa pracuje szybciej albo pyta o konkretny wzorzec: s22 i s17 (usuwanie wzorców: usunięcie pośrednika, Singleton i jego wchłonięcie), s24 (zmiana nazwy i nazwy poza C#), s01, s08 i s15 (każdy z trzech wzorców sekcji 6 osobno, w szczegółach), s16 (klasyczna Metoda szablonowa), s07 (Dekorator), s14 (Adapter), s04 i s05 (jeden blok o Fabryce z porównaniem obu refaktoryzacji), s06 (Budowniczy), s09 (Obserwator, dobry kontrast do s32), s19 (Odwiedzający). Sceny z sekcji 16 (s02, s03, s10-s13, s18) zostawiamy do samodzielnej pracy w parach albo jako zadanie domowe; s11 i s13 mają po 2 kroki i dobrze sprawdzają się jako krótkie ćwiczenie. Na podsumowanie wróć do s20 i poproś salę o przypisanie każdej pokazanej sceny do wiersza mapy decyzji (slajdy 18.1-18.2).
 
 ## Scena s01. Replace Conditional Logic with Strategy - polityka zniżek
 

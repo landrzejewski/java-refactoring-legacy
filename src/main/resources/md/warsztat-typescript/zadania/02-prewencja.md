@@ -7,7 +7,33 @@ Zasady:
 - Małe kroki: jedna refaktoryzacja, jeden przebieg testu. Używaj refaktoryzacji VS Code tam, gdzie się da (⌃⇧R Refactor..., F2 Rename Symbol, ⌘. Quick Fix, przenoszenie plików w eksploratorze z "Update imports"). Ruchów, których VS Code nie ma (Extract Interface, Extract Class, Change Signature, Introduce Parameter, Type Migration), dokonuj ręcznie, a kompilator (`npm run typecheck` albo czerwone podkreślenia) niech wskaże miejsca do poprawy.
 - Testy wchodzą do `start` tylko przez publiczne API wymienione w zadaniu (albo przez punkt wejścia: funkcję `confirmReservation()` w `Main.ts`, `reservationController()` w `CinemaApplication.ts`, `describe()` w `CinemaApp.ts`). Jeśli zmieniasz konstruktory, popraw ten punkt wejścia.
 - Kwoty to `Decimal` z decimal.js albo `Money` z `typescript/src/workshop/shared/Money.ts`. Liczby domenowe: 2D 25.00, 3D 32.00, IMAX 40.00; zniżki STUDENT 25%, SENIOR 30%, CHILD 40%; seans przed 12:00 -5.00; VIP +10.00.
-- Sceny są ułożone w kolejności tematów modułu: szybka informacja zwrotna (s03, s04), decyzje (s01, s02), projekt (s07-s10), prewencja codzienna (s05, s06).
+- Sceny są ułożone według numerów, tak jak pakiety w kodzie. Tematycznie tworzą cztery grupy: szybka informacja zwrotna (s03, s04), decyzje (s01, s02), projekt (s07-s10) i codzienna dbałość o kod (s05, s06).
+
+## Scena s01. YAGNI - silnik reguł dla dwóch reguł
+**Katalog:** `typescript/src/workshop/m2/s01_yagni/start` · **Test:** `scripts/warsztat.sh --lang ts test m2/s01`
+
+**Zasada:** YAGNI mówi, żeby nie budować mechanizmów dla przewidywanych wymagań, tylko dla aktualnych. Nie zabrania testów, refaktoryzacji ani czytelnych nazw.
+
+**Zadanie:**
+1. Przejdź filtr decyzyjny: jakie aktualne wymaganie uzasadnia rejestr, konfigurację napisem, priorytety i kontekst `Map`?
+2. Uprość `TicketPricer` w kilku krokach, zachowując publiczne `new TicketPricer()` i `price(quote: TicketQuote)`.
+3. Zapisz w komentarzu dokumentacyjnym (`/** ... */`), czego YAGNI nie zabrania i co świadomie zostawiasz.
+
+**Podpowiedź:** zacznij od elementu, którego nikt nie używa (konfiguracja napisem w parametrze domyślnym konstruktora), potem typowane dane, na końcu same reguły.
+**Gotowe, gdy:** test zielony, zostało najwyżej kilka nazwanych metod w jednej klasie, a literówka w nazwie reguły nie może przejść kompilacji.
+
+## Scena s02. ADR i wykonywalny model decyzji
+**Katalog:** `typescript/src/workshop/m2/s02_adr/start` · **Test:** `scripts/warsztat.sh --lang ts test m2/s02`
+
+**Zasada:** ADR zapisuje trwałą decyzję architektoniczną z kontekstem i konsekwencjami; zaakceptowanego ADR się nie edytuje, tylko zastępuje nowym. Reguły z ADR można sprawdzać testem, żeby build pilnował decyzji.
+
+**Zadanie:**
+1. Przeczytaj `ADR-0007-cennik-jako-czysty-modul.md` i sprawdź w teście, które reguły narusza `start`.
+2. Usuń zależność katalogu `pricing` od `notification` bez zmiany wysyłanych maili.
+3. Zamień kwoty w katalogu `pricing` na `Money` (liczba biletów może zostać `number`).
+
+**Podpowiedź:** cennik nie musi wysyłać maila - wystarczy, że powie, czy rabat grupowy został przyznany.
+**Gotowe, gdy:** `ArchitectureRules.violations` dla `start` zwraca pustą listę, a odpowiedzi i maile są takie same jak przed zmianą.
 
 ## Scena s03. Bramka kompilatora - opcje strict i ostrzeżenia jako błędy
 **Katalog:** `typescript/src/workshop/m2/s03_compilergate/start` · **Test:** `scripts/warsztat.sh --lang ts test m2/s03`
@@ -35,31 +61,31 @@ Zasady:
 **Podpowiedź:** zacznij od najtańszego sprawdzenia (skan tekstu źródeł), kompilator (`typescript-api`) i uruchamianie przypadków z `input.testSuite` zostaw na koniec. Próbki są wyłączone z typechecku projektu - błędy w `sample/dirty` są celowe.
 **Gotowe, gdy:** bramka zgłasza wszystkie problemy próbki `sample/dirty`, zatrzymuje przypadek z nieprzechodzącym testem (`sample/broken`) i przepuszcza `sample/clean`.
 
-## Scena s01. YAGNI - silnik reguł dla dwóch reguł
-**Katalog:** `typescript/src/workshop/m2/s01_yagni/start` · **Test:** `scripts/warsztat.sh --lang ts test m2/s01`
+## Scena s05. Boy Scout Rule - mała poprawa i jej nadużycie
+**Katalog:** `typescript/src/workshop/m2/s05_boyscout/start` · **Test:** `scripts/warsztat.sh --lang ts test m2/s05`
 
-**Zasada:** YAGNI mówi, żeby nie budować mechanizmów dla przewidywanych wymagań, tylko dla aktualnych. Nie zabrania testów, refaktoryzacji ani czytelnych nazw.
-
-**Zadanie:**
-1. Przejdź filtr decyzyjny: jakie aktualne wymaganie uzasadnia rejestr, konfigurację napisem, priorytety i kontekst `Map`?
-2. Uprość `TicketPricer` w kilku krokach, zachowując publiczne `new TicketPricer()` i `price(quote: TicketQuote)`.
-3. Zapisz w komentarzu dokumentacyjnym (`/** ... */`), czego YAGNI nie zabrania i co świadomie zostawiasz.
-
-**Podpowiedź:** zacznij od elementu, którego nikt nie używa (konfiguracja napisem w parametrze domyślnym konstruktora), potem typowane dane, na końcu same reguły.
-**Gotowe, gdy:** test zielony, zostało najwyżej kilka nazwanych metod w jednej klasie, a literówka w nazwie reguły nie może przejść kompilacji.
-
-## Scena s02. ADR i wykonywalny model decyzji
-**Katalog:** `typescript/src/workshop/m2/s02_adr/start` · **Test:** `scripts/warsztat.sh --lang ts test m2/s02`
-
-**Zasada:** ADR zapisuje trwałą decyzję architektoniczną z kontekstem i konsekwencjami; zaakceptowanego ADR się nie edytuje, tylko zastępuje nowym. Reguły z ADR można sprawdzać testem, żeby build pilnował decyzji.
+**Zasada:** Boy Scout Rule: dotykany kod zostaw w nieco lepszym stanie, ale poprawa ma być mała, lokalna i bez zmiany zachowania. Zmiana tego, co widzi użytkownik, to osobna decyzja, a nie sprzątanie.
 
 **Zadanie:**
-1. Przeczytaj `ADR-0007-cennik-jako-czysty-modul.md` i sprawdź w teście, które reguły narusza `start`.
-2. Usuń zależność katalogu `pricing` od `notification` bez zmiany wysyłanych maili.
-3. Zamień kwoty w katalogu `pricing` na `Money` (liczba biletów może zostać `number`).
+1. Popraw czytelność `TicketPrinter.print`: nazwy, sklejanie listy miejsc, powtórzenia.
+2. Nie zmieniaj niczego, co widzi klient: kolejności miejsc, wielkości liter, linii z telefonem, formatu kwoty.
+3. Zapisz osobno pomysły, które zmieniłyby zachowanie - to zadania na inny commit.
 
-**Podpowiedź:** cennik nie musi wysyłać maila - wystarczy, że powie, czy rabat grupowy został przyznany.
-**Gotowe, gdy:** `ArchitectureRules.violations` dla `start` zwraca pustą listę, a odpowiedzi i maile są takie same jak przed zmianą.
+**Podpowiedź:** jeśli test równoważności zrobi się czerwony, twoje "sprzątanie" zmieniło zachowanie. Sprawdź przypadek z miejscami A9 i A10 - domyślne `sort()` porównuje teksty.
+**Gotowe, gdy:** test równoważności jest zielony, diff dotyczy tylko jednej metody i da się go przejrzeć w minutę.
+
+## Scena s06. Seria małych zmian gotowych do przeglądu
+**Katalog:** `typescript/src/workshop/m2/s06_reviewableseries/start` · **Test:** `scripts/warsztat.sh --lang ts test m2/s06`
+
+**Zasada:** Dobry zestaw zmian ma jedną intencję, własny dowód i zielony build. Refaktoryzacji nie łączy się ze zmianą zachowania - najpierw ułatw zmianę, potem zrób łatwą zmianę.
+
+**Zadanie:**
+1. Dodaj regułę "Tani wtorek": bilet NORMAL -20% ceny bazowej we wtorek.
+2. Podziel pracę na co najmniej trzy kroki (commity): refaktoryzacje bez zmiany zachowania osobno, nowa reguła osobno.
+3. Do każdego kroku napisz jednozdaniowy opis: intencja i dowód.
+
+**Podpowiedź:** najpierw spraw, żeby wybór zniżki miał dostęp do daty seansu - bez zmiany zachowania. Potem nowa reguła to kilka linii.
+**Gotowe, gdy:** po krokach refaktoryzacyjnych test równoważności jest zielony, a po ostatnim 2D NORMAL we wtorek wieczorem kosztuje 20.00 i zmieniły się wyłącznie bilety NORMAL we wtorek.
 
 ## Scena s07. SRP - raport dla dwóch aktorów
 **Katalog:** `typescript/src/workshop/m2/s07_srp/start` · **Test:** `scripts/warsztat.sh --lang ts test m2/s07`
@@ -113,29 +139,3 @@ Zasady:
 
 **Podpowiedź:** spójność i kierunek zależności to dwa osobne kroki - sprawdź oba wskaźniki po każdym z nich.
 **Gotowe, gdy:** test zielony, lista naruszeń dla `start/domain` jest pusta, a LCOM4 każdej klasy wynosi 1.
-
-## Scena s05. Boy Scout Rule - mała poprawa i jej nadużycie
-**Katalog:** `typescript/src/workshop/m2/s05_boyscout/start` · **Test:** `scripts/warsztat.sh --lang ts test m2/s05`
-
-**Zasada:** Boy Scout Rule: dotykany kod zostaw w nieco lepszym stanie, ale poprawa ma być mała, lokalna i bez zmiany zachowania. Zmiana tego, co widzi użytkownik, to osobna decyzja, a nie sprzątanie.
-
-**Zadanie:**
-1. Popraw czytelność `TicketPrinter.print`: nazwy, sklejanie listy miejsc, powtórzenia.
-2. Nie zmieniaj niczego, co widzi klient: kolejności miejsc, wielkości liter, linii z telefonem, formatu kwoty.
-3. Zapisz osobno pomysły, które zmieniłyby zachowanie - to zadania na inny commit.
-
-**Podpowiedź:** jeśli test równoważności zrobi się czerwony, twoje "sprzątanie" zmieniło zachowanie. Sprawdź przypadek z miejscami A9 i A10 - domyślne `sort()` porównuje teksty.
-**Gotowe, gdy:** test równoważności jest zielony, diff dotyczy tylko jednej metody i da się go przejrzeć w minutę.
-
-## Scena s06. Seria małych zmian gotowych do przeglądu
-**Katalog:** `typescript/src/workshop/m2/s06_reviewableseries/start` · **Test:** `scripts/warsztat.sh --lang ts test m2/s06`
-
-**Zasada:** Dobry zestaw zmian ma jedną intencję, własny dowód i zielony build. Refaktoryzacji nie łączy się ze zmianą zachowania - najpierw ułatw zmianę, potem zrób łatwą zmianę.
-
-**Zadanie:**
-1. Dodaj regułę "Tani wtorek": bilet NORMAL -20% ceny bazowej we wtorek.
-2. Podziel pracę na co najmniej trzy kroki (commity): refaktoryzacje bez zmiany zachowania osobno, nowa reguła osobno.
-3. Do każdego kroku napisz jednozdaniowy opis: intencja i dowód.
-
-**Podpowiedź:** najpierw spraw, żeby wybór zniżki miał dostęp do daty seansu - bez zmiany zachowania. Potem nowa reguła to kilka linii.
-**Gotowe, gdy:** po krokach refaktoryzacyjnych test równoważności jest zielony, a po ostatnim 2D NORMAL we wtorek wieczorem kosztuje 20.00 i zmieniły się wyłącznie bilety NORMAL we wtorek.

@@ -79,7 +79,7 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <body class="warsztat-zadania">
 <header class="topbar"><a class="home" href="../../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../../slajdy/refaktoryzacja-do-wzorcow-slajdy.html">Slajdy</a><a class="tab" href="../00-cinelegacy.html">Warsztat CineLegacy</a><a class="tab active" href="02-prewencja.html">Zadania</a><a class="tab" href="../przewodnik/02-prewencja.html">Przewodnik</a></div><div class="tabs langs" aria-label="Język"><a class="tab active" href="../../warsztat/zadania/02-prewencja.html">Java</a><a class="tab" href="../../warsztat-csharp/zadania/02-prewencja.html">C#</a><a class="tab" href="../../warsztat-typescript/zadania/02-prewencja.html">TypeScript</a></div><div class="pager"><a href="03-testowanie-a-bezpieczenstwo.html" title="Następny moduł">03 &rarr;</a></div></header>
 <div class="layout">
-<aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#scena-s03-bramka-kompilatora-xlintall-werror">Scena s03. Bramka kompilatora -Xlint:all -Werror</a></li><li class="h2"><a href="#scena-s04-minimalna-bramka-jakosci-jako-kod">Scena s04. Minimalna bramka jakości jako kod</a></li><li class="h2"><a href="#scena-s01-yagni-silnik-regul-dla-dwoch-regul">Scena s01. YAGNI - silnik reguł dla dwóch reguł</a></li><li class="h2"><a href="#scena-s02-adr-i-wykonywalny-model-decyzji">Scena s02. ADR i wykonywalny model decyzji</a></li><li class="h2"><a href="#scena-s07-srp-raport-dla-dwoch-aktorow">Scena s07. SRP - raport dla dwóch aktorów</a></li><li class="h2"><a href="#scena-s08-dip-kierunek-zaleznosci-kontra-przeplyw-sterowania">Scena s08. DIP - kierunek zależności kontra przepływ sterowania</a></li><li class="h2"><a href="#scena-s09-clean-architecture-use-case-dane-na-granicy-composition-root">Scena s09. Clean Architecture - use case, dane na granicy, composition root</a></li><li class="h2"><a href="#scena-s10-automatyczna-ochrona-granicy-i-diagnostyka-spojnosci">Scena s10. Automatyczna ochrona granicy i diagnostyka spójności</a></li><li class="h2"><a href="#scena-s05-boy-scout-rule-mala-poprawa-i-jej-naduzycie">Scena s05. Boy Scout Rule - mała poprawa i jej nadużycie</a></li><li class="h2"><a href="#scena-s06-seria-malych-zmian-gotowych-do-przegladu">Scena s06. Seria małych zmian gotowych do przeglądu</a></li></ul></details></nav></aside>
+<aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#scena-s01-yagni-silnik-regul-dla-dwoch-regul">Scena s01. YAGNI - silnik reguł dla dwóch reguł</a></li><li class="h2"><a href="#scena-s02-adr-i-wykonywalny-model-decyzji">Scena s02. ADR i wykonywalny model decyzji</a></li><li class="h2"><a href="#scena-s03-bramka-kompilatora-xlintall-werror">Scena s03. Bramka kompilatora -Xlint:all -Werror</a></li><li class="h2"><a href="#scena-s04-minimalna-bramka-jakosci-jako-kod">Scena s04. Minimalna bramka jakości jako kod</a></li><li class="h2"><a href="#scena-s05-boy-scout-rule-mala-poprawa-i-jej-naduzycie">Scena s05. Boy Scout Rule - mała poprawa i jej nadużycie</a></li><li class="h2"><a href="#scena-s06-seria-malych-zmian-gotowych-do-przegladu">Scena s06. Seria małych zmian gotowych do przeglądu</a></li><li class="h2"><a href="#scena-s07-srp-raport-dla-dwoch-aktorow">Scena s07. SRP - raport dla dwóch aktorów</a></li><li class="h2"><a href="#scena-s08-dip-kierunek-zaleznosci-kontra-przeplyw-sterowania">Scena s08. DIP - kierunek zależności kontra przepływ sterowania</a></li><li class="h2"><a href="#scena-s09-clean-architecture-use-case-dane-na-granicy-composition-root">Scena s09. Clean Architecture - use case, dane na granicy, composition root</a></li><li class="h2"><a href="#scena-s10-automatyczna-ochrona-granicy-i-diagnostyka-spojnosci">Scena s10. Automatyczna ochrona granicy i diagnostyka spójności</a></li></ul></details></nav></aside>
 <main>
 <h1>Moduł 2. Prewencja - warsztat CineLegacy: zadania</h1>
 <p>Każda scena to mały fragment systemu kina CineLegacy z jednym problemem z zakresu prewencji. Pracujesz wyłącznie w pakiecie <code>start</code> danej sceny. Po każdej zmianie uruchamiaj test sceny (<code>scripts/<wbr>warsztat.sh test m2/<wbr>sNN</code>) - ma pozostać zielony, o ile zadanie nie mówi inaczej. Część testów opisuje stan startowy (np. „start narusza ADR”, „start nie przechodzi bramki”) - gdy naprawisz <code>start</code>, zmienią kolor na czerwony, a to znaczy, że zadanie jest zrobione. Testy uruchamiaj z katalogu głównego repozytorium. Nie zaglądaj do katalogów <code>step1</code>, <code>step2</code>, ... przed końcem - to rozwiązania wzorcowe. Po zadaniu możesz porównać swoje rozwiązanie: <code>scripts/<wbr>warsztat.sh diff m2/<wbr>sNN 0 N</code>, a przywrócić stan wyjściowy: <code>scripts/<wbr>warsztat.sh reset m2/<wbr>sNN</code>.</p>
@@ -88,30 +88,8 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <li>Małe kroki: jedna refaktoryzacja, jeden przebieg testu. Używaj automatycznych refaktoryzacji IntelliJ tam, gdzie się da.</li>
 <li>Testy wchodzą do <code>start</code> tylko przez publiczne API wymienione w zadaniu (albo przez klasę-punkt wejścia: <code>Main</code>, <code>CinemaApplication</code>, <code>CinemaApp</code>). Jeśli zmieniasz konstruktory, popraw tę klasę.</li>
 <li>Liczby domenowe: 2D 25.00, 3D 32.00, IMAX 40.00; zniżki STUDENT 25%, SENIOR 30%, CHILD 40%; seans przed 12:00 -5.00; VIP +10.00.</li>
-<li>Sceny są ułożone w kolejności tematów modułu: szybka informacja zwrotna (s03, s04), decyzje (s01, s02), projekt (s07-s10), prewencja codzienna (s05, s06).</li>
+<li>Sceny są ułożone według numerów, tak jak pakiety w kodzie. Tematycznie tworzą cztery grupy: szybka informacja zwrotna (s03, s04), decyzje (s01, s02), projekt (s07-s10) i codzienna dbałość o kod (s05, s06).</li>
 </ul>
-<h2 id="scena-s03-bramka-kompilatora-xlintall-werror" tabindex="-1"><a class="header-anchor" href="#scena-s03-bramka-kompilatora-xlintall-werror"><span>Scena s03. Bramka kompilatora -Xlint:all -Werror</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m2.s03_compilergate.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m2/<wbr>s03</code></p>
-<p><strong>Zasada:</strong> Bramka kompilatora (<code>-Xlint:all -Werror</code>) zamienia ostrzeżenia w błędy builda. Ostrzeżenia usuwa się zmianą kodu, po jednej kategorii na krok, a tłumienie jest wyjątkiem wąskim i uzasadnionym.</p>
-<p><strong>Zadanie:</strong></p>
-<ol>
-<li>Sprawdź, jakie kategorie ostrzeżeń zgłasza <code>CompilerGate</code> dla <code>start</code>.</li>
-<li>Usuwaj je po jednej kategorii na krok, uruchamiając test po każdym kroku.</li>
-<li>Zachowaj zachowanie raportu, w tym to, że IMAX ma też dźwięk Dolby.</li>
-</ol>
-<p><strong>Podpowiedź:</strong> nie używaj <code>@SuppressWarnings</code> - każde ostrzeżenie da się tu usunąć zmianą kodu.
-<strong>Gotowe, gdy:</strong> <code>CompilerGate.check</code> dla <code>start</code> zwraca zero ostrzeżeń i <code>passed() == true</code>, a test równoważności raportu jest zielony.</p>
-<h2 id="scena-s04-minimalna-bramka-jakosci-jako-kod" tabindex="-1"><a class="header-anchor" href="#scena-s04-minimalna-bramka-jakosci-jako-kod"><span>Scena s04. Minimalna bramka jakości jako kod</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m2.s04_qualitygate.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m2/<wbr>s04</code></p>
-<p><strong>Zasada:</strong> Minimalna bramka jakości to kilka niezależnych, wykonywalnych sprawdzeń z deterministycznym wynikiem, który wskazuje miejsce problemu. Bramka, która nic nie sprawdza albo daje fałszywe alarmy, jest gorsza niż jej brak.</p>
-<p><strong>Zadanie:</strong></p>
-<ol>
-<li>Zamień listę kontrolną z Javadocu <code>QualityGate</code> na wykonywalne sprawdzenia, po jednym na krok.</li>
-<li>Każdy wynik ma wskazywać plik i linię albo metodę.</li>
-<li>Czysta próbka (<code>sample/<wbr>clean</code>) musi przejść bramkę bez żadnego wyniku.</li>
-</ol>
-<p><strong>Podpowiedź:</strong> zacznij od najtańszego sprawdzenia (skan tekstu źródeł), kompilator i uruchamianie testów zostaw na koniec.
-<strong>Gotowe, gdy:</strong> bramka zgłasza wszystkie problemy próbki <code>sample/<wbr>dirty</code>, zatrzymuje przypadek z nieprzechodzącym testem (<code>sample/<wbr>broken</code>) i przepuszcza <code>sample/<wbr>clean</code>.</p>
 <h2 id="scena-s01-yagni-silnik-regul-dla-dwoch-regul" tabindex="-1"><a class="header-anchor" href="#scena-s01-yagni-silnik-regul-dla-dwoch-regul"><span>Scena s01. YAGNI - silnik reguł dla dwóch reguł</span></a></h2>
 <p><strong>Pakiet:</strong> <code>pl.training.workshop.m2.s01_yagni.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m2/<wbr>s01</code></p>
 <p><strong>Zasada:</strong> YAGNI mówi, żeby nie budować mechanizmów dla przewidywanych wymagań, tylko dla aktualnych. Nie zabrania testów, refaktoryzacji ani czytelnych nazw.</p>
@@ -134,6 +112,50 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 </ol>
 <p><strong>Podpowiedź:</strong> cennik nie musi wysyłać maila - wystarczy, że powie, czy rabat grupowy został przyznany.
 <strong>Gotowe, gdy:</strong> <code>ArchitectureRules.violations</code> dla <code>start</code> zwraca pustą listę, a odpowiedzi i maile są takie same jak przed zmianą.</p>
+<h2 id="scena-s03-bramka-kompilatora-xlintall-werror" tabindex="-1"><a class="header-anchor" href="#scena-s03-bramka-kompilatora-xlintall-werror"><span>Scena s03. Bramka kompilatora -Xlint:all -Werror</span></a></h2>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m2.s03_compilergate.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m2/<wbr>s03</code></p>
+<p><strong>Zasada:</strong> Bramka kompilatora (<code>-Xlint:all -Werror</code>) zamienia ostrzeżenia w błędy builda. Ostrzeżenia usuwa się zmianą kodu, po jednej kategorii na krok, a tłumienie jest wyjątkiem wąskim i uzasadnionym.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Sprawdź, jakie kategorie ostrzeżeń zgłasza <code>CompilerGate</code> dla <code>start</code>.</li>
+<li>Usuwaj je po jednej kategorii na krok, uruchamiając test po każdym kroku.</li>
+<li>Zachowaj zachowanie raportu, w tym to, że IMAX ma też dźwięk Dolby.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> nie używaj <code>@SuppressWarnings</code> - każde ostrzeżenie da się tu usunąć zmianą kodu.
+<strong>Gotowe, gdy:</strong> <code>CompilerGate.check</code> dla <code>start</code> zwraca zero ostrzeżeń i <code>passed() == true</code>, a test równoważności raportu jest zielony.</p>
+<h2 id="scena-s04-minimalna-bramka-jakosci-jako-kod" tabindex="-1"><a class="header-anchor" href="#scena-s04-minimalna-bramka-jakosci-jako-kod"><span>Scena s04. Minimalna bramka jakości jako kod</span></a></h2>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m2.s04_qualitygate.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m2/<wbr>s04</code></p>
+<p><strong>Zasada:</strong> Minimalna bramka jakości to kilka niezależnych, wykonywalnych sprawdzeń z deterministycznym wynikiem, który wskazuje miejsce problemu. Bramka, która nic nie sprawdza albo daje fałszywe alarmy, jest gorsza niż jej brak.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Zamień listę kontrolną z Javadocu <code>QualityGate</code> na wykonywalne sprawdzenia, po jednym na krok.</li>
+<li>Każdy wynik ma wskazywać plik i linię albo metodę.</li>
+<li>Czysta próbka (<code>sample/<wbr>clean</code>) musi przejść bramkę bez żadnego wyniku.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> zacznij od najtańszego sprawdzenia (skan tekstu źródeł), kompilator i uruchamianie testów zostaw na koniec.
+<strong>Gotowe, gdy:</strong> bramka zgłasza wszystkie problemy próbki <code>sample/<wbr>dirty</code>, zatrzymuje przypadek z nieprzechodzącym testem (<code>sample/<wbr>broken</code>) i przepuszcza <code>sample/<wbr>clean</code>.</p>
+<h2 id="scena-s05-boy-scout-rule-mala-poprawa-i-jej-naduzycie" tabindex="-1"><a class="header-anchor" href="#scena-s05-boy-scout-rule-mala-poprawa-i-jej-naduzycie"><span>Scena s05. Boy Scout Rule - mała poprawa i jej nadużycie</span></a></h2>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m2.s05_boyscout.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m2/<wbr>s05</code></p>
+<p><strong>Zasada:</strong> Boy Scout Rule: dotykany kod zostaw w nieco lepszym stanie, ale poprawa ma być mała, lokalna i bez zmiany zachowania. Zmiana tego, co widzi użytkownik, to osobna decyzja, a nie sprzątanie.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Popraw czytelność <code>TicketPrinter.print</code>: nazwy, sklejanie listy miejsc, powtórzenia.</li>
+<li>Nie zmieniaj niczego, co widzi klient: kolejności miejsc, wielkości liter, linii z telefonem, formatu kwoty.</li>
+<li>Zapisz osobno pomysły, które zmieniłyby zachowanie - to zadania na inny commit.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> jeśli test równoważności zrobi się czerwony, twoje &quot;sprzątanie&quot; zmieniło zachowanie. Sprawdź przypadek z miejscami A9 i A10.
+<strong>Gotowe, gdy:</strong> test równoważności jest zielony, diff dotyczy tylko jednej metody i da się go przejrzeć w minutę.</p>
+<h2 id="scena-s06-seria-malych-zmian-gotowych-do-przegladu" tabindex="-1"><a class="header-anchor" href="#scena-s06-seria-malych-zmian-gotowych-do-przegladu"><span>Scena s06. Seria małych zmian gotowych do przeglądu</span></a></h2>
+<p><strong>Pakiet:</strong> <code>pl.training.workshop.m2.s06_reviewableseries.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m2/<wbr>s06</code></p>
+<p><strong>Zasada:</strong> Dobry zestaw zmian ma jedną intencję, własny dowód i zielony build. Refaktoryzacji nie łączy się ze zmianą zachowania - najpierw ułatw zmianę, potem zrób łatwą zmianę.</p>
+<p><strong>Zadanie:</strong></p>
+<ol>
+<li>Dodaj regułę &quot;Tani wtorek&quot;: bilet NORMAL -20% ceny bazowej we wtorek.</li>
+<li>Podziel pracę na co najmniej trzy kroki (commity): refaktoryzacje bez zmiany zachowania osobno, nowa reguła osobno.</li>
+<li>Do każdego kroku napisz jednozdaniowy opis: intencja i dowód.</li>
+</ol>
+<p><strong>Podpowiedź:</strong> najpierw spraw, żeby wybór zniżki miał dostęp do daty seansu - bez zmiany zachowania. Potem nowa reguła to kilka linii.
+<strong>Gotowe, gdy:</strong> po krokach refaktoryzacyjnych test równoważności jest zielony, a po ostatnim 2D NORMAL we wtorek wieczorem kosztuje 20.00 i zmieniły się wyłącznie bilety NORMAL we wtorek.</p>
 <h2 id="scena-s07-srp-raport-dla-dwoch-aktorow" tabindex="-1"><a class="header-anchor" href="#scena-s07-srp-raport-dla-dwoch-aktorow"><span>Scena s07. SRP - raport dla dwóch aktorów</span></a></h2>
 <p><strong>Pakiet:</strong> <code>pl.training.workshop.m2.s07_srp.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m2/<wbr>s07</code></p>
 <p><strong>Zasada:</strong> SRP oznacza jeden aktor i jeden powód zmiany dla modułu, a nie &quot;jedną rzecz&quot; czy jedną metodę na klasę.</p>
@@ -179,28 +201,6 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 </ol>
 <p><strong>Podpowiedź:</strong> spójność i kierunek zależności to dwa osobne kroki - sprawdź oba wskaźniki po każdym z nich.
 <strong>Gotowe, gdy:</strong> test zielony, lista naruszeń dla <code>start/<wbr>domain</code> jest pusta, a LCOM4 każdej klasy wynosi 1.</p>
-<h2 id="scena-s05-boy-scout-rule-mala-poprawa-i-jej-naduzycie" tabindex="-1"><a class="header-anchor" href="#scena-s05-boy-scout-rule-mala-poprawa-i-jej-naduzycie"><span>Scena s05. Boy Scout Rule - mała poprawa i jej nadużycie</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m2.s05_boyscout.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m2/<wbr>s05</code></p>
-<p><strong>Zasada:</strong> Boy Scout Rule: dotykany kod zostaw w nieco lepszym stanie, ale poprawa ma być mała, lokalna i bez zmiany zachowania. Zmiana tego, co widzi użytkownik, to osobna decyzja, a nie sprzątanie.</p>
-<p><strong>Zadanie:</strong></p>
-<ol>
-<li>Popraw czytelność <code>TicketPrinter.print</code>: nazwy, sklejanie listy miejsc, powtórzenia.</li>
-<li>Nie zmieniaj niczego, co widzi klient: kolejności miejsc, wielkości liter, linii z telefonem, formatu kwoty.</li>
-<li>Zapisz osobno pomysły, które zmieniłyby zachowanie - to zadania na inny commit.</li>
-</ol>
-<p><strong>Podpowiedź:</strong> jeśli test równoważności zrobi się czerwony, twoje &quot;sprzątanie&quot; zmieniło zachowanie. Sprawdź przypadek z miejscami A9 i A10.
-<strong>Gotowe, gdy:</strong> test równoważności jest zielony, diff dotyczy tylko jednej metody i da się go przejrzeć w minutę.</p>
-<h2 id="scena-s06-seria-malych-zmian-gotowych-do-przegladu" tabindex="-1"><a class="header-anchor" href="#scena-s06-seria-malych-zmian-gotowych-do-przegladu"><span>Scena s06. Seria małych zmian gotowych do przeglądu</span></a></h2>
-<p><strong>Pakiet:</strong> <code>pl.training.workshop.m2.s06_reviewableseries.start</code> · <strong>Test:</strong> <code>scripts/<wbr>warsztat.sh test m2/<wbr>s06</code></p>
-<p><strong>Zasada:</strong> Dobry zestaw zmian ma jedną intencję, własny dowód i zielony build. Refaktoryzacji nie łączy się ze zmianą zachowania - najpierw ułatw zmianę, potem zrób łatwą zmianę.</p>
-<p><strong>Zadanie:</strong></p>
-<ol>
-<li>Dodaj regułę &quot;Tani wtorek&quot;: bilet NORMAL -20% ceny bazowej we wtorek.</li>
-<li>Podziel pracę na co najmniej trzy kroki (commity): refaktoryzacje bez zmiany zachowania osobno, nowa reguła osobno.</li>
-<li>Do każdego kroku napisz jednozdaniowy opis: intencja i dowód.</li>
-</ol>
-<p><strong>Podpowiedź:</strong> najpierw spraw, żeby wybór zniżki miał dostęp do daty seansu - bez zmiany zachowania. Potem nowa reguła to kilka linii.
-<strong>Gotowe, gdy:</strong> po krokach refaktoryzacyjnych test równoważności jest zielony, a po ostatnim 2D NORMAL we wtorek wieczorem kosztuje 20.00 i zmieniły się wyłącznie bilety NORMAL we wtorek.</p>
 
 </main>
 </div>

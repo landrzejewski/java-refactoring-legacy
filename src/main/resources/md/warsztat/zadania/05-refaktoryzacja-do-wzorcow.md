@@ -280,7 +280,7 @@ scripts/warsztat.sh reset m5/s08     # przywrócenie start do wersji z repozytor
 **Podpowiedź:** VAT liczymy od ceny brutto każdej pozycji osobno i dopiero potem sumujemy.
 **Gotowe, gdy:** test zielony dla wybranej wersji, w kodzie nie ma `instanceof`, a dodanie typu pozycji bez obsługi kończy się błędem kompilacji.
 
-## Scena s20. Mapa decyzji - jedna tabela, dwie struktury
+## Scena s20. Mapa decyzji - jedna tabela, dwie struktury docelowe
 
 **Pakiet:** `pl.training.workshop.m5.s20_decisionmap.start` · **Test:** `scripts/warsztat.sh test m5/s20`
 
