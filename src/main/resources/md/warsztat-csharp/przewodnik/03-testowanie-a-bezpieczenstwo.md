@@ -127,6 +127,12 @@ public BookingConfirmation(TimeProvider clock)
 }
 ```
 
+**Po (ostatnia linia dokumentu w `Confirm`):**
+
+```csharp
++ "Wygenerowano: " + _clock.GetLocalNow().DateTime.ToString("yyyy-MM-dd'T'HH:mm:ss", CultureInfo.InvariantCulture) + "\n";
+```
+
 **Uruchom:** `scripts/warsztat.sh --lang cs test m3/s01` - 15 testów zielonych, w tym `FromStep1TheWholeDocumentIsDeterministic` (z zatrzymanym `FakeTimeProvider` porównujemy także linię z czasem, bez scrubbera).
 **Co powiedzieć:** to minimalna zmiana, która robi szew dla testu. Stary konstruktor zostaje, więc produkcyjni klienci nie widzą różnicy. Scrubber był rusztowaniem i od tego kroku jest potrzebny tylko dla `Start`.
 **Snapshot:** `Step1/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m3/s01 0 1`
@@ -149,7 +155,26 @@ foreach (var t in b.TicketTypes)
     {
         p = 40.00;
     }
-    ...
+    else if (b.Format == 2)
+    {
+        p = 32.00;
+    }
+    else
+    {
+        p = 25.00;
+    }
+    if (t == "S")
+    {
+        p = p * 0.75;
+    }
+    else if (t == "E")
+    {
+        p = p * 0.70;
+    }
+    else if (t == "C")
+    {
+        p = p * 0.60;
+    }
     if (b.Start.Hour < 12)
     {
         p = p - 5.00;
@@ -164,6 +189,44 @@ foreach (var t in b.TicketTypes)
 foreach (var t in b.TicketTypes)
 {
     sum = sum + TicketPrice(b, t);
+}
+```
+
+Nowa metoda (ciało przeniesione z pętli bez zmian):
+
+```csharp
+private double TicketPrice(Booking b, string t)
+{
+    double p;
+    if (b.Format == 3)
+    {
+        p = 40.00;
+    }
+    else if (b.Format == 2)
+    {
+        p = 32.00;
+    }
+    else
+    {
+        p = 25.00;
+    }
+    if (t == "S")
+    {
+        p = p * 0.75;
+    }
+    else if (t == "E")
+    {
+        p = p * 0.70;
+    }
+    else if (t == "C")
+    {
+        p = p * 0.60;
+    }
+    if (b.Start.Hour < 12)
+    {
+        p = p - 5.00;
+    }
+    return p;
 }
 ```
 
@@ -223,11 +286,23 @@ Sekwencja rozrywania zależności: nazwij zachowanie i punkt obserwacji, wprowad
 **Zmiany:**
 
 1. Z klasy `LegacyDatabase` wydziel interfejs `IBookingStore` z metodami `PaidBookings()` i `MarkReminded(string bookingId)` (Extract Interface). Nowy plik `IBookingStore.cs`, a `LegacyDatabase` deklaruje teraz `: IBookingStore`.
-2. W `ShowtimeReminderJob` dodaj pole `private readonly Func<IBookingStore> _stores;` i konstruktor z parametrem `Func<IBookingStore> stores` (Parameterize Constructor), który przypisuje pole.
+2. W `ShowtimeReminderJob` dodaj pole `private readonly Func<IBookingStore> _stores;` i konstruktor z parametrem `Func<IBookingStore> stores` (Parameterize Constructor), który waliduje argument (`ArgumentNullException.ThrowIfNull`) i przypisuje pole.
 3. Dodaj konstruktor bezargumentowy delegujący: `: this(() => new LegacyDatabase())`.
 4. W `Run()` zamień `var database = new LegacyDatabase();` na `var database = _stores();`.
 
-**Przed:**
+**Po (`IBookingStore.cs`, nowy plik):**
+
+```csharp
+/// <summary>Najwęższy kontrakt, którego potrzebuje ShowtimeReminderJob (wydzielony z LegacyDatabase).</summary>
+public interface IBookingStore
+{
+    IReadOnlyList<PaidBooking> PaidBookings();
+
+    void MarkReminded(string bookingId);
+}
+```
+
+**Przed (`ShowtimeReminderJob.cs`):**
 
 ```csharp
 public sealed class ShowtimeReminderJob
@@ -241,17 +316,31 @@ public sealed class ShowtimeReminderJob
 }
 ```
 
-**Po:**
+**Po (`ShowtimeReminderJob.cs`):**
 
 ```csharp
-public ShowtimeReminderJob()
-    : this(() => new LegacyDatabase())
+public sealed class ShowtimeReminderJob
 {
-}
+    private readonly Func<IBookingStore> _stores;
 
-public int Run()
-{
-    var database = _stores();
+    public ShowtimeReminderJob()
+        : this(() => new LegacyDatabase())
+    {
+    }
+
+    public ShowtimeReminderJob(Func<IBookingStore> stores)
+    {
+        ArgumentNullException.ThrowIfNull(stores);
+        _stores = stores;
+    }
+
+    public int Run()
+    {
+        var database = _stores();
+        var now = DateTime.Now;
+        ...
+    }
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang cs test m3/s02` - testy `Step1...` zielone: z fałszywą bazą zadanie działa, gdy nic nie jest do wysłania (`Step1RunsWithFakeStoreWhenNothingIsDue`).
@@ -269,6 +358,19 @@ public int Run()
 **Przed:**
 
 ```csharp
+private readonly Func<IBookingStore> _stores;
+
+public ShowtimeReminderJob()
+    : this(() => new LegacyDatabase())
+{
+}
+
+public ShowtimeReminderJob(Func<IBookingStore> stores)
+{
+    ArgumentNullException.ThrowIfNull(stores);
+    _stores = stores;
+}
+
 public int Run()
 {
     var database = _stores();
@@ -278,7 +380,26 @@ public int Run()
 **Po:**
 
 ```csharp
-var now = _clock.GetLocalNow().DateTime;
+private readonly Func<IBookingStore> _stores;
+private readonly TimeProvider _clock;
+
+public ShowtimeReminderJob()
+    : this(() => new LegacyDatabase(), TimeProvider.System)
+{
+}
+
+public ShowtimeReminderJob(Func<IBookingStore> stores, TimeProvider clock)
+{
+    ArgumentNullException.ThrowIfNull(stores);
+    ArgumentNullException.ThrowIfNull(clock);
+    _stores = stores;
+    _clock = clock;
+}
+
+public int Run()
+{
+    var database = _stores();
+    var now = _clock.GetLocalNow().DateTime;
 ```
 
 **Uruchom:** test zielony. Test `Step2ControlsTimeButStillHitsStaticMailer` pokazuje dwie rzeczy: przypadki bez wysyłki działają przy stałym zegarze, a przypadek "do wysłania" wciąż kończy się wyjątkiem SMTP.
@@ -308,9 +429,27 @@ public sealed class ShowtimeReminderJob
 **Po:**
 
 ```csharp
-protected virtual void SendReminder(string to, string subject, string body)
+public class ShowtimeReminderJob
 {
-    ReminderMailer.Send(to, subject, body);
+    ...
+    public int Run()
+    {
+        ...
+            if (!booking.Reminded && minutes > 0 && minutes <= 120)
+            {
+                SendReminder(booking.Email,
+                    "Przypomnienie: " + booking.Title,
+                    "Seans zaczyna sie o " + booking.Start.ToString("HH:mm", CultureInfo.InvariantCulture));
+                database.MarkReminded(booking.Id);
+                sent++;
+            }
+        ...
+    }
+
+    protected virtual void SendReminder(string to, string subject, string body)
+    {
+        ReminderMailer.Send(to, subject, body);
+    }
 }
 ```
 
@@ -328,11 +467,34 @@ protected virtual void SendReminder(string to, string subject, string body)
 4. Przywróć `sealed` na deklaracji klasy.
 5. W teście podklasę `RecordingStep3Job` zastępuje lambda przekazana do konstruktora.
 
-**Przed:**
+**Po (`ReminderSender.cs`, nowy plik):**
+
+```csharp
+/// <summary>Najwęższy seam dla powiadomień: delegat, w teście wystarczy lambda.</summary>
+public delegate void ReminderSender(string to, string subject, string body);
+```
+
+**Przed (`ShowtimeReminderJob.cs`):**
 
 ```csharp
 public class ShowtimeReminderJob
 {
+    private readonly Func<IBookingStore> _stores;
+    private readonly TimeProvider _clock;
+
+    public ShowtimeReminderJob()
+        : this(() => new LegacyDatabase(), TimeProvider.System)
+    {
+    }
+
+    public ShowtimeReminderJob(Func<IBookingStore> stores, TimeProvider clock)
+    {
+        ArgumentNullException.ThrowIfNull(stores);
+        ArgumentNullException.ThrowIfNull(clock);
+        _stores = stores;
+        _clock = clock;
+    }
+
     ...
     protected virtual void SendReminder(string to, string subject, string body)
     {
@@ -341,12 +503,39 @@ public class ShowtimeReminderJob
 }
 ```
 
-**Po:**
+**Po (`ShowtimeReminderJob.cs`):**
 
 ```csharp
-public ShowtimeReminderJob()
-    : this(() => new LegacyDatabase(), TimeProvider.System, ReminderMailer.Send)
+public sealed class ShowtimeReminderJob
 {
+    private readonly Func<IBookingStore> _stores;
+    private readonly TimeProvider _clock;
+    private readonly ReminderSender _sender;
+
+    public ShowtimeReminderJob()
+        : this(() => new LegacyDatabase(), TimeProvider.System, ReminderMailer.Send)
+    {
+    }
+
+    public ShowtimeReminderJob(Func<IBookingStore> stores, TimeProvider clock, ReminderSender sender)
+    {
+        ArgumentNullException.ThrowIfNull(stores);
+        ArgumentNullException.ThrowIfNull(clock);
+        ArgumentNullException.ThrowIfNull(sender);
+        _stores = stores;
+        _clock = clock;
+        _sender = sender;
+    }
+
+    public int Run()
+    {
+        ...
+                _sender(booking.Email,
+                    "Przypomnienie: " + booking.Title,
+                    "Seans zaczyna sie o " + booking.Start.ToString("HH:mm", CultureInfo.InvariantCulture));
+                database.MarkReminded(booking.Id);
+        ...
+    }
 }
 ```
 
@@ -414,7 +603,14 @@ Pokaż tabelę ze slajdu 1.2: wynik, wyjątki, stan, współpracownicy, czas, gr
 3. Dodaj konstruktor bezargumentowy delegujący: `: this(CinemaMailer.Send)`.
 4. Oba statyczne wywołania `CinemaMailer.Send(...)` zamień na `_mailer(...)`. Logika bez zmian.
 
-**Przed:**
+**Po (`Mailer.cs`, nowy plik):**
+
+```csharp
+/// <summary>Seam dla efektu ubocznego "wysłany mail" - w teście lambda zapisująca do dziennika.</summary>
+public delegate void Mailer(string to, string text);
+```
+
+**Przed (`TicketCheckout.cs`):**
 
 ```csharp
 public sealed class TicketCheckout
@@ -429,12 +625,43 @@ public sealed class TicketCheckout
         CinemaMailer.Send(booking.Email, "Bilety " + booking.Id + " oplacone: " + booking.Amount);
 ```
 
-**Po:**
+**Po (`TicketCheckout.cs`):**
 
 ```csharp
-public TicketCheckout()
-    : this(CinemaMailer.Send)
+public sealed class TicketCheckout
 {
+    private readonly Mailer _mailer;
+
+    public TicketCheckout()
+        : this(CinemaMailer.Send)
+    {
+    }
+
+    public TicketCheckout(Mailer mailer)
+    {
+        ArgumentNullException.ThrowIfNull(mailer);
+        _mailer = mailer;
+    }
+
+    public string Pay(Booking booking, string? card)
+    {
+        ArgumentNullException.ThrowIfNull(card);
+        if (booking.Status != BookingStatus.New)
+        {
+            return "ERROR: status " + booking.Status;
+        }
+        var charged = CardTerminal.Charge(card, booking.Amount);
+        if (charged)
+        {
+            booking.MarkPaid();
+        }
+        else
+        {
+            _mailer(booking.Email, "Platnosc odrzucona " + booking.Id);
+        }
+        _mailer(booking.Email, "Bilety " + booking.Id + " oplacone: " + booking.Amount);
+        return charged ? "OK" : "DECLINED";
+    }
 }
 ```
 
@@ -492,12 +719,29 @@ return "DECLINED";
 3. W `Pay` zamień `CardTerminal.Charge(card, booking.Amount)` na `_gateway(card, booking.Amount)`.
 4. W teście oba fałszywe obiekty zapisują do **jednego** dziennika zdarzeń.
 
-**Przed:**
+**Po (`PaymentGateway.cs`, nowy plik):**
 
 ```csharp
+using Training.Workshop.Shared;
+
+/// <summary>Seam dla efektu ubocznego "obciążenie karty".</summary>
+public delegate bool PaymentGateway(string card, Money amount);
+```
+
+**Przed (`TicketCheckout.cs`):**
+
+```csharp
+private readonly Mailer _mailer;
+
 public TicketCheckout()
     : this(CinemaMailer.Send)
 {
+}
+
+public TicketCheckout(Mailer mailer)
+{
+    ArgumentNullException.ThrowIfNull(mailer);
+    _mailer = mailer;
 }
 ...
 if (CardTerminal.Charge(card, booking.Amount))
@@ -505,13 +749,28 @@ if (CardTerminal.Charge(card, booking.Amount))
     booking.MarkPaid();
 ```
 
-**Po:**
+**Po (`TicketCheckout.cs`):**
 
 ```csharp
+private readonly Mailer _mailer;
+private readonly PaymentGateway _gateway;
+
 public TicketCheckout()
     : this(CinemaMailer.Send, CardTerminal.Charge)
 {
 }
+
+public TicketCheckout(Mailer mailer, PaymentGateway gateway)
+{
+    ArgumentNullException.ThrowIfNull(mailer);
+    ArgumentNullException.ThrowIfNull(gateway);
+    _mailer = mailer;
+    _gateway = gateway;
+}
+...
+if (_gateway(card, booking.Amount))
+{
+    booking.MarkPaid();
 ```
 
 **Uruchom:** test zielony: `Step3ObservesTheFullVector` sprawdza wynik albo wyjątek (typ i komunikat), obciążenia i maile w jednej kolejności oraz status rezerwacji po operacji.
@@ -586,19 +845,31 @@ public sealed class PriceService
 **Po:**
 
 ```csharp
-Money result = _legacy.Price(query);
-try
+public sealed class PriceService
 {
-    if (!_candidate.Price(query).Equals(result))
+    private readonly LegacyPriceCalculator _legacy = new();
+    private readonly CandidatePriceCalculator _candidate = new();
+    private int _mismatches;
+
+    public Money Price(TicketQuery query)
     {
-        _mismatches++;
+        Money result = _legacy.Price(query);
+        try
+        {
+            if (!_candidate.Price(query).Equals(result))
+            {
+                _mismatches++;
+            }
+        }
+        catch (Exception)
+        {
+            _mismatches++;
+        }
+        return result;
     }
+
+    public int Mismatches => _mismatches;
 }
-catch (Exception)
-{
-    _mismatches++;
-}
-return result;
 ```
 
 **Uruchom:** test zielony; `Step1ShadowSurvivesCandidateFailureButOnlyCountsMismatches` - wyjątek kandydata dla formatu 4DX nie przerywa sprzedaży.
@@ -614,7 +885,65 @@ return result;
 3. Wydziel porównanie do prywatnej metody `Verify(query, legacyPrice)` (Extract Method): zwraca `Agreement` albo `Divergence`, a w `catch` `CandidateFailure` z nazwą typu wyjątku i komunikatem.
 4. W `Price` zostaje `_report.Record(Verify(query, result));` i `return result;`.
 
-**Przed:**
+**Po (`VerificationReport.cs`, nowy plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+/// <summary>
+/// Raport rozbieżności - zgodność, rozbieżność albo awaria kandydata.
+/// Każde porównanie to typowane zdarzenie, a nie wpis w logu do parsowania.
+/// </summary>
+public sealed class VerificationReport
+{
+    public interface IVerification
+    {
+    }
+
+    public sealed record Agreement(TicketQuery Query, Money Price) : IVerification;
+
+    public sealed record Divergence(TicketQuery Query, Money Legacy, Money Candidate) : IVerification;
+
+    public sealed record CandidateFailure(TicketQuery Query, Money Legacy, string Error) : IVerification;
+
+    private readonly List<IVerification> _entries = [];
+
+    public void Record(IVerification verification)
+    {
+        _entries.Add(verification);
+    }
+
+    public IReadOnlyList<IVerification> Entries()
+    {
+        return _entries.ToList();
+    }
+
+    /// <summary>Czytelne wiersze raportu - tylko to, co wymaga uwagi zespołu.</summary>
+    public IReadOnlyList<string> Problems()
+    {
+        var lines = new List<string>();
+        foreach (IVerification entry in _entries)
+        {
+            switch (entry)
+            {
+                case Agreement:
+                    break;
+                case Divergence d:
+                    lines.Add("ROZBIEZNOSC " + d.Query + ": legacy " + d.Legacy + ", kandydat " + d.Candidate);
+                    break;
+                case CandidateFailure f:
+                    lines.Add("BLAD KANDYDATA " + f.Query + ": " + f.Error);
+                    break;
+                default:
+                    throw new InvalidOperationException("nieznany wpis raportu: " + entry);
+            }
+        }
+        return lines;
+    }
+}
+```
+
+**Przed (`PriceService.cs`, ciało `Price`):**
 
 ```csharp
 Money result = _legacy.Price(query);
@@ -632,12 +961,48 @@ catch (Exception)
 return result;
 ```
 
-**Po:**
+**Po (`PriceService.cs`):**
 
 ```csharp
-return legacyPrice.Equals(candidatePrice)
-    ? new VerificationReport.Agreement(query, legacyPrice)
-    : new VerificationReport.Divergence(query, legacyPrice, candidatePrice);
+public sealed class PriceService
+{
+    private readonly LegacyPriceCalculator _legacy = new();
+    private readonly CandidatePriceCalculator _candidate = new();
+    private readonly VerificationReport _report;
+
+    public PriceService()
+        : this(new VerificationReport())
+    {
+    }
+
+    public PriceService(VerificationReport report)
+    {
+        _report = report;
+    }
+
+    public Money Price(TicketQuery query)
+    {
+        Money result = _legacy.Price(query);
+        _report.Record(Verify(query, result));
+        return result;
+    }
+
+    private VerificationReport.IVerification Verify(TicketQuery query, Money legacyPrice)
+    {
+        try
+        {
+            Money candidatePrice = _candidate.Price(query);
+            return legacyPrice.Equals(candidatePrice)
+                ? new VerificationReport.Agreement(query, legacyPrice)
+                : new VerificationReport.Divergence(query, legacyPrice, candidatePrice);
+        }
+        catch (Exception failure)
+        {
+            return new VerificationReport.CandidateFailure(query, legacyPrice,
+                failure.GetType().Name + ": " + failure.Message);
+        }
+    }
+}
 ```
 
 **Uruchom:** test zielony; `Step2ReportShowsWhatDivergedAndWhy` - raport pokazuje dwie rozbieżności (3D dziecko rano: 17.20 vs 19.20, 2D student rano: 13.75 vs 15.00) i awarię dla 4DX (`BLAD KANDYDATA 4DX NORMAL 20:00 rzad 1: ArgumentException: Nieznany format: 4DX`).
@@ -665,6 +1030,7 @@ Money price = @base.Minus(@base.Percent(DiscountPercent(query.Type)));
 **Po:**
 
 ```csharp
+Money @base = BasePrice(query.Format);
 Money price = @base.Minus(@base.Percent(DiscountPercent(query.Type)));
 if (query.Start.Hour < 12)
 {
@@ -685,7 +1051,19 @@ if (query.Start.Hour < 12)
 3. Dotychczasowe ciało `Price` przenieś do prywatnej metody `Shadow(TicketQuery query)` i wciel do niej metodę `Verify`: nagranie do raportu dzieje się wprost w `try/catch`, a `Verify` znika.
 4. `Price` zwraca wyrażenie `switch` po `_mode` z gałęzią domyślną rzucającą `InvalidOperationException`.
 
-**Przed:**
+**Po (`MigrationMode.cs`, nowy plik):**
+
+```csharp
+/// <summary>Jawny tryb migracji zamiast flagi bool - Legacy, Shadow, Candidate.</summary>
+public enum MigrationMode
+{
+    Legacy,
+    Shadow,
+    Candidate,
+}
+```
+
+**Przed (`PriceService.cs`, stan z kroku 2 - pełny plik w Po kroku 2):**
 
 ```csharp
 public Money Price(TicketQuery query)
@@ -696,16 +1074,56 @@ public Money Price(TicketQuery query)
 }
 ```
 
-**Po:**
+**Po (`PriceService.cs`):**
 
 ```csharp
-return _mode switch
+public sealed class PriceService
 {
-    MigrationMode.Legacy => _legacy.Price(query),
-    MigrationMode.Shadow => Shadow(query),
-    MigrationMode.Candidate => _candidate.Price(query),
-    _ => throw new InvalidOperationException("nieznany tryb: " + _mode),
-};
+    private readonly LegacyPriceCalculator _legacy = new();
+    private readonly CandidatePriceCalculator _candidate = new();
+    private readonly MigrationMode _mode;
+    private readonly VerificationReport _report;
+
+    public PriceService()
+        : this(MigrationMode.Shadow, new VerificationReport())
+    {
+    }
+
+    public PriceService(MigrationMode mode, VerificationReport report)
+    {
+        _mode = mode;
+        _report = report;
+    }
+
+    public Money Price(TicketQuery query)
+    {
+        return _mode switch
+        {
+            MigrationMode.Legacy => _legacy.Price(query),
+            MigrationMode.Shadow => Shadow(query),
+            MigrationMode.Candidate => _candidate.Price(query),
+            _ => throw new InvalidOperationException("nieznany tryb: " + _mode),
+        };
+    }
+
+    private Money Shadow(TicketQuery query)
+    {
+        Money result = _legacy.Price(query);
+        try
+        {
+            Money candidatePrice = _candidate.Price(query);
+            _report.Record(result.Equals(candidatePrice)
+                ? new VerificationReport.Agreement(query, result)
+                : new VerificationReport.Divergence(query, result, candidatePrice));
+        }
+        catch (Exception failure)
+        {
+            _report.Record(new VerificationReport.CandidateFailure(query, result,
+                failure.GetType().Name + ": " + failure.Message));
+        }
+        return result;
+    }
+}
 ```
 
 **Uruchom:** test zielony; równoważność obejmuje wszystkie trzy tryby, `Step4CandidateModeIsAuthoritativeAndRejectsUnknownFormat` pokazuje świadomą zmianę dla 4DX.
@@ -760,7 +1178,88 @@ try
 3. Zmień sygnaturę konstruktora `NewBookingFlow`: parametr `IEffects effects` zamiast `Infrastructure infra`. Pole `_effects` zastępuje `_infra`, a wywołania `_infra.*` w `Book` zmieniają się na `_effects.*`.
 4. W konstruktorze `ShadowBooking` kandydat dostaje `new NewBookingFlow(new RealEffects(infra))`.
 
-**Przed:**
+**Po (`IEffects.cs`, nowy plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+/// <summary>Port efektów ubocznych - nowa ścieżka nie sięga już bezpośrednio do infrastruktury.</summary>
+public interface IEffects
+{
+    void SendMail(string to, string text);
+
+    void Charge(string card, Money amount);
+
+    void Save(string row);
+}
+```
+
+**Po (`RealEffects.cs`, nowy plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+/// <summary>Adapter portu na prawdziwą infrastrukturę (poczta, płatności, baza).</summary>
+public sealed class RealEffects : IEffects
+{
+    private readonly Infrastructure _infra;
+
+    public RealEffects(Infrastructure infra)
+    {
+        _infra = infra;
+    }
+
+    public void SendMail(string to, string text)
+    {
+        _infra.SendMail(to, text);
+    }
+
+    public void Charge(string card, Money amount)
+    {
+        _infra.Charge(card, amount);
+    }
+
+    public void Save(string row)
+    {
+        _infra.Save(row);
+    }
+}
+```
+
+**Przed (`NewBookingFlow.cs`):**
+
+```csharp
+private readonly Infrastructure _infra;
+
+public NewBookingFlow(Infrastructure infra)
+{
+    _infra = infra;
+}
+```
+
+**Po (`NewBookingFlow.cs`):**
+
+```csharp
+private readonly IEffects _effects;
+
+public NewBookingFlow(IEffects effects)
+{
+    _effects = effects;
+}
+
+public string Book(BookingRequest request)
+{
+    Money tickets = Ticket2D.Times(request.Tickets);
+    Money total = tickets.Plus(OnlineFee.Times(request.Tickets));
+    _effects.Charge(request.Card, total);
+    _effects.Save(request.Title + ";" + request.Email + ";" + request.Tickets + ";" + total);
+    _effects.SendMail(request.Email,
+        "Bilety " + request.Title + " x" + request.Tickets + ", zaplacono " + tickets);
+    return "OK " + total;
+}
+```
+
+**Przed (`ShadowBooking.cs`):**
 
 ```csharp
 public ShadowBooking(Infrastructure infra)
@@ -770,10 +1269,14 @@ public ShadowBooking(Infrastructure infra)
 }
 ```
 
-**Po:**
+**Po (`ShadowBooking.cs`):**
 
 ```csharp
-_candidate = new NewBookingFlow(new RealEffects(infra));
+public ShadowBooking(Infrastructure infra)
+{
+    _legacy = new LegacyBookingFlow(infra);
+    _candidate = new NewBookingFlow(new RealEffects(infra));
+}
 ```
 
 **Uruchom:** test zielony; `Step1PreparatoryRefactoringKeepsTheBugOnPurpose` - nadal dwa maile.
@@ -789,7 +1292,42 @@ _candidate = new NewBookingFlow(new RealEffects(infra));
 3. W bloku `try` utwórz nagrywarkę i przekaż ją świeżemu kandydatowi: `new NewBookingFlow(recorder).Book(request)`.
 4. Dodaj prywatną metodę `Compare(what, legacyValues, candidateValues)`, która porównuje listy pozycja po pozycji i dopisuje rozbieżności do `_divergences`. Porównaj osobno `"wynik"` i `"efekty"`.
 
-**Przed:**
+**Po (`RecordingEffects.cs`, nowy plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+/// <summary>
+/// Nagrywa zamiary kandydata w formacie dziennika infrastruktury;
+/// niczego nie wysyła, nie obciąża i nie zapisuje.
+/// </summary>
+public sealed class RecordingEffects : IEffects
+{
+    private readonly List<string> _recorded = [];
+
+    public void SendMail(string to, string text)
+    {
+        _recorded.Add("MAIL " + to + ": " + text);
+    }
+
+    public void Charge(string card, Money amount)
+    {
+        _recorded.Add("CHARGE " + card + ": " + amount);
+    }
+
+    public void Save(string row)
+    {
+        _recorded.Add("SAVE " + row);
+    }
+
+    public IReadOnlyList<string> Recorded()
+    {
+        return _recorded.ToList();
+    }
+}
+```
+
+**Przed (`ShadowBooking.cs`):**
 
 ```csharp
 public string Book(BookingRequest request)
@@ -805,13 +1343,58 @@ public string Book(BookingRequest request)
     }
 ```
 
-**Po:**
+**Po (`ShadowBooking.cs`):**
 
 ```csharp
-var recorder = new RecordingEffects();
-string shadow = new NewBookingFlow(recorder).Book(request);
-Compare("wynik", [result], [shadow]);
-Compare("efekty", legacyEffects, recorder.Recorded());
+public sealed class ShadowBooking
+{
+    private readonly Infrastructure _infra;
+    private readonly LegacyBookingFlow _legacy;
+    private readonly List<string> _divergences = [];
+
+    public ShadowBooking(Infrastructure infra)
+    {
+        _infra = infra;
+        _legacy = new LegacyBookingFlow(infra);
+    }
+
+    public string Book(BookingRequest request)
+    {
+        int before = _infra.Log().Count;
+        string result = _legacy.Book(request);
+        IReadOnlyList<string> legacyEffects = _infra.Log().Skip(before).ToList();
+        try
+        {
+            var recorder = new RecordingEffects();
+            string shadow = new NewBookingFlow(recorder).Book(request);
+            Compare("wynik", [result], [shadow]);
+            Compare("efekty", legacyEffects, recorder.Recorded());
+        }
+        catch (Exception failure)
+        {
+            _divergences.Add("kandydat: " + failure.Message);
+        }
+        return result;
+    }
+
+    private void Compare(string what, IReadOnlyList<string> legacyValues, IReadOnlyList<string> candidateValues)
+    {
+        for (int i = 0; i < Math.Max(legacyValues.Count, candidateValues.Count); i++)
+        {
+            string legacyValue = i < legacyValues.Count ? legacyValues[i] : "-";
+            string candidateValue = i < candidateValues.Count ? candidateValues[i] : "-";
+            if (!legacyValue.Equals(candidateValue))
+            {
+                _divergences.Add(what + " legacy: " + legacyValue + " | kandydat: " + candidateValue);
+            }
+        }
+    }
+
+    public IReadOnlyList<string> Divergences()
+    {
+        return _divergences.ToList();
+    }
+}
 ```
 
 **Uruchom:** test zielony; `Step2RecordsCandidateEffectsInsteadOfExecutingThem` - jeden mail, jedno obciążenie, a raport pokazuje rozbieżność w treści maila (kandydat pisze 50.00 zamiast 54.00).
@@ -823,12 +1406,139 @@ Compare("efekty", legacyEffects, recorder.Recorded());
 **Zmiany:**
 
 1. Nowy plik `BookingPlan.cs`: rekord `BookingPlan(string Result, IReadOnlyList<BookingPlan.IEffect> Effects)` z zagnieżdżonym interfejsem `IEffect` (metody `Describe()` i `ApplyTo(IEffects port)`) oraz rekordami `Charge`, `Save` i `SendMail`.
-2. Nowy plik `BookingPlanner.cs`: z `NewBookingFlow.Book` wydziel czyste obliczenie do metody `Plan` (Extract Method) i przenieś ją do nowej klasy `BookingPlanner` (Move Method). `Plan` zwraca `BookingPlan` z wynikiem i listą efektów jako danymi.
-3. `NewBookingFlow.Book` woła `_planner.Plan(request)`, wykonuje każdy efekt planu na porcie (`effect.ApplyTo(_effects)`) i zwraca `plan.Result`.
-4. W `ShadowBooking` zamień pole kandydata na `BookingPlanner`; w `try` porównaj `plan.Result` z wynikiem legacy, a opisy efektów (`Describe()`) z `legacyEffects`.
+2. Nowy plik `BookingPlanner.cs`: z `NewBookingFlow.Book` wydziel czyste obliczenie do metody `Plan` (Extract Method) i przenieś ją do nowej klasy `BookingPlanner` (Move Method) razem ze stałymi `Ticket2D` i `OnlineFee`. `Plan` zwraca `BookingPlan` z wynikiem i listą efektów jako danymi.
+3. `NewBookingFlow` dostaje pole `private readonly BookingPlanner _planner = new();`, a `Book` woła `_planner.Plan(request)`, wykonuje każdy efekt planu na porcie (`effect.ApplyTo(_effects)`) i zwraca `plan.Result`.
+4. W `ShadowBooking` dodaj pole kandydata `private readonly BookingPlanner _candidate = new();` (pole `NewBookingFlow` zniknęło już w kroku 2); w `try` porównaj `plan.Result` z wynikiem legacy, a opisy efektów (`Describe()`) z `legacyEffects`.
 5. Plik `RecordingEffects.cs` znika: usuń klasę, nikt już jej nie używa.
 
-**Przed:**
+**Po (`BookingPlan.cs`, nowy plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+/// <summary>
+/// Wynik czystego obliczenia - odpowiedź dla klienta i lista efektów DO wykonania.
+/// Efekty to dane: można je porównać, zalogować albo wykonać, ale plan sam niczego nie robi.
+/// </summary>
+public sealed record BookingPlan(string Result, IReadOnlyList<BookingPlan.IEffect> Effects)
+{
+    public interface IEffect
+    {
+        string Describe();
+
+        void ApplyTo(IEffects port);
+    }
+
+    public sealed record Charge(string Card, Money Amount) : IEffect
+    {
+        public string Describe()
+        {
+            return "CHARGE " + Card + ": " + Amount;
+        }
+
+        public void ApplyTo(IEffects port)
+        {
+            port.Charge(Card, Amount);
+        }
+    }
+
+    public sealed record Save(string Row) : IEffect
+    {
+        public string Describe()
+        {
+            return "SAVE " + Row;
+        }
+
+        public void ApplyTo(IEffects port)
+        {
+            port.Save(Row);
+        }
+    }
+
+    public sealed record SendMail(string To, string Text) : IEffect
+    {
+        public string Describe()
+        {
+            return "MAIL " + To + ": " + Text;
+        }
+
+        public void ApplyTo(IEffects port)
+        {
+            port.SendMail(To, Text);
+        }
+    }
+}
+```
+
+**Po (`BookingPlanner.cs`, nowy plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+/// <summary>
+/// Separate Query from Modifier - czysta część nowej ścieżki. Nie ma dostępu do
+/// żadnego portu efektów, więc w cieniu nie da się jej użyć "za mocno".
+/// </summary>
+public sealed class BookingPlanner
+{
+    private static readonly Money Ticket2D = Money.Of("25.00");
+    private static readonly Money OnlineFee = Money.Of("2.00");
+
+    public BookingPlan Plan(BookingRequest request)
+    {
+        Money tickets = Ticket2D.Times(request.Tickets);
+        Money total = tickets.Plus(OnlineFee.Times(request.Tickets));
+        return new BookingPlan("OK " + total,
+        [
+            new BookingPlan.Charge(request.Card, total),
+            new BookingPlan.Save(request.Title + ";" + request.Email + ";"
+                + request.Tickets + ";" + total),
+            new BookingPlan.SendMail(request.Email,
+                "Bilety " + request.Title + " x" + request.Tickets + ", zaplacono " + tickets),
+        ]);
+    }
+}
+```
+
+**Przed (`NewBookingFlow.cs`, stan z kroku 1 - pełne `Book` w Po kroku 1):**
+
+```csharp
+private static readonly Money Ticket2D = Money.Of("25.00");
+private static readonly Money OnlineFee = Money.Of("2.00");
+
+private readonly IEffects _effects;
+```
+
+**Po (`NewBookingFlow.cs`, cały plik; `using Training.Workshop.Shared;` znika):**
+
+```csharp
+/// <summary>
+/// Nowa ścieżka = plan (czysty) + wykonanie planu na porcie efektów.
+/// Tylko ta klasa wykonuje efekty i używa jej wyłącznie ścieżka autorytatywna.
+/// </summary>
+public sealed class NewBookingFlow
+{
+    private readonly BookingPlanner _planner = new();
+    private readonly IEffects _effects;
+
+    public NewBookingFlow(IEffects effects)
+    {
+        _effects = effects;
+    }
+
+    public string Book(BookingRequest request)
+    {
+        BookingPlan plan = _planner.Plan(request);
+        foreach (BookingPlan.IEffect effect in plan.Effects)
+        {
+            effect.ApplyTo(_effects);
+        }
+        return plan.Result;
+    }
+}
+```
+
+**Przed (`ShadowBooking.cs`, blok `try` w `Book`):**
 
 ```csharp
 var recorder = new RecordingEffects();
@@ -837,9 +1547,11 @@ Compare("wynik", [result], [shadow]);
 Compare("efekty", legacyEffects, recorder.Recorded());
 ```
 
-**Po:**
+**Po (`ShadowBooking.cs`, pole i blok `try` w `Book`):**
 
 ```csharp
+private readonly BookingPlanner _candidate = new();
+...
 BookingPlan plan = _candidate.Plan(request);
 Compare("wynik", [result], [plan.Result]);
 IReadOnlyList<string> planned = plan.Effects.Select(effect => effect.Describe()).ToList();

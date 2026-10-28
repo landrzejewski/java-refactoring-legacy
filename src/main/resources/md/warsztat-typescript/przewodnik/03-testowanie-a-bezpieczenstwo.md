@@ -28,6 +28,7 @@ scripts/warsztat.sh --lang ts reset m3/s04         # przywróć start po pokazie
 - Zasada: **jeden krok - jeden test - jedno zdanie komentarza.** Ruch w VS Code, test sceny (skrypt albo rozszerzenie Vitest), zdanie z sekcji "Co powiedzieć". Zanim ruszysz kod, powiedz, jaki dowód da test po kroku.
 - **Krok po kroku bez numerów:** `scripts/warsztat.sh --lang ts next m3/sNN` wstawia do `start` gotowy następny krok i wypisuje, co się zmieniło. `prev` cofa o krok, `status` mówi, który krok jest teraz w `start`. Skrypt pamięta język i ostatnią scenę, więc potem wystarczy samo `next`. Ręczne zmiany w `start` zostają nadpisane - o to chodzi, gdy krok na żywo się rozjechał.
 - Pracujesz zawsze w katalogu `start`. Snapshoty `stepN` służą do `diff` albo do przeskoku (`next`, `jump`), gdy coś się rozjedzie.
+- Snapshoty `stepN` aktualizują też komentarze JSDoc nad klasami: w plikach zmienianych przez krok komentarz opisuje bieżący krok, a w plikach nietkniętych zmienia się tylko numer (np. "Krok 2 (bez zmian): ..."). Te różnice zobaczysz w `diff`, ale sekcje "Zmiany" ich nie wymieniają - na zachowanie i testy nie wpływają i w pokazie możesz je pominąć.
 - Zanim zaczniesz, pokaż slajd 1.2 "Zachowanie obserwowalne to więcej niż wynik metody" i wracaj do niego przy każdej scenie: *co tu obserwujemy - wynik, wyjątek, stan, efekty, kolejność?*
 - W s02 start **nie ma prawdziwych testów** i to jest puenta: test dla `start` (`startCannotEvenRunInATest`) tylko dokumentuje, że klasy nie da się uruchomić, a testy zachowania pojawiają się dopiero wtedy, gdy kod ma szew. Pierwsze ruchy to mechaniczne ruchy o niskim ryzyku (slajd 3.6).
 - W s01 i s03 warto najpierw **zrobić naiwny ruch na żywo** (np. "poprawić" znalezisko z charakterystyki, sprawdzić tylko wynik), pokazać, czego test nie widzi, cofnąć zmianę i dopiero wtedy wykonać krok z przewodnika.
@@ -126,12 +127,19 @@ export class BookingConfirmation {
 
 ```typescript
 import { type Clock, LocalDateTime, systemClock } from '../../../shared/time.js';
-...
+import type { Booking } from '../Booking.js';
+
 export class BookingConfirmation {
   constructor(private readonly clock: Clock = systemClock) {}
-  ...
+
+  confirm(b: Booking): string {
+    ...
       + 'Wygenerowano: ' + LocalDateTime.now(this.clock).toString() + '\n';
+  }
+}
 ```
+
+Reszta `confirm` (pętla, rabat, opłata, składanie dokumentu) zostaje znak w znak jak w `start`.
 
 **Uruchom:** `scripts/warsztat.sh --lang ts test m3/s01` - 15 testów zielonych, w tym `fromStep1TheWholeDocumentIsDeterministic` (z `fixedClock(...)` porównujemy także linię z czasem, bez scrubbera).
 **Co powiedzieć:** to minimalna zmiana, która robi szew dla testu. Wywołanie bez argumentu zostaje (parametr domyślny to zegar systemowy), więc produkcyjni klienci nie widzą różnicy. Scrubber był rusztowaniem i od tego kroku jest potrzebny tylko dla `start`.
@@ -175,6 +183,32 @@ for (const t of b.ticketTypes) {
 ```typescript
 for (const t of b.ticketTypes) {
   sum = sum + this.ticketPrice(b, t);
+}
+```
+
+Wydzielona metoda (w `BookingConfirmation`, pod `confirm`):
+
+```typescript
+private ticketPrice(b: Booking, t: string): number {
+  let p: number;
+  if (b.format === 3) {
+    p = 40.00;
+  } else if (b.format === 2) {
+    p = 32.00;
+  } else {
+    p = 25.00;
+  }
+  if (t === 'S') {
+    p = p * 0.75;
+  } else if (t === 'E') {
+    p = p * 0.70;
+  } else if (t === 'C') {
+    p = p * 0.60;
+  }
+  if (b.start.hour < 12) {
+    p = p - 5.00;
+  }
+  return p;
 }
 ```
 
@@ -235,28 +269,78 @@ Sekwencja rozrywania zależności: nazwij zachowanie i punkt obserwacji, wprowad
 
 1. Utwórz nowy plik `BookingStore.ts` z interfejsem `BookingStore` o dwóch metodach: `paidBookings(): readonly PaidBooking[]` i `markReminded(bookingId: string): void` (Extract Interface - ręcznie, bo VS Code nie wydziela interfejsu z klasy).
 2. W deklaracji klasy `LegacyDatabase` dopisz `implements BookingStore`.
-3. W `ShowtimeReminderJob` dodaj pole `private readonly stores: () => BookingStore;` i konstruktor z parametrem o wartości domyślnej `() => new LegacyDatabase()`, przypisywanym przez `requireNonNull(stores, 'stores')` (Parameterize Constructor).
+3. W `ShowtimeReminderJob` dodaj pole `private readonly stores: () => BookingStore;` i konstruktor z parametrem o wartości domyślnej `() => new LegacyDatabase()`, przypisywanym przez `requireNonNull(stores, 'stores')` (Parameterize Constructor). Dodaj importy: `requireNonNull` z `../../../../shared/requireNonNull.js` i `type { BookingStore }` z `./BookingStore.js`.
 4. W `run()` zamień `new LegacyDatabase()` na `this.stores()`.
 
-**Przed:**
+**Po (`BookingStore.ts`, nowy plik):**
 
 ```typescript
+import type { PaidBooking } from '../PaidBooking.js';
+
+/** Najwęższy kontrakt, którego potrzebuje ShowtimeReminderJob (wydzielony z LegacyDatabase). */
+export interface BookingStore {
+  paidBookings(): readonly PaidBooking[];
+
+  markReminded(bookingId: string): void;
+}
+```
+
+**Przed (`LegacyDatabase.ts`):**
+
+```typescript
+import { IllegalStateError } from '../../../../shared/errors.js';
+import type { PaidBooking } from '../PaidBooking.js';
+
+export class LegacyDatabase {
+```
+
+**Po (`LegacyDatabase.ts`):**
+
+```typescript
+import { IllegalStateError } from '../../../../shared/errors.js';
+import type { PaidBooking } from '../PaidBooking.js';
+import type { BookingStore } from './BookingStore.js';
+
+export class LegacyDatabase implements BookingStore {
+```
+
+**Przed (`ShowtimeReminderJob.ts`):**
+
+```typescript
+import { Duration, LocalDateTime } from '../../../shared/time.js';
+import { LegacyDatabase } from './LegacyDatabase.js';
+import { ReminderMailer } from './ReminderMailer.js';
+
 export class ShowtimeReminderJob {
   run(): number {
     const database = new LegacyDatabase();
     const now = LocalDateTime.now();
+    ...
 ```
 
-**Po:**
+**Po (`ShowtimeReminderJob.ts`):**
 
 ```typescript
-constructor(stores: () => BookingStore = () => new LegacyDatabase()) {
-  this.stores = requireNonNull(stores, 'stores');
-}
+import { requireNonNull } from '../../../../shared/requireNonNull.js';
+import { Duration, LocalDateTime } from '../../../shared/time.js';
+import type { BookingStore } from './BookingStore.js';
+import { LegacyDatabase } from './LegacyDatabase.js';
+import { ReminderMailer } from './ReminderMailer.js';
 
-run(): number {
-  const database = this.stores();
+export class ShowtimeReminderJob {
+  private readonly stores: () => BookingStore;
+
+  constructor(stores: () => BookingStore = () => new LegacyDatabase()) {
+    this.stores = requireNonNull(stores, 'stores');
+  }
+
+  run(): number {
+    const database = this.stores();
+    const now = LocalDateTime.now();
+    ...
 ```
+
+Dalsza część `run()` (pętla po `database.paidBookings()`, wysyłka, `return sent;`) zostaje bez zmian.
 
 **Uruchom:** `scripts/warsztat.sh --lang ts test m3/s02` - testy `step1...` zielone: z fałszywą bazą zadanie działa, gdy nic nie jest do wysłania.
 **Co powiedzieć:** przekazujemy fabrykę, a nie gotową bazę, bo stary kod otwierał połączenie przy każdym `run()`. Gdybyśmy dali domyślnie `stores: BookingStore = new LegacyDatabase()`, wyjątek poleciałby już w konstruktorze - zmienilibyśmy czas życia zależności i moment błędu.
@@ -266,12 +350,16 @@ run(): number {
 
 **Zmiany:**
 
-1. W `ShowtimeReminderJob` dodaj pole `private readonly clock: Clock;` i drugi parametr konstruktora `clock: Clock = systemClock`, przypisywany przez `requireNonNull(clock, 'clock')` (Parameterize Constructor - ręcznie, bo VS Code nie dodaje parametru do istniejącego konstruktora).
+1. W `ShowtimeReminderJob` dodaj pole `private readonly clock: Clock;` i drugi parametr konstruktora `clock: Clock = systemClock`, przypisywany przez `requireNonNull(clock, 'clock')` (Parameterize Constructor - ręcznie, bo VS Code nie dodaje parametru do istniejącego konstruktora). Dopisz do importu z `../../../shared/time.js` `type Clock` i `systemClock`.
 2. W `run()` zamień `LocalDateTime.now()` na `LocalDateTime.now(this.clock)`.
 
 **Przed:**
 
 ```typescript
+import { Duration, LocalDateTime } from '../../../shared/time.js';
+...
+private readonly stores: () => BookingStore;
+
 constructor(stores: () => BookingStore = () => new LegacyDatabase()) {
   this.stores = requireNonNull(stores, 'stores');
 }
@@ -284,6 +372,11 @@ run(): number {
 **Po:**
 
 ```typescript
+import { type Clock, Duration, LocalDateTime, systemClock } from '../../../shared/time.js';
+...
+private readonly stores: () => BookingStore;
+private readonly clock: Clock;
+
 constructor(stores: () => BookingStore = () => new LegacyDatabase(), clock: Clock = systemClock) {
   this.stores = requireNonNull(stores, 'stores');
   this.clock = requireNonNull(clock, 'clock');
@@ -319,6 +412,16 @@ if (!booking.reminded && minutes > 0 && minutes <= 120) {
 **Po:**
 
 ```typescript
+if (!booking.reminded && minutes > 0 && minutes <= 120) {
+  this.sendReminder(booking.email,
+    `Przypomnienie: ${booking.title}`,
+    `Seans zaczyna sie o ${booking.start.toLocalTime().toString()}`);
+  database.markReminded(booking.id);
+```
+
+Wydzielona metoda (w `ShowtimeReminderJob`, pod `run()`):
+
+```typescript
 protected sendReminder(to: string, subject: string, body: string): void {
   ReminderMailer.send(to, subject, body);
 }
@@ -333,11 +436,18 @@ protected sendReminder(to: string, subject: string, body: string): void {
 **Zmiany:**
 
 1. Utwórz nowy plik `ReminderSender.ts` z aliasem typu funkcyjnego: `export type ReminderSender = (to: string, subject: string, body: string) => void;`.
-2. W `ShowtimeReminderJob` dodaj pole `private readonly sender: ReminderSender;` i trzeci parametr konstruktora z wartością domyślną `(to, subject, body) => ReminderMailer.send(to, subject, body)`, przypisywany przez `requireNonNull(sender, 'sender')`.
-3. W `run()` zamień `this.sendReminder(...)` na `this.sender(...)` i usuń metodę `protected sendReminder` (Inline Method - ręcznie, bo VS Code tego nie automatyzuje).
+2. W `ShowtimeReminderJob` dodaj pole `private readonly sender: ReminderSender;` i trzeci parametr konstruktora z wartością domyślną `(to, subject, body) => ReminderMailer.send(to, subject, body)`, przypisywany przez `requireNonNull(sender, 'sender')`. Dodaj import `type { ReminderSender }` z `./ReminderSender.js` (import `ReminderMailer` zostaje - używa go wartość domyślna).
+3. W `run()` zamień `this.sendReminder(...)` na `this.sender(...)` (te same trzy argumenty) i usuń metodę `protected sendReminder` (Inline Method - ręcznie, bo VS Code tego nie automatyzuje).
 4. W teście podklasę z kroku 3 zastępuje funkcja strzałkowa przekazana jako `sender`.
 
-**Przed:**
+**Po (`ReminderSender.ts`, nowy plik):**
+
+```typescript
+/** Najwęższy seam dla powiadomień: typ funkcyjny, w teście wystarczy lambda. */
+export type ReminderSender = (to: string, subject: string, body: string) => void;
+```
+
+**Przed (`ShowtimeReminderJob.ts`):**
 
 ```typescript
 this.sendReminder(booking.email,
@@ -349,14 +459,28 @@ protected sendReminder(to: string, subject: string, body: string): void {
 }
 ```
 
-**Po:**
+**Po (`ShowtimeReminderJob.ts`):**
 
 ```typescript
+import type { ReminderSender } from './ReminderSender.js';
+...
+private readonly stores: () => BookingStore;
+private readonly clock: Clock;
+private readonly sender: ReminderSender;
+
 constructor(
   stores: () => BookingStore = () => new LegacyDatabase(),
   clock: Clock = systemClock,
   sender: ReminderSender = (to, subject, body) => ReminderMailer.send(to, subject, body),
 ) {
+  this.stores = requireNonNull(stores, 'stores');
+  this.clock = requireNonNull(clock, 'clock');
+  this.sender = requireNonNull(sender, 'sender');
+}
+...
+this.sender(booking.email,
+  `Przypomnienie: ${booking.title}`,
+  `Seans zaczyna sie o ${booking.start.toLocalTime().toString()}`);
 ```
 
 **Uruchom:** test zielony - te same 3 przypadki dla `step3` (podklasa) i `step4` (lambda).
@@ -416,10 +540,17 @@ Pokaż tabelę ze slajdu 1.2: wynik, wyjątki, stan, współpracownicy, czas, gr
 **Zmiany:**
 
 1. Utwórz nowy plik `Mailer.ts` z aliasem typu funkcyjnego: `export type Mailer = (to: string, text: string) => void;`.
-2. W `TicketCheckout` dodaj pole `private readonly mailer: Mailer;` i konstruktor z parametrem o wartości domyślnej `(to, text) => CinemaMailer.send(to, text)`, przypisywanym przez `requireNonNull(mailer, 'mailer')` (Parameterize Constructor).
-3. W `pay` zamień oba statyczne wywołania `CinemaMailer.send(...)` na `this.mailer(...)`. Logika bez zmian.
+2. W `TicketCheckout` dodaj pole `private readonly mailer: Mailer;` i konstruktor z parametrem o wartości domyślnej `(to, text) => CinemaMailer.send(to, text)`, przypisywanym przez `requireNonNull(mailer, 'mailer')` (Parameterize Constructor). Dodaj import `type { Mailer }` z `./Mailer.js`.
+3. W `pay` zamień oba statyczne wywołania `CinemaMailer.send(...)` na `this.mailer(...)` (te same argumenty). Logika bez zmian.
 
-**Przed:**
+**Po (`Mailer.ts`, nowy plik):**
+
+```typescript
+/** Seam dla efektu ubocznego "wysłany mail" - w teście lambda zapisująca do dziennika. */
+export type Mailer = (to: string, text: string) => void;
+```
+
+**Przed (`TicketCheckout.ts`):**
 
 ```typescript
 export class TicketCheckout {
@@ -431,13 +562,30 @@ export class TicketCheckout {
     CinemaMailer.send(booking.email, `Bilety ${booking.id} oplacone: ${booking.amount.toString()}`);
 ```
 
-**Po:**
+**Po (`TicketCheckout.ts`):**
 
 ```typescript
-constructor(mailer: Mailer = (to, text) => CinemaMailer.send(to, text)) {
-  this.mailer = requireNonNull(mailer, 'mailer');
+import type { Mailer } from './Mailer.js';
+...
+export class TicketCheckout {
+  private readonly mailer: Mailer;
+
+  constructor(mailer: Mailer = (to, text) => CinemaMailer.send(to, text)) {
+    this.mailer = requireNonNull(mailer, 'mailer');
+  }
+
+  pay(booking: Booking, card: string | null): string {
+    ...
+    } else {
+      this.mailer(booking.email, `Platnosc odrzucona ${booking.id}`);
+    }
+    this.mailer(booking.email, `Bilety ${booking.id} oplacone: ${booking.amount.toString()}`);
+    return charged ? 'OK' : 'DECLINED';
+  }
 }
 ```
+
+Początek `pay` (sprawdzenie `card` i statusu, `CardTerminal.charge`) zostaje bez zmian.
 
 **Uruchom:** `scripts/warsztat.sh --lang ts test m3/s03` - 23 testy zielone. `step1SeesTheRegressionThatResultOnlyTestMissed` dokumentuje, że po odrzuceniu karty idą dwa maile: "Platnosc odrzucona B1" i "Bilety B1 oplacone: 114.00".
 **Co powiedzieć:** kod się nie zmienił, zmieniło się to, co widzimy. Test z samym wynikiem nie mógł tego wykryć.
@@ -484,11 +632,20 @@ return 'DECLINED';
 **Zmiany:**
 
 1. Utwórz nowy plik `PaymentGateway.ts` z aliasem typu funkcyjnego: `export type PaymentGateway = (card: string, amount: Money) => boolean;`.
-2. W `TicketCheckout` dodaj pole `private readonly gateway: PaymentGateway;` i drugi parametr konstruktora z wartością domyślną `(card, amount) => CardTerminal.charge(card, amount)`, przypisywany przez `requireNonNull(gateway, 'gateway')`.
+2. W `TicketCheckout` dodaj pole `private readonly gateway: PaymentGateway;` i drugi parametr konstruktora z wartością domyślną `(card, amount) => CardTerminal.charge(card, amount)`, przypisywany przez `requireNonNull(gateway, 'gateway')`. Dodaj import `type { PaymentGateway }` z `./PaymentGateway.js`.
 3. W `pay` zamień `CardTerminal.charge(cardNumber, booking.amount)` na `this.gateway(cardNumber, booking.amount)`.
 4. W teście oba fałszywe obiekty zapisują do **jednej** tablicy zdarzeń.
 
-**Przed:**
+**Po (`PaymentGateway.ts`, nowy plik):**
+
+```typescript
+import type { Money } from '../../../shared/Money.js';
+
+/** Seam dla efektu ubocznego "obciążenie karty". */
+export type PaymentGateway = (card: string, amount: Money) => boolean;
+```
+
+**Przed (`TicketCheckout.ts`):**
 
 ```typescript
 constructor(mailer: Mailer = (to, text) => CinemaMailer.send(to, text)) {
@@ -498,14 +655,26 @@ constructor(mailer: Mailer = (to, text) => CinemaMailer.send(to, text)) {
 if (CardTerminal.charge(cardNumber, booking.amount)) {
 ```
 
-**Po:**
+**Po (`TicketCheckout.ts`):**
 
 ```typescript
+import type { PaymentGateway } from './PaymentGateway.js';
+...
+private readonly mailer: Mailer;
+private readonly gateway: PaymentGateway;
+
 constructor(
   mailer: Mailer = (to, text) => CinemaMailer.send(to, text),
   gateway: PaymentGateway = (card, amount) => CardTerminal.charge(card, amount),
 ) {
+  this.mailer = requireNonNull(mailer, 'mailer');
+  this.gateway = requireNonNull(gateway, 'gateway');
+}
+...
+if (this.gateway(cardNumber, booking.amount)) {
 ```
+
+Reszta `pay` (gałąź sukcesu i odrzucenia z kroku 2) zostaje bez zmian.
 
 **Uruchom:** test zielony: `step3ObservesTheFullVector` sprawdza wynik albo wyjątek (nazwa klasy błędu i komunikat), obciążenia i maile w jednej kolejności oraz status rezerwacji po operacji.
 **Co powiedzieć:** jeden dziennik dla wszystkich współpracowników pokazuje kolejność: najpierw obciążenie, potem mail. Stan po błędzie (`NEW` po odrzuceniu) i brak efektów przy wyjątku (`wyjatek=NullPointerError: card; zdarzenia=[]`) też są częścią kontraktu.
@@ -557,7 +726,7 @@ price(query: TicketQuery): Money {
 
 **Zmiany:**
 
-1. W `PriceService` dodaj pole `private readonly candidate = new CandidatePriceCalculator();` i licznik `private mismatchCount = 0;`.
+1. W `PriceService` dodaj pole `private readonly candidate = new CandidatePriceCalculator();` i licznik `private mismatchCount = 0;` oraz import `CandidatePriceCalculator` z `./CandidatePriceCalculator.js`.
 2. W `price` zapisz wynik legacy do zmiennej `result`, a po nim wywołaj kandydata w bloku `try/catch`: gdy wynik kandydata różni się od `result` albo kandydat rzuci błąd, zwiększ `mismatchCount`. Zwracaj zawsze `result`.
 3. Dodaj metodę `mismatches()` zwracającą licznik.
 
@@ -573,18 +742,35 @@ export class PriceService {
 }
 ```
 
-**Po:**
+**Po (`PriceService.ts`, cały plik bez komentarzy):**
 
 ```typescript
-const result = this.legacy.price(query);
-try {
-  if (!this.candidate.price(query).equals(result)) {
-    this.mismatchCount++;
+import type { Money } from '../../../shared/Money.js';
+import type { TicketQuery } from '../TicketQuery.js';
+import { CandidatePriceCalculator } from './CandidatePriceCalculator.js';
+import { LegacyPriceCalculator } from './LegacyPriceCalculator.js';
+
+export class PriceService {
+  private readonly legacy = new LegacyPriceCalculator();
+  private readonly candidate = new CandidatePriceCalculator();
+  private mismatchCount = 0;
+
+  price(query: TicketQuery): Money {
+    const result = this.legacy.price(query);
+    try {
+      if (!this.candidate.price(query).equals(result)) {
+        this.mismatchCount++;
+      }
+    } catch {
+      this.mismatchCount++;
+    }
+    return result;
   }
-} catch {
-  this.mismatchCount++;
+
+  mismatches(): number {
+    return this.mismatchCount;
+  }
 }
-return result;
 ```
 
 **Uruchom:** test zielony; `step1ShadowSurvivesCandidateFailureButOnlyCountsMismatches` - błąd kandydata dla formatu 4DX nie przerywa sprzedaży.
@@ -596,30 +782,126 @@ return result;
 **Zmiany:**
 
 1. Utwórz nowy plik `VerificationReport.ts` z klasami `Agreement`, `Divergence`, `CandidateFailure` (każda z polem `kind`), unią `export type Verification = Agreement | Divergence | CandidateFailure;` i klasą `VerificationReport` z metodami `record`, `entries` i `problems()` (w `problems` rozróżnienie wpisów po `kind` w `switch` z `assertNever`).
-2. W `PriceService` usuń licznik `mismatchCount` i metodę `mismatches()`; dodaj konstruktor `constructor(private readonly report: VerificationReport = new VerificationReport()) {}`.
+2. W `PriceService` usuń licznik `mismatchCount` i metodę `mismatches()`; dodaj konstruktor `constructor(private readonly report: VerificationReport = new VerificationReport()) {}` oraz import `{ Agreement, CandidateFailure, Divergence, type Verification, VerificationReport }` z `./VerificationReport.js`.
 3. Wydziel porównanie z `price` do prywatnej metody `verify(query, legacyPrice)` (Extract Method), która zwraca `Agreement` albo `Divergence`, a w `catch` buduje `CandidateFailure` z opisem `error.name + ': ' + error.message`.
 4. W `price` po wyliczeniu wyniku legacy wywołaj `this.report.record(this.verify(query, result));` i zwróć wynik legacy.
 
-**Przed:**
+**Po (`VerificationReport.ts`, nowy plik):**
 
 ```typescript
-const result = this.legacy.price(query);
-try {
-  if (!this.candidate.price(query).equals(result)) {
-    this.mismatchCount++;
-  }
-} catch {
-  this.mismatchCount++;
+import { assertNever } from '../../../../shared/assertNever.js';
+import type { Money } from '../../../shared/Money.js';
+import type { TicketQuery } from '../TicketQuery.js';
+
+export class Agreement {
+  readonly kind = 'agreement';
+
+  constructor(readonly query: TicketQuery, readonly price: Money) {}
 }
-return result;
+
+export class Divergence {
+  readonly kind = 'divergence';
+
+  constructor(readonly query: TicketQuery, readonly legacy: Money, readonly candidate: Money) {}
+}
+
+export class CandidateFailure {
+  readonly kind = 'candidateFailure';
+
+  constructor(readonly query: TicketQuery, readonly legacy: Money, readonly error: string) {}
+}
+
+export type Verification = Agreement | Divergence | CandidateFailure;
+
+/** Raport rozbieżności - każde porównanie to typowane zdarzenie, a nie wpis w logu do parsowania. */
+export class VerificationReport {
+  private readonly entryList: Verification[] = [];
+
+  record(verification: Verification): void {
+    this.entryList.push(verification);
+  }
+
+  entries(): readonly Verification[] {
+    return Object.freeze([...this.entryList]);
+  }
+
+  /** Czytelne wiersze raportu - tylko to, co wymaga uwagi zespołu. */
+  problems(): string[] {
+    const lines: string[] = [];
+    for (const entry of this.entryList) {
+      switch (entry.kind) {
+        case 'agreement': break;
+        case 'divergence':
+          lines.push(`ROZBIEZNOSC ${entry.query.toString()}: legacy ${entry.legacy.toString()}, kandydat ${entry.candidate.toString()}`);
+          break;
+        case 'candidateFailure':
+          lines.push(`BLAD KANDYDATA ${entry.query.toString()}: ${entry.error}`);
+          break;
+        default: assertNever(entry);
+      }
+    }
+    return lines;
+  }
+}
 ```
 
-**Po:**
+**Przed (`PriceService.ts`):**
 
 ```typescript
-return legacyPrice.equals(candidatePrice)
-  ? new Agreement(query, legacyPrice)
-  : new Divergence(query, legacyPrice, candidatePrice);
+private readonly legacy = new LegacyPriceCalculator();
+private readonly candidate = new CandidatePriceCalculator();
+private mismatchCount = 0;
+
+price(query: TicketQuery): Money {
+  const result = this.legacy.price(query);
+  try {
+    if (!this.candidate.price(query).equals(result)) {
+      this.mismatchCount++;
+    }
+  } catch {
+    this.mismatchCount++;
+  }
+  return result;
+}
+
+mismatches(): number {
+  return this.mismatchCount;
+}
+```
+
+**Po (`PriceService.ts`, cały plik bez komentarzy):**
+
+```typescript
+import type { Money } from '../../../shared/Money.js';
+import type { TicketQuery } from '../TicketQuery.js';
+import { CandidatePriceCalculator } from './CandidatePriceCalculator.js';
+import { LegacyPriceCalculator } from './LegacyPriceCalculator.js';
+import { Agreement, CandidateFailure, Divergence, type Verification, VerificationReport } from './VerificationReport.js';
+
+export class PriceService {
+  private readonly legacy = new LegacyPriceCalculator();
+  private readonly candidate = new CandidatePriceCalculator();
+
+  constructor(private readonly report: VerificationReport = new VerificationReport()) {}
+
+  price(query: TicketQuery): Money {
+    const result = this.legacy.price(query);
+    this.report.record(this.verify(query, result));
+    return result;
+  }
+
+  private verify(query: TicketQuery, legacyPrice: Money): Verification {
+    try {
+      const candidatePrice = this.candidate.price(query);
+      return legacyPrice.equals(candidatePrice)
+        ? new Agreement(query, legacyPrice)
+        : new Divergence(query, legacyPrice, candidatePrice);
+    } catch (failure) {
+      const error = failure as Error;
+      return new CandidateFailure(query, legacyPrice, error.name + ': ' + error.message);
+    }
+  }
+}
 ```
 
 **Uruchom:** test zielony; `step2ReportShowsWhatDivergedAndWhy` - raport pokazuje dwie rozbieżności (3D dziecko rano: 17.20 vs 19.20, 2D student rano: 13.75 vs 15.00) i awarię dla 4DX (`IllegalArgumentError: Nieznany format: 4DX`).
@@ -663,27 +945,87 @@ if (query.start.hour < 12) {
 
 1. Utwórz nowy plik `MigrationMode.ts` z wyliczeniem `MigrationMode` o wartościach `LEGACY`, `SHADOW`, `CANDIDATE`.
 2. W `PriceService` dodaj pierwszy parametr konstruktora `private readonly mode: MigrationMode = MigrationMode.SHADOW` (przed `report`).
-3. Przenieś dotychczasową treść `price` i `verify` do prywatnej metody `shadow(query)`: liczy wynik legacy, w `try/catch` porównuje go z kandydatem, zapisuje do raportu `Agreement`, `Divergence` albo `CandidateFailure` i zwraca wynik legacy.
+3. Przenieś dotychczasową treść `price` i `verify` do prywatnej metody `shadow(query)`: liczy wynik legacy, w `try/catch` porównuje go z kandydatem, zapisuje do raportu `Agreement`, `Divergence` albo `CandidateFailure` i zwraca wynik legacy. Metoda `verify` znika.
 4. W `price` zostaje `switch (this.mode)` z trzema gałęziami (`LEGACY`, `SHADOW`, `CANDIDATE`) i `default: return assertNever(this.mode);`.
+5. Importy: dodaj `assertNever` z `../../../../shared/assertNever.js` i `MigrationMode` z `./MigrationMode.js`; z importu `./VerificationReport.js` usuń nieużywany już `type Verification`.
 
-**Przed:**
+**Po (`MigrationMode.ts`, nowy plik):**
 
 ```typescript
+/** Jawny tryb migracji zamiast flagi boolean - LEGACY, SHADOW, CANDIDATE. */
+export enum MigrationMode {
+  LEGACY = 'LEGACY',
+  SHADOW = 'SHADOW',
+  CANDIDATE = 'CANDIDATE',
+}
+```
+
+**Przed (`PriceService.ts`):**
+
+```typescript
+constructor(private readonly report: VerificationReport = new VerificationReport()) {}
+
 price(query: TicketQuery): Money {
   const result = this.legacy.price(query);
   this.report.record(this.verify(query, result));
   return result;
 }
+
+private verify(query: TicketQuery, legacyPrice: Money): Verification {
+  try {
+    const candidatePrice = this.candidate.price(query);
+    return legacyPrice.equals(candidatePrice)
+      ? new Agreement(query, legacyPrice)
+      : new Divergence(query, legacyPrice, candidatePrice);
+  } catch (failure) {
+    const error = failure as Error;
+    return new CandidateFailure(query, legacyPrice, error.name + ': ' + error.message);
+  }
+}
 ```
 
-**Po:**
+**Po (`PriceService.ts`, cały plik bez komentarzy):**
 
 ```typescript
-switch (this.mode) {
-  case MigrationMode.LEGACY: return this.legacy.price(query);
-  case MigrationMode.SHADOW: return this.shadow(query);
-  case MigrationMode.CANDIDATE: return this.candidate.price(query);
-  default: return assertNever(this.mode);
+import { assertNever } from '../../../../shared/assertNever.js';
+import type { Money } from '../../../shared/Money.js';
+import type { TicketQuery } from '../TicketQuery.js';
+import { CandidatePriceCalculator } from './CandidatePriceCalculator.js';
+import { LegacyPriceCalculator } from './LegacyPriceCalculator.js';
+import { MigrationMode } from './MigrationMode.js';
+import { Agreement, CandidateFailure, Divergence, VerificationReport } from './VerificationReport.js';
+
+export class PriceService {
+  private readonly legacy = new LegacyPriceCalculator();
+  private readonly candidate = new CandidatePriceCalculator();
+
+  constructor(
+    private readonly mode: MigrationMode = MigrationMode.SHADOW,
+    private readonly report: VerificationReport = new VerificationReport(),
+  ) {}
+
+  price(query: TicketQuery): Money {
+    switch (this.mode) {
+      case MigrationMode.LEGACY: return this.legacy.price(query);
+      case MigrationMode.SHADOW: return this.shadow(query);
+      case MigrationMode.CANDIDATE: return this.candidate.price(query);
+      default: return assertNever(this.mode);
+    }
+  }
+
+  private shadow(query: TicketQuery): Money {
+    const result = this.legacy.price(query);
+    try {
+      const candidatePrice = this.candidate.price(query);
+      this.report.record(result.equals(candidatePrice)
+        ? new Agreement(query, result)
+        : new Divergence(query, result, candidatePrice));
+    } catch (failure) {
+      const error = failure as Error;
+      this.report.record(new CandidateFailure(query, result, error.name + ': ' + error.message));
+    }
+    return result;
+  }
 }
 ```
 
@@ -737,36 +1079,120 @@ try {
 
 1. Utwórz nowy plik `Effects.ts` z interfejsem `Effects` zawierającym trzy operacje `Infrastructure` używane przez nowy przepływ: `sendMail`, `charge`, `save` (Extract Interface - ręcznie, bo VS Code nie wydziela interfejsu z klasy).
 2. Utwórz nowy plik `RealEffects.ts` z adapterem `RealEffects implements Effects`, który każdą operację deleguje do przekazanej w konstruktorze `Infrastructure`.
-3. W `NewBookingFlow` zmień ręcznie typ parametru konstruktora z `Infrastructure` na `Effects` (pole `effects`) i zamień wywołania `this.infra.*` na `this.effects.*`; miejsca wywołań do poprawy wskaże `npm run typecheck`.
-4. W konstruktorze `ShadowBooking` przekazuj kandydatowi adapter: `new NewBookingFlow(new RealEffects(infra))` (Parameterize Constructor).
+3. W `NewBookingFlow` zmień ręcznie typ parametru konstruktora z `Infrastructure` na `Effects` (pole `effects`) i zamień wywołania `this.infra.*` na `this.effects.*`; miejsca wywołań do poprawy wskaże `npm run typecheck`. W importach miejsce `type { Infrastructure }` zajmuje `type { Effects }` z `./Effects.js`.
+4. W konstruktorze `ShadowBooking` przekazuj kandydatowi adapter: `new NewBookingFlow(new RealEffects(infra))` (Parameterize Constructor). Dodaj import `RealEffects` z `./RealEffects.js`.
 
-**Przed:**
-
-```typescript
-// NewBookingFlow.ts
-constructor(private readonly infra: Infrastructure) {}
-
-book(request: BookingRequest): string {
-  ...
-  this.infra.charge(request.card, total);
-
-// ShadowBooking.ts
-this.candidate = new NewBookingFlow(infra);
-```
-
-**Po:**
+**Po (`Effects.ts`, nowy plik):**
 
 ```typescript
-// NewBookingFlow.ts
-constructor(private readonly effects: Effects) {}
+import type { Money } from '../../../shared/Money.js';
 
-book(request: BookingRequest): string {
-  ...
-  this.effects.charge(request.card, total);
+/** Port efektów ubocznych - nowa ścieżka nie sięga już bezpośrednio do infrastruktury. */
+export interface Effects {
+  sendMail(to: string, text: string): void;
 
-// ShadowBooking.ts
-this.candidate = new NewBookingFlow(new RealEffects(infra));
+  charge(card: string, amount: Money): void;
+
+  save(row: string): void;
+}
 ```
+
+**Po (`RealEffects.ts`, nowy plik):**
+
+```typescript
+import type { Money } from '../../../shared/Money.js';
+import type { Infrastructure } from '../Infrastructure.js';
+import type { Effects } from './Effects.js';
+
+/** Adapter portu na prawdziwą infrastrukturę (poczta, płatności, baza). */
+export class RealEffects implements Effects {
+  constructor(private readonly infra: Infrastructure) {}
+
+  sendMail(to: string, text: string): void {
+    this.infra.sendMail(to, text);
+  }
+
+  charge(card: string, amount: Money): void {
+    this.infra.charge(card, amount);
+  }
+
+  save(row: string): void {
+    this.infra.save(row);
+  }
+}
+```
+
+**Przed (`NewBookingFlow.ts`, cały plik bez komentarzy):**
+
+```typescript
+import { Money } from '../../../shared/Money.js';
+import type { BookingRequest } from '../BookingRequest.js';
+import type { Infrastructure } from '../Infrastructure.js';
+
+export class NewBookingFlow {
+  private static readonly TICKET_2D = Money.of('25.00');
+  private static readonly ONLINE_FEE = Money.of('2.00');
+
+  constructor(private readonly infra: Infrastructure) {}
+
+  book(request: BookingRequest): string {
+    const tickets = NewBookingFlow.TICKET_2D.times(request.tickets);
+    const total = tickets.plus(NewBookingFlow.ONLINE_FEE.times(request.tickets));
+    this.infra.charge(request.card, total);
+    this.infra.save(request.title + ';' + request.email + ';' + request.tickets + ';' + total.toString());
+    this.infra.sendMail(request.email,
+      'Bilety ' + request.title + ' x' + request.tickets + ', zaplacono ' + tickets.toString());
+    return 'OK ' + total.toString();
+  }
+}
+```
+
+**Po (`NewBookingFlow.ts`, cały plik bez komentarzy):**
+
+```typescript
+import { Money } from '../../../shared/Money.js';
+import type { BookingRequest } from '../BookingRequest.js';
+import type { Effects } from './Effects.js';
+
+export class NewBookingFlow {
+  private static readonly TICKET_2D = Money.of('25.00');
+  private static readonly ONLINE_FEE = Money.of('2.00');
+
+  constructor(private readonly effects: Effects) {}
+
+  book(request: BookingRequest): string {
+    const tickets = NewBookingFlow.TICKET_2D.times(request.tickets);
+    const total = tickets.plus(NewBookingFlow.ONLINE_FEE.times(request.tickets));
+    this.effects.charge(request.card, total);
+    this.effects.save(request.title + ';' + request.email + ';' + request.tickets + ';' + total.toString());
+    this.effects.sendMail(request.email,
+      'Bilety ' + request.title + ' x' + request.tickets + ', zaplacono ' + tickets.toString());
+    return 'OK ' + total.toString();
+  }
+}
+```
+
+**Przed (`ShadowBooking.ts`):**
+
+```typescript
+constructor(infra: Infrastructure) {
+  this.legacy = new LegacyBookingFlow(infra);
+  this.candidate = new NewBookingFlow(infra);
+}
+```
+
+**Po (`ShadowBooking.ts`):**
+
+```typescript
+import { RealEffects } from './RealEffects.js';
+...
+constructor(infra: Infrastructure) {
+  this.legacy = new LegacyBookingFlow(infra);
+  this.candidate = new NewBookingFlow(new RealEffects(infra));
+}
+```
+
+Reszta `ShadowBooking` (pola, `book`, `divergences`) zostaje bez zmian.
 
 **Uruchom:** test zielony; `step1PreparatoryRefactoringKeepsTheBugOnPurpose` - nadal dwa maile.
 **Co powiedzieć:** refaktoryzacja przygotowawcza zachowuje zachowanie, także błędne. Mamy szew, który w następnym kroku zmieni wszystko.
@@ -779,8 +1205,40 @@ this.candidate = new NewBookingFlow(new RealEffects(infra));
 1. Utwórz nowy plik `RecordingEffects.ts` z klasą `RecordingEffects implements Effects`: zapisuje zamiary w formacie dziennika infrastruktury (`MAIL ...`, `CHARGE ...`, `SAVE ...`), niczego nie wykonuje i udostępnia wpisy metodą `recorded()`.
 2. W `ShadowBooking` usuń pole `candidate` i jego tworzenie w konstruktorze; zapamiętaj `infra` jako pole. W `book` przed wywołaniem legacy zapisz długość dziennika (`before`), a po nim wytnij efekty legacy: `this.infra.log().slice(before)`.
 3. W bloku `try` utwórz nagrywarkę, przekaż ją kandydatowi (`new NewBookingFlow(recorder).book(request)`) i porównaj osobno wynik i efekty prywatną metodą `compare`, która dopisuje różnice do listy rozbieżności.
+4. W importach `ShadowBooking` miejsce `RealEffects` zajmuje `RecordingEffects` z `./RecordingEffects.js`.
 
-**Przed:**
+**Po (`RecordingEffects.ts`, nowy plik):**
+
+```typescript
+import type { Money } from '../../../shared/Money.js';
+import type { Effects } from './Effects.js';
+
+/**
+ * Nagrywa zamiary kandydata w formacie dziennika infrastruktury,
+ * niczego nie wysyła, nie obciąża i nie zapisuje.
+ */
+export class RecordingEffects implements Effects {
+  private readonly recordedList: string[] = [];
+
+  sendMail(to: string, text: string): void {
+    this.recordedList.push(`MAIL ${to}: ${text}`);
+  }
+
+  charge(card: string, amount: Money): void {
+    this.recordedList.push(`CHARGE ${card}: ${amount.toString()}`);
+  }
+
+  save(row: string): void {
+    this.recordedList.push(`SAVE ${row}`);
+  }
+
+  recorded(): readonly string[] {
+    return Object.freeze([...this.recordedList]);
+  }
+}
+```
+
+**Przed (`ShadowBooking.ts`):**
 
 ```typescript
 constructor(infra: Infrastructure) {
@@ -797,13 +1255,52 @@ book(request: BookingRequest): string {
     }
 ```
 
-**Po:**
+**Po (`ShadowBooking.ts`, cały plik bez komentarzy):**
 
 ```typescript
-const recorder = new RecordingEffects();
-const shadow = new NewBookingFlow(recorder).book(request);
-this.compare('wynik', [result], [shadow]);
-this.compare('efekty', legacyEffects, recorder.recorded());
+import type { BookingRequest } from '../BookingRequest.js';
+import type { Infrastructure } from '../Infrastructure.js';
+import { LegacyBookingFlow } from './LegacyBookingFlow.js';
+import { NewBookingFlow } from './NewBookingFlow.js';
+import { RecordingEffects } from './RecordingEffects.js';
+
+export class ShadowBooking {
+  private readonly legacy: LegacyBookingFlow;
+  private readonly divergenceList: string[] = [];
+
+  constructor(private readonly infra: Infrastructure) {
+    this.legacy = new LegacyBookingFlow(infra);
+  }
+
+  book(request: BookingRequest): string {
+    const before = this.infra.log().length;
+    const result = this.legacy.book(request);
+    const legacyEffects = this.infra.log().slice(before);
+    try {
+      const recorder = new RecordingEffects();
+      const shadow = new NewBookingFlow(recorder).book(request);
+      this.compare('wynik', [result], [shadow]);
+      this.compare('efekty', legacyEffects, recorder.recorded());
+    } catch (failure) {
+      this.divergenceList.push('kandydat: ' + (failure as Error).message);
+    }
+    return result;
+  }
+
+  private compare(what: string, legacyValues: readonly string[], candidateValues: readonly string[]): void {
+    for (let i = 0; i < Math.max(legacyValues.length, candidateValues.length); i++) {
+      const legacyValue = i < legacyValues.length ? legacyValues[i]! : '-';
+      const candidateValue = i < candidateValues.length ? candidateValues[i]! : '-';
+      if (legacyValue !== candidateValue) {
+        this.divergenceList.push(what + ' legacy: ' + legacyValue + ' | kandydat: ' + candidateValue);
+      }
+    }
+  }
+
+  divergences(): readonly string[] {
+    return Object.freeze([...this.divergenceList]);
+  }
+}
 ```
 
 **Uruchom:** test zielony; `step2RecordsCandidateEffectsInsteadOfExecutingThem` - jeden mail, jedno obciążenie, a raport pokazuje rozbieżność w treści maila (kandydat pisze 50.00 zamiast 54.00).
@@ -817,32 +1314,187 @@ this.compare('efekty', legacyEffects, recorder.recorded());
 1. Utwórz nowy plik `BookingPlan.ts` z klasami `Charge`, `Save`, `SendMail` (pole `kind`, metody `describe()` i `applyTo(port)`), unią `export type Effect = Charge | Save | SendMail;` i klasą `BookingPlan` (pole `result` i zamrożona lista `effects`).
 2. Utwórz nowy plik `BookingPlanner.ts` i przenieś do niego z `NewBookingFlow.book` czyste obliczenie jako metodę `plan(request)`, która zwraca `new BookingPlan('OK ' + total.toString(), [new Charge(...), new Save(...), new SendMail(...)])` (Separate Query from Modifier). Klasa nie dostaje żadnego portu efektów.
 3. W `NewBookingFlow.book` zostaje: policz plan (`this.planner.plan(request)`), wykonaj efekty na porcie (`plan.effects.forEach((effect) => effect.applyTo(this.effects))`) i zwróć `plan.result`.
-4. W `ShadowBooking` zamień kandydata na pole `private readonly candidate = new BookingPlanner();`; w `book` porównuj `plan.result` z wynikiem legacy, a opisy efektów (`plan.effects.map((effect) => effect.describe())`) z efektami legacy.
+4. W `ShadowBooking` zamień kandydata na pole `private readonly candidate = new BookingPlanner();`; w `book` porównuj `plan.result` z wynikiem legacy, a opisy efektów (`plan.effects.map((effect) => effect.describe())`) z efektami legacy. W importach miejsce `NewBookingFlow` i `RecordingEffects` zajmuje `BookingPlanner` z `./BookingPlanner.js`. Metody `compare` i `divergences` zostają bez zmian.
 5. Usuń plik `RecordingEffects.ts` - po tym kroku nikt go nie używa, co potwierdza `npm run typecheck` i brak odwołań do klasy.
 
-**Przed:**
+**Po (`BookingPlan.ts`, nowy plik):**
 
 ```typescript
-// ShadowBooking.ts (step2)
-const recorder = new RecordingEffects();
-const shadow = new NewBookingFlow(recorder).book(request);
-this.compare('wynik', [result], [shadow]);
-this.compare('efekty', legacyEffects, recorder.recorded());
+import type { Money } from '../../../shared/Money.js';
+import type { Effects } from './Effects.js';
 
-// RecordingEffects.ts (plik usuwany w tym kroku)
-export class RecordingEffects implements Effects {
-  private readonly recordedList: string[] = [];
-  ...
+export class Charge {
+  readonly kind = 'charge';
+
+  constructor(readonly card: string, readonly amount: Money) {}
+
+  describe(): string {
+    return `CHARGE ${this.card}: ${this.amount.toString()}`;
+  }
+
+  applyTo(port: Effects): void {
+    port.charge(this.card, this.amount);
+  }
+}
+
+export class Save {
+  readonly kind = 'save';
+
+  constructor(readonly row: string) {}
+
+  describe(): string {
+    return `SAVE ${this.row}`;
+  }
+
+  applyTo(port: Effects): void {
+    port.save(this.row);
+  }
+}
+
+export class SendMail {
+  readonly kind = 'sendMail';
+
+  constructor(readonly to: string, readonly text: string) {}
+
+  describe(): string {
+    return `MAIL ${this.to}: ${this.text}`;
+  }
+
+  applyTo(port: Effects): void {
+    port.sendMail(this.to, this.text);
+  }
+}
+
+/** Zamknięty zbiór efektów planu (odpowiednik sealed interface Effect). */
+export type Effect = Charge | Save | SendMail;
+
+/**
+ * Wynik czystego obliczenia - odpowiedź dla klienta i lista efektów DO wykonania.
+ * Efekty to dane: można je porównać, zalogować albo wykonać, ale plan sam niczego nie robi.
+ */
+export class BookingPlan {
+  readonly effects: readonly Effect[];
+
+  constructor(readonly result: string, effects: readonly Effect[]) {
+    this.effects = Object.freeze([...effects]);
+  }
 }
 ```
 
-**Po:**
+**Po (`BookingPlanner.ts`, nowy plik):**
 
 ```typescript
-const plan = this.candidate.plan(request);
-this.compare('wynik', [result], [plan.result]);
-const planned = plan.effects.map((effect) => effect.describe());
-this.compare('efekty', legacyEffects, planned);
+import { Money } from '../../../shared/Money.js';
+import type { BookingRequest } from '../BookingRequest.js';
+import { BookingPlan, Charge, Save, SendMail } from './BookingPlan.js';
+
+/**
+ * Separate Query from Modifier - czysta część nowej ścieżki. Nie ma dostępu do
+ * żadnego portu efektów, więc w cieniu nie da się jej użyć "za mocno".
+ */
+export class BookingPlanner {
+  private static readonly TICKET_2D = Money.of('25.00');
+  private static readonly ONLINE_FEE = Money.of('2.00');
+
+  plan(request: BookingRequest): BookingPlan {
+    const tickets = BookingPlanner.TICKET_2D.times(request.tickets);
+    const total = tickets.plus(BookingPlanner.ONLINE_FEE.times(request.tickets));
+    return new BookingPlan('OK ' + total.toString(), [
+      new Charge(request.card, total),
+      new Save(request.title + ';' + request.email + ';'
+        + request.tickets + ';' + total.toString()),
+      new SendMail(request.email,
+        'Bilety ' + request.title + ' x' + request.tickets + ', zaplacono ' + tickets.toString())]);
+  }
+}
+```
+
+**Przed (`NewBookingFlow.ts`):**
+
+```typescript
+export class NewBookingFlow {
+  private static readonly TICKET_2D = Money.of('25.00');
+  private static readonly ONLINE_FEE = Money.of('2.00');
+
+  constructor(private readonly effects: Effects) {}
+
+  book(request: BookingRequest): string {
+    const tickets = NewBookingFlow.TICKET_2D.times(request.tickets);
+    const total = tickets.plus(NewBookingFlow.ONLINE_FEE.times(request.tickets));
+    this.effects.charge(request.card, total);
+    this.effects.save(request.title + ';' + request.email + ';' + request.tickets + ';' + total.toString());
+    this.effects.sendMail(request.email,
+      'Bilety ' + request.title + ' x' + request.tickets + ', zaplacono ' + tickets.toString());
+    return 'OK ' + total.toString();
+  }
+}
+```
+
+**Po (`NewBookingFlow.ts`, cały plik bez komentarzy):**
+
+```typescript
+import type { BookingRequest } from '../BookingRequest.js';
+import { BookingPlanner } from './BookingPlanner.js';
+import type { Effects } from './Effects.js';
+
+export class NewBookingFlow {
+  private readonly planner = new BookingPlanner();
+
+  constructor(private readonly effects: Effects) {}
+
+  book(request: BookingRequest): string {
+    const plan = this.planner.plan(request);
+    plan.effects.forEach((effect) => effect.applyTo(this.effects));
+    return plan.result;
+  }
+}
+```
+
+**Przed (`ShadowBooking.ts`):**
+
+```typescript
+try {
+  const recorder = new RecordingEffects();
+  const shadow = new NewBookingFlow(recorder).book(request);
+  this.compare('wynik', [result], [shadow]);
+  this.compare('efekty', legacyEffects, recorder.recorded());
+}
+```
+
+**Po (`ShadowBooking.ts`):**
+
+```typescript
+import type { BookingRequest } from '../BookingRequest.js';
+import type { Infrastructure } from '../Infrastructure.js';
+import { BookingPlanner } from './BookingPlanner.js';
+import { LegacyBookingFlow } from './LegacyBookingFlow.js';
+
+export class ShadowBooking {
+  private readonly legacy: LegacyBookingFlow;
+  private readonly candidate = new BookingPlanner();
+  private readonly divergenceList: string[] = [];
+
+  constructor(private readonly infra: Infrastructure) {
+    this.legacy = new LegacyBookingFlow(infra);
+  }
+
+  book(request: BookingRequest): string {
+    const before = this.infra.log().length;
+    const result = this.legacy.book(request);
+    const legacyEffects = this.infra.log().slice(before);
+    try {
+      const plan = this.candidate.plan(request);
+      this.compare('wynik', [result], [plan.result]);
+      const planned = plan.effects.map((effect) => effect.describe());
+      this.compare('efekty', legacyEffects, planned);
+    } catch (failure) {
+      this.divergenceList.push('kandydat: ' + (failure as Error).message);
+    }
+    return result;
+  }
+
+  ...
+}
 ```
 
 **Uruchom:** test zielony; `step3ComparesAPurePlanAndNeverTouchesInfrastructure`.

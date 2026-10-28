@@ -104,6 +104,7 @@ scripts/warsztat.sh --lang ts reset m3/s04         <span class="hljs-comment"># 
 <li>Zasada: <strong>jeden krok - jeden test - jedno zdanie komentarza.</strong> Ruch w VS Code, test sceny (skrypt albo rozszerzenie Vitest), zdanie z sekcji &quot;Co powiedzieć&quot;. Zanim ruszysz kod, powiedz, jaki dowód da test po kroku.</li>
 <li><strong>Krok po kroku bez numerów:</strong> <code>scripts/<wbr>warsztat.sh --lang ts next m3/<wbr>sNN</code> wstawia do <code>start</code> gotowy następny krok i wypisuje, co się zmieniło. <code>prev</code> cofa o krok, <code>status</code> mówi, który krok jest teraz w <code>start</code>. Skrypt pamięta język i ostatnią scenę, więc potem wystarczy samo <code>next</code>. Ręczne zmiany w <code>start</code> zostają nadpisane - o to chodzi, gdy krok na żywo się rozjechał.</li>
 <li>Pracujesz zawsze w katalogu <code>start</code>. Snapshoty <code>stepN</code> służą do <code>diff</code> albo do przeskoku (<code>next</code>, <code>jump</code>), gdy coś się rozjedzie.</li>
+<li>Snapshoty <code>stepN</code> aktualizują też komentarze JSDoc nad klasami: w plikach zmienianych przez krok komentarz opisuje bieżący krok, a w plikach nietkniętych zmienia się tylko numer (np. &quot;Krok 2 (bez zmian): ...&quot;). Te różnice zobaczysz w <code>diff</code>, ale sekcje &quot;Zmiany&quot; ich nie wymieniają - na zachowanie i testy nie wpływają i w pokazie możesz je pominąć.</li>
 <li>Zanim zaczniesz, pokaż slajd 1.2 &quot;Zachowanie obserwowalne to więcej niż wynik metody&quot; i wracaj do niego przy każdej scenie: <em>co tu obserwujemy - wynik, wyjątek, stan, efekty, kolejność?</em></li>
 <li>W s02 start <strong>nie ma prawdziwych testów</strong> i to jest puenta: test dla <code>start</code> (<code>startCannotEvenRunInATest</code>) tylko dokumentuje, że klasy nie da się uruchomić, a testy zachowania pojawiają się dopiero wtedy, gdy kod ma szew. Pierwsze ruchy to mechaniczne ruchy o niskim ryzyku (slajd 3.6).</li>
 <li>W s01 i s03 warto najpierw <strong>zrobić naiwny ruch na żywo</strong> (np. &quot;poprawić&quot; znalezisko z charakterystyki, sprawdzić tylko wynik), pokazać, czego test nie widzi, cofnąć zmianę i dopiero wtedy wykonać krok z przewodnika.</li>
@@ -219,12 +220,18 @@ scripts/warsztat.sh --lang ts reset m3/s04         <span class="hljs-comment"># 
 </code></pre>
 <p><strong>Po:</strong></p>
 <pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">import</span> { <span class="hljs-keyword">type</span> <span class="hljs-title class_">Clock</span>, <span class="hljs-title class_">LocalDateTime</span>, systemClock } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../../../shared/time.js&#x27;</span>;
-...
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">Booking</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../Booking.js&#x27;</span>;
+
 <span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">BookingConfirmation</span> {
   <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">clock</span>: <span class="hljs-title class_">Clock</span> = systemClock</span>) {}
-  ...
+
+  <span class="hljs-title function_">confirm</span>(<span class="hljs-attr">b</span>: <span class="hljs-title class_">Booking</span>): <span class="hljs-built_in">string</span> {
+    ...
       + <span class="hljs-string">&#x27;Wygenerowano: &#x27;</span> + <span class="hljs-title class_">LocalDateTime</span>.<span class="hljs-title function_">now</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">clock</span>).<span class="hljs-title function_">toString</span>() + <span class="hljs-string">&#x27;\n&#x27;</span>;
+  }
+}
 </code></pre>
+<p>Reszta <code>confirm</code> (pętla, rabat, opłata, składanie dokumentu) zostaje znak w znak jak w <code>start</code>.</p>
 <p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s01</code> - 15 testów zielonych, w tym <code>fromStep1TheWholeDocumentIsDeterministic</code> (z <code>fixedClock(...)</code> porównujemy także linię z czasem, bez scrubbera).
 <strong>Co powiedzieć:</strong> to minimalna zmiana, która robi szew dla testu. Wywołanie bez argumentu zostaje (parametr domyślny to zegar systemowy), więc produkcyjni klienci nie widzą różnicy. Scrubber był rusztowaniem i od tego kroku jest potrzebny tylko dla <code>start</code>.
 <strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s01 0 1</code></p>
@@ -260,6 +267,29 @@ scripts/warsztat.sh --lang ts reset m3/s04         <span class="hljs-comment"># 
 <p><strong>Po:</strong></p>
 <pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> t <span class="hljs-keyword">of</span> b.<span class="hljs-property">ticketTypes</span>) {
   sum = sum + <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">ticketPrice</span>(b, t);
+}
+</code></pre>
+<p>Wydzielona metoda (w <code>BookingConfirmation</code>, pod <code>confirm</code>):</p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-title function_">ticketPrice</span>(<span class="hljs-attr">b</span>: <span class="hljs-title class_">Booking</span>, <span class="hljs-attr">t</span>: <span class="hljs-built_in">string</span>): <span class="hljs-built_in">number</span> {
+  <span class="hljs-keyword">let</span> <span class="hljs-attr">p</span>: <span class="hljs-built_in">number</span>;
+  <span class="hljs-keyword">if</span> (b.<span class="hljs-property">format</span> === <span class="hljs-number">3</span>) {
+    p = <span class="hljs-number">40.00</span>;
+  } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (b.<span class="hljs-property">format</span> === <span class="hljs-number">2</span>) {
+    p = <span class="hljs-number">32.00</span>;
+  } <span class="hljs-keyword">else</span> {
+    p = <span class="hljs-number">25.00</span>;
+  }
+  <span class="hljs-keyword">if</span> (t === <span class="hljs-string">&#x27;S&#x27;</span>) {
+    p = p * <span class="hljs-number">0.75</span>;
+  } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (t === <span class="hljs-string">&#x27;E&#x27;</span>) {
+    p = p * <span class="hljs-number">0.70</span>;
+  } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (t === <span class="hljs-string">&#x27;C&#x27;</span>) {
+    p = p * <span class="hljs-number">0.60</span>;
+  }
+  <span class="hljs-keyword">if</span> (b.<span class="hljs-property">start</span>.<span class="hljs-property">hour</span> &lt; <span class="hljs-number">12</span>) {
+    p = p - <span class="hljs-number">5.00</span>;
+  }
+  <span class="hljs-keyword">return</span> p;
 }
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony - ten sam dokument, znak w znak.
@@ -301,34 +331,78 @@ scripts/warsztat.sh --lang ts reset m3/s04         <span class="hljs-comment"># 
 <ol>
 <li>Utwórz nowy plik <code>BookingStore.ts</code> z interfejsem <code>BookingStore</code> o dwóch metodach: <code>paidBookings(): readonly PaidBooking[]</code> i <code>markReminded(bookingId: string): void</code> (Extract Interface - ręcznie, bo VS Code nie wydziela interfejsu z klasy).</li>
 <li>W deklaracji klasy <code>LegacyDatabase</code> dopisz <code>implements BookingStore</code>.</li>
-<li>W <code>ShowtimeReminderJob</code> dodaj pole <code>private readonly stores: () =&gt; BookingStore;</code> i konstruktor z parametrem o wartości domyślnej <code>() =&gt; new LegacyDatabase()</code>, przypisywanym przez <code>requireNonNull(stores, &#x27;stores&#x27;)</code> (Parameterize Constructor).</li>
+<li>W <code>ShowtimeReminderJob</code> dodaj pole <code>private readonly stores: () =&gt; BookingStore;</code> i konstruktor z parametrem o wartości domyślnej <code>() =&gt; new LegacyDatabase()</code>, przypisywanym przez <code>requireNonNull(stores, &#x27;stores&#x27;)</code> (Parameterize Constructor). Dodaj importy: <code>requireNonNull</code> z <code>../<wbr>../<wbr>../<wbr>../<wbr>shared/<wbr>requireNonNull.js</code> i <code>type { BookingStore }</code> z <code>./<wbr>BookingStore.js</code>.</li>
 <li>W <code>run()</code> zamień <code>new LegacyDatabase()</code> na <code>this.stores()</code>.</li>
 </ol>
-<p><strong>Przed:</strong></p>
-<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ShowtimeReminderJob</span> {
+<p><strong>Po (<code>BookingStore.ts</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">PaidBooking</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../PaidBooking.js&#x27;</span>;
+
+<span class="hljs-comment">/** Najwęższy kontrakt, którego potrzebuje ShowtimeReminderJob (wydzielony z LegacyDatabase). */</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">BookingStore</span> {
+  <span class="hljs-title function_">paidBookings</span>(): <span class="hljs-keyword">readonly</span> <span class="hljs-title class_">PaidBooking</span>[];
+
+  <span class="hljs-title function_">markReminded</span>(<span class="hljs-attr">bookingId</span>: <span class="hljs-built_in">string</span>): <span class="hljs-built_in">void</span>;
+}
+</code></pre>
+<p><strong>Przed (<code>LegacyDatabase.ts</code>):</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">import</span> { <span class="hljs-title class_">IllegalStateError</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../../../../shared/errors.js&#x27;</span>;
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">PaidBooking</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../PaidBooking.js&#x27;</span>;
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">LegacyDatabase</span> {
+</code></pre>
+<p><strong>Po (<code>LegacyDatabase.ts</code>):</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">import</span> { <span class="hljs-title class_">IllegalStateError</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../../../../shared/errors.js&#x27;</span>;
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">PaidBooking</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../PaidBooking.js&#x27;</span>;
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">BookingStore</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./BookingStore.js&#x27;</span>;
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">LegacyDatabase</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">BookingStore</span> {
+</code></pre>
+<p><strong>Przed (<code>ShowtimeReminderJob.ts</code>):</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">import</span> { <span class="hljs-title class_">Duration</span>, <span class="hljs-title class_">LocalDateTime</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../../../shared/time.js&#x27;</span>;
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">LegacyDatabase</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./LegacyDatabase.js&#x27;</span>;
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">ReminderMailer</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./ReminderMailer.js&#x27;</span>;
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ShowtimeReminderJob</span> {
   <span class="hljs-title function_">run</span>(): <span class="hljs-built_in">number</span> {
     <span class="hljs-keyword">const</span> database = <span class="hljs-keyword">new</span> <span class="hljs-title class_">LegacyDatabase</span>();
     <span class="hljs-keyword">const</span> now = <span class="hljs-title class_">LocalDateTime</span>.<span class="hljs-title function_">now</span>();
+    ...
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-attr">stores</span>: () =&gt; <span class="hljs-title class_">BookingStore</span> = () =&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">LegacyDatabase</span>()</span>) {
-  <span class="hljs-variable language_">this</span>.<span class="hljs-property">stores</span> = <span class="hljs-title function_">requireNonNull</span>(stores, <span class="hljs-string">&#x27;stores&#x27;</span>);
-}
+<p><strong>Po (<code>ShowtimeReminderJob.ts</code>):</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">import</span> { requireNonNull } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../../../../shared/requireNonNull.js&#x27;</span>;
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">Duration</span>, <span class="hljs-title class_">LocalDateTime</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../../../shared/time.js&#x27;</span>;
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">BookingStore</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./BookingStore.js&#x27;</span>;
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">LegacyDatabase</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./LegacyDatabase.js&#x27;</span>;
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">ReminderMailer</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./ReminderMailer.js&#x27;</span>;
 
-<span class="hljs-title function_">run</span>(): <span class="hljs-built_in">number</span> {
-  <span class="hljs-keyword">const</span> database = <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">stores</span>();
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ShowtimeReminderJob</span> {
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">stores</span>: <span class="hljs-function">() =&gt;</span> <span class="hljs-title class_">BookingStore</span>;
+
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-attr">stores</span>: () =&gt; <span class="hljs-title class_">BookingStore</span> = () =&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">LegacyDatabase</span>()</span>) {
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">stores</span> = <span class="hljs-title function_">requireNonNull</span>(stores, <span class="hljs-string">&#x27;stores&#x27;</span>);
+  }
+
+  <span class="hljs-title function_">run</span>(): <span class="hljs-built_in">number</span> {
+    <span class="hljs-keyword">const</span> database = <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">stores</span>();
+    <span class="hljs-keyword">const</span> now = <span class="hljs-title class_">LocalDateTime</span>.<span class="hljs-title function_">now</span>();
+    ...
 </code></pre>
+<p>Dalsza część <code>run()</code> (pętla po <code>database.paidBookings()</code>, wysyłka, <code>return sent;</code>) zostaje bez zmian.</p>
 <p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s02</code> - testy <code>step1...</code> zielone: z fałszywą bazą zadanie działa, gdy nic nie jest do wysłania.
 <strong>Co powiedzieć:</strong> przekazujemy fabrykę, a nie gotową bazę, bo stary kod otwierał połączenie przy każdym <code>run()</code>. Gdybyśmy dali domyślnie <code>stores: BookingStore = new LegacyDatabase()</code>, wyjątek poleciałby już w konstruktorze - zmienilibyśmy czas życia zależności i moment błędu.
 <strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s02 0 1</code></p>
 <h3 id="krok-2-clock-jako-zaleznosc" tabindex="-1"><a class="header-anchor" href="#krok-2-clock-jako-zaleznosc"><span>Krok 2: Clock jako zależność</span></a></h3>
 <p><strong>Zmiany:</strong></p>
 <ol>
-<li>W <code>ShowtimeReminderJob</code> dodaj pole <code>private readonly clock: Clock;</code> i drugi parametr konstruktora <code>clock: Clock = systemClock</code>, przypisywany przez <code>requireNonNull(clock, &#x27;clock&#x27;)</code> (Parameterize Constructor - ręcznie, bo VS Code nie dodaje parametru do istniejącego konstruktora).</li>
+<li>W <code>ShowtimeReminderJob</code> dodaj pole <code>private readonly clock: Clock;</code> i drugi parametr konstruktora <code>clock: Clock = systemClock</code>, przypisywany przez <code>requireNonNull(clock, &#x27;clock&#x27;)</code> (Parameterize Constructor - ręcznie, bo VS Code nie dodaje parametru do istniejącego konstruktora). Dopisz do importu z <code>../<wbr>../<wbr>../<wbr>shared/<wbr>time.js</code> <code>type Clock</code> i <code>systemClock</code>.</li>
 <li>W <code>run()</code> zamień <code>LocalDateTime.now()</code> na <code>LocalDateTime.now(this.clock)</code>.</li>
 </ol>
 <p><strong>Przed:</strong></p>
-<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-attr">stores</span>: () =&gt; <span class="hljs-title class_">BookingStore</span> = () =&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">LegacyDatabase</span>()</span>) {
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">import</span> { <span class="hljs-title class_">Duration</span>, <span class="hljs-title class_">LocalDateTime</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../../../shared/time.js&#x27;</span>;
+...
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">stores</span>: <span class="hljs-function">() =&gt;</span> <span class="hljs-title class_">BookingStore</span>;
+
+<span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-attr">stores</span>: () =&gt; <span class="hljs-title class_">BookingStore</span> = () =&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">LegacyDatabase</span>()</span>) {
   <span class="hljs-variable language_">this</span>.<span class="hljs-property">stores</span> = <span class="hljs-title function_">requireNonNull</span>(stores, <span class="hljs-string">&#x27;stores&#x27;</span>);
 }
 
@@ -337,7 +411,12 @@ scripts/warsztat.sh --lang ts reset m3/s04         <span class="hljs-comment"># 
   <span class="hljs-keyword">const</span> now = <span class="hljs-title class_">LocalDateTime</span>.<span class="hljs-title function_">now</span>();
 </code></pre>
 <p><strong>Po:</strong></p>
-<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-attr">stores</span>: () =&gt; <span class="hljs-title class_">BookingStore</span> = () =&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">LegacyDatabase</span>(), <span class="hljs-attr">clock</span>: <span class="hljs-title class_">Clock</span> = systemClock</span>) {
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">import</span> { <span class="hljs-keyword">type</span> <span class="hljs-title class_">Clock</span>, <span class="hljs-title class_">Duration</span>, <span class="hljs-title class_">LocalDateTime</span>, systemClock } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../../../shared/time.js&#x27;</span>;
+...
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">stores</span>: <span class="hljs-function">() =&gt;</span> <span class="hljs-title class_">BookingStore</span>;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">clock</span>: <span class="hljs-title class_">Clock</span>;
+
+<span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-attr">stores</span>: () =&gt; <span class="hljs-title class_">BookingStore</span> = () =&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">LegacyDatabase</span>(), <span class="hljs-attr">clock</span>: <span class="hljs-title class_">Clock</span> = systemClock</span>) {
   <span class="hljs-variable language_">this</span>.<span class="hljs-property">stores</span> = <span class="hljs-title function_">requireNonNull</span>(stores, <span class="hljs-string">&#x27;stores&#x27;</span>);
   <span class="hljs-variable language_">this</span>.<span class="hljs-property">clock</span> = <span class="hljs-title function_">requireNonNull</span>(clock, <span class="hljs-string">&#x27;clock&#x27;</span>);
 }
@@ -364,6 +443,13 @@ scripts/warsztat.sh --lang ts reset m3/s04         <span class="hljs-comment"># 
   database.<span class="hljs-title function_">markReminded</span>(booking.<span class="hljs-property">id</span>);
 </code></pre>
 <p><strong>Po:</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">if</span> (!booking.<span class="hljs-property">reminded</span> &amp;&amp; minutes &gt; <span class="hljs-number">0</span> &amp;&amp; minutes &lt;= <span class="hljs-number">120</span>) {
+  <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">sendReminder</span>(booking.<span class="hljs-property">email</span>,
+    <span class="hljs-string">`Przypomnienie: <span class="hljs-subst">${booking.title}</span>`</span>,
+    <span class="hljs-string">`Seans zaczyna sie o <span class="hljs-subst">${booking.start.toLocalTime().toString()}</span>`</span>);
+  database.<span class="hljs-title function_">markReminded</span>(booking.<span class="hljs-property">id</span>);
+</code></pre>
+<p>Wydzielona metoda (w <code>ShowtimeReminderJob</code>, pod <code>run()</code>):</p>
 <pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">protected</span> <span class="hljs-title function_">sendReminder</span>(<span class="hljs-attr">to</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">subject</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">body</span>: <span class="hljs-built_in">string</span>): <span class="hljs-built_in">void</span> {
   <span class="hljs-title class_">ReminderMailer</span>.<span class="hljs-title function_">send</span>(to, subject, body);
 }
@@ -375,11 +461,15 @@ scripts/warsztat.sh --lang ts reset m3/s04         <span class="hljs-comment"># 
 <p><strong>Zmiany:</strong></p>
 <ol>
 <li>Utwórz nowy plik <code>ReminderSender.ts</code> z aliasem typu funkcyjnego: <code>export type ReminderSender = (to: string, subject: string, body: string) =&gt; void;</code>.</li>
-<li>W <code>ShowtimeReminderJob</code> dodaj pole <code>private readonly sender: ReminderSender;</code> i trzeci parametr konstruktora z wartością domyślną <code>(to, subject, body) =&gt; ReminderMailer.send(to, subject, body)</code>, przypisywany przez <code>requireNonNull(sender, &#x27;sender&#x27;)</code>.</li>
-<li>W <code>run()</code> zamień <code>this.sendReminder(...)</code> na <code>this.sender(...)</code> i usuń metodę <code>protected sendReminder</code> (Inline Method - ręcznie, bo VS Code tego nie automatyzuje).</li>
+<li>W <code>ShowtimeReminderJob</code> dodaj pole <code>private readonly sender: ReminderSender;</code> i trzeci parametr konstruktora z wartością domyślną <code>(to, subject, body) =&gt; ReminderMailer.send(to, subject, body)</code>, przypisywany przez <code>requireNonNull(sender, &#x27;sender&#x27;)</code>. Dodaj import <code>type { ReminderSender }</code> z <code>./<wbr>ReminderSender.js</code> (import <code>ReminderMailer</code> zostaje - używa go wartość domyślna).</li>
+<li>W <code>run()</code> zamień <code>this.sendReminder(...)</code> na <code>this.sender(...)</code> (te same trzy argumenty) i usuń metodę <code>protected sendReminder</code> (Inline Method - ręcznie, bo VS Code tego nie automatyzuje).</li>
 <li>W teście podklasę z kroku 3 zastępuje funkcja strzałkowa przekazana jako <code>sender</code>.</li>
 </ol>
-<p><strong>Przed:</strong></p>
+<p><strong>Po (<code>ReminderSender.ts</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-comment">/** Najwęższy seam dla powiadomień: typ funkcyjny, w teście wystarczy lambda. */</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">type</span> <span class="hljs-title class_">ReminderSender</span> = <span class="hljs-function">(<span class="hljs-params"><span class="hljs-attr">to</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">subject</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">body</span>: <span class="hljs-built_in">string</span></span>) =&gt;</span> <span class="hljs-built_in">void</span>;
+</code></pre>
+<p><strong>Przed (<code>ShowtimeReminderJob.ts</code>):</strong></p>
 <pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-variable language_">this</span>.<span class="hljs-title function_">sendReminder</span>(booking.<span class="hljs-property">email</span>,
   <span class="hljs-string">`Przypomnienie: <span class="hljs-subst">${booking.title}</span>`</span>,
   <span class="hljs-string">`Seans zaczyna sie o <span class="hljs-subst">${booking.start.toLocalTime().toString()}</span>`</span>);
@@ -388,12 +478,26 @@ scripts/warsztat.sh --lang ts reset m3/s04         <span class="hljs-comment"># 
   <span class="hljs-title class_">ReminderMailer</span>.<span class="hljs-title function_">send</span>(to, subject, body);
 }
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-title function_">constructor</span>(<span class="hljs-params">
+<p><strong>Po (<code>ShowtimeReminderJob.ts</code>):</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">ReminderSender</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./ReminderSender.js&#x27;</span>;
+...
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">stores</span>: <span class="hljs-function">() =&gt;</span> <span class="hljs-title class_">BookingStore</span>;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">clock</span>: <span class="hljs-title class_">Clock</span>;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">sender</span>: <span class="hljs-title class_">ReminderSender</span>;
+
+<span class="hljs-title function_">constructor</span>(<span class="hljs-params">
   <span class="hljs-attr">stores</span>: () =&gt; <span class="hljs-title class_">BookingStore</span> = () =&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">LegacyDatabase</span>(),
   <span class="hljs-attr">clock</span>: <span class="hljs-title class_">Clock</span> = systemClock,
   <span class="hljs-attr">sender</span>: <span class="hljs-title class_">ReminderSender</span> = (to, subject, body) =&gt; <span class="hljs-title class_">ReminderMailer</span>.send(to, subject, body),
 </span>) {
+  <span class="hljs-variable language_">this</span>.<span class="hljs-property">stores</span> = <span class="hljs-title function_">requireNonNull</span>(stores, <span class="hljs-string">&#x27;stores&#x27;</span>);
+  <span class="hljs-variable language_">this</span>.<span class="hljs-property">clock</span> = <span class="hljs-title function_">requireNonNull</span>(clock, <span class="hljs-string">&#x27;clock&#x27;</span>);
+  <span class="hljs-variable language_">this</span>.<span class="hljs-property">sender</span> = <span class="hljs-title function_">requireNonNull</span>(sender, <span class="hljs-string">&#x27;sender&#x27;</span>);
+}
+...
+<span class="hljs-variable language_">this</span>.<span class="hljs-title function_">sender</span>(booking.<span class="hljs-property">email</span>,
+  <span class="hljs-string">`Przypomnienie: <span class="hljs-subst">${booking.title}</span>`</span>,
+  <span class="hljs-string">`Seans zaczyna sie o <span class="hljs-subst">${booking.start.toLocalTime().toString()}</span>`</span>);
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony - te same 3 przypadki dla <code>step3</code> (podklasa) i <code>step4</code> (lambda).
 <strong>Co powiedzieć:</strong> pod ochroną testu z kroku 3 wymieniliśmy seam na najwęższy możliwy. Produkcja (parametry domyślne) składa dokładnie te same implementacje co wcześniej - zmieniło się <strong>miejsce tworzenia zależności</strong>, nie reguła.
@@ -434,10 +538,14 @@ scripts/warsztat.sh --lang ts reset m3/s04         <span class="hljs-comment"># 
 <p><strong>Zmiany:</strong></p>
 <ol>
 <li>Utwórz nowy plik <code>Mailer.ts</code> z aliasem typu funkcyjnego: <code>export type Mailer = (to: string, text: string) =&gt; void;</code>.</li>
-<li>W <code>TicketCheckout</code> dodaj pole <code>private readonly mailer: Mailer;</code> i konstruktor z parametrem o wartości domyślnej <code>(to, text) =&gt; CinemaMailer.send(to, text)</code>, przypisywanym przez <code>requireNonNull(mailer, &#x27;mailer&#x27;)</code> (Parameterize Constructor).</li>
-<li>W <code>pay</code> zamień oba statyczne wywołania <code>CinemaMailer.send(...)</code> na <code>this.mailer(...)</code>. Logika bez zmian.</li>
+<li>W <code>TicketCheckout</code> dodaj pole <code>private readonly mailer: Mailer;</code> i konstruktor z parametrem o wartości domyślnej <code>(to, text) =&gt; CinemaMailer.send(to, text)</code>, przypisywanym przez <code>requireNonNull(mailer, &#x27;mailer&#x27;)</code> (Parameterize Constructor). Dodaj import <code>type { Mailer }</code> z <code>./<wbr>Mailer.js</code>.</li>
+<li>W <code>pay</code> zamień oba statyczne wywołania <code>CinemaMailer.send(...)</code> na <code>this.mailer(...)</code> (te same argumenty). Logika bez zmian.</li>
 </ol>
-<p><strong>Przed:</strong></p>
+<p><strong>Po (<code>Mailer.ts</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-comment">/** Seam dla efektu ubocznego &quot;wysłany mail&quot; - w teście lambda zapisująca do dziennika. */</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">type</span> <span class="hljs-title class_">Mailer</span> = <span class="hljs-function">(<span class="hljs-params"><span class="hljs-attr">to</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">text</span>: <span class="hljs-built_in">string</span></span>) =&gt;</span> <span class="hljs-built_in">void</span>;
+</code></pre>
+<p><strong>Przed (<code>TicketCheckout.ts</code>):</strong></p>
 <pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">TicketCheckout</span> {
   <span class="hljs-title function_">pay</span>(<span class="hljs-attr">booking</span>: <span class="hljs-title class_">Booking</span>, <span class="hljs-attr">card</span>: <span class="hljs-built_in">string</span> | <span class="hljs-literal">null</span>): <span class="hljs-built_in">string</span> {
     ...
@@ -446,11 +554,27 @@ scripts/warsztat.sh --lang ts reset m3/s04         <span class="hljs-comment"># 
     }
     <span class="hljs-title class_">CinemaMailer</span>.<span class="hljs-title function_">send</span>(booking.<span class="hljs-property">email</span>, <span class="hljs-string">`Bilety <span class="hljs-subst">${booking.id}</span> oplacone: <span class="hljs-subst">${booking.amount.toString()}</span>`</span>);
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-attr">mailer</span>: <span class="hljs-title class_">Mailer</span> = (to, text) =&gt; <span class="hljs-title class_">CinemaMailer</span>.send(to, text)</span>) {
-  <span class="hljs-variable language_">this</span>.<span class="hljs-property">mailer</span> = <span class="hljs-title function_">requireNonNull</span>(mailer, <span class="hljs-string">&#x27;mailer&#x27;</span>);
+<p><strong>Po (<code>TicketCheckout.ts</code>):</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">Mailer</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./Mailer.js&#x27;</span>;
+...
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">TicketCheckout</span> {
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">mailer</span>: <span class="hljs-title class_">Mailer</span>;
+
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-attr">mailer</span>: <span class="hljs-title class_">Mailer</span> = (to, text) =&gt; <span class="hljs-title class_">CinemaMailer</span>.send(to, text)</span>) {
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">mailer</span> = <span class="hljs-title function_">requireNonNull</span>(mailer, <span class="hljs-string">&#x27;mailer&#x27;</span>);
+  }
+
+  <span class="hljs-title function_">pay</span>(<span class="hljs-attr">booking</span>: <span class="hljs-title class_">Booking</span>, <span class="hljs-attr">card</span>: <span class="hljs-built_in">string</span> | <span class="hljs-literal">null</span>): <span class="hljs-built_in">string</span> {
+    ...
+    } <span class="hljs-keyword">else</span> {
+      <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">mailer</span>(booking.<span class="hljs-property">email</span>, <span class="hljs-string">`Platnosc odrzucona <span class="hljs-subst">${booking.id}</span>`</span>);
+    }
+    <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">mailer</span>(booking.<span class="hljs-property">email</span>, <span class="hljs-string">`Bilety <span class="hljs-subst">${booking.id}</span> oplacone: <span class="hljs-subst">${booking.amount.toString()}</span>`</span>);
+    <span class="hljs-keyword">return</span> charged ? <span class="hljs-string">&#x27;OK&#x27;</span> : <span class="hljs-string">&#x27;DECLINED&#x27;</span>;
+  }
 }
 </code></pre>
+<p>Początek <code>pay</code> (sprawdzenie <code>card</code> i statusu, <code>CardTerminal.charge</code>) zostaje bez zmian.</p>
 <p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang ts test m3/<wbr>s03</code> - 23 testy zielone. <code>step1SeesTheRegressionThatResultOnlyTestMissed</code> dokumentuje, że po odrzuceniu karty idą dwa maile: &quot;Platnosc odrzucona B1&quot; i &quot;Bilety B1 oplacone: 114.00&quot;.
 <strong>Co powiedzieć:</strong> kod się nie zmienił, zmieniło się to, co widzimy. Test z samym wynikiem nie mógł tego wykryć.
 <strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s03 0 1</code></p>
@@ -486,23 +610,40 @@ scripts/warsztat.sh --lang ts reset m3/s04         <span class="hljs-comment"># 
 <p><strong>Zmiany:</strong></p>
 <ol>
 <li>Utwórz nowy plik <code>PaymentGateway.ts</code> z aliasem typu funkcyjnego: <code>export type PaymentGateway = (card: string, amount: Money) =&gt; boolean;</code>.</li>
-<li>W <code>TicketCheckout</code> dodaj pole <code>private readonly gateway: PaymentGateway;</code> i drugi parametr konstruktora z wartością domyślną <code>(card, amount) =&gt; CardTerminal.charge(card, amount)</code>, przypisywany przez <code>requireNonNull(gateway, &#x27;gateway&#x27;)</code>.</li>
+<li>W <code>TicketCheckout</code> dodaj pole <code>private readonly gateway: PaymentGateway;</code> i drugi parametr konstruktora z wartością domyślną <code>(card, amount) =&gt; CardTerminal.charge(card, amount)</code>, przypisywany przez <code>requireNonNull(gateway, &#x27;gateway&#x27;)</code>. Dodaj import <code>type { PaymentGateway }</code> z <code>./<wbr>PaymentGateway.js</code>.</li>
 <li>W <code>pay</code> zamień <code>CardTerminal.charge(cardNumber, booking.amount)</code> na <code>this.gateway(cardNumber, booking.amount)</code>.</li>
 <li>W teście oba fałszywe obiekty zapisują do <strong>jednej</strong> tablicy zdarzeń.</li>
 </ol>
-<p><strong>Przed:</strong></p>
+<p><strong>Po (<code>PaymentGateway.ts</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">Money</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../../../shared/Money.js&#x27;</span>;
+
+<span class="hljs-comment">/** Seam dla efektu ubocznego &quot;obciążenie karty&quot;. */</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">type</span> <span class="hljs-title class_">PaymentGateway</span> = <span class="hljs-function">(<span class="hljs-params"><span class="hljs-attr">card</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">amount</span>: <span class="hljs-title class_">Money</span></span>) =&gt;</span> <span class="hljs-built_in">boolean</span>;
+</code></pre>
+<p><strong>Przed (<code>TicketCheckout.ts</code>):</strong></p>
 <pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-attr">mailer</span>: <span class="hljs-title class_">Mailer</span> = (to, text) =&gt; <span class="hljs-title class_">CinemaMailer</span>.send(to, text)</span>) {
   <span class="hljs-variable language_">this</span>.<span class="hljs-property">mailer</span> = <span class="hljs-title function_">requireNonNull</span>(mailer, <span class="hljs-string">&#x27;mailer&#x27;</span>);
 }
 ...
 <span class="hljs-keyword">if</span> (<span class="hljs-title class_">CardTerminal</span>.<span class="hljs-title function_">charge</span>(cardNumber, booking.<span class="hljs-property">amount</span>)) {
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-title function_">constructor</span>(<span class="hljs-params">
+<p><strong>Po (<code>TicketCheckout.ts</code>):</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">PaymentGateway</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./PaymentGateway.js&#x27;</span>;
+...
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">mailer</span>: <span class="hljs-title class_">Mailer</span>;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">gateway</span>: <span class="hljs-title class_">PaymentGateway</span>;
+
+<span class="hljs-title function_">constructor</span>(<span class="hljs-params">
   <span class="hljs-attr">mailer</span>: <span class="hljs-title class_">Mailer</span> = (to, text) =&gt; <span class="hljs-title class_">CinemaMailer</span>.send(to, text),
   <span class="hljs-attr">gateway</span>: <span class="hljs-title class_">PaymentGateway</span> = (card, amount) =&gt; <span class="hljs-title class_">CardTerminal</span>.charge(card, amount),
 </span>) {
+  <span class="hljs-variable language_">this</span>.<span class="hljs-property">mailer</span> = <span class="hljs-title function_">requireNonNull</span>(mailer, <span class="hljs-string">&#x27;mailer&#x27;</span>);
+  <span class="hljs-variable language_">this</span>.<span class="hljs-property">gateway</span> = <span class="hljs-title function_">requireNonNull</span>(gateway, <span class="hljs-string">&#x27;gateway&#x27;</span>);
+}
+...
+<span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-title function_">gateway</span>(cardNumber, booking.<span class="hljs-property">amount</span>)) {
 </code></pre>
+<p>Reszta <code>pay</code> (gałąź sukcesu i odrzucenia z kroku 2) zostaje bez zmian.</p>
 <p><strong>Uruchom:</strong> test zielony: <code>step3ObservesTheFullVector</code> sprawdza wynik albo wyjątek (nazwa klasy błędu i komunikat), obciążenia i maile w jednej kolejności oraz status rezerwacji po operacji.
 <strong>Co powiedzieć:</strong> jeden dziennik dla wszystkich współpracowników pokazuje kolejność: najpierw obciążenie, potem mail. Stan po błędzie (<code>NEW</code> po odrzuceniu) i brak efektów przy wyjątku (<code>wyjatek=NullPointerError: card; zdarzenia=[]</code>) też są częścią kontraktu.
 <strong>Snapshot:</strong> <code>step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s03 2 3</code></p>
@@ -536,7 +677,7 @@ scripts/warsztat.sh --lang ts reset m3/s04         <span class="hljs-comment"># 
 <h3 id="krok-1-dodanie-cienia" tabindex="-1"><a class="header-anchor" href="#krok-1-dodanie-cienia"><span>Krok 1: dodanie cienia</span></a></h3>
 <p><strong>Zmiany:</strong></p>
 <ol>
-<li>W <code>PriceService</code> dodaj pole <code>private readonly candidate = new CandidatePriceCalculator();</code> i licznik <code>private mismatchCount = 0;</code>.</li>
+<li>W <code>PriceService</code> dodaj pole <code>private readonly candidate = new CandidatePriceCalculator();</code> i licznik <code>private mismatchCount = 0;</code> oraz import <code>CandidatePriceCalculator</code> z <code>./<wbr>CandidatePriceCalculator.js</code>.</li>
 <li>W <code>price</code> zapisz wynik legacy do zmiennej <code>result</code>, a po nim wywołaj kandydata w bloku <code>try/<wbr>catch</code>: gdy wynik kandydata różni się od <code>result</code> albo kandydat rzuci błąd, zwiększ <code>mismatchCount</code>. Zwracaj zawsze <code>result</code>.</li>
 <li>Dodaj metodę <code>mismatches()</code> zwracającą licznik.</li>
 </ol>
@@ -549,16 +690,33 @@ scripts/warsztat.sh --lang ts reset m3/s04         <span class="hljs-comment"># 
   }
 }
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">const</span> result = <span class="hljs-variable language_">this</span>.<span class="hljs-property">legacy</span>.<span class="hljs-title function_">price</span>(query);
-<span class="hljs-keyword">try</span> {
-  <span class="hljs-keyword">if</span> (!<span class="hljs-variable language_">this</span>.<span class="hljs-property">candidate</span>.<span class="hljs-title function_">price</span>(query).<span class="hljs-title function_">equals</span>(result)) {
-    <span class="hljs-variable language_">this</span>.<span class="hljs-property">mismatchCount</span>++;
+<p><strong>Po (<code>PriceService.ts</code>, cały plik bez komentarzy):</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">Money</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../../../shared/Money.js&#x27;</span>;
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">TicketQuery</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../TicketQuery.js&#x27;</span>;
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">CandidatePriceCalculator</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./CandidatePriceCalculator.js&#x27;</span>;
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">LegacyPriceCalculator</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./LegacyPriceCalculator.js&#x27;</span>;
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">PriceService</span> {
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> legacy = <span class="hljs-keyword">new</span> <span class="hljs-title class_">LegacyPriceCalculator</span>();
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> candidate = <span class="hljs-keyword">new</span> <span class="hljs-title class_">CandidatePriceCalculator</span>();
+  <span class="hljs-keyword">private</span> mismatchCount = <span class="hljs-number">0</span>;
+
+  <span class="hljs-title function_">price</span>(<span class="hljs-attr">query</span>: <span class="hljs-title class_">TicketQuery</span>): <span class="hljs-title class_">Money</span> {
+    <span class="hljs-keyword">const</span> result = <span class="hljs-variable language_">this</span>.<span class="hljs-property">legacy</span>.<span class="hljs-title function_">price</span>(query);
+    <span class="hljs-keyword">try</span> {
+      <span class="hljs-keyword">if</span> (!<span class="hljs-variable language_">this</span>.<span class="hljs-property">candidate</span>.<span class="hljs-title function_">price</span>(query).<span class="hljs-title function_">equals</span>(result)) {
+        <span class="hljs-variable language_">this</span>.<span class="hljs-property">mismatchCount</span>++;
+      }
+    } <span class="hljs-keyword">catch</span> {
+      <span class="hljs-variable language_">this</span>.<span class="hljs-property">mismatchCount</span>++;
+    }
+    <span class="hljs-keyword">return</span> result;
   }
-} <span class="hljs-keyword">catch</span> {
-  <span class="hljs-variable language_">this</span>.<span class="hljs-property">mismatchCount</span>++;
+
+  <span class="hljs-title function_">mismatches</span>(): <span class="hljs-built_in">number</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">mismatchCount</span>;
+  }
 }
-<span class="hljs-keyword">return</span> result;
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony; <code>step1ShadowSurvivesCandidateFailureButOnlyCountsMismatches</code> - błąd kandydata dla formatu 4DX nie przerywa sprzedaży.
 <strong>Co powiedzieć:</strong> klient zawsze dostaje wynik legacy. Ale licznik mówi tylko, ŻE coś się różni - nie wiemy co.
@@ -567,25 +725,118 @@ scripts/warsztat.sh --lang ts reset m3/s04         <span class="hljs-comment"># 
 <p><strong>Zmiany:</strong></p>
 <ol>
 <li>Utwórz nowy plik <code>VerificationReport.ts</code> z klasami <code>Agreement</code>, <code>Divergence</code>, <code>CandidateFailure</code> (każda z polem <code>kind</code>), unią <code>export type Verification = Agreement | Divergence | CandidateFailure;</code> i klasą <code>VerificationReport</code> z metodami <code>record</code>, <code>entries</code> i <code>problems()</code> (w <code>problems</code> rozróżnienie wpisów po <code>kind</code> w <code>switch</code> z <code>assertNever</code>).</li>
-<li>W <code>PriceService</code> usuń licznik <code>mismatchCount</code> i metodę <code>mismatches()</code>; dodaj konstruktor <code>constructor(private readonly report: VerificationReport = new VerificationReport()) {}</code>.</li>
+<li>W <code>PriceService</code> usuń licznik <code>mismatchCount</code> i metodę <code>mismatches()</code>; dodaj konstruktor <code>constructor(private readonly report: VerificationReport = new VerificationReport()) {}</code> oraz import <code>{ Agreement, CandidateFailure, Divergence, type Verification, VerificationReport }</code> z <code>./<wbr>VerificationReport.js</code>.</li>
 <li>Wydziel porównanie z <code>price</code> do prywatnej metody <code>verify(query, legacyPrice)</code> (Extract Method), która zwraca <code>Agreement</code> albo <code>Divergence</code>, a w <code>catch</code> buduje <code>CandidateFailure</code> z opisem <code>error.name + &#x27;: &#x27; + error.message</code>.</li>
 <li>W <code>price</code> po wyliczeniu wyniku legacy wywołaj <code>this.report.record(this.verify(query, result));</code> i zwróć wynik legacy.</li>
 </ol>
-<p><strong>Przed:</strong></p>
-<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">const</span> result = <span class="hljs-variable language_">this</span>.<span class="hljs-property">legacy</span>.<span class="hljs-title function_">price</span>(query);
-<span class="hljs-keyword">try</span> {
-  <span class="hljs-keyword">if</span> (!<span class="hljs-variable language_">this</span>.<span class="hljs-property">candidate</span>.<span class="hljs-title function_">price</span>(query).<span class="hljs-title function_">equals</span>(result)) {
+<p><strong>Po (<code>VerificationReport.ts</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">import</span> { assertNever } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../../../../shared/assertNever.js&#x27;</span>;
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">Money</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../../../shared/Money.js&#x27;</span>;
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">TicketQuery</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../TicketQuery.js&#x27;</span>;
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Agreement</span> {
+  <span class="hljs-keyword">readonly</span> kind = <span class="hljs-string">&#x27;agreement&#x27;</span>;
+
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-keyword">readonly</span> <span class="hljs-attr">query</span>: <span class="hljs-title class_">TicketQuery</span>, <span class="hljs-keyword">readonly</span> <span class="hljs-attr">price</span>: <span class="hljs-title class_">Money</span></span>) {}
+}
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Divergence</span> {
+  <span class="hljs-keyword">readonly</span> kind = <span class="hljs-string">&#x27;divergence&#x27;</span>;
+
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-keyword">readonly</span> <span class="hljs-attr">query</span>: <span class="hljs-title class_">TicketQuery</span>, <span class="hljs-keyword">readonly</span> <span class="hljs-attr">legacy</span>: <span class="hljs-title class_">Money</span>, <span class="hljs-keyword">readonly</span> <span class="hljs-attr">candidate</span>: <span class="hljs-title class_">Money</span></span>) {}
+}
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">CandidateFailure</span> {
+  <span class="hljs-keyword">readonly</span> kind = <span class="hljs-string">&#x27;candidateFailure&#x27;</span>;
+
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-keyword">readonly</span> <span class="hljs-attr">query</span>: <span class="hljs-title class_">TicketQuery</span>, <span class="hljs-keyword">readonly</span> <span class="hljs-attr">legacy</span>: <span class="hljs-title class_">Money</span>, <span class="hljs-keyword">readonly</span> <span class="hljs-attr">error</span>: <span class="hljs-built_in">string</span></span>) {}
+}
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">type</span> <span class="hljs-title class_">Verification</span> = <span class="hljs-title class_">Agreement</span> | <span class="hljs-title class_">Divergence</span> | <span class="hljs-title class_">CandidateFailure</span>;
+
+<span class="hljs-comment">/** Raport rozbieżności - każde porównanie to typowane zdarzenie, a nie wpis w logu do parsowania. */</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">VerificationReport</span> {
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">entryList</span>: <span class="hljs-title class_">Verification</span>[] = [];
+
+  <span class="hljs-title function_">record</span>(<span class="hljs-attr">verification</span>: <span class="hljs-title class_">Verification</span>): <span class="hljs-built_in">void</span> {
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">entryList</span>.<span class="hljs-title function_">push</span>(verification);
+  }
+
+  <span class="hljs-title function_">entries</span>(): <span class="hljs-keyword">readonly</span> <span class="hljs-title class_">Verification</span>[] {
+    <span class="hljs-keyword">return</span> <span class="hljs-title class_">Object</span>.<span class="hljs-title function_">freeze</span>([...<span class="hljs-variable language_">this</span>.<span class="hljs-property">entryList</span>]);
+  }
+
+  <span class="hljs-comment">/** Czytelne wiersze raportu - tylko to, co wymaga uwagi zespołu. */</span>
+  <span class="hljs-title function_">problems</span>(): <span class="hljs-built_in">string</span>[] {
+    <span class="hljs-keyword">const</span> <span class="hljs-attr">lines</span>: <span class="hljs-built_in">string</span>[] = [];
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> entry <span class="hljs-keyword">of</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">entryList</span>) {
+      <span class="hljs-keyword">switch</span> (entry.<span class="hljs-property">kind</span>) {
+        <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;agreement&#x27;</span>: <span class="hljs-keyword">break</span>;
+        <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;divergence&#x27;</span>:
+          lines.<span class="hljs-title function_">push</span>(<span class="hljs-string">`ROZBIEZNOSC <span class="hljs-subst">${entry.query.toString()}</span>: legacy <span class="hljs-subst">${entry.legacy.toString()}</span>, kandydat <span class="hljs-subst">${entry.candidate.toString()}</span>`</span>);
+          <span class="hljs-keyword">break</span>;
+        <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;candidateFailure&#x27;</span>:
+          lines.<span class="hljs-title function_">push</span>(<span class="hljs-string">`BLAD KANDYDATA <span class="hljs-subst">${entry.query.toString()}</span>: <span class="hljs-subst">${entry.error}</span>`</span>);
+          <span class="hljs-keyword">break</span>;
+        <span class="hljs-attr">default</span>: <span class="hljs-title function_">assertNever</span>(entry);
+      }
+    }
+    <span class="hljs-keyword">return</span> lines;
+  }
+}
+</code></pre>
+<p><strong>Przed (<code>PriceService.ts</code>):</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> legacy = <span class="hljs-keyword">new</span> <span class="hljs-title class_">LegacyPriceCalculator</span>();
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> candidate = <span class="hljs-keyword">new</span> <span class="hljs-title class_">CandidatePriceCalculator</span>();
+<span class="hljs-keyword">private</span> mismatchCount = <span class="hljs-number">0</span>;
+
+<span class="hljs-title function_">price</span>(<span class="hljs-attr">query</span>: <span class="hljs-title class_">TicketQuery</span>): <span class="hljs-title class_">Money</span> {
+  <span class="hljs-keyword">const</span> result = <span class="hljs-variable language_">this</span>.<span class="hljs-property">legacy</span>.<span class="hljs-title function_">price</span>(query);
+  <span class="hljs-keyword">try</span> {
+    <span class="hljs-keyword">if</span> (!<span class="hljs-variable language_">this</span>.<span class="hljs-property">candidate</span>.<span class="hljs-title function_">price</span>(query).<span class="hljs-title function_">equals</span>(result)) {
+      <span class="hljs-variable language_">this</span>.<span class="hljs-property">mismatchCount</span>++;
+    }
+  } <span class="hljs-keyword">catch</span> {
     <span class="hljs-variable language_">this</span>.<span class="hljs-property">mismatchCount</span>++;
   }
-} <span class="hljs-keyword">catch</span> {
-  <span class="hljs-variable language_">this</span>.<span class="hljs-property">mismatchCount</span>++;
+  <span class="hljs-keyword">return</span> result;
 }
-<span class="hljs-keyword">return</span> result;
+
+<span class="hljs-title function_">mismatches</span>(): <span class="hljs-built_in">number</span> {
+  <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">mismatchCount</span>;
+}
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">return</span> legacyPrice.<span class="hljs-title function_">equals</span>(candidatePrice)
-  ? <span class="hljs-keyword">new</span> <span class="hljs-title class_">Agreement</span>(query, legacyPrice)
-  : <span class="hljs-keyword">new</span> <span class="hljs-title class_">Divergence</span>(query, legacyPrice, candidatePrice);
+<p><strong>Po (<code>PriceService.ts</code>, cały plik bez komentarzy):</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">Money</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../../../shared/Money.js&#x27;</span>;
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">TicketQuery</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../TicketQuery.js&#x27;</span>;
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">CandidatePriceCalculator</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./CandidatePriceCalculator.js&#x27;</span>;
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">LegacyPriceCalculator</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./LegacyPriceCalculator.js&#x27;</span>;
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">Agreement</span>, <span class="hljs-title class_">CandidateFailure</span>, <span class="hljs-title class_">Divergence</span>, <span class="hljs-keyword">type</span> <span class="hljs-title class_">Verification</span>, <span class="hljs-title class_">VerificationReport</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./VerificationReport.js&#x27;</span>;
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">PriceService</span> {
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> legacy = <span class="hljs-keyword">new</span> <span class="hljs-title class_">LegacyPriceCalculator</span>();
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> candidate = <span class="hljs-keyword">new</span> <span class="hljs-title class_">CandidatePriceCalculator</span>();
+
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">report</span>: <span class="hljs-title class_">VerificationReport</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">VerificationReport</span>()</span>) {}
+
+  <span class="hljs-title function_">price</span>(<span class="hljs-attr">query</span>: <span class="hljs-title class_">TicketQuery</span>): <span class="hljs-title class_">Money</span> {
+    <span class="hljs-keyword">const</span> result = <span class="hljs-variable language_">this</span>.<span class="hljs-property">legacy</span>.<span class="hljs-title function_">price</span>(query);
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">report</span>.<span class="hljs-title function_">record</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-title function_">verify</span>(query, result));
+    <span class="hljs-keyword">return</span> result;
+  }
+
+  <span class="hljs-keyword">private</span> <span class="hljs-title function_">verify</span>(<span class="hljs-attr">query</span>: <span class="hljs-title class_">TicketQuery</span>, <span class="hljs-attr">legacyPrice</span>: <span class="hljs-title class_">Money</span>): <span class="hljs-title class_">Verification</span> {
+    <span class="hljs-keyword">try</span> {
+      <span class="hljs-keyword">const</span> candidatePrice = <span class="hljs-variable language_">this</span>.<span class="hljs-property">candidate</span>.<span class="hljs-title function_">price</span>(query);
+      <span class="hljs-keyword">return</span> legacyPrice.<span class="hljs-title function_">equals</span>(candidatePrice)
+        ? <span class="hljs-keyword">new</span> <span class="hljs-title class_">Agreement</span>(query, legacyPrice)
+        : <span class="hljs-keyword">new</span> <span class="hljs-title class_">Divergence</span>(query, legacyPrice, candidatePrice);
+    } <span class="hljs-keyword">catch</span> (failure) {
+      <span class="hljs-keyword">const</span> error = failure <span class="hljs-keyword">as</span> <span class="hljs-title class_">Error</span>;
+      <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">CandidateFailure</span>(query, legacyPrice, error.<span class="hljs-property">name</span> + <span class="hljs-string">&#x27;: &#x27;</span> + error.<span class="hljs-property">message</span>);
+    }
+  }
+}
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony; <code>step2ReportShowsWhatDivergedAndWhy</code> - raport pokazuje dwie rozbieżności (3D dziecko rano: 17.20 vs 19.20, 2D student rano: 13.75 vs 15.00) i awarię dla 4DX (<code>IllegalArgumentError: Nieznany format: 4DX</code>).
 <strong>Co powiedzieć:</strong> z raportu widać wzorzec: rozbieżności tylko rano i tylko przy zniżce procentowej. Kandydat odejmuje rabat poranny przed procentem.
@@ -618,22 +869,79 @@ scripts/warsztat.sh --lang ts reset m3/s04         <span class="hljs-comment"># 
 <ol>
 <li>Utwórz nowy plik <code>MigrationMode.ts</code> z wyliczeniem <code>MigrationMode</code> o wartościach <code>LEGACY</code>, <code>SHADOW</code>, <code>CANDIDATE</code>.</li>
 <li>W <code>PriceService</code> dodaj pierwszy parametr konstruktora <code>private readonly mode: MigrationMode = MigrationMode.SHADOW</code> (przed <code>report</code>).</li>
-<li>Przenieś dotychczasową treść <code>price</code> i <code>verify</code> do prywatnej metody <code>shadow(query)</code>: liczy wynik legacy, w <code>try/<wbr>catch</code> porównuje go z kandydatem, zapisuje do raportu <code>Agreement</code>, <code>Divergence</code> albo <code>CandidateFailure</code> i zwraca wynik legacy.</li>
+<li>Przenieś dotychczasową treść <code>price</code> i <code>verify</code> do prywatnej metody <code>shadow(query)</code>: liczy wynik legacy, w <code>try/<wbr>catch</code> porównuje go z kandydatem, zapisuje do raportu <code>Agreement</code>, <code>Divergence</code> albo <code>CandidateFailure</code> i zwraca wynik legacy. Metoda <code>verify</code> znika.</li>
 <li>W <code>price</code> zostaje <code>switch (this.mode)</code> z trzema gałęziami (<code>LEGACY</code>, <code>SHADOW</code>, <code>CANDIDATE</code>) i <code>default: return assertNever(this.mode);</code>.</li>
+<li>Importy: dodaj <code>assertNever</code> z <code>../<wbr>../<wbr>../<wbr>../<wbr>shared/<wbr>assertNever.js</code> i <code>MigrationMode</code> z <code>./<wbr>MigrationMode.js</code>; z importu <code>./<wbr>VerificationReport.js</code> usuń nieużywany już <code>type Verification</code>.</li>
 </ol>
-<p><strong>Przed:</strong></p>
-<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-title function_">price</span>(<span class="hljs-attr">query</span>: <span class="hljs-title class_">TicketQuery</span>): <span class="hljs-title class_">Money</span> {
+<p><strong>Po (<code>MigrationMode.ts</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-comment">/** Jawny tryb migracji zamiast flagi boolean - LEGACY, SHADOW, CANDIDATE. */</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">enum</span> <span class="hljs-title class_">MigrationMode</span> {
+  <span class="hljs-variable constant_">LEGACY</span> = <span class="hljs-string">&#x27;LEGACY&#x27;</span>,
+  <span class="hljs-variable constant_">SHADOW</span> = <span class="hljs-string">&#x27;SHADOW&#x27;</span>,
+  <span class="hljs-variable constant_">CANDIDATE</span> = <span class="hljs-string">&#x27;CANDIDATE&#x27;</span>,
+}
+</code></pre>
+<p><strong>Przed (<code>PriceService.ts</code>):</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">report</span>: <span class="hljs-title class_">VerificationReport</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">VerificationReport</span>()</span>) {}
+
+<span class="hljs-title function_">price</span>(<span class="hljs-attr">query</span>: <span class="hljs-title class_">TicketQuery</span>): <span class="hljs-title class_">Money</span> {
   <span class="hljs-keyword">const</span> result = <span class="hljs-variable language_">this</span>.<span class="hljs-property">legacy</span>.<span class="hljs-title function_">price</span>(query);
   <span class="hljs-variable language_">this</span>.<span class="hljs-property">report</span>.<span class="hljs-title function_">record</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-title function_">verify</span>(query, result));
   <span class="hljs-keyword">return</span> result;
 }
+
+<span class="hljs-keyword">private</span> <span class="hljs-title function_">verify</span>(<span class="hljs-attr">query</span>: <span class="hljs-title class_">TicketQuery</span>, <span class="hljs-attr">legacyPrice</span>: <span class="hljs-title class_">Money</span>): <span class="hljs-title class_">Verification</span> {
+  <span class="hljs-keyword">try</span> {
+    <span class="hljs-keyword">const</span> candidatePrice = <span class="hljs-variable language_">this</span>.<span class="hljs-property">candidate</span>.<span class="hljs-title function_">price</span>(query);
+    <span class="hljs-keyword">return</span> legacyPrice.<span class="hljs-title function_">equals</span>(candidatePrice)
+      ? <span class="hljs-keyword">new</span> <span class="hljs-title class_">Agreement</span>(query, legacyPrice)
+      : <span class="hljs-keyword">new</span> <span class="hljs-title class_">Divergence</span>(query, legacyPrice, candidatePrice);
+  } <span class="hljs-keyword">catch</span> (failure) {
+    <span class="hljs-keyword">const</span> error = failure <span class="hljs-keyword">as</span> <span class="hljs-title class_">Error</span>;
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">CandidateFailure</span>(query, legacyPrice, error.<span class="hljs-property">name</span> + <span class="hljs-string">&#x27;: &#x27;</span> + error.<span class="hljs-property">message</span>);
+  }
+}
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">switch</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-property">mode</span>) {
-  <span class="hljs-keyword">case</span> <span class="hljs-title class_">MigrationMode</span>.<span class="hljs-property">LEGACY</span>: <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">legacy</span>.<span class="hljs-title function_">price</span>(query);
-  <span class="hljs-keyword">case</span> <span class="hljs-title class_">MigrationMode</span>.<span class="hljs-property">SHADOW</span>: <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">shadow</span>(query);
-  <span class="hljs-keyword">case</span> <span class="hljs-title class_">MigrationMode</span>.<span class="hljs-property">CANDIDATE</span>: <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">candidate</span>.<span class="hljs-title function_">price</span>(query);
-  <span class="hljs-attr">default</span>: <span class="hljs-keyword">return</span> <span class="hljs-title function_">assertNever</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">mode</span>);
+<p><strong>Po (<code>PriceService.ts</code>, cały plik bez komentarzy):</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">import</span> { assertNever } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../../../../shared/assertNever.js&#x27;</span>;
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">Money</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../../../shared/Money.js&#x27;</span>;
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">TicketQuery</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../TicketQuery.js&#x27;</span>;
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">CandidatePriceCalculator</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./CandidatePriceCalculator.js&#x27;</span>;
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">LegacyPriceCalculator</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./LegacyPriceCalculator.js&#x27;</span>;
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">MigrationMode</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./MigrationMode.js&#x27;</span>;
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">Agreement</span>, <span class="hljs-title class_">CandidateFailure</span>, <span class="hljs-title class_">Divergence</span>, <span class="hljs-title class_">VerificationReport</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./VerificationReport.js&#x27;</span>;
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">PriceService</span> {
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> legacy = <span class="hljs-keyword">new</span> <span class="hljs-title class_">LegacyPriceCalculator</span>();
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> candidate = <span class="hljs-keyword">new</span> <span class="hljs-title class_">CandidatePriceCalculator</span>();
+
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params">
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">mode</span>: <span class="hljs-title class_">MigrationMode</span> = <span class="hljs-title class_">MigrationMode</span>.SHADOW,
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">report</span>: <span class="hljs-title class_">VerificationReport</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">VerificationReport</span>(),
+  </span>) {}
+
+  <span class="hljs-title function_">price</span>(<span class="hljs-attr">query</span>: <span class="hljs-title class_">TicketQuery</span>): <span class="hljs-title class_">Money</span> {
+    <span class="hljs-keyword">switch</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-property">mode</span>) {
+      <span class="hljs-keyword">case</span> <span class="hljs-title class_">MigrationMode</span>.<span class="hljs-property">LEGACY</span>: <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">legacy</span>.<span class="hljs-title function_">price</span>(query);
+      <span class="hljs-keyword">case</span> <span class="hljs-title class_">MigrationMode</span>.<span class="hljs-property">SHADOW</span>: <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">shadow</span>(query);
+      <span class="hljs-keyword">case</span> <span class="hljs-title class_">MigrationMode</span>.<span class="hljs-property">CANDIDATE</span>: <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">candidate</span>.<span class="hljs-title function_">price</span>(query);
+      <span class="hljs-attr">default</span>: <span class="hljs-keyword">return</span> <span class="hljs-title function_">assertNever</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">mode</span>);
+    }
+  }
+
+  <span class="hljs-keyword">private</span> <span class="hljs-title function_">shadow</span>(<span class="hljs-attr">query</span>: <span class="hljs-title class_">TicketQuery</span>): <span class="hljs-title class_">Money</span> {
+    <span class="hljs-keyword">const</span> result = <span class="hljs-variable language_">this</span>.<span class="hljs-property">legacy</span>.<span class="hljs-title function_">price</span>(query);
+    <span class="hljs-keyword">try</span> {
+      <span class="hljs-keyword">const</span> candidatePrice = <span class="hljs-variable language_">this</span>.<span class="hljs-property">candidate</span>.<span class="hljs-title function_">price</span>(query);
+      <span class="hljs-variable language_">this</span>.<span class="hljs-property">report</span>.<span class="hljs-title function_">record</span>(result.<span class="hljs-title function_">equals</span>(candidatePrice)
+        ? <span class="hljs-keyword">new</span> <span class="hljs-title class_">Agreement</span>(query, result)
+        : <span class="hljs-keyword">new</span> <span class="hljs-title class_">Divergence</span>(query, result, candidatePrice));
+    } <span class="hljs-keyword">catch</span> (failure) {
+      <span class="hljs-keyword">const</span> error = failure <span class="hljs-keyword">as</span> <span class="hljs-title class_">Error</span>;
+      <span class="hljs-variable language_">this</span>.<span class="hljs-property">report</span>.<span class="hljs-title function_">record</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">CandidateFailure</span>(query, result, error.<span class="hljs-property">name</span> + <span class="hljs-string">&#x27;: &#x27;</span> + error.<span class="hljs-property">message</span>));
+    }
+    <span class="hljs-keyword">return</span> result;
+  }
 }
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony; równoważność obejmuje wszystkie trzy tryby, <code>step4CandidateModeIsAuthoritativeAndRejectsUnknownFormat</code> pokazuje świadomą zmianę dla 4DX.
@@ -669,31 +977,102 @@ scripts/warsztat.sh --lang ts reset m3/s04         <span class="hljs-comment"># 
 <ol>
 <li>Utwórz nowy plik <code>Effects.ts</code> z interfejsem <code>Effects</code> zawierającym trzy operacje <code>Infrastructure</code> używane przez nowy przepływ: <code>sendMail</code>, <code>charge</code>, <code>save</code> (Extract Interface - ręcznie, bo VS Code nie wydziela interfejsu z klasy).</li>
 <li>Utwórz nowy plik <code>RealEffects.ts</code> z adapterem <code>RealEffects implements Effects</code>, który każdą operację deleguje do przekazanej w konstruktorze <code>Infrastructure</code>.</li>
-<li>W <code>NewBookingFlow</code> zmień ręcznie typ parametru konstruktora z <code>Infrastructure</code> na <code>Effects</code> (pole <code>effects</code>) i zamień wywołania <code>this.infra.*</code> na <code>this.effects.*</code>; miejsca wywołań do poprawy wskaże <code>npm run typecheck</code>.</li>
-<li>W konstruktorze <code>ShadowBooking</code> przekazuj kandydatowi adapter: <code>new NewBookingFlow(new RealEffects(infra))</code> (Parameterize Constructor).</li>
+<li>W <code>NewBookingFlow</code> zmień ręcznie typ parametru konstruktora z <code>Infrastructure</code> na <code>Effects</code> (pole <code>effects</code>) i zamień wywołania <code>this.infra.*</code> na <code>this.effects.*</code>; miejsca wywołań do poprawy wskaże <code>npm run typecheck</code>. W importach miejsce <code>type { Infrastructure }</code> zajmuje <code>type { Effects }</code> z <code>./<wbr>Effects.js</code>.</li>
+<li>W konstruktorze <code>ShadowBooking</code> przekazuj kandydatowi adapter: <code>new NewBookingFlow(new RealEffects(infra))</code> (Parameterize Constructor). Dodaj import <code>RealEffects</code> z <code>./<wbr>RealEffects.js</code>.</li>
 </ol>
-<p><strong>Przed:</strong></p>
-<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-comment">// NewBookingFlow.ts</span>
-<span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">infra</span>: <span class="hljs-title class_">Infrastructure</span></span>) {}
+<p><strong>Po (<code>Effects.ts</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">Money</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../../../shared/Money.js&#x27;</span>;
 
-<span class="hljs-title function_">book</span>(<span class="hljs-attr">request</span>: <span class="hljs-title class_">BookingRequest</span>): <span class="hljs-built_in">string</span> {
-  ...
-  <span class="hljs-variable language_">this</span>.<span class="hljs-property">infra</span>.<span class="hljs-title function_">charge</span>(request.<span class="hljs-property">card</span>, total);
+<span class="hljs-comment">/** Port efektów ubocznych - nowa ścieżka nie sięga już bezpośrednio do infrastruktury. */</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">Effects</span> {
+  <span class="hljs-title function_">sendMail</span>(<span class="hljs-attr">to</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">text</span>: <span class="hljs-built_in">string</span>): <span class="hljs-built_in">void</span>;
 
-<span class="hljs-comment">// ShadowBooking.ts</span>
-<span class="hljs-variable language_">this</span>.<span class="hljs-property">candidate</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">NewBookingFlow</span>(infra);
+  <span class="hljs-title function_">charge</span>(<span class="hljs-attr">card</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">amount</span>: <span class="hljs-title class_">Money</span>): <span class="hljs-built_in">void</span>;
+
+  <span class="hljs-title function_">save</span>(<span class="hljs-attr">row</span>: <span class="hljs-built_in">string</span>): <span class="hljs-built_in">void</span>;
+}
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-comment">// NewBookingFlow.ts</span>
-<span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">effects</span>: <span class="hljs-title class_">Effects</span></span>) {}
+<p><strong>Po (<code>RealEffects.ts</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">Money</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../../../shared/Money.js&#x27;</span>;
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">Infrastructure</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../Infrastructure.js&#x27;</span>;
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">Effects</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./Effects.js&#x27;</span>;
 
-<span class="hljs-title function_">book</span>(<span class="hljs-attr">request</span>: <span class="hljs-title class_">BookingRequest</span>): <span class="hljs-built_in">string</span> {
-  ...
-  <span class="hljs-variable language_">this</span>.<span class="hljs-property">effects</span>.<span class="hljs-title function_">charge</span>(request.<span class="hljs-property">card</span>, total);
+<span class="hljs-comment">/** Adapter portu na prawdziwą infrastrukturę (poczta, płatności, baza). */</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">RealEffects</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Effects</span> {
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">infra</span>: <span class="hljs-title class_">Infrastructure</span></span>) {}
 
-<span class="hljs-comment">// ShadowBooking.ts</span>
-<span class="hljs-variable language_">this</span>.<span class="hljs-property">candidate</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">NewBookingFlow</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">RealEffects</span>(infra));
+  <span class="hljs-title function_">sendMail</span>(<span class="hljs-attr">to</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">text</span>: <span class="hljs-built_in">string</span>): <span class="hljs-built_in">void</span> {
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">infra</span>.<span class="hljs-title function_">sendMail</span>(to, text);
+  }
+
+  <span class="hljs-title function_">charge</span>(<span class="hljs-attr">card</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">amount</span>: <span class="hljs-title class_">Money</span>): <span class="hljs-built_in">void</span> {
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">infra</span>.<span class="hljs-title function_">charge</span>(card, amount);
+  }
+
+  <span class="hljs-title function_">save</span>(<span class="hljs-attr">row</span>: <span class="hljs-built_in">string</span>): <span class="hljs-built_in">void</span> {
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">infra</span>.<span class="hljs-title function_">save</span>(row);
+  }
+}
 </code></pre>
+<p><strong>Przed (<code>NewBookingFlow.ts</code>, cały plik bez komentarzy):</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">import</span> { <span class="hljs-title class_">Money</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../../../shared/Money.js&#x27;</span>;
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">BookingRequest</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../BookingRequest.js&#x27;</span>;
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">Infrastructure</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../Infrastructure.js&#x27;</span>;
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">NewBookingFlow</span> {
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">readonly</span> <span class="hljs-variable constant_">TICKET_2D</span> = <span class="hljs-title class_">Money</span>.<span class="hljs-title function_">of</span>(<span class="hljs-string">&#x27;25.00&#x27;</span>);
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">readonly</span> <span class="hljs-variable constant_">ONLINE_FEE</span> = <span class="hljs-title class_">Money</span>.<span class="hljs-title function_">of</span>(<span class="hljs-string">&#x27;2.00&#x27;</span>);
+
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">infra</span>: <span class="hljs-title class_">Infrastructure</span></span>) {}
+
+  <span class="hljs-title function_">book</span>(<span class="hljs-attr">request</span>: <span class="hljs-title class_">BookingRequest</span>): <span class="hljs-built_in">string</span> {
+    <span class="hljs-keyword">const</span> tickets = <span class="hljs-title class_">NewBookingFlow</span>.<span class="hljs-property">TICKET_2D</span>.<span class="hljs-title function_">times</span>(request.<span class="hljs-property">tickets</span>);
+    <span class="hljs-keyword">const</span> total = tickets.<span class="hljs-title function_">plus</span>(<span class="hljs-title class_">NewBookingFlow</span>.<span class="hljs-property">ONLINE_FEE</span>.<span class="hljs-title function_">times</span>(request.<span class="hljs-property">tickets</span>));
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">infra</span>.<span class="hljs-title function_">charge</span>(request.<span class="hljs-property">card</span>, total);
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">infra</span>.<span class="hljs-title function_">save</span>(request.<span class="hljs-property">title</span> + <span class="hljs-string">&#x27;;&#x27;</span> + request.<span class="hljs-property">email</span> + <span class="hljs-string">&#x27;;&#x27;</span> + request.<span class="hljs-property">tickets</span> + <span class="hljs-string">&#x27;;&#x27;</span> + total.<span class="hljs-title function_">toString</span>());
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">infra</span>.<span class="hljs-title function_">sendMail</span>(request.<span class="hljs-property">email</span>,
+      <span class="hljs-string">&#x27;Bilety &#x27;</span> + request.<span class="hljs-property">title</span> + <span class="hljs-string">&#x27; x&#x27;</span> + request.<span class="hljs-property">tickets</span> + <span class="hljs-string">&#x27;, zaplacono &#x27;</span> + tickets.<span class="hljs-title function_">toString</span>());
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&#x27;OK &#x27;</span> + total.<span class="hljs-title function_">toString</span>();
+  }
+}
+</code></pre>
+<p><strong>Po (<code>NewBookingFlow.ts</code>, cały plik bez komentarzy):</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">import</span> { <span class="hljs-title class_">Money</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../../../shared/Money.js&#x27;</span>;
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">BookingRequest</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../BookingRequest.js&#x27;</span>;
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">Effects</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./Effects.js&#x27;</span>;
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">NewBookingFlow</span> {
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">readonly</span> <span class="hljs-variable constant_">TICKET_2D</span> = <span class="hljs-title class_">Money</span>.<span class="hljs-title function_">of</span>(<span class="hljs-string">&#x27;25.00&#x27;</span>);
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">readonly</span> <span class="hljs-variable constant_">ONLINE_FEE</span> = <span class="hljs-title class_">Money</span>.<span class="hljs-title function_">of</span>(<span class="hljs-string">&#x27;2.00&#x27;</span>);
+
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">effects</span>: <span class="hljs-title class_">Effects</span></span>) {}
+
+  <span class="hljs-title function_">book</span>(<span class="hljs-attr">request</span>: <span class="hljs-title class_">BookingRequest</span>): <span class="hljs-built_in">string</span> {
+    <span class="hljs-keyword">const</span> tickets = <span class="hljs-title class_">NewBookingFlow</span>.<span class="hljs-property">TICKET_2D</span>.<span class="hljs-title function_">times</span>(request.<span class="hljs-property">tickets</span>);
+    <span class="hljs-keyword">const</span> total = tickets.<span class="hljs-title function_">plus</span>(<span class="hljs-title class_">NewBookingFlow</span>.<span class="hljs-property">ONLINE_FEE</span>.<span class="hljs-title function_">times</span>(request.<span class="hljs-property">tickets</span>));
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">effects</span>.<span class="hljs-title function_">charge</span>(request.<span class="hljs-property">card</span>, total);
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">effects</span>.<span class="hljs-title function_">save</span>(request.<span class="hljs-property">title</span> + <span class="hljs-string">&#x27;;&#x27;</span> + request.<span class="hljs-property">email</span> + <span class="hljs-string">&#x27;;&#x27;</span> + request.<span class="hljs-property">tickets</span> + <span class="hljs-string">&#x27;;&#x27;</span> + total.<span class="hljs-title function_">toString</span>());
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">effects</span>.<span class="hljs-title function_">sendMail</span>(request.<span class="hljs-property">email</span>,
+      <span class="hljs-string">&#x27;Bilety &#x27;</span> + request.<span class="hljs-property">title</span> + <span class="hljs-string">&#x27; x&#x27;</span> + request.<span class="hljs-property">tickets</span> + <span class="hljs-string">&#x27;, zaplacono &#x27;</span> + tickets.<span class="hljs-title function_">toString</span>());
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&#x27;OK &#x27;</span> + total.<span class="hljs-title function_">toString</span>();
+  }
+}
+</code></pre>
+<p><strong>Przed (<code>ShadowBooking.ts</code>):</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-attr">infra</span>: <span class="hljs-title class_">Infrastructure</span></span>) {
+  <span class="hljs-variable language_">this</span>.<span class="hljs-property">legacy</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">LegacyBookingFlow</span>(infra);
+  <span class="hljs-variable language_">this</span>.<span class="hljs-property">candidate</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">NewBookingFlow</span>(infra);
+}
+</code></pre>
+<p><strong>Po (<code>ShadowBooking.ts</code>):</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">import</span> { <span class="hljs-title class_">RealEffects</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./RealEffects.js&#x27;</span>;
+...
+<span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-attr">infra</span>: <span class="hljs-title class_">Infrastructure</span></span>) {
+  <span class="hljs-variable language_">this</span>.<span class="hljs-property">legacy</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">LegacyBookingFlow</span>(infra);
+  <span class="hljs-variable language_">this</span>.<span class="hljs-property">candidate</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">NewBookingFlow</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">RealEffects</span>(infra));
+}
+</code></pre>
+<p>Reszta <code>ShadowBooking</code> (pola, <code>book</code>, <code>divergences</code>) zostaje bez zmian.</p>
 <p><strong>Uruchom:</strong> test zielony; <code>step1PreparatoryRefactoringKeepsTheBugOnPurpose</code> - nadal dwa maile.
 <strong>Co powiedzieć:</strong> refaktoryzacja przygotowawcza zachowuje zachowanie, także błędne. Mamy szew, który w następnym kroku zmieni wszystko.
 <strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang ts diff m3/<wbr>s05 0 1</code></p>
@@ -703,8 +1082,37 @@ scripts/warsztat.sh --lang ts reset m3/s04         <span class="hljs-comment"># 
 <li>Utwórz nowy plik <code>RecordingEffects.ts</code> z klasą <code>RecordingEffects implements Effects</code>: zapisuje zamiary w formacie dziennika infrastruktury (<code>MAIL ...</code>, <code>CHARGE ...</code>, <code>SAVE ...</code>), niczego nie wykonuje i udostępnia wpisy metodą <code>recorded()</code>.</li>
 <li>W <code>ShadowBooking</code> usuń pole <code>candidate</code> i jego tworzenie w konstruktorze; zapamiętaj <code>infra</code> jako pole. W <code>book</code> przed wywołaniem legacy zapisz długość dziennika (<code>before</code>), a po nim wytnij efekty legacy: <code>this.infra.log().slice(before)</code>.</li>
 <li>W bloku <code>try</code> utwórz nagrywarkę, przekaż ją kandydatowi (<code>new NewBookingFlow(recorder).book(request)</code>) i porównaj osobno wynik i efekty prywatną metodą <code>compare</code>, która dopisuje różnice do listy rozbieżności.</li>
+<li>W importach <code>ShadowBooking</code> miejsce <code>RealEffects</code> zajmuje <code>RecordingEffects</code> z <code>./<wbr>RecordingEffects.js</code>.</li>
 </ol>
-<p><strong>Przed:</strong></p>
+<p><strong>Po (<code>RecordingEffects.ts</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">Money</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../../../shared/Money.js&#x27;</span>;
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">Effects</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./Effects.js&#x27;</span>;
+
+<span class="hljs-comment">/**
+ * Nagrywa zamiary kandydata w formacie dziennika infrastruktury,
+ * niczego nie wysyła, nie obciąża i nie zapisuje.
+ */</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">RecordingEffects</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Effects</span> {
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">recordedList</span>: <span class="hljs-built_in">string</span>[] = [];
+
+  <span class="hljs-title function_">sendMail</span>(<span class="hljs-attr">to</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">text</span>: <span class="hljs-built_in">string</span>): <span class="hljs-built_in">void</span> {
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">recordedList</span>.<span class="hljs-title function_">push</span>(<span class="hljs-string">`MAIL <span class="hljs-subst">${to}</span>: <span class="hljs-subst">${text}</span>`</span>);
+  }
+
+  <span class="hljs-title function_">charge</span>(<span class="hljs-attr">card</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">amount</span>: <span class="hljs-title class_">Money</span>): <span class="hljs-built_in">void</span> {
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">recordedList</span>.<span class="hljs-title function_">push</span>(<span class="hljs-string">`CHARGE <span class="hljs-subst">${card}</span>: <span class="hljs-subst">${amount.toString()}</span>`</span>);
+  }
+
+  <span class="hljs-title function_">save</span>(<span class="hljs-attr">row</span>: <span class="hljs-built_in">string</span>): <span class="hljs-built_in">void</span> {
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">recordedList</span>.<span class="hljs-title function_">push</span>(<span class="hljs-string">`SAVE <span class="hljs-subst">${row}</span>`</span>);
+  }
+
+  <span class="hljs-title function_">recorded</span>(): <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">string</span>[] {
+    <span class="hljs-keyword">return</span> <span class="hljs-title class_">Object</span>.<span class="hljs-title function_">freeze</span>([...<span class="hljs-variable language_">this</span>.<span class="hljs-property">recordedList</span>]);
+  }
+}
+</code></pre>
+<p><strong>Przed (<code>ShadowBooking.ts</code>):</strong></p>
 <pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-attr">infra</span>: <span class="hljs-title class_">Infrastructure</span></span>) {
   <span class="hljs-variable language_">this</span>.<span class="hljs-property">legacy</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">LegacyBookingFlow</span>(infra);
   <span class="hljs-variable language_">this</span>.<span class="hljs-property">candidate</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">NewBookingFlow</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">RealEffects</span>(infra));
@@ -718,11 +1126,50 @@ scripts/warsztat.sh --lang ts reset m3/s04         <span class="hljs-comment"># 
       <span class="hljs-variable language_">this</span>.<span class="hljs-property">divergenceList</span>.<span class="hljs-title function_">push</span>(<span class="hljs-string">&#x27;legacy: &#x27;</span> + result + <span class="hljs-string">&#x27; | kandydat: &#x27;</span> + shadow);
     }
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">const</span> recorder = <span class="hljs-keyword">new</span> <span class="hljs-title class_">RecordingEffects</span>();
-<span class="hljs-keyword">const</span> shadow = <span class="hljs-keyword">new</span> <span class="hljs-title class_">NewBookingFlow</span>(recorder).<span class="hljs-title function_">book</span>(request);
-<span class="hljs-variable language_">this</span>.<span class="hljs-title function_">compare</span>(<span class="hljs-string">&#x27;wynik&#x27;</span>, [result], [shadow]);
-<span class="hljs-variable language_">this</span>.<span class="hljs-title function_">compare</span>(<span class="hljs-string">&#x27;efekty&#x27;</span>, legacyEffects, recorder.<span class="hljs-title function_">recorded</span>());
+<p><strong>Po (<code>ShadowBooking.ts</code>, cały plik bez komentarzy):</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">BookingRequest</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../BookingRequest.js&#x27;</span>;
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">Infrastructure</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../Infrastructure.js&#x27;</span>;
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">LegacyBookingFlow</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./LegacyBookingFlow.js&#x27;</span>;
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">NewBookingFlow</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./NewBookingFlow.js&#x27;</span>;
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">RecordingEffects</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./RecordingEffects.js&#x27;</span>;
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ShadowBooking</span> {
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">legacy</span>: <span class="hljs-title class_">LegacyBookingFlow</span>;
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">divergenceList</span>: <span class="hljs-built_in">string</span>[] = [];
+
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">infra</span>: <span class="hljs-title class_">Infrastructure</span></span>) {
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">legacy</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">LegacyBookingFlow</span>(infra);
+  }
+
+  <span class="hljs-title function_">book</span>(<span class="hljs-attr">request</span>: <span class="hljs-title class_">BookingRequest</span>): <span class="hljs-built_in">string</span> {
+    <span class="hljs-keyword">const</span> before = <span class="hljs-variable language_">this</span>.<span class="hljs-property">infra</span>.<span class="hljs-title function_">log</span>().<span class="hljs-property">length</span>;
+    <span class="hljs-keyword">const</span> result = <span class="hljs-variable language_">this</span>.<span class="hljs-property">legacy</span>.<span class="hljs-title function_">book</span>(request);
+    <span class="hljs-keyword">const</span> legacyEffects = <span class="hljs-variable language_">this</span>.<span class="hljs-property">infra</span>.<span class="hljs-title function_">log</span>().<span class="hljs-title function_">slice</span>(before);
+    <span class="hljs-keyword">try</span> {
+      <span class="hljs-keyword">const</span> recorder = <span class="hljs-keyword">new</span> <span class="hljs-title class_">RecordingEffects</span>();
+      <span class="hljs-keyword">const</span> shadow = <span class="hljs-keyword">new</span> <span class="hljs-title class_">NewBookingFlow</span>(recorder).<span class="hljs-title function_">book</span>(request);
+      <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">compare</span>(<span class="hljs-string">&#x27;wynik&#x27;</span>, [result], [shadow]);
+      <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">compare</span>(<span class="hljs-string">&#x27;efekty&#x27;</span>, legacyEffects, recorder.<span class="hljs-title function_">recorded</span>());
+    } <span class="hljs-keyword">catch</span> (failure) {
+      <span class="hljs-variable language_">this</span>.<span class="hljs-property">divergenceList</span>.<span class="hljs-title function_">push</span>(<span class="hljs-string">&#x27;kandydat: &#x27;</span> + (failure <span class="hljs-keyword">as</span> <span class="hljs-title class_">Error</span>).<span class="hljs-property">message</span>);
+    }
+    <span class="hljs-keyword">return</span> result;
+  }
+
+  <span class="hljs-keyword">private</span> <span class="hljs-title function_">compare</span>(<span class="hljs-attr">what</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">legacyValues</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">string</span>[], <span class="hljs-attr">candidateValues</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">string</span>[]): <span class="hljs-built_in">void</span> {
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(legacyValues.<span class="hljs-property">length</span>, candidateValues.<span class="hljs-property">length</span>); i++) {
+      <span class="hljs-keyword">const</span> legacyValue = i &lt; legacyValues.<span class="hljs-property">length</span> ? legacyValues[i]! : <span class="hljs-string">&#x27;-&#x27;</span>;
+      <span class="hljs-keyword">const</span> candidateValue = i &lt; candidateValues.<span class="hljs-property">length</span> ? candidateValues[i]! : <span class="hljs-string">&#x27;-&#x27;</span>;
+      <span class="hljs-keyword">if</span> (legacyValue !== candidateValue) {
+        <span class="hljs-variable language_">this</span>.<span class="hljs-property">divergenceList</span>.<span class="hljs-title function_">push</span>(what + <span class="hljs-string">&#x27; legacy: &#x27;</span> + legacyValue + <span class="hljs-string">&#x27; | kandydat: &#x27;</span> + candidateValue);
+      }
+    }
+  }
+
+  <span class="hljs-title function_">divergences</span>(): <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">string</span>[] {
+    <span class="hljs-keyword">return</span> <span class="hljs-title class_">Object</span>.<span class="hljs-title function_">freeze</span>([...<span class="hljs-variable language_">this</span>.<span class="hljs-property">divergenceList</span>]);
+  }
+}
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony; <code>step2RecordsCandidateEffectsInsteadOfExecutingThem</code> - jeden mail, jedno obciążenie, a raport pokazuje rozbieżność w treści maila (kandydat pisze 50.00 zamiast 54.00).
 <strong>Co powiedzieć:</strong> porównanie efektów znalazło błąd, którego porównanie wyniku nie widziało.
@@ -733,27 +1180,170 @@ scripts/warsztat.sh --lang ts reset m3/s04         <span class="hljs-comment"># 
 <li>Utwórz nowy plik <code>BookingPlan.ts</code> z klasami <code>Charge</code>, <code>Save</code>, <code>SendMail</code> (pole <code>kind</code>, metody <code>describe()</code> i <code>applyTo(port)</code>), unią <code>export type Effect = Charge | Save | SendMail;</code> i klasą <code>BookingPlan</code> (pole <code>result</code> i zamrożona lista <code>effects</code>).</li>
 <li>Utwórz nowy plik <code>BookingPlanner.ts</code> i przenieś do niego z <code>NewBookingFlow.book</code> czyste obliczenie jako metodę <code>plan(request)</code>, która zwraca <code>new BookingPlan(&#x27;OK &#x27; + total.toString(), [new Charge(...), new Save(...), new SendMail(...)])</code> (Separate Query from Modifier). Klasa nie dostaje żadnego portu efektów.</li>
 <li>W <code>NewBookingFlow.book</code> zostaje: policz plan (<code>this.planner.plan(request)</code>), wykonaj efekty na porcie (<code>plan.effects.forEach((effect) =&gt; effect.applyTo(this.effects))</code>) i zwróć <code>plan.result</code>.</li>
-<li>W <code>ShadowBooking</code> zamień kandydata na pole <code>private readonly candidate = new BookingPlanner();</code>; w <code>book</code> porównuj <code>plan.result</code> z wynikiem legacy, a opisy efektów (<code>plan.effects.map((effect) =&gt; effect.describe())</code>) z efektami legacy.</li>
+<li>W <code>ShadowBooking</code> zamień kandydata na pole <code>private readonly candidate = new BookingPlanner();</code>; w <code>book</code> porównuj <code>plan.result</code> z wynikiem legacy, a opisy efektów (<code>plan.effects.map((effect) =&gt; effect.describe())</code>) z efektami legacy. W importach miejsce <code>NewBookingFlow</code> i <code>RecordingEffects</code> zajmuje <code>BookingPlanner</code> z <code>./<wbr>BookingPlanner.js</code>. Metody <code>compare</code> i <code>divergences</code> zostają bez zmian.</li>
 <li>Usuń plik <code>RecordingEffects.ts</code> - po tym kroku nikt go nie używa, co potwierdza <code>npm run typecheck</code> i brak odwołań do klasy.</li>
 </ol>
-<p><strong>Przed:</strong></p>
-<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-comment">// ShadowBooking.ts (step2)</span>
-<span class="hljs-keyword">const</span> recorder = <span class="hljs-keyword">new</span> <span class="hljs-title class_">RecordingEffects</span>();
-<span class="hljs-keyword">const</span> shadow = <span class="hljs-keyword">new</span> <span class="hljs-title class_">NewBookingFlow</span>(recorder).<span class="hljs-title function_">book</span>(request);
-<span class="hljs-variable language_">this</span>.<span class="hljs-title function_">compare</span>(<span class="hljs-string">&#x27;wynik&#x27;</span>, [result], [shadow]);
-<span class="hljs-variable language_">this</span>.<span class="hljs-title function_">compare</span>(<span class="hljs-string">&#x27;efekty&#x27;</span>, legacyEffects, recorder.<span class="hljs-title function_">recorded</span>());
+<p><strong>Po (<code>BookingPlan.ts</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">Money</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../../../shared/Money.js&#x27;</span>;
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">Effects</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./Effects.js&#x27;</span>;
 
-<span class="hljs-comment">// RecordingEffects.ts (plik usuwany w tym kroku)</span>
-<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">RecordingEffects</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Effects</span> {
-  <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">recordedList</span>: <span class="hljs-built_in">string</span>[] = [];
-  ...
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Charge</span> {
+  <span class="hljs-keyword">readonly</span> kind = <span class="hljs-string">&#x27;charge&#x27;</span>;
+
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-keyword">readonly</span> <span class="hljs-attr">card</span>: <span class="hljs-built_in">string</span>, <span class="hljs-keyword">readonly</span> <span class="hljs-attr">amount</span>: <span class="hljs-title class_">Money</span></span>) {}
+
+  <span class="hljs-title function_">describe</span>(): <span class="hljs-built_in">string</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-string">`CHARGE <span class="hljs-subst">${<span class="hljs-variable language_">this</span>.card}</span>: <span class="hljs-subst">${<span class="hljs-variable language_">this</span>.amount.toString()}</span>`</span>;
+  }
+
+  <span class="hljs-title function_">applyTo</span>(<span class="hljs-attr">port</span>: <span class="hljs-title class_">Effects</span>): <span class="hljs-built_in">void</span> {
+    port.<span class="hljs-title function_">charge</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">card</span>, <span class="hljs-variable language_">this</span>.<span class="hljs-property">amount</span>);
+  }
+}
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Save</span> {
+  <span class="hljs-keyword">readonly</span> kind = <span class="hljs-string">&#x27;save&#x27;</span>;
+
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-keyword">readonly</span> <span class="hljs-attr">row</span>: <span class="hljs-built_in">string</span></span>) {}
+
+  <span class="hljs-title function_">describe</span>(): <span class="hljs-built_in">string</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-string">`SAVE <span class="hljs-subst">${<span class="hljs-variable language_">this</span>.row}</span>`</span>;
+  }
+
+  <span class="hljs-title function_">applyTo</span>(<span class="hljs-attr">port</span>: <span class="hljs-title class_">Effects</span>): <span class="hljs-built_in">void</span> {
+    port.<span class="hljs-title function_">save</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">row</span>);
+  }
+}
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">SendMail</span> {
+  <span class="hljs-keyword">readonly</span> kind = <span class="hljs-string">&#x27;sendMail&#x27;</span>;
+
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-keyword">readonly</span> <span class="hljs-attr">to</span>: <span class="hljs-built_in">string</span>, <span class="hljs-keyword">readonly</span> <span class="hljs-attr">text</span>: <span class="hljs-built_in">string</span></span>) {}
+
+  <span class="hljs-title function_">describe</span>(): <span class="hljs-built_in">string</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-string">`MAIL <span class="hljs-subst">${<span class="hljs-variable language_">this</span>.to}</span>: <span class="hljs-subst">${<span class="hljs-variable language_">this</span>.text}</span>`</span>;
+  }
+
+  <span class="hljs-title function_">applyTo</span>(<span class="hljs-attr">port</span>: <span class="hljs-title class_">Effects</span>): <span class="hljs-built_in">void</span> {
+    port.<span class="hljs-title function_">sendMail</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">to</span>, <span class="hljs-variable language_">this</span>.<span class="hljs-property">text</span>);
+  }
+}
+
+<span class="hljs-comment">/** Zamknięty zbiór efektów planu (odpowiednik sealed interface Effect). */</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">type</span> <span class="hljs-title class_">Effect</span> = <span class="hljs-title class_">Charge</span> | <span class="hljs-title class_">Save</span> | <span class="hljs-title class_">SendMail</span>;
+
+<span class="hljs-comment">/**
+ * Wynik czystego obliczenia - odpowiedź dla klienta i lista efektów DO wykonania.
+ * Efekty to dane: można je porównać, zalogować albo wykonać, ale plan sam niczego nie robi.
+ */</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">BookingPlan</span> {
+  <span class="hljs-keyword">readonly</span> <span class="hljs-attr">effects</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-title class_">Effect</span>[];
+
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-keyword">readonly</span> <span class="hljs-attr">result</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">effects</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-title class_">Effect</span>[]</span>) {
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">effects</span> = <span class="hljs-title class_">Object</span>.<span class="hljs-title function_">freeze</span>([...effects]);
+  }
 }
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">const</span> plan = <span class="hljs-variable language_">this</span>.<span class="hljs-property">candidate</span>.<span class="hljs-title function_">plan</span>(request);
-<span class="hljs-variable language_">this</span>.<span class="hljs-title function_">compare</span>(<span class="hljs-string">&#x27;wynik&#x27;</span>, [result], [plan.<span class="hljs-property">result</span>]);
-<span class="hljs-keyword">const</span> planned = plan.<span class="hljs-property">effects</span>.<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">effect</span>) =&gt;</span> effect.<span class="hljs-title function_">describe</span>());
-<span class="hljs-variable language_">this</span>.<span class="hljs-title function_">compare</span>(<span class="hljs-string">&#x27;efekty&#x27;</span>, legacyEffects, planned);
+<p><strong>Po (<code>BookingPlanner.ts</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">import</span> { <span class="hljs-title class_">Money</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../../../shared/Money.js&#x27;</span>;
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">BookingRequest</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../BookingRequest.js&#x27;</span>;
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">BookingPlan</span>, <span class="hljs-title class_">Charge</span>, <span class="hljs-title class_">Save</span>, <span class="hljs-title class_">SendMail</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./BookingPlan.js&#x27;</span>;
+
+<span class="hljs-comment">/**
+ * Separate Query from Modifier - czysta część nowej ścieżki. Nie ma dostępu do
+ * żadnego portu efektów, więc w cieniu nie da się jej użyć &quot;za mocno&quot;.
+ */</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">BookingPlanner</span> {
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">readonly</span> <span class="hljs-variable constant_">TICKET_2D</span> = <span class="hljs-title class_">Money</span>.<span class="hljs-title function_">of</span>(<span class="hljs-string">&#x27;25.00&#x27;</span>);
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">readonly</span> <span class="hljs-variable constant_">ONLINE_FEE</span> = <span class="hljs-title class_">Money</span>.<span class="hljs-title function_">of</span>(<span class="hljs-string">&#x27;2.00&#x27;</span>);
+
+  <span class="hljs-title function_">plan</span>(<span class="hljs-attr">request</span>: <span class="hljs-title class_">BookingRequest</span>): <span class="hljs-title class_">BookingPlan</span> {
+    <span class="hljs-keyword">const</span> tickets = <span class="hljs-title class_">BookingPlanner</span>.<span class="hljs-property">TICKET_2D</span>.<span class="hljs-title function_">times</span>(request.<span class="hljs-property">tickets</span>);
+    <span class="hljs-keyword">const</span> total = tickets.<span class="hljs-title function_">plus</span>(<span class="hljs-title class_">BookingPlanner</span>.<span class="hljs-property">ONLINE_FEE</span>.<span class="hljs-title function_">times</span>(request.<span class="hljs-property">tickets</span>));
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BookingPlan</span>(<span class="hljs-string">&#x27;OK &#x27;</span> + total.<span class="hljs-title function_">toString</span>(), [
+      <span class="hljs-keyword">new</span> <span class="hljs-title class_">Charge</span>(request.<span class="hljs-property">card</span>, total),
+      <span class="hljs-keyword">new</span> <span class="hljs-title class_">Save</span>(request.<span class="hljs-property">title</span> + <span class="hljs-string">&#x27;;&#x27;</span> + request.<span class="hljs-property">email</span> + <span class="hljs-string">&#x27;;&#x27;</span>
+        + request.<span class="hljs-property">tickets</span> + <span class="hljs-string">&#x27;;&#x27;</span> + total.<span class="hljs-title function_">toString</span>()),
+      <span class="hljs-keyword">new</span> <span class="hljs-title class_">SendMail</span>(request.<span class="hljs-property">email</span>,
+        <span class="hljs-string">&#x27;Bilety &#x27;</span> + request.<span class="hljs-property">title</span> + <span class="hljs-string">&#x27; x&#x27;</span> + request.<span class="hljs-property">tickets</span> + <span class="hljs-string">&#x27;, zaplacono &#x27;</span> + tickets.<span class="hljs-title function_">toString</span>())]);
+  }
+}
+</code></pre>
+<p><strong>Przed (<code>NewBookingFlow.ts</code>):</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">NewBookingFlow</span> {
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">readonly</span> <span class="hljs-variable constant_">TICKET_2D</span> = <span class="hljs-title class_">Money</span>.<span class="hljs-title function_">of</span>(<span class="hljs-string">&#x27;25.00&#x27;</span>);
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">readonly</span> <span class="hljs-variable constant_">ONLINE_FEE</span> = <span class="hljs-title class_">Money</span>.<span class="hljs-title function_">of</span>(<span class="hljs-string">&#x27;2.00&#x27;</span>);
+
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">effects</span>: <span class="hljs-title class_">Effects</span></span>) {}
+
+  <span class="hljs-title function_">book</span>(<span class="hljs-attr">request</span>: <span class="hljs-title class_">BookingRequest</span>): <span class="hljs-built_in">string</span> {
+    <span class="hljs-keyword">const</span> tickets = <span class="hljs-title class_">NewBookingFlow</span>.<span class="hljs-property">TICKET_2D</span>.<span class="hljs-title function_">times</span>(request.<span class="hljs-property">tickets</span>);
+    <span class="hljs-keyword">const</span> total = tickets.<span class="hljs-title function_">plus</span>(<span class="hljs-title class_">NewBookingFlow</span>.<span class="hljs-property">ONLINE_FEE</span>.<span class="hljs-title function_">times</span>(request.<span class="hljs-property">tickets</span>));
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">effects</span>.<span class="hljs-title function_">charge</span>(request.<span class="hljs-property">card</span>, total);
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">effects</span>.<span class="hljs-title function_">save</span>(request.<span class="hljs-property">title</span> + <span class="hljs-string">&#x27;;&#x27;</span> + request.<span class="hljs-property">email</span> + <span class="hljs-string">&#x27;;&#x27;</span> + request.<span class="hljs-property">tickets</span> + <span class="hljs-string">&#x27;;&#x27;</span> + total.<span class="hljs-title function_">toString</span>());
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">effects</span>.<span class="hljs-title function_">sendMail</span>(request.<span class="hljs-property">email</span>,
+      <span class="hljs-string">&#x27;Bilety &#x27;</span> + request.<span class="hljs-property">title</span> + <span class="hljs-string">&#x27; x&#x27;</span> + request.<span class="hljs-property">tickets</span> + <span class="hljs-string">&#x27;, zaplacono &#x27;</span> + tickets.<span class="hljs-title function_">toString</span>());
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&#x27;OK &#x27;</span> + total.<span class="hljs-title function_">toString</span>();
+  }
+}
+</code></pre>
+<p><strong>Po (<code>NewBookingFlow.ts</code>, cały plik bez komentarzy):</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">BookingRequest</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../BookingRequest.js&#x27;</span>;
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">BookingPlanner</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./BookingPlanner.js&#x27;</span>;
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">Effects</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./Effects.js&#x27;</span>;
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">NewBookingFlow</span> {
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> planner = <span class="hljs-keyword">new</span> <span class="hljs-title class_">BookingPlanner</span>();
+
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">effects</span>: <span class="hljs-title class_">Effects</span></span>) {}
+
+  <span class="hljs-title function_">book</span>(<span class="hljs-attr">request</span>: <span class="hljs-title class_">BookingRequest</span>): <span class="hljs-built_in">string</span> {
+    <span class="hljs-keyword">const</span> plan = <span class="hljs-variable language_">this</span>.<span class="hljs-property">planner</span>.<span class="hljs-title function_">plan</span>(request);
+    plan.<span class="hljs-property">effects</span>.<span class="hljs-title function_">forEach</span>(<span class="hljs-function">(<span class="hljs-params">effect</span>) =&gt;</span> effect.<span class="hljs-title function_">applyTo</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">effects</span>));
+    <span class="hljs-keyword">return</span> plan.<span class="hljs-property">result</span>;
+  }
+}
+</code></pre>
+<p><strong>Przed (<code>ShadowBooking.ts</code>):</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">try</span> {
+  <span class="hljs-keyword">const</span> recorder = <span class="hljs-keyword">new</span> <span class="hljs-title class_">RecordingEffects</span>();
+  <span class="hljs-keyword">const</span> shadow = <span class="hljs-keyword">new</span> <span class="hljs-title class_">NewBookingFlow</span>(recorder).<span class="hljs-title function_">book</span>(request);
+  <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">compare</span>(<span class="hljs-string">&#x27;wynik&#x27;</span>, [result], [shadow]);
+  <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">compare</span>(<span class="hljs-string">&#x27;efekty&#x27;</span>, legacyEffects, recorder.<span class="hljs-title function_">recorded</span>());
+}
+</code></pre>
+<p><strong>Po (<code>ShadowBooking.ts</code>):</strong></p>
+<pre class="code" data-lang="typescript"><code class="hljs"><span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">BookingRequest</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../BookingRequest.js&#x27;</span>;
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">Infrastructure</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../Infrastructure.js&#x27;</span>;
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">BookingPlanner</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./BookingPlanner.js&#x27;</span>;
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">LegacyBookingFlow</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./LegacyBookingFlow.js&#x27;</span>;
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ShadowBooking</span> {
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">legacy</span>: <span class="hljs-title class_">LegacyBookingFlow</span>;
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> candidate = <span class="hljs-keyword">new</span> <span class="hljs-title class_">BookingPlanner</span>();
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">divergenceList</span>: <span class="hljs-built_in">string</span>[] = [];
+
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-attr">infra</span>: <span class="hljs-title class_">Infrastructure</span></span>) {
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">legacy</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">LegacyBookingFlow</span>(infra);
+  }
+
+  <span class="hljs-title function_">book</span>(<span class="hljs-attr">request</span>: <span class="hljs-title class_">BookingRequest</span>): <span class="hljs-built_in">string</span> {
+    <span class="hljs-keyword">const</span> before = <span class="hljs-variable language_">this</span>.<span class="hljs-property">infra</span>.<span class="hljs-title function_">log</span>().<span class="hljs-property">length</span>;
+    <span class="hljs-keyword">const</span> result = <span class="hljs-variable language_">this</span>.<span class="hljs-property">legacy</span>.<span class="hljs-title function_">book</span>(request);
+    <span class="hljs-keyword">const</span> legacyEffects = <span class="hljs-variable language_">this</span>.<span class="hljs-property">infra</span>.<span class="hljs-title function_">log</span>().<span class="hljs-title function_">slice</span>(before);
+    <span class="hljs-keyword">try</span> {
+      <span class="hljs-keyword">const</span> plan = <span class="hljs-variable language_">this</span>.<span class="hljs-property">candidate</span>.<span class="hljs-title function_">plan</span>(request);
+      <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">compare</span>(<span class="hljs-string">&#x27;wynik&#x27;</span>, [result], [plan.<span class="hljs-property">result</span>]);
+      <span class="hljs-keyword">const</span> planned = plan.<span class="hljs-property">effects</span>.<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">effect</span>) =&gt;</span> effect.<span class="hljs-title function_">describe</span>());
+      <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">compare</span>(<span class="hljs-string">&#x27;efekty&#x27;</span>, legacyEffects, planned);
+    } <span class="hljs-keyword">catch</span> (failure) {
+      <span class="hljs-variable language_">this</span>.<span class="hljs-property">divergenceList</span>.<span class="hljs-title function_">push</span>(<span class="hljs-string">&#x27;kandydat: &#x27;</span> + (failure <span class="hljs-keyword">as</span> <span class="hljs-title class_">Error</span>).<span class="hljs-property">message</span>);
+    }
+    <span class="hljs-keyword">return</span> result;
+  }
+
+  ...
+}
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony; <code>step3ComparesAPurePlanAndNeverTouchesInfrastructure</code>.
 <strong>Co powiedzieć:</strong> typ gwarantuje bezpieczeństwo: <code>BookingPlanner</code> nie ma dostępu do portu efektów, więc w cieniu nie da się go użyć &quot;za mocno&quot;.

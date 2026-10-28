@@ -134,33 +134,84 @@ Klientem jest `PriceBoard.priceFor(request)` - przez niego woła test. Test rów
 
 1. Utwórz nowy plik `DiscountPolicy.ts` z interfejsem `DiscountPolicy` i jedną metodą `discount(base: Money, ticketType: string): Money`.
 2. W `TicketPricer` wyodrębnij cały łańcuch `if` z metody `price` do nowej metody `legacyDiscount` (Extract Method) z parametrami `base`, `ticketType`, `program` i wynikiem `Money`. Metoda nie używa `this`, więc oznacz ją `private static`; każda gałąź zwraca zniżkę zamiast przypisywać ją do zmiennej.
-3. W `price` utwórz strategię przejściową jako literał obiektu typu `DiscountPolicy`, delegujący do `legacyDiscount`, i policz cenę przez `policy.discount(base, ticketType)`.
+3. W `price` utwórz strategię przejściową jako literał obiektu typu `DiscountPolicy`, delegujący do `legacyDiscount`, i policz cenę przez `policy.discount(base, ticketType)`. W `TicketPricer.ts` dodaj import `import type { DiscountPolicy } from './DiscountPolicy.js';`.
+4. `PriceBoard` bez zmian w kodzie (w snapshotach zmieniają się jeszcze tylko komentarze TSDoc opisujące krok - tak w całej scenie).
 
-**Przed:**
+**Po (`DiscountPolicy.ts`, nowy plik):**
 
 ```typescript
-let discount: Money;
-if (program === 'PREMIERE') {
-  discount = Money.ZERO;
-} else if (program === 'STUDENT_WEEK' && ticketType === 'S') {
-  discount = base.percent(50);
-} else if (program === 'STANDARD' || program === 'STUDENT_WEEK') {
-  let percent: number;
-  switch (ticketType) {
-    ...
-  }
-  discount = base.percent(percent);
-} else {
-  throw new IllegalArgumentError(`unknown program: ${program}`);
+import type { Money } from '../../../shared/Money.js';
+
+/** Kontrakt strategii - wysokość zniżki dla ceny bazowej i typu biletu. */
+export interface DiscountPolicy {
+  discount(base: Money, ticketType: string): Money;
 }
-return base.minus(discount);
 ```
 
-**Po:**
+**Przed (`TicketPricer.ts`, metoda `price`):**
 
 ```typescript
-const policy: DiscountPolicy = { discount: (b, type) => TicketPricer.legacyDiscount(b, type, program) };
-return base.minus(policy.discount(base, ticketType));
+price(base: Money, ticketType: string, program: string | null): Money {
+  if (base.compareTo(Money.ZERO) < 0) {
+    throw new IllegalArgumentError('base price must not be negative');
+  }
+  if (program === null) {
+    throw new IllegalArgumentError('program must not be null');
+  }
+  let discount: Money;
+  if (program === 'PREMIERE') {
+    discount = Money.ZERO;
+  } else if (program === 'STUDENT_WEEK' && ticketType === 'S') {
+    discount = base.percent(50);
+  } else if (program === 'STANDARD' || program === 'STUDENT_WEEK') {
+    let percent: number;
+    switch (ticketType) {
+      case 'N': percent = 0; break;
+      case 'S': percent = 25; break;
+      case 'E': percent = 30; break;
+      case 'C': percent = 40; break;
+      default: throw new IllegalArgumentError(`unknown ticket type: ${ticketType}`);
+    }
+    discount = base.percent(percent);
+  } else {
+    throw new IllegalArgumentError(`unknown program: ${program}`);
+  }
+  return base.minus(discount);
+}
+```
+
+**Po (`TicketPricer.ts`, metody `price` i `legacyDiscount`):**
+
+```typescript
+price(base: Money, ticketType: string, program: string | null): Money {
+  if (base.compareTo(Money.ZERO) < 0) {
+    throw new IllegalArgumentError('base price must not be negative');
+  }
+  if (program === null) {
+    throw new IllegalArgumentError('program must not be null');
+  }
+  const policy: DiscountPolicy = { discount: (b, type) => TicketPricer.legacyDiscount(b, type, program) };
+  return base.minus(policy.discount(base, ticketType));
+}
+
+private static legacyDiscount(base: Money, ticketType: string, program: string): Money {
+  if (program === 'PREMIERE') {
+    return Money.ZERO;
+  } else if (program === 'STUDENT_WEEK' && ticketType === 'S') {
+    return base.percent(50);
+  } else if (program === 'STANDARD' || program === 'STUDENT_WEEK') {
+    let percent: number;
+    switch (ticketType) {
+      case 'N': percent = 0; break;
+      case 'S': percent = 25; break;
+      case 'E': percent = 30; break;
+      case 'C': percent = 40; break;
+      default: throw new IllegalArgumentError(`unknown ticket type: ${ticketType}`);
+    }
+    return base.percent(percent);
+  }
+  throw new IllegalArgumentError(`unknown program: ${program}`);
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang ts test m5/s01` - zielone.
@@ -174,28 +225,75 @@ return base.minus(policy.discount(base, ticketType));
 1. Utwórz klasę `StandardDiscount implements DiscountPolicy`; szkielet metody `discount` może dopisać edytor, ciało skopiuj z gałęzi STANDARD (`switch` po typie biletu). Uruchom test.
 2. Tak samo utwórz `PremiereDiscount` (zwraca `Money.ZERO`, typu biletu nie sprawdza - jak w start). Test.
 3. Utwórz `StudentWeekDiscount`: student dostaje 50%, pozostałych deleguje do `StandardDiscount` przekazanego w konstruktorze. Test.
-4. Usuń `legacyDiscount`, a w jego miejsce dodaj `private static policyFor(program: string): DiscountPolicy` ze `switch` tworzącym strategię; `price` liczy `base.minus(TicketPricer.policyFor(program).discount(base, ticketType))`.
+4. Usuń `legacyDiscount`, a w jego miejsce dodaj `private static policyFor(program: string): DiscountPolicy` ze `switch` tworzącym strategię; `price` liczy `base.minus(TicketPricer.policyFor(program).discount(base, ticketType))` (walidacja `base` i `program === null` w `price` zostaje bez zmian). W `TicketPricer.ts` dodaj importy `PremiereDiscount`, `StandardDiscount` i `StudentWeekDiscount` z plików `./XxxDiscount.js`.
 
-**Przed:**
+**Po (`StandardDiscount.ts`, nowy plik):**
 
 ```typescript
-private static legacyDiscount(base: Money, ticketType: string, program: string): Money {
-  if (program === 'PREMIERE') {
-    return Money.ZERO;
-  } else if (program === 'STUDENT_WEEK' && ticketType === 'S') {
-    return base.percent(50);
-  } else if (program === 'STANDARD' || program === 'STUDENT_WEEK') {
+import { IllegalArgumentError } from '../../../../shared/errors.js';
+import type { Money } from '../../../shared/Money.js';
+import type { DiscountPolicy } from './DiscountPolicy.js';
+
+/** Gałąź STANDARD przeniesiona do strategii. Bezstanowa - można ją współdzielić. */
+export class StandardDiscount implements DiscountPolicy {
+  discount(base: Money, ticketType: string): Money {
     let percent: number;
     switch (ticketType) {
-      ...
+      case 'N': percent = 0; break;
+      case 'S': percent = 25; break;
+      case 'E': percent = 30; break;
+      case 'C': percent = 40; break;
+      default: throw new IllegalArgumentError(`unknown ticket type: ${ticketType}`);
     }
     return base.percent(percent);
   }
-  throw new IllegalArgumentError(`unknown program: ${program}`);
 }
 ```
 
-**Po:**
+**Po (`PremiereDiscount.ts`, nowy plik):**
+
+```typescript
+import { Money } from '../../../shared/Money.js';
+import type { DiscountPolicy } from './DiscountPolicy.js';
+
+/** Premiera - brak zniżek (typ biletu nie jest nawet sprawdzany, jak w start). */
+export class PremiereDiscount implements DiscountPolicy {
+  discount(_base: Money, _ticketType: string): Money {
+    return Money.ZERO;
+  }
+}
+```
+
+**Po (`StudentWeekDiscount.ts`, nowy plik):**
+
+```typescript
+import type { Money } from '../../../shared/Money.js';
+import type { DiscountPolicy } from './DiscountPolicy.js';
+
+/** Tydzień studenta - student 50%, pozostali jak w programie standardowym. */
+export class StudentWeekDiscount implements DiscountPolicy {
+  constructor(private readonly fallback: DiscountPolicy) {}
+
+  discount(base: Money, ticketType: string): Money {
+    return ticketType === 'S' ? base.percent(50) : this.fallback.discount(base, ticketType);
+  }
+}
+```
+
+**Przed (`TicketPricer.ts`):**
+
+```typescript
+const policy: DiscountPolicy = { discount: (b, type) => TicketPricer.legacyDiscount(b, type, program) };
+return base.minus(policy.discount(base, ticketType));
+```
+
+oraz cała metoda `legacyDiscount` z kroku 1.
+
+**Po (`TicketPricer.ts`, koniec `price` i metoda `policyFor`):**
+
+```typescript
+return base.minus(TicketPricer.policyFor(program).discount(base, ticketType));
+```
 
 ```typescript
 private static policyFor(program: string): DiscountPolicy {
@@ -218,36 +316,114 @@ private static policyFor(program: string): DiscountPolicy {
 
 1. Utwórz klasę `DiscountPrograms` z prywatnym konstruktorem. Przenieś do niej `policyFor` jako `static forName(program)` (wytnij z `TicketPricer` i wklej - VS Code nie przenosi metod między klasami). Instancje strategii trzymaj w stałych `private static readonly` i zwracaj te same obiekty (strategie są bezstanowe, więc można je współdzielić). Sprawdzenie `null` programu przenieś z `price` do `forName`.
 2. Zmień ręcznie sygnatury (Change Signature): `TicketPricer` dostaje `DiscountPolicy` w konstruktorze (z `requireNonNull`), a `price(base, ticketType)` traci parametr programu i deleguje do `this.policy.discount(...)`.
-3. Uruchom `npm run typecheck` - wskaże klienta `PriceBoard`. Usuń w nim pole z gotowym `TicketPricer`; `priceFor` składa kontekst ze strategią z `DiscountPrograms.forName(request.program)`.
+3. Uruchom `npm run typecheck` - wskaże klienta `PriceBoard`. Usuń w nim pole z gotowym `TicketPricer`; `priceFor` składa kontekst ze strategią z `DiscountPrograms.forName(request.program)` (dodaj import `DiscountPrograms`).
 
-**Przed:**
+**Przed (`TicketPricer.ts`):**
 
 ```typescript
-// TicketPricer:
-return base.minus(TicketPricer.policyFor(program).discount(base, ticketType));
-
-private static policyFor(program: string): DiscountPolicy {
-  switch (program) {
-    case 'STANDARD': return new StandardDiscount();
-    case 'STUDENT_WEEK': return new StudentWeekDiscount(new StandardDiscount());
-    case 'PREMIERE': return new PremiereDiscount();
-    default: throw new IllegalArgumentError(`unknown program: ${program}`);
+export class TicketPricer {
+  price(base: Money, ticketType: string, program: string | null): Money {
+    if (base.compareTo(Money.ZERO) < 0) {
+      throw new IllegalArgumentError('base price must not be negative');
+    }
+    if (program === null) {
+      throw new IllegalArgumentError('program must not be null');
+    }
+    return base.minus(TicketPricer.policyFor(program).discount(base, ticketType));
   }
-}
 
-// PriceBoard:
-private readonly pricer = new TicketPricer();
-
-priceFor(request: PriceRequest): Money {
-  return this.pricer.price(request.base, request.ticketType, request.program);
+  private static policyFor(program: string): DiscountPolicy {
+    switch (program) {
+      case 'STANDARD': return new StandardDiscount();
+      case 'STUDENT_WEEK': return new StudentWeekDiscount(new StandardDiscount());
+      case 'PREMIERE': return new PremiereDiscount();
+      default: throw new IllegalArgumentError(`unknown program: ${program}`);
+    }
+  }
 }
 ```
 
-**Po:**
+**Przed (`PriceBoard.ts`):**
 
 ```typescript
-return new TicketPricer(DiscountPrograms.forName(request.program))
-  .price(request.base, request.ticketType);
+export class PriceBoard {
+  private readonly pricer = new TicketPricer();
+
+  priceFor(request: PriceRequest): Money {
+    return this.pricer.price(request.base, request.ticketType, request.program);
+  }
+}
+```
+
+**Po (`DiscountPrograms.ts`, nowy plik):**
+
+```typescript
+import { IllegalArgumentError } from '../../../../shared/errors.js';
+import type { DiscountPolicy } from './DiscountPolicy.js';
+import { PremiereDiscount } from './PremiereDiscount.js';
+import { StandardDiscount } from './StandardDiscount.js';
+import { StudentWeekDiscount } from './StudentWeekDiscount.js';
+
+/**
+ * Wybór strategii przeniesiony do korzenia kompozycji (konfiguracja kina).
+ * Strategie są bezstanowe, więc współdzielimy jedne instancje.
+ */
+export class DiscountPrograms {
+  private static readonly STANDARD: DiscountPolicy = new StandardDiscount();
+  private static readonly STUDENT_WEEK: DiscountPolicy = new StudentWeekDiscount(DiscountPrograms.STANDARD);
+  private static readonly PREMIERE: DiscountPolicy = new PremiereDiscount();
+
+  private constructor() {}
+
+  static forName(program: string | null): DiscountPolicy {
+    if (program === null) {
+      throw new IllegalArgumentError('program must not be null');
+    }
+    switch (program) {
+      case 'STANDARD': return DiscountPrograms.STANDARD;
+      case 'STUDENT_WEEK': return DiscountPrograms.STUDENT_WEEK;
+      case 'PREMIERE': return DiscountPrograms.PREMIERE;
+      default: throw new IllegalArgumentError(`unknown program: ${program}`);
+    }
+  }
+}
+```
+
+**Po (`TicketPricer.ts`, cały plik):**
+
+```typescript
+import { IllegalArgumentError } from '../../../../shared/errors.js';
+import { requireNonNull } from '../../../../shared/requireNonNull.js';
+import { Money } from '../../../shared/Money.js';
+import type { DiscountPolicy } from './DiscountPolicy.js';
+
+/**
+ * Kontekst dostaje strategię w konstruktorze i nie zna nazw programów.
+ * Uwaga: wybór w konstruktorze zamraża decyzję - zmienia moment, w którym pada błąd nieznanego programu.
+ */
+export class TicketPricer {
+  private readonly policy: DiscountPolicy;
+
+  constructor(policy: DiscountPolicy) {
+    this.policy = requireNonNull(policy, 'policy');
+  }
+
+  price(base: Money, ticketType: string): Money {
+    if (base.compareTo(Money.ZERO) < 0) {
+      throw new IllegalArgumentError('base price must not be negative');
+    }
+    return base.minus(this.policy.discount(base, ticketType));
+  }
+}
+```
+
+**Po (`PriceBoard.ts`, metoda `priceFor`):**
+
+```typescript
+priceFor(request: PriceRequest): Money {
+  return new TicketPricer(DiscountPrograms.forName(request.program))
+    .price(request.base, request.ticketType);
+}
 ```
 
 **Uruchom:** test zielony; `S01SolutionTest` pokazuje nowy program zniżek jako literał obiektu (`{ discount: (base) => base.percent(50) }`) bez zmiany kontekstu.
@@ -308,11 +484,17 @@ Tworzenie jest w jednym miejscu: `Screening.fromRow(row: ScreeningRow)` (mapowan
 1. W `Screening` zmień konstruktor z `private` na `protected`, a pole `title` oznacz `protected readonly` - podklasa musi je widzieć.
 2. Pod klasą `Screening`, w tym samym pliku, utwórz `MarathonScreening extends Screening` (Extract Subclass) z polem `films`; konstruktor woła `super(Kind.MARATHON, title, films)`. Nadpisz trzy metody z modyfikatorem `override`, wpisując je ręcznie (edytor dopisuje szkielet tylko dla metod abstrakcyjnych), i skopiuj do nich gałęzie MARATHON.
 3. Plik `MarathonScreening.ts` tylko re-eksportuje klasę z `Screening.ts`.
-4. W `fromRow` dla `'MARATHON'` twórz podklasę; w bazie gałęzie MARATHON rzucają `IllegalStateError('handled by MarathonScreening')`.
+4. W `fromRow` dla `'MARATHON'` twórz podklasę; każda gałąź zwraca gotowy obiekt (zmienna lokalna `kind` znika). W bazie gałęzie MARATHON trzech metod rzucają `IllegalStateError('handled by MarathonScreening')` - do importu z `errors.js` dopisz `IllegalStateError`.
 
-**Przed:**
+**Przed (`Screening.ts`, konstruktor i `fromRow`):**
 
 ```typescript
+private constructor(
+  private readonly kind: Kind,
+  private readonly title: string,
+  private readonly value: number,
+) {}
+
 static fromRow(row: ScreeningRow): Screening {
   let kind: Kind;
   switch (row.kind) {
@@ -325,10 +507,79 @@ static fromRow(row: ScreeningRow): Screening {
 }
 ```
 
-**Po:**
+**Przed (`Screening.ts`, metody `label` i `price`; `durationMinutes` wyżej w "Co widzimy"):**
 
 ```typescript
-case 'MARATHON': return new MarathonScreening(row.title, row.value);
+label(): string {
+  switch (this.kind) {
+    case Kind.REGULAR: return this.title;
+    case Kind.PREMIERE: return `Premiera: ${this.title}`;
+    case Kind.MARATHON: return `Maraton: ${this.title} (${this.value} filmy)`;
+  }
+}
+
+price(): Money {
+  switch (this.kind) {
+    case Kind.REGULAR: return Money.of('25.00');
+    case Kind.PREMIERE: return Money.of('35.00');
+    case Kind.MARATHON: return Money.of('20.00').times(this.value);
+  }
+}
+```
+
+**Po (`Screening.ts`, konstruktor, `fromRow` i gałęzie MARATHON trzech metod):**
+
+```typescript
+protected constructor(
+  private readonly kind: Kind,
+  protected readonly title: string,
+  private readonly value: number,
+) {}
+
+static fromRow(row: ScreeningRow): Screening {
+  switch (row.kind) {
+    case 'REGULAR': return new Screening(Kind.REGULAR, row.title, row.value);
+    case 'PREMIERE': return new Screening(Kind.PREMIERE, row.title, row.value);
+    case 'MARATHON': return new MarathonScreening(row.title, row.value);
+    default: throw new IllegalArgumentError(`unknown screening kind: ${row.kind}`);
+  }
+}
+```
+
+W `label`, `durationMinutes` i `price` gałęzie REGULAR i PREMIERE zostają bez zmian, a gałąź MARATHON w każdej z nich to teraz:
+
+```typescript
+case Kind.MARATHON: throw new IllegalStateError('handled by MarathonScreening');
+```
+
+**Po (`Screening.ts`, klasa na końcu pliku):**
+
+```typescript
+/** Pierwsza podklasa - maraton ma własne, nazwane dane (films zamiast value). */
+export class MarathonScreening extends Screening {
+  constructor(title: string, private readonly films: number) {
+    super(Kind.MARATHON, title, films);
+  }
+
+  override label(): string {
+    return `Maraton: ${this.title} (${this.films} filmy)`;
+  }
+
+  override durationMinutes(): number {
+    return this.films * 120 + (this.films - 1) * 15;
+  }
+
+  override price(): Money {
+    return Money.of('20.00').times(this.films);
+  }
+}
+```
+
+**Po (`MarathonScreening.ts`, nowy plik):**
+
+```typescript
+// Klasa zdefiniowana w Screening.ts (unikamy cyklu importów ESM przy "extends").
+export { MarathonScreening } from './Screening.js';
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang ts test m5/s02` - zielone.
@@ -340,28 +591,83 @@ case 'MARATHON': return new MarathonScreening(row.title, row.value);
 **Zmiany:**
 
 1. Powtórz ruch z kroku 1 dla REGULAR i PREMIERE: klasy `RegularScreening` i `PremiereScreening` w tym samym pliku, obie z polem `runtime` i trzema metodami `override`; pliki `RegularScreening.ts` i `PremiereScreening.ts` re-eksportują klasy. `fromRow` tworzy podklasę dla każdego rodzaju.
-2. Oznacz klasę `Screening` i jej trzy metody jako `abstract`; konstruktor bazy przyjmuje już tylko `title`.
-3. Usuń pole `kind` i enum `Kind` (ręcznie - `npm run typecheck` pokaże pozostałe użycia). Jedynym `switch` zostaje `fromRow`.
+2. Oznacz klasę `Screening` i jej trzy metody jako `abstract`; konstruktor bazy przyjmuje już tylko `title`. Metody `label`, `durationMinutes` i `price` wraz ze switchami znikają z bazy - zostają deklaracje `abstract`.
+3. Usuń pole `kind` i enum `Kind` (ręcznie - `npm run typecheck` pokaże pozostałe użycia); konstruktor `MarathonScreening` woła teraz `super(title)`. Z importu `errors.js` usuń `IllegalStateError` (nie jest już używany).
 
-**Przed:**
+**Przed (`Screening.ts`, baza z kroku 1):**
 
-```typescript
-label(): string {
-  switch (this.kind) {
-    case Kind.REGULAR: return this.title;
-    case Kind.PREMIERE: return `Premiera: ${this.title}`;
-    case Kind.MARATHON: throw new IllegalStateError('handled by MarathonScreening');
-  }
-}
-```
+konstruktor, `fromRow` i trzy metody ze `switch (this.kind)` - jak w bloku Po kroku 1.
 
-**Po:**
+**Po (`Screening.ts`, baza i `fromRow`):**
 
 ```typescript
 export abstract class Screening {
   protected constructor(protected readonly title: string) {}
-  ...
+
+  static fromRow(row: ScreeningRow): Screening {
+    switch (row.kind) {
+      case 'REGULAR': return new RegularScreening(row.title, row.value);
+      case 'PREMIERE': return new PremiereScreening(row.title, row.value);
+      case 'MARATHON': return new MarathonScreening(row.title, row.value);
+      default: throw new IllegalArgumentError(`unknown screening kind: ${row.kind}`);
+    }
+  }
+
+  abstract label(): string;
+
   abstract durationMinutes(): number;
+
+  abstract price(): Money;
+}
+```
+
+**Po (`Screening.ts`, nowe podklasy pod bazą; `MarathonScreening` jak w kroku 1, tylko konstruktor woła `super(title)`):**
+
+```typescript
+/** Zwykły seans - 20 minut reklam przed filmem. */
+export class RegularScreening extends Screening {
+  constructor(title: string, private readonly runtime: number) {
+    super(title);
+  }
+
+  override label(): string {
+    return this.title;
+  }
+
+  override durationMinutes(): number {
+    return 20 + this.runtime;
+  }
+
+  override price(): Money {
+    return Money.of('25.00');
+  }
+}
+
+/** Premiera - 30 minut spotkania z twórcami zamiast reklam. */
+export class PremiereScreening extends Screening {
+  constructor(title: string, private readonly runtime: number) {
+    super(title);
+  }
+
+  override label(): string {
+    return `Premiera: ${this.title}`;
+  }
+
+  override durationMinutes(): number {
+    return 30 + this.runtime;
+  }
+
+  override price(): Money {
+    return Money.of('35.00');
+  }
+}
+```
+
+**Po (`RegularScreening.ts` i `PremiereScreening.ts`, nowe pliki - analogicznie do `MarathonScreening.ts`):**
+
+```typescript
+// Klasa zdefiniowana w Screening.ts (unikamy cyklu importów ESM przy "extends").
+export { RegularScreening } from './Screening.js';
 ```
 
 **Uruchom:** test zielony.
@@ -375,33 +681,126 @@ export abstract class Screening {
 1. W `Screening.ts` zamień klasę bazową na unię `type Screening = RegularScreening | PremiereScreening | MarathonScreening` oraz stały obiekt `Screening` z funkcją `fromRow` (typ i wartość mogą dzielić nazwę, więc klienci nie zmieniają importów).
 2. Wspólne składowe opisz interfejsem `ScreeningMembers` (pola `kind` i `title`, metody `label`, `durationMinutes`, `price`).
 3. Każdy rodzaj zamień na niezmienną klasę `implements ScreeningMembers` z literałem `readonly kind = 'MARATHON'` (odpowiednio `'REGULAR'`, `'PREMIERE'`) i nazwanymi danymi (`runtime`, `films`); pole `value` znika.
-4. Podtypy nie dziedziczą już po bazie, więc przenieś je do własnych plików - re-eksporty znikają.
+4. Podtypy nie dziedziczą już po bazie, więc przenieś je do własnych plików - re-eksporty znikają, a ciała metod zostają jak w kroku 2 (bez `override`, bez `super`).
 
-**Przed:**
+**Przed:** cały `Screening.ts` z kroku 2 (baza abstrakcyjna + trzy podklasy) oraz trzy pliki re-eksportów.
+
+**Po (`Screening.ts`, cały plik):**
 
 ```typescript
-/** Krok 2: maraton - bez zmian względem kroku 1, poza konstruktorem bazy. */
-export class MarathonScreening extends Screening {
-  constructor(title: string, private readonly films: number) {
-    super(title);
-  }
+import { IllegalArgumentError } from '../../../../shared/errors.js';
+import type { Money } from '../../../shared/Money.js';
+import type { ScreeningRow } from '../ScreeningRow.js';
+import { MarathonScreening } from './MarathonScreening.js';
+import { PremiereScreening } from './PremiereScreening.js';
+import { RegularScreening } from './RegularScreening.js';
 
-  override label(): string {
-    return `Maraton: ${this.title} (${this.films} filmy)`;
-  }
+/** Wspólne zachowanie każdego rodzaju seansu (w Javie: metody sealed interface Screening). */
+export interface ScreeningMembers {
+  readonly kind: string;
+  readonly title: string;
+
+  label(): string;
+
+  durationMinutes(): number;
+
+  price(): Money;
+}
+
+/**
+ * Forma TypeScript - unia dyskryminowana (pole kind) zamiast sealed interface i rekordów.
+ * Zestaw rodzajów jest zamknięty, więc kompilator sprawdza wyczerpujące switche także u klientów.
+ */
+export type Screening = RegularScreening | PremiereScreening | MarathonScreening;
+
+export const Screening = {
+  fromRow(row: ScreeningRow): Screening {
+    switch (row.kind) {
+      case 'REGULAR': return new RegularScreening(row.title, row.value);
+      case 'PREMIERE': return new PremiereScreening(row.title, row.value);
+      case 'MARATHON': return new MarathonScreening(row.title, row.value);
+      default: throw new IllegalArgumentError(`unknown screening kind: ${row.kind}`);
+    }
+  },
+};
 ```
 
-**Po:**
+**Po (`RegularScreening.ts`, cały plik):**
 
 ```typescript
+import { Money } from '../../../shared/Money.js';
+import type { ScreeningMembers } from './Screening.js';
+
+/** Zwykły seans jako niezmienny obiekt wartości (w Javie: rekord). */
+export class RegularScreening implements ScreeningMembers {
+  readonly kind = 'REGULAR';
+
+  constructor(readonly title: string, readonly runtime: number) {}
+
+  label(): string {
+    return this.title;
+  }
+
+  durationMinutes(): number {
+    return 20 + this.runtime;
+  }
+
+  price(): Money {
+    return Money.of('25.00');
+  }
+}
+```
+
+**Po (`PremiereScreening.ts`, cały plik):**
+
+```typescript
+import { Money } from '../../../shared/Money.js';
+import type { ScreeningMembers } from './Screening.js';
+
+/** Premiera jako niezmienny obiekt wartości (w Javie: rekord). */
+export class PremiereScreening implements ScreeningMembers {
+  readonly kind = 'PREMIERE';
+
+  constructor(readonly title: string, readonly runtime: number) {}
+
+  label(): string {
+    return `Premiera: ${this.title}`;
+  }
+
+  durationMinutes(): number {
+    return 30 + this.runtime;
+  }
+
+  price(): Money {
+    return Money.of('35.00');
+  }
+}
+```
+
+**Po (`MarathonScreening.ts`, cały plik):**
+
+```typescript
+import { Money } from '../../../shared/Money.js';
+import type { ScreeningMembers } from './Screening.js';
+
+/** Maraton jako niezmienny obiekt wartości (w Javie: rekord) - pole films ma jedno znaczenie. */
 export class MarathonScreening implements ScreeningMembers {
   readonly kind = 'MARATHON';
 
   constructor(readonly title: string, readonly films: number) {}
 
+  label(): string {
+    return `Maraton: ${this.title} (${this.films} filmy)`;
+  }
+
   durationMinutes(): number {
     return this.films * 120 + (this.films - 1) * 15;
   }
+
+  price(): Money {
+    return Money.of('20.00').times(this.films);
+  }
+}
 ```
 
 **Uruchom:** test zielony; `S02SolutionTest` zawiera `switch (screening.kind)` klienta zakończony `default: return assertNever(screening)` - dodanie czwartego rodzaju do unii psuje kompilację (`npm run typecheck`).
@@ -458,21 +857,133 @@ private basePrice(formatCode: number): Money {
 
 1. Utwórz klasę `Format` ze stałymi instancjami `TWO_D` (kod 1), `THREE_D` (2), `IMAX` (3): prywatny konstruktor, pola `name` (unia literałów) i `code`, metoda `values()` oraz `fromCode(code)` rzucająca ten sam wyjątek co start (`unknown format code: ...`).
 2. W `describe` zamień liczbę na `Format` zaraz po odczycie; typy parametrów metod prywatnych (`label`, `basePrice`, `needsGlasses`, `toCsv`) zmień ręcznie z `number` na `Format` - kompilator wskaże resztę miejsc.
-3. Switche w `label` i `basePrice` przejdź na `format.name` (wyczerpujące, bez `default`); `needsGlasses` porównuje `format === Format.THREE_D`. Usuń stałe `FORMAT_2D`, `FORMAT_3D`, `FORMAT_IMAX`. Do CSV zapisuj `format.code`.
+3. Switche w `label` i `basePrice` przejdź na `format.name` (wyczerpujące, bez `default`); `needsGlasses` porównuje `format === Format.THREE_D`. Usuń stałe `FORMAT_2D`, `FORMAT_3D`, `FORMAT_IMAX`. Do CSV zapisuj `format.code`. Import `IllegalArgumentError` przenosi się z `ScreeningCsv.ts` do `Format.ts`.
 
-**Przed:**
+**Po (`Format.ts`, nowy plik):**
 
 ```typescript
-const formatCode = parseInteger(parts[1]!.trim());
-return `${title}|${this.label(formatCode)}|${this.basePrice(formatCode).toString()}`
-  + `|okulary:${this.needsGlasses(formatCode) ? 'tak' : 'nie'}`
-  + `|csv=${this.toCsv(title, formatCode)}`;
+import { IllegalArgumentError } from '../../../../shared/errors.js';
+
+/**
+ * Nowy typ dla kodu. Zamknięty zestaw instancji wystarcza - formatów jest mało.
+ * (W Javie: enum z polem code; TypeScriptowy enum nie ma pól, więc klasa ze stałymi instancjami.)
+ */
+export class Format {
+  static readonly TWO_D = new Format('TWO_D', 1);
+  static readonly THREE_D = new Format('THREE_D', 2);
+  static readonly IMAX = new Format('IMAX', 3);
+
+  private constructor(readonly name: 'TWO_D' | 'THREE_D' | 'IMAX', readonly code: number) {}
+
+  static values(): readonly Format[] {
+    return [Format.TWO_D, Format.THREE_D, Format.IMAX];
+  }
+
+  static fromCode(code: number): Format {
+    for (const format of Format.values()) {
+      if (format.code === code) {
+        return format;
+      }
+    }
+    throw new IllegalArgumentError(`unknown format code: ${code}`);
+  }
+
+  toString(): string {
+    return this.name;
+  }
+}
 ```
 
-**Po:**
+**Przed (`ScreeningCsv.ts`, cały plik bez importów):**
 
 ```typescript
-const format = Format.fromCode(parseInteger(parts[1]!.trim()));
+export class ScreeningCsv {
+  static readonly FORMAT_2D = 1;
+  static readonly FORMAT_3D = 2;
+  static readonly FORMAT_IMAX = 3;
+
+  /** Wiersz "tytuł;kod" - np. "Diuna;3". */
+  describe(line: string): string {
+    const parts = line.split(';');
+    const title = parts[0]!;
+    const formatCode = parseInteger(parts[1]!.trim());
+    return `${title}|${this.label(formatCode)}|${this.basePrice(formatCode).toString()}`
+      + `|okulary:${this.needsGlasses(formatCode) ? 'tak' : 'nie'}`
+      + `|csv=${this.toCsv(title, formatCode)}`;
+  }
+
+  private label(formatCode: number): string {
+    switch (formatCode) {
+      case ScreeningCsv.FORMAT_2D: return '2D';
+      case ScreeningCsv.FORMAT_3D: return '3D';
+      case ScreeningCsv.FORMAT_IMAX: return 'IMAX';
+      default: throw new IllegalArgumentError(`unknown format code: ${formatCode}`);
+    }
+  }
+
+  private basePrice(formatCode: number): Money {
+    switch (formatCode) {
+      case ScreeningCsv.FORMAT_2D: return Money.of('25.00');
+      case ScreeningCsv.FORMAT_3D: return Money.of('32.00');
+      case ScreeningCsv.FORMAT_IMAX: return Money.of('40.00');
+      default: throw new IllegalArgumentError(`unknown format code: ${formatCode}`);
+    }
+  }
+
+  private needsGlasses(formatCode: number): boolean {
+    return formatCode === ScreeningCsv.FORMAT_3D;
+  }
+
+  private toCsv(title: string, formatCode: number): string {
+    return `${title};${formatCode}`;
+  }
+}
+```
+
+**Po (`ScreeningCsv.ts`, cały plik):**
+
+```typescript
+import { Money } from '../../../shared/Money.js';
+import { parseInteger } from '../Integers.js';
+import { Format } from './Format.js';
+
+/** Liczba zamieniana na Format na granicy (odczyt CSV); do CSV nadal trafia format.code. */
+export class ScreeningCsv {
+  /** Wiersz "tytuł;kod" - np. "Diuna;3". */
+  describe(line: string): string {
+    const parts = line.split(';');
+    const title = parts[0]!;
+    const format = Format.fromCode(parseInteger(parts[1]!.trim()));
+    return `${title}|${this.label(format)}|${this.basePrice(format).toString()}`
+      + `|okulary:${this.needsGlasses(format) ? 'tak' : 'nie'}`
+      + `|csv=${this.toCsv(title, format)}`;
+  }
+
+  // switch po format.name jest wyczerpujący - kompilator pilnuje wszystkich formatów.
+  private label(format: Format): string {
+    switch (format.name) {
+      case 'TWO_D': return '2D';
+      case 'THREE_D': return '3D';
+      case 'IMAX': return 'IMAX';
+    }
+  }
+
+  private basePrice(format: Format): Money {
+    switch (format.name) {
+      case 'TWO_D': return Money.of('25.00');
+      case 'THREE_D': return Money.of('32.00');
+      case 'IMAX': return Money.of('40.00');
+    }
+  }
+
+  private needsGlasses(format: Format): boolean {
+    return format === Format.THREE_D;
+  }
+
+  private toCsv(title: string, format: Format): string {
+    return `${title};${format.code}`;
+  }
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang ts test m5/s03` - zielone, łącznie z "nieznany kod" i "kod nie jest liczbą".
@@ -484,32 +995,51 @@ const format = Format.fromCode(parseInteger(parts[1]!.trim()));
 **Zmiany:**
 
 1. Przenieś wiedzę z metod `label`, `basePrice`, `needsGlasses` do typu `Format` jako pola `readonly label`, `basePrice`, `requiresGlasses` (Move Method, ręcznie): wartości z gałęzi `switch` trafiają do wywołań konstruktora stałych instancji, a cena jest tworzona z łańcucha w konstruktorze.
-2. Usuń z `ScreeningCsv` metody prywatne `label`, `basePrice`, `needsGlasses` i `toCsv`; `describe` pyta obiekt (`format.label`, `format.basePrice`, `format.requiresGlasses`) i skleja zapis `${title};${format.code}`.
+2. Usuń z `ScreeningCsv` metody prywatne `label`, `basePrice`, `needsGlasses` i `toCsv` oraz import `Money`; `describe` pyta obiekt (`format.label`, `format.basePrice`, `format.requiresGlasses`) i skleja zapis `${title};${format.code}`. Metody `values`, `fromCode` i `toString` w `Format` zostają bez zmian; w `Format.ts` dochodzi import `Money`.
 
-**Przed:**
+**Przed:** `Format.ts` i `ScreeningCsv.ts` jak w blokach Po kroku 1.
+
+**Po (`Format.ts`, stałe i konstruktor; reszta klasy bez zmian):**
 
 ```typescript
-// Format:
-static readonly TWO_D = new Format('TWO_D', 1);
-static readonly THREE_D = new Format('THREE_D', 2);
-static readonly IMAX = new Format('IMAX', 3);
+export class Format {
+  static readonly TWO_D = new Format('TWO_D', 1, '2D', '25.00', false);
+  static readonly THREE_D = new Format('THREE_D', 2, '3D', '32.00', true);
+  static readonly IMAX = new Format('IMAX', 3, 'IMAX', '40.00', false);
 
-// ScreeningCsv:
-private basePrice(format: Format): Money {
-  switch (format.name) {
-    case 'TWO_D': return Money.of('25.00');
-    case 'THREE_D': return Money.of('32.00');
-    case 'IMAX': return Money.of('40.00');
+  readonly basePrice: Money;
+
+  private constructor(
+    readonly name: 'TWO_D' | 'THREE_D' | 'IMAX',
+    readonly code: number,
+    readonly label: string,
+    basePrice: string,
+    readonly requiresGlasses: boolean,
+  ) {
+    this.basePrice = Money.of(basePrice);
   }
+  // values(), fromCode(), toString() - bez zmian
 }
 ```
 
-**Po:**
+**Po (`ScreeningCsv.ts`, cały plik):**
 
 ```typescript
-static readonly TWO_D = new Format('TWO_D', 1, '2D', '25.00', false);
-static readonly THREE_D = new Format('THREE_D', 2, '3D', '32.00', true);
-static readonly IMAX = new Format('IMAX', 3, 'IMAX', '40.00', false);
+import { parseInteger } from '../Integers.js';
+import { Format } from './Format.js';
+
+/** Klient pyta obiekt formatu zamiast wykonywać switch. */
+export class ScreeningCsv {
+  /** Wiersz "tytuł;kod" - np. "Diuna;3". */
+  describe(line: string): string {
+    const parts = line.split(';');
+    const title = parts[0]!;
+    const format = Format.fromCode(parseInteger(parts[1]!.trim()));
+    return `${title}|${format.label}|${format.basePrice.toString()}`
+      + `|okulary:${format.requiresGlasses ? 'tak' : 'nie'}`
+      + `|csv=${title};${format.code}`;
+  }
+}
 ```
 
 **Uruchom:** test zielony.
@@ -522,9 +1052,9 @@ static readonly IMAX = new Format('IMAX', 3, 'IMAX', '40.00', false);
 
 1. Utwórz klasę `FormatCodes` z prywatnym konstruktorem i mapą `private static readonly CODES: ReadonlyMap<Format, number>`; `fromCode(code)` szuka formatu po kodzie i rzuca ten sam wyjątek co dotąd, `toCode(format)` czyta kod z mapy.
 2. Usuń z `Format` pole `code` i metodę `fromCode` - typ domenowy nie zna już kodów trwałych.
-3. Przełącz `ScreeningCsv` na mapper: odczyt przez `FormatCodes.fromCode(...)`, zapis przez `FormatCodes.toCode(format)`. Reszta kodu rozmawia wyłącznie z `Format`.
+3. Przełącz `ScreeningCsv` na mapper: odczyt przez `FormatCodes.fromCode(...)`, zapis przez `FormatCodes.toCode(format)`; import `Format` zamienia się na import `FormatCodes`. Reszta kodu rozmawia wyłącznie z `Format`.
 
-**Przed:**
+**Przed (`ScreeningCsv.ts`, metoda `describe`):**
 
 ```typescript
 const format = Format.fromCode(parseInteger(parts[1]!.trim()));
@@ -533,11 +1063,67 @@ return `${title}|${format.label}|${format.basePrice.toString()}`
   + `|csv=${title};${format.code}`;
 ```
 
-**Po:**
+**Po (`FormatCodes.ts`, nowy plik):**
+
+```typescript
+import { IllegalArgumentError } from '../../../../shared/errors.js';
+import { requireNonNull } from '../../../../shared/requireNonNull.js';
+import { Format } from './Format.js';
+
+/**
+ * Mapper migracyjny liczba <-> Format. Baza i CSV zostają przy kodzie liczbowym;
+ * gdy kiedyś przejdziemy na kody tekstowe, zmieni się tylko ta klasa.
+ */
+export class FormatCodes {
+  private static readonly CODES: ReadonlyMap<Format, number> = new Map([
+    [Format.TWO_D, 1],
+    [Format.THREE_D, 2],
+    [Format.IMAX, 3],
+  ]);
+
+  private constructor() {}
+
+  static fromCode(code: number): Format {
+    for (const [format, formatCode] of FormatCodes.CODES) {
+      if (formatCode === code) {
+        return format;
+      }
+    }
+    throw new IllegalArgumentError(`unknown format code: ${code}`);
+  }
+
+  static toCode(format: Format): number {
+    return requireNonNull(FormatCodes.CODES.get(format));
+  }
+}
+```
+
+**Po (`Format.ts`, stałe i konstruktor po usunięciu kodu; `fromCode` i import `IllegalArgumentError` znikają, `values()` i `toString()` zostają):**
+
+```typescript
+static readonly TWO_D = new Format('TWO_D', '2D', '25.00', false);
+static readonly THREE_D = new Format('THREE_D', '3D', '32.00', true);
+static readonly IMAX = new Format('IMAX', 'IMAX', '40.00', false);
+
+readonly basePrice: Money;
+
+private constructor(
+  readonly name: 'TWO_D' | 'THREE_D' | 'IMAX',
+  readonly label: string,
+  basePrice: string,
+  readonly requiresGlasses: boolean,
+) {
+  this.basePrice = Money.of(basePrice);
+}
+```
+
+**Po (`ScreeningCsv.ts`, metoda `describe`):**
 
 ```typescript
 const format = FormatCodes.fromCode(parseInteger(parts[1]!.trim()));
-... + `|csv=${title};${FormatCodes.toCode(format)}`;
+return `${title}|${format.label}|${format.basePrice.toString()}`
+  + `|okulary:${format.requiresGlasses ? 'tak' : 'nie'}`
+  + `|csv=${title};${FormatCodes.toCode(format)}`;
 ```
 
 **Uruchom:** test zielony; `S03SolutionTest` sprawdza, że pozycja IMAX w `Format.values()` to 2, a kod trwały to 3.
@@ -589,9 +1175,31 @@ tickets.push(row >= 10
 **Zmiany:**
 
 1. W katalogu `tickets` utwórz klasę `Tickets` z prywatnym konstruktorem i metodami tworzącymi `static standard(title, base, row)` i `static vip(title, base, row)` - obie zwracają typ `Ticket`.
-2. W `BoxOffice` zastąp każde `new VipTicket(...)`/`new StandardTicket(...)` wywołaniem metody tworzącej i usuń importy klas konkretnych (ręcznie - VS Code nie ma Replace Constructor with Factory Method; listę miejsc daje wyszukanie wszystkich odwołań do konstruktora).
+2. W `BoxOffice` zastąp każde `new VipTicket(...)`/`new StandardTicket(...)` wywołaniem metody tworzącej i usuń importy klas konkretnych (ręcznie - VS Code nie ma Replace Constructor with Factory Method; listę miejsc daje wyszukanie wszystkich odwołań do konstruktora). W miejsce usuniętych importów dodaj `import { Tickets } from './tickets/Tickets.js';`. Pliki `Ticket.ts`, `StandardTicket.ts` i `VipTicket.ts` bez zmian w kodzie (w snapshotach zmieniają się tylko komentarze TSDoc - tak w całej scenie).
 
-**Przed:**
+**Po (`tickets/Tickets.ts`, nowy plik):**
+
+```typescript
+import type { Money } from '../../../../shared/Money.js';
+import { StandardTicket } from './StandardTicket.js';
+import type { Ticket } from './Ticket.js';
+import { VipTicket } from './VipTicket.js';
+
+/** Metody tworzące (Creation Method) obok klas biletów - zwracają typ Ticket. */
+export class Tickets {
+  private constructor() {}
+
+  static standard(title: string, base: Money, row: number): Ticket {
+    return new StandardTicket(title, base, row);
+  }
+
+  static vip(title: string, base: Money, row: number): Ticket {
+    return new VipTicket(title, base, row);
+  }
+}
+```
+
+**Przed (`BoxOffice.ts`, metody `sell` i `sellAll`):**
 
 ```typescript
 sell(title: string, base: Money, row: number): Ticket {
@@ -600,15 +1208,35 @@ sell(title: string, base: Money, row: number): Ticket {
   }
   return new StandardTicket(title, base, row);
 }
+
+sellAll(title: string, base: Money, rows: readonly number[]): Ticket[] {
+  const tickets: Ticket[] = [];
+  for (const row of rows) {
+    tickets.push(row >= 10
+      ? new VipTicket(title, base, row)
+      : new StandardTicket(title, base, row));
+  }
+  return tickets;
+}
 ```
 
-**Po:**
+**Po (`BoxOffice.ts`, metody `sell` i `sellAll`):**
 
 ```typescript
-if (row >= 10) {
-  return Tickets.vip(title, base, row);
+sell(title: string, base: Money, row: number): Ticket {
+  if (row >= 10) {
+    return Tickets.vip(title, base, row);
+  }
+  return Tickets.standard(title, base, row);
 }
-return Tickets.standard(title, base, row);
+
+sellAll(title: string, base: Money, rows: readonly number[]): Ticket[] {
+  const tickets: Ticket[] = [];
+  for (const row of rows) {
+    tickets.push(row >= 10 ? Tickets.vip(title, base, row) : Tickets.standard(title, base, row));
+  }
+  return tickets;
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang ts test m5/s04` - zielone.
@@ -623,22 +1251,39 @@ return Tickets.standard(title, base, row);
 2. Liczbę 10 wyodrębnij do stałej `private static readonly VIP_FROM_ROW` (Extract Constant).
 3. W `BoxOffice` metoda `sell` tylko deleguje do `Tickets.forSeat(...)`, a `sellAll` woła `this.sell(...)` w pętli.
 
-**Przed:**
+**Przed:** `Tickets.ts` i metody `BoxOffice` jak w blokach Po kroku 1.
+
+**Po (`tickets/Tickets.ts`, cała klasa; importy bez zmian):**
 
 ```typescript
-sell(title: string, base: Money, row: number): Ticket {
-  if (row >= 10) {
-    return Tickets.vip(title, base, row);
+/** Move Method - decyzja "który bilet" należy do fabryki, nie do klienta. */
+export class Tickets {
+  private static readonly VIP_FROM_ROW = 10;
+
+  private constructor() {}
+
+  static forSeat(title: string, base: Money, row: number): Ticket {
+    if (row >= Tickets.VIP_FROM_ROW) {
+      return new VipTicket(title, base, row);
+    }
+    return new StandardTicket(title, base, row);
   }
-  return Tickets.standard(title, base, row);
 }
 ```
 
-**Po:**
+**Po (`BoxOffice.ts`, metody `sell` i `sellAll`):**
 
 ```typescript
 sell(title: string, base: Money, row: number): Ticket {
   return Tickets.forSeat(title, base, row);
+}
+
+sellAll(title: string, base: Money, rows: readonly number[]): Ticket[] {
+  const tickets: Ticket[] = [];
+  for (const row of rows) {
+    tickets.push(this.sell(title, base, row));
+  }
+  return tickets;
 }
 ```
 
@@ -652,30 +1297,67 @@ sell(title: string, base: Money, row: number): Ticket {
 
 1. Przenieś deklaracje klas `StandardTicket` i `VipTicket` do `tickets/Tickets.ts`, nad fabrykę (przeniesienie deklaracji do istniejącego pliku).
 2. Usuń z obu klas słowo `export` - stają się prywatne dla modułu. Pliki `StandardTicket.ts` i `VipTicket.ts` znikają (po przeniesieniu są puste).
-3. Uruchom `npm run typecheck` - podkreśli każde użycie klas spoza modułu; to inwentaryzacja, którą robi za nas kompilator.
+3. Uruchom `npm run typecheck` - podkreśli każde użycie klas spoza modułu; to inwentaryzacja, którą robi za nas kompilator. W `Tickets.ts` import `Money` przestaje być `import type` (ciała klas wołają `Money.of`), a importy `StandardTicket` i `VipTicket` znikają. Pola konstruktorów przeniesionych klas zmieniają się z `private readonly` na `readonly` (jak pola rekordu). `BoxOffice` i `Ticket.ts` bez zmian.
 
-**Przed:**
+**Przed:** pliki `tickets/StandardTicket.ts` i `tickets/VipTicket.ts` (usuwane w tym kroku) oraz fabryka z kroku 2.
+
+**Po (`tickets/Tickets.ts`, cały plik):**
 
 ```typescript
-// tickets/VipTicket.ts - plik znika, klasa przenosi się do Tickets.ts:
-export class VipTicket implements Ticket {
+import { Money } from '../../../../shared/Money.js';
+import type { Ticket } from './Ticket.js';
+
+// Klasy konkretne są prywatne dla modułu (brak export) - poza tym plikiem nie da się
+// ich utworzyć ani zaimportować. TypeScript nie ma widoczności pakietowej z Javy, więc
+// StandardTicket i VipTicket przeniesione z osobnych plików tutaj, obok fabryki.
+
+/** Klasa prywatna modułu - zwykłe miejsce (w Javie: rekord pakietowy). */
+class StandardTicket implements Ticket {
   constructor(
-    private readonly title: string,
-    private readonly base: Money,
-    private readonly row: number,
+    readonly title: string,
+    readonly base: Money,
+    readonly row: number,
   ) {}
-```
 
-**Po:**
+  price(): Money {
+    return this.base;
+  }
 
-```typescript
-/** Krok 3: klasa prywatna modułu, miejsce VIP: +10.00 (w Javie: rekord pakietowy). */
+  describe(): string {
+    return `${this.title} r${this.row} ${this.price().toString()}`;
+  }
+}
+
+/** Klasa prywatna modułu, miejsce VIP: +10.00 (w Javie: rekord pakietowy). */
 class VipTicket implements Ticket {
   constructor(
     readonly title: string,
     readonly base: Money,
     readonly row: number,
   ) {}
+
+  price(): Money {
+    return this.base.plus(Money.of('10.00'));
+  }
+
+  describe(): string {
+    return `${this.title} r${this.row} VIP ${this.price().toString()}`;
+  }
+}
+
+/** Fabryka jest jedynym publicznym wejściem do tworzenia biletów. */
+export class Tickets {
+  private static readonly VIP_FROM_ROW = 10;
+
+  private constructor() {}
+
+  static forSeat(title: string, base: Money, row: number): Ticket {
+    if (row >= Tickets.VIP_FROM_ROW) {
+      return new VipTicket(title, base, row);
+    }
+    return new StandardTicket(title, base, row);
+  }
+}
 ```
 
 **Uruchom:** test zielony; `S04SolutionTest` sprawdza, że poza modułem fabryki klas konkretnych nie widać.
@@ -734,7 +1416,7 @@ Test to scenariusz kilku rezerwacji na jednym serwisie: zajęte miejsce nie zuż
 2. Pętlę sprawdzającą zajętość miejsc wyodrębnij tak samo do prywatnej metody `requireFree(seats)`.
 3. W `reserveGroup` zastąp skopiowany kod wywołaniami `this.requireFree(seats)` i `this.newReservation('ONLINE', email, seats)`.
 
-**Przed:**
+**Przed (`ReservationService.ts`, metody `reserve` i `reserveGroup`):**
 
 ```typescript
 reserve(channel: string, email: string, seats: readonly string[]): Reservation {
@@ -755,31 +1437,53 @@ reserve(channel: string, email: string, seats: readonly string[]): Reservation {
   seats.forEach((seat) => this.takenSeats.add(seat));
   return new Reservation(id, channel, email, Object.freeze([...seats]), fee, expiresAt);
 }
+
+reserveGroup(email: string, seats: readonly string[]): Reservation {
+  if (seats.length < 10) {
+    throw new IllegalArgumentError('group needs 10+ seats');
+  }
+  for (const seat of seats) {
+    if (this.takenSeats.has(seat)) {
+      throw new IllegalStateError(`seat taken: ${seat}`);
+    }
+  }
+  this.sequence++;
+  const id = `R${this.sequence}`;
+  const fee = Money.of('2.00').times(seats.length);
+  const expiresAt = LocalDateTime.now(this.clock).plusMinutes(15);
+  seats.forEach((seat) => this.takenSeats.add(seat));
+  return new Reservation(id, 'ONLINE', email, Object.freeze([...seats]), fee, expiresAt);
+}
 ```
 
-**Po:**
+**Po (`ReservationService.ts`, wszystkie cztery metody; pola i konstruktor bez zmian):**
 
 ```typescript
-this.requireFree(seats);
-const reservation = this.newReservation(channel, email, seats);
-seats.forEach((seat) => this.takenSeats.add(seat));
-```
+reserve(channel: string, email: string, seats: readonly string[]): Reservation {
+  this.requireFree(seats);
+  const reservation = this.newReservation(channel, email, seats);
+  seats.forEach((seat) => this.takenSeats.add(seat));
+  return reservation;
+}
 
-**Uruchom:** `scripts/warsztat.sh --lang ts test m5/s05` - zielone.
-**Co powiedzieć:** kolejność efektów zostaje: najpierw sprawdzenie miejsc, potem numer, potem walidacja kanału. Gdybyśmy przy okazji "poprawili" kolejność, test to wychwyci.
-**Snapshot:** `step1/` · **Różnica:** `scripts/warsztat.sh --lang ts diff m5/s05 0 1`
+reserveGroup(email: string, seats: readonly string[]): Reservation {
+  if (seats.length < 10) {
+    throw new IllegalArgumentError('group needs 10+ seats');
+  }
+  this.requireFree(seats);
+  const reservation = this.newReservation('ONLINE', email, seats);
+  seats.forEach((seat) => this.takenSeats.add(seat));
+  return reservation;
+}
 
-### Krok 2: Extract Class - ReservationFactory
+private requireFree(seats: readonly string[]): void {
+  for (const seat of seats) {
+    if (this.takenSeats.has(seat)) {
+      throw new IllegalStateError(`seat taken: ${seat}`);
+    }
+  }
+}
 
-**Zmiany:**
-
-1. Utwórz klasę `ReservationFactory` i przenieś do niej metodę `newReservation` pod nazwą `create(channel, email, seats)` razem z polami `clock` i `sequence` (wyodrębnienie klasy robimy ręcznie - VS Code nie ma Extract Delegate).
-2. W serwisie usuń pola `clock` i `sequence`; zostaje pole `factory`. Konstruktor nadal przyjmuje `Clock` i sam tworzy fabrykę, więc jego sygnatura się nie zmienia.
-3. `reserve` i `reserveGroup` wołają `this.factory.create(...)`.
-
-**Przed:**
-
-```typescript
 private newReservation(channel: string, email: string, seats: readonly string[]): Reservation {
   this.sequence++;
   const id = `R${this.sequence}`;
@@ -794,11 +1498,65 @@ private newReservation(channel: string, email: string, seats: readonly string[])
 }
 ```
 
-**Po:**
+**Uruchom:** `scripts/warsztat.sh --lang ts test m5/s05` - zielone.
+**Co powiedzieć:** kolejność efektów zostaje: najpierw sprawdzenie miejsc, potem numer, potem walidacja kanału. Gdybyśmy przy okazji "poprawili" kolejność, test to wychwyci.
+**Snapshot:** `step1/` · **Różnica:** `scripts/warsztat.sh --lang ts diff m5/s05 0 1`
+
+### Krok 2: Extract Class - ReservationFactory
+
+**Zmiany:**
+
+1. Utwórz klasę `ReservationFactory` i przenieś do niej metodę `newReservation` pod nazwą `create(channel, email, seats)` razem z polami `clock` i `sequence` (wyodrębnienie klasy robimy ręcznie - VS Code nie ma Extract Delegate).
+2. W serwisie usuń pola `clock` i `sequence`; zostaje pole `factory`. Konstruktor nadal przyjmuje `Clock` i sam tworzy fabrykę, więc jego sygnatura się nie zmienia.
+3. `reserve` i `reserveGroup` wołają `this.factory.create(...)` zamiast `this.newReservation(...)` - reszta ich ciał bez zmian.
+4. Popraw importy serwisu: `Money`, `LocalDateTime` i `Reservation` (klasa) nie są już potrzebne - zostają `IllegalArgumentError`, `IllegalStateError`, `import type { Clock }`, `import type { Reservation }` oraz nowy `import { ReservationFactory } from './ReservationFactory.js';`.
+
+**Przed:** metoda `newReservation` i konstruktor `constructor(private readonly clock: Clock) {}` - jak w bloku Po kroku 1.
+
+**Po (`ReservationFactory.ts`, nowy plik):**
 
 ```typescript
-constructor(clock: Clock) {
-  this.factory = new ReservationFactory(clock);
+import { IllegalArgumentError } from '../../../../shared/errors.js';
+import { Money } from '../../../shared/Money.js';
+import { type Clock, LocalDateTime } from '../../../shared/time.js';
+import { Reservation } from '../Reservation.js';
+
+/**
+ * Extract Factory Class - cała wiedza o budowie rezerwacji (numeracja, opłata,
+ * termin ważności) w jednej klasie. Pole sequence i zegar przeniesione razem z metodą.
+ */
+export class ReservationFactory {
+  private sequence = 0;
+
+  constructor(private readonly clock: Clock) {}
+
+  create(channel: string, email: string, seats: readonly string[]): Reservation {
+    this.sequence++;
+    const id = `R${this.sequence}`;
+    if (channel !== 'ONLINE' && channel !== 'BOX_OFFICE') {
+      throw new IllegalArgumentError(`unknown channel: ${channel}`);
+    }
+    const fee = channel === 'ONLINE' ? Money.of('2.00').times(seats.length) : Money.ZERO;
+    const expiresAt = channel === 'ONLINE'
+      ? LocalDateTime.now(this.clock).plusMinutes(15)
+      : null;
+    return new Reservation(id, channel, email, Object.freeze([...seats]), fee, expiresAt);
+  }
+}
+```
+
+**Po (`ReservationService.ts`, pola i konstruktor):**
+
+```typescript
+export class ReservationService {
+  private readonly factory: ReservationFactory;
+  private readonly takenSeats = new Set<string>();
+
+  constructor(clock: Clock) {
+    this.factory = new ReservationFactory(clock);
+  }
+  // reserve i reserveGroup: this.factory.create(...) zamiast this.newReservation(...);
+  // requireFree bez zmian; newReservation usunięta
 }
 ```
 
@@ -811,7 +1569,7 @@ constructor(clock: Clock) {
 **Zmiany:**
 
 1. Zmień parametr konstruktora serwisu na `factoryOrClock: ReservationFactory | Clock` ze sprawdzeniem `requireNonNull`.
-2. Gdy argument jest fabryką (`instanceof ReservationFactory`), zapisz go w polu; gdy zegarem - utwórz fabrykę jak dotąd. Dotychczasowi klienci z zegarem działają bez zmian, a test może wstrzyknąć własną fabrykę.
+2. Gdy argument jest fabryką (`instanceof ReservationFactory`), zapisz go w polu; gdy zegarem - utwórz fabrykę jak dotąd. Dotychczasowi klienci z zegarem działają bez zmian, a test może wstrzyknąć własną fabrykę. Dodaj import `requireNonNull` z `shared/requireNonNull.js`. Reszta serwisu i `ReservationFactory` bez zmian w kodzie.
 
 **Przed:**
 
@@ -885,32 +1643,96 @@ day.add(hall2);
 
 1. Utwórz klasę `ScheduleBuilder`: konstruktor z datą tworzy `DaySchedule`, a pole `current` pamięta bieżącą salę.
 2. Dodaj metody: `hall(name)` tworzy `Hall`, dodaje go do dnia i ustawia jako bieżący; `screening(title, hour, minute)` dodaje seans do bieżącej sali, a bez sali rzuca `IllegalStateError('screening without hall')`. Obie zwracają `this`; `build()` zwraca `DaySchedule`.
-3. Przepisz `WeekendPlanner.plan` na łańcuch wywołań buildera; seanse weekendowe dodawaj warunkowo przez `builder.screening(...)`. Drzewo (`DaySchedule`, `Hall`, `Screening`) bez zmian.
+3. Przepisz `WeekendPlanner.plan` na łańcuch wywołań buildera; seanse weekendowe dodawaj warunkowo przez `builder.screening(...)`. Importy planera: zostaje `import type { LocalDate }` i `import type { DaySchedule }`, dochodzi `ScheduleBuilder`; `LocalTime`, `Hall` i `Screening` znikają. Drzewo (`DaySchedule`, `Hall`, `Screening`) bez zmian w kodzie (tylko komentarze TSDoc).
 
-**Przed:**
+**Po (`ScheduleBuilder.ts`, nowy plik):**
 
 ```typescript
-const day = new DaySchedule(date);
-const hall1 = new Hall('Sala 1');
-hall1.add(new Screening('Diuna', LocalTime.of(18, 0)));
-hall1.add(new Screening('Diuna', LocalTime.of(21, 0)));
-day.add(hall1);
-const hall2 = new Hall('Sala 2');
-if (weekend) {
-  hall2.add(new Screening('Kraina Lodu', LocalTime.of(10, 0)));
+import { IllegalStateError } from '../../../../shared/errors.js';
+import { type LocalDate, LocalTime } from '../../../shared/time.js';
+import { DaySchedule } from './DaySchedule.js';
+import { Hall } from './Hall.js';
+import { Screening } from './Screening.js';
+
+/**
+ * Klasyczny Builder (Encapsulate Composite with Builder) - pamięta bieżącą salę,
+ * więc klient nie operuje węzłami ani add. Drzewo pod spodem bez zmian.
+ */
+export class ScheduleBuilder {
+  private readonly day: DaySchedule;
+  private current: Hall | null = null;
+
+  constructor(date: LocalDate) {
+    this.day = new DaySchedule(date);
+  }
+
+  hall(name: string): this {
+    this.current = new Hall(name);
+    this.day.add(this.current);
+    return this;
+  }
+
+  screening(title: string, hour: number, minute: number): this {
+    if (this.current === null) {
+      throw new IllegalStateError('screening without hall');
+    }
+    this.current.add(new Screening(title, LocalTime.of(hour, minute)));
+    return this;
+  }
+
+  build(): DaySchedule {
+    return this.day;
+  }
 }
-hall2.add(new Screening('Amator', LocalTime.of(17, 30)));
-day.add(hall2);
 ```
 
-**Po:**
+**Przed (`WeekendPlanner.ts`, metoda `plan`):**
 
 ```typescript
-const builder = new ScheduleBuilder(date)
-  .hall('Sala 1')
-  .screening('Diuna', 18, 0)
-  .screening('Diuna', 21, 0)
-  .hall('Sala 2');
+plan(date: LocalDate): DaySchedule {
+  const dayOfWeek = date.dayOfWeek;
+  const weekend = dayOfWeek === 'SATURDAY' || dayOfWeek === 'SUNDAY';
+  const day = new DaySchedule(date);
+  const hall1 = new Hall('Sala 1');
+  hall1.add(new Screening('Diuna', LocalTime.of(18, 0)));
+  hall1.add(new Screening('Diuna', LocalTime.of(21, 0)));
+  day.add(hall1);
+  const hall2 = new Hall('Sala 2');
+  if (weekend) {
+    hall2.add(new Screening('Kraina Lodu', LocalTime.of(10, 0)));
+  }
+  hall2.add(new Screening('Amator', LocalTime.of(17, 30)));
+  day.add(hall2);
+  const hall3 = new Hall('Sala 3 VIP');
+  if (weekend) {
+    hall3.add(new Screening('Amator', LocalTime.of(20, 0)));
+  }
+  day.add(hall3);
+  return day;
+}
+```
+
+**Po (`WeekendPlanner.ts`, metoda `plan`):**
+
+```typescript
+plan(date: LocalDate): DaySchedule {
+  const dayOfWeek = date.dayOfWeek;
+  const weekend = dayOfWeek === 'SATURDAY' || dayOfWeek === 'SUNDAY';
+  const builder = new ScheduleBuilder(date)
+    .hall('Sala 1')
+    .screening('Diuna', 18, 0)
+    .screening('Diuna', 21, 0)
+    .hall('Sala 2');
+  if (weekend) {
+    builder.screening('Kraina Lodu', 10, 0);
+  }
+  builder.screening('Amator', 17, 30)
+    .hall('Sala 3 VIP');
+  if (weekend) {
+    builder.screening('Amator', 20, 0);
+  }
+  return builder.build();
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang ts test m5/s06` - zielone (sobota i piątek z pustą salą VIP).
@@ -924,8 +1746,9 @@ const builder = new ScheduleBuilder(date)
 1. Zamień węzły `Hall` i `DaySchedule` na niezmienne klasy: pola `readonly`, lista dzieci przekazywana w konstruktorze i kopiowana przez `Object.freeze([...])`; metody `add` znikają.
 2. Builder zbiera dane w `Map<string, Screening[]>` (zachowuje kolejność wstawiania); `hall(name)` odrzuca powtórzoną nazwę (`duplicate hall: ...`), a węzły powstają dopiero w `build()`.
 3. Dodaj flagę `built` i prywatne `requireNotBuilt()` wołane w każdej metodzie - drugie `build()` rzuca `IllegalStateError('builder already used')`.
+4. W `Screening` zmień pola konstruktora z `private readonly` na `readonly` (builder i `DaySchedule.render` czytają je z zewnątrz). W `DaySchedule.render` zlicz seanse przez `hall.screenings.length` zamiast `hall.size()`; metody `render` poza tym bez zmian. `WeekendPlanner` bez zmian.
 
-**Przed:**
+**Przed (`Hall.ts` i `DaySchedule.ts`, części mutowalne):**
 
 ```typescript
 export class Hall {
@@ -936,9 +1759,26 @@ export class Hall {
   add(screening: Screening): void {
     this.screenings.push(screening);
   }
+
+  size(): number {
+    return this.screenings.length;
+  }
+  // render() bez zmian
+}
+
+export class DaySchedule {
+  private readonly halls: Hall[] = [];
+
+  constructor(private readonly date: LocalDate) {}
+
+  add(hall: Hall): void {
+    this.halls.push(hall);
+  }
+  // render() bez zmian
+}
 ```
 
-**Po:**
+**Po (`Hall.ts` i `DaySchedule.ts`):**
 
 ```typescript
 export class Hall {
@@ -947,6 +1787,76 @@ export class Hall {
   constructor(readonly name: string, screenings: readonly Screening[]) {
     this.screenings = Object.freeze([...screenings]);
   }
+  // render() bez zmian
+}
+
+export class DaySchedule {
+  readonly halls: readonly Hall[];
+
+  constructor(readonly date: LocalDate, halls: readonly Hall[]) {
+    this.halls = Object.freeze([...halls]);
+  }
+
+  render(): string {
+    let text = `${this.date.toString()} ${this.date.dayOfWeek}\n`;
+    let count = 0;
+    for (const hall of this.halls) {
+      text += hall.render();
+      count += hall.screenings.length;
+    }
+    return `${text}Seansow: ${count}\n`;
+  }
+}
+```
+
+**Po (`ScheduleBuilder.ts`, cała klasa; importy bez zmian):**
+
+```typescript
+/**
+ * Builder zbiera dane, a drzewo (niezmienne obiekty) powstaje w build(). Builder jest
+ * jednorazowy - drugie build() rzuca wyjątek, bo wynik nie może zależeć od późniejszych wywołań.
+ */
+export class ScheduleBuilder {
+  // Map zachowuje kolejność wstawiania (w Javie: LinkedHashMap).
+  private readonly halls = new Map<string, Screening[]>();
+  private current: Screening[] | null = null;
+  private built = false;
+
+  constructor(private readonly date: LocalDate) {}
+
+  hall(name: string): this {
+    this.requireNotBuilt();
+    if (this.halls.has(name)) {
+      throw new IllegalStateError(`duplicate hall: ${name}`);
+    }
+    this.current = [];
+    this.halls.set(name, this.current);
+    return this;
+  }
+
+  screening(title: string, hour: number, minute: number): this {
+    this.requireNotBuilt();
+    if (this.current === null) {
+      throw new IllegalStateError('screening without hall');
+    }
+    this.current.push(new Screening(title, LocalTime.of(hour, minute)));
+    return this;
+  }
+
+  build(): DaySchedule {
+    this.requireNotBuilt();
+    this.built = true;
+    const result: Hall[] = [];
+    this.halls.forEach((screenings, name) => result.push(new Hall(name, screenings)));
+    return new DaySchedule(this.date, result);
+  }
+
+  private requireNotBuilt(): void {
+    if (this.built) {
+      throw new IllegalStateError('builder already used');
+    }
+  }
+}
 ```
 
 **Uruchom:** test zielony; `S06SolutionTest` sprawdza jednorazowość i niemutowalność.
@@ -959,32 +1869,89 @@ export class Hall {
 
 1. Dodaj w pliku buildera klasę `HallBuilder` z metodą `screening(title, hour, minute)`, dopisującą seans do listy przekazanej w konstruktorze.
 2. Zmień `hall` na `hall(name, content: (hall: HallBuilder) => void)`: metoda tworzy listę seansów, woła funkcję z nowym `HallBuilder` i od razu buduje `Hall` - ukryty stan "bieżąca sala" znika.
-3. Zrób konstruktor `ScheduleBuilder` prywatnym; wejściem jest statyczne `ScheduleBuilder.day(date)`. Przepisz planera na zagnieżdżone wywołania z funkcją strzałkową dla każdej sali.
+3. Zrób konstruktor `ScheduleBuilder` prywatnym; wejściem jest statyczne `ScheduleBuilder.day(date)`. Metoda `screening` i pole `current` znikają z `ScheduleBuilder`; sale zbiera zwykła tablica `private readonly halls: Hall[] = []`, a `build()` zwraca `new DaySchedule(this.date, this.halls)`. Przepisz planera na zagnieżdżone wywołania z funkcją strzałkową dla każdej sali. Drzewo bez zmian.
 
-**Przed:**
+**Przed:** `ScheduleBuilder.ts` i metoda `plan` jak w blokach Po kroku 2 i kroku 1.
+
+**Po (`ScheduleBuilder.ts`, obie klasy; importy bez zmian):**
 
 ```typescript
-const builder = new ScheduleBuilder(date)
-  .hall('Sala 1')
-  .screening('Diuna', 18, 0)
-  .screening('Diuna', 21, 0)
-  .hall('Sala 2');
-if (weekend) {
-  builder.screening('Kraina Lodu', 10, 0);
+/**
+ * Builder jednej sali - dostaje go lambda przekazana do ScheduleBuilder.hall.
+ * (W Javie: zagnieżdżona klasa ScheduleBuilder.HallBuilder z prywatnym konstruktorem;
+ * tu klasa obok, zapisująca seanse do listy należącej do ScheduleBuilder.)
+ */
+export class HallBuilder {
+  constructor(private readonly screenings: Screening[]) {}
+
+  screening(title: string, hour: number, minute: number): this {
+    this.screenings.push(new Screening(title, LocalTime.of(hour, minute)));
+    return this;
+  }
 }
-builder.screening('Amator', 17, 30)
-  .hall('Sala 3 VIP');
+
+/**
+ * Zagnieżdżony builder - sala konfigurowana lambdą, więc znika ukryty stan
+ * "bieżąca sala". Lambda jest wywoływana synchronicznie, dokładnie raz.
+ */
+export class ScheduleBuilder {
+  private readonly halls: Hall[] = [];
+  private built = false;
+
+  private constructor(private readonly date: LocalDate) {}
+
+  static day(date: LocalDate): ScheduleBuilder {
+    return new ScheduleBuilder(date);
+  }
+
+  hall(name: string, content: (hall: HallBuilder) => void): this {
+    this.requireNotBuilt();
+    if (this.halls.some((hall) => hall.name === name)) {
+      throw new IllegalStateError(`duplicate hall: ${name}`);
+    }
+    const screenings: Screening[] = [];
+    content(new HallBuilder(screenings));
+    this.halls.push(new Hall(name, screenings));
+    return this;
+  }
+
+  build(): DaySchedule {
+    this.requireNotBuilt();
+    this.built = true;
+    return new DaySchedule(this.date, this.halls);
+  }
+
+  private requireNotBuilt(): void {
+    if (this.built) {
+      throw new IllegalStateError('builder already used');
+    }
+  }
+}
 ```
 
-**Po:**
+**Po (`WeekendPlanner.ts`, metoda `plan`):**
 
 ```typescript
-return ScheduleBuilder.day(date)
-  .hall('Sala 1', (hall) => hall
-    .screening('Diuna', 18, 0)
-    .screening('Diuna', 21, 0))
-  .hall('Sala 2', (hall) => { ... })
-  .build();
+plan(date: LocalDate): DaySchedule {
+  const dayOfWeek = date.dayOfWeek;
+  const weekend = dayOfWeek === 'SATURDAY' || dayOfWeek === 'SUNDAY';
+  return ScheduleBuilder.day(date)
+    .hall('Sala 1', (hall) => hall
+      .screening('Diuna', 18, 0)
+      .screening('Diuna', 21, 0))
+    .hall('Sala 2', (hall) => {
+      if (weekend) {
+        hall.screening('Kraina Lodu', 10, 0);
+      }
+      hall.screening('Amator', 17, 30);
+    })
+    .hall('Sala 3 VIP', (hall) => {
+      if (weekend) {
+        hall.screening('Amator', 20, 0);
+      }
+    })
+    .build();
+}
 ```
 
 **Uruchom:** test zielony.
@@ -1037,10 +2004,23 @@ return `${this.title} ${this.format}`
 **Zmiany:**
 
 1. Utwórz nowy plik `PricedTicket.ts` z interfejsem `PricedTicket` o metodach `price(): Money` i `description(): string` (Extract Interface robimy ręcznie).
-2. Dopisz `implements PricedTicket` do klasy `Ticket`.
-3. Zmień typ wyniku `TicketAssembler.assemble` z `Ticket` na `PricedTicket` - fabryka będzie mogła zwrócić udekorowany obiekt.
+2. Dopisz `implements PricedTicket` do klasy `Ticket` (plus `import type { PricedTicket } from './PricedTicket.js';`); reszta klasy bez zmian.
+3. Zmień typ wyniku `TicketAssembler.assemble` z `Ticket` na `PricedTicket` (ten sam import) - fabryka będzie mogła zwrócić udekorowany obiekt.
 
-**Przed:**
+**Po (`PricedTicket.ts`, nowy plik):**
+
+```typescript
+import type { Money } from '../../../shared/Money.js';
+
+/** Wąski kontrakt wspólny dla rdzenia i przyszłych dekoratorów. */
+export interface PricedTicket {
+  price(): Money;
+
+  description(): string;
+}
+```
+
+**Przed (`TicketAssembler.ts`):**
 
 ```typescript
 export class TicketAssembler {
@@ -1050,12 +2030,18 @@ export class TicketAssembler {
 }
 ```
 
-**Po:**
+**Po (`TicketAssembler.ts` i nagłówek `Ticket.ts`):**
 
 ```typescript
-assemble(order: TicketOrder): PricedTicket {
-  return new Ticket(order);
+export class TicketAssembler {
+  assemble(order: TicketOrder): PricedTicket {
+    return new Ticket(order);
+  }
 }
+```
+
+```typescript
+export class Ticket implements PricedTicket {
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang ts test m5/s07` - zielone.
@@ -1067,10 +2053,34 @@ assemble(order: TicketOrder): PricedTicket {
 **Zmiany:**
 
 1. Utwórz klasę `Insurance implements PricedTicket` z polem `readonly inner: PricedTicket`: `price()` dodaje 4.00 do ceny środka, `description()` dopisuje " +ubezpieczenie" do opisu środka.
-2. Usuń z `Ticket` pole `insurance` oraz jego gałęzie w `price()` i `description()` (ręcznie - `npm run typecheck` pokaże resztę użyć).
-3. W `TicketAssembler.assemble` owiń rdzeń dekoratorem, gdy `order.insurance`.
+2. Usuń z `Ticket` pole `insurance` (deklarację i przypisanie `this.insurance = order.insurance;` w konstruktorze) oraz jego gałęzie w `price()` i `description()` (ręcznie - `npm run typecheck` pokaże resztę użyć).
+3. W `TicketAssembler.assemble` owiń rdzeń dekoratorem, gdy `order.insurance` (dodaj import `Insurance`).
 
-**Przed:**
+**Po (`Insurance.ts`, nowy plik):**
+
+```typescript
+import { Money } from '../../../shared/Money.js';
+import type { PricedTicket } from './PricedTicket.js';
+
+/**
+ * Pierwszy dodatek jako dekorator. Zaczynamy od ubezpieczenia, bo w opisie jest
+ * ostatnie - dekorator dopisuje się na końcu opisu obiektu, który owija.
+ * (W Javie: rekord - niezmienny obiekt wartości.)
+ */
+export class Insurance implements PricedTicket {
+  constructor(readonly inner: PricedTicket) {}
+
+  price(): Money {
+    return this.inner.price().plus(Money.of('4.00'));
+  }
+
+  description(): string {
+    return `${this.inner.description()} +ubezpieczenie`;
+  }
+}
+```
+
+**Przed (`Ticket.ts`, metody `price` i `description`):**
 
 ```typescript
 price(): Money {
@@ -1086,14 +2096,45 @@ price(): Money {
   }
   return price;
 }
+
+description(): string {
+  return `${this.title} ${this.format}`
+    + (this.vip ? ' +VIP' : '')
+    + (this.glasses ? ' +okulary 3D' : '')
+    + (this.insurance ? ' +ubezpieczenie' : '');
+}
 ```
 
-**Po:**
+**Po (`Ticket.ts`, metody `price` i `description`):**
 
 ```typescript
-let ticket: PricedTicket = new Ticket(order);
-if (order.insurance) {
-  ticket = new Insurance(ticket);
+price(): Money {
+  let price = this.base;
+  if (this.vip) {
+    price = price.plus(Money.of('10.00'));
+  }
+  if (this.glasses) {
+    price = price.plus(Money.of('3.00'));
+  }
+  return price;
+}
+
+description(): string {
+  return `${this.title} ${this.format}`
+    + (this.vip ? ' +VIP' : '')
+    + (this.glasses ? ' +okulary 3D' : '');
+}
+```
+
+**Po (`TicketAssembler.ts`, metoda `assemble`):**
+
+```typescript
+assemble(order: TicketOrder): PricedTicket {
+  let ticket: PricedTicket = new Ticket(order);
+  if (order.insurance) {
+    ticket = new Insurance(ticket);
+  }
+  return ticket;
 }
 ```
 
@@ -1107,38 +2148,108 @@ if (order.insurance) {
 
 1. Utwórz dekoratory `VipSeat` (+10.00, " +VIP") i `Glasses3D` (+3.00, " +okulary 3D") na wzór `Insurance`.
 2. Odchudź rdzeń: `Ticket` staje się niezmienną klasą `Ticket(title, format, base)` bez flag; `price()` zwraca `base`, `description()` tylko tytuł i format.
-3. W assemblerze owijaj w ustalonej kolejności: rdzeń, VIP, okulary, ubezpieczenie. Decyzja "czy okulary potrzebne" (format 3D i brak własnych) zostaje w assemblerze.
+3. W assemblerze owijaj w ustalonej kolejności: rdzeń, VIP, okulary, ubezpieczenie (dodaj importy `VipSeat` i `Glasses3D`). Decyzja "czy okulary potrzebne" (format 3D i brak własnych) zostaje w assemblerze. `Insurance` i `PricedTicket` bez zmian.
 
-**Przed:**
+**Przed (`Ticket.ts`, pola, konstruktor i metody z kroku 2):**
 
 ```typescript
-constructor(order: TicketOrder) {
-  this.title = order.title;
-  this.format = order.format;
-  this.base = order.base;
-  this.vip = order.vip;
-  this.glasses = order.format === '3D' && !order.ownGlasses;
-}
+export class Ticket implements PricedTicket {
+  private readonly title: string;
+  private readonly format: string;
+  private readonly base: Money;
+  private readonly vip: boolean;
+  private readonly glasses: boolean;
 
-description(): string {
-  return `${this.title} ${this.format}`
-    + (this.vip ? ' +VIP' : '')
-    + (this.glasses ? ' +okulary 3D' : '');
+  constructor(order: TicketOrder) {
+    this.title = order.title;
+    this.format = order.format;
+    this.base = order.base;
+    this.vip = order.vip;
+    this.glasses = order.format === '3D' && !order.ownGlasses;
+  }
+  // price() i description() z gałęziami vip i glasses - jak w bloku Po kroku 2
 }
 ```
 
-**Po:**
+**Po (`VipSeat.ts`, nowy plik):**
 
 ```typescript
-let ticket: PricedTicket = new Ticket(order.title, order.format, order.base);
-if (order.vip) {
-  ticket = new VipSeat(ticket);
+import { Money } from '../../../shared/Money.js';
+import type { PricedTicket } from './PricedTicket.js';
+
+/** Dopłata za miejsce VIP jako dekorator. */
+export class VipSeat implements PricedTicket {
+  constructor(readonly inner: PricedTicket) {}
+
+  price(): Money {
+    return this.inner.price().plus(Money.of('10.00'));
+  }
+
+  description(): string {
+    return `${this.inner.description()} +VIP`;
+  }
 }
-if (order.format === '3D' && !order.ownGlasses) {
-  ticket = new Glasses3D(ticket);
+```
+
+**Po (`Glasses3D.ts`, nowy plik):**
+
+```typescript
+import { Money } from '../../../shared/Money.js';
+import type { PricedTicket } from './PricedTicket.js';
+
+/** Okulary 3D jako dekorator; decyzja "czy potrzebne" została w fabryce. */
+export class Glasses3D implements PricedTicket {
+  constructor(readonly inner: PricedTicket) {}
+
+  price(): Money {
+    return this.inner.price().plus(Money.of('3.00'));
+  }
+
+  description(): string {
+    return `${this.inner.description()} +okulary 3D`;
+  }
 }
-if (order.insurance) {
-  ticket = new Insurance(ticket);
+```
+
+**Po (`Ticket.ts`, cały plik):**
+
+```typescript
+import type { Money } from '../../../shared/Money.js';
+import type { PricedTicket } from './PricedTicket.js';
+
+/** Czysty rdzeń - tylko to, co ma każdy bilet. Bez flag. (W Javie: rekord.) */
+export class Ticket implements PricedTicket {
+  constructor(
+    readonly title: string,
+    readonly format: string,
+    readonly base: Money,
+  ) {}
+
+  price(): Money {
+    return this.base;
+  }
+
+  description(): string {
+    return `${this.title} ${this.format}`;
+  }
+}
+```
+
+**Po (`TicketAssembler.ts`, metoda `assemble`):**
+
+```typescript
+assemble(order: TicketOrder): PricedTicket {
+  let ticket: PricedTicket = new Ticket(order.title, order.format, order.base);
+  if (order.vip) {
+    ticket = new VipSeat(ticket);
+  }
+  if (order.format === '3D' && !order.ownGlasses) {
+    ticket = new Glasses3D(ticket);
+  }
+  if (order.insurance) {
+    ticket = new Insurance(ticket);
+  }
+  return ticket;
 }
 ```
 
@@ -1204,13 +2315,13 @@ cancel(): void {
 1. W pliku `Reservation.ts` dodaj prywatny dla modułu (bez `export`) interfejs `ReservationState` z jednym polem `readonly status: Status`.
 2. Dodaj w `Reservation` stany jako stałe `private static readonly NEW`, `PAID`, `USED`, `EXPIRED`, `CANCELLED` - na razie literały obiektów, np. `{ status: Status.NEW }`.
 3. Pole `currentStatus` (w Javie `status` - tu nazwa jest zajęta przez metodę `status()` z kontraktu `ReservationActions`) zastąp polem `state = Reservation.NEW`; warunki porównują `this.state.status`.
-4. Wyodrębnij obciążenie bramki, zmianę stanu i zapis efektu do prywatnych metod `charge()`, `moveTo(next)`, `record(effect)` (Extract Method).
+4. Wyodrębnij obciążenie bramki, zmianę stanu i zapis efektu do prywatnych metod `charge()`, `moveTo(next)`, `record(effect)` (Extract Method). Metoda `status()` zwraca `this.state.status`; `effects()`, konstruktor i importy bez zmian.
 
-**Przed:**
+**Przed (start, metody `pay`, `use`, `expire`, `status`; `cancel` wyżej w "Co widzimy"):**
 
 ```typescript
 private currentStatus = Status.NEW;
-...
+
 pay(): void {
   if (this.currentStatus !== Status.NEW) {
     throw new IllegalStateError(`cannot pay in ${this.currentStatus}`);
@@ -1219,16 +2330,105 @@ pay(): void {
   this.currentStatus = Status.PAID;
   this.effectList.push('charged');
 }
+
+use(): void {
+  if (this.currentStatus !== Status.PAID) {
+    throw new IllegalStateError(`cannot use in ${this.currentStatus}`);
+  }
+  this.currentStatus = Status.USED;
+  this.effectList.push('gate opened');
+}
+
+expire(): void {
+  if (this.currentStatus !== Status.NEW) {
+    throw new IllegalStateError(`cannot expire in ${this.currentStatus}`);
+  }
+  this.currentStatus = Status.EXPIRED;
+  this.effectList.push('seats released');
+}
+
+status(): Status {
+  return this.currentStatus;
+}
 ```
 
-**Po:**
+**Po (`Reservation.ts` - interfejs nad klasą i cała klasa poza `effects()` i konstruktorem):**
 
 ```typescript
-private state = Reservation.NEW;
-...
-this.charge();
-this.moveTo(Reservation.PAID);
-this.record('charged');
+/** Obiekt stanu - na razie zna tylko swój Status. */
+interface ReservationState {
+  readonly status: Status;
+}
+
+export class Reservation implements ReservationActions {
+  private static readonly NEW: ReservationState = { status: Status.NEW };
+  private static readonly PAID: ReservationState = { status: Status.PAID };
+  // Stany końcowe - żadne przejście nie jest dozwolone.
+  private static readonly USED: ReservationState = { status: Status.USED };
+  private static readonly EXPIRED: ReservationState = { status: Status.EXPIRED };
+  private static readonly CANCELLED: ReservationState = { status: Status.CANCELLED };
+
+  private readonly effectList: string[] = [];
+  private state = Reservation.NEW;
+
+  constructor(private readonly id: string, private readonly payments: Payments) {}
+
+  pay(): void {
+    if (this.state.status !== Status.NEW) {
+      throw new IllegalStateError(`cannot pay in ${this.state.status}`);
+    }
+    this.charge();
+    this.moveTo(Reservation.PAID);
+    this.record('charged');
+  }
+
+  use(): void {
+    if (this.state.status !== Status.PAID) {
+      throw new IllegalStateError(`cannot use in ${this.state.status}`);
+    }
+    this.moveTo(Reservation.USED);
+    this.record('gate opened');
+  }
+
+  expire(): void {
+    if (this.state.status !== Status.NEW) {
+      throw new IllegalStateError(`cannot expire in ${this.state.status}`);
+    }
+    this.moveTo(Reservation.EXPIRED);
+    this.record('seats released');
+  }
+
+  cancel(): void {
+    if (this.state.status === Status.NEW) {
+      this.moveTo(Reservation.CANCELLED);
+      this.record('seats released');
+    } else if (this.state.status === Status.PAID) {
+      this.moveTo(Reservation.CANCELLED);
+      this.record('refund');
+      this.record('seats released');
+    } else {
+      throw new IllegalStateError(`cannot cancel in ${this.state.status}`);
+    }
+  }
+
+  status(): Status {
+    return this.state.status;
+  }
+
+  // effects() bez zmian
+
+  private charge(): void {
+    this.payments.charge(this.id);
+  }
+
+  private moveTo(next: ReservationState): void {
+    this.state = next;
+  }
+
+  private record(effect: string): void {
+    this.effectList.push(effect);
+  }
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang ts test m5/s08` - 84 testy zielone.
@@ -1242,22 +2442,31 @@ this.record('charged');
 1. Dodaj typ `Transition = (reservation: Reservation) => void` i rozszerz interfejs stanu o przejścia `pay` i `use` typu `Transition`.
 2. Napisz funkcję `state(status, allowed)`, która dla każdego przejścia wstawia domyślnie funkcję rzucającą `cannot <akcja> in <status>`, a potem nakłada dozwolone (`...allowed`).
 3. Twórz stany przez `state(...)`: w `NEW` podaj `pay`, w `PAID` - `use`, przenosząc ciała gałęzi z metod kontekstu (kolejność: obciążenie, zmiana stanu, efekt). Stany końcowe to `state(Status.USED)` itd. bez przejść.
-4. Metody kontekstu `pay` i `use` tylko delegują: `this.state.pay(this)`, `this.state.use(this)`.
+4. Metody kontekstu `pay` i `use` tylko delegują: `this.state.pay(this)`, `this.state.use(this)`. Metody `expire` i `cancel` zostają na razie bez zmian.
 
-**Przed:**
+**Przed:** interfejs `ReservationState`, stałe stanów i metody `pay`/`use` - jak w bloku Po kroku 1.
+
+**Po (góra pliku - typ, interfejs i funkcja `state`):**
 
 ```typescript
-pay(): void {
-  if (this.state.status !== Status.NEW) {
-    throw new IllegalStateError(`cannot pay in ${this.state.status}`);
-  }
-  this.charge();
-  this.moveTo(Reservation.PAID);
-  this.record('charged');
+type Transition = (reservation: Reservation) => void;
+
+interface ReservationState {
+  readonly status: Status;
+  readonly pay: Transition;
+  readonly use: Transition;
+}
+
+/** Domyślne przejście rzuca wyjątek (nie jest puste!) - stan podaje tylko dozwolone przejścia. */
+function state(status: Status, allowed: Partial<Omit<ReservationState, 'status'>> = {}): ReservationState {
+  const invalid = (action: string): Transition => () => {
+    throw new IllegalStateError(`cannot ${action} in ${status}`);
+  };
+  return { status, pay: invalid('pay'), use: invalid('use'), ...allowed };
 }
 ```
 
-**Po:**
+**Po (stałe stanów w `Reservation`):**
 
 ```typescript
 private static readonly NEW: ReservationState = state(Status.NEW, {
@@ -1267,6 +2476,30 @@ private static readonly NEW: ReservationState = state(Status.NEW, {
     reservation.record('charged');
   },
 });
+
+private static readonly PAID: ReservationState = state(Status.PAID, {
+  use: (reservation) => {
+    reservation.moveTo(Reservation.USED);
+    reservation.record('gate opened');
+  },
+});
+
+// Stany końcowe - żadne przejście nie jest dozwolone.
+private static readonly USED = state(Status.USED);
+private static readonly EXPIRED = state(Status.EXPIRED);
+private static readonly CANCELLED = state(Status.CANCELLED);
+```
+
+**Po (metody kontekstu):**
+
+```typescript
+pay(): void {
+  this.state.pay(this);
+}
+
+use(): void {
+  this.state.use(this);
+}
 ```
 
 **Uruchom:** test zielony.
@@ -1281,9 +2514,17 @@ private static readonly NEW: ReservationState = state(Status.NEW, {
 2. Przenieś ciała gałęzi do stanów: `expire` i `cancel` do `NEW` (zwolnienie miejsc), `cancel` do `PAID` (zwrot i zwolnienie) - warunek `if/else if` z `cancel` rozkłada się na dwa stany.
 3. Metody kontekstu `expire` i `cancel` tylko delegują do `this.state`.
 
-**Przed:**
+**Przed (metody kontekstu z kroku 2):**
 
 ```typescript
+expire(): void {
+  if (this.state.status !== Status.NEW) {
+    throw new IllegalStateError(`cannot expire in ${this.state.status}`);
+  }
+  this.moveTo(Reservation.EXPIRED);
+  this.record('seats released');
+}
+
 cancel(): void {
   if (this.state.status === Status.NEW) {
     this.moveTo(Reservation.CANCELLED);
@@ -1298,9 +2539,71 @@ cancel(): void {
 }
 ```
 
-**Po:**
+**Po (interfejs i funkcja `state`):**
 
 ```typescript
+interface ReservationState {
+  readonly status: Status;
+  readonly pay: Transition;
+  readonly use: Transition;
+  readonly expire: Transition;
+  readonly cancel: Transition;
+}
+
+function state(status: Status, allowed: Partial<Omit<ReservationState, 'status'>> = {}): ReservationState {
+  const invalid = (action: string): Transition => () => {
+    throw new IllegalStateError(`cannot ${action} in ${status}`);
+  };
+  return {
+    status,
+    pay: invalid('pay'),
+    use: invalid('use'),
+    expire: invalid('expire'),
+    cancel: invalid('cancel'),
+    ...allowed,
+  };
+}
+```
+
+**Po (stany `NEW` i `PAID`; stany końcowe bez zmian):**
+
+```typescript
+private static readonly NEW: ReservationState = state(Status.NEW, {
+  pay: (reservation) => {
+    reservation.charge();
+    reservation.moveTo(Reservation.PAID);
+    reservation.record('charged');
+  },
+  expire: (reservation) => {
+    reservation.moveTo(Reservation.EXPIRED);
+    reservation.record('seats released');
+  },
+  cancel: (reservation) => {
+    reservation.moveTo(Reservation.CANCELLED);
+    reservation.record('seats released');
+  },
+});
+
+private static readonly PAID: ReservationState = state(Status.PAID, {
+  use: (reservation) => {
+    reservation.moveTo(Reservation.USED);
+    reservation.record('gate opened');
+  },
+  cancel: (reservation) => {
+    reservation.moveTo(Reservation.CANCELLED);
+    reservation.record('refund');
+    reservation.record('seats released');
+  },
+});
+```
+
+**Po (metody kontekstu):**
+
+```typescript
+expire(): void {
+  this.state.expire(this);
+}
+
 cancel(): void {
   this.state.cancel(this);
 }
@@ -1361,9 +2664,25 @@ Test używa fake'ów zapisujących do wspólnego logu i sprawdza kolejność ora
 
 1. Utwórz niezmienną klasę zdarzenia `ReservationPaid` z polami `readonly`: `reservationId`, `email`, `phone`, `amount`.
 2. Wyodrębnij trzy powiadomienia z `confirm` do prywatnej metody `notifyPaid` (Extract Method).
-3. Zmień parametry `notifyPaid` na jeden `event: ReservationPaid` i czytaj dane ze zdarzenia; `confirm` tworzy zdarzenie i je przekazuje.
+3. Zmień parametry `notifyPaid` na jeden `event: ReservationPaid` i czytaj dane ze zdarzenia; `confirm` tworzy zdarzenie i je przekazuje. W `PaymentService.ts` dodaj import `ReservationPaid`; `PaymentServices` bez zmian.
 
-**Przed:**
+**Po (`ReservationPaid.ts`, nowy plik):**
+
+```typescript
+import type { Money } from '../../../shared/Money.js';
+
+/** Zdarzenie - fakt "rezerwacja opłacona" z danymi potrzebnymi odbiorcom. */
+export class ReservationPaid {
+  constructor(
+    readonly reservationId: string,
+    readonly email: string,
+    readonly phone: string,
+    readonly amount: Money,
+  ) {}
+}
+```
+
+**Przed (`PaymentService.ts`, koniec metody `confirm`):**
 
 ```typescript
 this.paidList.push(payment.reservationId);
@@ -1373,12 +2692,21 @@ this.sms.send(payment.phone, `Oplacono ${payment.reservationId}`);
 this.loyalty.addPoints(payment.email, Math.trunc(payment.amount.amount.trunc().toNumber() / 10));
 ```
 
-**Po:**
+**Po (`PaymentService.ts`, koniec `confirm` i nowa metoda `notifyPaid`):**
 
 ```typescript
 this.paidList.push(payment.reservationId);
 this.notifyPaid(new ReservationPaid(
   payment.reservationId, payment.email, payment.phone, payment.amount));
+```
+
+```typescript
+private notifyPaid(event: ReservationPaid): void {
+  this.mailer.send(event.email,
+    `Potwierdzenie platnosci ${event.reservationId}: ${event.amount.toString()}`);
+  this.sms.send(event.phone, `Oplacono ${event.reservationId}`);
+  this.loyalty.addPoints(event.email, Math.trunc(event.amount.amount.trunc().toNumber() / 10));
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang ts test m5/s09` - zielone.
@@ -1392,24 +2720,94 @@ this.notifyPaid(new ReservationPaid(
 1. Utwórz interfejs `PaymentListener` z metodą `onPaid(event: ReservationPaid)`.
 2. Utwórz trzy klasy odbiorców: `MailConfirmation`, `SmsConfirmation`, `LoyaltyPoints` - każda dostaje swoją zależność w konstruktorze i ma w `onPaid` jedną linię przeniesioną z `notifyPaid`.
 3. W konstruktorze serwisu zbuduj zamrożoną tablicę odbiorców w starej kolejności (mail, SMS, punkty); sygnatura konstruktora bez zmian.
-4. `notifyPaid` to pętla po odbiorcach **bez** `try/catch`.
+4. `notifyPaid` to pętla po odbiorcach **bez** `try/catch`. W `PaymentService.ts` dochodzą importy `LoyaltyPoints`, `MailConfirmation`, `SmsConfirmation` i `import type { PaymentListener }`.
 
-**Przed:**
+**Przed:** konstruktor z trzema polami `private readonly` i metoda `notifyPaid` z trzema wywołaniami - jak w bloku Po kroku 1.
+
+**Po (`PaymentListener.ts`, nowy plik):**
 
 ```typescript
-private notifyPaid(event: ReservationPaid): void {
-  this.mailer.send(event.email,
-    `Potwierdzenie platnosci ${event.reservationId}: ${event.amount.toString()}`);
-  this.sms.send(event.phone, `Oplacono ${event.reservationId}`);
-  this.loyalty.addPoints(event.email, Math.trunc(event.amount.amount.trunc().toNumber() / 10));
+import type { ReservationPaid } from './ReservationPaid.js';
+
+/** Kontrakt obserwatora - subject zna tylko ten interfejs. Wywołanie synchroniczne. */
+export interface PaymentListener {
+  onPaid(event: ReservationPaid): void;
 }
 ```
 
-**Po:**
+**Po (`MailConfirmation.ts`, nowy plik):**
 
 ```typescript
-for (const listener of this.listeners) {
-  listener.onPaid(event);
+import type { Mailer } from '../Mailer.js';
+import type { PaymentListener } from './PaymentListener.js';
+import type { ReservationPaid } from './ReservationPaid.js';
+
+/** Obserwator - potwierdzenie mailem. */
+export class MailConfirmation implements PaymentListener {
+  constructor(readonly mailer: Mailer) {}
+
+  onPaid(event: ReservationPaid): void {
+    this.mailer.send(event.email,
+      `Potwierdzenie platnosci ${event.reservationId}: ${event.amount.toString()}`);
+  }
+}
+```
+
+**Po (`SmsConfirmation.ts`, nowy plik):**
+
+```typescript
+import type { SmsGateway } from '../SmsGateway.js';
+import type { PaymentListener } from './PaymentListener.js';
+import type { ReservationPaid } from './ReservationPaid.js';
+
+/** Obserwator - potwierdzenie SMS. */
+export class SmsConfirmation implements PaymentListener {
+  constructor(readonly sms: SmsGateway) {}
+
+  onPaid(event: ReservationPaid): void {
+    this.sms.send(event.phone, `Oplacono ${event.reservationId}`);
+  }
+}
+```
+
+**Po (`LoyaltyPoints.ts`, nowy plik):**
+
+```typescript
+import type { LoyaltyProgram } from '../LoyaltyProgram.js';
+import type { PaymentListener } from './PaymentListener.js';
+import type { ReservationPaid } from './ReservationPaid.js';
+
+/** Obserwator - 1 punkt za każde pełne 10.00. */
+export class LoyaltyPoints implements PaymentListener {
+  constructor(readonly loyalty: LoyaltyProgram) {}
+
+  onPaid(event: ReservationPaid): void {
+    this.loyalty.addPoints(event.email, Math.trunc(event.amount.amount.trunc().toNumber() / 10));
+  }
+}
+```
+
+**Po (`PaymentService.ts`, pola, konstruktor i `notifyPaid`):**
+
+```typescript
+export class PaymentService {
+  private readonly listeners: readonly PaymentListener[];
+  private readonly paidList: string[] = [];
+
+  constructor(mailer: Mailer, sms: SmsGateway, loyalty: LoyaltyProgram) {
+    this.listeners = Object.freeze([
+      new MailConfirmation(mailer), new SmsConfirmation(sms), new LoyaltyPoints(loyalty)]);
+  }
+
+  // confirm() bez zmian
+
+  private notifyPaid(event: ReservationPaid): void {
+    for (const listener of this.listeners) {
+      listener.onPaid(event);
+    }
+  }
+
+  // paid() bez zmian
 }
 ```
 
@@ -1424,30 +2822,80 @@ for (const listener of this.listeners) {
 1. Dodaj interfejs `Subscription` z metodą `close()` oraz prywatną dla modułu klasę `Registration` opakowującą słuchacza (osobny obiekt na każde `subscribe`).
 2. Dodaj w serwisie metodę `subscribe(listener)`: tworzy rejestrację, podmienia niezmienną tablicę rejestracji na kopię z nowym wpisem i zwraca `Subscription` z idempotentnym `close()` (usuwa rejestrację po tożsamości).
 3. Usuń konstruktor z trzema zależnościami (staje się bezargumentowy) i pole `listeners` z gotowymi odbiorcami; pętlę powiadomień przenieś do `confirm`.
-4. W korzeniu kompozycji `PaymentServices.standard(...)` utwórz serwis i zasubskrybuj trzech odbiorców w starej kolejności.
+4. W korzeniu kompozycji `PaymentServices.standard(...)` utwórz serwis i zasubskrybuj trzech odbiorców w starej kolejności (importy klas odbiorców przenoszą się z `PaymentService.ts` do `PaymentServices.ts`; w serwisie zostają `IllegalArgumentError`, `requireNonNull`, `Payment`, `PaymentListener`, `ReservationPaid` i `Subscription`).
 
-**Przed:**
+**Przed (`PaymentService.ts`):** pola, konstruktor i `notifyPaid` - jak w bloku Po kroku 2.
+
+**Przed (`PaymentServices.ts`, metoda `standard`):**
 
 ```typescript
-constructor(mailer: Mailer, sms: SmsGateway, loyalty: LoyaltyProgram) {
-  this.listeners = Object.freeze([
-    new MailConfirmation(mailer), new SmsConfirmation(sms), new LoyaltyPoints(loyalty)]);
-}
-...
-private notifyPaid(event: ReservationPaid): void {
-  for (const listener of this.listeners) {
-    listener.onPaid(event);
-  }
+static standard(mailer: Mailer, sms: SmsGateway, loyalty: LoyaltyProgram): PaymentService {
+  return new PaymentService(mailer, sms, loyalty);
 }
 ```
 
-**Po:**
+**Po (`Subscription.ts`, nowy plik):**
 
 ```typescript
-const service = new PaymentService();
-service.subscribe(new MailConfirmation(mailer));
-service.subscribe(new SmsConfirmation(sms));
-service.subscribe(new LoyaltyPoints(loyalty));
+/** Uchwyt subskrypcji - close() wyrejestrowuje, idempotentnie. */
+export interface Subscription {
+  close(): void;
+}
+```
+
+**Po (`PaymentService.ts`, klasa `Registration` nad serwisem oraz pola, `subscribe` i `confirm`):**
+
+```typescript
+/** Osobny obiekt na każde subscribe - ten sam obiekt słuchacza zapisany dwa razy to dwie rejestracje. */
+class Registration {
+  constructor(readonly listener: PaymentListener) {}
+}
+
+export class PaymentService {
+  private listeners: readonly Registration[] = [];
+  private readonly paidList: string[] = [];
+
+  subscribe(listener: PaymentListener): Subscription {
+    const registration = new Registration(requireNonNull(listener, 'listener'));
+    // kopia przy zapisie (w Javie: CopyOnWriteArrayList) - trwająca pętla widzi starą migawkę
+    this.listeners = [...this.listeners, registration];
+    let active = true;
+    return {
+      close: () => {
+        if (active) {
+          active = false;
+          this.listeners = this.listeners.filter((r) => r !== registration);
+        }
+      },
+    };
+  }
+
+  confirm(payment: Payment): void {
+    if (payment.amount.amount.lte(0)) {
+      throw new IllegalArgumentError('amount must be positive');
+    }
+    this.paidList.push(payment.reservationId);
+    const event = new ReservationPaid(
+      payment.reservationId, payment.email, payment.phone, payment.amount);
+    for (const registration of this.listeners) {
+      registration.listener.onPaid(event);
+    }
+  }
+
+  // paid() bez zmian
+}
+```
+
+**Po (`PaymentServices.ts`, metoda `standard`):**
+
+```typescript
+static standard(mailer: Mailer, sms: SmsGateway, loyalty: LoyaltyProgram): PaymentService {
+  const service = new PaymentService();
+  service.subscribe(new MailConfirmation(mailer));
+  service.subscribe(new SmsConfirmation(sms));
+  service.subscribe(new LoyaltyPoints(loyalty));
+  return service;
+}
 ```
 
 **Uruchom:** test zielony; `S09SolutionTest` pokazuje podwójną subskrypcję, idempotentne wyrejestrowanie i nowego odbiorcę.
@@ -1506,16 +2954,111 @@ Testy: `S10EquivalenceTest` (niezależne oczekiwania policzone ręcznie, także 
 
 **Przed:** brak - nowe pliki `MenuItem.ts`, `Product.ts`, `Combo.ts`, `MenuMapper.ts`; `BarMenu.ts` bez zmian.
 
-**Po:**
+**Po (`MenuItem.ts`, nowy plik):**
 
 ```typescript
-for (const element of combo.slice(1)) {
-  if (typeof element === 'string') {
-    items.push(MenuMapper.product(element));
-  } else if (Array.isArray(element)) {
-    items.push(MenuMapper.fromNested(element));
-  } else {
-    throw new IllegalArgumentError(`unsupported element: ${String(element)}`);
+import type { Combo } from './Combo.js';
+import type { Product } from './Product.js';
+
+/**
+ * Jawny Composite - produkt (liść) albo zestaw (węzeł). Zamknięty zestaw typów
+ * (w Javie: sealed interface) -> unia; obie klasy mają name, price() i render(depth, text).
+ * render dopisuje linie do bufora text (w Javie: StringBuilder).
+ */
+export type MenuItem = Product | Combo;
+```
+
+**Po (`Product.ts`, nowy plik):**
+
+```typescript
+import type { Money } from '../../../shared/Money.js';
+
+/** Liść - produkt baru z ceną. (W Javie: rekord Product(name, price).) */
+export class Product {
+  constructor(
+    readonly name: string,
+    private readonly amount: Money,
+  ) {}
+
+  price(): Money {
+    return this.amount;
+  }
+
+  render(depth: number, text: string[]): void {
+    text.push(`${'  '.repeat(depth)}${this.name} ${this.amount.toString()}\n`);
+  }
+}
+```
+
+**Po (`Combo.ts`, nowy plik):**
+
+```typescript
+import { Money } from '../../../shared/Money.js';
+import type { MenuItem } from './MenuItem.js';
+
+/** Węzeł - zestaw, którego cena to suma elementów. Niemutowalny. */
+export class Combo {
+  readonly items: readonly MenuItem[];
+
+  constructor(readonly name: string, items: readonly MenuItem[]) {
+    this.items = Object.freeze([...items]);
+  }
+
+  price(): Money {
+    let total = Money.ZERO;
+    for (const item of this.items) {
+      total = total.plus(item.price());
+    }
+    return total;
+  }
+
+  render(depth: number, text: string[]): void {
+    text.push(`${'  '.repeat(depth)}${this.name} ${this.price().toString()}\n`);
+    this.items.forEach((item) => item.render(depth + 1, text));
+  }
+}
+```
+
+**Po (`MenuMapper.ts`, nowy plik):**
+
+```typescript
+import { IllegalArgumentError } from '../../../../shared/errors.js';
+import { Money } from '../../../shared/Money.js';
+import { Combo } from './Combo.js';
+import type { MenuItem } from './MenuItem.js';
+import { Product } from './Product.js';
+
+/**
+ * Mapper starego formatu (zagnieżdżone listy) na Composite. Zachowuje komunikaty
+ * błędów starego kodu - to też jest obserwowalne zachowanie.
+ */
+export class MenuMapper {
+  private constructor() {}
+
+  static fromNested(combo: readonly unknown[]): Combo {
+    const name = combo[0];
+    if (combo.length === 0 || typeof name !== 'string') {
+      throw new IllegalArgumentError('combo needs a name');
+    }
+    const items: MenuItem[] = [];
+    for (const element of combo.slice(1)) {
+      if (typeof element === 'string') {
+        items.push(MenuMapper.product(element));
+      } else if (Array.isArray(element)) {
+        items.push(MenuMapper.fromNested(element));
+      } else {
+        throw new IllegalArgumentError(`unsupported element: ${String(element)}`);
+      }
+    }
+    return new Combo(name, items);
+  }
+
+  private static product(text: string): Product {
+    if (!text.includes('=')) {
+      throw new IllegalArgumentError(`product needs a price: ${text}`);
+    }
+    const separator = text.indexOf('=');
+    return new Product(text.substring(0, separator), Money.of(text.substring(separator + 1)));
   }
 }
 ```
@@ -1528,8 +3071,8 @@ for (const element of combo.slice(1)) {
 
 **Zmiany:**
 
-1. Zastąp ciało `BarMenu.price` jedną linią: `return MenuMapper.fromNested(combo).price();`.
-2. Usuń metodę `requireName` - po zmianie nikt jej nie woła (edytor wyszarza nieużywaną prywatną metodę). `renderTo` i `productPrice` zostają, bo stary `render` wciąż ich używa.
+1. Zastąp ciało `BarMenu.price` jedną linią: `return MenuMapper.fromNested(combo).price();` (dodaj w `BarMenu.ts` import `MenuMapper`).
+2. Usuń metodę `requireName` - po zmianie nikt jej nie woła (edytor wyszarza nieużywaną prywatną metodę). `renderTo` i `productPrice` zostają, bo stary `render` wciąż ich używa. Pozostałe pliki bez zmian.
 
 **Przed:**
 
@@ -1567,7 +3110,7 @@ price(combo: readonly unknown[]): Money {
 **Zmiany:**
 
 1. Zastąp ciało `BarMenu.render` delegacją do drzewa: zbuduj `Combo` mapperem i wywołaj jego `render(0, text)`.
-2. Usuń starą rekurencję `renderTo` i metodę `productPrice` (ręcznie - po zmianie stają się nieużywane).
+2. Usuń starą rekurencję `renderTo` i metodę `productPrice` (ręcznie - po zmianie stają się nieużywane). W importach `BarMenu.ts` znika `IllegalArgumentError`, a `Money` staje się `import type`. Pozostałe pliki bez zmian.
 
 **Przed:**
 
@@ -1593,12 +3136,27 @@ private renderTo(combo: readonly unknown[], depth: number, text: string[]): void
 }
 ```
 
-**Po:**
+**Po (`BarMenu.ts`, cały plik):**
 
 ```typescript
-const text: string[] = [];
-MenuMapper.fromNested(combo).render(0, text);
-return text.join('');
+import type { Money } from '../../../shared/Money.js';
+import { MenuMapper } from './MenuMapper.js';
+
+/**
+ * render też na Composite. BarMenu tylko mapuje stary format na drzewo - format
+ * trwały (zagnieżdżone listy) zmienimy osobnym krokiem, jeśli w ogóle.
+ */
+export class BarMenu {
+  price(combo: readonly unknown[]): Money {
+    return MenuMapper.fromNested(combo).price();
+  }
+
+  render(combo: readonly unknown[]): string {
+    const text: string[] = [];
+    MenuMapper.fromNested(combo).render(0, text);
+    return text.join('');
+  }
+}
 ```
 
 **Uruchom:** test zielony, test różnicowy `finalBarMenuMatchesLegacy` zielony.
@@ -1651,11 +3209,18 @@ add(_child: MenuComponent): void {
 
 1. Usuń `add` i `children` z `MenuComponent`; w `Combo` przestają być `override` (zepchnięcie składowych w dół robimy ręcznie - VS Code nie ma Push Members Down). `Product` nie dziedziczy już żadnego `add`.
 2. `describe()` w bazie zostaje bez części o dzieciach; `Combo` nadpisuje `describe()` i rozszerza opis o dzieci.
-3. Uruchom `npm run typecheck` - pokaże błędy w `ComboCatalog`; zmień typ zmiennych z `MenuComponent` na `Combo` tam, gdzie dodajemy dzieci.
+3. Uruchom `npm run typecheck` - pokaże błędy w `ComboCatalog`; zmień typ zmiennych z `MenuComponent` na `Combo` tam, gdzie dodajemy dzieci (trzy zmienne: `combo` i `drinks` w `family()`, `combo` w `duo()`). `Product` bez zmian w kodzie - po prostu nie dziedziczy już `add`.
 
-**Przed:**
+**Przed (`MenuComponent.ts`, cały plik):**
 
 ```typescript
+import { UnsupportedOperationError } from '../../../../shared/errors.js';
+import type { Money } from '../../../shared/Money.js';
+
+/**
+ * Start: Transparent Composite - add() i children() we wspólnym typie. Klient może wywołać
+ * add() na liściu; kompilator milczy, błąd wychodzi dopiero w runtime.
+ */
 export abstract class MenuComponent {
   abstract name(): string;
 
@@ -1668,19 +3233,62 @@ export abstract class MenuComponent {
   children(): readonly MenuComponent[] {
     return Object.freeze([]);
   }
-  ...
-}
 
-// ComboCatalog:
-const combo: MenuComponent = new Combo('Zestaw Rodzinny');
-combo.add(new Product('Popcorn XL', '24.00'));
+  describe(): string {
+    const text = `${this.name()} ${this.price().toString()}`;
+    if (this.children().length === 0) {
+      return text;
+    }
+    return `${text} [${this.children().map((child) => child.describe()).join(', ')}]`;
+  }
+}
 ```
 
-**Po:**
+**Po (`MenuComponent.ts`, cały plik):**
+
+```typescript
+import type { Money } from '../../../shared/Money.js';
+
+/**
+ * Safe Composite - Push Members Down: add() i children() tylko w Combo.
+ * Wspólny typ ma wyłącznie operacje sensowne dla liścia i węzła.
+ */
+export abstract class MenuComponent {
+  abstract name(): string;
+
+  abstract price(): Money;
+
+  describe(): string {
+    return `${this.name()} ${this.price().toString()}`;
+  }
+}
+```
+
+**Po (`Combo.ts` - `add` i `children` tracą `override`, dochodzi `describe`; nazwa, konstruktor i `price` bez zmian):**
+
+```typescript
+add(child: MenuComponent): void {
+  this.childList.push(child);
+}
+
+children(): readonly MenuComponent[] {
+  return Object.freeze([...this.childList]);
+}
+
+override describe(): string {
+  if (this.childList.length === 0) {
+    return super.describe();
+  }
+  return `${super.describe()} [${this.childList.map((child) => child.describe()).join(', ')}]`;
+}
+```
+
+**Po (`ComboCatalog.ts`, typy zmiennych):**
 
 ```typescript
 const combo: Combo = new Combo('Zestaw Rodzinny');
 combo.add(new Product('Popcorn XL', '24.00'));
+const drinks: Combo = new Combo('Napoje');
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang ts test m5/s11` - zielone; `S11SolutionTest` pokazuje, że `Product` nie ma już `add`.
@@ -1693,9 +3301,9 @@ combo.add(new Product('Popcorn XL', '24.00'));
 
 1. Zamień klasę abstrakcyjną `MenuComponent` na unię `type MenuComponent = Product | Combo`.
 2. Przepisz `Product` i `Combo` na niezmienne klasy bez wspólnej bazy: pole `kind` (`'product'`/`'combo'`), `name` i `price` jako pola tylko do odczytu (w `Combo` `price` to getter sumujący dzieci), dzieci podane w konstruktorze i zamrożone; dodaj wygodne `Combo.of(name, ...children)`. Metoda `add` nie istnieje nigdzie.
-3. Zapisz katalog deklaratywnie - zagnieżdżone wywołania `Combo.of(...)` zamiast zmiennych i `add`.
+3. Zapisz katalog deklaratywnie - zagnieżdżone wywołania `Combo.of(...)` zamiast zmiennych i `add`; prywatne metody `family()` i `duo()` znikają, drzewa budują się wprost w gałęziach `switch` metody `find`.
 
-**Przed:**
+**Przed:** `MenuComponent.ts` jak w bloku Po kroku 1; `Combo` i `Product` jako klasy `extends MenuComponent` (jak w start i kroku 1); w `ComboCatalog` metody `family()` i `duo()` budujące drzewa przez `add`, np.:
 
 ```typescript
 private duo(): MenuComponent {
@@ -1707,13 +3315,95 @@ private duo(): MenuComponent {
 }
 ```
 
-**Po:**
+**Po (`MenuComponent.ts`, cały plik):**
 
 ```typescript
-case 'duo': return Combo.of('Zestaw Duo',
-  new Product('Popcorn L', '18.00'),
-  new Product('Cola', '9.00'),
-  new Product('Cola', '9.00'));
+import type { Combo } from './Combo.js';
+import type { Product } from './Product.js';
+
+/**
+ * Forma zamknięta (odpowiednik sealed interface z Javy 25) - unia znanych węzłów,
+ * niemutowalne obiekty, brak mutacji po zbudowaniu.
+ */
+export type MenuComponent = Product | Combo;
+```
+
+**Po (`Product.ts`, cały plik):**
+
+```typescript
+import { Money } from '../../../shared/Money.js';
+
+/** Liść jako niemutowalny obiekt wartości (odpowiednik rekordu). */
+export class Product {
+  readonly kind = 'product';
+  readonly price: Money;
+
+  constructor(readonly name: string, price: Money | string) {
+    this.price = typeof price === 'string' ? Money.of(price) : price;
+  }
+
+  describe(): string {
+    return `${this.name} ${this.price.toString()}`;
+  }
+}
+```
+
+**Po (`Combo.ts`, cały plik):**
+
+```typescript
+import { Money } from '../../../shared/Money.js';
+import type { MenuComponent } from './MenuComponent.js';
+
+/** Węzeł z dziećmi podanymi przy tworzeniu - add() nie istnieje nigdzie. */
+export class Combo {
+  readonly kind = 'combo';
+  readonly children: readonly MenuComponent[];
+
+  constructor(readonly name: string, children: readonly MenuComponent[]) {
+    this.children = Object.freeze([...children]);
+  }
+
+  static of(name: string, ...children: MenuComponent[]): Combo {
+    return new Combo(name, children);
+  }
+
+  get price(): Money {
+    let total = Money.ZERO;
+    for (const child of this.children) {
+      total = total.plus(child.price);
+    }
+    return total;
+  }
+
+  describe(): string {
+    const text = `${this.name} ${this.price.toString()}`;
+    if (this.children.length === 0) {
+      return text;
+    }
+    return `${text} [${this.children.map((child) => child.describe()).join(', ')}]`;
+  }
+}
+```
+
+**Po (`ComboCatalog.ts`, metoda `find`):**
+
+```typescript
+find(code: string): MenuComponent {
+  switch (code) {
+    case 'family': return Combo.of('Zestaw Rodzinny',
+      new Product('Popcorn XL', '24.00'),
+      Combo.of('Napoje',
+        new Product('Cola', '9.00'),
+        new Product('Cola', '9.00'),
+        new Product('Woda', '7.00')));
+    case 'duo': return Combo.of('Zestaw Duo',
+      new Product('Popcorn L', '18.00'),
+      new Product('Cola', '9.00'),
+      new Product('Cola', '9.00'));
+    case 'nachos': return new Product('Nachos', '14.00');
+    default: throw new IllegalArgumentError(`unknown combo: ${code}`);
+  }
+}
 ```
 
 **Uruchom:** test zielony.
@@ -1769,9 +3459,9 @@ Test obejmuje granicę dokładnie 24h, 23h59m, bilet po starcie, listę i pustą
 **Zmiany:**
 
 1. W `refund` wyodrębnij wyliczenie kwoty zwrotu jednego biletu do metody `ticketShare(ticket, now)` (Extract Method); nie używa `this`, więc jest `private static`, a `if/else` zamienia się na wczesne `return`.
-2. W `refundAll` zastąp ciało pętli wywołaniem `ticketShare` - duplikacja reguły znika.
+2. W `refundAll` zastąp ciało pętli wywołaniem `ticketShare` - duplikacja reguły znika. `CancellationDesk` bez zmian.
 
-**Przed:**
+**Przed (`RefundService.ts`, metody `refund` i `refundAll`):**
 
 ```typescript
 refund(ticket: TicketData, now: LocalDateTime): Money {
@@ -1786,35 +3476,19 @@ refund(ticket: TicketData, now: LocalDateTime): Money {
   return amount.minus(RefundService.FEE).max(Money.ZERO);
 }
 
-// refundAll:
-for (const ticket of tickets) {
-  if (now.isBefore(ticket.showStart)) {
-    const hours = Duration.between(now, ticket.showStart).toHours();
-    total = total.plus(hours >= 24 ? ticket.price : ticket.price.percent(50));
+refundAll(tickets: readonly TicketData[], now: LocalDateTime): Money {
+  let total = Money.ZERO;
+  for (const ticket of tickets) {
+    if (now.isBefore(ticket.showStart)) {
+      const hours = Duration.between(now, ticket.showStart).toHours();
+      total = total.plus(hours >= 24 ? ticket.price : ticket.price.percent(50));
+    }
   }
+  return total.minus(RefundService.FEE).max(Money.ZERO);
 }
 ```
 
-**Po:**
-
-```typescript
-total = total.plus(RefundService.ticketShare(ticket, now));
-```
-
-**Uruchom:** `scripts/warsztat.sh --lang ts test m5/s12` - zielone.
-**Co powiedzieć:** zanim wprowadzimy wzorzec, usuwamy duplikację reguły. Test granicy 24h potwierdza, że obie wersje były równoważne.
-**Snapshot:** `step1/` · **Różnica:** `scripts/warsztat.sh --lang ts diff m5/s12 0 1`
-
-### Krok 2: Composite i jeden kontrakt
-
-**Zmiany:**
-
-1. Utwórz unię `type Refundable = SingleTicket | TicketGroup` i obie klasy z metodą `refundableAmount(now)`: liść `SingleTicket` dostaje regułę przeniesioną z `ticketShare`, węzeł `TicketGroup` sumuje elementy (pusta grupa daje 0.00) i ma pomocnicze `TicketGroup.of(tickets)`.
-2. Zmień nazwę starej metody `refund(ticket, now)` na `refundTicket` (zmiana nazwy symbolu poprawi wywołania) - TypeScript nie ma przeciążeń, więc nowa `refund(refundable, now)` nie może z nią współistnieć pod jedną nazwą.
-3. Dodaj nową metodę `refund(refundable, now)` z potrąceniem w jednym miejscu; `refundTicket` i `refundAll` zostają jako cienkie delegacje ze znacznikiem `@deprecated` w TSDoc.
-4. Przeprowadź `CancellationDesk` na nowy kontrakt - na razie wciąż wybiera `SingleTicket` albo `TicketGroup`.
-
-**Przed:**
+**Po (`RefundService.ts`, wszystkie trzy metody):**
 
 ```typescript
 refund(ticket: TicketData, now: LocalDateTime): Money {
@@ -1828,13 +3502,143 @@ refundAll(tickets: readonly TicketData[], now: LocalDateTime): Money {
   }
   return total.minus(RefundService.FEE).max(Money.ZERO);
 }
+
+private static ticketShare(ticket: TicketData, now: LocalDateTime): Money {
+  if (!now.isBefore(ticket.showStart)) {
+    return Money.ZERO;
+  }
+  if (Duration.between(now, ticket.showStart).toHours() >= 24) {
+    return ticket.price;
+  }
+  return ticket.price.percent(50);
+}
 ```
 
-**Po:**
+**Uruchom:** `scripts/warsztat.sh --lang ts test m5/s12` - zielone.
+**Co powiedzieć:** zanim wprowadzimy wzorzec, usuwamy duplikację reguły. Test granicy 24h potwierdza, że obie wersje były równoważne.
+**Snapshot:** `step1/` · **Różnica:** `scripts/warsztat.sh --lang ts diff m5/s12 0 1`
+
+### Krok 2: Composite i jeden kontrakt
+
+**Zmiany:**
+
+1. Utwórz unię `type Refundable = SingleTicket | TicketGroup` i obie klasy z metodą `refundableAmount(now)`: liść `SingleTicket` dostaje regułę przeniesioną z `ticketShare`, węzeł `TicketGroup` sumuje elementy (pusta grupa daje 0.00) i ma pomocnicze `TicketGroup.of(tickets)`.
+2. Zmień nazwę starej metody `refund(ticket, now)` na `refundTicket` (zmiana nazwy symbolu poprawi wywołania) - TypeScript nie ma przeciążeń, więc nowa `refund(refundable, now)` nie może z nią współistnieć pod jedną nazwą.
+3. Dodaj nową metodę `refund(refundable, now)` z potrąceniem w jednym miejscu; `refundTicket` i `refundAll` zostają jako cienkie delegacje ze znacznikiem `@deprecated` w TSDoc.
+4. Przeprowadź `CancellationDesk` na nowy kontrakt - na razie wciąż wybiera `SingleTicket` albo `TicketGroup`. Metoda `ticketShare` znika z serwisu (jej reguła mieszka teraz w `SingleTicket`), a z importów serwisu znika `Duration`.
+
+**Przed:** metody `refund`, `refundAll` i `ticketShare` serwisu - jak w bloku Po kroku 1 - oraz klient:
+
+```typescript
+refund(tickets: readonly TicketData[], now: LocalDateTime): Money {
+  const [first] = tickets;
+  if (tickets.length === 1 && first !== undefined) {
+    return this.service.refund(first, now);
+  }
+  return this.service.refundAll(tickets, now);
+}
+```
+
+**Po (`Refundable.ts`, nowy plik):**
+
+```typescript
+import type { SingleTicket } from './SingleTicket.js';
+import type { TicketGroup } from './TicketGroup.js';
+
+/**
+ * Wspólny kontrakt "jednego" i "wielu" - kwota do zwrotu przed potrąceniem
+ * (refundableAmount(now)). Zamknięta unia (odpowiednik sealed interface z Javy).
+ */
+export type Refundable = SingleTicket | TicketGroup;
+```
+
+**Po (`SingleTicket.ts`, nowy plik):**
+
+```typescript
+import { Money } from '../../../shared/Money.js';
+import { Duration, type LocalDateTime } from '../../../shared/time.js';
+import type { TicketData } from '../TicketData.js';
+
+/** Liść - reguła zwrotu jednego biletu (przeniesiona z ticketShare). */
+export class SingleTicket {
+  readonly kind = 'single';
+
+  constructor(readonly ticket: TicketData) {}
+
+  refundableAmount(now: LocalDateTime): Money {
+    if (!now.isBefore(this.ticket.showStart)) {
+      return Money.ZERO;
+    }
+    if (Duration.between(now, this.ticket.showStart).toHours() >= 24) {
+      return this.ticket.price;
+    }
+    return this.ticket.price.percent(50);
+  }
+}
+```
+
+**Po (`TicketGroup.ts`, nowy plik):**
+
+```typescript
+import { Money } from '../../../shared/Money.js';
+import type { LocalDateTime } from '../../../shared/time.js';
+import type { TicketData } from '../TicketData.js';
+import type { Refundable } from './Refundable.js';
+import { SingleTicket } from './SingleTicket.js';
+
+/** Węzeł - suma zwrotów elementów; pusta grupa daje 0.00. */
+export class TicketGroup {
+  readonly kind = 'group';
+  readonly items: readonly Refundable[];
+
+  constructor(items: readonly Refundable[]) {
+    this.items = Object.freeze([...items]);
+  }
+
+  static of(tickets: readonly TicketData[]): TicketGroup {
+    return new TicketGroup(tickets.map((ticket) => new SingleTicket(ticket)));
+  }
+
+  refundableAmount(now: LocalDateTime): Money {
+    let total = Money.ZERO;
+    for (const item of this.items) {
+      total = total.plus(item.refundableAmount(now));
+    }
+    return total;
+  }
+}
+```
+
+**Po (`RefundService.ts`, wszystkie metody; w importach dochodzą `Refundable`, `SingleTicket` i `TicketGroup`):**
 
 ```typescript
 refund(refundable: Refundable, now: LocalDateTime): Money {
   return refundable.refundableAmount(now).minus(RefundService.FEE).max(Money.ZERO);
+}
+
+/**
+ * Dawne refund(ticket, now) - TypeScript nie ma przeciążeń, więc stara metoda dostaje osobną nazwę.
+ * @deprecated użyj {@link RefundService.refund} z {@link SingleTicket}.
+ */
+refundTicket(ticket: TicketData, now: LocalDateTime): Money {
+  return this.refund(new SingleTicket(ticket), now);
+}
+
+/** @deprecated użyj {@link RefundService.refund} z {@link TicketGroup}. */
+refundAll(tickets: readonly TicketData[], now: LocalDateTime): Money {
+  return this.refund(TicketGroup.of(tickets), now);
+}
+```
+
+**Po (`CancellationDesk.ts`, metoda `refund`; w importach dochodzą `Refundable`, `SingleTicket` i `TicketGroup`):**
+
+```typescript
+refund(tickets: readonly TicketData[], now: LocalDateTime): Money {
+  const [first] = tickets;
+  const refundable: Refundable = tickets.length === 1 && first !== undefined
+    ? new SingleTicket(first)
+    : TicketGroup.of(tickets);
+  return this.service.refund(refundable, now);
 }
 ```
 
@@ -1847,9 +3651,9 @@ refund(refundable: Refundable, now: LocalDateTime): Money {
 **Zmiany:**
 
 1. W `CancellationDesk` usuń rozróżnienie jeden/wiele - klient zawsze buduje `TicketGroup.of(tickets)`, także z jednego biletu.
-2. Usuń z `RefundService` przestarzałe `refundTicket` i `refundAll` (wyszukanie wszystkich odwołań potwierdza, że nikt ich już nie woła).
+2. Usuń z `RefundService` przestarzałe `refundTicket` i `refundAll` (wyszukanie wszystkich odwołań potwierdza, że nikt ich już nie woła) - w serwisie zostaje tylko `refund(refundable, now)` z kroku 2, a z jego importów znikają `TicketData`, `SingleTicket` i `TicketGroup`. W kliencie z importów znikają `Refundable` i `SingleTicket`. Pliki Composite bez zmian.
 
-**Przed:**
+**Przed (`CancellationDesk.ts`, metoda `refund` z kroku 2):**
 
 ```typescript
 refund(tickets: readonly TicketData[], now: LocalDateTime): Money {
@@ -1861,10 +3665,12 @@ refund(tickets: readonly TicketData[], now: LocalDateTime): Money {
 }
 ```
 
-**Po:**
+**Po (`CancellationDesk.ts`, metoda `refund`):**
 
 ```typescript
-return this.service.refund(TicketGroup.of(tickets), now);
+refund(tickets: readonly TicketData[], now: LocalDateTime): Money {
+  return this.service.refund(TicketGroup.of(tickets), now);
+}
 ```
 
 **Uruchom:** test zielony; `S12SolutionTest` pokazuje zagnieżdżone grupy.
@@ -1915,11 +3721,15 @@ return this.childList.length === 0 ? 0 : total + 15 * (this.childList.length - 1
 
 1. Utwórz nowy plik z `abstract class CompositeProgramItem implements ProgramItem` (Extract Superclass robimy ręcznie - VS Code go nie ma) i przenieś do niej z `Marathon` pole `childList`, metodę `add` i `children()`; `minutes()` i `describe()` zadeklaruj jako `abstract`.
 2. Zmień `Marathon` na `extends CompositeProgramItem`: zostają `minutes()` i `describe()` z `override`, a do dzieci sięgają przez `this.children()`.
-3. Tak samo `ShortsBlock extends CompositeProgramItem` - usuń jego kopie pola, `add` i `children()`.
+3. Tak samo `ShortsBlock extends CompositeProgramItem` - usuń jego kopie pola, `add` i `children()`. W obu podklasach importy `requireNonNull` i `ProgramItem` zastępuje import `CompositeProgramItem`. `Film`, `ProgramItem` i `ProgramCatalog` bez zmian.
 
-**Przed:**
+**Przed (`Marathon.ts`, cały plik; `ShortsBlock.ts` analogicznie, tylko `minutes()` bez przerw i etykieta "Blok"):**
 
 ```typescript
+import { requireNonNull } from '../../../../shared/requireNonNull.js';
+import type { ProgramItem } from './ProgramItem.js';
+
+/** Kontener filmów. Obsługa dzieci jest skopiowana w ShortsBlock. */
 export class Marathon implements ProgramItem {
   private readonly childList: ProgramItem[] = [];
 
@@ -1932,19 +3742,97 @@ export class Marathon implements ProgramItem {
   children(): readonly ProgramItem[] {
     return Object.freeze([...this.childList]);
   }
-  ...
+
+  minutes(): number {
+    let total = 0;
+    for (const child of this.childList) {
+      total += child.minutes();
+    }
+    return this.childList.length === 0 ? 0 : total + 15 * (this.childList.length - 1);
+  }
+
+  describe(): string {
+    return `Maraton ${this.name} (${this.minutes()} min) `
+      + `[${this.childList.map((child) => child.describe()).join(', ')}]`;
+  }
 }
 ```
 
-**Po:**
+**Po (`CompositeProgramItem.ts`, nowy plik):**
 
 ```typescript
+import { requireNonNull } from '../../../../shared/requireNonNull.js';
+import type { ProgramItem } from './ProgramItem.js';
+
+/** Extract Superclass - wspólna obsługa dzieci (pole, add, children) w jednym miejscu. */
 export abstract class CompositeProgramItem implements ProgramItem {
   private readonly childList: ProgramItem[] = [];
 
   add(child: ProgramItem): void {
     this.childList.push(requireNonNull(child, 'child'));
   }
+
+  children(): readonly ProgramItem[] {
+    return Object.freeze([...this.childList]);
+  }
+
+  abstract minutes(): number;
+
+  abstract describe(): string;
+}
+```
+
+**Po (`Marathon.ts`, cały plik):**
+
+```typescript
+import { CompositeProgramItem } from './CompositeProgramItem.js';
+
+/** Pole children, add i children() podciągnięte do CompositeProgramItem. */
+export class Marathon extends CompositeProgramItem {
+  constructor(private readonly name: string) {
+    super();
+  }
+
+  override minutes(): number {
+    const children = this.children();
+    let total = 0;
+    for (const child of children) {
+      total += child.minutes();
+    }
+    return children.length === 0 ? 0 : total + 15 * (children.length - 1);
+  }
+
+  override describe(): string {
+    return `Maraton ${this.name} (${this.minutes()} min) `
+      + `[${this.children().map((child) => child.describe()).join(', ')}]`;
+  }
+}
+```
+
+**Po (`ShortsBlock.ts`, cały plik):**
+
+```typescript
+import { CompositeProgramItem } from './CompositeProgramItem.js';
+
+/** Pole children, add i children() podciągnięte do CompositeProgramItem. */
+export class ShortsBlock extends CompositeProgramItem {
+  constructor(private readonly name: string) {
+    super();
+  }
+
+  override minutes(): number {
+    let total = 0;
+    for (const child of this.children()) {
+      total += child.minutes();
+    }
+    return total;
+  }
+
+  override describe(): string {
+    return `Blok ${this.name} (${this.minutes()} min) `
+      + `[${this.children().map((child) => child.describe()).join(', ')}]`;
+  }
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang ts test m5/s13` - zielone.
@@ -1957,32 +3845,86 @@ export abstract class CompositeProgramItem implements ProgramItem {
 
 1. Przenieś do bazy (ręcznie) sumę czasu dzieci jako `protected childrenMinutes()` - obie pętle liczyły to samo.
 2. Przenieś `describe()` do bazy jako szablon z hookiem `protected abstract label()`; pole `name` i chroniony konstruktor z nazwą też idą do bazy.
-3. W podklasach zostają tylko `minutes()` (reguła przerw) i `label()` (etykieta "Maraton"/"Blok"); konstruktory przekazują nazwę przez `super(name)`.
+3. W podklasach zostają tylko `minutes()` (reguła przerw) i `label()` (etykieta "Maraton"/"Blok"); konstruktory przekazują nazwę przez `super(name)`. `Film`, `ProgramItem` i `ProgramCatalog` bez zmian.
 
-**Przed:**
+**Przed:** trzy pliki jak w blokach Po kroku 1.
+
+**Po (`CompositeProgramItem.ts`, cały plik):**
 
 ```typescript
-override minutes(): number {
-  const children = this.children();
-  let total = 0;
-  for (const child of children) {
-    total += child.minutes();
-  }
-  return children.length === 0 ? 0 : total + 15 * (children.length - 1);
-}
+import { requireNonNull } from '../../../../shared/requireNonNull.js';
+import type { ProgramItem } from './ProgramItem.js';
 
-override describe(): string {
-  return `Maraton ${this.name} (${this.minutes()} min) `
-    + `[${this.children().map((child) => child.describe()).join(', ')}]`;
+/**
+ * Pull Up Method - suma czasu dzieci i szkielet opisu też w nadklasie. Podklasy
+ * dostarczają tylko to, czym naprawdę się różnią: etykietę i regułę przerw.
+ */
+export abstract class CompositeProgramItem implements ProgramItem {
+  private readonly childList: ProgramItem[] = [];
+
+  protected constructor(private readonly name: string) {}
+
+  add(child: ProgramItem): void {
+    this.childList.push(requireNonNull(child, 'child'));
+  }
+
+  children(): readonly ProgramItem[] {
+    return Object.freeze([...this.childList]);
+  }
+
+  protected childrenMinutes(): number {
+    let total = 0;
+    for (const child of this.childList) {
+      total += child.minutes();
+    }
+    return total;
+  }
+
+  describe(): string {
+    return `${this.label()} ${this.name} (${this.minutes()} min) `
+      + `[${this.childList.map((child) => child.describe()).join(', ')}]`;
+  }
+
+  abstract minutes(): number;
+
+  protected abstract label(): string;
 }
 ```
 
-**Po:**
+**Po (`Marathon.ts`, cała klasa):**
 
 ```typescript
-override minutes(): number {
-  const count = this.children().length;
-  return count === 0 ? 0 : this.childrenMinutes() + 15 * (count - 1);
+export class Marathon extends CompositeProgramItem {
+  constructor(name: string) {
+    super(name);
+  }
+
+  override minutes(): number {
+    const count = this.children().length;
+    return count === 0 ? 0 : this.childrenMinutes() + 15 * (count - 1);
+  }
+
+  protected override label(): string {
+    return 'Maraton';
+  }
+}
+```
+
+**Po (`ShortsBlock.ts`, cała klasa):**
+
+```typescript
+export class ShortsBlock extends CompositeProgramItem {
+  constructor(name: string) {
+    super(name);
+  }
+
+  override minutes(): number {
+    return this.childrenMinutes();
+  }
+
+  protected override label(): string {
+    return 'Blok';
+  }
 }
 ```
 
@@ -2035,7 +3977,7 @@ const request = `<charge ref='${reservationId}' amount='${grosze}'/>`;
 1. Wyodrębnij gałąź XML z `pay` do prywatnej metody `payWithXml(reservationId, amount): PaymentResult` (Extract Method).
 2. Tak samo gałąź REST do `payWithRest(reservationId, amount): PaymentResult` - obie metody mają identyczną sygnaturę i wynik.
 
-**Przed:**
+**Przed (`CheckoutService.ts`, metoda `pay`; pomocnicze `attribute` bez zmian):**
 
 ```typescript
 pay(provider: string, reservationId: string, amount: Money): PaymentResult {
@@ -2052,20 +3994,47 @@ pay(provider: string, reservationId: string, amount: Money): PaymentResult {
       return PaymentResult.accepted(
         this.rest.charge(new ChargeRequest(amount.amount, 'PLN', reservationId)).transactionId);
     } catch (exception) {
-      ...
+      if (exception instanceof RestPayException) {
+        return PaymentResult.declined(exception.code);
+      }
+      throw exception;
     }
   }
   throw new IllegalArgumentError(`unknown provider: ${provider}`);
 }
 ```
 
-**Po:**
+**Po (`CheckoutService.ts`, metody `pay`, `payWithXml` i `payWithRest`):**
 
 ```typescript
-if (provider === 'XML') {
-  return this.payWithXml(reservationId, amount);
-} else if (provider === 'REST') {
-  return this.payWithRest(reservationId, amount);
+pay(provider: string, reservationId: string, amount: Money): PaymentResult {
+  if (provider === 'XML') {
+    return this.payWithXml(reservationId, amount);
+  } else if (provider === 'REST') {
+    return this.payWithRest(reservationId, amount);
+  }
+  throw new IllegalArgumentError(`unknown provider: ${provider}`);
+}
+
+private payWithXml(reservationId: string, amount: Money): PaymentResult {
+  const grosze = amount.amount.times(100).toNumber();
+  const response = this.xml.submit(`<charge ref='${reservationId}' amount='${grosze}'/>`);
+  if (response.includes("status='OK'")) {
+    return PaymentResult.accepted(CheckoutService.attribute(response, 'id'));
+  }
+  return PaymentResult.declined(CheckoutService.attribute(response, 'code'));
+}
+
+private payWithRest(reservationId: string, amount: Money): PaymentResult {
+  try {
+    return PaymentResult.accepted(
+      this.rest.charge(new ChargeRequest(amount.amount, 'PLN', reservationId)).transactionId);
+  } catch (exception) {
+    if (exception instanceof RestPayException) {
+      return PaymentResult.declined(exception.code);
+    }
+    throw exception;
+  }
 }
 ```
 
@@ -2080,27 +4049,99 @@ if (provider === 'XML') {
 1. Utwórz interfejs `PaymentGateway` z metodą `pay(reservationId, amount): PaymentResult`.
 2. Utwórz `XmlPayAdapter implements PaymentGateway`: przenieś do niego ciało `payWithXml` jako `pay` razem z pomocniczym `attribute` (przenosimy ręcznie - VS Code nie przenosi metod między klasami); bramkę dostaje w konstruktorze.
 3. Tak samo `RestPayAdapter` z ciałem `payWithRest`.
-4. W serwisie zmień typ pól `xml` i `rest` na `PaymentGateway`; konstruktor bez zmian - tworzy adaptery, a `pay` deleguje do nich.
+4. W serwisie zmień typ pól `xml` i `rest` na `PaymentGateway`; sygnatura konstruktora bez zmian - tworzy adaptery, a `pay` deleguje do nich (`this.xml.pay(...)`, `this.rest.pay(...)`). Metody `payWithXml`, `payWithRest` i `attribute` znikają z serwisu; w importach serwisu `PaymentResult` i `RestPayClient` stają się `import type`, `ChargeRequest`/`RestPayException` znikają, dochodzą `PaymentGateway`, `RestPayAdapter`, `XmlPayAdapter`.
 
-**Przed:**
+**Przed:** metody `pay`, `payWithXml`, `payWithRest` serwisu - jak w bloku Po kroku 1.
+
+**Po (`PaymentGateway.ts`, nowy plik):**
 
 ```typescript
-private payWithXml(reservationId: string, amount: Money): PaymentResult {
-  const grosze = amount.amount.times(100).toNumber();
-  const response = this.xml.submit(`<charge ref='${reservationId}' amount='${grosze}'/>`);
-  if (response.includes("status='OK'")) {
-    return PaymentResult.accepted(CheckoutService.attribute(response, 'id'));
-  }
-  return PaymentResult.declined(CheckoutService.attribute(response, 'code'));
+import type { Money } from '../../../shared/Money.js';
+import type { PaymentResult } from '../PaymentResult.js';
+
+/** Preferowany interfejs kina - kwota jako Money, odmowa jako wynik, nie wyjątek. */
+export interface PaymentGateway {
+  pay(reservationId: string, amount: Money): PaymentResult;
 }
 ```
 
-**Po:**
+**Po (`XmlPayAdapter.ts`, nowy plik):**
 
 ```typescript
-constructor(xml: XmlPayGateway, rest: RestPayClient) {
-  this.xml = new XmlPayAdapter(xml);
-  this.rest = new RestPayAdapter(rest);
+import type { Money } from '../../../shared/Money.js';
+import { PaymentResult } from '../PaymentResult.js';
+import type { XmlPayGateway } from '../XmlPayGateway.js';
+import type { PaymentGateway } from './PaymentGateway.js';
+
+/**
+ * Adapter starej bramki - tłumaczy jednostki (złote -> grosze), format (XML)
+ * i wynik (atrybuty status/id/code). Nie jest właścicielem bramki.
+ */
+export class XmlPayAdapter implements PaymentGateway {
+  constructor(private readonly xml: XmlPayGateway) {}
+
+  pay(reservationId: string, amount: Money): PaymentResult {
+    const grosze = amount.amount.times(100).toNumber();
+    const response = this.xml.submit(`<charge ref='${reservationId}' amount='${grosze}'/>`);
+    if (response.includes("status='OK'")) {
+      return PaymentResult.accepted(XmlPayAdapter.attribute(response, 'id'));
+    }
+    return PaymentResult.declined(XmlPayAdapter.attribute(response, 'code'));
+  }
+
+  private static attribute(xml: string, name: string): string {
+    const start = xml.indexOf(`${name}='`) + name.length + 2;
+    return xml.substring(start, xml.indexOf("'", start));
+  }
+}
+```
+
+**Po (`RestPayAdapter.ts`, nowy plik):**
+
+```typescript
+import type { Money } from '../../../shared/Money.js';
+import { PaymentResult } from '../PaymentResult.js';
+import { ChargeRequest, type RestPayClient, RestPayException } from '../RestPayClient.js';
+import type { PaymentGateway } from './PaymentGateway.js';
+
+/** Adapter nowej bramki - odmowa zgłaszana wyjątkiem staje się wynikiem declined. */
+export class RestPayAdapter implements PaymentGateway {
+  constructor(private readonly rest: RestPayClient) {}
+
+  pay(reservationId: string, amount: Money): PaymentResult {
+    try {
+      return PaymentResult.accepted(
+        this.rest.charge(new ChargeRequest(amount.amount, 'PLN', reservationId)).transactionId);
+    } catch (exception) {
+      if (exception instanceof RestPayException) {
+        return PaymentResult.declined(exception.code);
+      }
+      throw exception;
+    }
+  }
+}
+```
+
+**Po (`CheckoutService.ts`, cała klasa):**
+
+```typescript
+export class CheckoutService {
+  private readonly xml: PaymentGateway;
+  private readonly rest: PaymentGateway;
+
+  constructor(xml: XmlPayGateway, rest: RestPayClient) {
+    this.xml = new XmlPayAdapter(xml);
+    this.rest = new RestPayAdapter(rest);
+  }
+
+  pay(provider: string, reservationId: string, amount: Money): PaymentResult {
+    if (provider === 'XML') {
+      return this.xml.pay(reservationId, amount);
+    } else if (provider === 'REST') {
+      return this.rest.pay(reservationId, amount);
+    }
+    throw new IllegalArgumentError(`unknown provider: ${provider}`);
+  }
 }
 ```
 
@@ -2114,29 +4155,38 @@ constructor(xml: XmlPayGateway, rest: RestPayClient) {
 
 1. Zastąp pola `xml` i `rest` jedną mapą `private readonly gateways: ReadonlyMap<string, PaymentGateway>`.
 2. Dodaj sygnaturę przeciążenia konstruktora `(gateways: ReadonlyMap<string, PaymentGateway>)` (zapisywana jako kopia `new Map(gateways)`); stara sygnatura `(xml, rest)` zostaje jako drugie przeciążenie i buduje mapę ze standardowym zestawem adapterów (implementacja rozróżnia argument przez `instanceof XmlPayGateway`).
-3. W `pay` zastąp `if/else if` wyszukaniem w mapie; nieznany dostawca rzuca ten sam wyjątek co dotąd.
+3. W `pay` zastąp `if/else if` wyszukaniem w mapie; nieznany dostawca rzuca ten sam wyjątek co dotąd. W importach serwisu dochodzi `requireNonNull`, a `XmlPayGateway` przestaje być `import type` (konstruktor używa go w `instanceof`). Interfejs i adaptery bez zmian.
 
-**Przed:**
+**Przed:** cała klasa `CheckoutService` - jak w bloku Po kroku 2.
+
+**Po (`CheckoutService.ts`, cała klasa):**
 
 ```typescript
-pay(provider: string, reservationId: string, amount: Money): PaymentResult {
-  if (provider === 'XML') {
-    return this.xml.pay(reservationId, amount);
-  } else if (provider === 'REST') {
-    return this.rest.pay(reservationId, amount);
+export class CheckoutService {
+  private readonly gateways: ReadonlyMap<string, PaymentGateway>;
+
+  /** Dotychczasowy konstruktor jako skrót: standardowy zestaw dwóch adapterów. */
+  constructor(xml: XmlPayGateway, rest: RestPayClient);
+  constructor(gateways: ReadonlyMap<string, PaymentGateway>);
+  constructor(xmlOrGateways: XmlPayGateway | ReadonlyMap<string, PaymentGateway>, rest?: RestPayClient) {
+    if (xmlOrGateways instanceof XmlPayGateway) {
+      this.gateways = new Map<string, PaymentGateway>([
+        ['XML', new XmlPayAdapter(xmlOrGateways)],
+        ['REST', new RestPayAdapter(requireNonNull(rest, 'rest'))],
+      ]);
+    } else {
+      this.gateways = new Map(xmlOrGateways);
+    }
   }
-  throw new IllegalArgumentError(`unknown provider: ${provider}`);
-}
-```
 
-**Po:**
-
-```typescript
-const gateway = this.gateways.get(provider);
-if (gateway === undefined) {
-  throw new IllegalArgumentError(`unknown provider: ${provider}`);
+  pay(provider: string, reservationId: string, amount: Money): PaymentResult {
+    const gateway = this.gateways.get(provider);
+    if (gateway === undefined) {
+      throw new IllegalArgumentError(`unknown provider: ${provider}`);
+    }
+    return gateway.pay(reservationId, amount);
+  }
 }
-return gateway.pay(reservationId, amount);
 ```
 
 **Uruchom:** test zielony.
@@ -2194,55 +4244,65 @@ Test to sesja poleceń: sprzedaż, zwrot, raport oraz błędne polecenia, które
 **Zmiany:**
 
 1. Wyodrębnij ciało gałęzi SELL do prywatnej metody `sell(args: string): string` (Extract Method).
-2. Tak samo REFUND do `refund(args)` i REPORT do `report(args)` - ta sama sygnatura u wszystkich, także gdy `args` nie jest używane (parametr `_args` w `report`).
+2. Tak samo REFUND do `refund(args)` i REPORT do `report(args)` - ta sama sygnatura u wszystkich, także gdy `args` nie jest używane (parametr `_args` w `report`). Pola `PRICES`, `cash` i `tickets` bez zmian.
 
-**Przed:**
+**Przed (`CashierConsole.ts`, metoda `handle`):**
 
 ```typescript
-if (command === 'SELL') {
-  const [count = '', ...titleParts] = args.split(' ');
-  if (titleParts.length === 0 || !/^\d+$/.test(count)) {
-    return 'Blad: SELL <liczba> <tytul>';
+handle(line: string): string {
+  const [name = '', ...rest] = line.trim().split(' ');
+  const command = name.toUpperCase();
+  const args = rest.join(' ');
+  if (command === 'SELL') {
+    const [count = '', ...titleParts] = args.split(' ');
+    if (titleParts.length === 0 || !/^\d+$/.test(count)) {
+      return 'Blad: SELL <liczba> <tytul>';
+    }
+    const title = titleParts.join(' ');
+    const quantity = Number.parseInt(count, 10);
+    const price = CashierConsole.PRICES.get(title);
+    if (price === undefined) {
+      return `Blad: nieznany film ${title}`;
+    }
+    const total = price.times(quantity);
+    this.cash = this.cash.plus(total);
+    this.tickets += quantity;
+    return `Sprzedano ${quantity} x ${title} = ${total.toString()}`;
+  } else if (command === 'REFUND') {
+    const price = CashierConsole.PRICES.get(args);
+    if (price === undefined) {
+      return `Blad: nieznany film ${args}`;
+    }
+    if (this.tickets === 0) {
+      return 'Blad: brak biletow do zwrotu';
+    }
+    this.cash = this.cash.minus(price);
+    this.tickets--;
+    return `Zwrot 1 x ${args} = ${price.toString()}`;
+  } else if (command === 'REPORT') {
+    return `Kasa: ${this.cash.toString()}, biletow: ${this.tickets}`;
   }
-  const title = titleParts.join(' ');
-  const quantity = Number.parseInt(count, 10);
-  const price = CashierConsole.PRICES.get(title);
-  if (price === undefined) {
-    return `Blad: nieznany film ${title}`;
-  }
-  const total = price.times(quantity);
-  this.cash = this.cash.plus(total);
-  this.tickets += quantity;
-  return `Sprzedano ${quantity} x ${title} = ${total.toString()}`;
-} else if (command === 'REFUND') {
-  ...
+  return `Nieznana komenda: ${name}`;
 }
 ```
 
-**Po:**
+**Po (`CashierConsole.ts`, metoda `handle` i trzy metody prywatne):**
 
 ```typescript
-if (command === 'SELL') {
-  return this.sell(args);
+handle(line: string): string {
+  const [name = '', ...rest] = line.trim().split(' ');
+  const command = name.toUpperCase();
+  const args = rest.join(' ');
+  if (command === 'SELL') {
+    return this.sell(args);
+  } else if (command === 'REFUND') {
+    return this.refund(args);
+  } else if (command === 'REPORT') {
+    return this.report(args);
+  }
+  return `Nieznana komenda: ${name}`;
 }
-```
 
-**Uruchom:** `scripts/warsztat.sh --lang ts test m5/s15` - zielone.
-**Co powiedzieć:** jednolita sygnatura przygotowuje interfejs komendy.
-**Snapshot:** `step1/` · **Różnica:** `scripts/warsztat.sh --lang ts diff m5/s15 0 1`
-
-### Krok 2: komendy jako obiekty, stan w Till
-
-**Zmiany:**
-
-1. Utwórz klasę `Till` i przenieś do niej stan kasy: cennik `PRICES`, pola gotówki i liczby biletów oraz metody `priceOf`, `sold`, `refunded`, `cash`, `tickets` (Extract Class, ręcznie).
-2. Utwórz interfejs `ConsoleCommand` z metodą `execute(args: string, till: Till): string`.
-3. Utwórz klasy `SellCommand`, `RefundCommand`, `ReportCommand` i przenieś do ich `execute` ciała metod `sell`, `refund`, `report`; na stanie operują przez `till`.
-4. W konsoli zostają pole `till`, po jednym polu na komendę i dyspozytor `if` - teraz deleguje do `execute`. Zmieniamy jedną rzecz naraz.
-
-**Przed:**
-
-```typescript
 private sell(args: string): string {
   const [count = '', ...titleParts] = args.split(' ');
   if (titleParts.length === 0 || !/^\d+$/.test(count)) {
@@ -2259,13 +4319,175 @@ private sell(args: string): string {
   this.tickets += quantity;
   return `Sprzedano ${quantity} x ${title} = ${total.toString()}`;
 }
+
+private refund(args: string): string {
+  const price = CashierConsole.PRICES.get(args);
+  if (price === undefined) {
+    return `Blad: nieznany film ${args}`;
+  }
+  if (this.tickets === 0) {
+    return 'Blad: brak biletow do zwrotu';
+  }
+  this.cash = this.cash.minus(price);
+  this.tickets--;
+  return `Zwrot 1 x ${args} = ${price.toString()}`;
+}
+
+private report(_args: string): string {
+  return `Kasa: ${this.cash.toString()}, biletow: ${this.tickets}`;
+}
 ```
 
-**Po:**
+**Uruchom:** `scripts/warsztat.sh --lang ts test m5/s15` - zielone.
+**Co powiedzieć:** jednolita sygnatura przygotowuje interfejs komendy.
+**Snapshot:** `step1/` · **Różnica:** `scripts/warsztat.sh --lang ts diff m5/s15 0 1`
+
+### Krok 2: komendy jako obiekty, stan w Till
+
+**Zmiany:**
+
+1. Utwórz klasę `Till` i przenieś do niej stan kasy: cennik `PRICES`, pola gotówki i liczby biletów oraz metody `priceOf`, `sold`, `refunded`, `cash`, `tickets` (Extract Class, ręcznie).
+2. Utwórz interfejs `ConsoleCommand` z metodą `execute(args: string, till: Till): string`.
+3. Utwórz klasy `SellCommand`, `RefundCommand`, `ReportCommand` i przenieś do ich `execute` ciała metod `sell`, `refund`, `report`; na stanie operują przez `till`.
+4. W konsoli zostają pole `till`, po jednym polu na komendę i dyspozytor `if` - teraz deleguje do `execute`. Prywatne metody `sell`/`refund`/`report`, pola `PRICES`, `cash`, `tickets` i import `Money` znikają z konsoli; dochodzą importy `ConsoleCommand`, trzech komend i `Till`. Zmieniamy jedną rzecz naraz.
+
+**Przed:** metoda `handle` i trzy metody prywatne konsoli - jak w bloku Po kroku 1.
+
+**Po (`Till.ts`, nowy plik):**
 
 ```typescript
-if (command === 'SELL') {
-  return this.sell.execute(args, this.till);
+import { Money } from '../../../shared/Money.js';
+
+/** Stan kasy wydzielony z konsoli - komendy dostają go jako argument i same są bezstanowe. */
+export class Till {
+  private static readonly PRICES: ReadonlyMap<string, Money> = new Map([
+    ['Diuna', Money.of('40.00')],
+    ['Kraina Lodu', Money.of('32.00')],
+    ['Amator', Money.of('25.00')],
+  ]);
+
+  private cashAmount = Money.ZERO;
+  private ticketCount = 0;
+
+  priceOf(title: string): Money | undefined {
+    return Till.PRICES.get(title);
+  }
+
+  sold(quantity: number, total: Money): void {
+    this.cashAmount = this.cashAmount.plus(total);
+    this.ticketCount += quantity;
+  }
+
+  refunded(price: Money): void {
+    this.cashAmount = this.cashAmount.minus(price);
+    this.ticketCount--;
+  }
+
+  cash(): Money {
+    return this.cashAmount;
+  }
+
+  tickets(): number {
+    return this.ticketCount;
+  }
+}
+```
+
+**Po (`ConsoleCommand.ts`, nowy plik):**
+
+```typescript
+import type { Till } from './Till.js';
+
+/** Kontrakt komendy - dane żądania (args) i stan (till) przychodzą jako argumenty. */
+export interface ConsoleCommand {
+  execute(args: string, till: Till): string;
+}
+```
+
+**Po (`SellCommand.ts`, nowy plik):**
+
+```typescript
+import type { ConsoleCommand } from './ConsoleCommand.js';
+import type { Till } from './Till.js';
+
+/** Gałąź SELL jako obiekt komendy. */
+export class SellCommand implements ConsoleCommand {
+  execute(args: string, till: Till): string {
+    const [count = '', ...titleParts] = args.split(' ');
+    if (titleParts.length === 0 || !/^\d+$/.test(count)) {
+      return 'Blad: SELL <liczba> <tytul>';
+    }
+    const title = titleParts.join(' ');
+    const quantity = Number.parseInt(count, 10);
+    const price = till.priceOf(title);
+    if (price === undefined) {
+      return `Blad: nieznany film ${title}`;
+    }
+    const total = price.times(quantity);
+    till.sold(quantity, total);
+    return `Sprzedano ${quantity} x ${title} = ${total.toString()}`;
+  }
+}
+```
+
+**Po (`RefundCommand.ts`, nowy plik):**
+
+```typescript
+import type { ConsoleCommand } from './ConsoleCommand.js';
+import type { Till } from './Till.js';
+
+/** Gałąź REFUND jako obiekt komendy. */
+export class RefundCommand implements ConsoleCommand {
+  execute(args: string, till: Till): string {
+    const price = till.priceOf(args);
+    if (price === undefined) {
+      return `Blad: nieznany film ${args}`;
+    }
+    if (till.tickets() === 0) {
+      return 'Blad: brak biletow do zwrotu';
+    }
+    till.refunded(price);
+    return `Zwrot 1 x ${args} = ${price.toString()}`;
+  }
+}
+```
+
+**Po (`ReportCommand.ts`, nowy plik):**
+
+```typescript
+import type { ConsoleCommand } from './ConsoleCommand.js';
+import type { Till } from './Till.js';
+
+/** Gałąź REPORT jako obiekt komendy. */
+export class ReportCommand implements ConsoleCommand {
+  execute(_args: string, till: Till): string {
+    return `Kasa: ${till.cash().toString()}, biletow: ${till.tickets()}`;
+  }
+}
+```
+
+**Po (`CashierConsole.ts`, cała klasa):**
+
+```typescript
+export class CashierConsole {
+  private readonly till = new Till();
+  private readonly sell: ConsoleCommand = new SellCommand();
+  private readonly refund: ConsoleCommand = new RefundCommand();
+  private readonly report: ConsoleCommand = new ReportCommand();
+
+  handle(line: string): string {
+    const [name = '', ...rest] = line.trim().split(' ');
+    const command = name.toUpperCase();
+    const args = rest.join(' ');
+    if (command === 'SELL') {
+      return this.sell.execute(args, this.till);
+    } else if (command === 'REFUND') {
+      return this.refund.execute(args, this.till);
+    } else if (command === 'REPORT') {
+      return this.report.execute(args, this.till);
+    }
+    return `Nieznana komenda: ${name}`;
+  }
 }
 ```
 
@@ -2279,27 +4501,33 @@ if (command === 'SELL') {
 
 1. Zastąp trzy pola komend jedną mapą `private readonly commands: ReadonlyMap<string, ConsoleCommand>`.
 2. Dodaj konstruktor z parametrem `commands` o wartości domyślnej (mapa ze standardowym zestawem SELL/REFUND/REPORT); zapisuj kopię `new Map(commands)`.
-3. W `handle` usuń łańcuch `if` - wyszukaj komendę po znormalizowanym kluczu `name.toUpperCase()`; brak wpisu daje dotychczasowe `Nieznana komenda: ...`.
+3. W `handle` usuń łańcuch `if` - wyszukaj komendę po znormalizowanym kluczu `name.toUpperCase()`; brak wpisu daje dotychczasowe `Nieznana komenda: ...`. Pozostałe pliki bez zmian.
 
-**Przed:**
+**Przed:** cała klasa `CashierConsole` - jak w bloku Po kroku 2.
 
-```typescript
-if (command === 'SELL') {
-  return this.sell.execute(args, this.till);
-} else if (command === 'REFUND') {
-  return this.refund.execute(args, this.till);
-} else if (command === 'REPORT') {
-  return this.report.execute(args, this.till);
-}
-return `Nieznana komenda: ${name}`;
-```
-
-**Po:**
+**Po (`CashierConsole.ts`, cała klasa):**
 
 ```typescript
-const command = this.commands.get(name.toUpperCase());
-if (command === undefined) {
-  return `Nieznana komenda: ${name}`;
+export class CashierConsole {
+  private readonly till = new Till();
+  private readonly commands: ReadonlyMap<string, ConsoleCommand>;
+
+  constructor(commands: ReadonlyMap<string, ConsoleCommand> = new Map<string, ConsoleCommand>([
+    ['SELL', new SellCommand()],
+    ['REFUND', new RefundCommand()],
+    ['REPORT', new ReportCommand()],
+  ])) {
+    this.commands = new Map(commands);
+  }
+
+  handle(line: string): string {
+    const [name = '', ...rest] = line.trim().split(' ');
+    const command = this.commands.get(name.toUpperCase());
+    if (command === undefined) {
+      return `Nieznana komenda: ${name}`;
+    }
+    return command.execute(rest.join(' '), this.till);
+  }
 }
 ```
 
@@ -2349,35 +4577,100 @@ Jak dodalibyście `UNDO` dla ostatniej sprzedaży? Czego wymaga to od komend?
 2. Zrób to samo w `HtmlSalesReport` - te same nazwy i sygnatury.
 3. Przepisz `render` HTML na ten sam kształt co CSV: kopia tablicy i `sort` zamiast `toSorted`, zmienne `text`, `tickets`, `total` zamiast tablicy fragmentów i `sum`/`count` - aż oba `render` będą identyczne znak w znak.
 
-**Przed:**
+**Przed (`CsvSalesReport.ts`, metoda `render`):**
 
 ```typescript
-// HtmlSalesReport:
-const html: string[] = [];
-html.push('<table>\n<tr><th>Godzina</th><th>Film</th><th>Bilety</th><th>Kwota</th></tr>\n');
-let sum = Money.ZERO;
-let count = 0;
-for (const sale of sales.toSorted((a, b) => a.time.compareTo(b.time))) {
-  const title = sale.title.replaceAll('&', '&amp;').replaceAll('<', '&lt;');
-  html.push('<tr><td>', sale.time.toString(), '</td><td>', title,
-    '</td><td>', String(sale.tickets), '</td><td>', sale.amount.toString(),
-    '</td></tr>\n');
-  sum = sum.plus(sale.amount);
-  count += sale.tickets;
+render(sales: readonly Sale[]): string {
+  const sorted = [...sales];
+  sorted.sort((a, b) => a.time.compareTo(b.time));
+  let csv = 'godzina;film;bilety;kwota\n';
+  let tickets = 0;
+  let total = Money.ZERO;
+  for (const sale of sorted) {
+    const title = sale.title.includes(';') ? `"${sale.title}"` : sale.title;
+    csv += `${sale.time.toString()};${title};${sale.tickets};${sale.amount.toString()}\n`;
+    tickets += sale.tickets;
+    total = total.plus(sale.amount);
+  }
+  csv += `SUMA;;${tickets};${total.toString()}\n`;
+  return csv;
 }
 ```
 
-**Po:**
+**Przed (`HtmlSalesReport.ts`, metoda `render`):**
 
 ```typescript
-let text = this.header();
-let tickets = 0;
-let total = Money.ZERO;
-for (const sale of sorted) {
-  text += this.row(sale);
-  ...
+render(sales: readonly Sale[]): string {
+  const html: string[] = [];
+  html.push('<table>\n<tr><th>Godzina</th><th>Film</th><th>Bilety</th><th>Kwota</th></tr>\n');
+  let sum = Money.ZERO;
+  let count = 0;
+  for (const sale of sales.toSorted((a, b) => a.time.compareTo(b.time))) {
+    const title = sale.title.replaceAll('&', '&amp;').replaceAll('<', '&lt;');
+    html.push('<tr><td>', sale.time.toString(), '</td><td>', title,
+      '</td><td>', String(sale.tickets), '</td><td>', sale.amount.toString(),
+      '</td></tr>\n');
+    sum = sum.plus(sale.amount);
+    count += sale.tickets;
+  }
+  html.push('<tr><td colspan="2">Suma</td><td>', String(count), '</td><td>', sum.toString(),
+    '</td></tr>\n</table>\n');
+  return html.join('');
 }
-return text + this.footer(tickets, total);
+```
+
+**Po (`CsvSalesReport.ts` i `HtmlSalesReport.ts`, identyczna metoda `render` w obu klasach):**
+
+```typescript
+render(sales: readonly Sale[]): string {
+  const sorted = [...sales];
+  sorted.sort((a, b) => a.time.compareTo(b.time));
+  let text = this.header();
+  let tickets = 0;
+  let total = Money.ZERO;
+  for (const sale of sorted) {
+    text += this.row(sale);
+    tickets += sale.tickets;
+    total = total.plus(sale.amount);
+  }
+  return text + this.footer(tickets, total);
+}
+```
+
+**Po (`CsvSalesReport.ts`, metody prywatne):**
+
+```typescript
+private header(): string {
+  return 'godzina;film;bilety;kwota\n';
+}
+
+private row(sale: Sale): string {
+  const title = sale.title.includes(';') ? `"${sale.title}"` : sale.title;
+  return `${sale.time.toString()};${title};${sale.tickets};${sale.amount.toString()}\n`;
+}
+
+private footer(tickets: number, total: Money): string {
+  return `SUMA;;${tickets};${total.toString()}\n`;
+}
+```
+
+**Po (`HtmlSalesReport.ts`, metody prywatne):**
+
+```typescript
+private header(): string {
+  return '<table>\n<tr><th>Godzina</th><th>Film</th><th>Bilety</th><th>Kwota</th></tr>\n';
+}
+
+private row(sale: Sale): string {
+  const title = sale.title.replaceAll('&', '&amp;').replaceAll('<', '&lt;');
+  return `<tr><td>${sale.time.toString()}</td><td>${title}</td><td>${sale.tickets}`
+    + `</td><td>${sale.amount.toString()}</td></tr>\n`;
+}
+
+private footer(tickets: number, total: Money): string {
+  return `<tr><td colspan="2">Suma</td><td>${tickets}</td><td>${total.toString()}</td></tr>\n`
+    + '</table>\n';
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang ts test m5/s16` - zielone.
@@ -2391,11 +4684,29 @@ return text + this.footer(tickets, total);
 1. Utwórz ręcznie `abstract class SalesReport` (Extract Superclass - VS Code go nie ma): przenieś do niej `render` z CSV, a `header`, `row` i `footer` zadeklaruj jako `protected abstract` (Pull Up Method).
 2. Zmień obie klasy na `extends SalesReport`: metody formatujące dostają `protected override`, kopie `render` usuń.
 3. Dodaj w konstruktorze bazy strażnika zamiast `final`: jeśli podklasa nadpisała `render`, konstruktor rzuca `IllegalStateError('render() is final')`.
+4. W obu podklasach import `Money` staje się `import type`, dochodzi import `SalesReport`.
 
-**Przed:**
+**Przed:** obie klasy z identycznym `render` i prywatnymi `header`/`row`/`footer` - jak w blokach Po kroku 1.
+
+**Po (`SalesReport.ts`, nowy plik):**
 
 ```typescript
-export class CsvSalesReport {
+import { IllegalStateError } from '../../../../shared/errors.js';
+import { Money } from '../../../shared/Money.js';
+import type { Sale } from '../Sale.js';
+
+/**
+ * Form Template Method - Extract Superclass + Pull Up render(). Szkielet jest "final":
+ * kolejność kroków i liczenie sumy należą do bazy, podklasy dostarczają tylko formatowanie.
+ * TypeScript nie ma modyfikatora final, więc konstruktor bazy odrzuca podklasę nadpisującą render().
+ */
+export abstract class SalesReport {
+  constructor() {
+    if (this.render !== SalesReport.prototype.render) {
+      throw new IllegalStateError('render() is final');
+    }
+  }
+
   render(sales: readonly Sale[]): string {
     const sorted = [...sales];
     sorted.sort((a, b) => a.time.compareTo(b.time));
@@ -2410,25 +4721,62 @@ export class CsvSalesReport {
     return text + this.footer(tickets, total);
   }
 
-  private header(): string {
-    return 'godzina;film;bilety;kwota\n';
-  }
-  ...
+  protected abstract header(): string;
+
+  protected abstract row(sale: Sale): string;
+
+  protected abstract footer(tickets: number, total: Money): string;
 }
 ```
 
-**Po:**
+**Po (`CsvSalesReport.ts`, cały plik):**
 
 ```typescript
-constructor() {
-  if (this.render !== SalesReport.prototype.render) {
-    throw new IllegalStateError('render() is final');
+import type { Money } from '../../../shared/Money.js';
+import type { Sale } from '../Sale.js';
+import { SalesReport } from './SalesReport.js';
+
+/** Raport CSV to już tylko trzy metody formatujące. */
+export class CsvSalesReport extends SalesReport {
+  protected override header(): string {
+    return 'godzina;film;bilety;kwota\n';
+  }
+
+  protected override row(sale: Sale): string {
+    const title = sale.title.includes(';') ? `"${sale.title}"` : sale.title;
+    return `${sale.time.toString()};${title};${sale.tickets};${sale.amount.toString()}\n`;
+  }
+
+  protected override footer(tickets: number, total: Money): string {
+    return `SUMA;;${tickets};${total.toString()}\n`;
   }
 }
-...
-protected abstract header(): string;
-protected abstract row(sale: Sale): string;
-protected abstract footer(tickets: number, total: Money): string;
+```
+
+**Po (`HtmlSalesReport.ts`, cały plik):**
+
+```typescript
+import type { Money } from '../../../shared/Money.js';
+import type { Sale } from '../Sale.js';
+import { SalesReport } from './SalesReport.js';
+
+/** Raport HTML to już tylko trzy metody formatujące. */
+export class HtmlSalesReport extends SalesReport {
+  protected override header(): string {
+    return '<table>\n<tr><th>Godzina</th><th>Film</th><th>Bilety</th><th>Kwota</th></tr>\n';
+  }
+
+  protected override row(sale: Sale): string {
+    const title = sale.title.replaceAll('&', '&amp;').replaceAll('<', '&lt;');
+    return `<tr><td>${sale.time.toString()}</td><td>${title}</td><td>${sale.tickets}`
+      + `</td><td>${sale.amount.toString()}</td></tr>\n`;
+  }
+
+  protected override footer(tickets: number, total: Money): string {
+    return `<tr><td colspan="2">Suma</td><td>${tickets}</td><td>${total.toString()}</td></tr>\n`
+      + '</table>\n';
+  }
+}
 ```
 
 **Uruchom:** test zielony; `S16SolutionTest` sprawdza ochronę `render` i dodaje format Markdown trzema metodami.
@@ -2481,13 +4829,18 @@ const price = new PriceList().basePrice(format);
 2. Usuń licznik z pomiaru: pole `createdCount` i metodę `created()`.
 3. W `TicketDesk.quote` zamień `new PriceList()` na `PriceList.getInstance()`.
 
-**Przed:**
+**Przed (`PriceList.ts`, cały plik):**
 
 ```typescript
+import { IllegalArgumentError } from '../../../../shared/errors.js';
+import { Money } from '../../../shared/Money.js';
+
 export class PriceList {
   private static readonly TARIFF = '2D=25.00;3D=32.00;IMAX=40.00';
   private static createdCount = 0;
-  ...
+
+  private readonly prices = new Map<string, Money>();
+
   constructor() {
     for (const entry of PriceList.TARIFF.split(';')) {
       const [format = '', amount = ''] = entry.split('=');
@@ -2499,9 +4852,51 @@ export class PriceList {
   static created(): number {
     return PriceList.createdCount;
   }
+
+  basePrice(format: string): Money {
+    const price = this.prices.get(format);
+    if (price === undefined) {
+      throw new IllegalArgumentError(`unknown format: ${format}`);
+    }
+    return price;
+  }
+}
 ```
 
-**Po:**
+**Po (`PriceList.ts`, cały plik):**
+
+```typescript
+import { IllegalArgumentError } from '../../../../shared/errors.js';
+import { Money } from '../../../shared/Money.js';
+
+export class PriceList {
+  private static readonly TARIFF = '2D=25.00;3D=32.00;IMAX=40.00';
+  private static readonly INSTANCE = new PriceList();
+
+  private readonly prices = new Map<string, Money>();
+
+  private constructor() {
+    for (const entry of PriceList.TARIFF.split(';')) {
+      const [format = '', amount = ''] = entry.split('=');
+      this.prices.set(format, Money.of(amount));
+    }
+  }
+
+  static getInstance(): PriceList {
+    return PriceList.INSTANCE;
+  }
+
+  basePrice(format: string): Money {
+    const price = this.prices.get(format);
+    if (price === undefined) {
+      throw new IllegalArgumentError(`unknown format: ${format}`);
+    }
+    return price;
+  }
+}
+```
+
+**Po (`TicketDesk.ts`, metoda `quote` - jedyna zmiana w pliku):**
 
 ```typescript
 const price = PriceList.getInstance().basePrice(format);
@@ -2519,25 +4914,39 @@ const price = PriceList.getInstance().basePrice(format);
 2. Zamień klasę na zamrożoną stałą modułu: `export const PriceList = Object.freeze({ basePrice(format) { ... } })`.
 3. W `TicketDesk.quote` zamień `PriceList.getInstance().basePrice(format)` na `PriceList.basePrice(format)`.
 
-**Przed:**
+**Przed:** `PriceList.ts` - jak w bloku Po kroku 1.
+
+**Po (`PriceList.ts`, cały plik):**
 
 ```typescript
-export class PriceList {
-  private static readonly TARIFF = '2D=25.00;3D=32.00;IMAX=40.00';
-  private static readonly INSTANCE = new PriceList();
+import { IllegalArgumentError } from '../../../../shared/errors.js';
+import { Money } from '../../../shared/Money.js';
 
-  private readonly prices = new Map<string, Money>();
+const TARIFF = '2D=25.00;3D=32.00;IMAX=40.00';
 
-  private constructor() {
-    ...
+function parse(): ReadonlyMap<string, Money> {
+  const parsed = new Map<string, Money>();
+  for (const entry of TARIFF.split(';')) {
+    const [format = '', amount = ''] = entry.split('=');
+    parsed.set(format, Money.of(amount));
   }
+  return parsed;
+}
 
-  static getInstance(): PriceList {
-    return PriceList.INSTANCE;
-  }
+const prices = parse();
+
+export const PriceList = Object.freeze({
+  basePrice(format: string): Money {
+    const price = prices.get(format);
+    if (price === undefined) {
+      throw new IllegalArgumentError(`unknown format: ${format}`);
+    }
+    return price;
+  },
+});
 ```
 
-**Po:**
+**Po (`TicketDesk.ts`, metoda `quote` - jedyna zmiana w pliku):**
 
 ```typescript
 const price = PriceList.basePrice(format);
@@ -2552,10 +4961,10 @@ const price = PriceList.basePrice(format);
 **Zmiany:**
 
 1. Utwórz nowy plik `Tariff.ts` z interfejsem `Tariff` i jedyną metodą `basePrice(format: string): Money` (Extract Interface).
-2. Oznacz stałą typem interfejsu: `export const PriceList: Tariff = Object.freeze({ ... })`.
+2. Oznacz stałą typem interfejsu: `export const PriceList: Tariff = Object.freeze({ ... })` - w `PriceList.ts` dochodzi `import type { Tariff } from './Tariff.js'`, reszta pliku bez zmian.
 3. W `TicketDesk` dodaj pole `private readonly tariff: Tariff` i konstruktor `(tariff: Tariff = PriceList)`; `quote` woła `this.tariff.basePrice(format)`.
 
-**Przed:**
+**Przed (`TicketDesk.ts`, cały plik bez importów):**
 
 ```typescript
 export class TicketDesk {
@@ -2566,11 +4975,36 @@ export class TicketDesk {
 }
 ```
 
-**Po:**
+**Po (`Tariff.ts`, nowy plik):**
 
 ```typescript
-constructor(tariff: Tariff = PriceList) {
-  this.tariff = requireNonNull(tariff, 'tariff');
+import type { Money } from '../../../shared/Money.js';
+
+/** Extract Interface - klient zależy od kontraktu cennika, nie od singletona. */
+export interface Tariff {
+  basePrice(format: string): Money;
+}
+```
+
+**Po (`TicketDesk.ts`, cały plik):**
+
+```typescript
+import { requireNonNull } from '../../../../shared/requireNonNull.js';
+import { Money } from '../../../shared/Money.js';
+import { PriceList } from './PriceList.js';
+import type { Tariff } from './Tariff.js';
+
+export class TicketDesk {
+  private readonly tariff: Tariff;
+
+  constructor(tariff: Tariff = PriceList) {
+    this.tariff = requireNonNull(tariff, 'tariff');
+  }
+
+  quote(format: string, online: boolean): Money {
+    const price = this.tariff.basePrice(format);
+    return online ? price.plus(Money.of('2.00')) : price;
+  }
 }
 ```
 
@@ -2630,23 +5064,100 @@ Test sprawdza treść, kolejność i separator, w tym duplikaty miejsc zgłaszan
 2. W `validate` zamień `let warnings = ''` na `const warnings: string[] = []`, a sklejanie `+=` na `warnings.push(...)`.
 3. Wynik składaj przez `warnings.length === 0 ? 'OK' : warnings.join('; ')` - obcinanie dwóch ostatnich znaków znika.
 
-**Przed:**
+**Przed (`ReservationValidator.ts`, cały plik):**
 
 ```typescript
-let warnings = '';
-warnings += this.checkEmail(draft.email);
-warnings += this.checkSeats(draft.seats);
-if (!draft.now.isBefore(draft.showStart)) {
-  warnings += 'seans juz sie rozpoczal; ';
+import type { ReservationDraft } from '../ReservationDraft.js';
+
+export class ReservationValidator {
+  validate(draft: ReservationDraft): string {
+    let warnings = '';
+    warnings += this.checkEmail(draft.email);
+    warnings += this.checkSeats(draft.seats);
+    if (!draft.now.isBefore(draft.showStart)) {
+      warnings += 'seans juz sie rozpoczal; ';
+    }
+    return warnings === '' ? 'OK' : warnings.substring(0, warnings.length - 2);
+  }
+
+  private checkEmail(email: string | null): string {
+    if (email === null || email.trim() === '') {
+      return 'brak e-maila; ';
+    }
+    if (!email.includes('@')) {
+      return `niepoprawny e-mail: ${email}; `;
+    }
+    return '';
+  }
+
+  private checkSeats(seats: readonly string[]): string {
+    if (seats.length === 0) {
+      return 'brak miejsc; ';
+    }
+    let result = '';
+    const seen = new Set<string>();
+    const reported = new Set<string>();
+    for (const seat of seats) {
+      if (seen.has(seat) && !reported.has(seat)) {
+        reported.add(seat);
+        result += `miejsce ${seat} zdublowane; `;
+      }
+      seen.add(seat);
+    }
+    if (seats.length >= 10) {
+      result += 'grupa 10+: zastosuj rabat grupowy; ';
+    }
+    return result;
+  }
 }
-return warnings === '' ? 'OK' : warnings.substring(0, warnings.length - 2);
 ```
 
-**Po:**
+**Po (`ReservationValidator.ts`, cały plik):**
 
 ```typescript
-warnings.push(...this.checkEmail(draft.email));
-warnings.push(...this.checkSeats(draft.seats));
+import type { ReservationDraft } from '../ReservationDraft.js';
+
+export class ReservationValidator {
+  validate(draft: ReservationDraft): string {
+    const warnings: string[] = [];
+    warnings.push(...this.checkEmail(draft.email));
+    warnings.push(...this.checkSeats(draft.seats));
+    if (!draft.now.isBefore(draft.showStart)) {
+      warnings.push('seans juz sie rozpoczal');
+    }
+    return warnings.length === 0 ? 'OK' : warnings.join('; ');
+  }
+
+  private checkEmail(email: string | null): readonly string[] {
+    if (email === null || email.trim() === '') {
+      return ['brak e-maila'];
+    }
+    if (!email.includes('@')) {
+      return [`niepoprawny e-mail: ${email}`];
+    }
+    return [];
+  }
+
+  private checkSeats(seats: readonly string[]): readonly string[] {
+    if (seats.length === 0) {
+      return ['brak miejsc'];
+    }
+    const result: string[] = [];
+    const seen = new Set<string>();
+    const reported = new Set<string>();
+    for (const seat of seats) {
+      if (seen.has(seat) && !reported.has(seat)) {
+        reported.add(seat);
+        result.push(`miejsce ${seat} zdublowane`);
+      }
+      seen.add(seat);
+    }
+    if (seats.length >= 10) {
+      result.push('grupa 10+: zastosuj rabat grupowy');
+    }
+    return result;
+  }
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang ts test m5/s18` - zielone.
@@ -2662,23 +5173,55 @@ warnings.push(...this.checkSeats(draft.seats));
 3. Warunek czasu seansu wyciągnij z `validate` do nowej metody `checkShowTime(draft, warnings)` (Extract Method).
 4. W `validate` wołaj metody z akumulatorem: `this.checkEmail(draft.email, warnings)` itd. - `push(...)` znika.
 
-**Przed:**
+**Przed:** `ReservationValidator.ts` - jak w bloku Po kroku 1.
+
+**Po (`ReservationValidator.ts`, cały plik):**
 
 ```typescript
-const warnings: string[] = [];
-warnings.push(...this.checkEmail(draft.email));
-warnings.push(...this.checkSeats(draft.seats));
-if (!draft.now.isBefore(draft.showStart)) {
-  warnings.push('seans juz sie rozpoczal');
+import type { ReservationDraft } from '../ReservationDraft.js';
+
+export class ReservationValidator {
+  validate(draft: ReservationDraft): string {
+    const warnings: string[] = [];
+    this.checkEmail(draft.email, warnings);
+    this.checkSeats(draft.seats, warnings);
+    this.checkShowTime(draft, warnings);
+    return warnings.length === 0 ? 'OK' : warnings.join('; ');
+  }
+
+  private checkEmail(email: string | null, warnings: string[]): void {
+    if (email === null || email.trim() === '') {
+      warnings.push('brak e-maila');
+    } else if (!email.includes('@')) {
+      warnings.push(`niepoprawny e-mail: ${email}`);
+    }
+  }
+
+  private checkSeats(seats: readonly string[], warnings: string[]): void {
+    if (seats.length === 0) {
+      warnings.push('brak miejsc');
+      return;
+    }
+    const seen = new Set<string>();
+    const reported = new Set<string>();
+    for (const seat of seats) {
+      if (seen.has(seat) && !reported.has(seat)) {
+        reported.add(seat);
+        warnings.push(`miejsce ${seat} zdublowane`);
+      }
+      seen.add(seat);
+    }
+    if (seats.length >= 10) {
+      warnings.push('grupa 10+: zastosuj rabat grupowy');
+    }
+  }
+
+  private checkShowTime(draft: ReservationDraft, warnings: string[]): void {
+    if (!draft.now.isBefore(draft.showStart)) {
+      warnings.push('seans juz sie rozpoczal');
+    }
+  }
 }
-```
-
-**Po:**
-
-```typescript
-this.checkEmail(draft.email, warnings);
-this.checkSeats(draft.seats, warnings);
-this.checkShowTime(draft, warnings);
 ```
 
 **Uruchom:** test zielony.
@@ -2693,7 +5236,7 @@ this.checkShowTime(draft, warnings);
 2. Zmień typ parametru `warnings` w `checkEmail`, `checkSeats` i `checkShowTime` ze `string[]` na `Warnings`, a każde `push` na `add` (`npm run typecheck` wskaże każde miejsce).
 3. W `validate` twórz `new Warnings()` i zwracaj `warnings.summary()`.
 
-**Przed:**
+**Przed (`ReservationValidator.ts`, metoda `validate`):**
 
 ```typescript
 const warnings: string[] = [];
@@ -2703,12 +5246,33 @@ this.checkShowTime(draft, warnings);
 return warnings.length === 0 ? 'OK' : warnings.join('; ');
 ```
 
-**Po:**
+**Po (`Warnings.ts`, nowy plik):**
 
 ```typescript
-const warnings = new Warnings();
-...
-return warnings.summary();
+/** Wąski parametr zbierający - można tylko dopisać ostrzeżenie. */
+export class Warnings {
+  private readonly items: string[] = [];
+
+  add(warning: string): void {
+    this.items.push(warning);
+  }
+
+  summary(): string {
+    return this.items.length === 0 ? 'OK' : this.items.join('; ');
+  }
+}
+```
+
+**Po (`ReservationValidator.ts`, metoda `validate`; w imporcie dochodzi `import { Warnings } from './Warnings.js'`, a w `checkEmail`, `checkSeats` i `checkShowTime` tylko typ parametru i `push` na `add`):**
+
+```typescript
+validate(draft: ReservationDraft): string {
+  const warnings = new Warnings();
+  this.checkEmail(draft.email, warnings);
+  this.checkSeats(draft.seats, warnings);
+  this.checkShowTime(draft, warnings);
+  return warnings.summary();
+}
 ```
 
 **Uruchom:** test zielony.
@@ -2767,9 +5331,13 @@ throw new IllegalArgumentError(`unknown item: ${String(item)}`);
 1. Utwórz nowy plik `OrderItemVisitor.ts`: interfejs `OrderItemVisitor<R>` z metodami `visitTicket`, `visitSnack`, `visitVoucher`.
 2. Do interfejsu `OrderItem` dodaj metodę `accept<R>(visitor: OrderItemVisitor<R>): R`, a w każdej klasie pozycji zaimplementuj ją wywołaniem swojej metody: `visitor.visitTicket(this)` itd.
 3. Utwórz nowy plik `ReceiptLineVisitor.ts`: klasa `implements OrderItemVisitor<string>`, do której przenosisz trzy gałęzie metody `line`.
-4. W `ReceiptPrinter` dodaj pole `private readonly lines = new ReceiptLineVisitor()`, w pętli zamień `this.line(item)` na `item.accept(this.lines)` i usuń metodę `line`.
+4. W `ReceiptPrinter` dodaj pole `private readonly lines = new ReceiptLineVisitor()` (plus import), w pętli zamień `this.line(item)` na `item.accept(this.lines)` i usuń metodę `line`.
 
-**Przed:**
+**Przed (`ReceiptPrinter.ts`, metoda `line` i wiersz pętli w `print`):**
+
+```typescript
+text += `${this.line(item)}\n`;
+```
 
 ```typescript
 private line(item: OrderItem): string {
@@ -2784,7 +5352,72 @@ private line(item: OrderItem): string {
 }
 ```
 
-**Po:**
+**Po (`OrderItemVisitor.ts`, nowy plik):**
+
+```typescript
+import type { SnackItem } from './SnackItem.js';
+import type { TicketItem } from './TicketItem.js';
+import type { VoucherItem } from './VoucherItem.js';
+
+export interface OrderItemVisitor<R> {
+  visitTicket(ticket: TicketItem): R;
+
+  visitSnack(snack: SnackItem): R;
+
+  visitVoucher(voucher: VoucherItem): R;
+}
+```
+
+**Po (`ReceiptLineVisitor.ts`, nowy plik):**
+
+```typescript
+import type { OrderItemVisitor } from './OrderItemVisitor.js';
+import type { SnackItem } from './SnackItem.js';
+import type { TicketItem } from './TicketItem.js';
+import type { VoucherItem } from './VoucherItem.js';
+
+export class ReceiptLineVisitor implements OrderItemVisitor<string> {
+  visitTicket(ticket: TicketItem): string {
+    return `Bilet ${ticket.title} ${ticket.format} ${ticket.price.toString()}`;
+  }
+
+  visitSnack(snack: SnackItem): string {
+    return `${snack.name} ${snack.price.toString()}`;
+  }
+
+  visitVoucher(voucher: VoucherItem): string {
+    return `Voucher ${voucher.code} -${voucher.value.toString()}`;
+  }
+}
+```
+
+**Po (`OrderItem.ts`, cały plik):**
+
+```typescript
+import type { OrderItemVisitor } from './OrderItemVisitor.js';
+
+export interface OrderItem {
+  accept<R>(visitor: OrderItemVisitor<R>): R;
+}
+```
+
+**Po (`TicketItem.ts`, cały plik; w `SnackItem.ts` i `VoucherItem.ts` analogicznie `visitor.visitSnack(this)` / `visitor.visitVoucher(this)`):**
+
+```typescript
+import type { Money } from '../../../shared/Money.js';
+import type { OrderItem } from './OrderItem.js';
+import type { OrderItemVisitor } from './OrderItemVisitor.js';
+
+export class TicketItem implements OrderItem {
+  constructor(readonly title: string, readonly format: string, readonly price: Money) {}
+
+  accept<R>(visitor: OrderItemVisitor<R>): R {
+    return visitor.visitTicket(this);
+  }
+}
+```
+
+**Po (`ReceiptPrinter.ts`, wiersz pętli w `print`):**
 
 ```typescript
 text += `${item.accept(this.lines)}\n`;
@@ -2801,9 +5434,20 @@ text += `${item.accept(this.lines)}\n`;
 1. Utwórz `AmountVisitor.ts` (`implements OrderItemVisitor<Money>`) z gałęziami metody `amount` i `VatVisitor.ts` z gałęziami metody `vat` (pomocnicze `vatOf` przenieś do `VatVisitor`).
 2. W `ReceiptPrinter` dodaj pola `amounts` i `vats`, w pętli wołaj `item.accept(...)` i usuń metody `amount`, `vat` oraz `vatOf` - łańcuchy `instanceof` znikają razem z importami klas pozycji.
 
-**Przed:**
+**Przed (`ReceiptPrinter.ts`, metody `amount`, `vat` i `vatOf`):**
 
 ```typescript
+private amount(item: OrderItem): Money {
+  if (item instanceof TicketItem) {
+    return item.price;
+  } else if (item instanceof SnackItem) {
+    return item.price;
+  } else if (item instanceof VoucherItem) {
+    return Money.ZERO.minus(item.value);
+  }
+  throw new IllegalArgumentError(`unknown item: ${String(item)}`);
+}
+
 private vat(item: OrderItem): Money {
   if (item instanceof TicketItem) {
     return ReceiptPrinter.vatOf(item.price, 8);
@@ -2814,13 +5458,93 @@ private vat(item: OrderItem): Money {
   }
   throw new IllegalArgumentError(`unknown item: ${String(item)}`);
 }
+
+/** VAT zawarty w cenie brutto: brutto * stawka / (100 + stawka). */
+private static vatOf(gross: Money, rate: number): Money {
+  return new Money(gross.amount.times(rate).dividedBy(100 + rate).toDecimalPlaces(2, Decimal.ROUND_HALF_UP));
+}
 ```
 
-**Po:**
+**Po (`AmountVisitor.ts`, nowy plik):**
 
 ```typescript
-total = total.plus(item.accept(this.amounts));
-vat = vat.plus(item.accept(this.vats));
+import { Money } from '../../../shared/Money.js';
+import type { OrderItemVisitor } from './OrderItemVisitor.js';
+import type { SnackItem } from './SnackItem.js';
+import type { TicketItem } from './TicketItem.js';
+import type { VoucherItem } from './VoucherItem.js';
+
+export class AmountVisitor implements OrderItemVisitor<Money> {
+  visitTicket(ticket: TicketItem): Money {
+    return ticket.price;
+  }
+
+  visitSnack(snack: SnackItem): Money {
+    return snack.price;
+  }
+
+  visitVoucher(voucher: VoucherItem): Money {
+    return Money.ZERO.minus(voucher.value);
+  }
+}
+```
+
+**Po (`VatVisitor.ts`, nowy plik):**
+
+```typescript
+import { Decimal } from 'decimal.js';
+
+import { Money } from '../../../shared/Money.js';
+import type { OrderItemVisitor } from './OrderItemVisitor.js';
+import type { SnackItem } from './SnackItem.js';
+import type { TicketItem } from './TicketItem.js';
+import type { VoucherItem } from './VoucherItem.js';
+
+export class VatVisitor implements OrderItemVisitor<Money> {
+  visitTicket(ticket: TicketItem): Money {
+    return VatVisitor.vatOf(ticket.price, 8);
+  }
+
+  visitSnack(snack: SnackItem): Money {
+    return VatVisitor.vatOf(snack.price, 23);
+  }
+
+  visitVoucher(_voucher: VoucherItem): Money {
+    return Money.ZERO;
+  }
+
+  private static vatOf(gross: Money, rate: number): Money {
+    return new Money(gross.amount.times(rate).dividedBy(100 + rate).toDecimalPlaces(2, Decimal.ROUND_HALF_UP));
+  }
+}
+```
+
+**Po (`ReceiptPrinter.ts`, cały plik):**
+
+```typescript
+import { Money } from '../../../shared/Money.js';
+import { AmountVisitor } from './AmountVisitor.js';
+import type { OrderItem } from './OrderItem.js';
+import { ReceiptLineVisitor } from './ReceiptLineVisitor.js';
+import { VatVisitor } from './VatVisitor.js';
+
+export class ReceiptPrinter {
+  private readonly lines = new ReceiptLineVisitor();
+  private readonly amounts = new AmountVisitor();
+  private readonly vats = new VatVisitor();
+
+  print(items: readonly OrderItem[]): string {
+    let text = '';
+    let total = Money.ZERO;
+    let vat = Money.ZERO;
+    for (const item of items) {
+      text += `${item.accept(this.lines)}\n`;
+      total = total.plus(item.accept(this.amounts));
+      vat = vat.plus(item.accept(this.vats));
+    }
+    return `${text}Razem: ${total.max(Money.ZERO).toString()}\nVAT: ${vat.toString()}\n`;
+  }
+}
 ```
 
 **Uruchom:** test zielony; `S19SolutionTest` dodaje operację "grupa VAT" jako nowy Visitor.
@@ -2836,29 +5560,91 @@ vat = vat.plus(item.accept(this.vats));
 3. Usuń pliki `OrderItemVisitor.ts`, `ReceiptLineVisitor.ts`, `AmountVisitor.ts`, `VatVisitor.ts`.
 4. W `ReceiptPrinter` zapisz operacje jako statyczne metody ze `switch (item.kind)` zakończonym `default: return assertNever(item)`; w linii paragonu użyj destrukturyzacji w gałęzi (`const { title, format, price } = item`).
 
-**Przed:**
+**Przed:** `ReceiptPrinter.ts`, `OrderItem.ts` i `TicketItem.ts` - jak w blokach Po kroków 1-2.
+
+**Po (`OrderItem.ts`, cały plik):**
 
 ```typescript
-export class ReceiptPrinter {
-  private readonly lines = new ReceiptLineVisitor();
-  private readonly amounts = new AmountVisitor();
-  private readonly vats = new VatVisitor();
-  ...
-  for (const item of items) {
-    text += `${item.accept(this.lines)}\n`;
-    total = total.plus(item.accept(this.amounts));
-    vat = vat.plus(item.accept(this.vats));
-  }
+import type { SnackItem } from './SnackItem.js';
+import type { TicketItem } from './TicketItem.js';
+import type { VoucherItem } from './VoucherItem.js';
+
+export type OrderItem = TicketItem | SnackItem | VoucherItem;
 ```
 
-**Po:**
+**Po (`TicketItem.ts`, cały plik; w `SnackItem.ts` i `VoucherItem.ts` analogicznie `readonly kind = 'snack'` / `readonly kind = 'voucher'`, konstruktory bez zmian):**
 
 ```typescript
-switch (item.kind) {
-  case 'ticket': return ReceiptPrinter.vatOf(item.price, 8);
-  case 'snack': return ReceiptPrinter.vatOf(item.price, 23);
-  case 'voucher': return Money.ZERO;
-  default: return assertNever(item);
+import type { Money } from '../../../shared/Money.js';
+
+export class TicketItem {
+  readonly kind = 'ticket';
+
+  constructor(readonly title: string, readonly format: string, readonly price: Money) {}
+}
+```
+
+**Po (`ReceiptPrinter.ts`, cały plik):**
+
+```typescript
+import { Decimal } from 'decimal.js';
+
+import { assertNever } from '../../../../shared/assertNever.js';
+import { Money } from '../../../shared/Money.js';
+import type { OrderItem } from './OrderItem.js';
+
+export class ReceiptPrinter {
+  print(items: readonly OrderItem[]): string {
+    let text = '';
+    let total = Money.ZERO;
+    let vat = Money.ZERO;
+    for (const item of items) {
+      text += `${ReceiptPrinter.line(item)}\n`;
+      total = total.plus(ReceiptPrinter.amount(item));
+      vat = vat.plus(ReceiptPrinter.vat(item));
+    }
+    return `${text}Razem: ${total.max(Money.ZERO).toString()}\nVAT: ${vat.toString()}\n`;
+  }
+
+  static line(item: OrderItem): string {
+    switch (item.kind) {
+      case 'ticket': {
+        const { title, format, price } = item;
+        return `Bilet ${title} ${format} ${price.toString()}`;
+      }
+      case 'snack': {
+        const { name, price } = item;
+        return `${name} ${price.toString()}`;
+      }
+      case 'voucher': {
+        const { code, value } = item;
+        return `Voucher ${code} -${value.toString()}`;
+      }
+      default: return assertNever(item);
+    }
+  }
+
+  static amount(item: OrderItem): Money {
+    switch (item.kind) {
+      case 'ticket': return item.price;
+      case 'snack': return item.price;
+      case 'voucher': return Money.ZERO.minus(item.value);
+      default: return assertNever(item);
+    }
+  }
+
+  static vat(item: OrderItem): Money {
+    switch (item.kind) {
+      case 'ticket': return ReceiptPrinter.vatOf(item.price, 8);
+      case 'snack': return ReceiptPrinter.vatOf(item.price, 23);
+      case 'voucher': return Money.ZERO;
+      default: return assertNever(item);
+    }
+  }
+
+  private static vatOf(gross: Money, rate: number): Money {
+    return new Money(gross.amount.times(rate).dividedBy(100 + rate).toDecimalPlaces(2, Decimal.ROUND_HALF_UP));
+  }
 }
 ```
 
@@ -2941,11 +5727,35 @@ price(day: DayOfWeek, format: string): Money {
 }
 ```
 
-**Po:**
+**Po (`ShowPricing.ts`, cały plik; importy bez zmian):**
 
 ```typescript
-price(day: DayOfWeek, format: string): Money {
-  return ShowPricing.adjustForDay(day, ShowPricing.basePrice(format));
+import { IllegalArgumentError } from '../../../../shared/errors.js';
+import { Money } from '../../../shared/Money.js';
+import type { DayOfWeek } from '../../../shared/time.js';
+
+export class ShowPricing {
+  price(day: DayOfWeek, format: string): Money {
+    return ShowPricing.adjustForDay(day, ShowPricing.basePrice(format));
+  }
+
+  private static basePrice(format: string): Money {
+    switch (format) {
+      case '2D': return Money.of('25.00');
+      case '3D': return Money.of('32.00');
+      case 'IMAX': return Money.of('40.00');
+      default: throw new IllegalArgumentError(`unknown format: ${format}`);
+    }
+  }
+
+  private static adjustForDay(day: DayOfWeek, base: Money): Money {
+    switch (day) {
+      case 'TUESDAY': return base.minus(base.percent(30));
+      case 'SATURDAY':
+      case 'SUNDAY': return base.plus(Money.of('2.00'));
+      default: return base;
+    }
+  }
 }
 ```
 
@@ -2962,23 +5772,72 @@ price(day: DayOfWeek, format: string): Money {
 3. W `ShowPricing` usuń `adjustForDay`; dodaj pole `calendar: (day: DayOfWeek) => DayPolicy` i konstruktor z parametrem domyślnym - kalendarzem standardowym.
 4. `price` woła `this.calendar(day)(ShowPricing.basePrice(format))`. Format zostaje prostym `switch`.
 
-**Przed:**
+**Przed:** `ShowPricing.ts` - jak w bloku Po kroku 1.
+
+**Po (`DayPolicy.ts`, nowy plik):**
 
 ```typescript
-private static adjustForDay(day: DayOfWeek, base: Money): Money {
-  switch (day) {
-    case 'TUESDAY': return base.minus(base.percent(30));
-    case 'SATURDAY':
-    case 'SUNDAY': return base.plus(Money.of('2.00'));
-    default: return base;
+import type { Money } from '../../../shared/Money.js';
+
+/** Korekta ceny za dzień jako wymienny algorytm - Strategy. */
+export type DayPolicy = (base: Money) => Money;
+```
+
+**Po (`DayPolicies.ts`, nowy plik):**
+
+```typescript
+import { Money } from '../../../shared/Money.js';
+import type { DayOfWeek } from '../../../shared/time.js';
+import type { DayPolicy } from './DayPolicy.js';
+
+export class DayPolicies {
+  static readonly CHEAP_TUESDAY: DayPolicy = (base) => base.minus(base.percent(30));
+  static readonly WEEKEND: DayPolicy = (base) => base.plus(Money.of('2.00'));
+  static readonly REGULAR: DayPolicy = (base) => base;
+
+  private constructor() {}
+
+  static standard(day: DayOfWeek): DayPolicy {
+    switch (day) {
+      case 'TUESDAY': return DayPolicies.CHEAP_TUESDAY;
+      case 'SATURDAY':
+      case 'SUNDAY': return DayPolicies.WEEKEND;
+      default: return DayPolicies.REGULAR;
+    }
   }
 }
 ```
 
-**Po:**
+**Po (`ShowPricing.ts`, cały plik):**
 
 ```typescript
-return this.calendar(day)(ShowPricing.basePrice(format));
+import { IllegalArgumentError } from '../../../../shared/errors.js';
+import { requireNonNull } from '../../../../shared/requireNonNull.js';
+import { Money } from '../../../shared/Money.js';
+import type { DayOfWeek } from '../../../shared/time.js';
+import { DayPolicies } from './DayPolicies.js';
+import type { DayPolicy } from './DayPolicy.js';
+
+export class ShowPricing {
+  private readonly calendar: (day: DayOfWeek) => DayPolicy;
+
+  constructor(calendar: (day: DayOfWeek) => DayPolicy = (day) => DayPolicies.standard(day)) {
+    this.calendar = requireNonNull(calendar, 'calendar');
+  }
+
+  price(day: DayOfWeek, format: string): Money {
+    return this.calendar(day)(ShowPricing.basePrice(format));
+  }
+
+  private static basePrice(format: string): Money {
+    switch (format) {
+      case '2D': return Money.of('25.00');
+      case '3D': return Money.of('32.00');
+      case 'IMAX': return Money.of('40.00');
+      default: throw new IllegalArgumentError(`unknown format: ${format}`);
+    }
+  }
+}
 ```
 
 **Uruchom:** test zielony; `pathAMakesANewDayCampaignCheap` dodaje "środę seniora" bez dotykania formatów.
@@ -2992,30 +5851,63 @@ return this.calendar(day)(ShowPricing.basePrice(format));
 1. Pokaż alternatywę budowaną od kroku 1, nie od kroku 2.
 2. Utwórz nowy plik `Format.ts`: klasa z prywatnym konstruktorem, stałymi instancjami `TWO_D`, `THREE_D`, `IMAX` (kod i cena bazowa), `values()` oraz `Format.of(code)` rzucającym ten sam wyjątek co dotąd.
 3. Przenieś regułę dnia do metody `priceOn(day)` w `Format` - zostaje zwykłym `switch` w typie.
-4. `ShowPricing.price` tylko deleguje: `Format.of(format).priceOn(day)`; metody `basePrice` i `adjustForDay` znikają.
+4. `ShowPricing.price` tylko deleguje: `Format.of(format).priceOn(day)`; metody `basePrice` i `adjustForDay` znikają. Plików ścieżki A (`DayPolicy.ts`, `DayPolicies.ts`) w tej ścieżce nie ma - snapshot `step3/` ich nie zawiera.
 
-**Przed:**
+**Przed:** `ShowPricing.ts` - jak w bloku Po kroku 1.
+
+**Po (`Format.ts`, nowy plik):**
 
 ```typescript
-price(day: DayOfWeek, format: string): Money {
-  return ShowPricing.adjustForDay(day, ShowPricing.basePrice(format));
-}
+import { IllegalArgumentError } from '../../../../shared/errors.js';
+import { Money } from '../../../shared/Money.js';
+import type { DayOfWeek } from '../../../shared/time.js';
 
-private static basePrice(format: string): Money {
-  switch (format) {
-    case '2D': return Money.of('25.00');
-    case '3D': return Money.of('32.00');
-    case 'IMAX': return Money.of('40.00');
-    default: throw new IllegalArgumentError(`unknown format: ${format}`);
+export class Format {
+  static readonly TWO_D = new Format('2D', '25.00');
+  static readonly THREE_D = new Format('3D', '32.00');
+  static readonly IMAX = new Format('IMAX', '40.00');
+
+  private readonly base: Money;
+
+  private constructor(private readonly code: string, base: string) {
+    this.base = Money.of(base);
+  }
+
+  static values(): readonly Format[] {
+    return [Format.TWO_D, Format.THREE_D, Format.IMAX];
+  }
+
+  static of(code: string): Format {
+    for (const format of Format.values()) {
+      if (format.code === code) {
+        return format;
+      }
+    }
+    throw new IllegalArgumentError(`unknown format: ${code}`);
+  }
+
+  priceOn(day: DayOfWeek): Money {
+    switch (day) {
+      case 'TUESDAY': return this.base.minus(this.base.percent(30));
+      case 'SATURDAY':
+      case 'SUNDAY': return this.base.plus(Money.of('2.00'));
+      default: return this.base;
+    }
   }
 }
 ```
 
-**Po:**
+**Po (`ShowPricing.ts`, cały plik):**
 
 ```typescript
-price(day: DayOfWeek, format: string): Money {
-  return Format.of(format).priceOn(day);
+import type { Money } from '../../../shared/Money.js';
+import type { DayOfWeek } from '../../../shared/time.js';
+import { Format } from './Format.js';
+
+export class ShowPricing {
+  price(day: DayOfWeek, format: string): Money {
+    return Format.of(format).priceOn(day);
+  }
 }
 ```
 
@@ -3081,34 +5973,114 @@ case 'FESTIVAL': {
 3. Gałąź `'FESTIVAL'` przenieś do nowej klasy `FestivalFeeAdapter implements SettlementModel`: opakowuje `FestivalTariffClient` z konstruktora i konwertuje grosze (`new Decimal(cents).dividedBy(100)`).
 4. W `DistributorSettlement` zastąp `switch` mapą `models` i wyszukaniem modelu; nieznany model rzuca ten sam wyjątek.
 
-**Przed:**
+**Przed (`DistributorSettlement.ts`, cały plik):**
 
 ```typescript
-payout(deal: Deal, week: number, ticketRevenue: Decimal): Decimal {
-  switch (deal.model) {
-    case 'PERCENT': {
-      const percent = week === 1 ? 50 : week === 2 ? 40 : 35;
-      const share = ticketRevenue.times(percent)
-        .dividedBy(100).toDecimalPlaces(2, Decimal.ROUND_HALF_UP);
-      return Decimal.max(share, new Decimal('500.00'));
+import { Decimal } from 'decimal.js';
+
+import { IllegalArgumentError } from '../../../../shared/errors.js';
+import type { Deal } from '../Deal.js';
+import { FestivalTariffClient } from '../FestivalTariffClient.js';
+
+export class DistributorSettlement {
+  private readonly festival = new FestivalTariffClient();
+
+  payout(deal: Deal, week: number, ticketRevenue: Decimal): Decimal {
+    switch (deal.model) {
+      case 'PERCENT': {
+        const percent = week === 1 ? 50 : week === 2 ? 40 : 35;
+        const share = ticketRevenue.times(percent)
+          .dividedBy(100).toDecimalPlaces(2, Decimal.ROUND_HALF_UP);
+        return Decimal.max(share, new Decimal('500.00'));
+      }
+      case 'FESTIVAL': {
+        const cents = this.festival.weeklyFeeInCents(deal.title, week);
+        return new Decimal(cents).dividedBy(100);
+      }
+      default:
+        throw new IllegalArgumentError(`nieznany model: ${deal.model}`);
     }
-    case 'FESTIVAL': {
-      const cents = this.festival.weeklyFeeInCents(deal.title, week);
-      return new Decimal(cents).dividedBy(100);
-    }
-    default:
-      throw new IllegalArgumentError(`nieznany model: ${deal.model}`);
   }
 }
 ```
 
-**Po:**
+**Po (`SettlementModel.ts`, nowy plik):**
 
 ```typescript
-private readonly models: ReadonlyMap<string, SettlementModel> = new Map<string, SettlementModel>([
-  ['PERCENT', new PercentageModel()],
-  ['FESTIVAL', new FestivalFeeAdapter(new FestivalTariffClient())],
-]);
+import type { Decimal } from 'decimal.js';
+
+import type { Deal } from '../Deal.js';
+
+/** Strategy - wspólny kontrakt modeli rozliczeń. */
+export interface SettlementModel {
+  payout(deal: Deal, week: number, ticketRevenue: Decimal): Decimal;
+}
+```
+
+**Po (`PercentageModel.ts`, nowy plik):**
+
+```typescript
+import { Decimal } from 'decimal.js';
+
+import type { Deal } from '../Deal.js';
+import type { SettlementModel } from './SettlementModel.js';
+
+export class PercentageModel implements SettlementModel {
+  private static readonly MINIMUM_GUARANTEE = new Decimal('500.00');
+
+  payout(_deal: Deal, week: number, ticketRevenue: Decimal): Decimal {
+    const percent = week === 1 ? 50 : week === 2 ? 40 : 35;
+    const share = ticketRevenue.times(percent)
+      .dividedBy(100).toDecimalPlaces(2, Decimal.ROUND_HALF_UP);
+    return Decimal.max(share, PercentageModel.MINIMUM_GUARANTEE);
+  }
+}
+```
+
+**Po (`FestivalFeeAdapter.ts`, nowy plik):**
+
+```typescript
+import { Decimal } from 'decimal.js';
+
+import type { Deal } from '../Deal.js';
+import type { FestivalTariffClient } from '../FestivalTariffClient.js';
+import type { SettlementModel } from './SettlementModel.js';
+
+export class FestivalFeeAdapter implements SettlementModel {
+  constructor(private readonly client: FestivalTariffClient) {}
+
+  payout(deal: Deal, week: number, _ticketRevenue: Decimal): Decimal {
+    return new Decimal(this.client.weeklyFeeInCents(deal.title, week)).dividedBy(100);
+  }
+}
+```
+
+**Po (`DistributorSettlement.ts`, cały plik):**
+
+```typescript
+import type { Decimal } from 'decimal.js';
+
+import { IllegalArgumentError } from '../../../../shared/errors.js';
+import type { Deal } from '../Deal.js';
+import { FestivalTariffClient } from '../FestivalTariffClient.js';
+import { FestivalFeeAdapter } from './FestivalFeeAdapter.js';
+import { PercentageModel } from './PercentageModel.js';
+import type { SettlementModel } from './SettlementModel.js';
+
+export class DistributorSettlement {
+  private readonly models: ReadonlyMap<string, SettlementModel> = new Map<string, SettlementModel>([
+    ['PERCENT', new PercentageModel()],
+    ['FESTIVAL', new FestivalFeeAdapter(new FestivalTariffClient())],
+  ]);
+
+  payout(deal: Deal, week: number, ticketRevenue: Decimal): Decimal {
+    const model = this.models.get(deal.model);
+    if (model === undefined) {
+      throw new IllegalArgumentError(`nieznany model: ${deal.model}`);
+    }
+    return model.payout(deal, week, ticketRevenue);
+  }
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang ts test m5/s21` - 18 testów zielonych; `step1AdapterPaysTheFestivalFeeConvertedFromCents` sprawdza 300.00 i 150.00.
@@ -3121,7 +6093,7 @@ private readonly models: ReadonlyMap<string, SettlementModel> = new Map<string, 
 
 1. Umowy festiwalowe wygasły: usuń wpis `'FESTIVAL'` z mapy `models`.
 2. Usuń plik `FestivalFeeAdapter.ts` - wcześniej upewnij się, że nikt go już nie używa (wyszukaj odwołania w kodzie).
-3. Usuń niepotrzebny już import `FestivalTariffClient` z `DistributorSettlement`.
+3. Usuń niepotrzebne już importy `FestivalTariffClient` i `FestivalFeeAdapter` z `DistributorSettlement`; reszta pliku bez zmian.
 
 **Przed:**
 
@@ -3165,14 +6137,27 @@ payout(deal: Deal, week: number, ticketRevenue: Decimal): Decimal {
 }
 ```
 
-**Po:**
+**Po (`DistributorSettlement.ts`, cały plik):**
 
 ```typescript
-payout(deal: Deal, week: number, ticketRevenue: Decimal): Decimal {
-  if (deal.model !== 'PERCENT') {
-    throw new IllegalArgumentError(`nieznany model: ${deal.model}`);
+import { Decimal } from 'decimal.js';
+
+import { IllegalArgumentError } from '../../../../shared/errors.js';
+import type { Deal } from '../Deal.js';
+
+export class DistributorSettlement {
+  private static readonly MINIMUM_GUARANTEE = new Decimal('500.00');
+
+  payout(deal: Deal, week: number, ticketRevenue: Decimal): Decimal {
+    if (deal.model !== 'PERCENT') {
+      throw new IllegalArgumentError(`nieznany model: ${deal.model}`);
+    }
+    const percent = week === 1 ? 50 : week === 2 ? 40 : 35;
+    const share = ticketRevenue.times(percent)
+      .dividedBy(100).toDecimalPlaces(2, Decimal.ROUND_HALF_UP);
+    return Decimal.max(share, DistributorSettlement.MINIMUM_GUARANTEE);
   }
-  const percent = week === 1 ? 50 : week === 2 ? 40 : 35;
+}
 ```
 
 **Uruchom:** test zielony - model procentowy rozlicza się tak samo przed wzorcem, ze wzorcem i po jego usunięciu.
@@ -3231,12 +6216,11 @@ freeSeats(id: string): number {
 **Zmiany:**
 
 1. W `SeatBadge` dodaj prywatną metodę `freeSeats(id)` i przenieś do niej `try/catch` z fasady - to jedyny klient, który polega na tłumaczeniu "brak seansu" na 0; `badge` woła `this.freeSeats(id)`.
-2. W `CinemaFacade.freeSeats` zostaje zwykłe delegowanie `return this.catalog.freeSeats(id)`; import `NoSuchElementError` przenosi się do `SeatBadge`.
+2. W `CinemaFacade.freeSeats` zostaje zwykłe delegowanie `return this.catalog.freeSeats(id)`; import `NoSuchElementError` przenosi się z `CinemaFacade` do `SeatBadge` (`import { NoSuchElementError } from '../ScreeningCatalog.js'`; w fasadzie zostaje `import { type ScreeningCatalog } from '../ScreeningCatalog.js'`).
 
-**Przed:**
+**Przed (`CinemaFacade.ts`, metoda `freeSeats`):**
 
 ```typescript
-// CinemaFacade
 freeSeats(id: string): number {
   try {
     return this.catalog.freeSeats(id);
@@ -3247,18 +6231,39 @@ freeSeats(id: string): number {
     throw error;
   }
 }
+```
 
-// SeatBadge
+**Przed (`SeatBadge.ts`, metoda `badge`):**
+
+```typescript
 badge(id: string): string {
   const free = this.cinema.freeSeats(id);
-  ...
+  if (free === 0) {
+    return `${id}: WYPRZEDANE`;
+  }
+  return `${this.cinema.title(id)} (${this.cinema.format(id)}): ${free} wolnych`;
 }
 ```
 
-**Po:**
+**Po (`CinemaFacade.ts`, metoda `freeSeats`):**
 
 ```typescript
-// SeatBadge
+freeSeats(id: string): number {
+  return this.catalog.freeSeats(id);
+}
+```
+
+**Po (`SeatBadge.ts`, metody `badge` i `freeSeats`):**
+
+```typescript
+badge(id: string): string {
+  const free = this.freeSeats(id);
+  if (free === 0) {
+    return `${id}: WYPRZEDANE`;
+  }
+  return `${this.cinema.title(id)} (${this.cinema.format(id)}): ${free} wolnych`;
+}
+
 private freeSeats(id: string): number {
   try {
     return this.cinema.freeSeats(id);
@@ -3283,22 +6288,39 @@ private freeSeats(id: string): number {
 2. Zmień nazwę pola `cinema` na `catalog` we wszystkich użyciach (Rename).
 3. Metody `title`, `format` i `freeSeats` katalog ma o tych samych sygnaturach, więc reszta kodu się kompiluje bez zmian.
 
-**Przed:**
+**Przed:** `SeatBadge.ts` - jak w blokach Po kroku 1 (pole `cinema: CinemaFacade` i konstruktor jak w start).
+
+**Po (`SeatBadge.ts`, cały plik):**
 
 ```typescript
+import { requireNonNull } from '../../../../shared/requireNonNull.js';
+import { NoSuchElementError, type ScreeningCatalog } from '../ScreeningCatalog.js';
+
 export class SeatBadge {
-  private readonly cinema: CinemaFacade;
+  private readonly catalog: ScreeningCatalog;
 
-  constructor(cinema: CinemaFacade) {
-    this.cinema = requireNonNull(cinema, 'cinema');
+  constructor(catalog: ScreeningCatalog) {
+    this.catalog = requireNonNull(catalog, 'catalog');
   }
-```
 
-**Po:**
+  badge(id: string): string {
+    const free = this.freeSeats(id);
+    if (free === 0) {
+      return `${id}: WYPRZEDANE`;
+    }
+    return `${this.catalog.title(id)} (${this.catalog.format(id)}): ${free} wolnych`;
+  }
 
-```typescript
-constructor(catalog: ScreeningCatalog) {
-  this.catalog = requireNonNull(catalog, 'catalog');
+  private freeSeats(id: string): number {
+    try {
+      return this.catalog.freeSeats(id);
+    } catch (error) {
+      if (error instanceof NoSuchElementError) {
+        return 0;
+      }
+      throw error;
+    }
+  }
 }
 ```
 
@@ -3313,22 +6335,46 @@ constructor(catalog: ScreeningCatalog) {
 1. Ten sam ruch w `DailyBoard`: typ konstruktora na `ScreeningCatalog`, pole `cinema` na `catalog`, a wywołanie `cinema.screenings()` zamień na `catalog.all()`.
 2. Wyszukaj odwołania do `CinemaFacade` - brak użyć - i usuń plik `CinemaFacade.ts`.
 
-**Przed:**
+**Przed (`DailyBoard.ts`, cały plik):**
 
 ```typescript
-render(): string {
-  return this.cinema.screenings()
-    .map((screening) => `${screening.id} ${screening.title} ${screening.format}`)
-    .join('\n');
+import { requireNonNull } from '../../../../shared/requireNonNull.js';
+import type { CinemaFacade } from './CinemaFacade.js';
+
+export class DailyBoard {
+  private readonly cinema: CinemaFacade;
+
+  constructor(cinema: CinemaFacade) {
+    this.cinema = requireNonNull(cinema, 'cinema');
+  }
+
+  render(): string {
+    return this.cinema.screenings()
+      .map((screening) => `${screening.id} ${screening.title} ${screening.format}`)
+      .join('\n');
+  }
 }
 ```
 
-**Po:**
+**Po (`DailyBoard.ts`, cały plik):**
 
 ```typescript
-return this.catalog.all()
-  .map((screening) => `${screening.id} ${screening.title} ${screening.format}`)
-  .join('\n');
+import { requireNonNull } from '../../../../shared/requireNonNull.js';
+import type { ScreeningCatalog } from '../ScreeningCatalog.js';
+
+export class DailyBoard {
+  private readonly catalog: ScreeningCatalog;
+
+  constructor(catalog: ScreeningCatalog) {
+    this.catalog = requireNonNull(catalog, 'catalog');
+  }
+
+  render(): string {
+    return this.catalog.all()
+      .map((screening) => `${screening.id} ${screening.title} ${screening.format}`)
+      .join('\n');
+  }
+}
 ```
 
 **Uruchom:** test zielony.
@@ -3385,24 +6431,48 @@ return refund.toFixed(2);
 1. Wydziel łańcuch `if/else` wyboru udziału do metody `private static share(minutesBeforeStart): number` (Extract Method): zamień przypisania do `refund` na `return 0`, `return 1.0`, `return 0.5`.
 2. W `refund` zostaje jedno wyrażenie: `let refund = ticketsPaid * RefundCalculator.share(minutesBeforeStart) - 3.00;` - reszta metody bez zmian.
 
-**Przed:**
+**Przed (`RefundCalculator.ts`, metoda `refund`):**
 
 ```typescript
-let refund: number;
-if (minutesBeforeStart <= 0) {
-  refund = 0;
-} else if (minutesBeforeStart >= 24 * 60) {
-  refund = ticketsPaid;
-} else {
-  refund = ticketsPaid * 0.5;
+refund(ticketsPaid: number, minutesBeforeStart: number): string {
+  let refund: number;
+  if (minutesBeforeStart <= 0) {
+    refund = 0;
+  } else if (minutesBeforeStart >= 24 * 60) {
+    refund = ticketsPaid;
+  } else {
+    refund = ticketsPaid * 0.5;
+  }
+  refund = refund - 3.00;
+  if (refund < 0) {
+    refund = 0;
+  }
+  refund = Math.round(refund * 100) / 100.0;
+  return refund.toFixed(2);
 }
-refund = refund - 3.00;
 ```
 
-**Po:**
+**Po (`RefundCalculator.ts`, metody `refund` i `share`):**
 
 ```typescript
-let refund = ticketsPaid * RefundCalculator.share(minutesBeforeStart) - 3.00;
+refund(ticketsPaid: number, minutesBeforeStart: number): string {
+  let refund = ticketsPaid * RefundCalculator.share(minutesBeforeStart) - 3.00;
+  if (refund < 0) {
+    refund = 0;
+  }
+  refund = Math.round(refund * 100) / 100.0;
+  return refund.toFixed(2);
+}
+
+private static share(minutesBeforeStart: number): number {
+  if (minutesBeforeStart <= 0) {
+    return 0;
+  }
+  if (minutesBeforeStart >= 24 * 60) {
+    return 1.0;
+  }
+  return 0.5;
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang ts test m5/s23` - 19 testów zielonych, łącznie z przypadkami brzegowymi (29.17 i 0.00).
@@ -3417,27 +6487,36 @@ let refund = ticketsPaid * RefundCalculator.share(minutesBeforeStart) - 3.00;
 2. W `refund` licz `new Decimal(ticketsPaid).times(...).minus(RefundCalculator.FEE)` i formatuj `toFixed(2, Decimal.ROUND_HALF_UP)`.
 3. "Przy okazji" skróć obcięcie do zera do guard clause `if (refund.lessThanOrEqualTo(0)) return '0';`.
 
-**Przed:**
+**Przed:** `RefundCalculator.ts` - jak w bloku Po kroku 1.
+
+**Po (`RefundCalculator.ts`, cały plik):**
 
 ```typescript
-let refund = ticketsPaid * RefundCalculator.share(minutesBeforeStart) - 3.00;
-if (refund < 0) {
-  refund = 0;
-}
-refund = Math.round(refund * 100) / 100.0;
-return refund.toFixed(2);
-```
+import { Decimal } from 'decimal.js';
 
-**Po:**
+export class RefundCalculator {
+  private static readonly FEE = new Decimal('3.00');
 
-```typescript
-const refund = new Decimal(ticketsPaid)
-  .times(RefundCalculator.share(minutesBeforeStart))
-  .minus(RefundCalculator.FEE);
-if (refund.lessThanOrEqualTo(0)) {
-  return '0';
+  refund(ticketsPaid: number, minutesBeforeStart: number): string {
+    const refund = new Decimal(ticketsPaid)
+      .times(RefundCalculator.share(minutesBeforeStart))
+      .minus(RefundCalculator.FEE);
+    if (refund.lessThanOrEqualTo(0)) {
+      return '0';
+    }
+    return refund.toFixed(2, Decimal.ROUND_HALF_UP);
+  }
+
+  private static share(minutesBeforeStart: number): Decimal {
+    if (minutesBeforeStart <= 0) {
+      return new Decimal(0);
+    }
+    if (minutesBeforeStart >= 24 * 60) {
+      return new Decimal(1);
+    }
+    return new Decimal('0.5');
+  }
 }
-return refund.toFixed(2, Decimal.ROUND_HALF_UP);
 ```
 
 **Uruchom:** test zwykłych zwrotów zielony, ale `byTheWayStepChangedTwoThingsAtOnce` dokumentuje dwie zmiany: 64.35 zapłacone, anulowanie 2 h przed seansem daje 29.18 zamiast 29.17, a zwrot po starcie to "0" zamiast "0.00".
@@ -3538,7 +6617,7 @@ function header(): string {
 2. Zmień nazwy zmiennych lokalnych: `m` -> `linesByTitle`, `x` -> `sale`, `l` -> `previous` (w pętli agregującej) i `line` (w pętli wypisującej), `b` -> `csv`.
 3. W funkcji pomocniczej `row`: `l` -> `line`, `v` -> `values`, `c` -> `component`.
 
-**Przed:**
+**Przed (`SalesReport.ts`, metoda `calc2` i funkcja `row`):**
 
 ```typescript
 calc2(s: readonly Sale[], flag: boolean): string {
@@ -3548,7 +6627,11 @@ calc2(s: readonly Sale[], flag: boolean): string {
       continue;
     }
     const l = m.get(x.title);
-    ...
+    if (l === undefined) {
+      m.set(x.title, new Line(x.title, x.tickets, x.amount));
+    } else {
+      m.set(x.title, new Line(x.title, l.n + x.tickets, l.d.plus(x.amount)));
+    }
   }
   let b = header() + '\n';
   for (const l of sortedByKey(m)) {
@@ -3558,13 +6641,49 @@ calc2(s: readonly Sale[], flag: boolean): string {
 }
 ```
 
-**Po:**
+```typescript
+function row(l: Line): string {
+  const v: string[] = [];
+  for (const c of Object.values(l)) {
+    v.push(String(c));
+  }
+  return v.join(';');
+}
+```
+
+**Po (`SalesReport.ts`, metoda `calc2` i funkcja `row`):**
 
 ```typescript
 calc2(sales: readonly Sale[], onlineOnly: boolean): string {
   const linesByTitle = new Map<string, Line>();
   for (const sale of sales) {
     if (onlineOnly && !sale.online) {
+      continue;
+    }
+    const previous = linesByTitle.get(sale.title);
+    if (previous === undefined) {
+      linesByTitle.set(sale.title, new Line(sale.title, sale.tickets, sale.amount));
+    } else {
+      linesByTitle.set(sale.title, new Line(sale.title,
+        previous.n + sale.tickets, previous.d.plus(sale.amount)));
+    }
+  }
+  let csv = header() + '\n';
+  for (const line of sortedByKey(linesByTitle)) {
+    csv += row(line) + '\n';
+  }
+  return csv;
+}
+```
+
+```typescript
+function row(line: Line): string {
+  const values: string[] = [];
+  for (const component of Object.values(line)) {
+    values.push(String(component));
+  }
+  return values.join(';');
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang ts test m5/s24` - 14 testów zielonych.
@@ -3579,17 +6698,9 @@ calc2(sales: readonly Sale[], onlineOnly: boolean): string {
 2. Uruchom test: `everyStepRunsTheConfiguredJob` jest czerwony (`IllegalStateError: Zadanie raportu nie działa: brak metody calc2`) - narzędzie nie wie, że tekst w konfiguracji to nazwa metody. Cofnij zmianę.
 3. Teraz poprawnie: skopiuj metodę, nazwij kopię `revenueCsv`, a ciało `calc2` zamień na delegowanie `return this.revenueCsv(sales, onlineOnly)` i oznacz w JSDoc `@deprecated`.
 
-**Przed:**
+**Przed:** metoda `calc2` - jak w bloku Po kroku 1.
 
-```typescript
-/** Wywoływana także po nazwie przez ReportJob - nazwa metody jest w konfiguracji. */
-calc2(sales: readonly Sale[], onlineOnly: boolean): string {
-  const linesByTitle = new Map<string, Line>();
-  ...
-}
-```
-
-**Po:**
+**Po (`SalesReport.ts`, metody `calc2` i `revenueCsv`; ciało `revenueCsv` to dotychczasowe ciało `calc2` bez zmian):**
 
 ```typescript
 /**
@@ -3603,6 +6714,25 @@ calc2(sales: readonly Sale[], onlineOnly: boolean): string {
 }
 
 revenueCsv(sales: readonly Sale[], onlineOnly: boolean): string {
+  const linesByTitle = new Map<string, Line>();
+  for (const sale of sales) {
+    if (onlineOnly && !sale.online) {
+      continue;
+    }
+    const previous = linesByTitle.get(sale.title);
+    if (previous === undefined) {
+      linesByTitle.set(sale.title, new Line(sale.title, sale.tickets, sale.amount));
+    } else {
+      linesByTitle.set(sale.title, new Line(sale.title,
+        previous.n + sale.tickets, previous.d.plus(sale.amount)));
+    }
+  }
+  let csv = header() + '\n';
+  for (const line of sortedByKey(linesByTitle)) {
+    csv += row(line) + '\n';
+  }
+  return csv;
+}
 ```
 
 **Uruchom:** test zielony, zadanie z konfiguracji działa. `S24RenameLimitsTest.configurationStillNamesTheOldMethod` sprawdza, że na prototypie są obie metody.
@@ -3614,8 +6744,8 @@ revenueCsv(sales: readonly Sale[], onlineOnly: boolean): string {
 **Zmiany:**
 
 1. Najpierw naiwnie: zmień nazwę pola `t` w `Line` na `title`. Test pokaże nagłówek `title;n;d` zamiast `t;n;d` - plik dla dystrybutora właśnie się zmienił. Cofnij zmianę.
-2. Teraz poprawnie: najpierw odetnij kontrakt - zamień `header()` oparte na `Object.keys` na jawną stałą `export const CSV_HEADER = 't;n;d'`, a `row()` oparte na `Object.values` na jawne składanie wiersza (test zielony).
-3. Dopiero potem zmień nazwy pól `t`, `n`, `d` na `title`, `tickets`, `revenue` (Rename) - razem z użyciami w `revenueCsv` i `row`.
+2. Teraz poprawnie: najpierw odetnij kontrakt - zamień `header()` oparte na `Object.keys` na jawną stałą `export const CSV_HEADER = 't;n;d'` (funkcja `header()` znika, a w `revenueCsv` wiersz `let csv = header() + '\n'` staje się `let csv = CSV_HEADER + '\n'`), a `row()` oparte na `Object.values` na jawne składanie wiersza (test zielony).
+3. Dopiero potem zmień nazwy pól `t`, `n`, `d` na `title`, `tickets`, `revenue` (Rename) - razem z użyciami w `revenueCsv` (gałąź `else` agregacji) i `row`. Import `Money` w `SalesReport.ts` staje się `import type { Money }`, bo po usunięciu `header()` nikt nie tworzy `Money.ZERO`.
 
 **Przed:**
 
@@ -3650,6 +6780,17 @@ export class Line {
 function row(line: Line): string {
   return line.title + ';' + line.tickets + ';' + line.revenue.toString();
 }
+```
+
+**Po (`SalesReport.ts`, zmienione wiersze `revenueCsv`):**
+
+```typescript
+linesByTitle.set(sale.title, new Line(sale.title,
+  previous.tickets + sale.tickets, previous.revenue.plus(sale.amount)));
+```
+
+```typescript
+let csv = CSV_HEADER + '\n';
 ```
 
 **Uruchom:** test zielony, także `S24RenameLimitsTest.reflectionTurnsJavaNamesIntoTheCsvHeader`, który pokazuje, że `Object.keys` na nowej klasie dałoby `title;tickets;revenue`.
@@ -3728,10 +6869,27 @@ if (order.start.hour < 12) {
 }
 ```
 
-**Po:**
+**Po (w `describe` cały blok zastępuje jeden wiersz, reszta metody bez zmian; niżej nowa metoda `basePrice`):**
 
 ```typescript
 const base = this.basePrice(order);
+```
+
+```typescript
+private basePrice(order: Order): Decimal {
+  let base: Decimal;
+  if (order.format === 'IMAX') {
+    base = new Decimal('40.00');
+  } else if (order.format === '3D') {
+    base = new Decimal('32.00');
+  } else {
+    base = new Decimal('25.00');
+  }
+  if (order.start.hour < 12) {
+    base = base.minus(new Decimal('5.00'));
+  }
+  return base;
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang ts test m5/s25` - 16 testów zielonych.
@@ -3762,11 +6920,35 @@ for (const row of order.rows) {
 subtotal = subtotal.toDecimalPlaces(2, Decimal.ROUND_HALF_UP);
 ```
 
-**Po:**
+**Po (w `describe` pętlę i deklaracje zastępują dwa wiersze, reszta metody bez zmian; niżej nowe metody):**
 
 ```typescript
 const subtotal = this.subtotal(order, base);
 const vipSeats = this.vipSeats(order);
+```
+
+```typescript
+private subtotal(order: Order, base: Decimal): Decimal {
+  let subtotal = new Decimal(0);
+  for (const row of order.rows) {
+    let price = base;
+    if (row >= 10) {
+      price = price.plus(new Decimal('10.00'));
+    }
+    subtotal = subtotal.plus(price);
+  }
+  return subtotal.toDecimalPlaces(2, Decimal.ROUND_HALF_UP);
+}
+
+private vipSeats(order: Order): number {
+  let vipSeats = 0;
+  for (const row of order.rows) {
+    if (row >= 10) {
+      vipSeats++;
+    }
+  }
+  return vipSeats;
+}
 ```
 
 **Uruchom:** test po Split Loop i po każdej ekstrakcji.
@@ -3780,7 +6962,7 @@ const vipSeats = this.vipSeats(order);
 1. Wydziel blok pod `// dokument` do prywatnej metody `render(order, subtotal, vipSeats): string` (Extract Method).
 2. Wstaw zmienną `base` w jej jedyne użycie: `this.subtotal(order, this.basePrice(order))` (Inline Variable).
 
-**Przed:**
+**Przed (`TicketSummary.ts`, metoda `describe`):**
 
 ```typescript
 describe(order: Order): string {
@@ -3791,18 +6973,39 @@ describe(order: Order): string {
   // dokument
   let text = '';
   text += 'BILETY: ' + order.title + '\n';
-  ...
+  text += 'Format: ' + order.format
+    + ', start ' + order.start.toString() + '\n';
+  text += 'Miejsc: ' + order.rows.length;
+  if (vipSeats > 0) {
+    text += ' (w tym VIP: ' + vipSeats + ')';
+  }
+  text += '\n';
+  text += 'Razem: ' + subtotal.toFixed(2) + '\n';
   return text;
 }
 ```
 
-**Po:**
+**Po (metoda `describe` i nowa metoda `render`):**
 
 ```typescript
 describe(order: Order): string {
   const subtotal = this.subtotal(order, this.basePrice(order));
   const vipSeats = this.vipSeats(order);
   return this.render(order, subtotal, vipSeats);
+}
+
+private render(order: Order, subtotal: Decimal, vipSeats: number): string {
+  let text = '';
+  text += 'BILETY: ' + order.title + '\n';
+  text += 'Format: ' + order.format
+    + ', start ' + order.start.toString() + '\n';
+  text += 'Miejsc: ' + order.rows.length;
+  if (vipSeats > 0) {
+    text += ' (w tym VIP: ' + vipSeats + ')';
+  }
+  text += '\n';
+  text += 'Razem: ' + subtotal.toFixed(2) + '\n';
+  return text;
 }
 ```
 
@@ -3883,10 +7086,16 @@ switch (status) {
 
 1. Utwórz nowy plik `TicketPricing.ts`: interfejs `TicketPricing` z jedną metodą `price(formatBase: Money): Money`.
 2. Utwórz nowy plik `TicketPricings.ts`: mapa kod typu - strategia (literały obiektów, wspólna funkcja `discounted(percent)`) i `static forType(code)`, które dla nieznanego kodu rzuca `unknown ticket type: X` jak start.
-3. W pętli `book` zastąp wywołanie `priceOf` (wewnętrzny `switch`) wywołaniem strategii: `TicketPricings.forType(type).price(base)`.
+3. W pętli `book` zastąp wywołanie `priceOf` (wewnętrzny `switch`) wywołaniem strategii: `TicketPricings.forType(type).price(base)`; w `BoxOfficeDesk.ts` dochodzi `import { TicketPricings } from './TicketPricings.js'`.
 4. Usuń `priceOf` - wcześniej upewnij się, że nie ma innych użyć (wyszukaj odwołania).
 
-**Przed:**
+**Przed (`BoxOfficeDesk.ts`, metoda `priceOf` i pętla w `book`):**
+
+```typescript
+for (const type of args.slice(3)) {
+  total = total.plus(BoxOfficeDesk.priceOf(type, base));
+}
+```
 
 ```typescript
 private static priceOf(type: string, base: Money): Money {
@@ -3905,7 +7114,49 @@ private static priceOf(type: string, base: Money): Money {
 }
 ```
 
-**Po:**
+**Po (`TicketPricing.ts`, nowy plik):**
+
+```typescript
+import type { Money } from '../../../shared/Money.js';
+
+/** Strategy - wymienny algorytm ceny jednego biletu. */
+export interface TicketPricing {
+  price(formatBase: Money): Money;
+}
+```
+
+**Po (`TicketPricings.ts`, nowy plik):**
+
+```typescript
+import { IllegalArgumentError } from '../../../../shared/errors.js';
+import type { Money } from '../../../shared/Money.js';
+import type { TicketPricing } from './TicketPricing.js';
+
+function discounted(percent: number): TicketPricing {
+  return { price: (base) => base.minus(base.percent(percent)) };
+}
+
+export class TicketPricings {
+  private static readonly BY_TYPE: ReadonlyMap<string, TicketPricing> = new Map<string, TicketPricing>([
+    ['N', { price: (base: Money) => base }],
+    ['S', discounted(25)],
+    ['E', discounted(30)],
+    ['C', discounted(40)],
+  ]);
+
+  private constructor() {}
+
+  static forType(code: string): TicketPricing {
+    const pricing = TicketPricings.BY_TYPE.get(code);
+    if (pricing === undefined) {
+      throw new IllegalArgumentError(`unknown ticket type: ${code}`);
+    }
+    return pricing;
+  }
+}
+```
+
+**Po (`BoxOfficeDesk.ts`, pętla w `book` - jedyna zmiana poza usunięciem `priceOf`):**
 
 ```typescript
 for (const type of args.slice(3)) {
@@ -3927,7 +7178,7 @@ for (const type of args.slice(3)) {
 4. Pulpit dostaje rejestr `ReadonlyMap<string, CommandFactory>` (`CommandFactory = (args) => DeskCommand`) i historię `DeskCommand[]` zamiast obiektów `Entry`; klasa `Entry` oraz metody `book`, `change` i `restore` znikają.
 5. `undo()` zdejmuje ostatnie polecenie z historii i woła `last.undo(this.ledger)`; `report()` składa dziennik z `journalEntry()`.
 
-**Przed:**
+**Przed (`BoxOfficeDesk.ts`, metoda `undo`; pozostałe metody i pola - kod kroku 1):**
 
 ```typescript
 private undo(): string {
@@ -3944,19 +7195,367 @@ private undo(): string {
       this.till = this.till.minus(last.moved);
       this.restore(last);
       break;
-    ...
+    case 'CANCEL':
+      this.till = this.till.plus(last.moved);
+      this.restore(last);
+      break;
+    default:
+      this.restore(last);
   }
   return `Cofnieto: ${last.operation} ${last.id}`;
 }
 ```
 
-**Po:**
+**Po (`DeskCommand.ts`, nowy plik):**
 
 ```typescript
-const command = factory(args);
-const result = command.execute(this.ledger);
-this.history.push(command);
-return result;
+import { IllegalArgumentError } from '../../../../shared/errors.js';
+import type { BookingLedger } from './BookingLedger.js';
+
+/** Command - żądanie kasjera jako obiekt. */
+export interface DeskCommand {
+  execute(ledger: BookingLedger): string;
+
+  undo(ledger: BookingLedger): void;
+
+  journalEntry(): string;
+}
+
+/** Wspólna walidacja poleceń "OPERACJA <id>". */
+export function idFrom(args: readonly string[], operation: string): string {
+  const id = args[1];
+  if (id === undefined) {
+    throw new IllegalArgumentError(`${operation} <id>`);
+  }
+  return id;
+}
+```
+
+**Po (`BookingLedger.ts`, nowy plik):**
+
+```typescript
+import { IllegalArgumentError, IllegalStateError } from '../../../../shared/errors.js';
+import { Money } from '../../../shared/Money.js';
+import { Status } from '../Status.js';
+
+/** Odbiorca poleceń - rezerwacje i kasa wydzielone z pulpitu (Extract Class). */
+export class BookingLedger {
+  private readonly statuses = new Map<string, Status>();
+  private readonly amounts = new Map<string, Money>();
+  private till = Money.ZERO;
+
+  open(id: string, amount: Money): void {
+    if (this.statuses.has(id)) {
+      throw new IllegalArgumentError(`booking exists: ${id}`);
+    }
+    this.statuses.set(id, Status.NEW);
+    this.amounts.set(id, amount);
+  }
+
+  remove(id: string): void {
+    this.statuses.delete(id);
+    this.amounts.delete(id);
+  }
+
+  status(id: string): Status {
+    const status = this.statuses.get(id);
+    if (status === undefined) {
+      throw new IllegalArgumentError(`no booking ${id}`);
+    }
+    return status;
+  }
+
+  pay(id: string): Money {
+    const status = this.status(id);
+    if (status !== Status.NEW) {
+      throw BookingLedger.invalid('pay', status);
+    }
+    const amount = this.amountOf(id);
+    this.till = this.till.plus(amount);
+    this.statuses.set(id, Status.PAID);
+    return amount;
+  }
+
+  use(id: string): void {
+    const status = this.status(id);
+    if (status !== Status.PAID) {
+      throw BookingLedger.invalid('use', status);
+    }
+    this.statuses.set(id, Status.USED);
+  }
+
+  cancel(id: string): Money {
+    const status = this.status(id);
+    if (status === Status.NEW) {
+      this.statuses.set(id, Status.CANCELLED);
+      return Money.ZERO;
+    } else if (status === Status.PAID) {
+      const amount = this.amountOf(id);
+      this.till = this.till.minus(amount);
+      this.statuses.set(id, Status.CANCELLED);
+      return amount;
+    }
+    throw BookingLedger.invalid('cancel', status);
+  }
+
+  restore(id: string, previous: Status): void {
+    this.statuses.set(id, previous);
+  }
+
+  deposit(amount: Money): void {
+    this.till = this.till.plus(amount);
+  }
+
+  withdraw(amount: Money): void {
+    this.till = this.till.minus(amount);
+  }
+
+  summary(): string {
+    const bookings = this.statuses.size === 0 ? '-' : [...this.statuses]
+      .map(([id, status]) => `${id}=${status}`)
+      .join(', ');
+    return `Kasa: ${this.till.toString()}; ${bookings}`;
+  }
+
+  private amountOf(id: string): Money {
+    return this.amounts.get(id) ?? Money.ZERO;
+  }
+
+  private static invalid(action: string, status: Status): IllegalStateError {
+    return new IllegalStateError(`cannot ${action} in ${status}`);
+  }
+}
+```
+
+**Po (`BookCommand.ts`, nowy plik):**
+
+```typescript
+import { IllegalArgumentError } from '../../../../shared/errors.js';
+import { Money } from '../../../shared/Money.js';
+import type { BookingLedger } from './BookingLedger.js';
+import type { DeskCommand } from './DeskCommand.js';
+import { TicketPricings } from './TicketPricings.js';
+
+/** BOOK jako polecenie. Cenę liczą strategie z kroku 1, cofnięcie usuwa rezerwację. */
+export class BookCommand implements DeskCommand {
+  private static readonly FORMATS: ReadonlyMap<string, Money> = new Map([
+    ['2D', Money.of('25.00')],
+    ['3D', Money.of('32.00')],
+    ['IMAX', Money.of('40.00')],
+  ]);
+
+  private readonly ticketTypes: readonly string[];
+
+  private constructor(private readonly id: string, private readonly format: string, ticketTypes: readonly string[]) {
+    this.ticketTypes = Object.freeze([...ticketTypes]);
+  }
+
+  static from(args: readonly string[]): BookCommand {
+    if (args.length < 4) {
+      throw new IllegalArgumentError('BOOK <id> <format> <typ>...');
+    }
+    return new BookCommand(args[1] ?? '', args[2] ?? '', args.slice(3));
+  }
+
+  execute(ledger: BookingLedger): string {
+    const base = BookCommand.FORMATS.get(this.format);
+    if (base === undefined) {
+      throw new IllegalArgumentError(`unknown format: ${this.format}`);
+    }
+    let total = Money.ZERO;
+    for (const type of this.ticketTypes) {
+      total = total.plus(TicketPricings.forType(type).price(base));
+    }
+    ledger.open(this.id, total);
+    return `${this.id} NEW ${total.toString()}`;
+  }
+
+  undo(ledger: BookingLedger): void {
+    ledger.remove(this.id);
+  }
+
+  journalEntry(): string {
+    return `BOOK ${this.id}`;
+  }
+}
+```
+
+**Po (`PayCommand.ts`, nowy plik):**
+
+```typescript
+import { Money } from '../../../shared/Money.js';
+import { Status } from '../Status.js';
+import type { BookingLedger } from './BookingLedger.js';
+import { type DeskCommand, idFrom } from './DeskCommand.js';
+
+/** PAY jako polecenie - pamięta poprzedni status i pobraną kwotę, żeby je odwrócić. */
+export class PayCommand implements DeskCommand {
+  private previous = Status.NEW;
+  private paid = Money.ZERO;
+
+  private constructor(private readonly id: string) {}
+
+  static from(args: readonly string[]): PayCommand {
+    return new PayCommand(idFrom(args, 'PAY'));
+  }
+
+  execute(ledger: BookingLedger): string {
+    this.previous = ledger.status(this.id);
+    this.paid = ledger.pay(this.id);
+    return `${this.id} PAID ${this.paid.toString()}`;
+  }
+
+  undo(ledger: BookingLedger): void {
+    ledger.withdraw(this.paid);
+    ledger.restore(this.id, this.previous);
+  }
+
+  journalEntry(): string {
+    return `PAY ${this.id}`;
+  }
+}
+```
+
+**Po (`UseCommand.ts`, nowy plik):**
+
+```typescript
+import { Status } from '../Status.js';
+import type { BookingLedger } from './BookingLedger.js';
+import { type DeskCommand, idFrom } from './DeskCommand.js';
+
+/** USE jako polecenie - cofnięcie przywraca tylko poprzedni status. */
+export class UseCommand implements DeskCommand {
+  private previous = Status.PAID;
+
+  private constructor(private readonly id: string) {}
+
+  static from(args: readonly string[]): UseCommand {
+    return new UseCommand(idFrom(args, 'USE'));
+  }
+
+  execute(ledger: BookingLedger): string {
+    this.previous = ledger.status(this.id);
+    ledger.use(this.id);
+    return `${this.id} USED`;
+  }
+
+  undo(ledger: BookingLedger): void {
+    ledger.restore(this.id, this.previous);
+  }
+
+  journalEntry(): string {
+    return `USE ${this.id}`;
+  }
+}
+```
+
+**Po (`CancelCommand.ts`, nowy plik):**
+
+```typescript
+import { Money } from '../../../shared/Money.js';
+import { Status } from '../Status.js';
+import type { BookingLedger } from './BookingLedger.js';
+import { type DeskCommand, idFrom } from './DeskCommand.js';
+
+/** CANCEL jako polecenie. Ile oddać, decyduje odbiorca; polecenie zapamiętuje wynik. */
+export class CancelCommand implements DeskCommand {
+  private previous = Status.NEW;
+  private refunded = Money.ZERO;
+
+  private constructor(private readonly id: string) {}
+
+  static from(args: readonly string[]): CancelCommand {
+    return new CancelCommand(idFrom(args, 'CANCEL'));
+  }
+
+  execute(ledger: BookingLedger): string {
+    this.previous = ledger.status(this.id);
+    this.refunded = ledger.cancel(this.id);
+    return `${this.id} CANCELLED${this.refunded.isGreaterThan(Money.ZERO) ? ` zwrot ${this.refunded.toString()}` : ''}`;
+  }
+
+  undo(ledger: BookingLedger): void {
+    ledger.deposit(this.refunded);
+    ledger.restore(this.id, this.previous);
+  }
+
+  journalEntry(): string {
+    return `CANCEL ${this.id}`;
+  }
+}
+```
+
+**Po (`BoxOfficeDesk.ts`, cały plik):**
+
+```typescript
+import { IllegalArgumentError, IllegalStateError } from '../../../../shared/errors.js';
+import { BookCommand } from './BookCommand.js';
+import { BookingLedger } from './BookingLedger.js';
+import { CancelCommand } from './CancelCommand.js';
+import type { DeskCommand } from './DeskCommand.js';
+import { PayCommand } from './PayCommand.js';
+import { UseCommand } from './UseCommand.js';
+
+type CommandFactory = (args: readonly string[]) => DeskCommand;
+
+export class BoxOfficeDesk {
+  private static readonly COMMANDS: ReadonlyMap<string, CommandFactory> = new Map<string, CommandFactory>([
+    ['BOOK', (args) => BookCommand.from(args)],
+    ['PAY', (args) => PayCommand.from(args)],
+    ['USE', (args) => UseCommand.from(args)],
+    ['CANCEL', (args) => CancelCommand.from(args)],
+  ]);
+
+  private readonly ledger = new BookingLedger();
+  private readonly history: DeskCommand[] = [];
+
+  handle(line: string): string {
+    const args = line.trim().split(/ +/);
+    const operation = (args[0] ?? '').toUpperCase();
+    try {
+      switch (operation) {
+        case 'UNDO':
+          return this.undo();
+        case 'REPORT':
+          return this.report();
+        default:
+          return this.execute(operation, args);
+      }
+    } catch (exception) {
+      if (exception instanceof IllegalArgumentError || exception instanceof IllegalStateError) {
+        return `Blad: ${exception.message}`;
+      }
+      throw exception;
+    }
+  }
+
+  private execute(operation: string, args: readonly string[]): string {
+    const factory = BoxOfficeDesk.COMMANDS.get(operation);
+    if (factory === undefined) {
+      return `Nieznana operacja: ${args[0] ?? ''}`;
+    }
+    const command = factory(args);
+    const result = command.execute(this.ledger);
+    this.history.push(command);
+    return result;
+  }
+
+  private undo(): string {
+    const last = this.history.pop();
+    if (last === undefined) {
+      throw new IllegalStateError('nothing to undo');
+    }
+    last.undo(this.ledger);
+    return `Cofnieto: ${last.journalEntry()}`;
+  }
+
+  private report(): string {
+    const log = this.history.length === 0 ? '-' : this.history
+      .map((command) => command.journalEntry())
+      .join(', ');
+    return `${this.ledger.summary()}; dziennik: ${log}`;
+  }
+}
 ```
 
 **Uruchom:** test zielony.
@@ -3971,7 +7570,7 @@ return result;
 2. Warunki z `BookingLedger.pay/use/cancel` przenieś do obiektów stanów: NEW podaje `pay` i `cancel`, PAID podaje `use` i `cancel`, USED i CANCELLED nie podają niczego. Mapa `BY_STATUS` obsługuje `restore` (powrót do zapamiętanego stanu z pominięciem reguł przejść).
 3. `BookingLedger` trzyma `Map<string, Booking>` zamiast dwóch map i tylko przesuwa pieniądze w kasie: `pay` dolicza to, co zwróci `booking.pay()`, `cancel` odejmuje zwróconą kwotę.
 
-**Przed:**
+**Przed:** `BookingLedger.ts` - jak w bloku Po kroku 2 (m.in. `cancel` z warunkami po statusie):
 
 ```typescript
 cancel(id: string): Money {
@@ -3989,22 +7588,166 @@ cancel(id: string): Money {
 }
 ```
 
-**Po:**
+**Po (`Booking.ts`, nowy plik):**
 
 ```typescript
-private static readonly NEW: BookingState = state(Status.NEW, {
-  pay: (booking) => {
-    booking.state = Booking.PAID;
-    return booking.amount;
-  },
-  cancel: (booking) => {
-    booking.state = Booking.CANCELLED;
-    return Money.ZERO;
-  },
-});
-...
-private static readonly USED = state(Status.USED);
-private static readonly CANCELLED = state(Status.CANCELLED);
+import { IllegalStateError } from '../../../../shared/errors.js';
+import { requireNonNull } from '../../../../shared/requireNonNull.js';
+import { Money } from '../../../shared/Money.js';
+import { Status } from '../Status.js';
+
+type Transition = (booking: Booking) => Money;
+
+/** Prywatny typ stanu (w Javie: prywatny enum State w Booking) - nie jest eksportowany z modułu. */
+interface BookingState {
+  readonly status: Status;
+  readonly pay: Transition;
+  readonly use: (booking: Booking) => void;
+  readonly cancel: Transition;
+}
+
+/** Domyślnie przejście rzuca wyjątek - stan podaje tylko swoje dozwolone przejścia. */
+function state(status: Status, allowed: Partial<Omit<BookingState, 'status'>> = {}): BookingState {
+  const invalid = (action: string) => (): never => {
+    throw new IllegalStateError(`cannot ${action} in ${status}`);
+  };
+  return { status, pay: invalid('pay'), use: invalid('use'), cancel: invalid('cancel'), ...allowed };
+}
+
+export class Booking {
+  private static readonly NEW: BookingState = state(Status.NEW, {
+    pay: (booking) => {
+      booking.state = Booking.PAID;
+      return booking.amount;
+    },
+    cancel: (booking) => {
+      booking.state = Booking.CANCELLED;
+      return Money.ZERO;
+    },
+  });
+
+  private static readonly PAID: BookingState = state(Status.PAID, {
+    use: (booking) => {
+      booking.state = Booking.USED;
+    },
+    cancel: (booking) => {
+      booking.state = Booking.CANCELLED;
+      return booking.amount;
+    },
+  });
+
+  private static readonly USED = state(Status.USED);
+  private static readonly CANCELLED = state(Status.CANCELLED);
+
+  private static readonly BY_STATUS: Readonly<Record<Status, BookingState>> = {
+    [Status.NEW]: Booking.NEW,
+    [Status.PAID]: Booking.PAID,
+    [Status.USED]: Booking.USED,
+    [Status.CANCELLED]: Booking.CANCELLED,
+  };
+
+  private readonly amount: Money;
+  private state = Booking.NEW;
+
+  constructor(amount: Money) {
+    this.amount = requireNonNull(amount, 'amount');
+  }
+
+  status(): Status {
+    return this.state.status;
+  }
+
+  /** Zwraca kwotę pobraną do kasy. */
+  pay(): Money {
+    return this.state.pay(this);
+  }
+
+  use(): void {
+    this.state.use(this);
+  }
+
+  /** Zwraca kwotę oddaną klientowi (zero, gdy rezerwacja nie była opłacona). */
+  cancel(): Money {
+    return this.state.cancel(this);
+  }
+
+  /** Dla cofania poleceń: powrót do zapamiętanego stanu z pominięciem reguł przejść. */
+  restore(status: Status): void {
+    this.state = Booking.BY_STATUS[status];
+  }
+}
+```
+
+**Po (`BookingLedger.ts`, cały plik):**
+
+```typescript
+import { IllegalArgumentError } from '../../../../shared/errors.js';
+import { Money } from '../../../shared/Money.js';
+import type { Status } from '../Status.js';
+import { Booking } from './Booking.js';
+
+export class BookingLedger {
+  private readonly bookings = new Map<string, Booking>();
+  private till = Money.ZERO;
+
+  open(id: string, amount: Money): void {
+    if (this.bookings.has(id)) {
+      throw new IllegalArgumentError(`booking exists: ${id}`);
+    }
+    this.bookings.set(id, new Booking(amount));
+  }
+
+  remove(id: string): void {
+    this.bookings.delete(id);
+  }
+
+  status(id: string): Status {
+    return this.booking(id).status();
+  }
+
+  pay(id: string): Money {
+    const paid = this.booking(id).pay();
+    this.till = this.till.plus(paid);
+    return paid;
+  }
+
+  use(id: string): void {
+    this.booking(id).use();
+  }
+
+  cancel(id: string): Money {
+    const refunded = this.booking(id).cancel();
+    this.till = this.till.minus(refunded);
+    return refunded;
+  }
+
+  restore(id: string, previous: Status): void {
+    this.booking(id).restore(previous);
+  }
+
+  deposit(amount: Money): void {
+    this.till = this.till.plus(amount);
+  }
+
+  withdraw(amount: Money): void {
+    this.till = this.till.minus(amount);
+  }
+
+  summary(): string {
+    const list = this.bookings.size === 0 ? '-' : [...this.bookings]
+      .map(([id, booking]) => `${id}=${booking.status()}`)
+      .join(', ');
+    return `Kasa: ${this.till.toString()}; ${list}`;
+  }
+
+  private booking(id: string): Booking {
+    const booking = this.bookings.get(id);
+    if (booking === undefined) {
+      throw new IllegalArgumentError(`no booking ${id}`);
+    }
+    return booking;
+  }
+}
 ```
 
 **Uruchom:** test zielony; `S26SolutionTest` sprawdza, że cena to bezstanowa strategia, każda operacja to polecenie z `undo`, a stan jest prywatnym typem rezerwacji (`stateLivesInsideBookingAsPrivateType`).
@@ -4071,31 +7814,139 @@ render(day: LocalDate, sales: readonly ScreeningSale[]): string {
 3. Do `ScreeningReport` dodaj pole `format` i konstruktor `protected constructor(format: ReportFormat)`; w `render` wołaj `this.format.header(...)`, `this.format.row(...)`, `this.format.footer(...)`.
 4. Usuń trzy haki formatu z bazy i podklas (brak użyć potwierdzi `npm run typecheck`); podklasy wołają `super(new CsvFormat())` albo `super(new TextFormat())`.
 
-**Przed:**
+**Przed (`DailyCsvReport.ts`, haki formatu; haki okresu `includes`/`label` bez zmian):**
 
 ```typescript
-export class DailyCsvReport extends ScreeningReport {
-  ...
-  protected override header(label: string): string {
+protected override header(label: string): string {
+  return `# raport ${label}\nfilm;bilety;przychod\n`;
+}
+
+protected override row(title: string, tickets: number, revenue: Money): string {
+  const cell = title.includes(';') ? `"${title}"` : title;
+  return `${cell};${tickets};${revenue.toString()}\n`;
+}
+
+protected override footer(tickets: number, revenue: Money): string {
+  return `SUMA;${tickets};${revenue.toString()}\n`;
+}
+```
+
+**Po (`ReportFormat.ts`, nowy plik):**
+
+```typescript
+import type { Money } from '../../../shared/Money.js';
+
+/** Strategy dla osi "format" - trzy haki formatu wyjęte z hierarchii. */
+export interface ReportFormat {
+  header(label: string): string;
+
+  row(title: string, tickets: number, revenue: Money): string;
+
+  footer(tickets: number, revenue: Money): string;
+}
+```
+
+**Po (`CsvFormat.ts`, nowy plik):**
+
+```typescript
+import type { Money } from '../../../shared/Money.js';
+import type { ReportFormat } from './ReportFormat.js';
+
+export class CsvFormat implements ReportFormat {
+  header(label: string): string {
     return `# raport ${label}\nfilm;bilety;przychod\n`;
   }
 
-  protected override row(title: string, tickets: number, revenue: Money): string {
+  row(title: string, tickets: number, revenue: Money): string {
     const cell = title.includes(';') ? `"${title}"` : title;
     return `${cell};${tickets};${revenue.toString()}\n`;
   }
 
-  protected override footer(tickets: number, revenue: Money): string {
+  footer(tickets: number, revenue: Money): string {
     return `SUMA;${tickets};${revenue.toString()}\n`;
   }
 }
 ```
 
-**Po:**
+**Po (`TextFormat.ts`, nowy plik):**
 
 ```typescript
-constructor() {
-  super(new CsvFormat());
+import type { Money } from '../../../shared/Money.js';
+import type { ReportFormat } from './ReportFormat.js';
+
+export class TextFormat implements ReportFormat {
+  header(label: string): string {
+    return `RAPORT ${label.toUpperCase()}\n${'-'.repeat(37)}\n`;
+  }
+
+  row(title: string, tickets: number, revenue: Money): string {
+    return `${title.padEnd(20)} ${String(tickets).padStart(5)} ${revenue.toString().padStart(10)}\n`;
+  }
+
+  footer(tickets: number, revenue: Money): string {
+    return `${'-'.repeat(37)}\n${this.row('RAZEM', tickets, revenue)}`;
+  }
+}
+```
+
+**Po (`ScreeningReport.ts`, pole, konstruktor i `render`; klasa `Line`, funkcja `sortedKeys` i haki okresu bez zmian, w importach dochodzą `requireNonNull` i `ReportFormat`, znikają deklaracje `header`/`row`/`footer`):**
+
+```typescript
+export abstract class ScreeningReport {
+  private readonly format: ReportFormat;
+
+  protected constructor(format: ReportFormat) {
+    if (this.render !== ScreeningReport.prototype.render) {
+      throw new IllegalStateError('render() is final');
+    }
+    this.format = requireNonNull(format, 'format');
+  }
+
+  render(day: LocalDate, sales: readonly ScreeningSale[]): string {
+    const byTitle = new Map<string, Line>();
+    for (const sale of sales) {
+      if (this.includes(day, sale.day)) {
+        const line = new Line(sale.tickets, sale.revenue);
+        byTitle.set(sale.title, byTitle.get(sale.title)?.plus(line) ?? line);
+      }
+    }
+    let text = this.format.header(this.label(day));
+    let total = new Line(0, Money.ZERO);
+    for (const title of sortedKeys(byTitle)) {
+      const line = byTitle.get(title)!;
+      text += this.format.row(title, line.tickets, line.revenue);
+      total = total.plus(line);
+    }
+    return text + this.format.footer(total.tickets, total.revenue);
+  }
+
+  /** Hak okresu: czy sprzedaż z danego dnia należy do raportu. */
+  protected abstract includes(day: LocalDate, saleDay: LocalDate): boolean;
+
+  /** Hak okresu: opis okresu w nagłówku. */
+  protected abstract label(day: LocalDate): string;
+}
+```
+
+**Po (`DailyCsvReport.ts`, cały plik; w `DailyTextReport` analogicznie `super(new TextFormat())` i import `TextFormat`, w `WeeklyCsvReport`/`WeeklyTextReport` ten sam ruch przy ich hakach tygodniowych):**
+
+```typescript
+import type { LocalDate } from '../../../shared/time.js';
+import { CsvFormat } from './CsvFormat.js';
+import { ScreeningReport } from './ScreeningReport.js';
+
+export class DailyCsvReport extends ScreeningReport {
+  constructor() {
+    super(new CsvFormat());
+  }
+
+  protected override includes(day: LocalDate, saleDay: LocalDate): boolean {
+    return saleDay.equals(day);
+  }
+
+  protected override label(day: LocalDate): string {
+    return `dzien ${day.toString()}`;
+  }
 }
 ```
 
@@ -4130,7 +7981,96 @@ export class DailyCsvReport extends ScreeningReport {
 }
 ```
 
-**Po:**
+**Po (`ReportPeriod.ts`, nowy plik):**
+
+```typescript
+import type { LocalDate } from '../../../shared/time.js';
+
+/** Strategy dla osi "okres" - dwa haki okresu wyjęte z hierarchii. */
+export interface ReportPeriod {
+  includes(day: LocalDate, saleDay: LocalDate): boolean;
+
+  label(day: LocalDate): string;
+}
+```
+
+**Po (`DailyPeriod.ts`, nowy plik):**
+
+```typescript
+import type { LocalDate } from '../../../shared/time.js';
+import type { ReportPeriod } from './ReportPeriod.js';
+
+export class DailyPeriod implements ReportPeriod {
+  includes(day: LocalDate, saleDay: LocalDate): boolean {
+    return saleDay.equals(day);
+  }
+
+  label(day: LocalDate): string {
+    return `dzien ${day.toString()}`;
+  }
+}
+```
+
+**Po (`WeeklyPeriod.ts`, nowy plik):**
+
+```typescript
+import { DAYS_OF_WEEK, type LocalDate } from '../../../shared/time.js';
+import type { ReportPeriod } from './ReportPeriod.js';
+
+export class WeeklyPeriod implements ReportPeriod {
+  includes(day: LocalDate, saleDay: LocalDate): boolean {
+    const monday = WeeklyPeriod.monday(day);
+    return !saleDay.isBefore(monday) && !saleDay.isAfter(monday.plusDays(6));
+  }
+
+  label(day: LocalDate): string {
+    const monday = WeeklyPeriod.monday(day);
+    return `tydzien ${monday.toString()}..${monday.plusDays(6).toString()}`;
+  }
+
+  // Odpowiednik day.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).
+  private static monday(day: LocalDate): LocalDate {
+    return day.plusDays(-DAYS_OF_WEEK.indexOf(day.dayOfWeek));
+  }
+}
+```
+
+**Po (`ScreeningReport.ts`, pola, konstruktor i `render`; deklaracje `includes`/`label` znikają, w importach dochodzi `ReportPeriod`, `Line` i `sortedKeys` bez zmian):**
+
+```typescript
+export abstract class ScreeningReport {
+  private readonly period: ReportPeriod;
+  private readonly format: ReportFormat;
+
+  protected constructor(period: ReportPeriod, format: ReportFormat) {
+    if (this.render !== ScreeningReport.prototype.render) {
+      throw new IllegalStateError('render() is final');
+    }
+    this.period = requireNonNull(period, 'period');
+    this.format = requireNonNull(format, 'format');
+  }
+
+  render(day: LocalDate, sales: readonly ScreeningSale[]): string {
+    const byTitle = new Map<string, Line>();
+    for (const sale of sales) {
+      if (this.period.includes(day, sale.day)) {
+        const line = new Line(sale.tickets, sale.revenue);
+        byTitle.set(sale.title, byTitle.get(sale.title)?.plus(line) ?? line);
+      }
+    }
+    let text = this.format.header(this.period.label(day));
+    let total = new Line(0, Money.ZERO);
+    for (const title of sortedKeys(byTitle)) {
+      const line = byTitle.get(title)!;
+      text += this.format.row(title, line.tickets, line.revenue);
+      total = total.plus(line);
+    }
+    return text + this.format.footer(total.tickets, total.revenue);
+  }
+}
+```
+
+**Po (`WeeklyTextReport.ts`, cały plik poza importami `WeeklyPeriod`, `TextFormat` i `ScreeningReport`; trzy pozostałe podklasy analogicznie - `DailyCsvReport`: `super(new DailyPeriod(), new CsvFormat())`, `DailyTextReport`: `super(new DailyPeriod(), new TextFormat())`, `WeeklyCsvReport`: `super(new WeeklyPeriod(), new CsvFormat())`):**
 
 ```typescript
 export class WeeklyTextReport extends ScreeningReport {
@@ -4152,7 +8092,7 @@ export class WeeklyTextReport extends ScreeningReport {
 2. W `Reports` dodaj dwie mapy `PERIODS` i `FORMATS`; `of` sprawdza najpierw okres, potem format (te same komunikaty błędów) i składa `new ScreeningReport(chosenPeriod, chosenFormat)`.
 3. Usuń pliki czterech podklas - przed usunięciem wyszukaj odwołania do każdej, po usunięciu uruchom `npm run typecheck`.
 
-**Przed:**
+**Przed (`Reports.ts`, metody `of` i `unknownFormat`):**
 
 ```typescript
 static of(period: string, format: string): ScreeningReport {
@@ -4167,25 +8107,77 @@ static of(period: string, format: string): ScreeningReport {
           throw Reports.unknownFormat(format);
       }
     case 'WEEKLY':
-      ...
+      switch (format) {
+        case 'CSV':
+          return new WeeklyCsvReport();
+        case 'TEXT':
+          return new WeeklyTextReport();
+        default:
+          throw Reports.unknownFormat(format);
+      }
     default:
       throw new IllegalArgumentError(`unknown period: ${period}`);
   }
 }
+
+private static unknownFormat(format: string): IllegalArgumentError {
+  return new IllegalArgumentError(`unknown format: ${format}`);
+}
 ```
 
-**Po:**
+**Po (`ScreeningReport.ts`, nagłówek klasy i konstruktor; `render`, `Line` i `sortedKeys` bez zmian):**
 
 ```typescript
-const chosenPeriod = Reports.PERIODS.get(period);
-if (chosenPeriod === undefined) {
-  throw new IllegalArgumentError(`unknown period: ${period}`);
+export class ScreeningReport {
+  private readonly period: ReportPeriod;
+  private readonly format: ReportFormat;
+
+  constructor(period: ReportPeriod, format: ReportFormat) {
+    if (new.target !== ScreeningReport) {
+      throw new IllegalStateError('ScreeningReport is final');
+    }
+    this.period = requireNonNull(period, 'period');
+    this.format = requireNonNull(format, 'format');
+  }
+```
+
+**Po (`Reports.ts`, cały plik):**
+
+```typescript
+import { IllegalArgumentError } from '../../../../shared/errors.js';
+import { CsvFormat } from './CsvFormat.js';
+import { DailyPeriod } from './DailyPeriod.js';
+import type { ReportFormat } from './ReportFormat.js';
+import type { ReportPeriod } from './ReportPeriod.js';
+import { ScreeningReport } from './ScreeningReport.js';
+import { TextFormat } from './TextFormat.js';
+import { WeeklyPeriod } from './WeeklyPeriod.js';
+
+export class Reports {
+  private static readonly PERIODS: ReadonlyMap<string, ReportPeriod> = new Map<string, ReportPeriod>([
+    ['DAILY', new DailyPeriod()],
+    ['WEEKLY', new WeeklyPeriod()],
+  ]);
+
+  private static readonly FORMATS: ReadonlyMap<string, ReportFormat> = new Map<string, ReportFormat>([
+    ['CSV', new CsvFormat()],
+    ['TEXT', new TextFormat()],
+  ]);
+
+  private constructor() {}
+
+  static of(period: string, format: string): ScreeningReport {
+    const chosenPeriod = Reports.PERIODS.get(period);
+    if (chosenPeriod === undefined) {
+      throw new IllegalArgumentError(`unknown period: ${period}`);
+    }
+    const chosenFormat = Reports.FORMATS.get(format);
+    if (chosenFormat === undefined) {
+      throw new IllegalArgumentError(`unknown format: ${format}`);
+    }
+    return new ScreeningReport(chosenPeriod, chosenFormat);
+  }
 }
-const chosenFormat = Reports.FORMATS.get(format);
-if (chosenFormat === undefined) {
-  throw new IllegalArgumentError(`unknown format: ${format}`);
-}
-return new ScreeningReport(chosenPeriod, chosenFormat);
 ```
 
 **Uruchom:** test zielony; `S27SolutionTest` → `newFormatWorksWithEveryPeriodWithoutNewClasses` dodaje format Markdown jedną klasą testową i od razu używa go z oboma okresami.
@@ -4257,7 +8249,43 @@ if (!request.requestedAt.isBefore(request.screeningStart)) {
   return RefundDecision.approvedBy('AUTO');
 ```
 
-**Po:**
+**Po (`RefundHandler.ts`, nowy plik):**
+
+```typescript
+import type { RefundDecision } from '../RefundDecision.js';
+import type { RefundRequest } from '../RefundRequest.js';
+
+/**
+ * Ogniwo decyzji - pusta odpowiedź znaczy "to nie moja sprawa, pytaj dalej".
+ * (Optional<RefundDecision> z Javy to tutaj RefundDecision | undefined.)
+ */
+export interface RefundHandler {
+  handle(request: RefundRequest): RefundDecision | undefined;
+}
+```
+
+**Po (`AfterScreeningHandler.ts`, nowy plik):**
+
+```typescript
+import { RefundDecision } from '../RefundDecision.js';
+import type { RefundRequest } from '../RefundRequest.js';
+import type { RefundHandler } from './RefundHandler.js';
+
+export class AfterScreeningHandler implements RefundHandler {
+  handle(request: RefundRequest): RefundDecision | undefined {
+    if (!request.requestedAt.isBefore(request.screeningStart)) {
+      return RefundDecision.rejected('seans juz sie rozpoczal');
+    }
+    return undefined;
+  }
+}
+```
+
+**Po (`RefundApprover.ts`, nowe pole i początek `decide`; dalsze gałęzie `else if` i importy `AfterScreeningHandler`/`RefundHandler` dochodzą, reszta bez zmian):**
+
+```typescript
+private readonly afterScreening: RefundHandler = new AfterScreeningHandler();
+```
 
 ```typescript
 const decision = this.afterScreening.handle(request);
@@ -4277,7 +8305,7 @@ if (decision !== undefined) {
 
 1. Ten sam ruch dla pozostałych gałęzi: klasy `AutoRefundHandler`, `CashierHandler` i `ManagerHandler`.
 2. Limity przekaż do konstruktorów ogniw (Introduce Parameter, ręcznie): `new CashierHandler(RefundApprover.CASHIER_LIMIT)`, `new ManagerHandler(RefundApprover.MANAGER_LIMIT)`.
-3. W `RefundApprover` zastąp pole `afterScreening` tablicą `handlers` w kolejności reguł; `decide` przegląda ją po kolei i zwraca pierwszą decyzję, a po tablicy - odmowę "brak uprawnionego zatwierdzajacego".
+3. W `RefundApprover` zastąp pole `afterScreening` tablicą `handlers` w kolejności reguł; `decide` przegląda ją po kolei i zwraca pierwszą decyzję, a po tablicy - odmowę "brak uprawnionego zatwierdzajacego". Import `Duration` znika, dochodzą importy trzech nowych ogniw.
 
 **Przed:**
 
@@ -4295,7 +8323,61 @@ if (decision !== undefined) {
 return RefundDecision.rejected('brak uprawnionego zatwierdzajacego');
 ```
 
-**Po:**
+**Po (`AutoRefundHandler.ts`, nowy plik):**
+
+```typescript
+import { Duration } from '../../../shared/time.js';
+import { RefundDecision } from '../RefundDecision.js';
+import type { RefundRequest } from '../RefundRequest.js';
+import type { RefundHandler } from './RefundHandler.js';
+
+/** Co najmniej 24 h przed seansem zwrot jest automatyczny - bez limitu kwoty. */
+export class AutoRefundHandler implements RefundHandler {
+  handle(request: RefundRequest): RefundDecision | undefined {
+    if (Duration.between(request.requestedAt, request.screeningStart).toHours() >= 24) {
+      return RefundDecision.approvedBy('AUTO');
+    }
+    return undefined;
+  }
+}
+```
+
+**Po (`CashierHandler.ts`, nowy plik; `ManagerHandler.ts` analogicznie z `'MANAGER'`):**
+
+```typescript
+import { requireNonNull } from '../../../../shared/requireNonNull.js';
+import type { Money } from '../../../shared/Money.js';
+import { RefundDecision } from '../RefundDecision.js';
+import type { RefundRequest } from '../RefundRequest.js';
+import type { RefundHandler } from './RefundHandler.js';
+
+/** Poziom CASHIER zatwierdza zwroty do swojego limitu (włącznie). */
+export class CashierHandler implements RefundHandler {
+  private readonly limit: Money;
+
+  constructor(limit: Money) {
+    this.limit = requireNonNull(limit, 'limit');
+  }
+
+  handle(request: RefundRequest): RefundDecision | undefined {
+    if (!request.amount.isGreaterThan(this.limit)) {
+      return RefundDecision.approvedBy('CASHIER');
+    }
+    return undefined;
+  }
+}
+```
+
+**Po (`RefundApprover.ts`, pole `handlers` i dalszy ciąg `decide` po walidacji kwoty):**
+
+```typescript
+private readonly handlers: readonly RefundHandler[] = [
+  new AfterScreeningHandler(),
+  new AutoRefundHandler(),
+  new CashierHandler(RefundApprover.CASHIER_LIMIT),
+  new ManagerHandler(RefundApprover.MANAGER_LIMIT),
+];
+```
 
 ```typescript
 for (const handler of this.handlers) {
@@ -4320,38 +8402,122 @@ return RefundDecision.rejected('brak uprawnionego zatwierdzajacego');
 3. Odmowę z końca tablicy przenieś do nowego ogniwa końcowego `NoApproverHandler`.
 4. `RefundApprover` zastępuje tablicę polem `chain` i konstruktorem z parametrem domyślnym `chain: RefundHandler = RefundApprover.standardChain()`: bez argumentu składa standardową ścieżkę, z argumentem przyjmuje dowolną głowę łańcucha.
 
-**Przed:**
+**Przed:** `RefundApprover.ts` i ogniwa - jak w blokach Po kroków 1-2.
+
+**Po (`RefundHandler.ts`, cały plik):**
 
 ```typescript
-private readonly handlers: readonly RefundHandler[] = [
-  new AfterScreeningHandler(),
-  new AutoRefundHandler(),
-  new CashierHandler(RefundApprover.CASHIER_LIMIT),
-  new ManagerHandler(RefundApprover.MANAGER_LIMIT),
-];
-...
-for (const handler of this.handlers) {
-  const decision = handler.handle(request);
-  if (decision !== undefined) {
-    return decision;
-  }
+import type { RefundDecision } from '../RefundDecision.js';
+import type { RefundRequest } from '../RefundRequest.js';
+
+/**
+ * Chain of Responsibility - ogniwo zawsze zwraca decyzję: własną (i zatrzymuje łańcuch)
+ * albo następnika (przekazuje dalej). Następnika dostaje w konstruktorze.
+ */
+export interface RefundHandler {
+  handle(request: RefundRequest): RefundDecision;
 }
-return RefundDecision.rejected('brak uprawnionego zatwierdzajacego');
 ```
 
-**Po:**
+**Po (`AfterScreeningHandler.ts`, cały plik; `AutoRefundHandler.ts` analogicznie - swój warunek, potem `this.next.handle(request)`):**
 
 ```typescript
-constructor(chain: RefundHandler = RefundApprover.standardChain()) {
-  this.chain = requireNonNull(chain, 'chain');
-}
+import { requireNonNull } from '../../../../shared/requireNonNull.js';
+import { RefundDecision } from '../RefundDecision.js';
+import type { RefundRequest } from '../RefundRequest.js';
+import type { RefundHandler } from './RefundHandler.js';
 
-private static standardChain(): RefundHandler {
-  return new AfterScreeningHandler(
-    new AutoRefundHandler(
-      new CashierHandler(RefundApprover.CASHIER_LIMIT,
-        new ManagerHandler(RefundApprover.MANAGER_LIMIT,
-          new NoApproverHandler()))));
+export class AfterScreeningHandler implements RefundHandler {
+  private readonly next: RefundHandler;
+
+  constructor(next: RefundHandler) {
+    this.next = requireNonNull(next, 'next');
+  }
+
+  handle(request: RefundRequest): RefundDecision {
+    if (!request.requestedAt.isBefore(request.screeningStart)) {
+      return RefundDecision.rejected('seans juz sie rozpoczal');
+    }
+    return this.next.handle(request);
+  }
+}
+```
+
+**Po (`CashierHandler.ts`, pole, konstruktor i `handle`; `ManagerHandler.ts` analogicznie z `'MANAGER'`):**
+
+```typescript
+export class CashierHandler implements RefundHandler {
+  private readonly limit: Money;
+  private readonly next: RefundHandler;
+
+  constructor(limit: Money, next: RefundHandler) {
+    this.limit = requireNonNull(limit, 'limit');
+    this.next = requireNonNull(next, 'next');
+  }
+
+  handle(request: RefundRequest): RefundDecision {
+    if (!request.amount.isGreaterThan(this.limit)) {
+      return RefundDecision.approvedBy('CASHIER');
+    }
+    return this.next.handle(request);
+  }
+}
+```
+
+**Po (`NoApproverHandler.ts`, nowy plik):**
+
+```typescript
+import { RefundDecision } from '../RefundDecision.js';
+import type { RefundRequest } from '../RefundRequest.js';
+import type { RefundHandler } from './RefundHandler.js';
+
+/** Jawny koniec łańcucha - żądanie nie może po cichu "spaść" bez odpowiedzi. */
+export class NoApproverHandler implements RefundHandler {
+  handle(_request: RefundRequest): RefundDecision {
+    return RefundDecision.rejected('brak uprawnionego zatwierdzajacego');
+  }
+}
+```
+
+**Po (`RefundApprover.ts`, cały plik):**
+
+```typescript
+import { IllegalArgumentError } from '../../../../shared/errors.js';
+import { requireNonNull } from '../../../../shared/requireNonNull.js';
+import { Money } from '../../../shared/Money.js';
+import type { RefundDecision } from '../RefundDecision.js';
+import type { RefundRequest } from '../RefundRequest.js';
+import { AfterScreeningHandler } from './AfterScreeningHandler.js';
+import { AutoRefundHandler } from './AutoRefundHandler.js';
+import { CashierHandler } from './CashierHandler.js';
+import { ManagerHandler } from './ManagerHandler.js';
+import { NoApproverHandler } from './NoApproverHandler.js';
+import type { RefundHandler } from './RefundHandler.js';
+
+export class RefundApprover {
+  private static readonly CASHIER_LIMIT = Money.of('100.00');
+  private static readonly MANAGER_LIMIT = Money.of('1000.00');
+
+  private readonly chain: RefundHandler;
+
+  constructor(chain: RefundHandler = RefundApprover.standardChain()) {
+    this.chain = requireNonNull(chain, 'chain');
+  }
+
+  private static standardChain(): RefundHandler {
+    return new AfterScreeningHandler(
+      new AutoRefundHandler(
+        new CashierHandler(RefundApprover.CASHIER_LIMIT,
+          new ManagerHandler(RefundApprover.MANAGER_LIMIT,
+            new NoApproverHandler()))));
+  }
+
+  decide(request: RefundRequest): RefundDecision {
+    if (!request.amount.isGreaterThan(Money.ZERO)) {
+      throw new IllegalArgumentError('amount must be positive');
+    }
+    return this.chain.handle(request);
+  }
 }
 ```
 
@@ -4417,32 +8583,151 @@ Punkt wejścia testu to korzeń kompozycji `PaymentModule.paymentService(termina
 2. W `pay` rozbierz odpowiedź raz, zaraz po wywołaniu terminala: wydziel statyczną metodę `parse(raw)` (Extract Method), która sprawdza liczbę pól, znany status i kwotę w groszach (wyrażeniem regularnym) i buduje `PaymentConfirmation`.
 3. Zamień mapę `responses` (surowy tekst) na `confirmations` z `PaymentConfirmation`; `receipt` i `totalAuthorized` czytają pola obiektu zamiast parsować.
 
-**Przed:**
+**Przed (`PaymentService.ts`, metody `pay`, `receipt` i `totalAuthorized`; pole `private readonly responses = new Map<string, string>()`):**
 
 ```typescript
-const raw = this.terminal.authorize(bookingId, grosze);
-this.responses.set(bookingId, raw);
-const parts = raw.split(';');
-if (parts[0] !== 'OK') {
-  return `${parts[0]} ${parts[1]}`;
+pay(bookingId: string, amount: Money): string {
+  const grosze = amount.amount.times(100).toNumber();
+  const raw = this.terminal.authorize(bookingId, grosze);
+  this.responses.set(bookingId, raw);
+  const parts = raw.split(';');
+  if (parts[0] !== 'OK') {
+    return `${parts[0]} ${parts[1]}`;
+  }
+  const authorized = Number.parseInt(parts[2] ?? '', 10);
+  if (authorized < grosze) {
+    return `PARTIAL ${parts[1]} brakuje ${new Decimal(grosze - authorized).dividedBy(100).toFixed(2)}`;
+  }
+  return `PAID ${parts[1]}`;
 }
-const authorized = Number.parseInt(parts[2] ?? '', 10);
-if (authorized < grosze) {
-  return `PARTIAL ${parts[1]} brakuje ${new Decimal(grosze - authorized).dividedBy(100).toFixed(2)}`;
+
+receipt(bookingId: string): string {
+  const raw = this.responses.get(bookingId);
+  if (raw === undefined) {
+    return `Brak platnosci ${bookingId}`;
+  }
+  const parts = raw.split(';');
+  if (!raw.startsWith('OK')) {
+    return `Platnosc ${bookingId} nieudana: ${parts[1]}`;
+  }
+  return `Platnosc ${bookingId}: ${new Decimal(parts[2] ?? '').dividedBy(100).toFixed(2)} (${parts[1]})`;
 }
-return `PAID ${parts[1]}`;
+
+totalAuthorized(): Money {
+  let total = Money.ZERO;
+  for (const raw of this.responses.values()) {
+    if (raw.startsWith('OK')) {
+      total = total.plus(new Money(new Decimal(raw.substring(raw.lastIndexOf(';') + 1)).dividedBy(100)));
+    }
+  }
+  return total;
+}
 ```
 
-**Po:**
+**Po (`PaymentConfirmation.ts`, nowy plik):**
 
 ```typescript
-const confirmation = PaymentService.parse(this.terminal.authorize(bookingId, grosze));
-this.confirmations.set(bookingId, confirmation);
-if (!confirmation.approved()) {
-  return `${confirmation.outcome} ${confirmation.code}`;
+import { IllegalArgumentError } from '../../../../shared/errors.js';
+import { requireNonNull } from '../../../../shared/requireNonNull.js';
+import { Money } from '../../../shared/Money.js';
+
+/** Wynik autoryzacji w języku kina (w Javie: enum zagnieżdżony w rekordzie). */
+export enum Outcome {
+  APPROVED = 'APPROVED',
+  DECLINED = 'DECLINED',
+  ERROR = 'ERROR',
 }
-if (confirmation.isPartialFor(amount)) {
-  return `PARTIAL ${confirmation.code} brakuje ${amount.minus(confirmation.authorized).toString()}`;
+
+/** Boundary Object - odpowiedź terminala jako niezmienna, zwalidowana wartość w języku kina. */
+export class PaymentConfirmation {
+  readonly outcome: Outcome;
+  readonly code: string;
+  readonly authorized: Money;
+
+  constructor(outcome: Outcome, code: string, authorized: Money) {
+    this.outcome = requireNonNull(outcome, 'outcome');
+    this.authorized = requireNonNull(authorized, 'authorized');
+    if (code === null || code === undefined || code.trim() === '') {
+      throw new IllegalArgumentError('code must not be blank');
+    }
+    this.code = code;
+    if (authorized.compareTo(Money.ZERO) < 0) {
+      throw new IllegalArgumentError('authorized amount must not be negative');
+    }
+    if (outcome !== Outcome.APPROVED && authorized.isGreaterThan(Money.ZERO)) {
+      throw new IllegalArgumentError('only approved payment can authorize money');
+    }
+  }
+
+  approved(): boolean {
+    return this.outcome === Outcome.APPROVED;
+  }
+
+  /** Autoryzacja częściowa: terminal zgodził się na mniej, niż prosiliśmy. */
+  isPartialFor(requested: Money): boolean {
+    return this.approved() && this.authorized.compareTo(requested) < 0;
+  }
+}
+```
+
+**Po (`PaymentService.ts`, pole, metody `pay`, `receipt`, `totalAuthorized` i nowa metoda `parse`; w importach dochodzą `IllegalArgumentError` oraz `Outcome` i `PaymentConfirmation`):**
+
+```typescript
+private readonly confirmations = new Map<string, PaymentConfirmation>();
+```
+
+```typescript
+pay(bookingId: string, amount: Money): string {
+  const grosze = amount.amount.times(100).toNumber();
+  const confirmation = PaymentService.parse(this.terminal.authorize(bookingId, grosze));
+  this.confirmations.set(bookingId, confirmation);
+  if (!confirmation.approved()) {
+    return `${confirmation.outcome} ${confirmation.code}`;
+  }
+  if (confirmation.isPartialFor(amount)) {
+    return `PARTIAL ${confirmation.code} brakuje ${amount.minus(confirmation.authorized).toString()}`;
+  }
+  return `PAID ${confirmation.code}`;
+}
+
+receipt(bookingId: string): string {
+  const confirmation = this.confirmations.get(bookingId);
+  if (confirmation === undefined) {
+    return `Brak platnosci ${bookingId}`;
+  }
+  if (!confirmation.approved()) {
+    return `Platnosc ${bookingId} nieudana: ${confirmation.code}`;
+  }
+  return `Platnosc ${bookingId}: ${confirmation.authorized.toString()} (${confirmation.code})`;
+}
+
+totalAuthorized(): Money {
+  let total = Money.ZERO;
+  for (const confirmation of this.confirmations.values()) {
+    total = total.plus(confirmation.authorized);
+  }
+  return total;
+}
+
+private static parse(raw: string): PaymentConfirmation {
+  const parts = raw.split(';');
+  if (parts.length !== 3) {
+    throw new IllegalArgumentError(`malformed terminal response: ${raw}`);
+  }
+  const [status = '', code = '', grosze = ''] = parts;
+  let outcome: Outcome;
+  switch (status) {
+    case 'OK': outcome = Outcome.APPROVED; break;
+    case 'DECLINED': outcome = Outcome.DECLINED; break;
+    case 'ERROR': outcome = Outcome.ERROR; break;
+    default: throw new IllegalArgumentError(`malformed terminal response: ${raw}`);
+  }
+  // W Javie new BigDecimal("abc") rzuca NumberFormatException (podklasa IllegalArgumentException);
+  // Decimal przyjąłby "NaN" i rzuca własnym błędem, więc kwotę w groszach sprawdzamy wprost.
+  if (!/^[+-]?\d+$/.test(grosze)) {
+    throw new IllegalArgumentError(`malformed terminal response: ${raw}`);
+  }
+  return new PaymentConfirmation(outcome, code, new Money(new Decimal(grosze).dividedBy(100)));
 }
 ```
 
@@ -4458,30 +8743,63 @@ if (confirmation.isPartialFor(amount)) {
 2. Przenieś tam też przeliczenie złotych na grosze jako `toGrosze(amount)`.
 3. Serwis dostaje pole `private readonly mapper = new TerminalResponseMapper()` i woła je po obu stronach wywołania terminala.
 
-**Przed:**
+**Przed:** `PaymentService.ts` - jak w blokach Po kroku 1 (pierwsze dwa wiersze `pay` i metoda `parse`).
+
+**Po (`TerminalResponseMapper.ts`, nowy plik):**
 
 ```typescript
-pay(bookingId: string, amount: Money): string {
-  const grosze = amount.amount.times(100).toNumber();
-  const confirmation = PaymentService.parse(this.terminal.authorize(bookingId, grosze));
-  this.confirmations.set(bookingId, confirmation);
-  ...
-}
+import { Decimal } from 'decimal.js';
 
-private static parse(raw: string): PaymentConfirmation {
-  const parts = raw.split(';');
-  if (parts.length !== 3) {
-    throw new IllegalArgumentError(`malformed terminal response: ${raw}`);
+import { IllegalArgumentError } from '../../../../shared/errors.js';
+import { Money } from '../../../shared/Money.js';
+import { Outcome, PaymentConfirmation } from './PaymentConfirmation.js';
+
+/** Jedyne miejsce, które zna format terminala: grosze w obie strony i tekst "STATUS;KOD;KWOTA". */
+export class TerminalResponseMapper {
+  toGrosze(amount: Money): number {
+    return amount.amount.times(100).toNumber();
   }
-  ...
+
+  toConfirmation(raw: string): PaymentConfirmation {
+    const parts = raw.split(';');
+    if (parts.length !== 3) {
+      throw new IllegalArgumentError(`malformed terminal response: ${raw}`);
+    }
+    const [status = '', code = '', grosze = ''] = parts;
+    let outcome: Outcome;
+    switch (status) {
+      case 'OK': outcome = Outcome.APPROVED; break;
+      case 'DECLINED': outcome = Outcome.DECLINED; break;
+      case 'ERROR': outcome = Outcome.ERROR; break;
+      default: throw new IllegalArgumentError(`malformed terminal response: ${raw}`);
+    }
+    if (!/^[+-]?\d+$/.test(grosze)) {
+      throw new IllegalArgumentError(`malformed terminal response: ${raw}`);
+    }
+    return new PaymentConfirmation(outcome, code, new Money(new Decimal(grosze).dividedBy(100)));
+  }
 }
 ```
 
-**Po:**
+**Po (`PaymentService.ts`, nowe pole i początek `pay`; metoda `parse` znika razem z importami `Decimal`, `IllegalArgumentError` i `Outcome`, dochodzi import `TerminalResponseMapper`, a `PaymentConfirmation` staje się `import type`; `receipt` i `totalAuthorized` bez zmian):**
 
 ```typescript
-const raw = this.terminal.authorize(bookingId, this.mapper.toGrosze(amount));
-const confirmation = this.mapper.toConfirmation(raw);
+private readonly mapper = new TerminalResponseMapper();
+```
+
+```typescript
+pay(bookingId: string, amount: Money): string {
+  const raw = this.terminal.authorize(bookingId, this.mapper.toGrosze(amount));
+  const confirmation = this.mapper.toConfirmation(raw);
+  this.confirmations.set(bookingId, confirmation);
+  if (!confirmation.approved()) {
+    return `${confirmation.outcome} ${confirmation.code}`;
+  }
+  if (confirmation.isPartialFor(amount)) {
+    return `PARTIAL ${confirmation.code} brakuje ${amount.minus(confirmation.authorized).toString()}`;
+  }
+  return `PAID ${confirmation.code}`;
+}
 ```
 
 **Uruchom:** test zielony; `S29SolutionTest` → `malformedResponseIsRejectedAtTheBoundary` sprawdza `OK;AUTH-R1`, `MAYBE;X;0`, `OK;;4500` i `OK;AUTH-R1;abc`.
@@ -4497,22 +8815,70 @@ const confirmation = this.mapper.toConfirmation(raw);
 3. Zmień typ pola i parametru konstruktora `PaymentService` z `LegacyTerminalClient` na `PaymentTerminal`; `pay` woła `this.terminal.authorize(bookingId, amount)`, a pole `mapper` znika z serwisu (`npm run typecheck` wskaże miejsca wywołań).
 4. W korzeniu kompozycji (`PaymentModule`) owiń klienta adapterem.
 
-**Przed:**
+**Przed:** `PaymentService.ts` - jak w blokach Po kroku 2; `PaymentModule.paymentService` zwraca `new PaymentService(terminal)`.
+
+**Po (`PaymentTerminal.ts`, nowy plik):**
 
 ```typescript
-export class PaymentService {
-  private readonly terminal: LegacyTerminalClient;
+import type { Money } from '../../../shared/Money.js';
+import type { PaymentConfirmation } from './PaymentConfirmation.js';
+
+/** Port domeny - terminal płatniczy widziany oczami kina: Money na wejściu, obiekt graniczny na wyjściu. */
+export interface PaymentTerminal {
+  authorize(bookingId: string, amount: Money): PaymentConfirmation;
+}
+```
+
+**Po (`LegacyTerminalAdapter.ts`, nowy plik):**
+
+```typescript
+import { requireNonNull } from '../../../../shared/requireNonNull.js';
+import type { Money } from '../../../shared/Money.js';
+import type { LegacyTerminalClient } from '../LegacyTerminalClient.js';
+import type { PaymentConfirmation } from './PaymentConfirmation.js';
+import type { PaymentTerminal } from './PaymentTerminal.js';
+import { TerminalResponseMapper } from './TerminalResponseMapper.js';
+
+/** Adapter implementujący port domeny - poza tą klasą nikt nie widzi groszy ani tekstu "OK;AUTH;4500". */
+export class LegacyTerminalAdapter implements PaymentTerminal {
+  private readonly client: LegacyTerminalClient;
   private readonly mapper = new TerminalResponseMapper();
-  ...
-  pay(bookingId: string, amount: Money): string {
-    const raw = this.terminal.authorize(bookingId, this.mapper.toGrosze(amount));
-    const confirmation = this.mapper.toConfirmation(raw);
-    ...
+
+  constructor(client: LegacyTerminalClient) {
+    this.client = requireNonNull(client, 'client');
+  }
+
+  authorize(bookingId: string, amount: Money): PaymentConfirmation {
+    return this.mapper.toConfirmation(this.client.authorize(bookingId, this.mapper.toGrosze(amount)));
   }
 }
 ```
 
-**Po:**
+**Po (`PaymentService.ts`, pola, konstruktor i początek `pay`; importy `LegacyTerminalClient` i `TerminalResponseMapper` znikają, dochodzi `import type { PaymentTerminal }`; `receipt` i `totalAuthorized` bez zmian):**
+
+```typescript
+export class PaymentService {
+  private readonly terminal: PaymentTerminal;
+  private readonly confirmations = new Map<string, PaymentConfirmation>();
+
+  constructor(terminal: PaymentTerminal) {
+    this.terminal = requireNonNull(terminal, 'terminal');
+  }
+
+  pay(bookingId: string, amount: Money): string {
+    const confirmation = this.terminal.authorize(bookingId, amount);
+    this.confirmations.set(bookingId, confirmation);
+    if (!confirmation.approved()) {
+      return `${confirmation.outcome} ${confirmation.code}`;
+    }
+    if (confirmation.isPartialFor(amount)) {
+      return `PARTIAL ${confirmation.code} brakuje ${amount.minus(confirmation.authorized).toString()}`;
+    }
+    return `PAID ${confirmation.code}`;
+  }
+```
+
+**Po (`PaymentModule.ts`, metoda `paymentService`; dochodzi import `LegacyTerminalAdapter`):**
 
 ```typescript
 static paymentService(terminal: LegacyTerminalClient): PaymentService {
@@ -4609,12 +8975,74 @@ buy(order: TicketOrder): string {
 }
 ```
 
-**Po:**
+**Po (`BookingFacade.ts`, nowy plik):**
 
 ```typescript
-buy(order: TicketOrder): string {
-  return this.booking.book(order, OnlineShop.BOOKING_FEE);
+import { IllegalStateError } from '../../../../shared/errors.js';
+import type { Money } from '../../../shared/Money.js';
+import type { TicketOrder } from '../TicketOrder.js';
+import type { PaymentClient } from './PaymentClient.js';
+import type { PriceList } from './PriceList.js';
+import type { SeatRegistry } from './SeatRegistry.js';
+import type { TicketMailer } from './TicketMailer.js';
+
+/** Facade - orkiestracja zakupu w jednym miejscu; różnica kanałów (opłata) przychodzi parametrem. */
+export class BookingFacade {
+  constructor(
+    private readonly seats: SeatRegistry,
+    private readonly prices: PriceList,
+    private readonly payments: PaymentClient,
+    private readonly mailer: TicketMailer,
+  ) {}
+
+  book(order: TicketOrder, feePerSeat: Money): string {
+    const total = this.prices.price(order.ticketType).plus(feePerSeat).times(order.seats.length);
+    try {
+      this.seats.reserve(order.screening, order.seats);
+    } catch (exception) {
+      if (exception instanceof IllegalStateError) {
+        return `ERROR ${exception.message}`;
+      }
+      throw exception;
+    }
+    if (!this.payments.charge(order.card, total)) {
+      this.seats.release(order.screening, order.seats);
+      return 'ERROR payment declined';
+    }
+    this.mailer.send(order.email, `Bilety ${order.screening} ${order.seats.join(',')} = ${total.toString()}`);
+    return `OK ${total.toString()}`;
+  }
 }
+```
+
+**Po (`OnlineShop.ts`, cały plik):**
+
+```typescript
+import { requireNonNull } from '../../../../shared/requireNonNull.js';
+import { Money } from '../../../shared/Money.js';
+import type { TicketOrder } from '../TicketOrder.js';
+import type { BookingFacade } from './BookingFacade.js';
+
+export class OnlineShop {
+  private static readonly BOOKING_FEE = Money.of('2.00');
+
+  private readonly booking: BookingFacade;
+
+  constructor(booking: BookingFacade) {
+    this.booking = requireNonNull(booking, 'booking');
+  }
+
+  buy(order: TicketOrder): string {
+    return this.booking.book(order, OnlineShop.BOOKING_FEE);
+  }
+}
+```
+
+**Po (`Cinema.ts`, zmienione pola; dochodzi import `BookingFacade`, reszta pliku bez zmian):**
+
+```typescript
+private readonly booking = new BookingFacade(this.seats, this.prices, this.payments, this.mailer);
+private readonly shop = new OnlineShop(this.booking);
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang ts test m5/s30` - zielone; `step1StillLeaksBecauseOnlyTheShopUsesTheFacade` pokazuje, że błąd kasy wciąż żyje.
@@ -4650,12 +9078,31 @@ sell(order: TicketOrder): string {
 }
 ```
 
-**Po:**
+**Po (`BoxOffice.ts`, cały plik):**
 
 ```typescript
-sell(order: TicketOrder): string {
-  return this.booking.book(order, Money.ZERO);
+import { requireNonNull } from '../../../../shared/requireNonNull.js';
+import { Money } from '../../../shared/Money.js';
+import type { TicketOrder } from '../TicketOrder.js';
+import type { BookingFacade } from './BookingFacade.js';
+
+export class BoxOffice {
+  private readonly booking: BookingFacade;
+
+  constructor(booking: BookingFacade) {
+    this.booking = requireNonNull(booking, 'booking');
+  }
+
+  sell(order: TicketOrder): string {
+    return this.booking.book(order, Money.ZERO);
+  }
 }
+```
+
+**Po (`Cinema.ts`, zmienione pole):**
+
+```typescript
+private readonly desk = new BoxOffice(this.booking);
 ```
 
 **Uruchom:** test równoważności zielony, a `S30BehaviourChangeTest` → `step2FacadeReleasesSeatsForBothChannels` pokazuje zmianę: po odmowie w kasie miejsce A1 jest wolne i sklep może je sprzedać (`OK 27.00` zamiast `ERROR seat taken A1`).
@@ -4666,12 +9113,12 @@ sell(order: TicketOrder): string {
 
 **Zmiany:**
 
-1. Przenieś klasy `SeatRegistry`, `PriceList`, `PaymentClient` i `TicketMailer` do `BookingFacade.ts` jako klasy bez `export` i usuń ich pliki.
-2. Konstruktor fasady zrób `private`; dodaj `static create()`, które składa podsystemy.
+1. Przenieś klasy `SeatRegistry`, `PriceList`, `PaymentClient` i `TicketMailer` do `BookingFacade.ts` jako klasy bez `export` (treść klas bez zmian) i usuń ich pliki; razem z nimi przenieś z `Cinema.ts` pomocnik `const list = (items: readonly string[]): string => ...`. W imporcie fasady `IllegalArgumentError` dochodzi do `IllegalStateError`, a `Money` staje się importem wartości; importy czterech podsystemów znikają.
+2. Konstruktor fasady zrób `private`; dodaj `static create()`, które składa podsystemy, oraz metodę `state()` z dotychczasowego `Cinema.state()`.
 3. `Cinema` woła `BookingFacade.create()` i deleguje `state()` do fasady - sam nie widzi już podsystemów.
 4. W `book` otocz `charge` blokiem `try/finally`, który zwalnia miejsca, gdy płatność się nie udała (odmowa albo wyjątek bramki).
 
-**Przed:**
+**Przed (`BookingFacade.ts`, fragment `book`):**
 
 ```typescript
 if (!this.payments.charge(order.card, total)) {
@@ -4680,15 +9127,77 @@ if (!this.payments.charge(order.card, total)) {
 }
 ```
 
-**Po:**
+**Po (`BookingFacade.ts`, klasa fasady; wyżej w tym samym pliku nieeksportowane klasy `PaymentClient`, `PriceList`, `SeatRegistry`, `TicketMailer` przeniesione bez zmian treści oraz pomocnik `list`):**
 
 ```typescript
-let paid = false;
-try {
-  paid = this.payments.charge(order.card, total);
-} finally {
-  if (!paid) {
-    this.seats.release(order.screening, order.seats);
+export class BookingFacade {
+  private constructor(
+    private readonly seats: SeatRegistry,
+    private readonly prices: PriceList,
+    private readonly payments: PaymentClient,
+    private readonly mailer: TicketMailer,
+  ) {}
+
+  /** Składa podsystemy w fasadę (w Javie robi to Cinema przez konstruktor pakietowy). */
+  static create(): BookingFacade {
+    return new BookingFacade(new SeatRegistry(), new PriceList(), new PaymentClient(), new TicketMailer());
+  }
+
+  book(order: TicketOrder, feePerSeat: Money): string {
+    const total = this.prices.price(order.ticketType).plus(feePerSeat).times(order.seats.length);
+    try {
+      this.seats.reserve(order.screening, order.seats);
+    } catch (exception) {
+      if (exception instanceof IllegalStateError) {
+        return `ERROR ${exception.message}`;
+      }
+      throw exception;
+    }
+    let paid = false;
+    try {
+      paid = this.payments.charge(order.card, total);
+    } finally {
+      if (!paid) {
+        this.seats.release(order.screening, order.seats);
+      }
+    }
+    if (!paid) {
+      return 'ERROR payment declined';
+    }
+    this.mailer.send(order.email, `Bilety ${order.screening} ${order.seats.join(',')} = ${total.toString()}`);
+    return `OK ${total.toString()}`;
+  }
+
+  /** Obserwowalny stan wszystkich podsystemów naraz. */
+  state(): string {
+    return `miejsca=${this.seats.describe()} platnosci=${list(this.payments.log())} maile=${list(this.mailer.sent())}`;
+  }
+}
+```
+
+**Po (`Cinema.ts`, cały plik):**
+
+```typescript
+import { BookingFacade } from './BookingFacade.js';
+import { BoxOffice } from './BoxOffice.js';
+import { OnlineShop } from './OnlineShop.js';
+
+export class Cinema {
+  private readonly booking = BookingFacade.create();
+  private readonly shop = new OnlineShop(this.booking);
+  private readonly desk = new BoxOffice(this.booking);
+
+  onlineShop(): OnlineShop {
+    return this.shop;
+  }
+
+  boxOffice(): BoxOffice {
+    return this.desk;
+  }
+
+  /** Obserwowalny stan wszystkich podsystemów naraz. */
+  state(): string {
+    return this.booking.state();
   }
 }
 ```
@@ -4754,30 +9263,123 @@ Reguła "wolno grać, gdy licencja jest aktywna i obejmuje dzień" jest zapisana
 2. W serwisie wydziel dekodowanie pól rekordu do statycznej metody `toLicense(record)` (Extract Method), wołanej zaraz po pobraniu rekordu.
 3. Reguły w `canScreen` i `settle` licz na licencji: `license.active`, `license.covers(day)`, `license.dueFor(revenue)` - kody, procenty i grosze znikają z reguł.
 
-**Przed:**
+**Przed (`SettlementService.ts`, metody `canScreen` i `settle`):**
 
 ```typescript
-if (record.statusCode !== 'A') {
-  return `LICENCJA ZAWIESZONA ${filmCode}`;
+canScreen(filmCode: string, day: LocalDate): boolean {
+  const record = this.feed.fetch(filmCode);
+  return record !== null
+    && record.statusCode === 'A'
+    && !day.isBefore(parseBasicIsoDate(record.validFrom))
+    && !day.isAfter(parseBasicIsoDate(record.validTo));
 }
-if (!this.canScreen(filmCode, day)) {
-  return `LICENCJA NIEWAZNA ${filmCode} w dniu ${day.toString()}`;
+
+settle(filmCode: string, day: LocalDate, revenue: Money): string {
+  const record = this.feed.fetch(filmCode);
+  if (record === null) {
+    return `BRAK LICENCJI ${filmCode}`;
+  }
+  if (record.statusCode !== 'A') {
+    return `LICENCJA ZAWIESZONA ${filmCode}`;
+  }
+  if (!this.canScreen(filmCode, day)) {
+    return `LICENCJA NIEWAZNA ${filmCode} w dniu ${day.toString()}`;
+  }
+  const percent = Number.parseInt(record.share.replaceAll('%', '').trim(), 10);
+  const minimum = new Money(new Decimal(record.minGuaranteeCents).dividedBy(100));
+  const due = revenue.percent(percent).max(minimum);
+  const title = record.titleUpper.charAt(0) + record.titleUpper.substring(1).toLowerCase();
+  return `ROZLICZENIE ${title} ${day.toString()}: przychod ${revenue.toString()}, udzial ${percent}`
+    + `%, minimum ${minimum.toString()}, dla dystrybutora ${due.toString()}`;
 }
-const percent = Number.parseInt(record.share.replaceAll('%', '').trim(), 10);
-const minimum = new Money(new Decimal(record.minGuaranteeCents).dividedBy(100));
-const due = revenue.percent(percent).max(minimum);
-const title = record.titleUpper.charAt(0) + record.titleUpper.substring(1).toLowerCase();
 ```
 
-**Po:**
+**Po (`FilmLicense.ts`, nowy plik):**
 
 ```typescript
-const license = SettlementService.toLicense(record);
-if (!license.active) {
-  return `LICENCJA ZAWIESZONA ${filmCode}`;
+import { IllegalArgumentError } from '../../../../shared/errors.js';
+import { requireNonNull } from '../../../../shared/requireNonNull.js';
+import { Money } from '../../../shared/Money.js';
+import type { LocalDate } from '../../../shared/time.js';
+
+/** Licencja filmu w języku kina - typy domeny, niezmienniki w konstruktorze, reguły przy danych. */
+export class FilmLicense {
+  constructor(
+    readonly filmCode: string,
+    readonly title: string,
+    readonly active: boolean,
+    readonly validFrom: LocalDate,
+    readonly validTo: LocalDate,
+    readonly sharePercent: number,
+    readonly minimumGuarantee: Money,
+  ) {
+    requireNonNull(filmCode, 'filmCode');
+    requireNonNull(title, 'title');
+    requireNonNull(validFrom, 'validFrom');
+    requireNonNull(validTo, 'validTo');
+    requireNonNull(minimumGuarantee, 'minimumGuarantee');
+    if (validTo.isBefore(validFrom)) {
+      throw new IllegalArgumentError('license ends before it starts');
+    }
+    // number to nie int z Javy: NaN i ułamki też są poza zakresem
+    if (!Number.isInteger(sharePercent) || sharePercent < 0 || sharePercent > 100) {
+      throw new IllegalArgumentError(`share out of range: ${sharePercent}`);
+    }
+    if (minimumGuarantee.compareTo(Money.ZERO) < 0) {
+      throw new IllegalArgumentError('minimum guarantee must not be negative');
+    }
+  }
+
+  covers(day: LocalDate): boolean {
+    return !day.isBefore(this.validFrom) && !day.isAfter(this.validTo);
+  }
+
+  allowsScreeningOn(day: LocalDate): boolean {
+    return this.active && this.covers(day);
+  }
+
+  /** Udział dystrybutora, ale nie mniej niż minimalna gwarancja. */
+  dueFor(revenue: Money): Money {
+    return revenue.percent(this.sharePercent).max(this.minimumGuarantee);
+  }
 }
-if (!license.covers(day)) {
-  return `LICENCJA NIEWAZNA ${filmCode} w dniu ${day.toString()}`;
+```
+
+**Po (`SettlementService.ts`, metody `canScreen`, `settle` i nowa `toLicense`; funkcja `parseBasicIsoDate` na końcu pliku bez zmian, w importach dochodzą `DistributorRecord` i `FilmLicense`):**
+
+```typescript
+canScreen(filmCode: string, day: LocalDate): boolean {
+  const record = this.feed.fetch(filmCode);
+  return record !== null && SettlementService.toLicense(record).allowsScreeningOn(day);
+}
+
+settle(filmCode: string, day: LocalDate, revenue: Money): string {
+  const record = this.feed.fetch(filmCode);
+  if (record === null) {
+    return `BRAK LICENCJI ${filmCode}`;
+  }
+  const license = SettlementService.toLicense(record);
+  if (!license.active) {
+    return `LICENCJA ZAWIESZONA ${filmCode}`;
+  }
+  if (!license.covers(day)) {
+    return `LICENCJA NIEWAZNA ${filmCode} w dniu ${day.toString()}`;
+  }
+  return `ROZLICZENIE ${license.title} ${day.toString()}: przychod ${revenue.toString()}, udzial `
+    + `${license.sharePercent}%, minimum ${license.minimumGuarantee.toString()}`
+    + `, dla dystrybutora ${license.dueFor(revenue).toString()}`;
+}
+
+private static toLicense(record: DistributorRecord): FilmLicense {
+  const title = record.titleUpper.charAt(0) + record.titleUpper.substring(1).toLowerCase();
+  return new FilmLicense(
+    record.filmCode,
+    title,
+    record.statusCode === 'A',
+    parseBasicIsoDate(record.validFrom),
+    parseBasicIsoDate(record.validTo),
+    Number.parseInt(record.share.replaceAll('%', '').trim(), 10),
+    new Money(new Decimal(record.minGuaranteeCents).dividedBy(100)));
 }
 ```
 
@@ -4809,16 +9411,73 @@ private static toLicense(record: DistributorRecord): FilmLicense {
 }
 ```
 
-**Po:**
+**Po (`DistributorTranslator.ts`, nowy plik):**
 
 ```typescript
-private static date(legacy: string): LocalDate {
-  try {
-    return parseBasicIsoDate(legacy);
-  } catch (exception) {
-    throw new IllegalArgumentError(`invalid legacy date: ${legacy}`, { cause: exception });
+import { Decimal } from 'decimal.js';
+
+import { IllegalArgumentError } from '../../../../shared/errors.js';
+import { Money } from '../../../shared/Money.js';
+import { LocalDate } from '../../../shared/time.js';
+import type { DistributorRecord } from '../DistributorRecord.js';
+import { FilmLicense } from './FilmLicense.js';
+
+/** Jedyne miejsce, które zna konwencje dystrybutora: kody statusu, daty "yyyyMMdd", grosze, "45%". */
+export class DistributorTranslator {
+  private static readonly ACTIVE = 'A';
+
+  toLicense(record: DistributorRecord): FilmLicense {
+    return new FilmLicense(
+      record.filmCode,
+      DistributorTranslator.title(record.titleUpper),
+      record.statusCode === DistributorTranslator.ACTIVE,
+      DistributorTranslator.date(record.validFrom),
+      DistributorTranslator.date(record.validTo),
+      Number.parseInt(record.share.replaceAll('%', '').trim(), 10),
+      new Money(new Decimal(record.minGuaranteeCents).dividedBy(100)));
+  }
+
+  private static title(upper: string): string {
+    return upper.charAt(0) + upper.substring(1).toLowerCase();
+  }
+
+  private static date(legacy: string): LocalDate {
+    try {
+      return parseBasicIsoDate(legacy);
+    } catch (exception) {
+      throw new IllegalArgumentError(`invalid legacy date: ${legacy}`, { cause: exception });
+    }
   }
 }
+
+/** Odpowiednik LocalDate.parse(text, DateTimeFormatter.BASIC_ISO_DATE): "yyyyMMdd" -> LocalDate. */
+function parseBasicIsoDate(text: string): LocalDate {
+  if (!/^\d{8}$/.test(text)) {
+    throw new RangeError(`Text '${text}' could not be parsed`);
+  }
+  const date = LocalDate.of(Number(text.slice(0, 4)), Number(text.slice(4, 6)), Number(text.slice(6)));
+  if (date.toString() !== `${text.slice(0, 4)}-${text.slice(4, 6)}-${text.slice(6)}`) {
+    throw new RangeError(`Text '${text}' could not be parsed: invalid date`);
+  }
+  return date;
+}
+```
+
+**Po (`SettlementService.ts`, nowe pole i zmienione wywołania; metoda `toLicense` i funkcja `parseBasicIsoDate` znikają z tego pliku razem z importami `Decimal`, `DistributorRecord` i `FilmLicense`, a `Money` i `LocalDate` stają się `import type`):**
+
+```typescript
+private readonly translator = new DistributorTranslator();
+```
+
+```typescript
+canScreen(filmCode: string, day: LocalDate): boolean {
+  const record = this.feed.fetch(filmCode);
+  return record !== null && this.translator.toLicense(record).allowsScreeningOn(day);
+}
+```
+
+```typescript
+const license = this.translator.toLicense(record);
 ```
 
 **Uruchom:** test zielony; `S31SolutionTest` → `aclRejectsMalformedLegacyDataAtTheBoundary` dokumentuje nowy komunikat dla daty `2026-10-01` w formacie ISO zamiast `yyyyMMdd`.
@@ -4834,25 +9493,91 @@ private static date(legacy: string): LocalDate {
 3. Zmień typ pola i parametru konstruktora serwisu z `DistributorFeed` na `FilmLicenses`; serwis woła `this.licenses.find(filmCode)` (`npm run typecheck` wskaże miejsca wywołań).
 4. Tłumacza przenieś do `DistributorAcl.ts` jako klasę bez `export` i usuń plik `DistributorTranslator.ts`; `SettlementModule` owija klienta w ACL: `new SettlementService(new DistributorAcl(feed))`.
 
-**Przed:**
+**Przed:** `SettlementService.ts` - jak w blokach Po kroków 1-2; `SettlementModule.settlementService` zwraca `new SettlementService(feed)`.
+
+**Po (`FilmLicenses.ts`, nowy plik):**
 
 ```typescript
-export class SettlementService {
-  private readonly feed: DistributorFeed;
-  private readonly translator = new DistributorTranslator();
-  ...
-  canScreen(filmCode: string, day: LocalDate): boolean {
-    const record = this.feed.fetch(filmCode);
-    return record !== null && this.translator.toLicense(record).allowsScreeningOn(day);
-  }
+import type { FilmLicense } from './FilmLicense.js';
+
+/** Port domeny - skąd kino bierze licencje, opisane w języku kina (brak = undefined, nie null). */
+export interface FilmLicenses {
+  find(filmCode: string): FilmLicense | undefined;
+}
 ```
 
-**Po:**
+**Po (`DistributorAcl.ts`, nowy plik; niżej w tym samym module klasa `DistributorTranslator` bez `export` i funkcja `parseBasicIsoDate`, przeniesione z `DistributorTranslator.ts` bez zmian treści):**
 
 ```typescript
-find(filmCode: string): FilmLicense | undefined {
-  const record = this.feed.fetch(filmCode);
-  return record === null ? undefined : this.translator.toLicense(record);
+import { Decimal } from 'decimal.js';
+
+import { IllegalArgumentError } from '../../../../shared/errors.js';
+import { requireNonNull } from '../../../../shared/requireNonNull.js';
+import { Money } from '../../../shared/Money.js';
+import { LocalDate } from '../../../shared/time.js';
+import type { DistributorFeed } from '../DistributorFeed.js';
+import type { DistributorRecord } from '../DistributorRecord.js';
+import { FilmLicense } from './FilmLicense.js';
+import type { FilmLicenses } from './FilmLicenses.js';
+
+/** Anti-Corruption Layer - tylko ta warstwa widzi DistributorFeed i DistributorRecord. */
+export class DistributorAcl implements FilmLicenses {
+  private readonly feed: DistributorFeed;
+  private readonly translator = new DistributorTranslator();
+
+  constructor(feed: DistributorFeed) {
+    this.feed = requireNonNull(feed, 'feed');
+  }
+
+  find(filmCode: string): FilmLicense | undefined {
+    const record = this.feed.fetch(filmCode);
+    return record === null ? undefined : this.translator.toLicense(record);
+  }
+}
+```
+
+**Po (`SettlementService.ts`, cały plik):**
+
+```typescript
+import { requireNonNull } from '../../../../shared/requireNonNull.js';
+import type { Money } from '../../../shared/Money.js';
+import type { LocalDate } from '../../../shared/time.js';
+import type { FilmLicenses } from './FilmLicenses.js';
+
+export class SettlementService {
+  private readonly licenses: FilmLicenses;
+
+  constructor(licenses: FilmLicenses) {
+    this.licenses = requireNonNull(licenses, 'licenses');
+  }
+
+  canScreen(filmCode: string, day: LocalDate): boolean {
+    return this.licenses.find(filmCode)?.allowsScreeningOn(day) ?? false;
+  }
+
+  settle(filmCode: string, day: LocalDate, revenue: Money): string {
+    const license = this.licenses.find(filmCode);
+    if (license === undefined) {
+      return `BRAK LICENCJI ${filmCode}`;
+    }
+    if (!license.active) {
+      return `LICENCJA ZAWIESZONA ${filmCode}`;
+    }
+    if (!license.covers(day)) {
+      return `LICENCJA NIEWAZNA ${filmCode} w dniu ${day.toString()}`;
+    }
+    return `ROZLICZENIE ${license.title} ${day.toString()}: przychod ${revenue.toString()}, udzial `
+      + `${license.sharePercent}%, minimum ${license.minimumGuarantee.toString()}`
+      + `, dla dystrybutora ${license.dueFor(revenue).toString()}`;
+  }
+}
+```
+
+**Po (`SettlementModule.ts`, metoda `settlementService`; dochodzi import `DistributorAcl`):**
+
+```typescript
+static settlementService(feed: DistributorFeed): SettlementService {
+  return new SettlementService(new DistributorAcl(feed));
 }
 ```
 
@@ -4935,14 +9660,65 @@ click(seat: string): void {
 }
 ```
 
-**Po:**
+**Po (`SelectionMediator.ts`, nowy plik):**
 
 ```typescript
-const nowSelected = !this.selected.delete(seat);
-if (nowSelected) {
-  this.selected.add(seat);
+/** Mediator - komponent zgłasza, CO się stało, a mediator decyduje, KTO ma zareagować. */
+export interface SelectionMediator {
+  seatToggled(seat: string, selected: boolean): void;
 }
-this.mediator.seatToggled(seat, nowSelected);
+```
+
+**Po (`SeatMap.ts`, pola, konstruktor i `click`; metoda `connect` znika, importy `Basket`/`PayButton`/`PriceSummary` zastępują `requireNonNull` i `SelectionMediator`, pozostałe metody bez zmian):**
+
+```typescript
+export class SeatMap {
+  private readonly hall = SeatMap.hall();
+  private readonly sold = new Set<string>(['B2']);
+  private readonly selected = new Set<string>();
+  private readonly mediator: SelectionMediator;
+
+  constructor(mediator: SelectionMediator) {
+    this.mediator = requireNonNull(mediator, 'mediator');
+  }
+
+  /** Akcja użytkownika: zaznacza albo odznacza miejsce; sprzedane i spoza sali są ignorowane. */
+  click(seat: string): void {
+    if (!this.hall.has(seat) || this.sold.has(seat)) {
+      return;
+    }
+    const nowSelected = !this.selected.delete(seat);
+    if (nowSelected) {
+      this.selected.add(seat);
+    }
+    this.mediator.seatToggled(seat, nowSelected);
+  }
+```
+
+**Po (`SeatSelectionScreen.ts`, nagłówek klasy, pola, konstruktor i nowa metoda `seatToggled`; dochodzi `import type { SelectionMediator }`, metoda `render` bez zmian):**
+
+```typescript
+export class SeatSelectionScreen implements SelectionMediator {
+  readonly seatMap = new SeatMap(this);
+  readonly basket = new Basket();
+  readonly priceSummary = new PriceSummary();
+  readonly payButton = new PayButton();
+
+  constructor() {
+    this.basket.connect(this.seatMap, this.priceSummary, this.payButton);
+    this.priceSummary.connect(this.basket, this.payButton);
+    this.payButton.connect(this.seatMap, this.basket, this.priceSummary);
+  }
+
+  seatToggled(seat: string, selected: boolean): void {
+    if (selected) {
+      this.basket.add(seat);
+    } else {
+      this.basket.drop(seat);
+    }
+    this.priceSummary.recalculate(this.basket.seats());
+    this.payButton.refresh(this.basket.seats().length, this.priceSummary.total());
+  }
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang ts test m5/s32` - zielone.
@@ -4957,27 +9733,151 @@ this.mediator.seatToggled(seat, nowSelected);
 2. `Basket`, `PriceSummary` i `PayButton` dostają mediatora w konstruktorze i zgłaszają zdarzenia zamiast odświeżać sąsiadów; przycisk zachowuje jeszcze `connect(basket, summary)` - jedyne połączenie wprost.
 3. Powtórzoną parę "przelicz sumę, odśwież przycisk" wydziel w ekranie do prywatnej metody `refresh()` (Extract Method), a pozostałe kopie zastąp jej wywołaniem - każdą ręcznie, duplikaty trzeba znaleźć samemu.
 
-**Przed:**
+**Przed:** komponenty i ekran - kod kroku 1 (m.in. `seatToggled` jak w bloku Po kroku 1).
+
+**Po (`SelectionMediator.ts`, cały interfejs):**
 
 ```typescript
-seatToggled(seat: string, selected: boolean): void {
-  if (selected) {
-    this.basket.add(seat);
-  } else {
-    this.basket.drop(seat);
-  }
-  this.priceSummary.recalculate(this.basket.seats());
-  this.payButton.refresh(this.basket.seats().length, this.priceSummary.total());
+export interface SelectionMediator {
+  seatToggled(seat: string, selected: boolean): void;
+
+  seatRemoved(seat: string): void;
+
+  basketCleared(): void;
+
+  voucherApplied(): void;
+
+  seatsPaid(seats: readonly string[]): void;
 }
 ```
 
-**Po:**
+**Po (`Basket.ts`, pola, konstruktor oraz `remove` i `clear`; metoda `connect` i pola `seatMap`/`summary`/`payButton` znikają, importy komponentów zastępują `requireNonNull` i `SelectionMediator`; `add`, `drop`, `seats`, `describe` bez zmian):**
 
 ```typescript
-private refresh(): void {
-  this.priceSummary.recalculate(this.basket.seats());
-  this.payButton.refresh(this.basket.seats().length, this.priceSummary.total());
-}
+export class Basket {
+  private readonly items: string[] = [];
+  private readonly mediator: SelectionMediator;
+
+  constructor(mediator: SelectionMediator) {
+    this.mediator = requireNonNull(mediator, 'mediator');
+  }
+
+  /** Akcja użytkownika: usuwa miejsce z koszyka (i odznacza je na mapie). */
+  remove(seat: string): void {
+    const index = this.items.indexOf(seat);
+    if (index < 0) {
+      return;
+    }
+    this.items.splice(index, 1);
+    this.mediator.seatRemoved(seat);
+  }
+
+  /** Akcja użytkownika: czyści koszyk. Woła ją też mediator po płatności. */
+  clear(): void {
+    this.items.length = 0;
+    this.mediator.basketCleared();
+  }
+```
+
+**Po (`PriceSummary.ts`, pola, konstruktor i `applyVoucher`; `connect` i pola `basket`/`payButton` znikają, `recalculate`, `total`, `describe` bez zmian):**
+
+```typescript
+export class PriceSummary {
+  private discountPercent = 0;
+  private amount = Money.ZERO;
+  private readonly mediator: SelectionMediator;
+
+  constructor(mediator: SelectionMediator) {
+    this.mediator = requireNonNull(mediator, 'mediator');
+  }
+
+  /** Akcja użytkownika: voucher; nieznany kod usuwa zniżkę. */
+  applyVoucher(code: string): void {
+    this.discountPercent = code === 'KINO10' ? 10 : 0;
+    this.mediator.voucherApplied();
+  }
+```
+
+**Po (`PayButton.ts`, pola, konstruktor, `connect` i `press`; pole `seatMap` znika, `refresh` i `describe` bez zmian):**
+
+```typescript
+export class PayButton {
+  private static readonly MAX_SEATS = 4;
+
+  private enabled = false;
+  private label = 'Wybierz miejsca';
+  private readonly mediator: SelectionMediator;
+  // uzupełniane przez connect() - jedyne połączenie wprost, które zostało
+  private basket!: Basket;
+  private summary!: PriceSummary;
+
+  constructor(mediator: SelectionMediator) {
+    this.mediator = requireNonNull(mediator, 'mediator');
+  }
+
+  connect(basket: Basket, summary: PriceSummary): void {
+    this.basket = basket;
+    this.summary = summary;
+  }
+
+  /** Akcja użytkownika: płatność za zawartość koszyka. */
+  press(): string {
+    if (!this.enabled) {
+      return `Nieaktywny: ${this.label}`;
+    }
+    const paid = this.basket.seats();
+    const amount = this.summary.total();
+    this.mediator.seatsPaid(paid);
+    return `Zaplacono ${amount.toString()} za ${paid.join(',')}`;
+  }
+```
+
+**Po (`SeatSelectionScreen.ts`, pola, konstruktor i metody mediatora; `render` bez zmian):**
+
+```typescript
+export class SeatSelectionScreen implements SelectionMediator {
+  readonly seatMap = new SeatMap(this);
+  readonly basket = new Basket(this);
+  readonly priceSummary = new PriceSummary(this);
+  readonly payButton = new PayButton(this);
+
+  constructor() {
+    this.payButton.connect(this.basket, this.priceSummary);
+  }
+
+  seatToggled(seat: string, selected: boolean): void {
+    if (selected) {
+      this.basket.add(seat);
+    } else {
+      this.basket.drop(seat);
+    }
+    this.refresh();
+  }
+
+  seatRemoved(seat: string): void {
+    this.seatMap.deselect(seat);
+    this.refresh();
+  }
+
+  basketCleared(): void {
+    this.seatMap.deselectAll();
+    this.refresh();
+  }
+
+  voucherApplied(): void {
+    this.refresh();
+  }
+
+  seatsPaid(seats: readonly string[]): void {
+    this.seatMap.markSold(seats);
+    this.basket.clear();
+  }
+
+  /** Jedno miejsce, które zna kolejność odświeżania: najpierw suma, potem przycisk. */
+  private refresh(): void {
+    this.priceSummary.recalculate(this.basket.seats());
+    this.payButton.refresh(this.basket.seats().length, this.priceSummary.total());
+  }
 ```
 
 **Uruchom:** test zielony.
@@ -4992,7 +9892,7 @@ private refresh(): void {
 2. Zbieranie miejsc i kwoty oraz składanie komunikatu `Zaplacono ...` przenieś z `PayButton.press` do `payRequested` w mediatorze; `press` tylko sprawdza, czy jest aktywny, i deleguje.
 3. Usuń `connect` z przycisku razem z polami `basket` i `summary` oraz pusty już konstruktor ekranu.
 
-**Przed:**
+**Przed (`PayButton.ts`, metoda `press`; w ekranie `seatsPaid` jak w bloku Po kroku 2):**
 
 ```typescript
 press(): string {
@@ -5006,7 +9906,14 @@ press(): string {
 }
 ```
 
-**Po:**
+**Po (`SelectionMediator.ts`, zmieniona ostatnia metoda interfejsu; pozostałe bez zmian):**
+
+```typescript
+/** Zwraca komunikat dla użytkownika. */
+payRequested(): string;
+```
+
+**Po (`PayButton.ts`, metoda `press`; pola `basket`/`summary`, metoda `connect` i importy `Basket`/`PriceSummary` znikają, reszta bez zmian):**
 
 ```typescript
 press(): string {
@@ -5014,6 +9921,18 @@ press(): string {
     return `Nieaktywny: ${this.label}`;
   }
   return this.mediator.payRequested();
+}
+```
+
+**Po (`SeatSelectionScreen.ts`, `payRequested` w miejsce `seatsPaid`; konstruktor z `connect` znika, reszta bez zmian):**
+
+```typescript
+payRequested(): string {
+  const paid = this.basket.seats();
+  const amount = this.priceSummary.total();
+  this.seatMap.markSold(paid);
+  this.basket.clear();
+  return `Zaplacono ${amount.toString()} za ${paid.join(',')}`;
 }
 ```
 

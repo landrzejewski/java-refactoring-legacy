@@ -139,36 +139,101 @@ Klientem jest `PriceBoard.PriceFor(request)` - przez niego woła test. Test rów
 3. Dopisz prywatną klasę zagnieżdżoną `LegacyPolicy(string program) : IDiscountPolicy` (primary constructor), której `Discount` deleguje do `LegacyDiscount`.
 4. W `Price`, po walidacji, utwórz `IDiscountPolicy policy = new LegacyPolicy(program)` i zwróć `basePrice.Minus(policy.Discount(basePrice, ticketType))`.
 
-**Przed:**
+**Przed (`TicketPricer.cs`):**
 
 ```csharp
-Money discount;
-if (program == "PREMIERE")
+public Money Price(Money basePrice, string ticketType, string? program)
 {
-    discount = Money.Zero;
+    if (basePrice.CompareTo(Money.Zero) < 0)
+    {
+        throw new ArgumentException("base price must not be negative");
+    }
+    if (program == null)
+    {
+        throw new ArgumentException("program must not be null");
+    }
+    Money discount;
+    if (program == "PREMIERE")
+    {
+        discount = Money.Zero;
+    }
+    else if (program == "STUDENT_WEEK" && ticketType == "S")
+    {
+        discount = basePrice.Percent(50);
+    }
+    else if (program == "STANDARD" || program == "STUDENT_WEEK")
+    {
+        var percent = ticketType switch
+        {
+            "N" => 0,
+            "S" => 25,
+            "E" => 30,
+            "C" => 40,
+            _ => throw new ArgumentException("unknown ticket type: " + ticketType),
+        };
+        discount = basePrice.Percent(percent);
+    }
+    else
+    {
+        throw new ArgumentException("unknown program: " + program);
+    }
+    return basePrice.Minus(discount);
 }
-else if (program == "STUDENT_WEEK" && ticketType == "S")
-{
-    discount = basePrice.Percent(50);
-}
-else if (program == "STANDARD" || program == "STUDENT_WEEK")
-{
-    ...
-    discount = basePrice.Percent(percent);
-}
-else
-{
-    throw new ArgumentException("unknown program: " + program);
-}
-return basePrice.Minus(discount);
 ```
 
-**Po:**
+**Po (`IDiscountPolicy.cs`, nowy plik):**
 
 ```csharp
-IDiscountPolicy policy = new LegacyPolicy(program);
-return basePrice.Minus(policy.Discount(basePrice, ticketType));
-...
+using Training.Workshop.Shared;
+
+public interface IDiscountPolicy
+{
+    Money Discount(Money basePrice, string ticketType);
+}
+```
+
+**Po (`TicketPricer.cs`):**
+
+```csharp
+public Money Price(Money basePrice, string ticketType, string? program)
+{
+    if (basePrice.CompareTo(Money.Zero) < 0)
+    {
+        throw new ArgumentException("base price must not be negative");
+    }
+    if (program == null)
+    {
+        throw new ArgumentException("program must not be null");
+    }
+    IDiscountPolicy policy = new LegacyPolicy(program);
+    return basePrice.Minus(policy.Discount(basePrice, ticketType));
+}
+
+private static Money LegacyDiscount(Money basePrice, string ticketType, string program)
+{
+    if (program == "PREMIERE")
+    {
+        return Money.Zero;
+    }
+    else if (program == "STUDENT_WEEK" && ticketType == "S")
+    {
+        return basePrice.Percent(50);
+    }
+    else if (program == "STANDARD" || program == "STUDENT_WEEK")
+    {
+        var percent = ticketType switch
+        {
+            "N" => 0,
+            "S" => 25,
+            "E" => 30,
+            "C" => 40,
+            _ => throw new ArgumentException("unknown ticket type: " + ticketType),
+        };
+        return basePrice.Percent(percent);
+    }
+    throw new ArgumentException("unknown program: " + program);
+}
+
 private sealed class LegacyPolicy(string program) : IDiscountPolicy
 {
     public Money Discount(Money basePrice, string ticketType) => LegacyDiscount(basePrice, ticketType, program);
@@ -184,40 +249,112 @@ private sealed class LegacyPolicy(string program) : IDiscountPolicy
 **Zmiany:**
 
 1. Dla każdej gałęzi osobno: utwórz nową klasę implementującą `IDiscountPolicy`, przenieś do jej metody `Discount` ciało gałęzi i uruchom test. Kolejno: `StandardDiscount` (switch po `ticketType`), `PremiereDiscount` (zawsze `Money.Zero`), `StudentWeekDiscount` (student 50%, nie-studentów deleguje do przekazanego w konstruktorze `StandardDiscount`).
-2. W `TicketPricer` zastąp `LegacyDiscount` prywatną metodą statyczną `PolicyFor(string program)` zwracającą strategię ze switch expression; nieznany program nadal rzuca `ArgumentException`.
+2. W `TicketPricer` zastąp całą metodę `LegacyDiscount` (usuń ją) prywatną metodą statyczną `PolicyFor(string program)` zwracającą strategię ze switch expression; nieznany program nadal rzuca `ArgumentException`.
 3. Usuń klasę `LegacyPolicy`, a w `Price` wywołaj `PolicyFor(program).Discount(basePrice, ticketType)`.
 
-**Przed:**
+**Przed (`TicketPricer.cs`):**
 
 ```csharp
-IDiscountPolicy policy = new LegacyPolicy(program);
-return basePrice.Minus(policy.Discount(basePrice, ticketType));
-...
-private static Money LegacyDiscount(Money basePrice, string ticketType, string program)
+public Money Price(Money basePrice, string ticketType, string? program)
 {
-    if (program == "PREMIERE")
+    if (basePrice.CompareTo(Money.Zero) < 0)
     {
-        return Money.Zero;
+        throw new ArgumentException("base price must not be negative");
     }
-    ...
-}
-
-private sealed class LegacyPolicy(string program) : IDiscountPolicy
-{
-    public Money Discount(Money basePrice, string ticketType) => LegacyDiscount(basePrice, ticketType, program);
+    if (program == null)
+    {
+        throw new ArgumentException("program must not be null");
+    }
+    IDiscountPolicy policy = new LegacyPolicy(program);
+    return basePrice.Minus(policy.Discount(basePrice, ticketType));
 }
 ```
 
-**Po:**
+(plus usuwane w tym kroku `LegacyDiscount` i `LegacyPolicy` - pełna treść w Po kroku 1)
+
+**Po (`StandardDiscount.cs`, nowy plik):**
 
 ```csharp
-return program switch
+using Training.Workshop.Shared;
+
+public sealed class StandardDiscount : IDiscountPolicy
 {
-    "STANDARD" => new StandardDiscount(),
-    "STUDENT_WEEK" => new StudentWeekDiscount(new StandardDiscount()),
-    "PREMIERE" => new PremiereDiscount(),
-    _ => throw new ArgumentException("unknown program: " + program),
-};
+    public Money Discount(Money basePrice, string ticketType)
+    {
+        var percent = ticketType switch
+        {
+            "N" => 0,
+            "S" => 25,
+            "E" => 30,
+            "C" => 40,
+            _ => throw new ArgumentException("unknown ticket type: " + ticketType),
+        };
+        return basePrice.Percent(percent);
+    }
+}
+```
+
+**Po (`PremiereDiscount.cs`, nowy plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+public sealed class PremiereDiscount : IDiscountPolicy
+{
+    public Money Discount(Money basePrice, string ticketType)
+    {
+        return Money.Zero;
+    }
+}
+```
+
+**Po (`StudentWeekDiscount.cs`, nowy plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+public sealed class StudentWeekDiscount : IDiscountPolicy
+{
+    private readonly IDiscountPolicy _fallback;
+
+    public StudentWeekDiscount(IDiscountPolicy fallback)
+    {
+        _fallback = fallback;
+    }
+
+    public Money Discount(Money basePrice, string ticketType)
+    {
+        return ticketType == "S" ? basePrice.Percent(50) : _fallback.Discount(basePrice, ticketType);
+    }
+}
+```
+
+**Po (`TicketPricer.cs`):**
+
+```csharp
+public Money Price(Money basePrice, string ticketType, string? program)
+{
+    if (basePrice.CompareTo(Money.Zero) < 0)
+    {
+        throw new ArgumentException("base price must not be negative");
+    }
+    if (program == null)
+    {
+        throw new ArgumentException("program must not be null");
+    }
+    return basePrice.Minus(PolicyFor(program).Discount(basePrice, ticketType));
+}
+
+private static IDiscountPolicy PolicyFor(string program)
+{
+    return program switch
+    {
+        "STANDARD" => new StandardDiscount(),
+        "STUDENT_WEEK" => new StudentWeekDiscount(new StandardDiscount()),
+        "PREMIERE" => new PremiereDiscount(),
+        _ => throw new ArgumentException("unknown program: " + program),
+    };
+}
 ```
 
 **Uruchom:** test po każdej przeniesionej gałęzi.
@@ -232,29 +369,103 @@ return program switch
 2. Zmień sygnatury `TicketPricer` (zmiana sygnatury): konstruktor przyjmuje `IDiscountPolicy` (z `ArgumentNullException.ThrowIfNull`), a `Price(basePrice, ticketType)` traci parametr `program`. Walidacja ujemnej ceny zostaje w `Price`.
 3. Popraw klienta `PriceBoard`: zamiast pola z gotowym `TicketPricer` składa kontekst przy każdym żądaniu - `new TicketPricer(DiscountPrograms.ForName(request.Program))`.
 
-**Przed:**
+**Przed (`TicketPricer.cs`):**
 
 ```csharp
-public Money PriceFor(PriceRequest request)
+public Money Price(Money basePrice, string ticketType, string? program)
 {
-    return _pricer.Price(request.Base, request.TicketType, request.Program);
+    if (basePrice.CompareTo(Money.Zero) < 0)
+    {
+        throw new ArgumentException("base price must not be negative");
+    }
+    if (program == null)
+    {
+        throw new ArgumentException("program must not be null");
+    }
+    return basePrice.Minus(PolicyFor(program).Discount(basePrice, ticketType));
 }
-...
+
 private static IDiscountPolicy PolicyFor(string program)
 {
     return program switch
     {
         "STANDARD" => new StandardDiscount(),
-        ...
+        "STUDENT_WEEK" => new StudentWeekDiscount(new StandardDiscount()),
+        "PREMIERE" => new PremiereDiscount(),
+        _ => throw new ArgumentException("unknown program: " + program),
     };
 }
 ```
 
-**Po:**
+**Przed (`PriceBoard.cs`):**
 
 ```csharp
-return new TicketPricer(DiscountPrograms.ForName(request.Program))
-    .Price(request.Base, request.TicketType);
+private readonly TicketPricer _pricer = new();
+
+public Money PriceFor(PriceRequest request)
+{
+    return _pricer.Price(request.Base, request.TicketType, request.Program);
+}
+```
+
+**Po (`DiscountPrograms.cs`, nowy plik):**
+
+```csharp
+public static class DiscountPrograms
+{
+    private static readonly IDiscountPolicy Standard = new StandardDiscount();
+    private static readonly IDiscountPolicy StudentWeek = new StudentWeekDiscount(Standard);
+    private static readonly IDiscountPolicy Premiere = new PremiereDiscount();
+
+    public static IDiscountPolicy ForName(string? program)
+    {
+        if (program == null)
+        {
+            throw new ArgumentException("program must not be null");
+        }
+        return program switch
+        {
+            "STANDARD" => Standard,
+            "STUDENT_WEEK" => StudentWeek,
+            "PREMIERE" => Premiere,
+            _ => throw new ArgumentException("unknown program: " + program),
+        };
+    }
+}
+```
+
+**Po (`TicketPricer.cs`):** usuń `PolicyFor`, cała klasa wygląda teraz tak:
+
+```csharp
+public sealed class TicketPricer
+{
+    private readonly IDiscountPolicy _policy;
+
+    public TicketPricer(IDiscountPolicy policy)
+    {
+        ArgumentNullException.ThrowIfNull(policy);
+        _policy = policy;
+    }
+
+    public Money Price(Money basePrice, string ticketType)
+    {
+        if (basePrice.CompareTo(Money.Zero) < 0)
+        {
+            throw new ArgumentException("base price must not be negative");
+        }
+        return basePrice.Minus(_policy.Discount(basePrice, ticketType));
+    }
+}
+```
+
+**Po (`PriceBoard.cs`):** pole `_pricer` znika:
+
+```csharp
+public Money PriceFor(PriceRequest request)
+{
+    return new TicketPricer(DiscountPrograms.ForName(request.Program))
+        .Price(request.Base, request.TicketType);
+}
 ```
 
 **Uruchom:** test zielony; `S01SolutionTest` pokazuje nowy program zniżek (`BlackFridayDiscount`) bez zmiany kontekstu.
@@ -318,9 +529,9 @@ Tworzenie jest w jednym miejscu: `Screening.FromRow(ScreeningRow)` (mapowanie wi
 1. W `Screening` usuń `sealed`, konstruktor zmień z `private` na `private protected` (podklasy tylko w tym assembly), a `Label`, `DurationMinutes` i `Price` oznacz `virtual`. Dodaj `protected string Title => _title;`, żeby podklasa widziała tytuł.
 2. Utwórz nowy plik `MarathonScreening.cs`: `public sealed class MarathonScreening : Screening` z konstruktorem `internal` i polem `_films`. Nadpisz (`override`) trzy metody i skopiuj do nich ciała gałęzi `Kind.Marathon`.
 3. W `FromRow` gałąź "MARATHON" tworzy `new MarathonScreening(row.Title, row.Value)`; pozostałe gałęzie tworzą bazę wprost (`new Screening(Kind.Regular, ...)`).
-4. W bazie martwe już gałęzie `Kind.Marathon` zamień na `throw new InvalidOperationException("handled by MarathonScreening")`.
+4. W bazie martwe już gałęzie `Kind.Marathon` zamień na `throw new InvalidOperationException("handled by MarathonScreening")` - w `Label`, `DurationMinutes` i `Price` tak samo.
 
-**Przed:**
+**Przed (`Screening.cs`):**
 
 ```csharp
 public static Screening FromRow(ScreeningRow row)
@@ -334,12 +545,95 @@ public static Screening FromRow(ScreeningRow row)
     };
     return new Screening(kind, row.Title, row.Value);
 }
+
+public int DurationMinutes()
+{
+    return _kind switch
+    {
+        Kind.Regular => 20 + _value,
+        Kind.Premiere => 30 + _value,
+        Kind.Marathon => _value * 120 + (_value - 1) * 15,
+        _ => throw new ArgumentOutOfRangeException(nameof(_kind)),
+    };
+}
 ```
 
-**Po:**
+**Po (`MarathonScreening.cs`, nowy plik):**
 
 ```csharp
-"MARATHON" => new MarathonScreening(row.Title, row.Value),
+using Training.Workshop.Shared;
+
+public sealed class MarathonScreening : Screening
+{
+    private readonly int _films;
+
+    internal MarathonScreening(string title, int films)
+        : base(Kind.Marathon, title, films)
+    {
+        _films = films;
+    }
+
+    public override string Label()
+    {
+        return "Maraton: " + Title + " (" + _films + " filmy)";
+    }
+
+    public override int DurationMinutes()
+    {
+        return _films * 120 + (_films - 1) * 15;
+    }
+
+    public override Money Price()
+    {
+        return Money.Of("20.00").Times(_films);
+    }
+}
+```
+
+**Po (`Screening.cs`):**
+
+```csharp
+public class Screening
+{
+    public enum Kind { Regular, Premiere, Marathon }
+
+    private readonly Kind _kind;
+    private readonly string _title;
+    private readonly int _value;
+
+    private protected Screening(Kind kind, string title, int value)
+    {
+        _kind = kind;
+        _title = title;
+        _value = value;
+    }
+
+    public static Screening FromRow(ScreeningRow row)
+    {
+        return row.Kind switch
+        {
+            "REGULAR" => new Screening(Kind.Regular, row.Title, row.Value),
+            "PREMIERE" => new Screening(Kind.Premiere, row.Title, row.Value),
+            "MARATHON" => new MarathonScreening(row.Title, row.Value),
+            _ => throw new ArgumentException("unknown screening kind: " + row.Kind),
+        };
+    }
+
+    protected string Title => _title;
+
+    public virtual int DurationMinutes()
+    {
+        return _kind switch
+        {
+            Kind.Regular => 20 + _value,
+            Kind.Premiere => 30 + _value,
+            Kind.Marathon => throw new InvalidOperationException("handled by MarathonScreening"),
+            _ => throw new ArgumentOutOfRangeException(nameof(_kind)),
+        };
+    }
+    // Label() i Price() analogicznie: virtual, gałąź Kind.Marathon rzuca InvalidOperationException,
+    // pozostałe gałęzie bez zmian.
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang cs test m5/s02` - zielone.
@@ -353,6 +647,7 @@ public static Screening FromRow(ScreeningRow row)
 1. Powtórz ruch z kroku 1 dla pozostałych rodzajów: nowe pliki `RegularScreening.cs` i `PremiereScreening.cs` z ciałami swoich gałęzi; `FromRow` tworzy już tylko podklasy.
 2. Oznacz klasę `Screening` jako `abstract`, a `Label`, `DurationMinutes` i `Price` jako `abstract` (bez ciał).
 3. Usuń pole `_kind`, pole `_value` i enum `Kind` (bezpieczne usunięcie - najpierw upewnij się, że nie mają użyć). Konstruktor bazy zostaje z samym `title`. Jedynym `switch` zostaje `FromRow`.
+4. W `MarathonScreening` popraw wywołanie konstruktora bazy: `base(Kind.Marathon, title, films)` zamienia się na `base(title)`.
 
 **Przed:**
 
@@ -369,13 +664,113 @@ public virtual int DurationMinutes()
 }
 ```
 
-**Po:**
+**Po (`RegularScreening.cs`, nowy plik):**
 
 ```csharp
+using Training.Workshop.Shared;
+
+public sealed class RegularScreening : Screening
+{
+    private readonly int _runtime;
+
+    internal RegularScreening(string title, int runtime)
+        : base(title)
+    {
+        _runtime = runtime;
+    }
+
+    public override string Label()
+    {
+        return Title;
+    }
+
+    public override int DurationMinutes()
+    {
+        return 20 + _runtime;
+    }
+
+    public override Money Price()
+    {
+        return Money.Of("25.00");
+    }
+}
+```
+
+**Po (`PremiereScreening.cs`, nowy plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+public sealed class PremiereScreening : Screening
+{
+    private readonly int _runtime;
+
+    internal PremiereScreening(string title, int runtime)
+        : base(title)
+    {
+        _runtime = runtime;
+    }
+
+    public override string Label()
+    {
+        return "Premiera: " + Title;
+    }
+
+    public override int DurationMinutes()
+    {
+        return 30 + _runtime;
+    }
+
+    public override Money Price()
+    {
+        return Money.Of("35.00");
+    }
+}
+```
+
+**Po (`Screening.cs`, cały plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
 public abstract class Screening
 {
-    private protected Screening(string title) { ... }
+    private readonly string _title;
+
+    private protected Screening(string title)
+    {
+        _title = title;
+    }
+
+    public static Screening FromRow(ScreeningRow row)
+    {
+        return row.Kind switch
+        {
+            "REGULAR" => new RegularScreening(row.Title, row.Value),
+            "PREMIERE" => new PremiereScreening(row.Title, row.Value),
+            "MARATHON" => new MarathonScreening(row.Title, row.Value),
+            _ => throw new ArgumentException("unknown screening kind: " + row.Kind),
+        };
+    }
+
+    protected string Title => _title;
+
+    public abstract string Label();
+
     public abstract int DurationMinutes();
+
+    public abstract Money Price();
+}
+```
+
+**Po (`MarathonScreening.cs`):**
+
+```csharp
+internal MarathonScreening(string title, int films)
+    : base(title)
+{
+    _films = films;
+}
 ```
 
 **Uruchom:** test zielony.
@@ -390,34 +785,116 @@ public abstract class Screening
 2. Zamień każdą podklasę na pozycyjny `sealed record` w miejscu klasy z polami: `RegularScreening(string Title, int Runtime)`, `PremiereScreening(string Title, int Runtime)`, `MarathonScreening(string Title, int Films)`. Każdy rekord nadpisuje `Title` i trzy metody.
 3. Dane mają teraz jednoznaczne nazwy (`Runtime`, `Films`) - dwuznaczne `_value` znika z kodu.
 
-**Przed:**
+**Przed:** wszystkie cztery pliki w wersji z kroku 2 (klasy z polami `_title`, `_runtime`, `_films` i konstruktorami `internal`).
+
+**Po (`Screening.cs`, cały plik):**
 
 ```csharp
-public sealed class MarathonScreening : Screening
+using Training.Workshop.Shared;
+
+public abstract record Screening
 {
-    private readonly int _films;
-
-    internal MarathonScreening(string title, int films)
-        : base(title)
+    private protected Screening()
     {
-        _films = films;
     }
 
-    public override string Label()
+    public static Screening FromRow(ScreeningRow row)
     {
-        return "Maraton: " + Title + " (" + _films + " filmy)";
+        return row.Kind switch
+        {
+            "REGULAR" => new RegularScreening(row.Title, row.Value),
+            "PREMIERE" => new PremiereScreening(row.Title, row.Value),
+            "MARATHON" => new MarathonScreening(row.Title, row.Value),
+            _ => throw new ArgumentException("unknown screening kind: " + row.Kind),
+        };
     }
-    ...
+
+    public abstract string Title { get; }
+
+    public abstract string Label();
+
+    public abstract int DurationMinutes();
+
+    public abstract Money Price();
 }
 ```
 
-**Po:**
+**Po (`RegularScreening.cs`, cały plik):**
 
 ```csharp
+using Training.Workshop.Shared;
+
+public sealed record RegularScreening(string Title, int Runtime) : Screening
+{
+    public override string Title { get; } = Title;
+
+    public override string Label()
+    {
+        return Title;
+    }
+
+    public override int DurationMinutes()
+    {
+        return 20 + Runtime;
+    }
+
+    public override Money Price()
+    {
+        return Money.Of("25.00");
+    }
+}
+```
+
+**Po (`PremiereScreening.cs`, cały plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+public sealed record PremiereScreening(string Title, int Runtime) : Screening
+{
+    public override string Title { get; } = Title;
+
+    public override string Label()
+    {
+        return "Premiera: " + Title;
+    }
+
+    public override int DurationMinutes()
+    {
+        return 30 + Runtime;
+    }
+
+    public override Money Price()
+    {
+        return Money.Of("35.00");
+    }
+}
+```
+
+**Po (`MarathonScreening.cs`, cały plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
 public sealed record MarathonScreening(string Title, int Films) : Screening
 {
     public override string Title { get; } = Title;
-    public override int DurationMinutes() { return Films * 120 + (Films - 1) * 15; }
+
+    public override string Label()
+    {
+        return "Maraton: " + Title + " (" + Films + " filmy)";
+    }
+
+    public override int DurationMinutes()
+    {
+        return Films * 120 + (Films - 1) * 15;
+    }
+
+    public override Money Price()
+    {
+        return Money.Of("20.00").Times(Films);
+    }
+}
 ```
 
 **Uruchom:** test zielony; `S02SolutionTest` zawiera `switch` klienta z ramieniem `_ => throw new UnreachableException(...)` i asercję listy podtypów.
@@ -479,31 +956,152 @@ private static Money BasePrice(int formatCode)
 3. Zmień sygnatury metod prywatnych `Label`, `BasePrice`, `NeedsGlasses`, `ToCsv` z `int` na `Format` (zmiana sygnatury); switche przechodzą na stałe enuma.
 4. Usuń stałe `Format2D`, `Format3D`, `FormatImax`. Do CSV zapisuj `format.Code`.
 
-**Przed:**
+**Przed (`ScreeningCsv.cs`, cały plik):**
 
 ```csharp
-public const int Format2D = 1;
-public const int Format3D = 2;
-public const int FormatImax = 3;
-...
-var formatCode = int.Parse(parts[1].Trim(), CultureInfo.InvariantCulture);
-...
-private static string Label(int formatCode)
+using System.Globalization;
+using Training.Workshop.Shared;
+
+public sealed class ScreeningCsv
 {
-    return formatCode switch
+    public const int Format2D = 1;
+    public const int Format3D = 2;
+    public const int FormatImax = 3;
+
+    /// <summary>Wiersz "tytuł;kod" - np. "Diuna;3".</summary>
+    public string Describe(string line)
     {
-        Format2D => "2D",
-        Format3D => "3D",
-        FormatImax => "IMAX",
-        _ => throw new ArgumentException("unknown format code: " + formatCode),
-    };
+        var parts = line.Split(';');
+        var title = parts[0];
+        var formatCode = int.Parse(parts[1].Trim(), CultureInfo.InvariantCulture);
+        return title + "|" + Label(formatCode) + "|" + BasePrice(formatCode)
+            + "|okulary:" + (NeedsGlasses(formatCode) ? "tak" : "nie")
+            + "|csv=" + ToCsv(title, formatCode);
+    }
+
+    private static string Label(int formatCode)
+    {
+        return formatCode switch
+        {
+            Format2D => "2D",
+            Format3D => "3D",
+            FormatImax => "IMAX",
+            _ => throw new ArgumentException("unknown format code: " + formatCode),
+        };
+    }
+
+    private static Money BasePrice(int formatCode)
+    {
+        return formatCode switch
+        {
+            Format2D => Money.Of("25.00"),
+            Format3D => Money.Of("32.00"),
+            FormatImax => Money.Of("40.00"),
+            _ => throw new ArgumentException("unknown format code: " + formatCode),
+        };
+    }
+
+    private static bool NeedsGlasses(int formatCode)
+    {
+        return formatCode == Format3D;
+    }
+
+    private static string ToCsv(string title, int formatCode)
+    {
+        return title + ";" + formatCode;
+    }
 }
 ```
 
-**Po:**
+**Po (`Format.cs`, nowy plik):**
 
 ```csharp
-var format = Format.FromCode(int.Parse(parts[1].Trim(), CultureInfo.InvariantCulture));
+public enum Format
+{
+    TwoD,
+    ThreeD,
+    Imax,
+}
+
+/// <summary>Operacje typu Format (C# 14: członkowie rozszerzeń - enum nie ma własnych metod).</summary>
+public static class FormatExtensions
+{
+    extension(Format format)
+    {
+        public int Code => format switch
+        {
+            Format.TwoD => 1,
+            Format.ThreeD => 2,
+            Format.Imax => 3,
+            _ => throw new ArgumentOutOfRangeException(nameof(format)),
+        };
+
+        public static Format FromCode(int code)
+        {
+            foreach (var candidate in Enum.GetValues<Format>())
+            {
+                if (candidate.Code == code)
+                {
+                    return candidate;
+                }
+            }
+            throw new ArgumentException("unknown format code: " + code);
+        }
+    }
+}
+```
+
+**Po (`ScreeningCsv.cs`, cały plik):**
+
+```csharp
+using System.Globalization;
+using Training.Workshop.Shared;
+
+public sealed class ScreeningCsv
+{
+    /// <summary>Wiersz "tytuł;kod" - np. "Diuna;3".</summary>
+    public string Describe(string line)
+    {
+        var parts = line.Split(';');
+        var title = parts[0];
+        var format = Format.FromCode(int.Parse(parts[1].Trim(), CultureInfo.InvariantCulture));
+        return title + "|" + Label(format) + "|" + BasePrice(format)
+            + "|okulary:" + (NeedsGlasses(format) ? "tak" : "nie")
+            + "|csv=" + ToCsv(title, format);
+    }
+
+    private static string Label(Format format)
+    {
+        return format switch
+        {
+            Format.TwoD => "2D",
+            Format.ThreeD => "3D",
+            Format.Imax => "IMAX",
+            _ => throw new ArgumentOutOfRangeException(nameof(format)),
+        };
+    }
+
+    private static Money BasePrice(Format format)
+    {
+        return format switch
+        {
+            Format.TwoD => Money.Of("25.00"),
+            Format.ThreeD => Money.Of("32.00"),
+            Format.Imax => Money.Of("40.00"),
+            _ => throw new ArgumentOutOfRangeException(nameof(format)),
+        };
+    }
+
+    private static bool NeedsGlasses(Format format)
+    {
+        return format == Format.ThreeD;
+    }
+
+    private static string ToCsv(string title, Format format)
+    {
+        return title + ";" + format.Code;
+    }
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang cs test m5/s03` - zielone, łącznie z "nieznany kod" i "kod nie jest liczbą".
@@ -537,18 +1135,76 @@ private static string Label(Format format)
 }
 ```
 
-**Po:**
+**Po (`Format.cs`):** enum bez zmian, klasa `FormatExtensions` wygląda teraz tak (dochodzi `using Training.Workshop.Shared;` na górze pliku):
 
 ```csharp
-extension(Format format)
+public static class FormatExtensions
 {
-    public string Label => format switch
+    private static readonly Money TwoDPrice = Money.Of("25.00");
+    private static readonly Money ThreeDPrice = Money.Of("32.00");
+    private static readonly Money ImaxPrice = Money.Of("40.00");
+
+    extension(Format format)
     {
-        Format.TwoD => "2D",
-        Format.ThreeD => "3D",
-        Format.Imax => "IMAX",
-        _ => throw new ArgumentOutOfRangeException(nameof(format)),
-    };
+        public int Code => format switch
+        {
+            Format.TwoD => 1,
+            Format.ThreeD => 2,
+            Format.Imax => 3,
+            _ => throw new ArgumentOutOfRangeException(nameof(format)),
+        };
+
+        public string Label => format switch
+        {
+            Format.TwoD => "2D",
+            Format.ThreeD => "3D",
+            Format.Imax => "IMAX",
+            _ => throw new ArgumentOutOfRangeException(nameof(format)),
+        };
+
+        public Money BasePrice => format switch
+        {
+            Format.TwoD => TwoDPrice,
+            Format.ThreeD => ThreeDPrice,
+            Format.Imax => ImaxPrice,
+            _ => throw new ArgumentOutOfRangeException(nameof(format)),
+        };
+
+        public bool RequiresGlasses => format == Format.ThreeD;
+
+        public static Format FromCode(int code)
+        {
+            foreach (var candidate in Enum.GetValues<Format>())
+            {
+                if (candidate.Code == code)
+                {
+                    return candidate;
+                }
+            }
+            throw new ArgumentException("unknown format code: " + code);
+        }
+    }
+}
+```
+
+**Po (`ScreeningCsv.cs`, cały plik):** metody prywatne i `using Training.Workshop.Shared;` znikają:
+
+```csharp
+using System.Globalization;
+
+public sealed class ScreeningCsv
+{
+    /// <summary>Wiersz "tytuł;kod" - np. "Diuna;3".</summary>
+    public string Describe(string line)
+    {
+        var parts = line.Split(';');
+        var title = parts[0];
+        var format = Format.FromCode(int.Parse(parts[1].Trim(), CultureInfo.InvariantCulture));
+        return title + "|" + format.Label + "|" + format.BasePrice
+            + "|okulary:" + (format.RequiresGlasses ? "tak" : "nie")
+            + "|csv=" + title + ";" + format.Code;
+    }
+}
 ```
 
 **Uruchom:** test zielony.
@@ -583,11 +1239,49 @@ var format = Format.FromCode(int.Parse(parts[1].Trim(), CultureInfo.InvariantCul
 ... + "|csv=" + title + ";" + format.Code;
 ```
 
-**Po:**
+**Po (`FormatCodes.cs`, nowy plik):**
 
 ```csharp
-var format = FormatCodes.FromCode(int.Parse(parts[1].Trim(), CultureInfo.InvariantCulture));
-... + "|csv=" + title + ";" + FormatCodes.ToCode(format);
+public static class FormatCodes
+{
+    private static readonly IReadOnlyDictionary<Format, int> Codes = new Dictionary<Format, int>
+    {
+        [Format.TwoD] = 1,
+        [Format.ThreeD] = 2,
+        [Format.Imax] = 3,
+    };
+
+    public static Format FromCode(int code)
+    {
+        foreach (var entry in Codes)
+        {
+            if (entry.Value == code)
+            {
+                return entry.Key;
+            }
+        }
+        throw new ArgumentException("unknown format code: " + code);
+    }
+
+    public static int ToCode(Format format)
+    {
+        return Codes[format];
+    }
+}
+```
+
+**Po (`ScreeningCsv.cs`):**
+
+```csharp
+public string Describe(string line)
+{
+    var parts = line.Split(';');
+    var title = parts[0];
+    var format = FormatCodes.FromCode(int.Parse(parts[1].Trim(), CultureInfo.InvariantCulture));
+    return title + "|" + format.Label + "|" + format.BasePrice
+        + "|okulary:" + (format.RequiresGlasses ? "tak" : "nie")
+        + "|csv=" + title + ";" + FormatCodes.ToCode(format);
+}
 ```
 
 **Uruchom:** test zielony; `S03SolutionTest.PersistentCodeIsNotTheOrdinal` sprawdza, że `(int)Format.Imax` to 2, a kod trwały to 3.
@@ -641,7 +1335,7 @@ tickets.Add(row >= 10
 1. W namespace `Ticketing` utwórz nowy plik `Tickets.cs`: statyczna klasa `Tickets` z metodami tworzącymi `Standard(title, basePrice, row)` i `Vip(title, basePrice, row)`, obie zwracają `ITicket` i wołają `new` na klasie konkretnej.
 2. Znajdź wszystkie użycia konstruktorów `StandardTicket` i `VipTicket` - to dwa miejsca w `BoxOffice` (`Sell` i pętla w `SellAll`) - i zastąp każde `new` wywołaniem metody tworzącej.
 
-**Przed:**
+**Przed (`BoxOffice.cs`):**
 
 ```csharp
 public ITicket Sell(string title, Money basePrice, int row)
@@ -652,12 +1346,60 @@ public ITicket Sell(string title, Money basePrice, int row)
     }
     return new StandardTicket(title, basePrice, row);
 }
+
+public List<ITicket> SellAll(string title, Money basePrice, IReadOnlyList<int> rows)
+{
+    var tickets = new List<ITicket>();
+    foreach (var row in rows)
+    {
+        tickets.Add(row >= 10
+            ? new VipTicket(title, basePrice, row)
+            : new StandardTicket(title, basePrice, row));
+    }
+    return tickets;
+}
 ```
 
-**Po:**
+**Po (`Tickets.cs`, nowy plik w namespace `Ticketing`):**
 
 ```csharp
-return Tickets.Vip(title, basePrice, row);
+using Training.Workshop.Shared;
+
+public static class Tickets
+{
+    public static ITicket Standard(string title, Money basePrice, int row)
+    {
+        return new StandardTicket(title, basePrice, row);
+    }
+
+    public static ITicket Vip(string title, Money basePrice, int row)
+    {
+        return new VipTicket(title, basePrice, row);
+    }
+}
+```
+
+**Po (`BoxOffice.cs`):**
+
+```csharp
+public ITicket Sell(string title, Money basePrice, int row)
+{
+    if (row >= 10)
+    {
+        return Tickets.Vip(title, basePrice, row);
+    }
+    return Tickets.Standard(title, basePrice, row);
+}
+
+public List<ITicket> SellAll(string title, Money basePrice, IReadOnlyList<int> rows)
+{
+    var tickets = new List<ITicket>();
+    foreach (var row in rows)
+    {
+        tickets.Add(row >= 10 ? Tickets.Vip(title, basePrice, row) : Tickets.Standard(title, basePrice, row));
+    }
+    return tickets;
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang cs test m5/s04` - zielone.
@@ -685,12 +1427,42 @@ public ITicket Sell(string title, Money basePrice, int row)
 }
 ```
 
-**Po:**
+**Po (`Tickets.cs`, cały plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+public static class Tickets
+{
+    private const int VipFromRow = 10;
+
+    public static ITicket ForSeat(string title, Money basePrice, int row)
+    {
+        if (row >= VipFromRow)
+        {
+            return new VipTicket(title, basePrice, row);
+        }
+        return new StandardTicket(title, basePrice, row);
+    }
+}
+```
+
+**Po (`BoxOffice.cs`):**
 
 ```csharp
 public ITicket Sell(string title, Money basePrice, int row)
 {
     return Tickets.ForSeat(title, basePrice, row);
+}
+
+public List<ITicket> SellAll(string title, Money basePrice, IReadOnlyList<int> rows)
+{
+    var tickets = new List<ITicket>();
+    foreach (var row in rows)
+    {
+        tickets.Add(Sell(title, basePrice, row));
+    }
+    return tickets;
 }
 ```
 
@@ -706,7 +1478,7 @@ public ITicket Sell(string title, Money basePrice, int row)
 2. W plikach `StandardTicket.cs` i `VipTicket.cs` owiń każdy bilet tą samą klasą częściową `Tickets` i zamień klasę na `private sealed record` pozycyjny (np. `VipTicket(string Title, Money Base, int Row)`); pola i konstruktor zastępują parametry rekordu.
 3. Skompiluj: każde użycie biletów spoza fabryki podkreśli teraz kompilator - to inwentaryzacja klientów, których trzeba by zmigrować (tu nie ma już żadnego).
 
-**Przed:**
+**Przed (`VipTicket.cs`; `StandardTicket.cs` analogicznie, z `Price()` zwracającym `_base` i opisem bez "VIP"):**
 
 ```csharp
 public sealed class VipTicket : ITicket
@@ -726,16 +1498,61 @@ public sealed class VipTicket : ITicket
     {
         return _base.Plus(Money.Of("10.00"));
     }
-    ...
+
+    public string Describe()
+    {
+        return _title + " r" + _row + " VIP " + Price();
+    }
 }
 ```
 
-**Po:**
+**Po (`Tickets.cs`):** tylko nagłówek klasy:
 
 ```csharp
 public static partial class Tickets
+```
+
+**Po (`VipTicket.cs`, cały plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+public static partial class Tickets
 {
-    private sealed record VipTicket(string Title, Money Base, int Row) : ITicket { ... }
+    private sealed record VipTicket(string Title, Money Base, int Row) : ITicket
+    {
+        public Money Price()
+        {
+            return Base.Plus(Money.Of("10.00"));
+        }
+
+        public string Describe()
+        {
+            return Title + " r" + Row + " VIP " + Price();
+        }
+    }
+}
+```
+
+**Po (`StandardTicket.cs`, cały plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+public static partial class Tickets
+{
+    private sealed record StandardTicket(string Title, Money Base, int Row) : ITicket
+    {
+        public Money Price()
+        {
+            return Base;
+        }
+
+        public string Describe()
+        {
+            return Title + " r" + Row + " " + Price();
+        }
+    }
 }
 ```
 
@@ -796,29 +1613,102 @@ Test to scenariusz kilku rezerwacji na jednym serwisie: zajęte miejsce nie zuż
 2. W `ReserveGroup` zastąp skopiowany blok wywołaniem `NewReservation("ONLINE", email, seats)`.
 3. Pętlę sprawdzającą zajętość miejsc wydziel do prywatnej metody `RequireFree(seats)` i wywołaj ją w obu metodach publicznych.
 
-**Przed:**
+**Przed (`ReservationService.cs`):**
 
 ```csharp
-_sequence++;
-var id = "R" + _sequence;
-if (channel != "ONLINE" && channel != "BOX_OFFICE")
+public Reservation Reserve(string channel, string email, IReadOnlyList<string> seats)
 {
-    throw new ArgumentException("unknown channel: " + channel);
+    foreach (var seat in seats)
+    {
+        if (_takenSeats.Contains(seat))
+        {
+            throw new InvalidOperationException("seat taken: " + seat);
+        }
+    }
+    _sequence++;
+    var id = "R" + _sequence;
+    if (channel != "ONLINE" && channel != "BOX_OFFICE")
+    {
+        throw new ArgumentException("unknown channel: " + channel);
+    }
+    var fee = channel == "ONLINE" ? Money.Of("2.00").Times(seats.Count) : Money.Zero;
+    DateTime? expiresAt = channel == "ONLINE"
+        ? _clock.GetLocalNow().DateTime.AddMinutes(15)
+        : null;
+    _takenSeats.UnionWith(seats);
+    return new Reservation(id, channel, email, seats.ToList(), fee, expiresAt);
 }
-var fee = channel == "ONLINE" ? Money.Of("2.00").Times(seats.Count) : Money.Zero;
-DateTime? expiresAt = channel == "ONLINE"
-    ? _clock.GetLocalNow().DateTime.AddMinutes(15)
-    : null;
-_takenSeats.UnionWith(seats);
-return new Reservation(id, channel, email, seats.ToList(), fee, expiresAt);
+
+public Reservation ReserveGroup(string email, IReadOnlyList<string> seats)
+{
+    if (seats.Count < 10)
+    {
+        throw new ArgumentException("group needs 10+ seats");
+    }
+    foreach (var seat in seats)
+    {
+        if (_takenSeats.Contains(seat))
+        {
+            throw new InvalidOperationException("seat taken: " + seat);
+        }
+    }
+    _sequence++;
+    var id = "R" + _sequence;
+    var fee = Money.Of("2.00").Times(seats.Count);
+    var expiresAt = _clock.GetLocalNow().DateTime.AddMinutes(15);
+    _takenSeats.UnionWith(seats);
+    return new Reservation(id, "ONLINE", email, seats.ToList(), fee, expiresAt);
+}
 ```
 
-**Po:**
+**Po (`ReservationService.cs`):** pola i konstruktor bez zmian, reszta klasy wygląda tak:
 
 ```csharp
-RequireFree(seats);
-var reservation = NewReservation(channel, email, seats);
-_takenSeats.UnionWith(seats);
+public Reservation Reserve(string channel, string email, IReadOnlyList<string> seats)
+{
+    RequireFree(seats);
+    var reservation = NewReservation(channel, email, seats);
+    _takenSeats.UnionWith(seats);
+    return reservation;
+}
+
+public Reservation ReserveGroup(string email, IReadOnlyList<string> seats)
+{
+    if (seats.Count < 10)
+    {
+        throw new ArgumentException("group needs 10+ seats");
+    }
+    RequireFree(seats);
+    var reservation = NewReservation("ONLINE", email, seats);
+    _takenSeats.UnionWith(seats);
+    return reservation;
+}
+
+private void RequireFree(IReadOnlyList<string> seats)
+{
+    foreach (var seat in seats)
+    {
+        if (_takenSeats.Contains(seat))
+        {
+            throw new InvalidOperationException("seat taken: " + seat);
+        }
+    }
+}
+
+private Reservation NewReservation(string channel, string email, IReadOnlyList<string> seats)
+{
+    _sequence++;
+    var id = "R" + _sequence;
+    if (channel != "ONLINE" && channel != "BOX_OFFICE")
+    {
+        throw new ArgumentException("unknown channel: " + channel);
+    }
+    var fee = channel == "ONLINE" ? Money.Of("2.00").Times(seats.Count) : Money.Zero;
+    DateTime? expiresAt = channel == "ONLINE"
+        ? _clock.GetLocalNow().DateTime.AddMinutes(15)
+        : null;
+    return new Reservation(id, channel, email, seats.ToList(), fee, expiresAt);
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang cs test m5/s05` - zielone.
@@ -830,32 +1720,73 @@ _takenSeats.UnionWith(seats);
 **Zmiany:**
 
 1. Utwórz nowy plik `ReservationFactory.cs` i przenieś do niego `NewReservation` razem z polami `_clock` i `_sequence` (wyodrębnienie klasy). W fabryce metoda nazywa się `Create`, a konstruktor przyjmuje `TimeProvider`.
-2. W serwisie zamień pola `_clock` i `_sequence` na pole `_factory`; konstruktor `ReservationService(TimeProvider clock)` tworzy `new ReservationFactory(clock)` - jego sygnatura się nie zmienia.
-3. `Reserve` i `ReserveGroup` wołają teraz `_factory.Create(...)` zamiast `NewReservation(...)`.
+2. W serwisie zamień pola `_clock` i `_sequence` na pole `_factory`; konstruktor `ReservationService(TimeProvider clock)` tworzy `new ReservationFactory(clock)` - jego sygnatura się nie zmienia. Usuń `NewReservation` oraz zbędny już `using Training.Workshop.Shared;`.
+3. `Reserve` i `ReserveGroup` wołają teraz `_factory.Create(...)` zamiast `NewReservation(...)` (reszta ich ciał bez zmian).
 
-**Przed:**
+**Przed (`ReservationService.cs`):**
 
 ```csharp
-private Reservation NewReservation(string channel, string email, IReadOnlyList<string> seats)
+private readonly TimeProvider _clock;
+private readonly HashSet<string> _takenSeats = [];
+private int _sequence;
+
+public ReservationService(TimeProvider clock)
 {
-    _sequence++;
-    var id = "R" + _sequence;
-    if (channel != "ONLINE" && channel != "BOX_OFFICE")
-    {
-        throw new ArgumentException("unknown channel: " + channel);
-    }
-    ...
-    return new Reservation(id, channel, email, seats.ToList(), fee, expiresAt);
+    _clock = clock;
 }
 ```
 
-**Po:**
+(oraz metoda `NewReservation` z kroku 1, przenoszona teraz w całości do fabryki)
+
+**Po (`ReservationFactory.cs`, nowy plik):**
 
 ```csharp
+using Training.Workshop.Shared;
+
+public sealed class ReservationFactory
+{
+    private readonly TimeProvider _clock;
+    private int _sequence;
+
+    public ReservationFactory(TimeProvider clock)
+    {
+        _clock = clock;
+    }
+
+    public Reservation Create(string channel, string email, IReadOnlyList<string> seats)
+    {
+        _sequence++;
+        var id = "R" + _sequence;
+        if (channel != "ONLINE" && channel != "BOX_OFFICE")
+        {
+            throw new ArgumentException("unknown channel: " + channel);
+        }
+        var fee = channel == "ONLINE" ? Money.Of("2.00").Times(seats.Count) : Money.Zero;
+        DateTime? expiresAt = channel == "ONLINE"
+            ? _clock.GetLocalNow().DateTime.AddMinutes(15)
+            : null;
+        return new Reservation(id, channel, email, seats.ToList(), fee, expiresAt);
+    }
+}
+```
+
+**Po (`ReservationService.cs`):**
+
+```csharp
+private readonly ReservationFactory _factory;
+private readonly HashSet<string> _takenSeats = [];
+
 public ReservationService(TimeProvider clock)
 {
     _factory = new ReservationFactory(clock);
 }
+```
+
+oraz w obu metodach publicznych:
+
+```csharp
+var reservation = _factory.Create(channel, email, seats);          // Reserve
+var reservation = _factory.Create("ONLINE", email, seats);         // ReserveGroup
 ```
 
 **Uruchom:** test zielony.
@@ -878,15 +1809,20 @@ public ReservationService(TimeProvider clock)
 }
 ```
 
-**Po:**
+**Po (`ReservationService.cs`):**
 
 ```csharp
+/// <summary>Dotychczasowy konstruktor zostaje jako wygodny skrót - klienci nie muszą się zmieniać.</summary>
 public ReservationService(TimeProvider clock)
     : this(new ReservationFactory(clock))
 {
 }
 
-public ReservationService(ReservationFactory factory) { ... }
+public ReservationService(ReservationFactory factory)
+{
+    ArgumentNullException.ThrowIfNull(factory);
+    _factory = factory;
+}
 ```
 
 **Uruchom:** test zielony; `S05SolutionTest` testuje fabrykę osobno i pokazuje współdzieloną numerację.
@@ -944,31 +1880,96 @@ day.Add(hall2);
 1. Utwórz nowy plik `ScheduleBuilder.cs`: konstruktor `ScheduleBuilder(DateOnly date)` tworzy `DaySchedule`; metoda `Hall(name)` tworzy salę, dodaje ją do dnia, zapamiętuje jako bieżącą i zwraca `this`; `Screening(title, hour, minute)` dodaje seans do bieżącej sali, a bez sali rzuca `InvalidOperationException("screening without hall")`; `Build()` zwraca dzień.
 2. Przepisz `WeekendPlanner.Plan` na łańcuch wywołań buildera; seanse weekendowe dodawaj warunkowo przez `builder.Screening(...)`. Węzły drzewa zostają bez zmian.
 
-**Przed:**
+**Przed (`WeekendPlanner.cs`):**
 
 ```csharp
-var day = new DaySchedule(date);
-var hall1 = new Hall("Sala 1");
-hall1.Add(new Screening("Diuna", new TimeOnly(18, 0)));
-hall1.Add(new Screening("Diuna", new TimeOnly(21, 0)));
-day.Add(hall1);
-var hall2 = new Hall("Sala 2");
-if (weekend)
+public DaySchedule Plan(DateOnly date)
 {
-    hall2.Add(new Screening("Kraina Lodu", new TimeOnly(10, 0)));
+    var dayOfWeek = date.DayOfWeek;
+    var weekend = dayOfWeek == DayOfWeek.Saturday || dayOfWeek == DayOfWeek.Sunday;
+    var day = new DaySchedule(date);
+    var hall1 = new Hall("Sala 1");
+    hall1.Add(new Screening("Diuna", new TimeOnly(18, 0)));
+    hall1.Add(new Screening("Diuna", new TimeOnly(21, 0)));
+    day.Add(hall1);
+    var hall2 = new Hall("Sala 2");
+    if (weekend)
+    {
+        hall2.Add(new Screening("Kraina Lodu", new TimeOnly(10, 0)));
+    }
+    hall2.Add(new Screening("Amator", new TimeOnly(17, 30)));
+    day.Add(hall2);
+    var hall3 = new Hall("Sala 3 VIP");
+    if (weekend)
+    {
+        hall3.Add(new Screening("Amator", new TimeOnly(20, 0)));
+    }
+    day.Add(hall3);
+    return day;
 }
-hall2.Add(new Screening("Amator", new TimeOnly(17, 30)));
-day.Add(hall2);
 ```
 
-**Po:**
+**Po (`ScheduleBuilder.cs`, nowy plik):**
 
 ```csharp
-var builder = new ScheduleBuilder(date)
-    .Hall("Sala 1")
-    .Screening("Diuna", 18, 0)
-    .Screening("Diuna", 21, 0)
-    .Hall("Sala 2");
+public sealed class ScheduleBuilder
+{
+    private readonly DaySchedule _day;
+    private Hall? _current;
+
+    public ScheduleBuilder(DateOnly date)
+    {
+        _day = new DaySchedule(date);
+    }
+
+    public ScheduleBuilder Hall(string name)
+    {
+        _current = new Hall(name);
+        _day.Add(_current);
+        return this;
+    }
+
+    public ScheduleBuilder Screening(string title, int hour, int minute)
+    {
+        if (_current == null)
+        {
+            throw new InvalidOperationException("screening without hall");
+        }
+        _current.Add(new Screening(title, new TimeOnly(hour, minute)));
+        return this;
+    }
+
+    public DaySchedule Build()
+    {
+        return _day;
+    }
+}
+```
+
+**Po (`WeekendPlanner.cs`):**
+
+```csharp
+public DaySchedule Plan(DateOnly date)
+{
+    var dayOfWeek = date.DayOfWeek;
+    var weekend = dayOfWeek == DayOfWeek.Saturday || dayOfWeek == DayOfWeek.Sunday;
+    var builder = new ScheduleBuilder(date)
+        .Hall("Sala 1")
+        .Screening("Diuna", 18, 0)
+        .Screening("Diuna", 21, 0)
+        .Hall("Sala 2");
+    if (weekend)
+    {
+        builder.Screening("Kraina Lodu", 10, 0);
+    }
+    builder.Screening("Amator", 17, 30)
+        .Hall("Sala 3 VIP");
+    if (weekend)
+    {
+        builder.Screening("Amator", 20, 0);
+    }
+    return builder.Build();
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang cs test m5/s06` - zielone (sobota i piątek z pustą salą VIP).
@@ -979,32 +1980,134 @@ var builder = new ScheduleBuilder(date)
 
 **Zmiany:**
 
-1. Zamień węzły `DaySchedule` i `Hall` na rekordy z kopią listy w inicjatorze właściwości (`Screenings.ToList().AsReadOnly()`); metody `Add` znikają.
+1. Zamień węzły `DaySchedule` i `Hall` na rekordy z kopią listy w inicjatorze właściwości (`Screenings.ToList().AsReadOnly()`); metody `Add` i `Size` znikają, a `Render` czyta `Halls`/`Screenings`. `Screening` też staje się rekordem.
 2. Builder zbiera dane w `OrderedDictionary<string, List<Screening>>` z polem `_current` wskazującym listę bieżącej sali; rekordy drzewa powstają dopiero w `Build()`.
 3. Dodaj niezmienniki: duplikat nazwy sali rzuca `InvalidOperationException("duplicate hall: ...")`, a pole `_built` i metoda `RequireNotBuilt()` sprawiają, że każde wywołanie po `Build()` (w tym drugie `Build()`) rzuca `InvalidOperationException("builder already used")`.
 
-**Przed:**
+**Przed:** mutowalne klasy węzłów z `Add` (jak w Start) oraz builder z kroku 1.
+
+**Po (`DaySchedule.cs`, cały plik):**
 
 ```csharp
-public ScheduleBuilder Hall(string name)
+using System.Globalization;
+using System.Text;
+
+public sealed record DaySchedule(DateOnly Date, IReadOnlyList<Hall> Halls)
 {
-    _current = new Hall(name);
-    _day.Add(_current);
-    return this;
-}
-...
-public DaySchedule Build()
-{
-    return _day;
+    public IReadOnlyList<Hall> Halls { get; } = Halls.ToList().AsReadOnly();
+
+    public string Render()
+    {
+        var text = new StringBuilder()
+            .Append(Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)).Append(' ').Append(Date.DayOfWeek).Append('\n');
+        var count = 0;
+        foreach (var hall in Halls)
+        {
+            text.Append(hall.Render());
+            count += hall.Screenings.Count;
+        }
+        return text.Append("Seansow: ").Append(count).Append('\n').ToString();
+    }
 }
 ```
 
-**Po:**
+**Po (`Hall.cs`, cały plik):**
 
 ```csharp
+using System.Text;
+
 public sealed record Hall(string Name, IReadOnlyList<Screening> Screenings)
 {
     public IReadOnlyList<Screening> Screenings { get; } = Screenings.ToList().AsReadOnly();
+
+    public string Render()
+    {
+        var text = new StringBuilder(Name).Append('\n');
+        if (Screenings.Count == 0)
+        {
+            text.Append("  (brak seansow)\n");
+        }
+        foreach (var screening in Screenings)
+        {
+            text.Append(screening.Render());
+        }
+        return text.ToString();
+    }
+}
+```
+
+**Po (`Screening.cs`, cały plik):**
+
+```csharp
+using System.Globalization;
+
+public sealed record Screening(string Title, TimeOnly Start)
+{
+    public string Render()
+    {
+        return "  " + Start.ToString("HH:mm", CultureInfo.InvariantCulture) + " " + Title + "\n";
+    }
+}
+```
+
+**Po (`ScheduleBuilder.cs`, cały plik):**
+
+```csharp
+public sealed class ScheduleBuilder
+{
+    private readonly DateOnly _date;
+    private readonly OrderedDictionary<string, List<Screening>> _halls = [];
+    private List<Screening>? _current;
+    private bool _built;
+
+    public ScheduleBuilder(DateOnly date)
+    {
+        _date = date;
+    }
+
+    public ScheduleBuilder Hall(string name)
+    {
+        RequireNotBuilt();
+        if (_halls.ContainsKey(name))
+        {
+            throw new InvalidOperationException("duplicate hall: " + name);
+        }
+        _current = [];
+        _halls.Add(name, _current);
+        return this;
+    }
+
+    public ScheduleBuilder Screening(string title, int hour, int minute)
+    {
+        RequireNotBuilt();
+        if (_current == null)
+        {
+            throw new InvalidOperationException("screening without hall");
+        }
+        _current.Add(new Screening(title, new TimeOnly(hour, minute)));
+        return this;
+    }
+
+    public DaySchedule Build()
+    {
+        RequireNotBuilt();
+        _built = true;
+        var result = new List<Hall>();
+        foreach (var (name, screenings) in _halls)
+        {
+            result.Add(new Hall(name, screenings));
+        }
+        return new DaySchedule(_date, result);
+    }
+
+    private void RequireNotBuilt()
+    {
+        if (_built)
+        {
+            throw new InvalidOperationException("builder already used");
+        }
+    }
+}
 ```
 
 **Uruchom:** test zielony; `S06SolutionTest` sprawdza jednorazowość i niemutowalność.
@@ -1036,15 +2139,100 @@ public ScheduleBuilder Hall(string name)
 }
 ```
 
-**Po:**
+**Po (`ScheduleBuilder.cs`, cały plik):**
 
 ```csharp
-return ScheduleBuilder.Day(date)
-    .Hall("Sala 1", hall => hall
-        .Screening("Diuna", 18, 0)
-        .Screening("Diuna", 21, 0))
-    .Hall("Sala 2", hall => { ... })
-    .Build();
+public sealed class ScheduleBuilder
+{
+    private readonly DateOnly _date;
+    private readonly List<Hall> _halls = [];
+    private bool _built;
+
+    private ScheduleBuilder(DateOnly date)
+    {
+        _date = date;
+    }
+
+    public static ScheduleBuilder Day(DateOnly date)
+    {
+        return new ScheduleBuilder(date);
+    }
+
+    public ScheduleBuilder Hall(string name, Action<HallBuilder> content)
+    {
+        RequireNotBuilt();
+        if (_halls.Any(hall => hall.Name == name))
+        {
+            throw new InvalidOperationException("duplicate hall: " + name);
+        }
+        var hall = new HallBuilder();
+        content(hall);
+        _halls.Add(new Hall(name, hall.Screenings));
+        return this;
+    }
+
+    public DaySchedule Build()
+    {
+        RequireNotBuilt();
+        _built = true;
+        return new DaySchedule(_date, _halls);
+    }
+
+    private void RequireNotBuilt()
+    {
+        if (_built)
+        {
+            throw new InvalidOperationException("builder already used");
+        }
+    }
+
+    public sealed class HallBuilder
+    {
+        private readonly List<Screening> _screenings = [];
+
+        internal HallBuilder()
+        {
+        }
+
+        internal IReadOnlyList<Screening> Screenings => _screenings;
+
+        public HallBuilder Screening(string title, int hour, int minute)
+        {
+            _screenings.Add(new Screening(title, new TimeOnly(hour, minute)));
+            return this;
+        }
+    }
+}
+```
+
+**Po (`WeekendPlanner.cs`):**
+
+```csharp
+public DaySchedule Plan(DateOnly date)
+{
+    var dayOfWeek = date.DayOfWeek;
+    var weekend = dayOfWeek == DayOfWeek.Saturday || dayOfWeek == DayOfWeek.Sunday;
+    return ScheduleBuilder.Day(date)
+        .Hall("Sala 1", hall => hall
+            .Screening("Diuna", 18, 0)
+            .Screening("Diuna", 21, 0))
+        .Hall("Sala 2", hall =>
+        {
+            if (weekend)
+            {
+                hall.Screening("Kraina Lodu", 10, 0);
+            }
+            hall.Screening("Amator", 17, 30);
+        })
+        .Hall("Sala 3 VIP", hall =>
+        {
+            if (weekend)
+            {
+                hall.Screening("Amator", 20, 0);
+            }
+        })
+        .Build();
+}
 ```
 
 **Uruchom:** test zielony.
@@ -1099,7 +2287,7 @@ return _title + " " + _format
 1. Utwórz nowy plik `IPricedTicket.cs` i wydziel z `Ticket` interfejs `IPricedTicket` z metodami `Money Price()` i `string Description()` (wyodrębnienie interfejsu). `Ticket` implementuje interfejs, flagi na razie zostają.
 2. Zmień typ zwracany `TicketAssembler.Assemble` z `Ticket` na `IPricedTicket`.
 
-**Przed:**
+**Przed (`TicketAssembler.cs`):**
 
 ```csharp
 public Ticket Assemble(TicketOrder order)
@@ -1108,7 +2296,26 @@ public Ticket Assemble(TicketOrder order)
 }
 ```
 
-**Po:**
+**Po (`IPricedTicket.cs`, nowy plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+public interface IPricedTicket
+{
+    Money Price();
+
+    string Description();
+}
+```
+
+**Po (`Ticket.cs`):** tylko nagłówek klasy:
+
+```csharp
+public sealed class Ticket : IPricedTicket
+```
+
+**Po (`TicketAssembler.cs`):**
 
 ```csharp
 public IPricedTicket Assemble(TicketOrder order)
@@ -1129,10 +2336,12 @@ public IPricedTicket Assemble(TicketOrder order)
 2. Usuń z `Ticket` pole `_insurance`, jego przypisanie w konstruktorze i obie gałęzie `if (_insurance)` / człon opisu.
 3. W `TicketAssembler.Assemble` owiń rdzeń dekoratorem, gdy `order.Insurance`.
 
-**Przed:**
+**Przed (`Ticket.cs`):**
 
 ```csharp
 private readonly bool _insurance;
+...
+_insurance = order.Insurance;      // w konstruktorze
 ...
 if (_insurance)
 {
@@ -1145,13 +2354,61 @@ return _title + " " + _format
     + (_insurance ? " +ubezpieczenie" : "");
 ```
 
-**Po:**
+**Po (`Insurance.cs`, nowy plik):**
 
 ```csharp
-IPricedTicket ticket = new Ticket(order);
-if (order.Insurance)
+using Training.Workshop.Shared;
+
+public sealed record Insurance(IPricedTicket Inner) : IPricedTicket
 {
-    ticket = new Insurance(ticket);
+    public Money Price()
+    {
+        return Inner.Price().Plus(Money.Of("4.00"));
+    }
+
+    public string Description()
+    {
+        return Inner.Description() + " +ubezpieczenie";
+    }
+}
+```
+
+**Po (`Ticket.cs`):** bez pola `_insurance` i jego przypisania w konstruktorze; metody wyglądają teraz tak:
+
+```csharp
+public Money Price()
+{
+    var price = _base;
+    if (_vip)
+    {
+        price = price.Plus(Money.Of("10.00"));
+    }
+    if (_glasses)
+    {
+        price = price.Plus(Money.Of("3.00"));
+    }
+    return price;
+}
+
+public string Description()
+{
+    return _title + " " + _format
+        + (_vip ? " +VIP" : "")
+        + (_glasses ? " +okulary 3D" : "");
+}
+```
+
+**Po (`TicketAssembler.cs`):**
+
+```csharp
+public IPricedTicket Assemble(TicketOrder order)
+{
+    IPricedTicket ticket = new Ticket(order);
+    if (order.Insurance)
+    {
+        ticket = new Insurance(ticket);
+    }
+    return ticket;
 }
 ```
 
@@ -1187,21 +2444,82 @@ public sealed class Ticket : IPricedTicket
 }
 ```
 
-**Po:**
+**Po (`VipSeat.cs`, nowy plik):**
 
 ```csharp
-IPricedTicket ticket = new Ticket(order.Title, order.Format, order.Base);
-if (order.Vip)
+using Training.Workshop.Shared;
+
+public sealed record VipSeat(IPricedTicket Inner) : IPricedTicket
 {
-    ticket = new VipSeat(ticket);
+    public Money Price()
+    {
+        return Inner.Price().Plus(Money.Of("10.00"));
+    }
+
+    public string Description()
+    {
+        return Inner.Description() + " +VIP";
+    }
 }
-if (order.Format == "3D" && !order.OwnGlasses)
+```
+
+**Po (`Glasses3D.cs`, nowy plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+public sealed record Glasses3D(IPricedTicket Inner) : IPricedTicket
 {
-    ticket = new Glasses3D(ticket);
+    public Money Price()
+    {
+        return Inner.Price().Plus(Money.Of("3.00"));
+    }
+
+    public string Description()
+    {
+        return Inner.Description() + " +okulary 3D";
+    }
 }
-if (order.Insurance)
+```
+
+**Po (`Ticket.cs`, cały plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+public sealed record Ticket(string Title, string Format, Money Base) : IPricedTicket
 {
-    ticket = new Insurance(ticket);
+    public Money Price()
+    {
+        return Base;
+    }
+
+    public string Description()
+    {
+        return Title + " " + Format;
+    }
+}
+```
+
+**Po (`TicketAssembler.cs`):**
+
+```csharp
+public IPricedTicket Assemble(TicketOrder order)
+{
+    IPricedTicket ticket = new Ticket(order.Title, order.Format, order.Base);
+    if (order.Vip)
+    {
+        ticket = new VipSeat(ticket);
+    }
+    if (order.Format == "3D" && !order.OwnGlasses)
+    {
+        ticket = new Glasses3D(ticket);
+    }
+    if (order.Insurance)
+    {
+        ticket = new Insurance(ticket);
+    }
+    return ticket;
 }
 ```
 
@@ -1291,14 +2609,120 @@ public void Pay()
 }
 ```
 
-**Po:**
+**Po (`Reservation.cs`, cały plik; `Use`, `Expire` i `Cancel` zmieniają się tak samo jak `Pay`):**
 
 ```csharp
-private IReservationState _state = NewState.Instance;
-...
-Charge();
-MoveTo(PaidState.Instance);
-Record("charged");
+public sealed class Reservation : IReservationActions
+{
+    private readonly string _id;
+    private readonly IPayments _payments;
+    private readonly List<string> _effects = [];
+    private IReservationState _state = NewState.Instance;
+
+    public Reservation(string id, IPayments payments)
+    {
+        _id = id;
+        _payments = payments;
+    }
+
+    public void Pay()
+    {
+        if (_state.Status != Status.New)
+        {
+            throw new InvalidOperationException("cannot pay in " + _state.Status);
+        }
+        Charge();
+        MoveTo(PaidState.Instance);
+        Record("charged");
+    }
+
+    public void Use()
+    {
+        if (_state.Status != Status.Paid)
+        {
+            throw new InvalidOperationException("cannot use in " + _state.Status);
+        }
+        MoveTo(ClosedState.Used);
+        Record("gate opened");
+    }
+
+    public void Expire()
+    {
+        if (_state.Status != Status.New)
+        {
+            throw new InvalidOperationException("cannot expire in " + _state.Status);
+        }
+        MoveTo(ClosedState.Expired);
+        Record("seats released");
+    }
+
+    public void Cancel()
+    {
+        if (_state.Status == Status.New)
+        {
+            MoveTo(ClosedState.Cancelled);
+            Record("seats released");
+        }
+        else if (_state.Status == Status.Paid)
+        {
+            MoveTo(ClosedState.Cancelled);
+            Record("refund");
+            Record("seats released");
+        }
+        else
+        {
+            throw new InvalidOperationException("cannot cancel in " + _state.Status);
+        }
+    }
+
+    public Status Status => _state.Status;
+
+    public IReadOnlyList<string> Effects => _effects.ToList();
+
+    private void Charge()
+    {
+        _payments.Charge(_id);
+    }
+
+    private void MoveTo(IReservationState next)
+    {
+        _state = next;
+    }
+
+    private void Record(string effect)
+    {
+        _effects.Add(effect);
+    }
+
+    private interface IReservationState
+    {
+        Status Status { get; }
+    }
+
+    private sealed class NewState : IReservationState
+    {
+        public static readonly NewState Instance = new();
+
+        public Status Status => Status.New;
+    }
+
+    private sealed class PaidState : IReservationState
+    {
+        public static readonly PaidState Instance = new();
+
+        public Status Status => Status.Paid;
+    }
+
+    /// <summary>Stany końcowe - żadne przejście nie jest dozwolone.</summary>
+    private sealed class ClosedState(Status status) : IReservationState
+    {
+        public static readonly ClosedState Used = new(Status.Used);
+        public static readonly ClosedState Expired = new(Status.Expired);
+        public static readonly ClosedState Cancelled = new(Status.Cancelled);
+
+        public Status Status => status;
+    }
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang cs test m5/s08` - 84 testy zielone.
@@ -1313,7 +2737,7 @@ Record("charged");
 2. W `NewState` zaimplementuj `Pay` (ciało gałęzi: `reservation.Charge()`, `reservation.MoveTo(PaidState.Instance)`, `reservation.Record("charged")`), a w `PaidState` - `Use` (przejście do `ClosedState.Used` i efekt "gate opened").
 3. W kontekście metody `Pay` i `Use` zamień na delegacje `_state.Pay(this)` i `_state.Use(this)`; ich warunki znikają.
 
-**Przed:**
+**Przed (`Reservation.cs`):**
 
 ```csharp
 public void Pay()
@@ -1326,16 +2750,68 @@ public void Pay()
     MoveTo(PaidState.Instance);
     Record("charged");
 }
+
+public void Use()
+{
+    if (_state.Status != Status.Paid)
+    {
+        throw new InvalidOperationException("cannot use in " + _state.Status);
+    }
+    MoveTo(ClosedState.Used);
+    Record("gate opened");
+}
 ```
 
-**Po:**
+**Po (`Reservation.cs`, zmienione fragmenty):**
 
 ```csharp
-public void Pay(Reservation reservation)
+public void Pay()
 {
-    reservation.Charge();
-    reservation.MoveTo(PaidState.Instance);
-    reservation.Record("charged");
+    _state.Pay(this);
+}
+
+public void Use()
+{
+    _state.Use(this);
+}
+
+private interface IReservationState
+{
+    Status Status { get; }
+
+    void Pay(Reservation reservation) => throw Invalid("pay");
+
+    void Use(Reservation reservation) => throw Invalid("use");
+
+    private InvalidOperationException Invalid(string action) =>
+        new("cannot " + action + " in " + Status);
+}
+
+private sealed class NewState : IReservationState
+{
+    public static readonly NewState Instance = new();
+
+    public Status Status => Status.New;
+
+    public void Pay(Reservation reservation)
+    {
+        reservation.Charge();
+        reservation.MoveTo(PaidState.Instance);
+        reservation.Record("charged");
+    }
+}
+
+private sealed class PaidState : IReservationState
+{
+    public static readonly PaidState Instance = new();
+
+    public Status Status => Status.Paid;
+
+    public void Use(Reservation reservation)
+    {
+        reservation.MoveTo(ClosedState.Used);
+        reservation.Record("gate opened");
+    }
 }
 ```
 
@@ -1351,9 +2827,19 @@ public void Pay(Reservation reservation)
 2. Warunek `if/else if` z `Cancel` rozłóż na dwa stany: `NewState.Cancel` (zwolnienie miejsc) i `PaidState.Cancel` (zwrot i zwolnienie miejsc). `Expire` trafia do `NewState`.
 3. W kontekście `Expire` i `Cancel` zamień na delegacje `_state.Expire(this)` i `_state.Cancel(this)`.
 
-**Przed:**
+**Przed (`Reservation.cs`):**
 
 ```csharp
+public void Expire()
+{
+    if (_state.Status != Status.New)
+    {
+        throw new InvalidOperationException("cannot expire in " + _state.Status);
+    }
+    MoveTo(ClosedState.Expired);
+    Record("seats released");
+}
+
 public void Cancel()
 {
     if (_state.Status == Status.New)
@@ -1374,12 +2860,52 @@ public void Cancel()
 }
 ```
 
-**Po:**
+**Po (`Reservation.cs`, zmienione fragmenty):**
 
 ```csharp
+public void Expire()
+{
+    _state.Expire(this);
+}
+
 public void Cancel()
 {
     _state.Cancel(this);
+}
+```
+
+w interfejsie `IReservationState` (obok `Pay` i `Use`):
+
+```csharp
+void Expire(Reservation reservation) => throw Invalid("expire");
+
+void Cancel(Reservation reservation) => throw Invalid("cancel");
+```
+
+w `NewState`:
+
+```csharp
+public void Expire(Reservation reservation)
+{
+    reservation.MoveTo(ClosedState.Expired);
+    reservation.Record("seats released");
+}
+
+public void Cancel(Reservation reservation)
+{
+    reservation.MoveTo(ClosedState.Cancelled);
+    reservation.Record("seats released");
+}
+```
+
+w `PaidState`:
+
+```csharp
+public void Cancel(Reservation reservation)
+{
+    reservation.MoveTo(ClosedState.Cancelled);
+    reservation.Record("refund");
+    reservation.Record("seats released");
 }
 ```
 
@@ -1448,12 +2974,31 @@ _sms.Send(payment.Phone, "Oplacono " + payment.ReservationId);
 _loyalty.AddPoints(payment.Email, (int)payment.Amount.Amount / 10);
 ```
 
-**Po:**
+**Po (`ReservationPaid.cs`, nowy plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+/// <summary>Zdarzenie - fakt "rezerwacja opłacona" z danymi potrzebnymi odbiorcom.</summary>
+public sealed record ReservationPaid(string ReservationId, string Email, string Phone, Money Amount);
+```
+
+**Po (`PaymentService.cs`):** w `Confirm` po `_paid.Add(...)` zostaje tylko publikacja, a trzy wywołania lądują w nowej metodzie:
 
 ```csharp
 _paid.Add(payment.ReservationId);
 NotifyPaid(new ReservationPaid(
     payment.ReservationId, payment.Email, payment.Phone, payment.Amount));
+```
+
+```csharp
+private void NotifyPaid(ReservationPaid paidEvent)
+{
+    _mailer.Send(paidEvent.Email,
+        "Potwierdzenie platnosci " + paidEvent.ReservationId + ": " + paidEvent.Amount);
+    _sms.Send(paidEvent.Phone, "Oplacono " + paidEvent.ReservationId);
+    _loyalty.AddPoints(paidEvent.Email, (int)paidEvent.Amount.Amount / 10);
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang cs test m5/s09` - zielone.
@@ -1481,12 +3026,72 @@ private void NotifyPaid(ReservationPaid paidEvent)
 }
 ```
 
-**Po:**
+**Po (`IPaymentListener.cs`, nowy plik):**
 
 ```csharp
-foreach (var listener in _listeners)
+public interface IPaymentListener
 {
-    listener.OnPaid(paidEvent);
+    void OnPaid(ReservationPaid paidEvent);
+}
+```
+
+**Po (`MailConfirmation.cs`, nowy plik):**
+
+```csharp
+public sealed record MailConfirmation(IMailer Mailer) : IPaymentListener
+{
+    public void OnPaid(ReservationPaid paidEvent)
+    {
+        Mailer.Send(paidEvent.Email,
+            "Potwierdzenie platnosci " + paidEvent.ReservationId + ": " + paidEvent.Amount);
+    }
+}
+```
+
+**Po (`SmsConfirmation.cs`, nowy plik):**
+
+```csharp
+public sealed record SmsConfirmation(ISmsGateway Sms) : IPaymentListener
+{
+    public void OnPaid(ReservationPaid paidEvent)
+    {
+        Sms.Send(paidEvent.Phone, "Oplacono " + paidEvent.ReservationId);
+    }
+}
+```
+
+**Po (`LoyaltyPoints.cs`, nowy plik):**
+
+```csharp
+public sealed record LoyaltyPoints(ILoyaltyProgram Loyalty) : IPaymentListener
+{
+    public void OnPaid(ReservationPaid paidEvent)
+    {
+        Loyalty.AddPoints(paidEvent.Email, (int)paidEvent.Amount.Amount / 10);
+    }
+}
+```
+
+**Po (`PaymentService.cs`):** pola, konstruktor i `NotifyPaid` wyglądają teraz tak (`Confirm` bez zmian):
+
+```csharp
+private readonly IReadOnlyList<IPaymentListener> _listeners;
+private readonly List<string> _paid = [];
+
+public PaymentService(IMailer mailer, ISmsGateway sms, ILoyaltyProgram loyalty)
+{
+    _listeners =
+    [
+        new MailConfirmation(mailer), new SmsConfirmation(sms), new LoyaltyPoints(loyalty),
+    ];
+}
+
+private void NotifyPaid(ReservationPaid paidEvent)
+{
+    foreach (var listener in _listeners)
+    {
+        listener.OnPaid(paidEvent);
+    }
 }
 ```
 
@@ -1515,13 +3120,82 @@ public PaymentService(IMailer mailer, ISmsGateway sms, ILoyaltyProgram loyalty)
 }
 ```
 
-**Po:**
+**Po (`ISubscription.cs`, nowy plik):**
 
 ```csharp
-var service = new PaymentService();
-service.Subscribe(new MailConfirmation(mailer));
-service.Subscribe(new SmsConfirmation(sms));
-service.Subscribe(new LoyaltyPoints(loyalty));
+/// <summary>Uchwyt subskrypcji - Dispose() wyrejestrowuje, idempotentnie.</summary>
+public interface ISubscription : IDisposable
+{
+}
+```
+
+**Po (`PaymentService.cs`, cały plik):**
+
+```csharp
+using System.Collections.Immutable;
+
+public sealed class PaymentService
+{
+    private readonly List<string> _paid = [];
+    private ImmutableList<Registration> _listeners = [];
+
+    public ISubscription Subscribe(IPaymentListener listener)
+    {
+        ArgumentNullException.ThrowIfNull(listener);
+        var registration = new Registration(listener);
+        ImmutableInterlocked.Update(ref _listeners, listeners => listeners.Add(registration));
+        return new Unsubscribe(this, registration);
+    }
+
+    public void Confirm(Payment payment)
+    {
+        if (payment.Amount.Amount <= 0)
+        {
+            throw new ArgumentException("amount must be positive");
+        }
+        _paid.Add(payment.ReservationId);
+        var paidEvent = new ReservationPaid(
+            payment.ReservationId, payment.Email, payment.Phone, payment.Amount);
+        foreach (var registration in _listeners)
+        {
+            registration.Listener.OnPaid(paidEvent);
+        }
+    }
+
+    public IReadOnlyList<string> Paid => _paid.ToList();
+
+    /// <summary>Osobny obiekt na każde Subscribe - ten sam odbiorca zapisany dwa razy to dwie rejestracje.</summary>
+    private sealed class Registration(IPaymentListener listener)
+    {
+        public IPaymentListener Listener => listener;
+    }
+
+    private sealed class Unsubscribe(PaymentService service, Registration registration) : ISubscription
+    {
+        private int _active = 1;
+
+        public void Dispose()
+        {
+            if (Interlocked.CompareExchange(ref _active, 0, 1) == 1)
+            {
+                ImmutableInterlocked.Update(ref service._listeners, listeners => listeners.Remove(registration));
+            }
+        }
+    }
+}
+```
+
+**Po (`PaymentServices.cs`):**
+
+```csharp
+public static PaymentService Standard(IMailer mailer, ISmsGateway sms, ILoyaltyProgram loyalty)
+{
+    var service = new PaymentService();
+    service.Subscribe(new MailConfirmation(mailer));
+    service.Subscribe(new SmsConfirmation(sms));
+    service.Subscribe(new LoyaltyPoints(loyalty));
+    return service;
+}
 ```
 
 **Uruchom:** test zielony; `S09SolutionTest` pokazuje podwójną subskrypcję, idempotentne wyrejestrowanie i nowego odbiorcę.
@@ -1580,15 +3254,107 @@ Testy: `S10EquivalenceTest` (niezależne oczekiwania policzone ręcznie, także 
 
 **Przed:** brak - nowe pliki `IMenuItem.cs`, `Product.cs`, `Combo.cs`, `MenuMapper.cs` (`BarMenu.cs` bez zmian).
 
-**Po:**
+**Po (`IMenuItem.cs`, nowy plik):**
 
 ```csharp
-items.Add(element switch
+using System.Text;
+using Training.Workshop.Shared;
+
+public interface IMenuItem
 {
-    string product => Product(product),
-    IReadOnlyList<object> nested => FromNested(nested),
-    _ => throw new ArgumentException("unsupported element: " + element),
-});
+    string Name { get; }
+
+    Money Price { get; }
+
+    void Render(int depth, StringBuilder text);
+}
+```
+
+**Po (`Product.cs`, nowy plik):**
+
+```csharp
+using System.Text;
+using Training.Workshop.Shared;
+
+public sealed record Product(string Name, Money Price) : IMenuItem
+{
+    public void Render(int depth, StringBuilder text)
+    {
+        text.Append(new string(' ', 2 * depth)).Append(Name).Append(' ').Append(Price).Append('\n');
+    }
+}
+```
+
+**Po (`Combo.cs`, nowy plik):**
+
+```csharp
+using System.Text;
+using Training.Workshop.Shared;
+
+public sealed record Combo(string Name, IReadOnlyList<IMenuItem> Items) : IMenuItem
+{
+    public IReadOnlyList<IMenuItem> Items { get; } = Items.ToList().AsReadOnly();
+
+    public Money Price
+    {
+        get
+        {
+            var total = Money.Zero;
+            foreach (var item in Items)
+            {
+                total = total.Plus(item.Price);
+            }
+            return total;
+        }
+    }
+
+    public void Render(int depth, StringBuilder text)
+    {
+        text.Append(new string(' ', 2 * depth)).Append(Name).Append(' ').Append(Price).Append('\n');
+        foreach (var item in Items)
+        {
+            item.Render(depth + 1, text);
+        }
+    }
+}
+```
+
+**Po (`MenuMapper.cs`, nowy plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+public static class MenuMapper
+{
+    public static Combo FromNested(IReadOnlyList<object> combo)
+    {
+        if (combo.Count == 0 || combo[0] is not string name)
+        {
+            throw new ArgumentException("combo needs a name");
+        }
+        var items = new List<IMenuItem>();
+        foreach (var element in combo.Skip(1))
+        {
+            items.Add(element switch
+            {
+                string product => Product(product),
+                IReadOnlyList<object> nested => FromNested(nested),
+                _ => throw new ArgumentException("unsupported element: " + element),
+            });
+        }
+        return new Combo(name, items);
+    }
+
+    private static Product Product(string text)
+    {
+        if (!text.Contains('='))
+        {
+            throw new ArgumentException("product needs a price: " + text);
+        }
+        var separator = text.IndexOf('=');
+        return new Product(text[..separator], Money.Of(text[(separator + 1)..]));
+    }
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang cs test m5/s10` - zielone, w tym `CompositeFromMapperMatchesLegacyAlready`.
@@ -1648,7 +3414,7 @@ public Money Price(IReadOnlyList<object> combo)
 1. W publicznym `Render` zbuduj drzewo mapperem i deleguj: `MenuMapper.FromNested(combo).Render(0, text)`.
 2. Usuń starą prywatną rekurencję `Render(combo, depth, text)` z testami `is` oraz nieużywane już `ProductPrice` i `Indent` (bezpieczne usunięcie).
 
-**Przed:**
+**Przed (`BarMenu.cs`):**
 
 ```csharp
 private void Render(IReadOnlyList<object> combo, int depth, StringBuilder text)
@@ -1666,17 +3432,39 @@ private void Render(IReadOnlyList<object> combo, int depth, StringBuilder text)
         {
             Render(nested, depth + 1, text);
         }
-        ...
+        else
+        {
+            throw new ArgumentException("unsupported element: " + element);
+        }
     }
 }
+
+private static Money ProductPrice(string product)
+{
+    if (!product.Contains('='))
+    {
+        throw new ArgumentException("product needs a price: " + product);
+    }
+    return Money.Of(product[(product.IndexOf('=') + 1)..]);
+}
+
+private static string Indent(int depth) => new(' ', 2 * depth);
 ```
 
-**Po:**
+**Po (`BarMenu.cs`):** po usunięciach w klasie zostają już tylko dwie metody:
 
 ```csharp
-var text = new StringBuilder();
-MenuMapper.FromNested(combo).Render(0, text);
-return text.ToString();
+public Money Price(IReadOnlyList<object> combo)
+{
+    return MenuMapper.FromNested(combo).Price;
+}
+
+public string Render(IReadOnlyList<object> combo)
+{
+    var text = new StringBuilder();
+    MenuMapper.FromNested(combo).Render(0, text);
+    return text.ToString();
+}
 ```
 
 **Uruchom:** test zielony, test różnicowy `FinalBarMenuMatchesLegacy` zielony.
@@ -1732,25 +3520,82 @@ public virtual void Add(MenuComponent child)
 2. Kompilacja wskaże konflikty w `ComboCatalog` - zmień typ zmiennych z `MenuComponent` na `Combo` (tu: `var`) wszędzie tam, gdzie dodajemy dzieci.
 3. `Describe()` w bazie staje się `virtual` i zwraca sam `Name + " " + Price`; `Combo` nadpisuje go i rozszerza opis o dzieci.
 
-**Przed:**
+**Przed (`MenuComponent.cs`, cały plik):**
 
 ```csharp
+using Training.Workshop.Shared;
+
 public abstract class MenuComponent
 {
-    ...
+    public abstract string Name { get; }
+
+    public abstract Money Price { get; }
+
     public virtual void Add(MenuComponent child)
     {
         throw new NotSupportedException("cannot add to " + Name);
     }
 
     public virtual IReadOnlyList<MenuComponent> Children => [];
+
+    public string Describe()
+    {
+        var text = Name + " " + Price;
+        if (Children.Count == 0)
+        {
+            return text;
+        }
+        return text + " [" + string.Join(", ", Children.Select(child => child.Describe())) + "]";
+    }
 }
-...
+```
+
+**Przed (`ComboCatalog.cs`):**
+
+```csharp
 MenuComponent combo = new Combo("Zestaw Rodzinny");
 combo.Add(new Product("Popcorn XL", "24.00"));
 ```
 
-**Po:**
+**Po (`MenuComponent.cs`, cały plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+public abstract class MenuComponent
+{
+    public abstract string Name { get; }
+
+    public abstract Money Price { get; }
+
+    public virtual string Describe()
+    {
+        return Name + " " + Price;
+    }
+}
+```
+
+**Po (`Combo.cs`):** `Add` i `Children` tracą `override`, dochodzi nadpisanie `Describe` (reszta klasy bez zmian):
+
+```csharp
+public void Add(MenuComponent child)
+{
+    _children.Add(child);
+}
+
+public IReadOnlyList<MenuComponent> Children => _children.ToList().AsReadOnly();
+
+public override string Describe()
+{
+    if (_children.Count == 0)
+    {
+        return base.Describe();
+    }
+    return base.Describe() + " [" + string.Join(", ", _children.Select(child => child.Describe())) + "]";
+}
+```
+
+**Po (`ComboCatalog.cs`):** w `Family()` i `Duo()` zmienne `combo` i `drinks` mają typ `var` (czyli `Combo`):
 
 ```csharp
 var combo = new Combo("Zestaw Rodzinny");
@@ -1767,9 +3612,9 @@ combo.Add(new Product("Popcorn XL", "24.00"));
 
 1. Zamień bazę na `abstract record MenuComponent` z konstruktorem `private protected` i abstrakcyjnymi `Name`, `Price`, `Describe()`.
 2. Zamień `Product` i `Combo` na `sealed record`. `Combo` dostaje dzieci w konstruktorze (`Combo(string name, IEnumerable<MenuComponent> children)`, kopia `ToList().AsReadOnly()`) i statyczne wejście `Combo.Of(string name, params MenuComponent[] children)`; metoda `Add` znika.
-3. Przepisz `ComboCatalog` deklaratywnie - zagnieżdżone wywołania `Combo.Of(...)` zamiast sekwencji `Add`.
+3. Przepisz `ComboCatalog` deklaratywnie - zagnieżdżone wywołania `Combo.Of(...)` wprost w `Find` zamiast sekwencji `Add`; metody pomocnicze `Family()` i `Duo()` znikają.
 
-**Przed:**
+**Przed (`ComboCatalog.cs`):**
 
 ```csharp
 private static MenuComponent Duo()
@@ -1782,13 +3627,116 @@ private static MenuComponent Duo()
 }
 ```
 
-**Po:**
+**Po (`MenuComponent.cs`, cały plik):**
 
 ```csharp
-"duo" => Combo.Of("Zestaw Duo",
-    new Product("Popcorn L", "18.00"),
-    new Product("Cola", "9.00"),
-    new Product("Cola", "9.00")),
+using Training.Workshop.Shared;
+
+public abstract record MenuComponent
+{
+    private protected MenuComponent()
+    {
+    }
+
+    public abstract string Name { get; }
+
+    public abstract Money Price { get; }
+
+    public abstract string Describe();
+}
+```
+
+**Po (`Product.cs`, cały plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+public sealed record Product(string Name, Money Price) : MenuComponent
+{
+    public override string Name { get; } = Name;
+
+    public override Money Price { get; } = Price;
+
+    public Product(string name, string price)
+        : this(name, Money.Of(price))
+    {
+    }
+
+    public override string Describe()
+    {
+        return Name + " " + Price;
+    }
+}
+```
+
+**Po (`Combo.cs`, cały plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+public sealed record Combo : MenuComponent
+{
+    public Combo(string name, IEnumerable<MenuComponent> children)
+    {
+        Name = name;
+        Children = children.ToList().AsReadOnly();
+    }
+
+    public override string Name { get; }
+
+    public IReadOnlyList<MenuComponent> Children { get; }
+
+    public static Combo Of(string name, params MenuComponent[] children)
+    {
+        return new Combo(name, children);
+    }
+
+    public override Money Price
+    {
+        get
+        {
+            var total = Money.Zero;
+            foreach (var child in Children)
+            {
+                total = total.Plus(child.Price);
+            }
+            return total;
+        }
+    }
+
+    public override string Describe()
+    {
+        var text = Name + " " + Price;
+        if (Children.Count == 0)
+        {
+            return text;
+        }
+        return text + " [" + string.Join(", ", Children.Select(child => child.Describe())) + "]";
+    }
+}
+```
+
+**Po (`ComboCatalog.cs`, cały plik):**
+
+```csharp
+public sealed class ComboCatalog
+{
+    public MenuComponent Find(string code) => code switch
+    {
+        "family" => Combo.Of("Zestaw Rodzinny",
+            new Product("Popcorn XL", "24.00"),
+            Combo.Of("Napoje",
+                new Product("Cola", "9.00"),
+                new Product("Cola", "9.00"),
+                new Product("Woda", "7.00"))),
+        "duo" => Combo.Of("Zestaw Duo",
+            new Product("Popcorn L", "18.00"),
+            new Product("Cola", "9.00"),
+            new Product("Cola", "9.00")),
+        "nachos" => new Product("Nachos", "14.00"),
+        _ => throw new ArgumentException("unknown combo: " + code),
+    };
+}
 ```
 
 **Uruchom:** test zielony.
@@ -1848,9 +3796,27 @@ Test obejmuje granicę dokładnie 24h, 23h59m, bilet po starcie, listę i pustą
 1. W `Refund` wydziel wyliczenie kwoty za bilet do prywatnej statycznej metody `TicketShare(ticket, now)` (wyodrębnienie metody); gałęzie `if/else` zamieniają się we wczesne `return`.
 2. W `RefundAll` zastąp ciało pętli (łącznie z inaczej zapisaną regułą i rzutowaniem na `long`) wywołaniem `total = total.Plus(TicketShare(ticket, now));`.
 
-**Przed:**
+**Przed (`RefundService.cs`):**
 
 ```csharp
+public Money Refund(TicketData ticket, DateTime now)
+{
+    Money amount;
+    if (now >= ticket.ShowStart)
+    {
+        amount = Money.Zero;
+    }
+    else if ((ticket.ShowStart - now).TotalHours >= 24)
+    {
+        amount = ticket.Price;
+    }
+    else
+    {
+        amount = ticket.Price.Percent(50);
+    }
+    return amount.Minus(Fee).Max(Money.Zero);
+}
+
 public Money RefundAll(IReadOnlyList<TicketData> tickets, DateTime now)
 {
     var total = Money.Zero;
@@ -1866,10 +3832,36 @@ public Money RefundAll(IReadOnlyList<TicketData> tickets, DateTime now)
 }
 ```
 
-**Po:**
+**Po (`RefundService.cs`):**
 
 ```csharp
-total = total.Plus(TicketShare(ticket, now));
+public Money Refund(TicketData ticket, DateTime now)
+{
+    return TicketShare(ticket, now).Minus(Fee).Max(Money.Zero);
+}
+
+public Money RefundAll(IReadOnlyList<TicketData> tickets, DateTime now)
+{
+    var total = Money.Zero;
+    foreach (var ticket in tickets)
+    {
+        total = total.Plus(TicketShare(ticket, now));
+    }
+    return total.Minus(Fee).Max(Money.Zero);
+}
+
+private static Money TicketShare(TicketData ticket, DateTime now)
+{
+    if (now >= ticket.ShowStart)
+    {
+        return Money.Zero;
+    }
+    if ((ticket.ShowStart - now).TotalHours >= 24)
+    {
+        return ticket.Price;
+    }
+    return ticket.Price.Percent(50);
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang cs test m5/s12` - zielone.
@@ -1904,12 +3896,109 @@ public Money RefundAll(IReadOnlyList<TicketData> tickets, DateTime now)
 }
 ```
 
-**Po:**
+**Po (`IRefundable.cs`, nowy plik):**
 
 ```csharp
-public Money Refund(IRefundable refundable, DateTime now)
+using Training.Workshop.Shared;
+
+public interface IRefundable
 {
-    return refundable.RefundableAmount(now).Minus(Fee).Max(Money.Zero);
+    Money RefundableAmount(DateTime now);
+}
+```
+
+**Po (`SingleTicket.cs`, nowy plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+public sealed record SingleTicket(TicketData Ticket) : IRefundable
+{
+    public Money RefundableAmount(DateTime now)
+    {
+        if (now >= Ticket.ShowStart)
+        {
+            return Money.Zero;
+        }
+        if ((Ticket.ShowStart - now).TotalHours >= 24)
+        {
+            return Ticket.Price;
+        }
+        return Ticket.Price.Percent(50);
+    }
+}
+```
+
+**Po (`TicketGroup.cs`, nowy plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+public sealed record TicketGroup : IRefundable
+{
+    public TicketGroup(IEnumerable<IRefundable> items)
+    {
+        Items = items.ToList().AsReadOnly();
+    }
+
+    public IReadOnlyList<IRefundable> Items { get; }
+
+    public static TicketGroup Of(IEnumerable<TicketData> tickets)
+    {
+        return new TicketGroup(tickets.Select(ticket => (IRefundable)new SingleTicket(ticket)));
+    }
+
+    public Money RefundableAmount(DateTime now)
+    {
+        var total = Money.Zero;
+        foreach (var item in Items)
+        {
+            total = total.Plus(item.RefundableAmount(now));
+        }
+        return total;
+    }
+}
+```
+
+**Po (`RefundService.cs`, cały plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+public sealed class RefundService
+{
+    private static readonly Money Fee = Money.Of("3.00");
+
+    public Money Refund(IRefundable refundable, DateTime now)
+    {
+        return refundable.RefundableAmount(now).Minus(Fee).Max(Money.Zero);
+    }
+
+    /// <summary>Przestarzałe: użyj <see cref="Refund(IRefundable, DateTime)"/> z <see cref="SingleTicket"/>.</summary>
+    [Obsolete("użyj Refund(IRefundable, DateTime) z SingleTicket")]
+    public Money Refund(TicketData ticket, DateTime now)
+    {
+        return Refund(new SingleTicket(ticket), now);
+    }
+
+    /// <summary>Przestarzałe: użyj <see cref="Refund(IRefundable, DateTime)"/> z <see cref="TicketGroup"/>.</summary>
+    [Obsolete("użyj Refund(IRefundable, DateTime) z TicketGroup")]
+    public Money RefundAll(IReadOnlyList<TicketData> tickets, DateTime now)
+    {
+        return Refund(TicketGroup.Of(tickets), now);
+    }
+}
+```
+
+**Po (`CancellationDesk.cs`):**
+
+```csharp
+public Money Refund(IReadOnlyList<TicketData> tickets, DateTime now)
+{
+    IRefundable refundable = tickets.Count == 1
+        ? new SingleTicket(tickets[0])
+        : TicketGroup.Of(tickets);
+    return _service.Refund(refundable, now);
 }
 ```
 
@@ -1924,7 +4013,7 @@ public Money Refund(IRefundable refundable, DateTime now)
 1. Po migracji klientów usuń z serwisu przestarzałe metody `Refund(TicketData, ...)` i `RefundAll(...)` (bezpieczne usunięcie - nie mają już użyć).
 2. W `CancellationDesk` usuń `if` po liczbie biletów - klient zawsze buduje `TicketGroup.Of(tickets)`, także z jednego biletu.
 
-**Przed:**
+**Przed (`RefundService.cs` i `CancellationDesk.cs`):**
 
 ```csharp
 [Obsolete("użyj Refund(IRefundable, DateTime) z SingleTicket")]
@@ -1932,17 +4021,28 @@ public Money Refund(TicketData ticket, DateTime now)
 {
     return Refund(new SingleTicket(ticket), now);
 }
-...
+
+[Obsolete("użyj Refund(IRefundable, DateTime) z TicketGroup")]
+public Money RefundAll(IReadOnlyList<TicketData> tickets, DateTime now)
+{
+    return Refund(TicketGroup.Of(tickets), now);
+}
+```
+
+```csharp
 IRefundable refundable = tickets.Count == 1
     ? new SingleTicket(tickets[0])
     : TicketGroup.Of(tickets);
 return _service.Refund(refundable, now);
 ```
 
-**Po:**
+**Po (`CancellationDesk.cs`):** w `RefundService` zostaje tylko `Refund(IRefundable, DateTime)`, a klient wygląda tak:
 
 ```csharp
-return _service.Refund(TicketGroup.Of(tickets), now);
+public Money Refund(IReadOnlyList<TicketData> tickets, DateTime now)
+{
+    return _service.Refund(TicketGroup.Of(tickets), now);
+}
 ```
 
 **Uruchom:** test zielony; `S12SolutionTest` pokazuje zagnieżdżone grupy.
@@ -1995,14 +4095,19 @@ return _children.Count == 0 ? 0 : total + 15 * (_children.Count - 1);
 2. `Marathon : CompositeProgramItem` korzysta z `Children` bazy; `Minutes` i `Describe()` dostają `override`.
 3. Zmień `ShortsBlock` na `ShortsBlock : CompositeProgramItem` i usuń jego kopie pola `_children`, `Add` i `Children` - są już w bazie.
 
-**Przed:**
+**Przed (`Marathon.cs`, cały plik; `ShortsBlock.cs` analogicznie - bez przerw w `Minutes` i z etykietą "Blok"):**
 
 ```csharp
 public sealed class Marathon : IProgramItem
 {
     private readonly string _name;
     private readonly List<IProgramItem> _children = [];
-    ...
+
+    public Marathon(string name)
+    {
+        _name = name;
+    }
+
     public void Add(IProgramItem child)
     {
         ArgumentNullException.ThrowIfNull(child);
@@ -2010,17 +4115,114 @@ public sealed class Marathon : IProgramItem
     }
 
     public IReadOnlyList<IProgramItem> Children => _children.ToList().AsReadOnly();
-    ...
+
+    public int Minutes
+    {
+        get
+        {
+            var total = 0;
+            foreach (var child in _children)
+            {
+                total += child.Minutes;
+            }
+            return _children.Count == 0 ? 0 : total + 15 * (_children.Count - 1);
+        }
+    }
+
+    public string Describe()
+    {
+        return "Maraton " + _name + " (" + Minutes + " min) "
+            + "[" + string.Join(", ", _children.Select(child => child.Describe())) + "]";
+    }
 }
 ```
 
-**Po:**
+**Po (`CompositeProgramItem.cs`, nowy plik):**
 
 ```csharp
 public abstract class CompositeProgramItem : IProgramItem
 {
     private readonly List<IProgramItem> _children = [];
-    public void Add(IProgramItem child) { ... }
+
+    public void Add(IProgramItem child)
+    {
+        ArgumentNullException.ThrowIfNull(child);
+        _children.Add(child);
+    }
+
+    public IReadOnlyList<IProgramItem> Children => _children.ToList().AsReadOnly();
+
+    public abstract int Minutes { get; }
+
+    public abstract string Describe();
+}
+```
+
+**Po (`Marathon.cs`, cały plik):**
+
+```csharp
+public sealed class Marathon : CompositeProgramItem
+{
+    private readonly string _name;
+
+    public Marathon(string name)
+    {
+        _name = name;
+    }
+
+    public override int Minutes
+    {
+        get
+        {
+            var children = Children;
+            var total = 0;
+            foreach (var child in children)
+            {
+                total += child.Minutes;
+            }
+            return children.Count == 0 ? 0 : total + 15 * (children.Count - 1);
+        }
+    }
+
+    public override string Describe()
+    {
+        return "Maraton " + _name + " (" + Minutes + " min) "
+            + "[" + string.Join(", ", Children.Select(child => child.Describe())) + "]";
+    }
+}
+```
+
+**Po (`ShortsBlock.cs`, cały plik):**
+
+```csharp
+public sealed class ShortsBlock : CompositeProgramItem
+{
+    private readonly string _name;
+
+    public ShortsBlock(string name)
+    {
+        _name = name;
+    }
+
+    public override int Minutes
+    {
+        get
+        {
+            var total = 0;
+            foreach (var child in Children)
+            {
+                total += child.Minutes;
+            }
+            return total;
+        }
+    }
+
+    public override string Describe()
+    {
+        return "Blok " + _name + " (" + Minutes + " min) "
+            + "[" + string.Join(", ", Children.Select(child => child.Describe())) + "]";
+    }
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang cs test m5/s13` - zielone.
@@ -2035,7 +4237,7 @@ public abstract class CompositeProgramItem : IProgramItem
 2. `Describe()` w bazie zamień na niewirtualny szablon `Label() + " " + _name + " (" + Minutes + " min) [...]"` z hookiem `protected abstract string Label()`; podklasy zwracają w nim "Maraton" i "Blok".
 3. Nazwę kontenera przenieś do konstruktora bazy (`protected CompositeProgramItem(string name)`). W podklasach zostają tylko reguła czasu (`Minutes`) i etykieta (`Label()`).
 
-**Przed:**
+**Przed (`Marathon.cs`):**
 
 ```csharp
 public override int Minutes
@@ -2059,15 +4261,90 @@ public override string Describe()
 }
 ```
 
-**Po:**
+**Po (`CompositeProgramItem.cs`, cały plik):**
 
 ```csharp
-public override int Minutes
+public abstract class CompositeProgramItem : IProgramItem
 {
-    get
+    private readonly string _name;
+    private readonly List<IProgramItem> _children = [];
+
+    protected CompositeProgramItem(string name)
     {
-        var count = Children.Count;
-        return count == 0 ? 0 : ChildrenMinutes() + 15 * (count - 1);
+        _name = name;
+    }
+
+    public void Add(IProgramItem child)
+    {
+        ArgumentNullException.ThrowIfNull(child);
+        _children.Add(child);
+    }
+
+    public IReadOnlyList<IProgramItem> Children => _children.ToList().AsReadOnly();
+
+    public abstract int Minutes { get; }
+
+    protected int ChildrenMinutes()
+    {
+        var total = 0;
+        foreach (var child in _children)
+        {
+            total += child.Minutes;
+        }
+        return total;
+    }
+
+    public string Describe()
+    {
+        return Label() + " " + _name + " (" + Minutes + " min) "
+            + "[" + string.Join(", ", _children.Select(child => child.Describe())) + "]";
+    }
+
+    protected abstract string Label();
+}
+```
+
+**Po (`Marathon.cs`, cały plik):**
+
+```csharp
+public sealed class Marathon : CompositeProgramItem
+{
+    public Marathon(string name)
+        : base(name)
+    {
+    }
+
+    public override int Minutes
+    {
+        get
+        {
+            var count = Children.Count;
+            return count == 0 ? 0 : ChildrenMinutes() + 15 * (count - 1);
+        }
+    }
+
+    protected override string Label()
+    {
+        return "Maraton";
+    }
+}
+```
+
+**Po (`ShortsBlock.cs`, cały plik):**
+
+```csharp
+public sealed class ShortsBlock : CompositeProgramItem
+{
+    public ShortsBlock(string name)
+        : base(name)
+    {
+    }
+
+    public override int Minutes => ChildrenMinutes();
+
+    protected override string Label()
+    {
+        return "Blok";
     }
 }
 ```
@@ -2151,16 +4428,45 @@ else if (provider == "REST")
 }
 ```
 
-**Po:**
+**Po (`CheckoutService.cs`):**
 
 ```csharp
-if (provider == "XML")
+public PaymentResult Pay(string provider, string reservationId, Money amount)
 {
-    return PayWithXml(reservationId, amount);
+    if (provider == "XML")
+    {
+        return PayWithXml(reservationId, amount);
+    }
+    else if (provider == "REST")
+    {
+        return PayWithRest(reservationId, amount);
+    }
+    throw new ArgumentException("unknown provider: " + provider);
 }
-else if (provider == "REST")
+
+private PaymentResult PayWithXml(string reservationId, Money amount)
 {
-    return PayWithRest(reservationId, amount);
+    var grosze = decimal.ToInt64(amount.Amount * 100);
+    var response = _xml.Submit("<charge ref='" + reservationId + "' amount='" + grosze + "'/>");
+    if (response.Contains("status='OK'", StringComparison.Ordinal))
+    {
+        return PaymentResult.Accepted(Attribute(response, "id"));
+    }
+    return PaymentResult.Declined(Attribute(response, "code"));
+}
+
+private PaymentResult PayWithRest(string reservationId, Money amount)
+{
+    try
+    {
+        return PaymentResult.Accepted(
+            _rest.Charge(new RestPayClient.ChargeRequest(amount.Amount, "PLN", reservationId))
+                .TransactionId);
+    }
+    catch (RestPayClient.RestPayException exception)
+    {
+        return PaymentResult.Declined(exception.Code);
+    }
 }
 ```
 
@@ -2191,13 +4497,109 @@ private PaymentResult PayWithXml(string reservationId, Money amount)
 }
 ```
 
-**Po:**
+**Po (`IPaymentGateway.cs`, nowy plik):**
 
 ```csharp
-public CheckoutService(XmlPayGateway xml, RestPayClient rest)
+using Training.Workshop.Shared;
+
+/// <summary>Preferowany interfejs kina - kwota jako Money, odmowa jako wynik, nie wyjątek.</summary>
+public interface IPaymentGateway
 {
-    _xml = new XmlPayAdapter(xml);
-    _rest = new RestPayAdapter(rest);
+    PaymentResult Pay(string reservationId, Money amount);
+}
+```
+
+**Po (`XmlPayAdapter.cs`, nowy plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+public sealed class XmlPayAdapter : IPaymentGateway
+{
+    private readonly XmlPayGateway _xml;
+
+    public XmlPayAdapter(XmlPayGateway xml)
+    {
+        _xml = xml;
+    }
+
+    public PaymentResult Pay(string reservationId, Money amount)
+    {
+        var grosze = decimal.ToInt64(amount.Amount * 100);
+        var response = _xml.Submit("<charge ref='" + reservationId + "' amount='" + grosze + "'/>");
+        if (response.Contains("status='OK'", StringComparison.Ordinal))
+        {
+            return PaymentResult.Accepted(Attribute(response, "id"));
+        }
+        return PaymentResult.Declined(Attribute(response, "code"));
+    }
+
+    private static string Attribute(string xml, string name)
+    {
+        var start = xml.IndexOf(name + "='", StringComparison.Ordinal) + name.Length + 2;
+        return xml[start..xml.IndexOf('\'', start)];
+    }
+}
+```
+
+**Po (`RestPayAdapter.cs`, nowy plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+public sealed class RestPayAdapter : IPaymentGateway
+{
+    private readonly RestPayClient _rest;
+
+    public RestPayAdapter(RestPayClient rest)
+    {
+        _rest = rest;
+    }
+
+    public PaymentResult Pay(string reservationId, Money amount)
+    {
+        try
+        {
+            return PaymentResult.Accepted(
+                _rest.Charge(new RestPayClient.ChargeRequest(amount.Amount, "PLN", reservationId))
+                    .TransactionId);
+        }
+        catch (RestPayClient.RestPayException exception)
+        {
+            return PaymentResult.Declined(exception.Code);
+        }
+    }
+}
+```
+
+**Po (`CheckoutService.cs`, cały plik):** metody `PayWithXml`, `PayWithRest` i `Attribute` znikają z serwisu:
+
+```csharp
+using Training.Workshop.Shared;
+
+public sealed class CheckoutService
+{
+    private readonly IPaymentGateway _xml;
+    private readonly IPaymentGateway _rest;
+
+    public CheckoutService(XmlPayGateway xml, RestPayClient rest)
+    {
+        _xml = new XmlPayAdapter(xml);
+        _rest = new RestPayAdapter(rest);
+    }
+
+    public PaymentResult Pay(string provider, string reservationId, Money amount)
+    {
+        if (provider == "XML")
+        {
+            return _xml.Pay(reservationId, amount);
+        }
+        else if (provider == "REST")
+        {
+            return _rest.Pay(reservationId, amount);
+        }
+        throw new ArgumentException("unknown provider: " + provider);
+    }
 }
 ```
 
@@ -2236,14 +4638,39 @@ public PaymentResult Pay(string provider, string reservationId, Money amount)
 }
 ```
 
-**Po:**
+**Po (`CheckoutService.cs`, cały plik):**
 
 ```csharp
-if (!_gateways.TryGetValue(provider, out var gateway))
+using Training.Workshop.Shared;
+
+public sealed class CheckoutService
 {
-    throw new ArgumentException("unknown provider: " + provider);
+    private readonly IReadOnlyDictionary<string, IPaymentGateway> _gateways;
+
+    /// <summary>Dotychczasowy konstruktor jako skrót: standardowy zestaw dwóch adapterów.</summary>
+    public CheckoutService(XmlPayGateway xml, RestPayClient rest)
+        : this(new Dictionary<string, IPaymentGateway>
+        {
+            ["XML"] = new XmlPayAdapter(xml),
+            ["REST"] = new RestPayAdapter(rest),
+        })
+    {
+    }
+
+    public CheckoutService(IReadOnlyDictionary<string, IPaymentGateway> gateways)
+    {
+        _gateways = new Dictionary<string, IPaymentGateway>(gateways);
+    }
+
+    public PaymentResult Pay(string provider, string reservationId, Money amount)
+    {
+        if (!_gateways.TryGetValue(provider, out var gateway))
+        {
+            throw new ArgumentException("unknown provider: " + provider);
+        }
+        return gateway.Pay(reservationId, amount);
+    }
 }
-return gateway.Pay(reservationId, amount);
 ```
 
 **Uruchom:** test zielony.
@@ -2307,10 +4734,77 @@ Test to sesja poleceń: sprzedaż, zwrot, raport oraz błędne polecenia, które
 1. Wydziel ciało każdej gałęzi do prywatnej metody (wyodrębnienie metody): `Sell(args)`, `Refund(args)`, `Report(args)`.
 2. Ujednolić sygnatury: wszystkie trzy przyjmują `string args` i zwracają `string`, także `Report`, które z `args` nie korzysta.
 
-**Przed:**
+**Przed (`CashierConsole.cs`):**
 
 ```csharp
-if (command == "SELL")
+public string Handle(string line)
+{
+    var parts = line.Trim().Split(' ', 2);
+    var command = parts[0].ToUpperInvariant();
+    var args = parts.Length > 1 ? parts[1] : "";
+    if (command == "SELL")
+    {
+        var sell = args.Split(' ', 2);
+        if (sell.Length < 2 || !Regex.IsMatch(sell[0], "^[0-9]+$"))
+        {
+            return "Blad: SELL <liczba> <tytul>";
+        }
+        var quantity = int.Parse(sell[0], CultureInfo.InvariantCulture);
+        if (!Prices.TryGetValue(sell[1], out var price))
+        {
+            return "Blad: nieznany film " + sell[1];
+        }
+        var total = price.Times(quantity);
+        _cash = _cash.Plus(total);
+        _tickets += quantity;
+        return "Sprzedano " + quantity + " x " + sell[1] + " = " + total;
+    }
+    else if (command == "REFUND")
+    {
+        if (!Prices.TryGetValue(args, out var price))
+        {
+            return "Blad: nieznany film " + args;
+        }
+        if (_tickets == 0)
+        {
+            return "Blad: brak biletow do zwrotu";
+        }
+        _cash = _cash.Minus(price);
+        _tickets--;
+        return "Zwrot 1 x " + args + " = " + price;
+    }
+    else if (command == "REPORT")
+    {
+        return "Kasa: " + _cash + ", biletow: " + _tickets;
+    }
+    return "Nieznana komenda: " + parts[0];
+}
+```
+
+**Po (`CashierConsole.cs`):**
+
+```csharp
+public string Handle(string line)
+{
+    var parts = line.Trim().Split(' ', 2);
+    var command = parts[0].ToUpperInvariant();
+    var args = parts.Length > 1 ? parts[1] : "";
+    if (command == "SELL")
+    {
+        return Sell(args);
+    }
+    else if (command == "REFUND")
+    {
+        return Refund(args);
+    }
+    else if (command == "REPORT")
+    {
+        return Report(args);
+    }
+    return "Nieznana komenda: " + parts[0];
+}
+
+private string Sell(string args)
 {
     var sell = args.Split(' ', 2);
     if (sell.Length < 2 || !Regex.IsMatch(sell[0], "^[0-9]+$"))
@@ -2318,25 +4812,34 @@ if (command == "SELL")
         return "Blad: SELL <liczba> <tytul>";
     }
     var quantity = int.Parse(sell[0], CultureInfo.InvariantCulture);
-    ...
+    if (!Prices.TryGetValue(sell[1], out var price))
+    {
+        return "Blad: nieznany film " + sell[1];
+    }
+    var total = price.Times(quantity);
+    _cash = _cash.Plus(total);
+    _tickets += quantity;
     return "Sprzedano " + quantity + " x " + sell[1] + " = " + total;
 }
-else if (command == "REFUND")
+
+private string Refund(string args)
 {
-    ...
+    if (!Prices.TryGetValue(args, out var price))
+    {
+        return "Blad: nieznany film " + args;
+    }
+    if (_tickets == 0)
+    {
+        return "Blad: brak biletow do zwrotu";
+    }
+    _cash = _cash.Minus(price);
+    _tickets--;
+    return "Zwrot 1 x " + args + " = " + price;
 }
-else if (command == "REPORT")
+
+private string Report(string args)
 {
     return "Kasa: " + _cash + ", biletow: " + _tickets;
-}
-```
-
-**Po:**
-
-```csharp
-if (command == "SELL")
-{
-    return Sell(args);
 }
 ```
 
@@ -2373,12 +4876,143 @@ else if (command == "REPORT")
 }
 ```
 
-**Po:**
+**Po (`Till.cs`, nowy plik):**
 
 ```csharp
-if (command == "SELL")
+using Training.Workshop.Shared;
+
+public sealed class Till
 {
-    return _sell.Execute(args, _till);
+    private static readonly IReadOnlyDictionary<string, Money> Prices = new Dictionary<string, Money>
+    {
+        ["Diuna"] = Money.Of("40.00"),
+        ["Kraina Lodu"] = Money.Of("32.00"),
+        ["Amator"] = Money.Of("25.00"),
+    };
+
+    internal Money Cash { get; private set; } = Money.Zero;
+
+    internal int Tickets { get; private set; }
+
+    internal Money? PriceOf(string title)
+    {
+        return Prices.GetValueOrDefault(title);
+    }
+
+    internal void Sold(int quantity, Money total)
+    {
+        Cash = Cash.Plus(total);
+        Tickets += quantity;
+    }
+
+    internal void Refunded(Money price)
+    {
+        Cash = Cash.Minus(price);
+        Tickets--;
+    }
+}
+```
+
+**Po (`IConsoleCommand.cs`, nowy plik):**
+
+```csharp
+public interface IConsoleCommand
+{
+    string Execute(string args, Till till);
+}
+```
+
+**Po (`SellCommand.cs`, nowy plik):**
+
+```csharp
+using System.Globalization;
+using System.Text.RegularExpressions;
+
+public sealed class SellCommand : IConsoleCommand
+{
+    public string Execute(string args, Till till)
+    {
+        var sell = args.Split(' ', 2);
+        if (sell.Length < 2 || !Regex.IsMatch(sell[0], "^[0-9]+$"))
+        {
+            return "Blad: SELL <liczba> <tytul>";
+        }
+        var quantity = int.Parse(sell[0], CultureInfo.InvariantCulture);
+        var price = till.PriceOf(sell[1]);
+        if (price == null)
+        {
+            return "Blad: nieznany film " + sell[1];
+        }
+        var total = price.Times(quantity);
+        till.Sold(quantity, total);
+        return "Sprzedano " + quantity + " x " + sell[1] + " = " + total;
+    }
+}
+```
+
+**Po (`RefundCommand.cs`, nowy plik):**
+
+```csharp
+public sealed class RefundCommand : IConsoleCommand
+{
+    public string Execute(string args, Till till)
+    {
+        var price = till.PriceOf(args);
+        if (price == null)
+        {
+            return "Blad: nieznany film " + args;
+        }
+        if (till.Tickets == 0)
+        {
+            return "Blad: brak biletow do zwrotu";
+        }
+        till.Refunded(price);
+        return "Zwrot 1 x " + args + " = " + price;
+    }
+}
+```
+
+**Po (`ReportCommand.cs`, nowy plik):**
+
+```csharp
+public sealed class ReportCommand : IConsoleCommand
+{
+    public string Execute(string args, Till till)
+    {
+        return "Kasa: " + till.Cash + ", biletow: " + till.Tickets;
+    }
+}
+```
+
+**Po (`CashierConsole.cs`, cały plik):**
+
+```csharp
+public sealed class CashierConsole
+{
+    private readonly Till _till = new();
+    private readonly IConsoleCommand _sell = new SellCommand();
+    private readonly IConsoleCommand _refund = new RefundCommand();
+    private readonly IConsoleCommand _report = new ReportCommand();
+
+    public string Handle(string line)
+    {
+        var parts = line.Trim().Split(' ', 2);
+        var command = parts[0].ToUpperInvariant();
+        var args = parts.Length > 1 ? parts[1] : "";
+        if (command == "SELL")
+        {
+            return _sell.Execute(args, _till);
+        }
+        else if (command == "REFUND")
+        {
+            return _refund.Execute(args, _till);
+        }
+        else if (command == "REPORT")
+        {
+            return _report.Execute(args, _till);
+        }
+        return "Nieznana komenda: " + parts[0];
+    }
 }
 ```
 
@@ -2411,12 +5045,38 @@ else if (command == "REFUND")
 }
 ```
 
-**Po:**
+**Po (`CashierConsole.cs`, cały plik):**
 
 ```csharp
-if (!_commands.TryGetValue(parts[0].ToUpperInvariant(), out var command))
+public sealed class CashierConsole
 {
-    return "Nieznana komenda: " + parts[0];
+    private readonly Till _till = new();
+    private readonly IReadOnlyDictionary<string, IConsoleCommand> _commands;
+
+    public CashierConsole()
+        : this(new Dictionary<string, IConsoleCommand>
+        {
+            ["SELL"] = new SellCommand(),
+            ["REFUND"] = new RefundCommand(),
+            ["REPORT"] = new ReportCommand(),
+        })
+    {
+    }
+
+    public CashierConsole(IReadOnlyDictionary<string, IConsoleCommand> commands)
+    {
+        _commands = new Dictionary<string, IConsoleCommand>(commands);
+    }
+
+    public string Handle(string line)
+    {
+        var parts = line.Trim().Split(' ', 2);
+        if (!_commands.TryGetValue(parts[0].ToUpperInvariant(), out var command))
+        {
+            return "Nieznana komenda: " + parts[0];
+        }
+        return command.Execute(parts.Length > 1 ? parts[1] : "", _till);
+    }
 }
 ```
 
@@ -2466,35 +5126,108 @@ Jak dodalibyście `UNDO` dla ostatniej sprzedaży? Czego wymaga to od komend?
 2. Przepisz `Render` raportu HTML na dokładnie ten sam kształt co w CSV: te same nazwy zmiennych (`sorted`, `text`, `tickets`, `total`), sortowanie `OrderBy(...).ToList()` i ta sama pętla.
 3. Sprawdź, że `Render` obu klas jest identyczny znak w znak.
 
-**Przed:**
+**Przed (`CsvSalesReport.cs`):**
 
 ```csharp
-var html = new StringBuilder();
-html.Append("<table>\n<tr><th>Godzina</th><th>Film</th><th>Bilety</th><th>Kwota</th></tr>\n");
-var sum = Money.Zero;
-var count = 0;
-foreach (var sale in sales.OrderBy(sale => sale.Time))
+public string Render(IReadOnlyList<Sale> sales)
 {
-    var title = sale.Title.Replace("&", "&amp;").Replace("<", "&lt;");
-    html.Append("<tr><td>").Append(sale.Time.ToString("HH:mm", CultureInfo.InvariantCulture))
-        .Append("</td><td>").Append(title)
-        .Append("</td><td>").Append(sale.Tickets).Append("</td><td>").Append(sale.Amount)
-        .Append("</td></tr>\n");
-    sum = sum.Plus(sale.Amount);
-    count += sale.Tickets;
+    var sorted = sales.OrderBy(sale => sale.Time).ToList();
+    var csv = new StringBuilder("godzina;film;bilety;kwota\n");
+    var tickets = 0;
+    var total = Money.Zero;
+    foreach (var sale in sorted)
+    {
+        var title = sale.Title.Contains(';') ? "\"" + sale.Title + "\"" : sale.Title;
+        csv.Append(sale.Time.ToString("HH:mm", CultureInfo.InvariantCulture)).Append(';').Append(title).Append(';')
+            .Append(sale.Tickets).Append(';').Append(sale.Amount).Append('\n');
+        tickets += sale.Tickets;
+        total = total.Plus(sale.Amount);
+    }
+    csv.Append("SUMA;;").Append(tickets).Append(';').Append(total).Append('\n');
+    return csv.ToString();
 }
 ```
 
-**Po:**
+**Przed (`HtmlSalesReport.cs`):**
 
 ```csharp
-var text = new StringBuilder(Header());
-foreach (var sale in sorted)
+public string Render(IReadOnlyList<Sale> sales)
 {
-    text.Append(Row(sale));
-    ...
+    var html = new StringBuilder();
+    html.Append("<table>\n<tr><th>Godzina</th><th>Film</th><th>Bilety</th><th>Kwota</th></tr>\n");
+    var sum = Money.Zero;
+    var count = 0;
+    foreach (var sale in sales.OrderBy(sale => sale.Time))
+    {
+        var title = sale.Title.Replace("&", "&amp;").Replace("<", "&lt;");
+        html.Append("<tr><td>").Append(sale.Time.ToString("HH:mm", CultureInfo.InvariantCulture))
+            .Append("</td><td>").Append(title)
+            .Append("</td><td>").Append(sale.Tickets).Append("</td><td>").Append(sale.Amount)
+            .Append("</td></tr>\n");
+        sum = sum.Plus(sale.Amount);
+        count += sale.Tickets;
+    }
+    html.Append("<tr><td colspan=\"2\">Suma</td><td>").Append(count).Append("</td><td>").Append(sum)
+        .Append("</td></tr>\n</table>\n");
+    return html.ToString();
 }
-return text.Append(Footer(tickets, total)).ToString();
+```
+
+**Po (`CsvSalesReport.cs`):**
+
+```csharp
+public string Render(IReadOnlyList<Sale> sales)
+{
+    var sorted = sales.OrderBy(sale => sale.Time).ToList();
+    var text = new StringBuilder(Header());
+    var tickets = 0;
+    var total = Money.Zero;
+    foreach (var sale in sorted)
+    {
+        text.Append(Row(sale));
+        tickets += sale.Tickets;
+        total = total.Plus(sale.Amount);
+    }
+    return text.Append(Footer(tickets, total)).ToString();
+}
+
+private static string Header()
+{
+    return "godzina;film;bilety;kwota\n";
+}
+
+private static string Row(Sale sale)
+{
+    var title = sale.Title.Contains(';') ? "\"" + sale.Title + "\"" : sale.Title;
+    return sale.Time.ToString("HH:mm", CultureInfo.InvariantCulture) + ";" + title + ";" + sale.Tickets + ";" + sale.Amount + "\n";
+}
+
+private static string Footer(int tickets, Money total)
+{
+    return "SUMA;;" + tickets + ";" + total + "\n";
+}
+```
+
+**Po (`HtmlSalesReport.cs`):** `Render` identyczny znak w znak jak w CSV powyżej, a trzy metody formatujące to:
+
+```csharp
+private static string Header()
+{
+    return "<table>\n<tr><th>Godzina</th><th>Film</th><th>Bilety</th><th>Kwota</th></tr>\n";
+}
+
+private static string Row(Sale sale)
+{
+    var title = sale.Title.Replace("&", "&amp;").Replace("<", "&lt;");
+    return "<tr><td>" + sale.Time.ToString("HH:mm", CultureInfo.InvariantCulture) + "</td><td>" + title + "</td><td>" + sale.Tickets
+        + "</td><td>" + sale.Amount + "</td></tr>\n";
+}
+
+private static string Footer(int tickets, Money total)
+{
+    return "<tr><td colspan=\"2\">Suma</td><td>" + tickets + "</td><td>" + total + "</td></tr>\n"
+        + "</table>\n";
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang cs test m5/s16` - zielone.
@@ -2509,10 +5242,15 @@ return text.Append(Footer(tickets, total)).ToString();
 2. W `CsvSalesReport : SalesReport` i `HtmlSalesReport : SalesReport` usuń kopie `Render`, a `Header/Row/Footer` zamień z prywatnych statycznych na `protected override`.
 3. `Render` w bazie zostaw bez `virtual` - podklasy nie mogą go nadpisać (odpowiednik `final` z Javy).
 
-**Przed:**
+**Przed:** obie klasy w wersji z kroku 1 - identyczny `Render` plus prywatne statyczne `Header`, `Row`, `Footer`.
+
+**Po (`SalesReport.cs`, nowy plik):**
 
 ```csharp
-public sealed class HtmlSalesReport
+using System.Text;
+using Training.Workshop.Shared;
+
+public abstract class SalesReport
 {
     public string Render(IReadOnlyList<Sale> sales)
     {
@@ -2529,18 +5267,66 @@ public sealed class HtmlSalesReport
         return text.Append(Footer(tickets, total)).ToString();
     }
 
-    private static string Header() { ... }
-    ...
+    protected abstract string Header();
+
+    protected abstract string Row(Sale sale);
+
+    protected abstract string Footer(int tickets, Money total);
 }
 ```
 
-**Po:**
+**Po (`CsvSalesReport.cs`, cały plik):**
 
 ```csharp
-public string Render(IReadOnlyList<Sale> sales) { ... }
-protected abstract string Header();
-protected abstract string Row(Sale sale);
-protected abstract string Footer(int tickets, Money total);
+using System.Globalization;
+using Training.Workshop.Shared;
+
+public sealed class CsvSalesReport : SalesReport
+{
+    protected override string Header()
+    {
+        return "godzina;film;bilety;kwota\n";
+    }
+
+    protected override string Row(Sale sale)
+    {
+        var title = sale.Title.Contains(';') ? "\"" + sale.Title + "\"" : sale.Title;
+        return sale.Time.ToString("HH:mm", CultureInfo.InvariantCulture) + ";" + title + ";" + sale.Tickets + ";" + sale.Amount + "\n";
+    }
+
+    protected override string Footer(int tickets, Money total)
+    {
+        return "SUMA;;" + tickets + ";" + total + "\n";
+    }
+}
+```
+
+**Po (`HtmlSalesReport.cs`, cały plik):**
+
+```csharp
+using System.Globalization;
+using Training.Workshop.Shared;
+
+public sealed class HtmlSalesReport : SalesReport
+{
+    protected override string Header()
+    {
+        return "<table>\n<tr><th>Godzina</th><th>Film</th><th>Bilety</th><th>Kwota</th></tr>\n";
+    }
+
+    protected override string Row(Sale sale)
+    {
+        var title = sale.Title.Replace("&", "&amp;").Replace("<", "&lt;");
+        return "<tr><td>" + sale.Time.ToString("HH:mm", CultureInfo.InvariantCulture) + "</td><td>" + title + "</td><td>" + sale.Tickets
+            + "</td><td>" + sale.Amount + "</td></tr>\n";
+    }
+
+    protected override string Footer(int tickets, Money total)
+    {
+        return "<tr><td colspan=\"2\">Suma</td><td>" + tickets + "</td><td>" + total + "</td></tr>\n"
+            + "</table>\n";
+    }
+}
 ```
 
 **Uruchom:** test zielony; `S16SolutionTest` sprawdza, że `Render` nie jest wirtualny, i dodaje format Markdown trzema metodami.
@@ -2593,7 +5379,54 @@ var price = new PriceList().BasePrice(format);
 2. Usuń licznik z pomiaru: pole `_created`, `Interlocked.Increment` w konstruktorze i metodę `Created()`.
 3. W `TicketDesk.Quote` zamień `new PriceList()` na `PriceList.GetInstance()`.
 
-**Przed:**
+**Przed (`PriceList.cs`):**
+
+```csharp
+private const string Tariff = "2D=25.00;3D=32.00;IMAX=40.00";
+private static int _created;
+
+private readonly Dictionary<string, Money> _prices = [];
+
+public PriceList()
+{
+    foreach (var entry in Tariff.Split(';'))
+    {
+        var pair = entry.Split('=');
+        _prices[pair[0]] = Money.Of(pair[1]);
+    }
+    Interlocked.Increment(ref _created);
+}
+
+public static int Created()
+{
+    return Volatile.Read(ref _created);
+}
+```
+
+**Po (`PriceList.cs`):**
+
+```csharp
+private const string Tariff = "2D=25.00;3D=32.00;IMAX=40.00";
+private static readonly PriceList Instance = new();
+
+private readonly Dictionary<string, Money> _prices = [];
+
+private PriceList()
+{
+    foreach (var entry in Tariff.Split(';'))
+    {
+        var pair = entry.Split('=');
+        _prices[pair[0]] = Money.Of(pair[1]);
+    }
+}
+
+public static PriceList GetInstance()
+{
+    return Instance;
+}
+```
+
+**Przed (`TicketDesk.cs`):**
 
 ```csharp
 public Money Quote(string format, bool online)
@@ -2603,7 +5436,7 @@ public Money Quote(string format, bool online)
 }
 ```
 
-**Po:**
+**Po (`TicketDesk.cs`, w `Quote`):**
 
 ```csharp
 var price = PriceList.GetInstance().BasePrice(format);
@@ -2621,7 +5454,7 @@ var price = PriceList.GetInstance().BasePrice(format);
 2. Słownik cen zbuduj w konstruktorze do lokalnego `Dictionary` i zamroź raz: pole zmienia typ na `FrozenDictionary<string, Money>`, przypisanie przez `parsed.ToFrozenDictionary()` (dojdzie `using System.Collections.Frozen;`).
 3. W `TicketDesk.Quote` zamień `PriceList.GetInstance()` na `PriceList.Instance`.
 
-**Przed:**
+**Przed (`PriceList.cs`):**
 
 ```csharp
 private static readonly PriceList Instance = new();
@@ -2643,7 +5476,26 @@ public static PriceList GetInstance()
 }
 ```
 
-**Po:**
+**Po (`PriceList.cs`):**
+
+```csharp
+private readonly FrozenDictionary<string, Money> _prices;
+
+private PriceList()
+{
+    var parsed = new Dictionary<string, Money>();
+    foreach (var entry in Tariff.Split(';'))
+    {
+        var pair = entry.Split('=');
+        parsed[pair[0]] = Money.Of(pair[1]);
+    }
+    _prices = parsed.ToFrozenDictionary();
+}
+
+public static PriceList Instance { get; } = new();
+```
+
+**Po (`TicketDesk.cs`, w `Quote`):**
 
 ```csharp
 var price = PriceList.Instance.BasePrice(format);
@@ -2661,7 +5513,7 @@ var price = PriceList.Instance.BasePrice(format);
 2. W `TicketDesk` dodaj pole `ITariff _tariff` i konstruktor `TicketDesk(ITariff tariff)` ze strażnikiem `ArgumentNullException.ThrowIfNull`; `Quote` woła `_tariff.BasePrice(format)`.
 3. Dodaj konstruktor bezargumentowy delegujący `: this(PriceList.Instance)` - dotychczasowi klienci działają bez zmian.
 
-**Przed:**
+**Przed (`TicketDesk.cs`):**
 
 ```csharp
 public sealed class TicketDesk
@@ -2674,12 +5526,43 @@ public sealed class TicketDesk
 }
 ```
 
-**Po:**
+**Po (`ITariff.cs`, nowy plik):**
 
 ```csharp
-public TicketDesk()
-    : this(PriceList.Instance)
+using Training.Workshop.Shared;
+
+/// <summary>Extract Interface - klient zależy od kontraktu cennika, nie od singletona.</summary>
+public interface ITariff
 {
+    Money BasePrice(string format);
+}
+```
+
+**Po (`TicketDesk.cs`):**
+
+```csharp
+using Training.Workshop.Shared;
+
+public sealed class TicketDesk
+{
+    private readonly ITariff _tariff;
+
+    public TicketDesk()
+        : this(PriceList.Instance)
+    {
+    }
+
+    public TicketDesk(ITariff tariff)
+    {
+        ArgumentNullException.ThrowIfNull(tariff);
+        _tariff = tariff;
+    }
+
+    public Money Quote(string format, bool online)
+    {
+        var price = _tariff.BasePrice(format);
+        return online ? price.Plus(Money.Of("2.00")) : price;
+    }
 }
 ```
 
@@ -2741,21 +5624,105 @@ Test sprawdza treść, kolejność i separator, w tym duplikaty miejsc zgłaszan
 **Przed:**
 
 ```csharp
-var warnings = "";
-warnings += CheckEmail(draft.Email);
-warnings += CheckSeats(draft.Seats);
-if (draft.Now >= draft.ShowStart)
+public string Validate(ReservationDraft draft)
 {
-    warnings += "seans juz sie rozpoczal; ";
+    var warnings = "";
+    warnings += CheckEmail(draft.Email);
+    warnings += CheckSeats(draft.Seats);
+    if (draft.Now >= draft.ShowStart)
+    {
+        warnings += "seans juz sie rozpoczal; ";
+    }
+    return warnings.Length == 0 ? "OK" : warnings[..^2];
 }
-return warnings.Length == 0 ? "OK" : warnings[..^2];
+
+private static string CheckEmail(string? email)
+{
+    if (string.IsNullOrWhiteSpace(email))
+    {
+        return "brak e-maila; ";
+    }
+    if (!email.Contains('@'))
+    {
+        return "niepoprawny e-mail: " + email + "; ";
+    }
+    return "";
+}
+
+private static string CheckSeats(IReadOnlyList<string> seats)
+{
+    if (seats.Count == 0)
+    {
+        return "brak miejsc; ";
+    }
+    var result = "";
+    var seen = new HashSet<string>();
+    var reported = new HashSet<string>();
+    foreach (var seat in seats)
+    {
+        if (!seen.Add(seat) && reported.Add(seat))
+        {
+            result += "miejsce " + seat + " zdublowane; ";
+        }
+    }
+    if (seats.Count >= 10)
+    {
+        result += "grupa 10+: zastosuj rabat grupowy; ";
+    }
+    return result;
+}
 ```
 
 **Po:**
 
 ```csharp
-warnings.AddRange(CheckEmail(draft.Email));
-warnings.AddRange(CheckSeats(draft.Seats));
+public string Validate(ReservationDraft draft)
+{
+    var warnings = new List<string>();
+    warnings.AddRange(CheckEmail(draft.Email));
+    warnings.AddRange(CheckSeats(draft.Seats));
+    if (draft.Now >= draft.ShowStart)
+    {
+        warnings.Add("seans juz sie rozpoczal");
+    }
+    return warnings.Count == 0 ? "OK" : string.Join("; ", warnings);
+}
+
+private static IReadOnlyList<string> CheckEmail(string? email)
+{
+    if (string.IsNullOrWhiteSpace(email))
+    {
+        return ["brak e-maila"];
+    }
+    if (!email.Contains('@'))
+    {
+        return ["niepoprawny e-mail: " + email];
+    }
+    return [];
+}
+
+private static IReadOnlyList<string> CheckSeats(IReadOnlyList<string> seats)
+{
+    if (seats.Count == 0)
+    {
+        return ["brak miejsc"];
+    }
+    var result = new List<string>();
+    var seen = new HashSet<string>();
+    var reported = new HashSet<string>();
+    foreach (var seat in seats)
+    {
+        if (!seen.Add(seat) && reported.Add(seat))
+        {
+            result.Add("miejsce " + seat + " zdublowane");
+        }
+    }
+    if (seats.Count >= 10)
+    {
+        result.Add("grupa 10+: zastosuj rabat grupowy");
+    }
+    return result;
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang cs test m5/s18` - zielone.
@@ -2780,14 +5747,62 @@ if (draft.Now >= draft.ShowStart)
 {
     warnings.Add("seans juz sie rozpoczal");
 }
+return warnings.Count == 0 ? "OK" : string.Join("; ", warnings);
 ```
 
 **Po:**
 
 ```csharp
-CheckEmail(draft.Email, warnings);
-CheckSeats(draft.Seats, warnings);
-CheckShowTime(draft, warnings);
+public string Validate(ReservationDraft draft)
+{
+    var warnings = new List<string>();
+    CheckEmail(draft.Email, warnings);
+    CheckSeats(draft.Seats, warnings);
+    CheckShowTime(draft, warnings);
+    return warnings.Count == 0 ? "OK" : string.Join("; ", warnings);
+}
+
+private static void CheckEmail(string? email, List<string> warnings)
+{
+    if (string.IsNullOrWhiteSpace(email))
+    {
+        warnings.Add("brak e-maila");
+    }
+    else if (!email.Contains('@'))
+    {
+        warnings.Add("niepoprawny e-mail: " + email);
+    }
+}
+
+private static void CheckSeats(IReadOnlyList<string> seats, List<string> warnings)
+{
+    if (seats.Count == 0)
+    {
+        warnings.Add("brak miejsc");
+        return;
+    }
+    var seen = new HashSet<string>();
+    var reported = new HashSet<string>();
+    foreach (var seat in seats)
+    {
+        if (!seen.Add(seat) && reported.Add(seat))
+        {
+            warnings.Add("miejsce " + seat + " zdublowane");
+        }
+    }
+    if (seats.Count >= 10)
+    {
+        warnings.Add("grupa 10+: zastosuj rabat grupowy");
+    }
+}
+
+private static void CheckShowTime(ReservationDraft draft, List<string> warnings)
+{
+    if (draft.Now >= draft.ShowStart)
+    {
+        warnings.Add("seans juz sie rozpoczal");
+    }
+}
 ```
 
 **Uruchom:** test zielony.
@@ -2815,12 +5830,36 @@ public string Validate(ReservationDraft draft)
 }
 ```
 
-**Po:**
+**Po (`Warnings.cs`, nowy plik):**
 
 ```csharp
-var warnings = new Warnings();
-...
-return warnings.Summary();
+public sealed class Warnings
+{
+    private readonly List<string> _items = [];
+
+    public void Add(string warning)
+    {
+        _items.Add(warning);
+    }
+
+    public string Summary()
+    {
+        return _items.Count == 0 ? "OK" : string.Join("; ", _items);
+    }
+}
+```
+
+**Po (`ReservationValidator.cs`, metoda `Validate`):**
+
+```csharp
+public string Validate(ReservationDraft draft)
+{
+    var warnings = new Warnings();
+    CheckEmail(draft.Email, warnings);
+    CheckSeats(draft.Seats, warnings);
+    CheckShowTime(draft, warnings);
+    return warnings.Summary();
+}
 ```
 
 **Uruchom:** test zielony.
@@ -2883,9 +5922,9 @@ throw new ArgumentException("unknown item: " + item);
 
 1. Utwórz nowy plik `IOrderItemVisitor.cs`: kowariantny interfejs `IOrderItemVisitor<out TResult>` z metodami `VisitTicket`, `VisitSnack`, `VisitVoucher`.
 2. W `IOrderItem` dodaj metodę `TResult Accept<TResult>(IOrderItemVisitor<TResult> visitor)`; każdy rekord pozycji implementuje ją jednym wywołaniem swojej metody, np. `visitor.VisitTicket(this)`.
-3. Operację "linia paragonu" przenieś z `ReceiptPrinter.Line` do nowej klasy `ReceiptLineVisitor : IOrderItemVisitor<string>` - po jednej gałęzi `is` na metodę `Visit...`. W `Print` zamień `Line(item)` na `item.Accept(_lines)` (pole `_lines`), metodę `Line` usuń. Kwota i VAT zostają na `is`.
+3. Operację "linia paragonu" przenieś z `ReceiptPrinter.Line` do nowej klasy `ReceiptLineVisitor : IOrderItemVisitor<string>` - po jednej gałęzi `is` na metodę `Visit...`. W `Print` zamień `Line(item)` na `item.Accept(_lines)` (pole `private readonly ReceiptLineVisitor _lines = new();`), metodę `Line` usuń. Kwota i VAT zostają na `is`.
 
-**Przed:**
+**Przed (`ReceiptPrinter.cs`):**
 
 ```csharp
 private static string Line(IOrderItem item)
@@ -2906,7 +5945,55 @@ private static string Line(IOrderItem item)
 }
 ```
 
-**Po:**
+**Po (`IOrderItemVisitor.cs`, nowy plik):**
+
+```csharp
+/// <summary>Klasyczny Visitor - jedna metoda na rodzaj pozycji; brak metody = błąd kompilacji.</summary>
+public interface IOrderItemVisitor<out TResult>
+{
+    TResult VisitTicket(TicketItem ticket);
+
+    TResult VisitSnack(SnackItem snack);
+
+    TResult VisitVoucher(VoucherItem voucher);
+}
+```
+
+**Po (`ReceiptLineVisitor.cs`, nowy plik):**
+
+```csharp
+public sealed class ReceiptLineVisitor : IOrderItemVisitor<string>
+{
+    public string VisitTicket(TicketItem ticket)
+    {
+        return "Bilet " + ticket.Title + " " + ticket.Format + " " + ticket.Price;
+    }
+
+    public string VisitSnack(SnackItem snack)
+    {
+        return snack.Name + " " + snack.Price;
+    }
+
+    public string VisitVoucher(VoucherItem voucher)
+    {
+        return "Voucher " + voucher.Code + " -" + voucher.Value;
+    }
+}
+```
+
+**Po (`TicketItem.cs`; analogicznie `SnackItem.cs` z `VisitSnack` i `VoucherItem.cs` z `VisitVoucher`):**
+
+```csharp
+public sealed record TicketItem(string Title, string Format, Money Price) : IOrderItem
+{
+    public TResult Accept<TResult>(IOrderItemVisitor<TResult> visitor)
+    {
+        return visitor.VisitTicket(this);
+    }
+}
+```
+
+**Po (`ReceiptPrinter.cs`, w pętli `Print`):**
 
 ```csharp
 text.Append(item.Accept(_lines)).Append('\n');
@@ -2924,7 +6011,7 @@ text.Append(item.Accept(_lines)).Append('\n');
 2. W `ReceiptPrinter` dodaj pola `_amounts` i `_vats`; w pętli `Print` zamień wywołania na `item.Accept(_amounts)` i `item.Accept(_vats)`.
 3. Usuń z `ReceiptPrinter` metody `Amount`, `Vat` i `VatOf` - znikają ostatnie łańcuchy `is`.
 
-**Przed:**
+**Przed (`ReceiptPrinter.cs`):**
 
 ```csharp
 private static Money Amount(IOrderItem item)
@@ -2945,9 +6032,67 @@ private static Money Amount(IOrderItem item)
 }
 ```
 
-**Po:**
+**Po (`AmountVisitor.cs`, nowy plik):**
 
 ```csharp
+using Training.Workshop.Shared;
+
+public sealed class AmountVisitor : IOrderItemVisitor<Money>
+{
+    public Money VisitTicket(TicketItem ticket)
+    {
+        return ticket.Price;
+    }
+
+    public Money VisitSnack(SnackItem snack)
+    {
+        return snack.Price;
+    }
+
+    public Money VisitVoucher(VoucherItem voucher)
+    {
+        return Money.Zero.Minus(voucher.Value);
+    }
+}
+```
+
+**Po (`VatVisitor.cs`, nowy plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+public sealed class VatVisitor : IOrderItemVisitor<Money>
+{
+    public Money VisitTicket(TicketItem ticket)
+    {
+        return VatOf(ticket.Price, 8);
+    }
+
+    public Money VisitSnack(SnackItem snack)
+    {
+        return VatOf(snack.Price, 23);
+    }
+
+    public Money VisitVoucher(VoucherItem voucher)
+    {
+        return Money.Zero;
+    }
+
+    /// <summary>VAT zawarty w cenie brutto: brutto * stawka / (100 + stawka).</summary>
+    private static Money VatOf(Money gross, int rate)
+    {
+        return new Money(Math.Round(gross.Amount * rate / (100 + rate), 2, MidpointRounding.AwayFromZero));
+    }
+}
+```
+
+**Po (`ReceiptPrinter.cs`):**
+
+```csharp
+private readonly ReceiptLineVisitor _lines = new();
+private readonly AmountVisitor _amounts = new();
+private readonly VatVisitor _vats = new();
+...
 total = total.Plus(item.Accept(_amounts));
 vat = vat.Plus(item.Accept(_vats));
 ```
@@ -2961,10 +6106,10 @@ vat = vat.Plus(item.Accept(_vats));
 **Zmiany:**
 
 1. Usuń pliki `IOrderItemVisitor.cs`, `ReceiptLineVisitor.cs`, `AmountVisitor.cs` i `VatVisitor.cs`; z `IOrderItem` i rekordów pozycji usuń `Accept` - interfejs znów jest pustym znacznikiem.
-2. W `ReceiptPrinter` zapisz operacje jako metody `Line`, `Amount` i `Vat` ze switch expression po typach; w `Line` użyj wzorców pozycyjnych, np. `TicketItem(var title, var format, var price) => ...`. Pomocnicze `VatOf` wraca do `ReceiptPrinter`.
+2. W `ReceiptPrinter` zapisz operacje jako metody `internal static` `Line`, `Amount` i `Vat` ze switch expression po typach; w `Line` użyj wzorców pozycyjnych, np. `TicketItem(var title, var format, var price) => ...`. Pomocnicze `VatOf` wraca do `ReceiptPrinter` (bez zmian treści). Pętla `Print` woła znów `Line(item)`, `Amount(item)` i `Vat(item)`, a pola `_lines`, `_amounts`, `_vats` znikają.
 3. Każdy switch kończy ramię `_ => throw new UnreachableException("unknown item: " + item)` (dojdzie `using System.Diagnostics;`).
 
-**Przed:**
+**Przed (`ReceiptPrinter.cs`):**
 
 ```csharp
 private readonly ReceiptLineVisitor _lines = new();
@@ -2979,9 +6124,32 @@ foreach (var item in items)
 }
 ```
 
-**Po:**
+**Po (`ReceiptPrinter.cs`):**
 
 ```csharp
+foreach (var item in items)
+{
+    text.Append(Line(item)).Append('\n');
+    total = total.Plus(Amount(item));
+    vat = vat.Plus(Vat(item));
+}
+...
+internal static string Line(IOrderItem item) => item switch
+{
+    TicketItem(var title, var format, var price) => "Bilet " + title + " " + format + " " + price,
+    SnackItem(var name, var price) => name + " " + price,
+    VoucherItem(var code, var value) => "Voucher " + code + " -" + value,
+    _ => throw new UnreachableException("unknown item: " + item),
+};
+
+internal static Money Amount(IOrderItem item) => item switch
+{
+    TicketItem ticket => ticket.Price,
+    SnackItem snack => snack.Price,
+    VoucherItem voucher => Money.Zero.Minus(voucher.Value),
+    _ => throw new UnreachableException("unknown item: " + item),
+};
+
 internal static Money Vat(IOrderItem item) => item switch
 {
     TicketItem ticket => VatOf(ticket.Price, 8),
@@ -3082,6 +6250,21 @@ public Money Price(DayOfWeek day, string format)
 {
     return AdjustForDay(day, BasePrice(format));
 }
+
+private static Money BasePrice(string format) => format switch
+{
+    "2D" => Money.Of("25.00"),
+    "3D" => Money.Of("32.00"),
+    "IMAX" => Money.Of("40.00"),
+    _ => throw new ArgumentException("unknown format: " + format),
+};
+
+private static Money AdjustForDay(DayOfWeek day, Money basePrice) => day switch
+{
+    DayOfWeek.Tuesday => basePrice.Minus(basePrice.Percent(30)),
+    DayOfWeek.Saturday or DayOfWeek.Sunday => basePrice.Plus(Money.Of("2.00")),
+    _ => basePrice,
+};
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang cs test m5/s20` - zielone (9 cen i nieznany format).
@@ -3094,7 +6277,7 @@ public Money Price(DayOfWeek day, string format)
 
 1. Utwórz nowy plik `DayPolicy.cs`: delegat `public delegate Money DayPolicy(Money basePrice)` - Strategy w formie delegata.
 2. Utwórz nowy plik `DayPolicies.cs`: statyczna klasa ze stałymi `CheapTuesday`, `Weekend`, `Regular` (lambdy z logiką przeniesioną z `AdjustForDay`) i kalendarzem `Standard(DayOfWeek)`, który dla dnia zwraca politykę.
-3. W `ShowPricing` dodaj pole `Func<DayOfWeek, DayPolicy> _calendar` i konstruktor przyjmujący kalendarz (bezargumentowy deleguje `: this(DayPolicies.Standard)`); `Price` woła `_calendar(day)(BasePrice(format))`, metoda `AdjustForDay` znika. Format zostaje prostym `switch`.
+3. W `ShowPricing` dodaj pole `Func<DayOfWeek, DayPolicy> _calendar` i konstruktor przyjmujący kalendarz ze strażnikiem `ArgumentNullException.ThrowIfNull` (bezargumentowy deleguje `: this(DayPolicies.Standard)`); `Price` woła `_calendar(day)(BasePrice(format))`, metoda `AdjustForDay` znika. Format zostaje prostym `switch`.
 
 **Przed:**
 
@@ -3112,10 +6295,55 @@ private static Money AdjustForDay(DayOfWeek day, Money basePrice) => day switch
 };
 ```
 
-**Po:**
+**Po (`DayPolicy.cs`, nowy plik):**
 
 ```csharp
-return _calendar(day)(BasePrice(format));
+using Training.Workshop.Shared;
+
+/// <summary>Korekta ceny za dzień jako wymienny algorytm - Strategy (delegat).</summary>
+public delegate Money DayPolicy(Money basePrice);
+```
+
+**Po (`DayPolicies.cs`, nowy plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+public static class DayPolicies
+{
+    public static readonly DayPolicy CheapTuesday = basePrice => basePrice.Minus(basePrice.Percent(30));
+    public static readonly DayPolicy Weekend = basePrice => basePrice.Plus(Money.Of("2.00"));
+    public static readonly DayPolicy Regular = basePrice => basePrice;
+
+    public static DayPolicy Standard(DayOfWeek day) => day switch
+    {
+        DayOfWeek.Tuesday => CheapTuesday,
+        DayOfWeek.Saturday or DayOfWeek.Sunday => Weekend,
+        _ => Regular,
+    };
+}
+```
+
+**Po (`ShowPricing.cs`):**
+
+```csharp
+private readonly Func<DayOfWeek, DayPolicy> _calendar;
+
+public ShowPricing()
+    : this(DayPolicies.Standard)
+{
+}
+
+public ShowPricing(Func<DayOfWeek, DayPolicy> calendar)
+{
+    ArgumentNullException.ThrowIfNull(calendar);
+    _calendar = calendar;
+}
+
+public Money Price(DayOfWeek day, string format)
+{
+    return _calendar(day)(BasePrice(format));
+}
 ```
 
 **Uruchom:** test zielony; `PathAMakesANewDayCampaignCheap` dodaje "środę seniora" bez dotykania formatów.
@@ -3149,7 +6377,50 @@ private static Money AdjustForDay(DayOfWeek day, Money basePrice) => day switch
 };
 ```
 
-**Po:**
+**Po (`Format.cs`, nowy plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+public sealed class Format
+{
+    public static readonly Format TwoD = new("2D", "25.00");
+    public static readonly Format ThreeD = new("3D", "32.00");
+    public static readonly Format Imax = new("IMAX", "40.00");
+
+    private static readonly IReadOnlyList<Format> Values = [TwoD, ThreeD, Imax];
+
+    private readonly string _code;
+    private readonly Money _basePrice;
+
+    private Format(string code, string basePrice)
+    {
+        _code = code;
+        _basePrice = Money.Of(basePrice);
+    }
+
+    public static Format Of(string code)
+    {
+        foreach (var format in Values)
+        {
+            if (format._code == code)
+            {
+                return format;
+            }
+        }
+        throw new ArgumentException("unknown format: " + code);
+    }
+
+    public Money PriceOn(DayOfWeek day) => day switch
+    {
+        DayOfWeek.Tuesday => _basePrice.Minus(_basePrice.Percent(30)),
+        DayOfWeek.Saturday or DayOfWeek.Sunday => _basePrice.Plus(Money.Of("2.00")),
+        _ => _basePrice,
+    };
+}
+```
+
+**Po (`ShowPricing.cs`):**
 
 ```csharp
 public Money Price(DayOfWeek day, string format)
@@ -3241,7 +6512,52 @@ switch (deal.Model)
 }
 ```
 
-**Po:**
+**Po (`ISettlementModel.cs`, nowy plik):**
+
+```csharp
+/// <summary>Strategy - wspólny kontrakt modeli rozliczeń.</summary>
+public interface ISettlementModel
+{
+    decimal Payout(Deal deal, int week, decimal ticketRevenue);
+}
+```
+
+**Po (`PercentageModel.cs`, nowy plik):**
+
+```csharp
+public sealed class PercentageModel : ISettlementModel
+{
+    private const decimal MinimumGuarantee = 500.00m;
+
+    public decimal Payout(Deal deal, int week, decimal ticketRevenue)
+    {
+        var percent = week == 1 ? 50 : week == 2 ? 40 : 35;
+        var share = Math.Round(ticketRevenue * percent / 100, 2, MidpointRounding.AwayFromZero);
+        return Math.Max(share, MinimumGuarantee);
+    }
+}
+```
+
+**Po (`FestivalFeeAdapter.cs`, nowy plik):**
+
+```csharp
+public sealed class FestivalFeeAdapter : ISettlementModel
+{
+    private readonly FestivalTariffClient _client;
+
+    public FestivalFeeAdapter(FestivalTariffClient client)
+    {
+        _client = client;
+    }
+
+    public decimal Payout(Deal deal, int week, decimal ticketRevenue)
+    {
+        return _client.WeeklyFeeInCents(deal.Title, week) / 100m;
+    }
+}
+```
+
+**Po (`DistributorSettlement.cs`):**
 
 ```csharp
 private readonly IReadOnlyDictionary<string, ISettlementModel> _models = new Dictionary<string, ISettlementModel>
@@ -3249,6 +6565,15 @@ private readonly IReadOnlyDictionary<string, ISettlementModel> _models = new Dic
     ["PERCENT"] = new PercentageModel(),
     ["FESTIVAL"] = new FestivalFeeAdapter(new FestivalTariffClient()),
 };
+
+public decimal Payout(Deal deal, int week, decimal ticketRevenue)
+{
+    if (!_models.TryGetValue(deal.Model, out var model))
+    {
+        throw new ArgumentException("nieznany model: " + deal.Model);
+    }
+    return model.Payout(deal, week, ticketRevenue);
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang cs test m5/s21` - 18 testów zielonych; `Step1AdapterPaysTheFestivalFeeConvertedFromCents` sprawdza 300.00 i 150.00.
@@ -3309,6 +6634,8 @@ public decimal Payout(Deal deal, int week, decimal ticketRevenue)
 **Po:**
 
 ```csharp
+private const decimal MinimumGuarantee = 500.00m;
+
 public decimal Payout(Deal deal, int week, decimal ticketRevenue)
 {
     if (deal.Model != "PERCENT")
@@ -3316,6 +6643,9 @@ public decimal Payout(Deal deal, int week, decimal ticketRevenue)
         throw new ArgumentException("nieznany model: " + deal.Model);
     }
     var percent = week == 1 ? 50 : week == 2 ? 40 : 35;
+    var share = Math.Round(ticketRevenue * percent / 100, 2, MidpointRounding.AwayFromZero);
+    return Math.Max(share, MinimumGuarantee);
+}
 ```
 
 **Uruchom:** test zielony - model procentowy rozlicza się tak samo przed wzorcem, ze wzorcem i po jego usunięciu.
@@ -3437,6 +6767,8 @@ public SeatBadge(CinemaFacade cinema)
 **Po:**
 
 ```csharp
+private readonly ScreeningCatalog _catalog;
+
 public SeatBadge(ScreeningCatalog catalog)
 {
     ArgumentNullException.ThrowIfNull(catalog);
@@ -3551,7 +6883,29 @@ refund = refund - 3.00;
 **Po:**
 
 ```csharp
-double refund = ticketsPaid * Share(minutesBeforeStart) - 3.00;
+public string Refund(double ticketsPaid, long minutesBeforeStart)
+{
+    double refund = ticketsPaid * Share(minutesBeforeStart) - 3.00;
+    if (refund < 0)
+    {
+        refund = 0;
+    }
+    refund = Math.Floor(refund * 100 + 0.5) / 100.0;
+    return refund.ToString("F2", CultureInfo.InvariantCulture);
+}
+
+private static double Share(long minutesBeforeStart)
+{
+    if (minutesBeforeStart <= 0)
+    {
+        return 0;
+    }
+    if (minutesBeforeStart >= 24 * 60)
+    {
+        return 1.0;
+    }
+    return 0.5;
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang cs test m5/s23` - wszystko zielone, łącznie z przypadkami brzegowymi (29.17 i 0.00 w `RefactoringStepKeepsHistoricalRoundingAndFormat`).
@@ -3676,7 +7030,7 @@ return string.Join(";", typeof(Line).GetProperties().Select(p => p.Name));
 **Zmiany:**
 
 1. Zmień nazwy parametrów `Calc2` (zmiana nazwy): `s` na `sales`, `flag` na `onlineOnly`.
-2. Zmień nazwy zmiennych lokalnych: `m` na `linesByTitle`, `x` na `sale`, `l` na `previous` albo `line` (zależnie od roli), `b` na `csv`, a w `Header` i `Row`: `v` na `values`, `c` i `p` na `property`.
+2. Zmień nazwy zmiennych lokalnych: `m` na `linesByTitle`, `x` na `sale`, `l` w pętli agregującej na `previous`, a w pętli składającej CSV i w parametrze `Row` na `line`, `b` na `csv`; w `Header` i `Row`: `v` na `values`, `c` i `p` na `property`.
 
 **Przed:**
 
@@ -3886,6 +7240,28 @@ if (order.Start.Hour < 12)
 
 ```csharp
 decimal @base = BasePrice(order);
+...
+private decimal BasePrice(Order order)
+{
+    decimal @base;
+    if (order.Format == "IMAX")
+    {
+        @base = 40.00m;
+    }
+    else if (order.Format == "3D")
+    {
+        @base = 32.00m;
+    }
+    else
+    {
+        @base = 25.00m;
+    }
+    if (order.Start.Hour < 12)
+    {
+        @base = @base - 5.00m;
+    }
+    return @base;
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang cs test m5/s25` - 16 testów zielonych.
@@ -3924,6 +7300,34 @@ subtotal = Math.Round(subtotal, 2, MidpointRounding.AwayFromZero);
 decimal @base = BasePrice(order);
 decimal subtotal = Subtotal(order, @base);
 int vipSeats = VipSeats(order);
+...
+private decimal Subtotal(Order order, decimal @base)
+{
+    decimal subtotal = 0.00m;
+    foreach (var row in order.Rows)
+    {
+        decimal price = @base;
+        if (row >= 10)
+        {
+            price = price + 10.00m;
+        }
+        subtotal = subtotal + price;
+    }
+    return Math.Round(subtotal, 2, MidpointRounding.AwayFromZero);
+}
+
+private int VipSeats(Order order)
+{
+    int vipSeats = 0;
+    foreach (var row in order.Rows)
+    {
+        if (row >= 10)
+        {
+            vipSeats++;
+        }
+    }
+    return vipSeats;
+}
 ```
 
 **Uruchom:** test po Split Loop i po każdej ekstrakcji.
@@ -3959,6 +7363,22 @@ public string Describe(Order order)
     decimal subtotal = Subtotal(order, BasePrice(order));
     int vipSeats = VipSeats(order);
     return Render(order, subtotal, vipSeats);
+}
+...
+private string Render(Order order, decimal subtotal, int vipSeats)
+{
+    var text = new StringBuilder();
+    text.Append("BILETY: ").Append(order.Title).Append('\n');
+    text.Append("Format: ").Append(order.Format)
+        .Append(", start ").Append(order.Start.ToString("HH:mm", CultureInfo.InvariantCulture)).Append('\n');
+    text.Append("Miejsc: ").Append(order.Rows.Count);
+    if (vipSeats > 0)
+    {
+        text.Append(" (w tym VIP: ").Append(vipSeats).Append(')');
+    }
+    text.Append('\n');
+    text.Append("Razem: ").Append(subtotal.ToString(CultureInfo.InvariantCulture)).Append('\n');
+    return text.ToString();
 }
 ```
 
@@ -4046,7 +7466,7 @@ switch (status)
 2. Utwórz nowy plik `TicketPricings.cs`: statyczna klasa ze słownikiem kod typu - strategia (lambdy, wspólna metoda pomocnicza `Discounted(percent)`) i metodą `ForType(code)`, która dla nieznanego kodu rzuca `unknown ticket type: X` jak `Start`.
 3. W pętli `Book` zastąp wewnętrzny `switch` po typie biletu wywołaniem strategii.
 
-**Przed:**
+**Przed (`BoxOfficeDesk.cs`, w `Book`):**
 
 ```csharp
 var total = Money.Zero;
@@ -4063,7 +7483,45 @@ for (var i = 3; i < args.Length; i++)
 }
 ```
 
-**Po:**
+**Po (`TicketPricing.cs`, nowy plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+/// <summary>Strategy - wymienny algorytm ceny jednego biletu (delegat).</summary>
+public delegate Money TicketPricing(Money formatBase);
+```
+
+**Po (`TicketPricings.cs`, nowy plik):**
+
+```csharp
+public static class TicketPricings
+{
+    private static readonly IReadOnlyDictionary<string, TicketPricing> ByType = new Dictionary<string, TicketPricing>
+    {
+        ["N"] = formatBase => formatBase,
+        ["S"] = Discounted(25),
+        ["E"] = Discounted(30),
+        ["C"] = Discounted(40),
+    };
+
+    public static TicketPricing ForType(string code)
+    {
+        if (!ByType.TryGetValue(code, out var pricing))
+        {
+            throw new ArgumentException("unknown ticket type: " + code);
+        }
+        return pricing;
+    }
+
+    private static TicketPricing Discounted(int percent)
+    {
+        return formatBase => formatBase.Minus(formatBase.Percent(percent));
+    }
+}
+```
+
+**Po (`BoxOfficeDesk.cs`, w `Book`):**
 
 ```csharp
 for (var i = 3; i < args.Length; i++)
@@ -4084,7 +7542,7 @@ for (var i = 3; i < args.Length; i++)
 2. Utwórz interfejs `IDeskCommand` (`Execute(ledger)`, `Undo(ledger)`, `JournalEntry()`) i po jednej klasie na operację: `BookCommand`, `PayCommand`, `UseCommand`, `CancelCommand`; każda ma fabrykę `From(args)` i pamięta tylko to, czego potrzebuje do cofnięcia.
 3. Pulpit dostaje rejestr `IReadOnlyDictionary<string, Func<string[], IDeskCommand>>` i historię `List<IDeskCommand>` zamiast rekordów `Entry`; `Undo()` woła `last.Undo(_ledger)`, a `Report()` składa dziennik z `JournalEntry()`. UNDO i REPORT zostają w `switch` pulpitu.
 
-**Przed:**
+**Przed (`BoxOfficeDesk.cs`, w `Undo`):**
 
 ```csharp
 var last = _journal[^1];
@@ -4109,13 +7567,382 @@ switch (last.Operation)
 }
 ```
 
-**Po:**
+**Po (`BookingLedger.cs`, nowy plik):**
 
 ```csharp
-var command = factory(args);
-var result = command.Execute(_ledger);
-_history.Add(command);
-return result;
+using Training.Workshop.Shared;
+
+public sealed class BookingLedger
+{
+    private readonly OrderedDictionary<string, Status> _statuses = [];
+    private readonly OrderedDictionary<string, Money> _amounts = [];
+    private Money _till = Money.Zero;
+
+    internal void Open(string id, Money amount)
+    {
+        if (_statuses.ContainsKey(id))
+        {
+            throw new ArgumentException("booking exists: " + id);
+        }
+        _statuses[id] = Status.New;
+        _amounts[id] = amount;
+    }
+
+    internal void Remove(string id)
+    {
+        _statuses.Remove(id);
+        _amounts.Remove(id);
+    }
+
+    internal Status StatusOf(string id)
+    {
+        if (!_statuses.TryGetValue(id, out var status))
+        {
+            throw new ArgumentException("no booking " + id);
+        }
+        return status;
+    }
+
+    internal Money Pay(string id)
+    {
+        var status = StatusOf(id);
+        if (status != Status.New)
+        {
+            throw Invalid("pay", status);
+        }
+        _till = _till.Plus(_amounts[id]);
+        _statuses[id] = Status.Paid;
+        return _amounts[id];
+    }
+
+    internal void Use(string id)
+    {
+        var status = StatusOf(id);
+        if (status != Status.Paid)
+        {
+            throw Invalid("use", status);
+        }
+        _statuses[id] = Status.Used;
+    }
+
+    internal Money Cancel(string id)
+    {
+        var status = StatusOf(id);
+        if (status == Status.New)
+        {
+            _statuses[id] = Status.Cancelled;
+            return Money.Zero;
+        }
+        else if (status == Status.Paid)
+        {
+            _till = _till.Minus(_amounts[id]);
+            _statuses[id] = Status.Cancelled;
+            return _amounts[id];
+        }
+        throw Invalid("cancel", status);
+    }
+
+    internal void Restore(string id, Status previous)
+    {
+        _statuses[id] = previous;
+    }
+
+    internal void Deposit(Money amount)
+    {
+        _till = _till.Plus(amount);
+    }
+
+    internal void Withdraw(Money amount)
+    {
+        _till = _till.Minus(amount);
+    }
+
+    internal string Summary()
+    {
+        var bookings = _statuses.Count == 0 ? "-" : string.Join(", ",
+            _statuses.Select(entry => entry.Key + "=" + entry.Value.ToString().ToUpperInvariant()));
+        return "Kasa: " + _till + "; " + bookings;
+    }
+
+    private static InvalidOperationException Invalid(string action, Status status)
+    {
+        return new InvalidOperationException("cannot " + action + " in " + status.ToString().ToUpperInvariant());
+    }
+}
+```
+
+**Po (`IDeskCommand.cs`, nowy plik):**
+
+```csharp
+public interface IDeskCommand
+{
+    string Execute(BookingLedger ledger);
+
+    void Undo(BookingLedger ledger);
+
+    string JournalEntry();
+
+    /// <summary>Wspólna walidacja poleceń "OPERACJA &lt;id&gt;".</summary>
+    static string IdFrom(string[] args, string operation)
+    {
+        if (args.Length < 2)
+        {
+            throw new ArgumentException(operation + " <id>");
+        }
+        return args[1];
+    }
+}
+```
+
+**Po (`BookCommand.cs`, nowy plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+public sealed class BookCommand : IDeskCommand
+{
+    private static readonly IReadOnlyDictionary<string, Money> Formats = new Dictionary<string, Money>
+    {
+        ["2D"] = Money.Of("25.00"),
+        ["3D"] = Money.Of("32.00"),
+        ["IMAX"] = Money.Of("40.00"),
+    };
+
+    private readonly string _id;
+    private readonly string _format;
+    private readonly IReadOnlyList<string> _ticketTypes;
+
+    private BookCommand(string id, string format, IEnumerable<string> ticketTypes)
+    {
+        _id = id;
+        _format = format;
+        _ticketTypes = ticketTypes.ToList();
+    }
+
+    internal static BookCommand From(string[] args)
+    {
+        if (args.Length < 4)
+        {
+            throw new ArgumentException("BOOK <id> <format> <typ>...");
+        }
+        return new BookCommand(args[1], args[2], args[3..]);
+    }
+
+    public string Execute(BookingLedger ledger)
+    {
+        if (!Formats.TryGetValue(_format, out var basePrice))
+        {
+            throw new ArgumentException("unknown format: " + _format);
+        }
+        var total = Money.Zero;
+        foreach (var type in _ticketTypes)
+        {
+            total = total.Plus(TicketPricings.ForType(type).Invoke(basePrice));
+        }
+        ledger.Open(_id, total);
+        return _id + " NEW " + total;
+    }
+
+    public void Undo(BookingLedger ledger)
+    {
+        ledger.Remove(_id);
+    }
+
+    public string JournalEntry()
+    {
+        return "BOOK " + _id;
+    }
+}
+```
+
+**Po (`PayCommand.cs`, nowy plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+public sealed class PayCommand : IDeskCommand
+{
+    private readonly string _id;
+    private Status _previous;
+    private Money _paid = Money.Zero;
+
+    private PayCommand(string id)
+    {
+        _id = id;
+    }
+
+    internal static PayCommand From(string[] args)
+    {
+        return new PayCommand(IDeskCommand.IdFrom(args, "PAY"));
+    }
+
+    public string Execute(BookingLedger ledger)
+    {
+        _previous = ledger.StatusOf(_id);
+        _paid = ledger.Pay(_id);
+        return _id + " PAID " + _paid;
+    }
+
+    public void Undo(BookingLedger ledger)
+    {
+        ledger.Withdraw(_paid);
+        ledger.Restore(_id, _previous);
+    }
+
+    public string JournalEntry()
+    {
+        return "PAY " + _id;
+    }
+}
+```
+
+**Po (`UseCommand.cs`, nowy plik):**
+
+```csharp
+public sealed class UseCommand : IDeskCommand
+{
+    private readonly string _id;
+    private Status _previous;
+
+    private UseCommand(string id)
+    {
+        _id = id;
+    }
+
+    internal static UseCommand From(string[] args)
+    {
+        return new UseCommand(IDeskCommand.IdFrom(args, "USE"));
+    }
+
+    public string Execute(BookingLedger ledger)
+    {
+        _previous = ledger.StatusOf(_id);
+        ledger.Use(_id);
+        return _id + " USED";
+    }
+
+    public void Undo(BookingLedger ledger)
+    {
+        ledger.Restore(_id, _previous);
+    }
+
+    public string JournalEntry()
+    {
+        return "USE " + _id;
+    }
+}
+```
+
+**Po (`CancelCommand.cs`, nowy plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+public sealed class CancelCommand : IDeskCommand
+{
+    private readonly string _id;
+    private Status _previous;
+    private Money _refunded = Money.Zero;
+
+    private CancelCommand(string id)
+    {
+        _id = id;
+    }
+
+    internal static CancelCommand From(string[] args)
+    {
+        return new CancelCommand(IDeskCommand.IdFrom(args, "CANCEL"));
+    }
+
+    public string Execute(BookingLedger ledger)
+    {
+        _previous = ledger.StatusOf(_id);
+        _refunded = ledger.Cancel(_id);
+        return _id + " CANCELLED" + (_refunded.IsGreaterThan(Money.Zero) ? " zwrot " + _refunded : "");
+    }
+
+    public void Undo(BookingLedger ledger)
+    {
+        ledger.Deposit(_refunded);
+        ledger.Restore(_id, _previous);
+    }
+
+    public string JournalEntry()
+    {
+        return "CANCEL " + _id;
+    }
+}
+```
+
+**Po (`BoxOfficeDesk.cs`, cały plik - pulpit został tylko dyspozytorem):**
+
+```csharp
+using System.Text.RegularExpressions;
+
+public sealed class BoxOfficeDesk
+{
+    private static readonly IReadOnlyDictionary<string, Func<string[], IDeskCommand>> Commands =
+        new Dictionary<string, Func<string[], IDeskCommand>>
+        {
+            ["BOOK"] = BookCommand.From,
+            ["PAY"] = PayCommand.From,
+            ["USE"] = UseCommand.From,
+            ["CANCEL"] = CancelCommand.From,
+        };
+
+    private readonly BookingLedger _ledger = new();
+    private readonly List<IDeskCommand> _history = [];
+
+    public string Handle(string line)
+    {
+        var args = Regex.Split(line.Trim(), " +");
+        var operation = args[0].ToUpperInvariant();
+        try
+        {
+            return operation switch
+            {
+                "UNDO" => Undo(),
+                "REPORT" => Report(),
+                _ => Execute(operation, args),
+            };
+        }
+        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)
+        {
+            return "Blad: " + exception.Message;
+        }
+    }
+
+    private string Execute(string operation, string[] args)
+    {
+        if (!Commands.TryGetValue(operation, out var factory))
+        {
+            return "Nieznana operacja: " + args[0];
+        }
+        var command = factory(args);
+        var result = command.Execute(_ledger);
+        _history.Add(command);
+        return result;
+    }
+
+    private string Undo()
+    {
+        if (_history.Count == 0)
+        {
+            throw new InvalidOperationException("nothing to undo");
+        }
+        var last = _history[^1];
+        _history.RemoveAt(_history.Count - 1);
+        last.Undo(_ledger);
+        return "Cofnieto: " + last.JournalEntry();
+    }
+
+    private string Report()
+    {
+        var log = _history.Count == 0 ? "-" : string.Join(", ",
+            _history.Select(command => command.JournalEntry()));
+        return _ledger.Summary() + "; dziennik: " + log;
+    }
+}
 ```
 
 **Uruchom:** test zielony.
@@ -4130,7 +7957,7 @@ return result;
 2. Wewnątrz `Booking` dodaj prywatną klasę abstrakcyjną `State`: obiekty `New`, `Paid`, `Used`, `Cancelled`, fabryka `State.Of(Status)`, metody bazowe rzucają `cannot <akcja> in <STATUS>`. Warunki z `BookingLedger.Pay/Use/Cancel` przenieś do podklas stanu: `NewState` nadpisuje `Pay` i `Cancel`, `PaidState` nadpisuje `Use` i `Cancel`, `FinalState` (Used, Cancelled) nie nadpisuje niczego.
 3. `BookingLedger` trzyma teraz jeden `OrderedDictionary<string, Booking>` zamiast dwóch słowników i tylko przesuwa pieniądze w kasie; przejścia statusów wykonuje `Booking`.
 
-**Przed:**
+**Przed (`BookingLedger.cs`, przykład warunków po statusie):**
 
 ```csharp
 internal Money Cancel(string id)
@@ -4151,23 +7978,193 @@ internal Money Cancel(string id)
 }
 ```
 
-**Po:**
+**Po (`Booking.cs`, nowy plik):**
 
 ```csharp
-private sealed class NewState : State
-{
-    public override Status Status => Status.New;
+using Training.Workshop.Shared;
 
-    public override Money Pay(Booking booking)
+public sealed class Booking
+{
+    private readonly Money _amount;
+    private State _state = State.New;
+
+    public Booking(Money amount)
     {
-        booking._state = Paid;
-        return booking._amount;
+        ArgumentNullException.ThrowIfNull(amount);
+        _amount = amount;
     }
 
-    public override Money Cancel(Booking booking)
+    public Status Status => _state.Status;
+
+    /// <summary>Zwraca kwotę pobraną do kasy.</summary>
+    public Money Pay()
     {
-        booking._state = Cancelled;
-        return Money.Zero;
+        return _state.Pay(this);
+    }
+
+    public void Use()
+    {
+        _state.Use(this);
+    }
+
+    /// <summary>Zwraca kwotę oddaną klientowi (zero, gdy rezerwacja nie była opłacona).</summary>
+    public Money Cancel()
+    {
+        return _state.Cancel(this);
+    }
+
+    /// <summary>Dla cofania poleceń: powrót do zapamiętanego stanu z pominięciem reguł przejść.</summary>
+    internal void Restore(Status status)
+    {
+        _state = State.Of(status);
+    }
+
+    private abstract class State
+    {
+        public static readonly State New = new NewState();
+        public static readonly State Paid = new PaidState();
+        public static readonly State Used = new FinalState(Status.Used);
+        public static readonly State Cancelled = new FinalState(Status.Cancelled);
+
+        public abstract Status Status { get; }
+
+        public static State Of(Status status) => status switch
+        {
+            Status.New => New,
+            Status.Paid => Paid,
+            Status.Used => Used,
+            Status.Cancelled => Cancelled,
+            _ => throw new ArgumentOutOfRangeException(nameof(status), status, null),
+        };
+
+        public virtual Money Pay(Booking booking) => throw Invalid("pay");
+
+        public virtual void Use(Booking booking) => throw Invalid("use");
+
+        public virtual Money Cancel(Booking booking) => throw Invalid("cancel");
+
+        private InvalidOperationException Invalid(string action) =>
+            new("cannot " + action + " in " + Status.ToString().ToUpperInvariant());
+
+        private sealed class NewState : State
+        {
+            public override Status Status => Status.New;
+
+            public override Money Pay(Booking booking)
+            {
+                booking._state = Paid;
+                return booking._amount;
+            }
+
+            public override Money Cancel(Booking booking)
+            {
+                booking._state = Cancelled;
+                return Money.Zero;
+            }
+        }
+
+        private sealed class PaidState : State
+        {
+            public override Status Status => Status.Paid;
+
+            public override void Use(Booking booking)
+            {
+                booking._state = Used;
+            }
+
+            public override Money Cancel(Booking booking)
+            {
+                booking._state = Cancelled;
+                return booking._amount;
+            }
+        }
+
+        /// <summary>Stany końcowe (Used, Cancelled) - żadne przejście nie jest dozwolone.</summary>
+        private sealed class FinalState(Status status) : State
+        {
+            public override Status Status => status;
+        }
+    }
+}
+```
+
+**Po (`BookingLedger.cs`, cały plik - bez warunków po statusie):**
+
+```csharp
+using Training.Workshop.Shared;
+
+public sealed class BookingLedger
+{
+    private readonly OrderedDictionary<string, Booking> _bookings = [];
+    private Money _till = Money.Zero;
+
+    internal void Open(string id, Money amount)
+    {
+        if (_bookings.ContainsKey(id))
+        {
+            throw new ArgumentException("booking exists: " + id);
+        }
+        _bookings[id] = new Booking(amount);
+    }
+
+    internal void Remove(string id)
+    {
+        _bookings.Remove(id);
+    }
+
+    internal Status StatusOf(string id)
+    {
+        return Booking(id).Status;
+    }
+
+    internal Money Pay(string id)
+    {
+        var paid = Booking(id).Pay();
+        _till = _till.Plus(paid);
+        return paid;
+    }
+
+    internal void Use(string id)
+    {
+        Booking(id).Use();
+    }
+
+    internal Money Cancel(string id)
+    {
+        var refunded = Booking(id).Cancel();
+        _till = _till.Minus(refunded);
+        return refunded;
+    }
+
+    internal void Restore(string id, Status previous)
+    {
+        Booking(id).Restore(previous);
+    }
+
+    internal void Deposit(Money amount)
+    {
+        _till = _till.Plus(amount);
+    }
+
+    internal void Withdraw(Money amount)
+    {
+        _till = _till.Minus(amount);
+    }
+
+    internal string Summary()
+    {
+        var list = _bookings.Count == 0 ? "-" : string.Join(", ",
+            _bookings.Select(entry => entry.Key + "=" + entry.Value.Status.ToString().ToUpperInvariant()));
+        return "Kasa: " + _till + "; " + list;
+    }
+
+    private Booking Booking(string id)
+    {
+        if (!_bookings.TryGetValue(id, out var booking))
+        {
+            throw new ArgumentException("no booking " + id);
+        }
+        return booking;
     }
 }
 ```
@@ -4236,7 +8233,7 @@ public string Render(DateOnly day, IReadOnlyList<ScreeningSale> sales)
 2. Do `ScreeningReport` dodaj pole `_format` i konstruktor `protected ScreeningReport(IReportFormat format)`; w `Render` zamień wywołania haków na `_format.Header(...)`, `_format.Row(...)`, `_format.Footer(...)`.
 3. Usuń trzy haki formatu z bazy i z podklas; każda podklasa woła `: base(new CsvFormat())` albo `: base(new TextFormat())`.
 
-**Przed:**
+**Przed (`ScreeningReport.cs`):**
 
 ```csharp
 var text = new StringBuilder(Header(Label(day)));
@@ -4251,7 +8248,94 @@ protected abstract string Row(string title, int tickets, Money revenue);
 protected abstract string Footer(int tickets, Money revenue);
 ```
 
-**Po:**
+**Po (`IReportFormat.cs`, nowy plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+/// <summary>Strategy dla osi "format" - trzy haki formatu wyjęte z hierarchii.</summary>
+public interface IReportFormat
+{
+    string Header(string label);
+
+    string Row(string title, int tickets, Money revenue);
+
+    string Footer(int tickets, Money revenue);
+}
+```
+
+**Po (`CsvFormat.cs`, nowy plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+public sealed class CsvFormat : IReportFormat
+{
+    public string Header(string label)
+    {
+        return "# raport " + label + "\nfilm;bilety;przychod\n";
+    }
+
+    public string Row(string title, int tickets, Money revenue)
+    {
+        var cell = title.Contains(';') ? "\"" + title + "\"" : title;
+        return cell + ";" + tickets + ";" + revenue + "\n";
+    }
+
+    public string Footer(int tickets, Money revenue)
+    {
+        return "SUMA;" + tickets + ";" + revenue + "\n";
+    }
+}
+```
+
+**Po (`TextFormat.cs`, nowy plik):**
+
+```csharp
+using System.Globalization;
+using Training.Workshop.Shared;
+
+public sealed class TextFormat : IReportFormat
+{
+    public string Header(string label)
+    {
+        return "RAPORT " + label.ToUpperInvariant() + "\n" + new string('-', 37) + "\n";
+    }
+
+    public string Row(string title, int tickets, Money revenue)
+    {
+        return string.Format(CultureInfo.InvariantCulture, "{0,-20} {1,5} {2,10}", title, tickets, revenue) + "\n";
+    }
+
+    public string Footer(int tickets, Money revenue)
+    {
+        return new string('-', 37) + "\n" + Row("RAZEM", tickets, revenue);
+    }
+}
+```
+
+**Po (`ScreeningReport.cs`):**
+
+```csharp
+private readonly IReportFormat _format;
+
+protected ScreeningReport(IReportFormat format)
+{
+    ArgumentNullException.ThrowIfNull(format);
+    _format = format;
+}
+...
+var text = new StringBuilder(_format.Header(Label(day)));
+var total = new Line(0, Money.Zero);
+foreach (var entry in byTitle)
+{
+    text.Append(_format.Row(entry.Key, entry.Value.Tickets, entry.Value.Revenue));
+    total = total.Plus(entry.Value);
+}
+return text.Append(_format.Footer(total.Tickets, total.Revenue)).ToString();
+```
+
+**Po (`DailyCsvReport.cs`; analogicznie pozostałe podklasy):**
 
 ```csharp
 public DailyCsvReport()
@@ -4272,7 +8356,7 @@ public DailyCsvReport()
 2. Konstruktor bazy przyjmuje obie strategie: `ScreeningReport(IReportPeriod period, IReportFormat format)`; w `Render` wołaj `_period.Includes(...)` i `_period.Label(...)`.
 3. Z podklas znikają ostatnie haki - każda to już tylko konfiguracja konstruktora.
 
-**Przed:**
+**Przed (`DailyCsvReport.cs`):**
 
 ```csharp
 public sealed class DailyCsvReport : ScreeningReport
@@ -4294,7 +8378,85 @@ public sealed class DailyCsvReport : ScreeningReport
 }
 ```
 
-**Po:**
+**Po (`IReportPeriod.cs`, nowy plik):**
+
+```csharp
+/// <summary>Strategy dla osi "okres" - dwa haki okresu wyjęte z hierarchii.</summary>
+public interface IReportPeriod
+{
+    bool Includes(DateOnly day, DateOnly saleDay);
+
+    string Label(DateOnly day);
+}
+```
+
+**Po (`DailyPeriod.cs`, nowy plik):**
+
+```csharp
+using System.Globalization;
+
+public sealed class DailyPeriod : IReportPeriod
+{
+    public bool Includes(DateOnly day, DateOnly saleDay)
+    {
+        return saleDay == day;
+    }
+
+    public string Label(DateOnly day)
+    {
+        return "dzien " + day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+    }
+}
+```
+
+**Po (`WeeklyPeriod.cs`, nowy plik):**
+
+```csharp
+using System.Globalization;
+
+public sealed class WeeklyPeriod : IReportPeriod
+{
+    public bool Includes(DateOnly day, DateOnly saleDay)
+    {
+        var monday = Monday(day);
+        return saleDay >= monday && saleDay <= monday.AddDays(6);
+    }
+
+    public string Label(DateOnly day)
+    {
+        var monday = Monday(day);
+        return "tydzien " + monday.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
+            + ".." + monday.AddDays(6).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+    }
+
+    /// <summary>Poniedziałek tego samego tygodnia (DayOfWeek liczy od niedzieli = 0).</summary>
+    private static DateOnly Monday(DateOnly day)
+    {
+        return day.AddDays(-(((int)day.DayOfWeek + 6) % 7));
+    }
+}
+```
+
+**Po (`ScreeningReport.cs`):**
+
+```csharp
+private readonly IReportPeriod _period;
+private readonly IReportFormat _format;
+
+protected ScreeningReport(IReportPeriod period, IReportFormat format)
+{
+    ArgumentNullException.ThrowIfNull(period);
+    ArgumentNullException.ThrowIfNull(format);
+    _period = period;
+    _format = format;
+}
+...
+if (_period.Includes(day, sale.Day))
+...
+var text = new StringBuilder(_format.Header(_period.Label(day)));
+```
+
+**Po (`WeeklyTextReport.cs`; analogicznie pozostałe podklasy):**
 
 ```csharp
 public WeeklyTextReport()
@@ -4312,7 +8474,7 @@ public WeeklyTextReport()
 **Zmiany:**
 
 1. W `ScreeningReport` usuń `abstract`, oznacz klasę `sealed` i zrób konstruktor publiczny.
-2. W `Reports` dodaj dwa słowniki `Periods` i `Formats`; `Of` sprawdza najpierw okres, potem format (te same komunikaty błędów) i zwraca `new ScreeningReport(chosenPeriod, chosenFormat)`.
+2. W `Reports` dodaj dwa słowniki `Periods` i `Formats`; `Of` sprawdza najpierw okres, potem format (te same komunikaty błędów) i zwraca `new ScreeningReport(chosenPeriod, chosenFormat)`; pomocnicze `UnknownFormat` znika.
 3. Usuń cztery pliki podklas `Daily*Report` i `Weekly*Report` (bezpieczne usunięcie - wcześniej upewnij się, że nikt nie używa ich typów).
 
 **Przed:**
@@ -4336,18 +8498,33 @@ return period switch
 };
 ```
 
-**Po:**
+**Po (`Reports.cs`):**
 
 ```csharp
-if (!Periods.TryGetValue(period, out var chosenPeriod))
+private static readonly IReadOnlyDictionary<string, IReportPeriod> Periods = new Dictionary<string, IReportPeriod>
 {
-    throw new ArgumentException("unknown period: " + period);
-}
-if (!Formats.TryGetValue(format, out var chosenFormat))
+    ["DAILY"] = new DailyPeriod(),
+    ["WEEKLY"] = new WeeklyPeriod(),
+};
+
+private static readonly IReadOnlyDictionary<string, IReportFormat> Formats = new Dictionary<string, IReportFormat>
 {
-    throw new ArgumentException("unknown format: " + format);
+    ["CSV"] = new CsvFormat(),
+    ["TEXT"] = new TextFormat(),
+};
+
+public static ScreeningReport Of(string period, string format)
+{
+    if (!Periods.TryGetValue(period, out var chosenPeriod))
+    {
+        throw new ArgumentException("unknown period: " + period);
+    }
+    if (!Formats.TryGetValue(format, out var chosenFormat))
+    {
+        throw new ArgumentException("unknown format: " + format);
+    }
+    return new ScreeningReport(chosenPeriod, chosenFormat);
 }
-return new ScreeningReport(chosenPeriod, chosenFormat);
 ```
 
 **Uruchom:** test zielony; `S27SolutionTest.NewFormatWorksWithEveryPeriodWithoutNewClasses` dodaje format Markdown jedną klasą testową i od razu używa go z oboma okresami, a `CombinationSubclassesAreGone` sprawdza, że podklas już nie ma.
@@ -4430,9 +8607,37 @@ else if ((request.ScreeningStart - request.RequestedAt).TotalHours >= 24)
 }
 ```
 
-**Po:**
+**Po (`IRefundHandler.cs`, nowy plik):**
 
 ```csharp
+/// <summary>Ogniwo decyzji - pusta odpowiedź (null) znaczy "to nie moja sprawa, pytaj dalej".</summary>
+public interface IRefundHandler
+{
+    RefundDecision? Handle(RefundRequest request);
+}
+```
+
+**Po (`AfterScreeningHandler.cs`, nowy plik):**
+
+```csharp
+public sealed class AfterScreeningHandler : IRefundHandler
+{
+    public RefundDecision? Handle(RefundRequest request)
+    {
+        if (!(request.RequestedAt < request.ScreeningStart))
+        {
+            return RefundDecision.Rejected("seans juz sie rozpoczal");
+        }
+        return null;
+    }
+}
+```
+
+**Po (`RefundApprover.cs`):**
+
+```csharp
+private readonly IRefundHandler _afterScreening = new AfterScreeningHandler();
+...
 var decision = _afterScreening.Handle(request);
 if (decision != null)
 {
@@ -4479,9 +8684,59 @@ else if (!request.Amount.IsGreaterThan(ManagerLimit))
 return RefundDecision.Rejected("brak uprawnionego zatwierdzajacego");
 ```
 
-**Po:**
+**Po (`AutoRefundHandler.cs`, nowy plik):**
 
 ```csharp
+public sealed class AutoRefundHandler : IRefundHandler
+{
+    public RefundDecision? Handle(RefundRequest request)
+    {
+        if ((request.ScreeningStart - request.RequestedAt).TotalHours >= 24)
+        {
+            return RefundDecision.ApprovedBy("AUTO");
+        }
+        return null;
+    }
+}
+```
+
+**Po (`CashierHandler.cs`, nowy plik; `ManagerHandler.cs` analogicznie z `"MANAGER"`):**
+
+```csharp
+using Training.Workshop.Shared;
+
+public sealed class CashierHandler : IRefundHandler
+{
+    private readonly Money _limit;
+
+    public CashierHandler(Money limit)
+    {
+        ArgumentNullException.ThrowIfNull(limit);
+        _limit = limit;
+    }
+
+    public RefundDecision? Handle(RefundRequest request)
+    {
+        if (!request.Amount.IsGreaterThan(_limit))
+        {
+            return RefundDecision.ApprovedBy("CASHIER");
+        }
+        return null;
+    }
+}
+```
+
+**Po (`RefundApprover.cs`):**
+
+```csharp
+private readonly IReadOnlyList<IRefundHandler> _handlers =
+[
+    new AfterScreeningHandler(),
+    new AutoRefundHandler(),
+    new CashierHandler(CashierLimit),
+    new ManagerHandler(ManagerLimit),
+];
+...
 foreach (var handler in _handlers)
 {
     var decision = handler.Handle(request);
@@ -4527,9 +8782,62 @@ foreach (var handler in _handlers)
 return RefundDecision.Rejected("brak uprawnionego zatwierdzajacego");
 ```
 
-**Po:**
+**Po (`IRefundHandler.cs`):**
 
 ```csharp
+/// <summary>Ogniwo zawsze zwraca decyzję: własną (i zatrzymuje łańcuch) albo następnika.</summary>
+public interface IRefundHandler
+{
+    RefundDecision Handle(RefundRequest request);
+}
+```
+
+**Po (`CashierHandler.cs`; `ManagerHandler.cs` analogicznie, a `AfterScreeningHandler.cs` i `AutoRefundHandler.cs` tak samo, tylko bez `_limit`):**
+
+```csharp
+using Training.Workshop.Shared;
+
+public sealed class CashierHandler : IRefundHandler
+{
+    private readonly Money _limit;
+    private readonly IRefundHandler _next;
+
+    public CashierHandler(Money limit, IRefundHandler next)
+    {
+        ArgumentNullException.ThrowIfNull(limit);
+        ArgumentNullException.ThrowIfNull(next);
+        _limit = limit;
+        _next = next;
+    }
+
+    public RefundDecision Handle(RefundRequest request)
+    {
+        if (!request.Amount.IsGreaterThan(_limit))
+        {
+            return RefundDecision.ApprovedBy("CASHIER");
+        }
+        return _next.Handle(request);
+    }
+}
+```
+
+**Po (`NoApproverHandler.cs`, nowy plik):**
+
+```csharp
+public sealed class NoApproverHandler : IRefundHandler
+{
+    public RefundDecision Handle(RefundRequest request)
+    {
+        return RefundDecision.Rejected("brak uprawnionego zatwierdzajacego");
+    }
+}
+```
+
+**Po (`RefundApprover.cs`):**
+
+```csharp
+private readonly IRefundHandler _chain;
+
 public RefundApprover()
     : this(new AfterScreeningHandler(
         new AutoRefundHandler(
@@ -4537,6 +8845,21 @@ public RefundApprover()
                 new ManagerHandler(ManagerLimit,
                     new NoApproverHandler())))))
 {
+}
+
+public RefundApprover(IRefundHandler chain)
+{
+    ArgumentNullException.ThrowIfNull(chain);
+    _chain = chain;
+}
+
+public RefundDecision Decide(RefundRequest request)
+{
+    if (!request.Amount.IsGreaterThan(Money.Zero))
+    {
+        throw new ArgumentException("amount must be positive");
+    }
+    return _chain.Handle(request);
 }
 ```
 
@@ -4626,18 +8949,116 @@ if (authorized < grosze)
 return "PAID " + parts[1];
 ```
 
-**Po:**
+**Po (`PaymentConfirmation.cs`, nowy plik):**
 
 ```csharp
-var confirmation = Parse(_terminal.Authorize(bookingId, grosze));
-_confirmations[bookingId] = confirmation;
-if (!confirmation.Approved)
+using Training.Workshop.Shared;
+
+/// <summary>Wynik autoryzacji w języku kina (w Javie typ zagnieżdżony PaymentConfirmation.Outcome).</summary>
+public enum Outcome { Approved, Declined, Error }
+
+/// <summary>Boundary Object: obiekt, który istnieje, jest poprawny. Właściwości bez init - with nie ominie walidacji.</summary>
+public sealed record PaymentConfirmation
 {
-    return confirmation.Outcome.ToString().ToUpperInvariant() + " " + confirmation.Code;
+    public PaymentConfirmation(Outcome outcome, string code, Money authorized)
+    {
+        ArgumentNullException.ThrowIfNull(authorized);
+        if (string.IsNullOrWhiteSpace(code))
+        {
+            throw new ArgumentException("code must not be blank", nameof(code));
+        }
+        if (authorized.CompareTo(Money.Zero) < 0)
+        {
+            throw new ArgumentException("authorized amount must not be negative", nameof(authorized));
+        }
+        if (outcome != Outcome.Approved && authorized.IsGreaterThan(Money.Zero))
+        {
+            throw new ArgumentException("only approved payment can authorize money", nameof(authorized));
+        }
+        Outcome = outcome;
+        Code = code;
+        Authorized = authorized;
+    }
+
+    public Outcome Outcome { get; }
+
+    public string Code { get; }
+
+    public Money Authorized { get; }
+
+    public bool Approved => Outcome == Outcome.Approved;
+
+    /// <summary>Autoryzacja częściowa: terminal zgodził się na mniej, niż prosiliśmy.</summary>
+    public bool IsPartialFor(Money requested)
+    {
+        return Approved && Authorized.CompareTo(requested) < 0;
+    }
 }
-if (confirmation.IsPartialFor(amount))
+```
+
+**Po (`PaymentService.cs`):**
+
+```csharp
+private readonly Dictionary<string, PaymentConfirmation> _confirmations = [];
+...
+public string Pay(string bookingId, Money amount)
 {
-    return "PARTIAL " + confirmation.Code + " brakuje " + amount.Minus(confirmation.Authorized);
+    var grosze = decimal.ToInt64(amount.Amount * 100);
+    var confirmation = Parse(_terminal.Authorize(bookingId, grosze));
+    _confirmations[bookingId] = confirmation;
+    if (!confirmation.Approved)
+    {
+        return confirmation.Outcome.ToString().ToUpperInvariant() + " " + confirmation.Code;
+    }
+    if (confirmation.IsPartialFor(amount))
+    {
+        return "PARTIAL " + confirmation.Code + " brakuje " + amount.Minus(confirmation.Authorized);
+    }
+    return "PAID " + confirmation.Code;
+}
+
+public string Receipt(string bookingId)
+{
+    if (!_confirmations.TryGetValue(bookingId, out var confirmation))
+    {
+        return "Brak platnosci " + bookingId;
+    }
+    if (!confirmation.Approved)
+    {
+        return "Platnosc " + bookingId + " nieudana: " + confirmation.Code;
+    }
+    return "Platnosc " + bookingId + ": " + confirmation.Authorized + " (" + confirmation.Code + ")";
+}
+
+public Money TotalAuthorized()
+{
+    var total = Money.Zero;
+    foreach (var confirmation in _confirmations.Values)
+    {
+        total = total.Plus(confirmation.Authorized);
+    }
+    return total;
+}
+
+private static PaymentConfirmation Parse(string raw)
+{
+    var parts = raw.Split(';');
+    if (parts.Length != 3)
+    {
+        throw new ArgumentException("malformed terminal response: " + raw);
+    }
+    var outcome = parts[0] switch
+    {
+        "OK" => Outcome.Approved,
+        "DECLINED" => Outcome.Declined,
+        "ERROR" => Outcome.Error,
+        _ => throw new ArgumentException("malformed terminal response: " + raw),
+    };
+    if (!decimal.TryParse(parts[2], NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out var grosze))
+    {
+        throw new ArgumentException("malformed terminal response: " + raw);
+    }
+    return new PaymentConfirmation(outcome, parts[1], new Money(grosze / 100m));
 }
 ```
 
@@ -4673,9 +9094,49 @@ private static PaymentConfirmation Parse(string raw)
 }
 ```
 
-**Po:**
+**Po (`TerminalResponseMapper.cs`, nowy plik):**
 
 ```csharp
+using System.Globalization;
+using Training.Workshop.Shared;
+
+public sealed class TerminalResponseMapper
+{
+    public long ToGrosze(Money amount)
+    {
+        return decimal.ToInt64(amount.Amount * 100);
+    }
+
+    public PaymentConfirmation ToConfirmation(string raw)
+    {
+        var parts = raw.Split(';');
+        if (parts.Length != 3)
+        {
+            throw Malformed(raw);
+        }
+        var outcome = parts[0] switch
+        {
+            "OK" => Outcome.Approved,
+            "DECLINED" => Outcome.Declined,
+            "ERROR" => Outcome.Error,
+            _ => throw Malformed(raw),
+        };
+        if (!decimal.TryParse(parts[2], NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out var grosze))
+        {
+            throw Malformed(raw);
+        }
+        return new PaymentConfirmation(outcome, parts[1], new Money(grosze / 100m));
+    }
+
+    private static ArgumentException Malformed(string raw) => new("malformed terminal response: " + raw);
+}
+```
+
+**Po (`PaymentService.cs`, w `Pay`):**
+
+```csharp
+private readonly TerminalResponseMapper _mapper = new();
+...
 var raw = _terminal.Authorize(bookingId, _mapper.ToGrosze(amount));
 var confirmation = _mapper.ToConfirmation(raw);
 ```
@@ -4706,7 +9167,57 @@ public string Pay(string bookingId, Money amount)
 }
 ```
 
-**Po:**
+**Po (`IPaymentTerminal.cs`, nowy plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+/// <summary>Port domeny - terminal widziany oczami kina: Money na wejściu, obiekt graniczny na wyjściu.</summary>
+public interface IPaymentTerminal
+{
+    PaymentConfirmation Authorize(string bookingId, Money amount);
+}
+```
+
+**Po (`LegacyTerminalAdapter.cs`, nowy plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+public sealed class LegacyTerminalAdapter : IPaymentTerminal
+{
+    private readonly LegacyTerminalClient _client;
+    private readonly TerminalResponseMapper _mapper = new();
+
+    public LegacyTerminalAdapter(LegacyTerminalClient client)
+    {
+        ArgumentNullException.ThrowIfNull(client);
+        _client = client;
+    }
+
+    public PaymentConfirmation Authorize(string bookingId, Money amount)
+    {
+        return _mapper.ToConfirmation(_client.Authorize(bookingId, _mapper.ToGrosze(amount)));
+    }
+}
+```
+
+**Po (`PaymentService.cs`; dwie pierwsze linie `Pay` zastępuje jedna, reszta metody bez zmian):**
+
+```csharp
+private readonly IPaymentTerminal _terminal;
+private readonly Dictionary<string, PaymentConfirmation> _confirmations = [];
+
+public PaymentService(IPaymentTerminal terminal)
+{
+    ArgumentNullException.ThrowIfNull(terminal);
+    _terminal = terminal;
+}
+...
+var confirmation = _terminal.Authorize(bookingId, amount);
+```
+
+**Po (`PaymentModule.cs`):**
 
 ```csharp
 public static PaymentService PaymentService(LegacyTerminalClient terminal)
@@ -4782,7 +9293,7 @@ if (!_payments.Charge(order.Card, total))
 2. Przenieś `Book` do nowej klasy `BookingFacade` (przeniesienie metody) z czterema podsystemami w konstruktorze.
 3. W `OnlineShop` zostają pole `_booking` i stała `BookingFee`; `Cinema` tworzy fasadę i podaje ją sklepowi. Kasa bez zmian.
 
-**Przed:**
+**Przed (`OnlineShop.cs`):**
 
 ```csharp
 public string Buy(TicketOrder order)
@@ -4806,12 +9317,82 @@ public string Buy(TicketOrder order)
 }
 ```
 
-**Po:**
+**Po (`BookingFacade.cs`, nowy plik):**
 
 ```csharp
-public string Buy(TicketOrder order)
+using Training.Workshop.Shared;
+
+public sealed class BookingFacade
 {
-    return _booking.Book(order, BookingFee);
+    private readonly SeatRegistry _seats;
+    private readonly PriceList _prices;
+    private readonly PaymentClient _payments;
+    private readonly TicketMailer _mailer;
+
+    public BookingFacade(SeatRegistry seats, PriceList prices, PaymentClient payments, TicketMailer mailer)
+    {
+        _seats = seats;
+        _prices = prices;
+        _payments = payments;
+        _mailer = mailer;
+    }
+
+    public string Book(TicketOrder order, Money feePerSeat)
+    {
+        var total = _prices.Price(order.TicketType).Plus(feePerSeat).Times(order.Seats.Count);
+        try
+        {
+            _seats.Reserve(order.Screening, order.Seats);
+        }
+        catch (InvalidOperationException exception)
+        {
+            return "ERROR " + exception.Message;
+        }
+        if (!_payments.Charge(order.Card, total))
+        {
+            _seats.Release(order.Screening, order.Seats);
+            return "ERROR payment declined";
+        }
+        _mailer.Send(order.Email, "Bilety " + order.Screening + " " + string.Join(",", order.Seats) + " = " + total);
+        return "OK " + total;
+    }
+}
+```
+
+**Po (`OnlineShop.cs`, cały plik):**
+
+```csharp
+using Training.Workshop.Shared;
+
+public sealed class OnlineShop
+{
+    private static readonly Money BookingFee = Money.Of("2.00");
+
+    private readonly BookingFacade _booking;
+
+    public OnlineShop(BookingFacade booking)
+    {
+        ArgumentNullException.ThrowIfNull(booking);
+        _booking = booking;
+    }
+
+    public string Buy(TicketOrder order)
+    {
+        return _booking.Book(order, BookingFee);
+    }
+}
+```
+
+**Po (`Cinema.cs`, pole `_booking` i konstruktor):**
+
+```csharp
+private readonly BookingFacade _booking;
+...
+public Cinema()
+{
+    _booking = new BookingFacade(_seats, _prices, _payments, _mailer);
+    _onlineShop = new OnlineShop(_booking);
+    _boxOffice = new BoxOffice(_seats, _prices, _payments, _mailer);
 }
 ```
 
@@ -4850,13 +9431,27 @@ public string Sell(TicketOrder order)
 }
 ```
 
-**Po:**
+**Po (`BoxOffice.cs`):**
 
 ```csharp
+private readonly BookingFacade _booking;
+
+public BoxOffice(BookingFacade booking)
+{
+    ArgumentNullException.ThrowIfNull(booking);
+    _booking = booking;
+}
+
 public string Sell(TicketOrder order)
 {
     return _booking.Book(order, Money.Zero);
 }
+```
+
+**Po (`Cinema.cs`, w konstruktorze):**
+
+```csharp
+_boxOffice = new BoxOffice(_booking);
 ```
 
 **Uruchom:** test równoważności zielony, a `S30BehaviourChangeTest.Step2FacadeReleasesSeatsForBothChannels` pokazuje zmianę: po odmowie w kasie miejsce A1 jest wolne i sklep może je sprzedać (`OK 27.00` zamiast `ERROR seat taken A1`).
@@ -4880,7 +9475,7 @@ if (!_payments.Charge(order.Card, total))
 }
 ```
 
-**Po:**
+**Po (`BookingFacade.cs`, w `Book`; konstruktor fasady dostaje `internal` zamiast `public`):**
 
 ```csharp
 var paid = false;
@@ -4894,6 +9489,10 @@ finally
     {
         _seats.Release(order.Screening, order.Seats);
     }
+}
+if (!paid)
+{
+    return "ERROR payment declined";
 }
 ```
 
@@ -4978,17 +9577,114 @@ var due = revenue.Percent(percent).Max(minimum);
 var title = record.TitleUpper[0] + record.TitleUpper[1..].ToLowerInvariant();
 ```
 
-**Po:**
+**Po (`FilmLicense.cs`, nowy plik):**
 
 ```csharp
-var license = ToLicense(record);
-if (!license.Active)
+using Training.Workshop.Shared;
+
+public sealed record FilmLicense
 {
-    return "LICENCJA ZAWIESZONA " + filmCode;
+    public FilmLicense(string filmCode, string title, bool active, DateOnly validFrom, DateOnly validTo,
+        int sharePercent, Money minimumGuarantee)
+    {
+        ArgumentNullException.ThrowIfNull(filmCode);
+        ArgumentNullException.ThrowIfNull(title);
+        ArgumentNullException.ThrowIfNull(minimumGuarantee);
+        if (validTo < validFrom)
+        {
+            throw new ArgumentException("license ends before it starts");
+        }
+        if (sharePercent < 0 || sharePercent > 100)
+        {
+            throw new ArgumentException("share out of range: " + sharePercent);
+        }
+        if (minimumGuarantee.CompareTo(Money.Zero) < 0)
+        {
+            throw new ArgumentException("minimum guarantee must not be negative");
+        }
+        FilmCode = filmCode;
+        Title = title;
+        Active = active;
+        ValidFrom = validFrom;
+        ValidTo = validTo;
+        SharePercent = sharePercent;
+        MinimumGuarantee = minimumGuarantee;
+    }
+
+    public string FilmCode { get; }
+
+    public string Title { get; }
+
+    public bool Active { get; }
+
+    public DateOnly ValidFrom { get; }
+
+    public DateOnly ValidTo { get; }
+
+    public int SharePercent { get; }
+
+    public Money MinimumGuarantee { get; }
+
+    public bool Covers(DateOnly day)
+    {
+        return day >= ValidFrom && day <= ValidTo;
+    }
+
+    public bool AllowsScreeningOn(DateOnly day)
+    {
+        return Active && Covers(day);
+    }
+
+    /// <summary>Udział dystrybutora, ale nie mniej niż minimalna gwarancja.</summary>
+    public Money DueFor(Money revenue)
+    {
+        return revenue.Percent(SharePercent).Max(MinimumGuarantee);
+    }
 }
-if (!license.Covers(day))
+```
+
+**Po (`SettlementService.cs`):**
+
+```csharp
+public bool CanScreen(string filmCode, DateOnly day)
 {
-    return "LICENCJA NIEWAZNA " + filmCode + " w dniu " + day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+    var record = _feed.Fetch(filmCode);
+    return record != null && ToLicense(record).AllowsScreeningOn(day);
+}
+
+public string Settle(string filmCode, DateOnly day, Money revenue)
+{
+    var record = _feed.Fetch(filmCode);
+    if (record == null)
+    {
+        return "BRAK LICENCJI " + filmCode;
+    }
+    var license = ToLicense(record);
+    if (!license.Active)
+    {
+        return "LICENCJA ZAWIESZONA " + filmCode;
+    }
+    if (!license.Covers(day))
+    {
+        return "LICENCJA NIEWAZNA " + filmCode + " w dniu " + day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+    }
+    return "ROZLICZENIE " + license.Title + " " + day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
+        + ": przychod " + revenue + ", udzial "
+        + license.SharePercent + "%, minimum " + license.MinimumGuarantee
+        + ", dla dystrybutora " + license.DueFor(revenue);
+}
+
+private static FilmLicense ToLicense(DistributorRecord record)
+{
+    var title = record.TitleUpper[0] + record.TitleUpper[1..].ToLowerInvariant();
+    return new FilmLicense(
+        record.FilmCode,
+        title,
+        record.StatusCode == "A",
+        DateOnly.ParseExact(record.ValidFrom, "yyyyMMdd", CultureInfo.InvariantCulture),
+        DateOnly.ParseExact(record.ValidTo, "yyyyMMdd", CultureInfo.InvariantCulture),
+        int.Parse(record.Share.Replace("%", "").Trim(), CultureInfo.InvariantCulture),
+        new Money(decimal.Parse(record.MinGuaranteeCents, CultureInfo.InvariantCulture) / 100));
 }
 ```
 
@@ -5021,20 +9717,56 @@ private static FilmLicense ToLicense(DistributorRecord record)
 }
 ```
 
-**Po:**
+**Po (`DistributorTranslator.cs`, nowy plik):**
 
 ```csharp
-private static DateOnly Date(string legacy)
+using System.Globalization;
+using Training.Workshop.Shared;
+
+public sealed class DistributorTranslator
 {
-    try
+    private const string Active = "A";
+
+    public FilmLicense ToLicense(DistributorRecord record)
     {
-        return DateOnly.ParseExact(legacy, "yyyyMMdd", CultureInfo.InvariantCulture);
+        return new FilmLicense(
+            record.FilmCode,
+            Title(record.TitleUpper),
+            record.StatusCode == Active,
+            Date(record.ValidFrom),
+            Date(record.ValidTo),
+            int.Parse(record.Share.Replace("%", "").Trim(), CultureInfo.InvariantCulture),
+            new Money(decimal.Parse(record.MinGuaranteeCents, CultureInfo.InvariantCulture) / 100));
     }
-    catch (FormatException exception)
+
+    private static string Title(string upper)
     {
-        throw new ArgumentException("invalid legacy date: " + legacy, exception);
+        return upper[0] + upper[1..].ToLowerInvariant();
+    }
+
+    private static DateOnly Date(string legacy)
+    {
+        try
+        {
+            return DateOnly.ParseExact(legacy, "yyyyMMdd", CultureInfo.InvariantCulture);
+        }
+        catch (FormatException exception)
+        {
+            throw new ArgumentException("invalid legacy date: " + legacy, exception);
+        }
     }
 }
+```
+
+**Po (`SettlementService.cs`; prywatne `ToLicense` znika, oba wywołania idą na pole):**
+
+```csharp
+private readonly DistributorFeed _feed;
+private readonly DistributorTranslator _translator = new();
+...
+return record != null && _translator.ToLicense(record).AllowsScreeningOn(day);
+...
+var license = _translator.ToLicense(record);
 ```
 
 **Uruchom:** test zielony; `S31SolutionTest.AclRejectsMalformedLegacyDataAtTheBoundary` dokumentuje nowy komunikat dla daty `2026-10-01` w formacie ISO zamiast `yyyyMMdd`, a `AclTranslatesLegacyConventions` - tłumaczenie kodów, groszy i procentów.
@@ -5062,13 +9794,71 @@ public bool CanScreen(string filmCode, DateOnly day)
 }
 ```
 
-**Po:**
+**Po (`IFilmLicenses.cs`, nowy plik):**
 
 ```csharp
-public FilmLicense? Find(string filmCode)
+/// <summary>Port domeny - brak licencji to jawnie zadeklarowany null w typie FilmLicense?.</summary>
+public interface IFilmLicenses
 {
-    var record = _feed.Fetch(filmCode);
-    return record == null ? null : _translator.ToLicense(record);
+    FilmLicense? Find(string filmCode);
+}
+```
+
+**Po (`DistributorAcl.cs`, nowy plik):**
+
+```csharp
+public sealed class DistributorAcl : IFilmLicenses
+{
+    private readonly DistributorFeed _feed;
+    private readonly DistributorTranslator _translator = new();
+
+    public DistributorAcl(DistributorFeed feed)
+    {
+        ArgumentNullException.ThrowIfNull(feed);
+        _feed = feed;
+    }
+
+    public FilmLicense? Find(string filmCode)
+    {
+        var record = _feed.Fetch(filmCode);
+        return record == null ? null : _translator.ToLicense(record);
+    }
+}
+```
+
+**Po (`SettlementService.cs`; `Settle` od `if (!license.Active)` w dół bez zmian):**
+
+```csharp
+private readonly IFilmLicenses _licenses;
+
+public SettlementService(IFilmLicenses licenses)
+{
+    ArgumentNullException.ThrowIfNull(licenses);
+    _licenses = licenses;
+}
+
+public bool CanScreen(string filmCode, DateOnly day)
+{
+    return _licenses.Find(filmCode)?.AllowsScreeningOn(day) ?? false;
+}
+
+public string Settle(string filmCode, DateOnly day, Money revenue)
+{
+    var license = _licenses.Find(filmCode);
+    if (license == null)
+    {
+        return "BRAK LICENCJI " + filmCode;
+    }
+    ...
+}
+```
+
+**Po (`SettlementModule.cs`):**
+
+```csharp
+public static SettlementService SettlementService(DistributorFeed feed)
+{
+    return new SettlementService(new DistributorAcl(feed));
 }
 ```
 
@@ -5136,9 +9926,20 @@ Ta sama para "przelicz sumę, odśwież przycisk" jest w `Basket.Remove`, `Baske
 2. Reakcję z `SeatMap.Click` (aktualizacja koszyka, przeliczenie sumy, odświeżenie przycisku) przenieś do metody `SeatToggled` w ekranie (wyodrębnienie i przeniesienie metody); `Click` wyznacza tylko `nowSelected` i zgłasza zdarzenie.
 3. `SeatMap` dostaje mediatora w konstruktorze - ekran tworzy ją w swoim konstruktorze przez `_seatMap = new SeatMap(this);`; metoda `Connect(...)` mapy i jej trzy pola komponentów znikają.
 
-**Przed:**
+**Przed (`SeatMap.cs`):**
 
 ```csharp
+private Basket _basket = null!;
+private PriceSummary _summary = null!;
+private PayButton _payButton = null!;
+
+internal void Connect(Basket basket, PriceSummary summary, PayButton payButton)
+{
+    _basket = basket;
+    _summary = summary;
+    _payButton = payButton;
+}
+...
 if (_selected.Remove(seat))
 {
     _basket.Drop(seat);
@@ -5152,15 +9953,68 @@ _summary.Recalculate(_basket.Seats);
 _payButton.Refresh(_basket.Seats.Count, _summary.Total);
 ```
 
-**Po:**
+**Po (`ISelectionMediator.cs`, nowy plik):**
 
 ```csharp
+/// <summary>Mediator - komponent zgłasza, CO się stało, a mediator decyduje, KTO ma zareagować.</summary>
+public interface ISelectionMediator
+{
+    void SeatToggled(string seat, bool selected);
+}
+```
+
+**Po (`SeatMap.cs`):**
+
+```csharp
+private readonly ISelectionMediator _mediator;
+
+public SeatMap(ISelectionMediator mediator)
+{
+    ArgumentNullException.ThrowIfNull(mediator);
+    _mediator = mediator;
+}
+...
 var nowSelected = !_selected.Remove(seat);
 if (nowSelected)
 {
     _selected.Add(seat);
 }
 _mediator.SeatToggled(seat, nowSelected);
+```
+
+**Po (`SeatSelectionScreen.cs`):**
+
+```csharp
+public sealed class SeatSelectionScreen : ISelectionMediator
+{
+    private readonly SeatMap _seatMap;
+    private readonly Basket _basket = new();
+    private readonly PriceSummary _summary = new();
+    private readonly PayButton _payButton = new();
+
+    public SeatSelectionScreen()
+    {
+        _seatMap = new SeatMap(this);
+        _basket.Connect(_seatMap, _summary, _payButton);
+        _summary.Connect(_basket, _payButton);
+        _payButton.Connect(_seatMap, _basket, _summary);
+    }
+
+    public void SeatToggled(string seat, bool selected)
+    {
+        if (selected)
+        {
+            _basket.Add(seat);
+        }
+        else
+        {
+            _basket.Drop(seat);
+        }
+        _summary.Recalculate(_basket.Seats);
+        _payButton.Refresh(_basket.Seats.Count, _summary.Total);
+    }
+    ...
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang cs test m5/s32` - zielone.
@@ -5175,7 +10029,7 @@ _mediator.SeatToggled(seat, nowSelected);
 2. `Basket`, `PriceSummary` i `PayButton` dostają mediatora w konstruktorze i zgłaszają zdarzenia zamiast odświeżać sąsiadów; przycisk zachowuje jeszcze `Connect(basket, summary)`, bo sam czyta dane do komunikatu.
 3. Powtórzoną parę "przelicz sumę, odśwież przycisk" wydziel w ekranie do prywatnej metody `Refresh()` (wyodrębnienie metody) i użyj jej we wszystkich obsługach zdarzeń.
 
-**Przed:**
+**Przed (`SeatSelectionScreen.cs`):**
 
 ```csharp
 public void SeatToggled(string seat, bool selected)
@@ -5193,9 +10047,140 @@ public void SeatToggled(string seat, bool selected)
 }
 ```
 
-**Po:**
+**Po (`ISelectionMediator.cs`):**
 
 ```csharp
+public interface ISelectionMediator
+{
+    void SeatToggled(string seat, bool selected);
+
+    void SeatRemoved(string seat);
+
+    void BasketCleared();
+
+    void VoucherApplied();
+
+    void SeatsPaid(IReadOnlyList<string> seats);
+}
+```
+
+**Po (`Basket.cs`):**
+
+```csharp
+private readonly List<string> _seats = [];
+private readonly ISelectionMediator _mediator;
+
+public Basket(ISelectionMediator mediator)
+{
+    ArgumentNullException.ThrowIfNull(mediator);
+    _mediator = mediator;
+}
+
+/// <summary>Akcja użytkownika: usuwa miejsce z koszyka (i odznacza je na mapie).</summary>
+public void Remove(string seat)
+{
+    if (!_seats.Remove(seat))
+    {
+        return;
+    }
+    _mediator.SeatRemoved(seat);
+}
+
+/// <summary>Akcja użytkownika: czyści koszyk. Woła ją też mediator po płatności.</summary>
+public void Clear()
+{
+    _seats.Clear();
+    _mediator.BasketCleared();
+}
+```
+
+**Po (`PriceSummary.cs`):**
+
+```csharp
+private readonly ISelectionMediator _mediator;
+
+public PriceSummary(ISelectionMediator mediator)
+{
+    ArgumentNullException.ThrowIfNull(mediator);
+    _mediator = mediator;
+}
+
+/// <summary>Akcja użytkownika: voucher; nieznany kod usuwa zniżkę.</summary>
+public void ApplyVoucher(string code)
+{
+    _discountPercent = code == "KINO10" ? 10 : 0;
+    _mediator.VoucherApplied();
+}
+```
+
+**Po (`PayButton.cs`):**
+
+```csharp
+private readonly ISelectionMediator _mediator;
+private Basket _basket = null!;
+private PriceSummary _summary = null!;
+
+public PayButton(ISelectionMediator mediator)
+{
+    ArgumentNullException.ThrowIfNull(mediator);
+    _mediator = mediator;
+}
+
+internal void Connect(Basket basket, PriceSummary summary)
+{
+    _basket = basket;
+    _summary = summary;
+}
+
+/// <summary>Akcja użytkownika: płatność za zawartość koszyka.</summary>
+public string Press()
+{
+    if (!_enabled)
+    {
+        return "Nieaktywny: " + _label;
+    }
+    var paid = _basket.Seats;
+    var amount = _summary.Total;
+    _mediator.SeatsPaid(paid);
+    return "Zaplacono " + amount + " za " + string.Join(",", paid);
+}
+```
+
+**Po (`SeatSelectionScreen.cs`):**
+
+```csharp
+public SeatSelectionScreen()
+{
+    _seatMap = new SeatMap(this);
+    _basket = new Basket(this);
+    _summary = new PriceSummary(this);
+    _payButton = new PayButton(this);
+    _payButton.Connect(_basket, _summary);
+}
+...
+public void SeatRemoved(string seat)
+{
+    _seatMap.Deselect(seat);
+    Refresh();
+}
+
+public void BasketCleared()
+{
+    _seatMap.DeselectAll();
+    Refresh();
+}
+
+public void VoucherApplied()
+{
+    Refresh();
+}
+
+public void SeatsPaid(IReadOnlyList<string> seats)
+{
+    _seatMap.MarkSold(seats);
+    _basket.Clear();
+}
+
 /// <summary>Jedno miejsce, które zna kolejność odświeżania: najpierw suma, potem przycisk.</summary>
 private void Refresh()
 {
@@ -5232,7 +10217,14 @@ public string Press()
 }
 ```
 
-**Po:**
+**Po (`ISelectionMediator.cs`, zmiana ostatniej metody):**
+
+```csharp
+/// <summary>Zwraca komunikat dla użytkownika.</summary>
+string PayRequested();
+```
+
+**Po (`PayButton.cs`):**
 
 ```csharp
 public string Press()
@@ -5242,6 +10234,19 @@ public string Press()
         return "Nieaktywny: " + _label;
     }
     return _mediator.PayRequested();
+}
+```
+
+**Po (`SeatSelectionScreen.cs`, w miejsce `SeatsPaid`):**
+
+```csharp
+public string PayRequested()
+{
+    var paid = _basket.Seats;
+    var amount = _summary.Total;
+    _seatMap.MarkSold(paid);
+    _basket.Clear();
+    return "Zaplacono " + amount + " za " + string.Join(",", paid);
 }
 ```
 

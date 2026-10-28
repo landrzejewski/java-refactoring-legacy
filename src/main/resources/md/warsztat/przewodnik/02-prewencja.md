@@ -79,11 +79,11 @@ Na żywo: zmień w konstruktorze `"morning,vip"` na `"morning,vlp"` i uruchom te
 
 **Zmiany:**
 
-1. W `TicketPricer` usuń pola `registry` i `activeRules` oraz oba konstruktory; w ich miejsce dodaj pole `rules` z listą `List.of(new MorningRule(), new VipRule())` i iteruj w pętli po `rules` (Inline Class).
+1. W `TicketPricer` usuń pola `registry` i `activeRules` oraz oba konstruktory; w ich miejsce dodaj pole `rules` z listą `List.of(new MorningRule(), new VipRule())` i iteruj w pętli po `rules` (Inline Class). Dochodzi import `java.util.List`.
 2. Usuń klasę `RuleRegistry` - nikt jej już nie woła.
-3. Usuń metodę `priority()` z interfejsu `PricingRule` i z obu reguł - była potrzebna tylko do sortowania w rejestrze.
+3. Usuń metodę `priority()` z interfejsu `PricingRule` i z obu reguł (`MorningRule` zwracała 10, `VipRule` 20) - była potrzebna tylko do sortowania w rejestrze. Reszta tych trzech plików bez zmian.
 
-**Przed:**
+**Przed (`TicketPricer.java`):**
 
 ```java
 private final RuleRegistry registry;
@@ -101,10 +101,25 @@ public TicketPricer(RuleRegistry registry, String activeRules) {
 for (PricingRule rule : registry.resolve(activeRules)) {
 ```
 
-**Po:**
+**Po (`TicketPricer.java`, pole i cała metoda `price`; `basePrice` bez zmian):**
 
 ```java
 private final List<PricingRule> rules = List.of(new MorningRule(), new VipRule());
+
+public BigDecimal price(TicketQuote quote) {
+    Map<String, Object> context = new HashMap<>();
+    context.put("format", quote.format());
+    context.put("start", quote.start());
+    context.put("row", quote.row());
+    context.put("vipFromRow", quote.vipFromRow());
+    BigDecimal price = basePrice(quote.format());
+    for (PricingRule rule : rules) {
+        if (rule.appliesTo(context)) {
+            price = rule.apply(context, price);
+        }
+    }
+    return price.setScale(2, RoundingMode.HALF_UP);
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh test m2/s01` - 16 testów zielonych.
@@ -117,22 +132,129 @@ private final List<PricingRule> rules = List.of(new MorningRule(), new VipRule()
 
 1. W interfejsie `PricingRule` zmień typ parametru `appliesTo` z `Map<String, Object>` na `TicketQuote`, a z `apply` usuń parametr kontekstu - zostaje samo `apply(BigDecimal price)` (Change Signature).
 2. Popraw obie implementacje: rzutowania z mapy zastąp odczytami pól rekordu (`quote.start().getHour() < 12`, `quote.row() >= quote.vipFromRow()`).
-3. W `TicketPricer.price` usuń budowanie mapy kontekstu i przekazuj `quote` wprost do `appliesTo`.
+3. W `TicketPricer.price` usuń budowanie mapy kontekstu i przekazuj `quote` wprost do `appliesTo`; z importów znikają `HashMap` i `Map`.
 
-**Przed:**
+**Przed (`PricingRule.java`, cały plik):**
 
 ```java
-@Override
-public boolean appliesTo(Map<String, Object> context) {
-    return (int) context.get("row") >= (int) context.get("vipFromRow");
+import java.math.BigDecimal;
+import java.util.Map;
+
+public interface PricingRule {
+    boolean appliesTo(Map<String, Object> context);
+
+    BigDecimal apply(Map<String, Object> context, BigDecimal price);
 }
 ```
 
-**Po:**
+**Po (`PricingRule.java`, cały plik):**
 
 ```java
-public boolean appliesTo(TicketQuote quote) {
-    return quote.row() >= quote.vipFromRow();
+import java.math.BigDecimal;
+
+import pl.training.workshop.m2.s01_yagni.TicketQuote;
+
+public interface PricingRule {
+    boolean appliesTo(TicketQuote quote);
+
+    BigDecimal apply(BigDecimal price);
+}
+```
+
+**Przed (`MorningRule.java`, cały plik):**
+
+```java
+import java.math.BigDecimal;
+import java.time.LocalTime;
+import java.util.Map;
+
+/** Seans poranny -5.00. */
+public final class MorningRule implements PricingRule {
+    @Override
+    public boolean appliesTo(Map<String, Object> context) {
+        return ((LocalTime) context.get("start")).getHour() < 12;
+    }
+
+    @Override
+    public BigDecimal apply(Map<String, Object> context, BigDecimal price) {
+        return price.subtract(new BigDecimal("5.00"));
+    }
+}
+```
+
+**Po (`MorningRule.java`, cały plik):**
+
+```java
+import java.math.BigDecimal;
+
+import pl.training.workshop.m2.s01_yagni.TicketQuote;
+
+/** Seans poranny -5.00. */
+public final class MorningRule implements PricingRule {
+    @Override
+    public boolean appliesTo(TicketQuote quote) {
+        return quote.start().getHour() < 12;
+    }
+
+    @Override
+    public BigDecimal apply(BigDecimal price) {
+        return price.subtract(new BigDecimal("5.00"));
+    }
+}
+```
+
+**Przed (`VipRule.java`, cały plik):**
+
+```java
+import java.math.BigDecimal;
+import java.util.Map;
+
+/** Miejsce VIP +10.00. */
+public final class VipRule implements PricingRule {
+    @Override
+    public boolean appliesTo(Map<String, Object> context) {
+        return (int) context.get("row") >= (int) context.get("vipFromRow");
+    }
+
+    @Override
+    public BigDecimal apply(Map<String, Object> context, BigDecimal price) {
+        return price.add(new BigDecimal("10.00"));
+    }
+}
+```
+
+**Po (`VipRule.java`, cały plik):**
+
+```java
+import java.math.BigDecimal;
+
+import pl.training.workshop.m2.s01_yagni.TicketQuote;
+
+/** Miejsce VIP +10.00. */
+public final class VipRule implements PricingRule {
+    @Override
+    public boolean appliesTo(TicketQuote quote) {
+        return quote.row() >= quote.vipFromRow();
+    }
+
+    @Override
+    public BigDecimal apply(BigDecimal price) {
+        return price.add(new BigDecimal("10.00"));
+    }
+}
+```
+
+**Po (`TicketPricer.java`, cała metoda `price`; `basePrice` i pole `rules` bez zmian):**
+
+```java
+public BigDecimal price(TicketQuote quote) {
+    BigDecimal price = basePrice(quote.format());
+    for (PricingRule rule : rules) {
+        if (rule.appliesTo(quote)) {
+            price = rule.apply(price);
+        }
+    }
+    return price.setScale(2, RoundingMode.HALF_UP);
 }
 ```
 
@@ -145,9 +267,9 @@ public boolean appliesTo(TicketQuote quote) {
 **Zmiany:**
 
 1. Wklej ciała obu reguł do `TicketPricer`: pętlę po `rules` zastąp dwoma `if` z prywatnymi metodami `isMorning(quote)` i `isVip(quote)` (Inline Class).
-2. Usuń klasy `MorningRule` i `VipRule` oraz interfejs `PricingRule` - nie mają już klientów; znika też pole `rules`.
+2. Usuń klasy `MorningRule` i `VipRule` oraz interfejs `PricingRule` - nie mają już klientów; znika też pole `rules` i import `java.util.List`.
 3. Kwoty -5.00 i +10.00 wyciągnij do stałych `MORNING_DISCOUNT` i `VIP_SURCHARGE` (Extract Constant).
-4. Usuń końcowe `setScale(2, RoundingMode.HALF_UP)` - wszystkie kwoty mają już dwa miejsca po przecinku.
+4. Usuń końcowe `setScale(2, RoundingMode.HALF_UP)` - wszystkie kwoty mają już dwa miejsca po przecinku; znika import `java.math.RoundingMode`.
 
 **Przed:**
 
@@ -165,9 +287,12 @@ public BigDecimal price(TicketQuote quote) {
 }
 ```
 
-**Po:**
+**Po (stałe, `price` i nowe metody prywatne; `basePrice` bez zmian):**
 
 ```java
+private static final BigDecimal MORNING_DISCOUNT = new BigDecimal("5.00");
+private static final BigDecimal VIP_SURCHARGE = new BigDecimal("10.00");
+
 public BigDecimal price(TicketQuote quote) {
     BigDecimal price = basePrice(quote.format());
     if (isMorning(quote)) {
@@ -177,6 +302,14 @@ public BigDecimal price(TicketQuote quote) {
         price = price.add(VIP_SURCHARGE);
     }
     return price;
+}
+
+private boolean isMorning(TicketQuote quote) {
+    return quote.start().getHour() < 12;
+}
+
+private boolean isVip(TicketQuote quote) {
+    return quote.row() >= quote.vipFromRow();
 }
 ```
 
@@ -230,16 +363,28 @@ public double total(String organizer, int tickets, double unitPrice) {
 1. W pakiecie `pricing` dodaj rekord `Quote(double total, boolean groupDiscount)` - wynik cennika niesie informację o rabacie zamiast efektu ubocznego.
 2. Zmień sygnaturę `TicketPricing.total`: usuń parametr `organizer`, metoda zwraca `Quote` zamiast `double` (Change Signature).
 3. Usuń z `TicketPricing` pole `mailer`, konstruktor i wywołanie `mailer.groupDiscountGranted(...)` - razem z importem pakietu `notification`.
-4. W `BookingService` odbierz `Quote` i wyślij mail tam, gdy `quote.groupDiscount()` jest prawdą.
+4. W `BookingService` odbierz `Quote` i wyślij mail tam, gdy `quote.groupDiscount()` jest prawdą; pole `pricing` tworzone jest teraz przez `new TicketPricing()` bez argumentu, dochodzi import `pricing.Quote`.
 
-**Przed:**
+**Po (`pricing/Quote.java`, nowy plik):**
+
+```java
+/** Wynik cennika niesie informację o rabacie - zamiast efektu ubocznego mamy daną. */
+public record Quote(double total, boolean groupDiscount) {
+}
+```
+
+**Przed (`pricing/TicketPricing.java`):**
 
 ```java
 import pl.training.workshop.m2.s02_adr.start.notification.GroupMailer;
 
 public final class TicketPricing {
     private final GroupMailer mailer;
-    ...
+
+    public TicketPricing(GroupMailer mailer) {
+        this.mailer = mailer;
+    }
+
     public double total(String organizer, int tickets, double unitPrice) {
         double sum = unitPrice * tickets;
         if (tickets >= 10) {
@@ -251,12 +396,55 @@ public final class TicketPricing {
 }
 ```
 
-**Po:**
+**Po (`pricing/TicketPricing.java`):**
 
 ```java
-Quote quote = pricing.total(tickets, unitPrice);
-if (quote.groupDiscount()) {
-    mailer.groupDiscountGranted(organizer, tickets);
+public final class TicketPricing {
+    public Quote total(int tickets, double unitPrice) {
+        double sum = unitPrice * tickets;
+        boolean groupDiscount = tickets >= 10;
+        if (groupDiscount) {
+            sum = sum - sum * 0.10;
+        }
+        return new Quote(Math.round(sum * 100) / 100.0, groupDiscount);
+    }
+}
+```
+
+**Przed (`BookingService.java`, pola i metoda `book`):**
+
+```java
+private final GroupMailer mailer = new GroupMailer();
+private final TicketPricing pricing = new TicketPricing(mailer);
+
+public String book(String organizer, int tickets, String format) {
+    double unitPrice = switch (format) {
+        case "IMAX" -> 40.00;
+        case "3D" -> 32.00;
+        default -> 25.00;
+    };
+    double total = pricing.total(organizer, tickets, unitPrice);
+    return "DO ZAPLATY " + String.format(Locale.ROOT, "%.2f", total);
+}
+```
+
+**Po (`BookingService.java`, pola i metoda `book`; `sentMails` bez zmian):**
+
+```java
+private final GroupMailer mailer = new GroupMailer();
+private final TicketPricing pricing = new TicketPricing();
+
+public String book(String organizer, int tickets, String format) {
+    double unitPrice = switch (format) {
+        case "IMAX" -> 40.00;
+        case "3D" -> 32.00;
+        default -> 25.00;
+    };
+    Quote quote = pricing.total(tickets, unitPrice);
+    if (quote.groupDiscount()) {
+        mailer.groupDiscountGranted(organizer, tickets);
+    }
+    return "DO ZAPLATY " + String.format(Locale.ROOT, "%.2f", quote.total());
 }
 ```
 
@@ -268,11 +456,20 @@ if (quote.groupDiscount()) {
 
 **Zmiany:**
 
-1. W `Quote` i `TicketPricing` zamień typ kwot `double` na `Money`; arytmetyka przechodzi na `times`, `minus` i `percent`.
+1. W `Quote` i `TicketPricing` zamień typ kwot `double` na `Money` (import `pl.training.workshop.shared.Money`); arytmetyka przechodzi na `times`, `minus` i `percent`.
 2. Próg i procent rabatu grupowego zapisz jako stałe `GROUP_SIZE` i `GROUP_DISCOUNT_PERCENT`.
-3. W `BookingService` podawaj cenę jednostkową jako `Money.of("25.00")` itd. i wypisuj `quote.total()` bez `String.format`.
+3. W `BookingService` podawaj cenę jednostkową jako `Money.of("25.00")` itd. i wypisuj `quote.total()` bez `String.format`; dochodzi import `Money`, znika import `java.util.Locale`.
 
-**Przed:**
+**Po (`pricing/Quote.java`, cały plik):**
+
+```java
+import pl.training.workshop.shared.Money;
+
+public record Quote(Money total, boolean groupDiscount) {
+}
+```
+
+**Przed (`pricing/TicketPricing.java`):**
 
 ```java
 public Quote total(int tickets, double unitPrice) {
@@ -285,11 +482,58 @@ public Quote total(int tickets, double unitPrice) {
 }
 ```
 
-**Po:**
+**Po (`pricing/TicketPricing.java`):**
 
 ```java
-public Quote total(int tickets, Money unitPrice) {
-    Money sum = unitPrice.times(tickets);
+import pl.training.workshop.shared.Money;
+
+public final class TicketPricing {
+    private static final int GROUP_SIZE = 10;
+    private static final int GROUP_DISCOUNT_PERCENT = 10;
+
+    public Quote total(int tickets, Money unitPrice) {
+        Money sum = unitPrice.times(tickets);
+        boolean groupDiscount = tickets >= GROUP_SIZE;
+        if (groupDiscount) {
+            sum = sum.minus(sum.percent(GROUP_DISCOUNT_PERCENT));
+        }
+        return new Quote(sum, groupDiscount);
+    }
+}
+```
+
+**Przed (`BookingService.java`, metoda `book`):**
+
+```java
+public String book(String organizer, int tickets, String format) {
+    double unitPrice = switch (format) {
+        case "IMAX" -> 40.00;
+        case "3D" -> 32.00;
+        default -> 25.00;
+    };
+    Quote quote = pricing.total(tickets, unitPrice);
+    if (quote.groupDiscount()) {
+        mailer.groupDiscountGranted(organizer, tickets);
+    }
+    return "DO ZAPLATY " + String.format(Locale.ROOT, "%.2f", quote.total());
+}
+```
+
+**Po (`BookingService.java`, metoda `book`; pola i `sentMails` bez zmian):**
+
+```java
+public String book(String organizer, int tickets, String format) {
+    Money unitPrice = switch (format) {
+        case "IMAX" -> Money.of("40.00");
+        case "3D" -> Money.of("32.00");
+        default -> Money.of("25.00");
+    };
+    Quote quote = pricing.total(tickets, unitPrice);
+    if (quote.groupDiscount()) {
+        mailer.groupDiscountGranted(organizer, tickets);
+    }
+    return "DO ZAPLATY " + quote.total();
+}
 ```
 
 **Uruchom:** test zielony; `step2CompliesWithTheDecision` - pusta lista naruszeń.
@@ -360,14 +604,31 @@ public void take(String seat) {
     }
     seats.add(seat);
 }
+
+public Map<Integer, Integer> takenPerRow() {
+    Map<Integer, Integer> result = new TreeMap<>();
+    for (Object row : seatsByRow.keySet()) {
+        result.put((Integer) row, ((List) seatsByRow.get(row)).size());
+    }
+    return result;
+}
 ```
 
 **Po:**
 
 ```java
 private final Map<Integer, List<String>> seatsByRow = new TreeMap<>();
-...
-seatsByRow.computeIfAbsent(row, r -> new ArrayList<>()).add(seat);
+
+public void take(String seat) {
+    Integer row = Integer.valueOf(seat.substring(1));
+    seatsByRow.computeIfAbsent(row, r -> new ArrayList<>()).add(seat);
+}
+
+public Map<Integer, Integer> takenPerRow() {
+    Map<Integer, Integer> result = new TreeMap<>();
+    seatsByRow.forEach((row, seats) -> result.put(row, seats.size()));
+    return result;
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh test m2/s03` - zostają kategorie `deprecation`, `fallthrough`.
@@ -480,7 +741,7 @@ public List<String> evaluate(GateInput input) {
 
 1. W `QualityGate` dodaj prywatną metodę `scanSources(GateInput, List<String>)`: dla każdego pliku `.java` w katalogu źródeł czyta linie, a linię z `TODO`/`FIXME` albo `System.out`/`System.err` zamienia na wynik z nazwą pliku i numerem linii.
 2. Dodaj pomocnicze metody `javaFiles(Path)` i `read(Path)` (lista plików `.java` i odczyt linii).
-3. `evaluate` zbiera wyniki do listy `findings` i zwraca ją zamiast pustego `List.of()`.
+3. `evaluate` zbiera wyniki do listy `findings` i zwraca ją zamiast pustego `List.of()`; metoda `passes` bez zmian. Dochodzą importy: `java.io.IOException`, `java.io.UncheckedIOException`, `java.nio.file.Files`, `java.nio.file.Path`, `java.util.ArrayList`, `java.util.stream.Stream`.
 
 **Przed:**
 
@@ -493,8 +754,43 @@ public List<String> evaluate(GateInput input) {
 **Po:**
 
 ```java
-if (line.contains("TODO") || line.contains("FIXME")) {
-    findings.add("TODO " + where);
+public List<String> evaluate(GateInput input) {
+    List<String> findings = new ArrayList<>();
+    scanSources(input, findings);
+    return findings;
+}
+
+/** TODO/FIXME i wydruki na konsolę w źródłach domeny. */
+private static void scanSources(GateInput input, List<String> findings) {
+    for (Path file : javaFiles(input.sources())) {
+        List<String> lines = read(file);
+        for (int i = 0; i < lines.size(); i++) {
+            String line = lines.get(i);
+            String where = file.getFileName() + ":" + (i + 1);
+            if (line.contains("TODO") || line.contains("FIXME")) {
+                findings.add("TODO " + where);
+            }
+            if (line.contains("System.out") || line.contains("System.err")) {
+                findings.add("System.out " + where);
+            }
+        }
+    }
+}
+
+private static List<Path> javaFiles(Path dir) {
+    try (Stream<Path> files = Files.list(dir)) {
+        return files.filter(f -> f.toString().endsWith(".java")).sorted().toList();
+    } catch (IOException e) {
+        throw new UncheckedIOException(e);
+    }
+}
+
+private static List<String> read(Path file) {
+    try {
+        return Files.readAllLines(file);
+    } catch (IOException e) {
+        throw new UncheckedIOException(e);
+    }
 }
 ```
 
@@ -508,7 +804,7 @@ if (line.contains("TODO") || line.contains("FIXME")) {
 
 1. Dodaj metodę `compileSources(GateInput, List<String>)`: kompiluje źródła domeny przez `javax.tools` z opcjami `--release 25 -Xlint:all`, a każdą diagnostykę inną niż NOTE zamienia na wynik z plikiem, linią i kodem ostrzeżenia.
 2. Dodaj pomocnicze `tempDir()` i `delete(Path)` - kompilacja pisze do katalogu tymczasowego, sprzątanego po zakończeniu.
-3. W `evaluate` wywołaj `compileSources` przed `scanSources`.
+3. W `evaluate` wywołaj `compileSources` przed `scanSources`. Dochodzą importy: `java.nio.charset.StandardCharsets`, `java.util.Comparator`, `java.util.Locale` oraz z pakietu `javax.tools`: `Diagnostic`, `DiagnosticCollector`, `JavaCompiler`, `JavaFileObject`, `StandardJavaFileManager`, `ToolProvider`.
 
 **Przed:**
 
@@ -520,11 +816,56 @@ public List<String> evaluate(GateInput input) {
 }
 ```
 
-**Po:**
+**Po (`evaluate` i nowe metody; reszta klasy bez zmian):**
 
 ```java
-findings.add("kompilator " + Path.of(d.getSource().toUri()).getFileName() + ":"
-        + d.getLineNumber() + " " + d.getCode());
+public List<String> evaluate(GateInput input) {
+    List<String> findings = new ArrayList<>();
+    compileSources(input, findings);
+    scanSources(input, findings);
+    return findings;
+}
+
+/** Kompilacja źródeł domeny z -Xlint:all; każde ostrzeżenie to wynik bramki. */
+private static void compileSources(GateInput input, List<String> findings) {
+    JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+    DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
+    Path output = tempDir();
+    try (StandardJavaFileManager files =
+            compiler.getStandardFileManager(diagnostics, Locale.ROOT, StandardCharsets.UTF_8)) {
+        compiler.getTask(null, files, diagnostics,
+                List.of("--release", "25", "-proc:none", "-Xlint:all", "-d", output.toString()), null,
+                files.getJavaFileObjectsFromPaths(javaFiles(input.sources()))).call();
+    } catch (IOException e) {
+        throw new UncheckedIOException(e);
+    } finally {
+        delete(output);
+    }
+    for (Diagnostic<? extends JavaFileObject> d : diagnostics.getDiagnostics()) {
+        if (d.getKind() != Diagnostic.Kind.NOTE && d.getSource() != null) {
+            findings.add("kompilator " + Path.of(d.getSource().toUri()).getFileName() + ":"
+                    + d.getLineNumber() + " " + d.getCode());
+        }
+    }
+}
+
+private static Path tempDir() {
+    try {
+        return Files.createTempDirectory("quality-gate");
+    } catch (IOException e) {
+        throw new UncheckedIOException(e);
+    }
+}
+
+private static void delete(Path dir) {
+    try (Stream<Path> paths = Files.walk(dir)) {
+        for (Path path : paths.sorted(Comparator.reverseOrder()).toList()) {
+            Files.deleteIfExists(path);
+        }
+    } catch (IOException e) {
+        throw new UncheckedIOException(e);
+    }
+}
 ```
 
 **Uruchom:** test zielony; dochodzą dwa wyniki `compiler.warn.raw.class.use`.
@@ -537,7 +878,7 @@ findings.add("kompilator " + Path.of(d.getSource().toUri()).getFileName() + ":"
 
 1. Dodaj stałą `PUBLIC_METHOD` - wyrażenie regularne wyłapujące nazwy publicznych metod.
 2. Dodaj metodę `checkCoverage(GateInput, List<String>)`: dla każdej publicznej metody kluczowej klasy sprawdza, czy źródło testu zawiera wywołanie `.nazwa(`; brak wywołania to wynik "pokrycie ... bez testu".
-3. W `evaluate` dołóż `checkCoverage` po `scanSources`.
+3. W `evaluate` dołóż `checkCoverage` po `scanSources`. Dochodzą importy `java.util.regex.Matcher` i `java.util.regex.Pattern`.
 
 **Przed:**
 
@@ -550,11 +891,31 @@ public List<String> evaluate(GateInput input) {
 }
 ```
 
-**Po:**
+**Po (stała, `evaluate` i nowa metoda; reszta klasy bez zmian):**
 
 ```java
-if (!test.contains("." + method.group(1) + "(")) {
-    findings.add("pokrycie " + input.keyClass() + "." + method.group(1) + " bez testu");
+private static final Pattern PUBLIC_METHOD =
+        Pattern.compile("public\\s+(?:static\\s+)?[\\w<>\\[\\],]+\\s+(\\w+)\\s*\\(");
+
+/** Lista wyników bramki; pusta lista = bramka przepuszcza zmianę. */
+public List<String> evaluate(GateInput input) {
+    List<String> findings = new ArrayList<>();
+    compileSources(input, findings);
+    scanSources(input, findings);
+    checkCoverage(input, findings);
+    return findings;
+}
+
+/** Przybliżenie pokrycia: publiczna metoda kluczowej klasy musi być wywołana w jej teście. */
+private static void checkCoverage(GateInput input, List<String> findings) {
+    String source = String.join("\n", read(input.sources().resolve(input.keyClass() + ".java")));
+    String test = String.join("\n", read(input.testSource()));
+    Matcher method = PUBLIC_METHOD.matcher(source);
+    while (method.find()) {
+        if (!test.contains("." + method.group(1) + "(")) {
+            findings.add("pokrycie " + input.keyClass() + "." + method.group(1) + " bez testu");
+        }
+    }
 }
 ```
 
@@ -568,7 +929,7 @@ if (!test.contains("." + method.group(1) + "(")) {
 
 1. Dodaj metodę `runTests(GateInput, List<String>)`: refleksją ładuje klasę testową, wybiera metody z adnotacją o prostej nazwie `Test` (JUnit albo dowolna inna), uruchamia każdą na świeżej instancji i porażkę (`InvocationTargetException`) zamienia na wynik z nazwą testu i typem wyjątku.
 2. Gdy klasy testowej nie da się uruchomić, bramka zgłasza to jako wynik zamiast przepuszczać zmianę.
-3. W `evaluate` wywołaj `runTests` jako pierwsze sprawdzenie.
+3. W `evaluate` wywołaj `runTests` jako pierwsze sprawdzenie. Dochodzą importy: `java.lang.reflect.InvocationTargetException`, `java.lang.reflect.Method`, `java.util.Arrays`.
 
 **Przed:**
 
@@ -582,14 +943,41 @@ public List<String> evaluate(GateInput input) {
 }
 ```
 
-**Po:**
+**Po (`evaluate` i nowa metoda; reszta klasy bez zmian):**
 
 ```java
-try {
-    test.invoke(constructor.newInstance());
-} catch (InvocationTargetException failure) {
-    findings.add("test " + type.getSimpleName() + "." + test.getName() + " nie przechodzi: "
-            + failure.getCause().getClass().getSimpleName());
+public List<String> evaluate(GateInput input) {
+    List<String> findings = new ArrayList<>();
+    runTests(input, findings);
+    compileSources(input, findings);
+    scanSources(input, findings);
+    checkCoverage(input, findings);
+    return findings;
+}
+
+/** Uruchamia metody oznaczone adnotacją o nazwie Test (JUnit albo dowolna inna). */
+private static void runTests(GateInput input, List<String> findings) {
+    try {
+        Class<?> type = Class.forName(input.testClass());
+        List<Method> tests = Arrays.stream(type.getDeclaredMethods())
+                .filter(m -> Arrays.stream(m.getAnnotations())
+                        .anyMatch(a -> a.annotationType().getSimpleName().equals("Test")))
+                .sorted((a, b) -> a.getName().compareTo(b.getName()))
+                .toList();
+        for (Method test : tests) {
+            var constructor = type.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            test.setAccessible(true);
+            try {
+                test.invoke(constructor.newInstance());
+            } catch (InvocationTargetException failure) {
+                findings.add("test " + type.getSimpleName() + "." + test.getName() + " nie przechodzi: "
+                        + failure.getCause().getClass().getSimpleName());
+            }
+        }
+    } catch (ReflectiveOperationException e) {
+        findings.add("test " + input.testClass() + " nie da się uruchomić: " + e);
+    }
 }
 ```
 
@@ -644,7 +1032,7 @@ for (int i = 0; i < t.seats().size(); i++) {
 **Zmiany:**
 
 1. Nie rób tego kroku ręcznie - wczytaj gotowy antyprzykład: `scripts/warsztat.sh jump m2/s05 1`.
-2. W antyprzykładzie obok dobrych ruchów (nazwy, `StringBuilder`, `String.join`) przemycono trzy zmiany zachowania: miejsca są sortowane, e-mail przechodzi na małe litery, a linia "Tel" znika, gdy telefonu brak; dodatkowo kwotę formatuje `Money` zamiast `String.format`.
+2. W antyprzykładzie obok dobrych ruchów (nazwy, `StringBuilder`, `String.join`) przemycono trzy zmiany zachowania: miejsca są sortowane, e-mail przechodzi na małe litery, a linia "Tel" znika, gdy telefonu brak; dodatkowo kwotę formatuje `Money` zamiast `String.format` (dochodzą importy `java.math.BigDecimal`, `java.util.List` i `pl.training.workshop.shared.Money`).
 
 **Przed:**
 
@@ -658,11 +1046,23 @@ if (t.phone() != null) {
 }
 ```
 
-**Po:**
+**Po (cała metoda `print` antyprzykładu):**
 
 ```java
-List<String> sortedSeats = ticket.seats().stream().sorted().toList();
-text.append("Klient: ").append(ticket.email().trim().toLowerCase(Locale.ROOT)).append('\n');
+public String print(Ticket ticket) {
+    StringBuilder text = new StringBuilder();
+    text.append("Film: ").append(ticket.title()).append('\n');
+    text.append("Seans: ").append(ticket.start().toLocalDate()).append(' ')
+            .append(ticket.start().toLocalTime()).append('\n');
+    List<String> sortedSeats = ticket.seats().stream().sorted().toList();
+    text.append("Miejsca: ").append(String.join(", ", sortedSeats)).append('\n');
+    text.append("Klient: ").append(ticket.email().trim().toLowerCase(Locale.ROOT)).append('\n');
+    if (ticket.phone() != null) {
+        text.append("Tel: ").append(ticket.phone()).append('\n');
+    }
+    text.append("Do zaplaty: ").append(new Money(BigDecimal.valueOf(ticket.total()))).append('\n');
+    return text.toString();
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh test m2/s05` - równoważność czerwona w trzech przypadkach (m.in. `A9, A10` staje się `A10, A9`). `S05SolutionTest.abusiveCleanupChangesBehaviourInThreeCases` dokumentuje, które.
@@ -695,16 +1095,36 @@ public String print(Ticket t) {
         x = x + t.seats().get(i);
     }
     s = s + "Miejsca: " + x + "\n";
-    ...
+    s = s + "Klient: " + t.email().trim() + "\n";
+    if (t.phone() != null) {
+        s = s + "Tel: " + t.phone() + "\n";
+    } else {
+        s = s + "Tel: -\n";
+    }
+    s = s + "Do zaplaty: " + String.format(Locale.ROOT, "%.2f", t.total()) + "\n";
+    return s;
 }
 ```
 
-**Po:**
+**Po (cała metoda `print` i nowa metoda; importy bez zmian):**
 
 ```java
-.append("Miejsca: ").append(String.join(", ", ticket.seats())).append('\n')
-.append("Klient: ").append(ticket.email().trim()).append('\n')
-.append(phoneLine(ticket)).append('\n')
+public String print(Ticket ticket) {
+    return new StringBuilder()
+            .append("Film: ").append(ticket.title()).append('\n')
+            .append("Seans: ").append(ticket.start().toLocalDate()).append(' ')
+            .append(ticket.start().toLocalTime()).append('\n')
+            .append("Miejsca: ").append(String.join(", ", ticket.seats())).append('\n')
+            .append("Klient: ").append(ticket.email().trim()).append('\n')
+            .append(phoneLine(ticket)).append('\n')
+            .append("Do zaplaty: ").append(String.format(Locale.ROOT, "%.2f", ticket.total()))
+            .append('\n')
+            .toString();
+}
+
+private static String phoneLine(Ticket ticket) {
+    return "Tel: " + (ticket.phone() != null ? ticket.phone() : "-");
+}
 ```
 
 **Uruchom:** test zielony.
@@ -756,37 +1176,72 @@ if (q.type().equals("STUDENT")) {
 
 1. Wybór ceny bazowej wydziel do metody `basePrice(String format)` (Extract Method).
 2. Wybór zniżki wydziel do metody `discountPercent(String type)`, która zwraca procent zamiast kwoty (Extract Method).
-3. Kwoty przejdź z `BigDecimal` na `Money`: `base.minus(base.percent(...))`, `Money.of("5.00")`, `Money.of("10.00")`; przy okazji zmień nazwę parametru `q` na `query` (Rename).
+3. Kwoty przejdź z `BigDecimal` na `Money`: `base.minus(base.percent(...))`, `Money.of("5.00")`, `Money.of("10.00")`; przy okazji zmień nazwę parametru `q` na `query` (Rename). Znika import `java.math.BigDecimal`.
 
-**Przed:**
+**Przed (cała metoda `price`):**
 
 ```java
-BigDecimal p;
-if (q.format().equals("IMAX")) {
-    p = new BigDecimal("40.00");
-} else if (q.format().equals("3D")) {
-    p = new BigDecimal("32.00");
-} else {
-    p = new BigDecimal("25.00");
+public Money price(TicketQuery q) {
+    BigDecimal p;
+    if (q.format().equals("IMAX")) {
+        p = new BigDecimal("40.00");
+    } else if (q.format().equals("3D")) {
+        p = new BigDecimal("32.00");
+    } else {
+        p = new BigDecimal("25.00");
+    }
+    BigDecimal d;
+    if (q.type().equals("STUDENT")) {
+        d = p.multiply(new BigDecimal("0.25"));
+    } else if (q.type().equals("SENIOR")) {
+        d = p.multiply(new BigDecimal("0.30"));
+    } else if (q.type().equals("CHILD")) {
+        d = p.multiply(new BigDecimal("0.40"));
+    } else {
+        d = BigDecimal.ZERO;
+    }
+    p = p.subtract(d);
+    if (q.start().getHour() < 12) {
+        p = p.subtract(new BigDecimal("5.00"));
+    }
+    if (q.row() >= 10) {
+        p = p.add(new BigDecimal("10.00"));
+    }
+    return new Money(p);
 }
-BigDecimal d;
-if (q.type().equals("STUDENT")) {
-    d = p.multiply(new BigDecimal("0.25"));
-} else if (q.type().equals("SENIOR")) {
-    d = p.multiply(new BigDecimal("0.30"));
-} else if (q.type().equals("CHILD")) {
-    d = p.multiply(new BigDecimal("0.40"));
-} else {
-    d = BigDecimal.ZERO;
-}
-p = p.subtract(d);
 ```
 
-**Po:**
+**Po (cała treść klasy):**
 
 ```java
-Money base = basePrice(query.format());
-Money price = base.minus(base.percent(discountPercent(query.type())));
+public Money price(TicketQuery query) {
+    Money base = basePrice(query.format());
+    Money price = base.minus(base.percent(discountPercent(query.type())));
+    if (query.start().getHour() < 12) {
+        price = price.minus(Money.of("5.00"));
+    }
+    if (query.row() >= 10) {
+        price = price.plus(Money.of("10.00"));
+    }
+    return price;
+}
+
+private static Money basePrice(String format) {
+    return switch (format) {
+        case "IMAX" -> Money.of("40.00");
+        case "3D" -> Money.of("32.00");
+        default -> Money.of("25.00");
+    };
+}
+
+private static int discountPercent(String type) {
+    return switch (type) {
+        case "STUDENT" -> 25;
+        case "SENIOR" -> 30;
+        case "CHILD" -> 40;
+        default -> 0;
+    };
+}
 ```
 
 **Uruchom:** test zielony - równoważność na przypadkach, w tym wtorkowych.
@@ -818,8 +1273,15 @@ private static int discountPercent(String type) {
 **Po:**
 
 ```java
+Money price = base.minus(base.percent(discountPercent(query)));
+...
 private static int discountPercent(TicketQuery query) {
-    return switch (query.type()) { ... };
+    return switch (query.type()) {
+        case "STUDENT" -> 25;
+        case "SENIOR" -> 30;
+        case "CHILD" -> 40;
+        default -> 0;
+    };
 }
 ```
 
@@ -831,7 +1293,7 @@ private static int discountPercent(TicketQuery query) {
 
 **Zmiany:**
 
-1. Dodaj stałą `CHEAP_TUESDAY_PERCENT = 20` i metodę pomocniczą `isCheapTuesday(query)` sprawdzającą `DayOfWeek.TUESDAY`.
+1. Dodaj stałą `CHEAP_TUESDAY_PERCENT = 20` i metodę pomocniczą `isCheapTuesday(query)` sprawdzającą `DayOfWeek.TUESDAY` (dochodzi import `java.time.DayOfWeek`).
 2. W gałęzi `default` metody `discountPercent` zwracaj `isCheapTuesday(query) ? CHEAP_TUESDAY_PERCENT : 0`.
 
 **Przed:**
@@ -847,10 +1309,23 @@ private static int discountPercent(TicketQuery query) {
 }
 ```
 
-**Po:**
+**Po (stała, `discountPercent` i nowa metoda; `price` i `basePrice` bez zmian):**
 
 ```java
-default -> isCheapTuesday(query) ? CHEAP_TUESDAY_PERCENT : 0;
+private static final int CHEAP_TUESDAY_PERCENT = 20;
+
+private static int discountPercent(TicketQuery query) {
+    return switch (query.type()) {
+        case "STUDENT" -> 25;
+        case "SENIOR" -> 30;
+        case "CHILD" -> 40;
+        default -> isCheapTuesday(query) ? CHEAP_TUESDAY_PERCENT : 0;
+    };
+}
+
+private static boolean isCheapTuesday(TicketQuery query) {
+    return query.start().getDayOfWeek() == DayOfWeek.TUESDAY;
+}
 ```
 
 **Uruchom:** test zielony; `S06SolutionTest.cheapTuesdayGivesNormalTicketTwentyPercentOff` (2D wtorek 20.00) i `behaviourChangeIsLimitedToNormalTicketsOnTuesday` - na siatce 336 przypadków zmieniło się dokładnie 12, wszystkie NORMAL we wtorek.
@@ -923,11 +1398,53 @@ public String render(List<Sale> sales) {
 }
 ```
 
-**Po:**
+**Po (`render` i obie nowe metody; `revenue` i `net` bez zmian):**
 
 ```java
 public String render(List<Sale> sales) {
     return accountingSection(sales) + marketingSection(sales);
+}
+
+private String accountingSection(List<Sale> sales) {
+    StringBuilder out = new StringBuilder();
+    BigDecimal tickets = new BigDecimal("0.00");
+    BigDecimal bar = new BigDecimal("0.00");
+    for (Sale sale : sales) {
+        tickets = tickets.add(sale.ticketRevenue());
+        bar = bar.add(sale.barRevenue());
+    }
+    out.append("KSIEGOWOSC\n");
+    out.append("Bilety brutto ").append(tickets)
+            .append(", netto ").append(net(tickets, 8)).append('\n');
+    out.append("Bar brutto ").append(bar).append(", netto ").append(net(bar, 23)).append('\n');
+    BigDecimal total = new BigDecimal("0.00");
+    for (Sale sale : sales) {
+        total = total.add(revenue(sale));
+    }
+    out.append("Razem brutto ").append(total).append('\n');
+    return out.toString();
+}
+
+private String marketingSection(List<Sale> sales) {
+    StringBuilder out = new StringBuilder();
+    out.append("MARKETING\n");
+    Map<String, BigDecimal> byTitle = new TreeMap<>();
+    int sold = 0;
+    for (Sale sale : sales) {
+        byTitle.merge(sale.title(), revenue(sale), BigDecimal::add);
+        sold += sale.tickets();
+    }
+    String hit = "brak";
+    BigDecimal best = BigDecimal.ZERO;
+    for (Map.Entry<String, BigDecimal> entry : byTitle.entrySet()) {
+        if (entry.getValue().compareTo(best) > 0) {
+            hit = entry.getKey() + " (" + entry.getValue() + ")";
+            best = entry.getValue();
+        }
+    }
+    out.append("Hit dnia: ").append(hit).append('\n');
+    out.append("Sprzedanych biletow: ").append(sold).append('\n');
+    return out.toString();
 }
 ```
 
@@ -953,14 +1470,20 @@ private BigDecimal revenue(Sale sale) {
 }
 ```
 
-**Po:**
+**Po (zmieniona linia w `marketingSection` i oba helpery):**
 
 ```java
+byTitle.merge(sale.title(), popularity(sale), BigDecimal::add);
+...
 /** Księgowość: przychód brutto seansu. */
-private BigDecimal revenue(Sale sale) { ... }
+private BigDecimal revenue(Sale sale) {
+    return sale.ticketRevenue().add(sale.barRevenue());
+}
 
 /** Marketing: miara popularności filmu (dziś: bilety + bar). */
-private BigDecimal popularity(Sale sale) { ... }
+private BigDecimal popularity(Sale sale) {
+    return sale.ticketRevenue().add(sale.barRevenue());
+}
 ```
 
 **Uruchom:** test zielony.
@@ -972,10 +1495,10 @@ private BigDecimal popularity(Sale sale) { ... }
 **Zmiany:**
 
 1. Utwórz klasę `AccountingSection` i przenieś do niej `accountingSection` (pod nazwą `render`) oraz `revenue` i `net` (Extract Class).
-2. Utwórz klasę `MarketingSection` i przenieś do niej `marketingSection` (pod nazwą `render`) oraz `popularity`.
-3. W `DailyReport` zostają tylko pola `accounting` i `marketing` oraz `render`, który skleja wyniki obu sekcji.
+2. Utwórz klasę `MarketingSection` i przenieś do niej `marketingSection` (pod nazwą `render`) oraz `popularity`. Obie nowe klasy i ich metody `render` mają widoczność pakietową; ciała metod przenosisz bez zmian.
+3. W `DailyReport` zostają tylko pola `accounting` i `marketing` oraz `render`, który skleja wyniki obu sekcji; z importów zostają tylko `java.util.List` i `Sale`.
 
-**Przed:**
+**Przed (`DailyReport.java`, szkielet - ciała metod jak w kroku 2):**
 
 ```java
 public final class DailyReport {
@@ -995,15 +1518,101 @@ public final class DailyReport {
 }
 ```
 
-**Po:**
+**Po (`DailyReport.java`, cały plik):**
 
 ```java
+import java.util.List;
+
+import pl.training.workshop.m2.s07_srp.Sale;
+
 public final class DailyReport {
     private final AccountingSection accounting = new AccountingSection();
     private final MarketingSection marketing = new MarketingSection();
 
     public String render(List<Sale> sales) {
         return accounting.render(sales) + marketing.render(sales);
+    }
+}
+```
+
+**Po (`AccountingSection.java`, nowy plik):**
+
+```java
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.List;
+
+import pl.training.workshop.m2.s07_srp.Sale;
+
+/** Aktor - księgowość. Zmienia się, gdy zmieniają się stawki VAT lub wymogi sprawozdań. */
+final class AccountingSection {
+    String render(List<Sale> sales) {
+        StringBuilder out = new StringBuilder();
+        BigDecimal tickets = new BigDecimal("0.00");
+        BigDecimal bar = new BigDecimal("0.00");
+        for (Sale sale : sales) {
+            tickets = tickets.add(sale.ticketRevenue());
+            bar = bar.add(sale.barRevenue());
+        }
+        out.append("KSIEGOWOSC\n");
+        out.append("Bilety brutto ").append(tickets)
+                .append(", netto ").append(net(tickets, 8)).append('\n');
+        out.append("Bar brutto ").append(bar).append(", netto ").append(net(bar, 23)).append('\n');
+        BigDecimal total = new BigDecimal("0.00");
+        for (Sale sale : sales) {
+            total = total.add(revenue(sale));
+        }
+        out.append("Razem brutto ").append(total).append('\n');
+        return out.toString();
+    }
+
+    private BigDecimal revenue(Sale sale) {
+        return sale.ticketRevenue().add(sale.barRevenue());
+    }
+
+    private BigDecimal net(BigDecimal gross, int vatPercent) {
+        return gross.multiply(BigDecimal.valueOf(100))
+                .divide(BigDecimal.valueOf(100 + vatPercent), 2, RoundingMode.HALF_UP);
+    }
+}
+```
+
+**Po (`MarketingSection.java`, nowy plik):**
+
+```java
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+import pl.training.workshop.m2.s07_srp.Sale;
+
+/** Aktor - marketing. Zmienia się, gdy marketing zmienia definicję "hitu". */
+final class MarketingSection {
+    String render(List<Sale> sales) {
+        StringBuilder out = new StringBuilder();
+        out.append("MARKETING\n");
+        Map<String, BigDecimal> byTitle = new TreeMap<>();
+        int sold = 0;
+        for (Sale sale : sales) {
+            byTitle.merge(sale.title(), popularity(sale), BigDecimal::add);
+            sold += sale.tickets();
+        }
+        String hit = "brak";
+        BigDecimal best = BigDecimal.ZERO;
+        for (Map.Entry<String, BigDecimal> entry : byTitle.entrySet()) {
+            if (entry.getValue().compareTo(best) > 0) {
+                hit = entry.getKey() + " (" + entry.getValue() + ")";
+                best = entry.getValue();
+            }
+        }
+        out.append("Hit dnia: ").append(hit).append('\n');
+        out.append("Sprzedanych biletow: ").append(sold).append('\n');
+        return out.toString();
+    }
+
+    private BigDecimal popularity(Sale sale) {
+        return sale.ticketRevenue().add(sale.barRevenue());
     }
 }
 ```
@@ -1057,10 +1666,10 @@ if (!reply.startsWith("250")) {
 
 **Zmiany:**
 
-1. W `ConfirmReservation` usuń inicjalizator pola `mail` - klasa dostaje `SmtpMailSender` przez nowy konstruktor (Introduce Parameter).
-2. Tworzenie `new SmtpMailSender("smtp.kino.pl", 25)` przenieś do `Main`, który składa graf obiektów.
+1. W `ConfirmReservation` usuń inicjalizator pola `mail` - klasa dostaje `SmtpMailSender` przez nowy konstruktor (Introduce Parameter); metoda `confirm` bez zmian.
+2. Tworzenie `new SmtpMailSender("smtp.kino.pl", 25)` przenieś do `Main`, który składa graf obiektów; w `Main` dochodzi import `infra.SmtpMailSender`.
 
-**Przed:**
+**Przed (`app/ConfirmReservation.java` i `Main.java`):**
 
 ```java
 public final class ConfirmReservation {
@@ -1071,11 +1680,21 @@ public static ConfirmReservation confirmReservation() {    // Main
 }
 ```
 
-**Po:**
+**Po (`app/ConfirmReservation.java`, pole i nowy konstruktor):**
 
 ```java
+private final SmtpMailSender mail;
+
 public ConfirmReservation(SmtpMailSender mail) {
     this.mail = mail;
+}
+```
+
+**Po (`Main.java`):**
+
+```java
+public static ConfirmReservation confirmReservation() {
+    return new ConfirmReservation(new SmtpMailSender("smtp.kino.pl", 25));
 }
 ```
 
@@ -1101,11 +1720,26 @@ if (!reply.startsWith("250")) {
 return "potwierdzono: " + reservation.email();
 ```
 
-**Po:**
+**Po (cała metoda `confirm` i nowa metoda):**
 
 ```java
-notifyCustomer(reservation.email(), message);
-return "potwierdzono: " + reservation.email();
+public String confirm(Reservation reservation) {
+    if (reservation.seats() < 1) {
+        throw new IllegalArgumentException("rezerwacja bez miejsc");
+    }
+    String message = "Rezerwacja: " + reservation.title() + ", " + reservation.start()
+            + ", miejsc: " + reservation.seats() + ". Zaplac w ciagu 15 minut.";
+    notifyCustomer(reservation.email(), message);
+    return "potwierdzono: " + reservation.email();
+}
+
+private void notifyCustomer(String email, String message) {
+    String mime = "To: " + email + "\r\nSubject: Rezerwacja\r\n\r\n" + message;
+    String reply = mail.send(email, mime);
+    if (!reply.startsWith("250")) {
+        throw new IllegalStateException("SMTP odrzucil: " + reply);
+    }
+}
 ```
 
 **Uruchom:** test zielony.
@@ -1118,10 +1752,10 @@ return "potwierdzono: " + reservation.email();
 
 1. W pakiecie `app` utwórz interfejs `CustomerNotifier` z metodą `notifyCustomer(String email, String message)` (Extract Interface).
 2. W `infra` utwórz klasę `SmtpCustomerNotifier implements CustomerNotifier` i przenieś do niej ciało `notifyCustomer` wraz z polem `mail` (Move Method).
-3. W `ConfirmReservation` zmień typ pola i parametru konstruktora na `CustomerNotifier` - import `infra` znika z polityki.
-4. W `Main` złóż graf: `new ConfirmReservation(new SmtpCustomerNotifier(new SmtpMailSender("smtp.kino.pl", 25)))`.
+3. W `ConfirmReservation` zmień typ pola i parametru konstruktora na `CustomerNotifier` (pole nazwij `notifier`), w `confirm` wołaj `notifier.notifyCustomer(...)`, a prywatną metodę `notifyCustomer` usuń - import `infra` znika z polityki.
+4. W `Main` złóż graf: `new ConfirmReservation(new SmtpCustomerNotifier(new SmtpMailSender("smtp.kino.pl", 25)))`; dochodzi import `infra.SmtpCustomerNotifier`.
 
-**Przed:**
+**Przed (`app/ConfirmReservation.java`):**
 
 ```java
 import pl.training.workshop.m2.s08_dip.step2.infra.SmtpMailSender;
@@ -1137,14 +1771,73 @@ private void notifyCustomer(String email, String message) {
 }
 ```
 
-**Po:**
+**Po (`app/CustomerNotifier.java`, nowy plik):**
 
 ```java
-public interface CustomerNotifier {           // app
+/**
+ * Port wyjściowy należy do polityki i nazywa JEJ potrzebę ("powiadom klienta"),
+ * a nie możliwości technologii (brak MIME, hosta, kodów SMTP).
+ * Niepowodzenie: IllegalStateException - bez szczegółów protokołu w kontrakcie.
+ */
+public interface CustomerNotifier {
     void notifyCustomer(String email, String message);
 }
+```
 
-public final class SmtpCustomerNotifier implements CustomerNotifier {   // infra
+**Po (`infra/SmtpCustomerNotifier.java`, nowy plik):**
+
+```java
+import pl.training.workshop.m2.s08_dip.step3.app.CustomerNotifier;
+
+/** Adapter: implementuje port polityki (import infra -> app) i tłumaczy go na protokół SMTP. */
+public final class SmtpCustomerNotifier implements CustomerNotifier {
+    private final SmtpMailSender mail;
+
+    public SmtpCustomerNotifier(SmtpMailSender mail) {
+        this.mail = mail;
+    }
+
+    @Override
+    public void notifyCustomer(String email, String message) {
+        String mime = "To: " + email + "\r\nSubject: Rezerwacja\r\n\r\n" + message;
+        String reply = mail.send(email, mime);
+        if (!reply.startsWith("250")) {
+            throw new IllegalStateException("SMTP odrzucil: " + reply);
+        }
+    }
+}
+```
+
+**Po (`app/ConfirmReservation.java`, cały plik):**
+
+```java
+import pl.training.workshop.m2.s08_dip.Reservation;
+
+public final class ConfirmReservation {
+    private final CustomerNotifier notifier;
+
+    public ConfirmReservation(CustomerNotifier notifier) {
+        this.notifier = notifier;
+    }
+
+    public String confirm(Reservation reservation) {
+        if (reservation.seats() < 1) {
+            throw new IllegalArgumentException("rezerwacja bez miejsc");
+        }
+        String message = "Rezerwacja: " + reservation.title() + ", " + reservation.start()
+                + ", miejsc: " + reservation.seats() + ". Zaplac w ciagu 15 minut.";
+        notifier.notifyCustomer(reservation.email(), message);
+        return "potwierdzono: " + reservation.email();
+    }
+}
+```
+
+**Po (`Main.java`):**
+
+```java
+public static ConfirmReservation confirmReservation() {
+    return new ConfirmReservation(new SmtpCustomerNotifier(new SmtpMailSender("smtp.kino.pl", 25)));
+}
 ```
 
 **Uruchom:** test zielony; `stepsSendTheSameMimeMessage` potwierdza identyczny MIME, `step3PolicyIsTestableWithAHandWrittenFake` testuje politykę lambdą.
@@ -1201,9 +1894,9 @@ return "201 " + id + " " + total;
 1. Utwórz rekordy `BookSeatsCommand(email, format, rows)` i `Booking(id, total)` - proste dane przekraczające granicę.
 2. Wycenę, zapis i publikację wydziel z kontrolera do metody `execute`, a metodę przenieś do nowej klasy `BookSeats` z polami `db` i `outbox` (Extract Method, Move Method).
 3. Walidację "brak miejsc" przenieś do `BookSeats.execute` jako `IllegalArgumentException`.
-4. Kontroler tylko tłumaczy: parametry na `BookSeatsCommand`, wynik na "201 ...", a wyjątki na kody: `IllegalArgumentException` -> 400, `IllegalStateException` -> 503.
+4. Kontroler tylko tłumaczy: parametry na `BookSeatsCommand`, wynik na "201 ...", a wyjątki na kody: `IllegalArgumentException` -> 400, `IllegalStateException` -> 503. Pola `db` i `outbox` zastępuje pole `bookSeats` (konstruktor sam składa `new BookSeats(db, outbox)` - do kroku 4), z importów znika `java.math.BigDecimal`. `CinemaApplication` bez zmian.
 
-**Przed:**
+**Przed (`ReservationController.java`, druga połowa metody `handle`):**
 
 ```java
 BigDecimal total = new BigDecimal("0.00");
@@ -1223,18 +1916,104 @@ outbox.publish("reservation-created", id + ";" + email + ";" + total);
 return "201 " + id + " " + total;
 ```
 
-**Po:**
+**Po (`BookSeatsCommand.java`, nowy plik):**
 
 ```java
-public Booking execute(BookSeatsCommand command) {
-    if (command.rows().isEmpty()) {
-        throw new IllegalArgumentException("brak miejsc");
+import java.util.List;
+
+/** Dane wejściowe przypadku użycia - prosty rekord, bez Map z HTTP. */
+public record BookSeatsCommand(String email, String format, List<Integer> rows) {
+    public BookSeatsCommand {
+        rows = List.copyOf(rows);
     }
-    BigDecimal total = price(command);
-    String id = db.insert(
-            new Object[] {command.email(), command.format(), command.rows().size(), total});
-    outbox.publish("reservation-created", id + ";" + command.email() + ";" + total);
-    return new Booking(id, total);
+}
+```
+
+**Po (`Booking.java`, nowy plik):**
+
+```java
+import java.math.BigDecimal;
+
+/** Wynik przypadku użycia. */
+public record Booking(String id, BigDecimal total) {
+}
+```
+
+**Po (`BookSeats.java`, nowy plik):**
+
+```java
+import java.math.BigDecimal;
+
+import pl.training.workshop.m2.s09_cleanarchitecture.Outbox;
+import pl.training.workshop.m2.s09_cleanarchitecture.RowStore;
+
+/**
+ * Przypadek użycia jako jawna orkiestracja jednego celu: wyceń, zapisz, powiadom.
+ * Wciąż zna jednak wiersz Object[] i temat komunikatu (szczegóły techniczne).
+ */
+public final class BookSeats {
+    private final RowStore db;
+    private final Outbox outbox;
+
+    public BookSeats(RowStore db, Outbox outbox) {
+        this.db = db;
+        this.outbox = outbox;
+    }
+
+    public Booking execute(BookSeatsCommand command) {
+        if (command.rows().isEmpty()) {
+            throw new IllegalArgumentException("brak miejsc");
+        }
+        BigDecimal total = price(command);
+        String id = db.insert(
+                new Object[] {command.email(), command.format(), command.rows().size(), total});
+        outbox.publish("reservation-created", id + ";" + command.email() + ";" + total);
+        return new Booking(id, total);
+    }
+
+    private BigDecimal price(BookSeatsCommand command) {
+        BigDecimal base = switch (command.format()) {
+            case "IMAX" -> new BigDecimal("40.00");
+            case "3D" -> new BigDecimal("32.00");
+            default -> new BigDecimal("25.00");
+        };
+        BigDecimal total = new BigDecimal("0.00");
+        for (int row : command.rows()) {
+            total = total.add(base);
+            if (row >= 10) {
+                total = total.add(new BigDecimal("10.00"));
+            }
+        }
+        return total;
+    }
+}
+```
+
+**Po (`ReservationController.java`, pole, konstruktor i cała metoda `handle`):**
+
+```java
+private final BookSeats bookSeats;
+
+public ReservationController(RowStore db, Outbox outbox) {
+    this.bookSeats = new BookSeats(db, outbox);
+}
+
+public String handle(Map<String, String> params) {
+    String email = params.get("email");
+    if (email == null || email.isBlank()) {
+        return "400 brak email";
+    }
+    List<Integer> rows = Arrays.stream(params.getOrDefault("rows", "").split(","))
+            .filter(s -> !s.isBlank()).map(Integer::parseInt).toList();
+    try {
+        Booking booking = bookSeats.execute(
+                new BookSeatsCommand(email, params.getOrDefault("format", "2D"), rows));
+        return "201 " + booking.id() + " " + booking.total();
+    } catch (IllegalArgumentException e) {
+        return "400 " + e.getMessage();
+    } catch (IllegalStateException e) {
+        return "503 " + e.getMessage();
+    }
 }
 ```
 
@@ -1249,24 +2028,133 @@ public Booking execute(BookSeatsCommand command) {
 1. Dodaj rekord `NewReservation(email, format, seats, total)` - dane przekraczające granicę do zapisu.
 2. Dodaj porty: interfejs `ReservationStore` z metodą `save(NewReservation)` i interfejs `BookingNotifier` z metodą `reservationCreated(id, reservation)` - nazwane potrzebą przypadku użycia.
 3. Mapowanie na `Object[]` przenieś do adaptera `RowStoreReservationStore`, a publikację komunikatu do `OutboxBookingNotifier`.
-4. `BookSeats` przyjmuje w konstruktorze porty zamiast `RowStore` i `Outbox`; adaptery składa na razie kontroler (do kroku 4).
+4. `BookSeats` przyjmuje w konstruktorze porty zamiast `RowStore` i `Outbox` (pola `store` i `notifier`; znikają importy `Outbox` i `RowStore`); adaptery składa na razie kontroler (do kroku 4) - w jego konstruktorze zamień `new BookSeats(db, outbox)` na `new BookSeats(new RowStoreReservationStore(db), new OutboxBookingNotifier(outbox))`.
 
-**Przed:**
+**Przed (`BookSeats.java`, pola, konstruktor i `execute`):**
 
 ```java
-BigDecimal total = price(command);
-String id = db.insert(
-        new Object[] {command.email(), command.format(), command.rows().size(), total});
-outbox.publish("reservation-created", id + ";" + command.email() + ";" + total);
-return new Booking(id, total);
+private final RowStore db;
+private final Outbox outbox;
+
+public BookSeats(RowStore db, Outbox outbox) {
+    this.db = db;
+    this.outbox = outbox;
+}
+
+public Booking execute(BookSeatsCommand command) {
+    if (command.rows().isEmpty()) {
+        throw new IllegalArgumentException("brak miejsc");
+    }
+    BigDecimal total = price(command);
+    String id = db.insert(
+            new Object[] {command.email(), command.format(), command.rows().size(), total});
+    outbox.publish("reservation-created", id + ";" + command.email() + ";" + total);
+    return new Booking(id, total);
+}
 ```
 
-**Po:**
+**Po (`NewReservation.java`, nowy plik):**
 
 ```java
-String id = store.save(reservation);
-notifier.reservationCreated(id, reservation);
-return new Booking(id, reservation.total());
+import java.math.BigDecimal;
+
+/** Dane przekraczające granicę do portu zapisu - rekord, nie Object[]. */
+public record NewReservation(String email, String format, int seats, BigDecimal total) {
+}
+```
+
+**Po (`ReservationStore.java`, nowy plik):**
+
+```java
+/**
+ * Port wyjściowy zdefiniowany przez potrzebę przypadku użycia.
+ * Zwraca identyfikator; gdy nie da się zapisać - IllegalStateException.
+ */
+public interface ReservationStore {
+    String save(NewReservation reservation);
+}
+```
+
+**Po (`BookingNotifier.java`, nowy plik):**
+
+```java
+/** Port wyjściowy - "daj znać, że rezerwacja powstała". */
+public interface BookingNotifier {
+    void reservationCreated(String id, NewReservation reservation);
+}
+```
+
+**Po (`RowStoreReservationStore.java`, nowy plik):**
+
+```java
+import pl.training.workshop.m2.s09_cleanarchitecture.RowStore;
+
+/** Adapter wyjściowy - mapuje rekord na kolumny tabeli. */
+public final class RowStoreReservationStore implements ReservationStore {
+    private final RowStore db;
+
+    public RowStoreReservationStore(RowStore db) {
+        this.db = db;
+    }
+
+    @Override
+    public String save(NewReservation reservation) {
+        return db.insert(new Object[] {
+                reservation.email(), reservation.format(), reservation.seats(), reservation.total()});
+    }
+}
+```
+
+**Po (`OutboxBookingNotifier.java`, nowy plik):**
+
+```java
+import pl.training.workshop.m2.s09_cleanarchitecture.Outbox;
+
+/** Adapter wyjściowy - zna temat i format komunikatu. */
+public final class OutboxBookingNotifier implements BookingNotifier {
+    private final Outbox outbox;
+
+    public OutboxBookingNotifier(Outbox outbox) {
+        this.outbox = outbox;
+    }
+
+    @Override
+    public void reservationCreated(String id, NewReservation reservation) {
+        outbox.publish("reservation-created", id + ";" + reservation.email() + ";" + reservation.total());
+    }
+}
+```
+
+**Po (`BookSeats.java`, pola, konstruktor i `execute`; `price` bez zmian):**
+
+```java
+private final ReservationStore store;
+private final BookingNotifier notifier;
+
+public BookSeats(ReservationStore store, BookingNotifier notifier) {
+    this.store = store;
+    this.notifier = notifier;
+}
+
+public Booking execute(BookSeatsCommand command) {
+    if (command.rows().isEmpty()) {
+        throw new IllegalArgumentException("brak miejsc");
+    }
+    NewReservation reservation = new NewReservation(
+            command.email(), command.format(), command.rows().size(), price(command));
+    String id = store.save(reservation);
+    notifier.reservationCreated(id, reservation);
+    return new Booking(id, reservation.total());
+}
+```
+
+**Po (`ReservationController.java`, konstruktor; reszta bez zmian):**
+
+```java
+public ReservationController(RowStore db, Outbox outbox) {
+    this.bookSeats = new BookSeats(
+            new RowStoreReservationStore(db), new OutboxBookingNotifier(outbox));
+}
 ```
 
 **Uruchom:** test zielony, także przypadek "baza niedostępna - brak powiadomienia".
@@ -1279,7 +2167,7 @@ return new Booking(id, reservation.total());
 
 1. Przenieś `BookSeats`, `BookSeatsCommand`, `Booking`, `NewReservation`, `ReservationStore` i `BookingNotifier` do nowego pakietu `app` (Move Class).
 2. Przenieś `ReservationController`, `RowStoreReservationStore` i `OutboxBookingNotifier` do nowego pakietu `adapter` (Move Class).
-3. Popraw importy u wszystkich klientów, także w `CinemaApplication` - adaptery importują `app`, nigdy odwrotnie.
+3. Popraw importy u wszystkich klientów, także w `CinemaApplication` - adaptery importują `app`, nigdy odwrotnie. Konkretnie: `CinemaApplication` importuje `adapter.ReservationController`; `ReservationController` dodatkowo `app.BookSeats`, `app.BookSeatsCommand` i `app.Booking`; `RowStoreReservationStore` - `app.NewReservation` i `app.ReservationStore`; `OutboxBookingNotifier` - `app.BookingNotifier` i `app.NewReservation`. Poza pakietami i importami treść klas się nie zmienia.
 
 **Przed:**
 
@@ -1306,9 +2194,9 @@ step3/adapter/   ReservationController, RowStoreReservationStore, OutboxBookingN
 
 1. W konstruktorze kontrolera zastąp składanie `new BookSeats(...)` parametrem `BookSeats bookSeats` - tworzenie grafu przenosi się do `CinemaApplication` (Introduce Parameter).
 2. Usuń z konstruktora kontrolera nieużywane już parametry `db` i `outbox` wraz z importami `RowStore` i `Outbox` (Change Signature).
-3. `CinemaApplication.reservationController` składa cały graf: oba adaptery wyjściowe, przypadek użycia i kontroler.
+3. `CinemaApplication.reservationController` składa cały graf: oba adaptery wyjściowe, przypadek użycia i kontroler; dochodzą importy `adapter.OutboxBookingNotifier`, `adapter.RowStoreReservationStore` i `app.BookSeats`.
 
-**Przed:**
+**Przed (`adapter/ReservationController.java` i `CinemaApplication.java`):**
 
 ```java
 public ReservationController(RowStore db, Outbox outbox) {
@@ -1321,7 +2209,15 @@ public static ReservationController reservationController(RowStore db, Outbox ou
 }
 ```
 
-**Po:**
+**Po (`adapter/ReservationController.java`, konstruktor; `handle` bez zmian):**
+
+```java
+public ReservationController(BookSeats bookSeats) {
+    this.bookSeats = bookSeats;
+}
+```
+
+**Po (`CinemaApplication.java`):**
 
 ```java
 public static ReservationController reservationController(RowStore db, Outbox outbox) {
@@ -1386,16 +2282,35 @@ Uruchom test i pokaż wyjście konsoli: `s10 start - naruszenia granicy: [...]` 
 
 1. Utwórz w pakiecie `domain` klasę `ScreeningRowMapper` i przenieś do niej pole `table` oraz metody `toRow` i `fromRow` z `ScreeningService` (Extract Class).
 2. W `ScreeningService` zostaje sama polityka cenowa: pola `basePrice` i `morningDiscount`, metody `price` i `isMorning`; konstruktor traci parametr `table`.
-3. Popraw composition root `CinemaApp`: tworzy `ScreeningService` i osobno `ScreeningRowMapper("screenings")`, a `toRow`/`fromRow` woła na maperze.
+3. Popraw composition root `CinemaApp`: tworzy `ScreeningService` i osobno `ScreeningRowMapper("screenings")`, a `toRow`/`fromRow` woła na maperze; dochodzi import `domain.ScreeningRowMapper`.
 
-**Przed:**
+**Przed (`domain/ScreeningService.java`, cały plik):**
 
 ```java
+import java.math.BigDecimal;
+import java.sql.Timestamp;
+
+import pl.training.workshop.m2.s10_boundarycheck.start.adapter.ScreeningRow;
+
 public final class ScreeningService {
     private final BigDecimal basePrice;
     private final BigDecimal morningDiscount;
     private final String table;
-    ...
+
+    public ScreeningService(BigDecimal basePrice, BigDecimal morningDiscount, String table) {
+        this.basePrice = basePrice;
+        this.morningDiscount = morningDiscount;
+        this.table = table;
+    }
+
+    public BigDecimal price(Screening screening) {
+        return isMorning(screening) ? basePrice.subtract(morningDiscount) : basePrice;
+    }
+
+    private boolean isMorning(Screening screening) {
+        return screening.start().getHour() < 12;
+    }
+
     public ScreeningRow toRow(Screening screening) {
         return new ScreeningRow(table, screening.title(), Timestamp.valueOf(screening.start()));
     }
@@ -1409,13 +2324,83 @@ public final class ScreeningService {
 }
 ```
 
-**Po:**
+**Po (`domain/ScreeningService.java`, cały plik):**
 
 ```java
-public final class ScreeningRowMapper {    // wciąż w domain
+import java.math.BigDecimal;
+
+/** Po Extract Class zostaje sama polityka cenowa (LCOM4 = 1) i żadnego importu technologii. */
+public final class ScreeningService {
+    private final BigDecimal basePrice;
+    private final BigDecimal morningDiscount;
+
+    public ScreeningService(BigDecimal basePrice, BigDecimal morningDiscount) {
+        this.basePrice = basePrice;
+        this.morningDiscount = morningDiscount;
+    }
+
+    public BigDecimal price(Screening screening) {
+        return isMorning(screening) ? basePrice.subtract(morningDiscount) : basePrice;
+    }
+
+    private boolean isMorning(Screening screening) {
+        return screening.start().getHour() < 12;
+    }
+}
+```
+
+**Po (`domain/ScreeningRowMapper.java`, nowy plik - wciąż w `domain`):**
+
+```java
+import java.sql.Timestamp;
+
+import pl.training.workshop.m2.s10_boundarycheck.step1.adapter.ScreeningRow;
+
+/**
+ * Mapowanie na wiersz jako osobna, spójna klasa (LCOM4 = 1). Wciąż leży w domain,
+ * więc test granicy nadal jest czerwony: spójność poprawiona, kierunek zależności jeszcze nie.
+ */
+public final class ScreeningRowMapper {
     private final String table;
-    public ScreeningRow toRow(Screening screening) { ... }
-    public Screening fromRow(ScreeningRow row) { ... }
+
+    public ScreeningRowMapper(String table) {
+        this.table = table;
+    }
+
+    public ScreeningRow toRow(Screening screening) {
+        return new ScreeningRow(table, screening.title(), Timestamp.valueOf(screening.start()));
+    }
+
+    public Screening fromRow(ScreeningRow row) {
+        if (!row.table().equals(table)) {
+            throw new IllegalArgumentException("obca tabela: " + row.table());
+        }
+        return new Screening(row.title(), row.start().toLocalDateTime());
+    }
+}
+```
+
+**Przed (`CinemaApp.java`, metoda `describe`):**
+
+```java
+public static String describe(String title, LocalDateTime start) {
+    ScreeningService service = new ScreeningService(
+            new BigDecimal("25.00"), new BigDecimal("5.00"), "screenings");
+    Screening screening = new Screening(title, start);
+    ScreeningRow row = service.toRow(screening);
+    return service.price(screening) + " | " + row + " | " + service.fromRow(row).equals(screening);
+}
+```
+
+**Po (`CinemaApp.java`, metoda `describe`):**
+
+```java
+public static String describe(String title, LocalDateTime start) {
+    ScreeningService service = new ScreeningService(new BigDecimal("25.00"), new BigDecimal("5.00"));
+    ScreeningRowMapper mapper = new ScreeningRowMapper("screenings");
+    Screening screening = new Screening(title, start);
+    ScreeningRow row = mapper.toRow(screening);
+    return service.price(screening) + " | " + row + " | " + mapper.fromRow(row).equals(screening);
 }
 ```
 
@@ -1428,7 +2413,7 @@ public final class ScreeningRowMapper {    // wciąż w domain
 **Zmiany:**
 
 1. Przenieś `ScreeningRowMapper` z pakietu `domain` do pakietu `adapter` (Move Class).
-2. W maperze dochodzi import `domain.Screening`; popraw też import mapera w `CinemaApp`.
+2. W maperze dochodzi import `domain.Screening`, a znika import `adapter.ScreeningRow` (mapper leży teraz obok tej klasy); pola i metody bez zmian. Popraw też import mapera w `CinemaApp` (z `domain.ScreeningRowMapper` na `adapter.ScreeningRowMapper`) - reszta `CinemaApp` bez zmian.
 
 **Przed:**
 

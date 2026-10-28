@@ -221,6 +221,9 @@ scripts/warsztat.sh --lang cs reset m3/s04         <span class="hljs-comment"># 
     _clock = clock;
 }
 </code></pre>
+<p><strong>Po (ostatnia linia dokumentu w <code>Confirm</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs">+ <span class="hljs-string">&quot;Wygenerowano: &quot;</span> + _clock.GetLocalNow().DateTime.ToString(<span class="hljs-string">&quot;yyyy-MM-dd&#x27;T&#x27;HH:mm:ss&quot;</span>, CultureInfo.InvariantCulture) + <span class="hljs-string">&quot;\n&quot;</span>;
+</code></pre>
 <p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m3/<wbr>s01</code> - 15 testów zielonych, w tym <code>FromStep1TheWholeDocumentIsDeterministic</code> (z zatrzymanym <code>FakeTimeProvider</code> porównujemy także linię z czasem, bez scrubbera).
 <strong>Co powiedzieć:</strong> to minimalna zmiana, która robi szew dla testu. Stary konstruktor zostaje, więc produkcyjni klienci nie widzą różnicy. Scrubber był rusztowaniem i od tego kroku jest potrzebny tylko dla <code>Start</code>.
 <strong>Snapshot:</strong> <code>Step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m3/<wbr>s01 0 1</code></p>
@@ -239,7 +242,26 @@ scripts/warsztat.sh --lang cs reset m3/s04         <span class="hljs-comment"># 
     {
         p = <span class="hljs-number">40.00</span>;
     }
-    ...
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (b.Format == <span class="hljs-number">2</span>)
+    {
+        p = <span class="hljs-number">32.00</span>;
+    }
+    <span class="hljs-keyword">else</span>
+    {
+        p = <span class="hljs-number">25.00</span>;
+    }
+    <span class="hljs-keyword">if</span> (t == <span class="hljs-string">&quot;S&quot;</span>)
+    {
+        p = p * <span class="hljs-number">0.75</span>;
+    }
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (t == <span class="hljs-string">&quot;E&quot;</span>)
+    {
+        p = p * <span class="hljs-number">0.70</span>;
+    }
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (t == <span class="hljs-string">&quot;C&quot;</span>)
+    {
+        p = p * <span class="hljs-number">0.60</span>;
+    }
     <span class="hljs-keyword">if</span> (b.Start.Hour &lt; <span class="hljs-number">12</span>)
     {
         p = p - <span class="hljs-number">5.00</span>;
@@ -251,6 +273,41 @@ scripts/warsztat.sh --lang cs reset m3/s04         <span class="hljs-comment"># 
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">foreach</span> (<span class="hljs-keyword">var</span> t <span class="hljs-keyword">in</span> b.TicketTypes)
 {
     sum = sum + TicketPrice(b, t);
+}
+</code></pre>
+<p>Nowa metoda (ciało przeniesione z pętli bez zmian):</p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-built_in">double</span> <span class="hljs-title">TicketPrice</span>(<span class="hljs-params">Booking b, <span class="hljs-built_in">string</span> t</span>)</span>
+{
+    <span class="hljs-built_in">double</span> p;
+    <span class="hljs-keyword">if</span> (b.Format == <span class="hljs-number">3</span>)
+    {
+        p = <span class="hljs-number">40.00</span>;
+    }
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (b.Format == <span class="hljs-number">2</span>)
+    {
+        p = <span class="hljs-number">32.00</span>;
+    }
+    <span class="hljs-keyword">else</span>
+    {
+        p = <span class="hljs-number">25.00</span>;
+    }
+    <span class="hljs-keyword">if</span> (t == <span class="hljs-string">&quot;S&quot;</span>)
+    {
+        p = p * <span class="hljs-number">0.75</span>;
+    }
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (t == <span class="hljs-string">&quot;E&quot;</span>)
+    {
+        p = p * <span class="hljs-number">0.70</span>;
+    }
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (t == <span class="hljs-string">&quot;C&quot;</span>)
+    {
+        p = p * <span class="hljs-number">0.60</span>;
+    }
+    <span class="hljs-keyword">if</span> (b.Start.Hour &lt; <span class="hljs-number">12</span>)
+    {
+        p = p - <span class="hljs-number">5.00</span>;
+    }
+    <span class="hljs-keyword">return</span> p;
 }
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony - ten sam dokument, znak w znak.
@@ -291,11 +348,20 @@ scripts/warsztat.sh --lang cs reset m3/s04         <span class="hljs-comment"># 
 <p><strong>Zmiany:</strong></p>
 <ol>
 <li>Z klasy <code>LegacyDatabase</code> wydziel interfejs <code>IBookingStore</code> z metodami <code>PaidBookings()</code> i <code>MarkReminded(string bookingId)</code> (Extract Interface). Nowy plik <code>IBookingStore.cs</code>, a <code>LegacyDatabase</code> deklaruje teraz <code>: IBookingStore</code>.</li>
-<li>W <code>ShowtimeReminderJob</code> dodaj pole <code>private readonly Func&lt;IBookingStore&gt; _stores;</code> i konstruktor z parametrem <code>Func&lt;IBookingStore&gt; stores</code> (Parameterize Constructor), który przypisuje pole.</li>
+<li>W <code>ShowtimeReminderJob</code> dodaj pole <code>private readonly Func&lt;IBookingStore&gt; _stores;</code> i konstruktor z parametrem <code>Func&lt;IBookingStore&gt; stores</code> (Parameterize Constructor), który waliduje argument (<code>ArgumentNullException.ThrowIfNull</code>) i przypisuje pole.</li>
 <li>Dodaj konstruktor bezargumentowy delegujący: <code>: this(() =&gt; new LegacyDatabase())</code>.</li>
 <li>W <code>Run()</code> zamień <code>var database = new LegacyDatabase();</code> na <code>var database = _stores();</code>.</li>
 </ol>
-<p><strong>Przed:</strong></p>
+<p><strong>Po (<code>IBookingStore.cs</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span>Najwęższy kontrakt, którego potrzebuje ShowtimeReminderJob (wydzielony z LegacyDatabase).<span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title">IBookingStore</span>
+{
+    <span class="hljs-function">IReadOnlyList&lt;PaidBooking&gt; <span class="hljs-title">PaidBookings</span>()</span>;
+
+    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">MarkReminded</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> bookingId</span>)</span>;
+}
+</code></pre>
+<p><strong>Przed (<code>ShowtimeReminderJob.cs</code>):</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">ShowtimeReminderJob</span>
 {
     <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">int</span> <span class="hljs-title">Run</span>()</span>
@@ -306,15 +372,29 @@ scripts/warsztat.sh --lang cs reset m3/s04         <span class="hljs-comment"># 
     }
 }
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ShowtimeReminderJob</span>()
-    : <span class="hljs-title">this</span>(<span class="hljs-params">(</span>)</span> =&gt; <span class="hljs-keyword">new</span> LegacyDatabase())
+<p><strong>Po (<code>ShowtimeReminderJob.cs</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">ShowtimeReminderJob</span>
 {
-}
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> Func&lt;IBookingStore&gt; _stores;
 
-<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">int</span> <span class="hljs-title">Run</span>()</span>
-{
-    <span class="hljs-keyword">var</span> database = _stores();
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ShowtimeReminderJob</span>()
+        : <span class="hljs-title">this</span>(<span class="hljs-params">(</span>)</span> =&gt; <span class="hljs-keyword">new</span> LegacyDatabase())
+    {
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ShowtimeReminderJob</span>(<span class="hljs-params">Func&lt;IBookingStore&gt; stores</span>)</span>
+    {
+        ArgumentNullException.ThrowIfNull(stores);
+        _stores = stores;
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">int</span> <span class="hljs-title">Run</span>()</span>
+    {
+        <span class="hljs-keyword">var</span> database = _stores();
+        <span class="hljs-keyword">var</span> now = DateTime.Now;
+        ...
+    }
+}
 </code></pre>
 <p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m3/<wbr>s02</code> - testy <code>Step1...</code> zielone: z fałszywą bazą zadanie działa, gdy nic nie jest do wysłania (<code>Step1RunsWithFakeStoreWhenNothingIsDue</code>).
 <strong>Co powiedzieć:</strong> przekazujemy fabrykę, a nie gotową bazę, bo stary kod otwierał połączenie przy każdym <code>Run()</code>. Gdybyśmy zrobili <code>: this(new LegacyDatabase())</code>, wyjątek poleciałby już w konstruktorze - zmienilibyśmy czas życia zależności i moment błędu.
@@ -327,13 +407,45 @@ scripts/warsztat.sh --lang cs reset m3/s04         <span class="hljs-comment"># 
 <li>W <code>Run()</code> zamień <code>var now = DateTime.Now;</code> na <code>var now = _clock.GetLocalNow().DateTime;</code>.</li>
 </ol>
 <p><strong>Przed:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">int</span> <span class="hljs-title">Run</span>()</span>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> Func&lt;IBookingStore&gt; _stores;
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ShowtimeReminderJob</span>()
+    : <span class="hljs-title">this</span>(<span class="hljs-params">(</span>)</span> =&gt; <span class="hljs-keyword">new</span> LegacyDatabase())
+{
+}
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ShowtimeReminderJob</span>(<span class="hljs-params">Func&lt;IBookingStore&gt; stores</span>)</span>
+{
+    ArgumentNullException.ThrowIfNull(stores);
+    _stores = stores;
+}
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">int</span> <span class="hljs-title">Run</span>()</span>
 {
     <span class="hljs-keyword">var</span> database = _stores();
     <span class="hljs-keyword">var</span> now = DateTime.Now;
 </code></pre>
 <p><strong>Po:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">var</span> now = _clock.GetLocalNow().DateTime;
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> Func&lt;IBookingStore&gt; _stores;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> TimeProvider _clock;
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ShowtimeReminderJob</span>()
+    : <span class="hljs-title">this</span>(<span class="hljs-params">(</span>)</span> =&gt; <span class="hljs-keyword">new</span> LegacyDatabase(), TimeProvider.System)
+{
+}
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ShowtimeReminderJob</span>(<span class="hljs-params">Func&lt;IBookingStore&gt; stores, TimeProvider clock</span>)</span>
+{
+    ArgumentNullException.ThrowIfNull(stores);
+    ArgumentNullException.ThrowIfNull(clock);
+    _stores = stores;
+    _clock = clock;
+}
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">int</span> <span class="hljs-title">Run</span>()</span>
+{
+    <span class="hljs-keyword">var</span> database = _stores();
+    <span class="hljs-keyword">var</span> now = _clock.GetLocalNow().DateTime;
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony. Test <code>Step2ControlsTimeButStillHitsStaticMailer</code> pokazuje dwie rzeczy: przypadki bez wysyłki działają przy stałym zegarze, a przypadek &quot;do wysłania&quot; wciąż kończy się wyjątkiem SMTP.
 <strong>Co powiedzieć:</strong> czas był ukrytym wejściem. Zegar czytamy w tym samym miejscu co wcześniej (po utworzeniu bazy), więc kolejność się nie zmienia. Następna przeszkoda jest widoczna w teście - statyczny mailer.
@@ -355,9 +467,27 @@ scripts/warsztat.sh --lang cs reset m3/s04         <span class="hljs-comment"># 
                 <span class="hljs-string">&quot;Seans zaczyna sie o &quot;</span> + booking.Start.ToString(<span class="hljs-string">&quot;HH:mm&quot;</span>, CultureInfo.InvariantCulture));
 </code></pre>
 <p><strong>Po:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">virtual</span> <span class="hljs-keyword">void</span> <span class="hljs-title">SendReminder</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> to, <span class="hljs-built_in">string</span> subject, <span class="hljs-built_in">string</span> body</span>)</span>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">ShowtimeReminderJob</span>
 {
-    ReminderMailer.Send(to, subject, body);
+    ...
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">int</span> <span class="hljs-title">Run</span>()</span>
+    {
+        ...
+            <span class="hljs-keyword">if</span> (!booking.Reminded &amp;&amp; minutes &gt; <span class="hljs-number">0</span> &amp;&amp; minutes &lt;= <span class="hljs-number">120</span>)
+            {
+                SendReminder(booking.Email,
+                    <span class="hljs-string">&quot;Przypomnienie: &quot;</span> + booking.Title,
+                    <span class="hljs-string">&quot;Seans zaczyna sie o &quot;</span> + booking.Start.ToString(<span class="hljs-string">&quot;HH:mm&quot;</span>, CultureInfo.InvariantCulture));
+                database.MarkReminded(booking.Id);
+                sent++;
+            }
+        ...
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">virtual</span> <span class="hljs-keyword">void</span> <span class="hljs-title">SendReminder</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> to, <span class="hljs-built_in">string</span> subject, <span class="hljs-built_in">string</span> body</span>)</span>
+    {
+        ReminderMailer.Send(to, subject, body);
+    }
 }
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony: <code>FirstRealTestForSteps3And4</code> - 3 przypadki z granicą 120/121 minut, już przypomniane i już rozpoczęte.
@@ -372,9 +502,29 @@ scripts/warsztat.sh --lang cs reset m3/s04         <span class="hljs-comment"># 
 <li>Przywróć <code>sealed</code> na deklaracji klasy.</li>
 <li>W teście podklasę <code>RecordingStep3Job</code> zastępuje lambda przekazana do konstruktora.</li>
 </ol>
-<p><strong>Przed:</strong></p>
+<p><strong>Po (<code>ReminderSender.cs</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span>Najwęższy seam dla powiadomień: delegat, w teście wystarczy lambda.<span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">delegate</span> <span class="hljs-keyword">void</span> <span class="hljs-title">ReminderSender</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> to, <span class="hljs-built_in">string</span> subject, <span class="hljs-built_in">string</span> body</span>)</span>;
+</code></pre>
+<p><strong>Przed (<code>ShowtimeReminderJob.cs</code>):</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">ShowtimeReminderJob</span>
 {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> Func&lt;IBookingStore&gt; _stores;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> TimeProvider _clock;
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ShowtimeReminderJob</span>()
+        : <span class="hljs-title">this</span>(<span class="hljs-params">(</span>)</span> =&gt; <span class="hljs-keyword">new</span> LegacyDatabase(), TimeProvider.System)
+    {
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ShowtimeReminderJob</span>(<span class="hljs-params">Func&lt;IBookingStore&gt; stores, TimeProvider clock</span>)</span>
+    {
+        ArgumentNullException.ThrowIfNull(stores);
+        ArgumentNullException.ThrowIfNull(clock);
+        _stores = stores;
+        _clock = clock;
+    }
+
     ...
     <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">virtual</span> <span class="hljs-keyword">void</span> <span class="hljs-title">SendReminder</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> to, <span class="hljs-built_in">string</span> subject, <span class="hljs-built_in">string</span> body</span>)</span>
     {
@@ -382,10 +532,37 @@ scripts/warsztat.sh --lang cs reset m3/s04         <span class="hljs-comment"># 
     }
 }
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ShowtimeReminderJob</span>()
-    : <span class="hljs-title">this</span>(<span class="hljs-params">(</span>)</span> =&gt; <span class="hljs-keyword">new</span> LegacyDatabase(), TimeProvider.System, ReminderMailer.Send)
+<p><strong>Po (<code>ShowtimeReminderJob.cs</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">ShowtimeReminderJob</span>
 {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> Func&lt;IBookingStore&gt; _stores;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> TimeProvider _clock;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> ReminderSender _sender;
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ShowtimeReminderJob</span>()
+        : <span class="hljs-title">this</span>(<span class="hljs-params">(</span>)</span> =&gt; <span class="hljs-keyword">new</span> LegacyDatabase(), TimeProvider.System, ReminderMailer.Send)
+    {
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ShowtimeReminderJob</span>(<span class="hljs-params">Func&lt;IBookingStore&gt; stores, TimeProvider clock, ReminderSender sender</span>)</span>
+    {
+        ArgumentNullException.ThrowIfNull(stores);
+        ArgumentNullException.ThrowIfNull(clock);
+        ArgumentNullException.ThrowIfNull(sender);
+        _stores = stores;
+        _clock = clock;
+        _sender = sender;
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">int</span> <span class="hljs-title">Run</span>()</span>
+    {
+        ...
+                _sender(booking.Email,
+                    <span class="hljs-string">&quot;Przypomnienie: &quot;</span> + booking.Title,
+                    <span class="hljs-string">&quot;Seans zaczyna sie o &quot;</span> + booking.Start.ToString(<span class="hljs-string">&quot;HH:mm&quot;</span>, CultureInfo.InvariantCulture));
+                database.MarkReminded(booking.Id);
+        ...
+    }
 }
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony - te same 3 przypadki dla <code>Step3</code> (podklasa) i <code>Step4</code> (lambda).
@@ -434,7 +611,11 @@ CinemaMailer.Send(booking.Email, <span class="hljs-string">&quot;Bilety &quot;</
 <li>Dodaj konstruktor bezargumentowy delegujący: <code>: this(CinemaMailer.Send)</code>.</li>
 <li>Oba statyczne wywołania <code>CinemaMailer.Send(...)</code> zamień na <code>_mailer(...)</code>. Logika bez zmian.</li>
 </ol>
-<p><strong>Przed:</strong></p>
+<p><strong>Po (<code>Mailer.cs</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span>Seam dla efektu ubocznego &quot;wysłany mail&quot; - w teście lambda zapisująca do dziennika.<span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">delegate</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Mailer</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> to, <span class="hljs-built_in">string</span> text</span>)</span>;
+</code></pre>
+<p><strong>Przed (<code>TicketCheckout.cs</code>):</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">TicketCheckout</span>
 {
     <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Pay</span>(<span class="hljs-params">Booking booking, <span class="hljs-built_in">string</span>? card</span>)</span>
@@ -446,10 +627,41 @@ CinemaMailer.Send(booking.Email, <span class="hljs-string">&quot;Bilety &quot;</
         }
         CinemaMailer.Send(booking.Email, <span class="hljs-string">&quot;Bilety &quot;</span> + booking.Id + <span class="hljs-string">&quot; oplacone: &quot;</span> + booking.Amount);
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">TicketCheckout</span>()
-    : <span class="hljs-title">this</span>(<span class="hljs-params">CinemaMailer.Send</span>)</span>
+<p><strong>Po (<code>TicketCheckout.cs</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">TicketCheckout</span>
 {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> Mailer _mailer;
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">TicketCheckout</span>()
+        : <span class="hljs-title">this</span>(<span class="hljs-params">CinemaMailer.Send</span>)</span>
+    {
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">TicketCheckout</span>(<span class="hljs-params">Mailer mailer</span>)</span>
+    {
+        ArgumentNullException.ThrowIfNull(mailer);
+        _mailer = mailer;
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Pay</span>(<span class="hljs-params">Booking booking, <span class="hljs-built_in">string</span>? card</span>)</span>
+    {
+        ArgumentNullException.ThrowIfNull(card);
+        <span class="hljs-keyword">if</span> (booking.Status != BookingStatus.New)
+        {
+            <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;ERROR: status &quot;</span> + booking.Status;
+        }
+        <span class="hljs-keyword">var</span> charged = CardTerminal.Charge(card, booking.Amount);
+        <span class="hljs-keyword">if</span> (charged)
+        {
+            booking.MarkPaid();
+        }
+        <span class="hljs-keyword">else</span>
+        {
+            _mailer(booking.Email, <span class="hljs-string">&quot;Platnosc odrzucona &quot;</span> + booking.Id);
+        }
+        _mailer(booking.Email, <span class="hljs-string">&quot;Bilety &quot;</span> + booking.Id + <span class="hljs-string">&quot; oplacone: &quot;</span> + booking.Amount);
+        <span class="hljs-keyword">return</span> charged ? <span class="hljs-string">&quot;OK&quot;</span> : <span class="hljs-string">&quot;DECLINED&quot;</span>;
+    }
 }
 </code></pre>
 <p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m3/<wbr>s03</code> - zielony. <code>Step1SeesTheRegressionThatResultOnlyTestMissed</code> dokumentuje, że po odrzuceniu karty idą dwa maile: &quot;Platnosc odrzucona B1&quot; i &quot;Bilety B1 oplacone: 114.00&quot;.
@@ -496,21 +708,50 @@ _mailer(booking.Email, <span class="hljs-string">&quot;Platnosc odrzucona &quot;
 <li>W <code>Pay</code> zamień <code>CardTerminal.Charge(card, booking.Amount)</code> na <code>_gateway(card, booking.Amount)</code>.</li>
 <li>W teście oba fałszywe obiekty zapisują do <strong>jednego</strong> dziennika zdarzeń.</li>
 </ol>
-<p><strong>Przed:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">TicketCheckout</span>()
+<p><strong>Po (<code>PaymentGateway.cs</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">using</span> Training.Workshop.Shared;
+
+<span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span>Seam dla efektu ubocznego &quot;obciążenie karty&quot;.<span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">delegate</span> <span class="hljs-built_in">bool</span> <span class="hljs-title">PaymentGateway</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> card, Money amount</span>)</span>;
+</code></pre>
+<p><strong>Przed (<code>TicketCheckout.cs</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> Mailer _mailer;
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">TicketCheckout</span>()
     : <span class="hljs-title">this</span>(<span class="hljs-params">CinemaMailer.Send</span>)</span>
 {
+}
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">TicketCheckout</span>(<span class="hljs-params">Mailer mailer</span>)</span>
+{
+    ArgumentNullException.ThrowIfNull(mailer);
+    _mailer = mailer;
 }
 ...
 <span class="hljs-keyword">if</span> (CardTerminal.Charge(card, booking.Amount))
 {
     booking.MarkPaid();
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">TicketCheckout</span>()
+<p><strong>Po (<code>TicketCheckout.cs</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> Mailer _mailer;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> PaymentGateway _gateway;
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">TicketCheckout</span>()
     : <span class="hljs-title">this</span>(<span class="hljs-params">CinemaMailer.Send, CardTerminal.Charge</span>)</span>
 {
 }
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">TicketCheckout</span>(<span class="hljs-params">Mailer mailer, PaymentGateway gateway</span>)</span>
+{
+    ArgumentNullException.ThrowIfNull(mailer);
+    ArgumentNullException.ThrowIfNull(gateway);
+    _mailer = mailer;
+    _gateway = gateway;
+}
+...
+<span class="hljs-keyword">if</span> (_gateway(card, booking.Amount))
+{
+    booking.MarkPaid();
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony: <code>Step3ObservesTheFullVector</code> sprawdza wynik albo wyjątek (typ i komunikat), obciążenia i maile w jednej kolejności oraz status rezerwacji po operacji.
 <strong>Co powiedzieć:</strong> jeden dziennik dla wszystkich współpracowników pokazuje kolejność: najpierw obciążenie, potem mail. Stan po błędzie (<code>New</code> po odrzuceniu) i brak efektów przy wyjątku (<code>wyjatek=ArgumentNullException: card; zdarzenia=[]; status=New</code>) też są częścią kontraktu.
@@ -562,19 +803,31 @@ _mailer(booking.Email, <span class="hljs-string">&quot;Platnosc odrzucona &quot;
 }
 </code></pre>
 <p><strong>Po:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs">Money result = _legacy.Price(query);
-<span class="hljs-keyword">try</span>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">PriceService</span>
 {
-    <span class="hljs-keyword">if</span> (!_candidate.Price(query).Equals(result))
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> LegacyPriceCalculator _legacy = <span class="hljs-keyword">new</span>();
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> CandidatePriceCalculator _candidate = <span class="hljs-keyword">new</span>();
+    <span class="hljs-keyword">private</span> <span class="hljs-built_in">int</span> _mismatches;
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> Money <span class="hljs-title">Price</span>(<span class="hljs-params">TicketQuery query</span>)</span>
     {
-        _mismatches++;
+        Money result = _legacy.Price(query);
+        <span class="hljs-keyword">try</span>
+        {
+            <span class="hljs-keyword">if</span> (!_candidate.Price(query).Equals(result))
+            {
+                _mismatches++;
+            }
+        }
+        <span class="hljs-keyword">catch</span> (Exception)
+        {
+            _mismatches++;
+        }
+        <span class="hljs-keyword">return</span> result;
     }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-built_in">int</span> Mismatches =&gt; _mismatches;
 }
-<span class="hljs-keyword">catch</span> (Exception)
-{
-    _mismatches++;
-}
-<span class="hljs-keyword">return</span> result;
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony; <code>Step1ShadowSurvivesCandidateFailureButOnlyCountsMismatches</code> - wyjątek kandydata dla formatu 4DX nie przerywa sprzedaży.
 <strong>Co powiedzieć:</strong> klient zawsze dostaje wynik legacy. Ale licznik mówi tylko, ŻE coś się różni - nie wiemy co.
@@ -587,7 +840,62 @@ _mailer(booking.Email, <span class="hljs-string">&quot;Platnosc odrzucona &quot;
 <li>Wydziel porównanie do prywatnej metody <code>Verify(query, legacyPrice)</code> (Extract Method): zwraca <code>Agreement</code> albo <code>Divergence</code>, a w <code>catch</code> <code>CandidateFailure</code> z nazwą typu wyjątku i komunikatem.</li>
 <li>W <code>Price</code> zostaje <code>_report.Record(Verify(query, result));</code> i <code>return result;</code>.</li>
 </ol>
-<p><strong>Przed:</strong></p>
+<p><strong>Po (<code>VerificationReport.cs</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">using</span> Training.Workshop.Shared;
+
+<span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span></span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span> Raport rozbieżności - zgodność, rozbieżność albo awaria kandydata.</span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span> Każde porównanie to typowane zdarzenie, a nie wpis w logu do parsowania.</span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">VerificationReport</span>
+{
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title">IVerification</span>
+    {
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">record</span> <span class="hljs-title">Agreement</span>(<span class="hljs-params">TicketQuery Query, Money Price</span>) : IVerification</span>;
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">record</span> <span class="hljs-title">Divergence</span>(<span class="hljs-params">TicketQuery Query, Money Legacy, Money Candidate</span>) : IVerification</span>;
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">record</span> <span class="hljs-title">CandidateFailure</span>(<span class="hljs-params">TicketQuery Query, Money Legacy, <span class="hljs-built_in">string</span> Error</span>) : IVerification</span>;
+
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> List&lt;IVerification&gt; _entries = [];
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Record</span>(<span class="hljs-params">IVerification verification</span>)</span>
+    {
+        _entries.Add(verification);
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> IReadOnlyList&lt;IVerification&gt; <span class="hljs-title">Entries</span>()</span>
+    {
+        <span class="hljs-keyword">return</span> _entries.ToList();
+    }
+
+    <span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span>Czytelne wiersze raportu - tylko to, co wymaga uwagi zespołu.<span class="hljs-doctag">&lt;/summary&gt;</span></span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> IReadOnlyList&lt;<span class="hljs-built_in">string</span>&gt; <span class="hljs-title">Problems</span>()</span>
+    {
+        <span class="hljs-keyword">var</span> lines = <span class="hljs-keyword">new</span> List&lt;<span class="hljs-built_in">string</span>&gt;();
+        <span class="hljs-keyword">foreach</span> (IVerification entry <span class="hljs-keyword">in</span> _entries)
+        {
+            <span class="hljs-keyword">switch</span> (entry)
+            {
+                <span class="hljs-keyword">case</span> Agreement:
+                    <span class="hljs-keyword">break</span>;
+                <span class="hljs-keyword">case</span> Divergence d:
+                    lines.Add(<span class="hljs-string">&quot;ROZBIEZNOSC &quot;</span> + d.Query + <span class="hljs-string">&quot;: legacy &quot;</span> + d.Legacy + <span class="hljs-string">&quot;, kandydat &quot;</span> + d.Candidate);
+                    <span class="hljs-keyword">break</span>;
+                <span class="hljs-keyword">case</span> CandidateFailure f:
+                    lines.Add(<span class="hljs-string">&quot;BLAD KANDYDATA &quot;</span> + f.Query + <span class="hljs-string">&quot;: &quot;</span> + f.Error);
+                    <span class="hljs-keyword">break</span>;
+                <span class="hljs-literal">default</span>:
+                    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> InvalidOperationException(<span class="hljs-string">&quot;nieznany wpis raportu: &quot;</span> + entry);
+            }
+        }
+        <span class="hljs-keyword">return</span> lines;
+    }
+}
+</code></pre>
+<p><strong>Przed (<code>PriceService.cs</code>, ciało <code>Price</code>):</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs">Money result = _legacy.Price(query);
 <span class="hljs-keyword">try</span>
 {
@@ -602,10 +910,46 @@ _mailer(booking.Email, <span class="hljs-string">&quot;Platnosc odrzucona &quot;
 }
 <span class="hljs-keyword">return</span> result;
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">return</span> legacyPrice.Equals(candidatePrice)
-    ? <span class="hljs-keyword">new</span> VerificationReport.Agreement(query, legacyPrice)
-    : <span class="hljs-keyword">new</span> VerificationReport.Divergence(query, legacyPrice, candidatePrice);
+<p><strong>Po (<code>PriceService.cs</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">PriceService</span>
+{
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> LegacyPriceCalculator _legacy = <span class="hljs-keyword">new</span>();
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> CandidatePriceCalculator _candidate = <span class="hljs-keyword">new</span>();
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> VerificationReport _report;
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">PriceService</span>()
+        : <span class="hljs-title">this</span>(<span class="hljs-params"><span class="hljs-keyword">new</span> VerificationReport(</span>))</span>
+    {
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">PriceService</span>(<span class="hljs-params">VerificationReport report</span>)</span>
+    {
+        _report = report;
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> Money <span class="hljs-title">Price</span>(<span class="hljs-params">TicketQuery query</span>)</span>
+    {
+        Money result = _legacy.Price(query);
+        _report.Record(Verify(query, result));
+        <span class="hljs-keyword">return</span> result;
+    }
+
+    <span class="hljs-keyword">private</span> VerificationReport.<span class="hljs-function">IVerification <span class="hljs-title">Verify</span>(<span class="hljs-params">TicketQuery query, Money legacyPrice</span>)</span>
+    {
+        <span class="hljs-keyword">try</span>
+        {
+            Money candidatePrice = _candidate.Price(query);
+            <span class="hljs-keyword">return</span> legacyPrice.Equals(candidatePrice)
+                ? <span class="hljs-keyword">new</span> VerificationReport.Agreement(query, legacyPrice)
+                : <span class="hljs-keyword">new</span> VerificationReport.Divergence(query, legacyPrice, candidatePrice);
+        }
+        <span class="hljs-keyword">catch</span> (Exception failure)
+        {
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> VerificationReport.CandidateFailure(query, legacyPrice,
+                failure.GetType().Name + <span class="hljs-string">&quot;: &quot;</span> + failure.Message);
+        }
+    }
+}
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony; <code>Step2ReportShowsWhatDivergedAndWhy</code> - raport pokazuje dwie rozbieżności (3D dziecko rano: 17.20 vs 19.20, 2D student rano: 13.75 vs 15.00) i awarię dla 4DX (<code>BLAD KANDYDATA 4DX NORMAL 20:00 rzad 1: ArgumentException: Nieznany format: 4DX</code>).
 <strong>Co powiedzieć:</strong> z raportu widać wzorzec: rozbieżności tylko rano i tylko przy zniżce procentowej. Kandydat odejmuje rabat poranny przed procentem.
@@ -625,7 +969,8 @@ _mailer(booking.Email, <span class="hljs-string">&quot;Platnosc odrzucona &quot;
 Money price = @base.Minus(@base.Percent(DiscountPercent(query.Type)));
 </code></pre>
 <p><strong>Po:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs">Money price = @base.Minus(@base.Percent(DiscountPercent(query.Type)));
+<pre class="code" data-lang="csharp"><code class="hljs">Money @base = BasePrice(query.Format);
+Money price = @base.Minus(@base.Percent(DiscountPercent(query.Type)));
 <span class="hljs-keyword">if</span> (query.Start.Hour &lt; <span class="hljs-number">12</span>)
 {
     price = price.Minus(MorningDiscount);
@@ -642,7 +987,16 @@ Money price = @base.Minus(@base.Percent(DiscountPercent(query.Type)));
 <li>Dotychczasowe ciało <code>Price</code> przenieś do prywatnej metody <code>Shadow(TicketQuery query)</code> i wciel do niej metodę <code>Verify</code>: nagranie do raportu dzieje się wprost w <code>try/<wbr>catch</code>, a <code>Verify</code> znika.</li>
 <li><code>Price</code> zwraca wyrażenie <code>switch</code> po <code>_mode</code> z gałęzią domyślną rzucającą <code>InvalidOperationException</code>.</li>
 </ol>
-<p><strong>Przed:</strong></p>
+<p><strong>Po (<code>MigrationMode.cs</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span>Jawny tryb migracji zamiast flagi bool - Legacy, Shadow, Candidate.<span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-keyword">public</span> <span class="hljs-built_in">enum</span> MigrationMode
+{
+    Legacy,
+    Shadow,
+    Candidate,
+}
+</code></pre>
+<p><strong>Przed (<code>PriceService.cs</code>, stan z kroku 2 - pełny plik w Po kroku 2):</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> Money <span class="hljs-title">Price</span>(<span class="hljs-params">TicketQuery query</span>)</span>
 {
     Money result = _legacy.Price(query);
@@ -650,14 +1004,54 @@ Money price = @base.Minus(@base.Percent(DiscountPercent(query.Type)));
     <span class="hljs-keyword">return</span> result;
 }
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">return</span> _mode <span class="hljs-keyword">switch</span>
+<p><strong>Po (<code>PriceService.cs</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">PriceService</span>
 {
-    MigrationMode.Legacy =&gt; _legacy.Price(query),
-    MigrationMode.Shadow =&gt; Shadow(query),
-    MigrationMode.Candidate =&gt; _candidate.Price(query),
-    _ =&gt; <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> InvalidOperationException(<span class="hljs-string">&quot;nieznany tryb: &quot;</span> + _mode),
-};
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> LegacyPriceCalculator _legacy = <span class="hljs-keyword">new</span>();
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> CandidatePriceCalculator _candidate = <span class="hljs-keyword">new</span>();
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> MigrationMode _mode;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> VerificationReport _report;
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">PriceService</span>()
+        : <span class="hljs-title">this</span>(<span class="hljs-params">MigrationMode.Shadow, <span class="hljs-keyword">new</span> VerificationReport(</span>))</span>
+    {
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">PriceService</span>(<span class="hljs-params">MigrationMode mode, VerificationReport report</span>)</span>
+    {
+        _mode = mode;
+        _report = report;
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> Money <span class="hljs-title">Price</span>(<span class="hljs-params">TicketQuery query</span>)</span>
+    {
+        <span class="hljs-keyword">return</span> _mode <span class="hljs-keyword">switch</span>
+        {
+            MigrationMode.Legacy =&gt; _legacy.Price(query),
+            MigrationMode.Shadow =&gt; Shadow(query),
+            MigrationMode.Candidate =&gt; _candidate.Price(query),
+            _ =&gt; <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> InvalidOperationException(<span class="hljs-string">&quot;nieznany tryb: &quot;</span> + _mode),
+        };
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">private</span> Money <span class="hljs-title">Shadow</span>(<span class="hljs-params">TicketQuery query</span>)</span>
+    {
+        Money result = _legacy.Price(query);
+        <span class="hljs-keyword">try</span>
+        {
+            Money candidatePrice = _candidate.Price(query);
+            _report.Record(result.Equals(candidatePrice)
+                ? <span class="hljs-keyword">new</span> VerificationReport.Agreement(query, result)
+                : <span class="hljs-keyword">new</span> VerificationReport.Divergence(query, result, candidatePrice));
+        }
+        <span class="hljs-keyword">catch</span> (Exception failure)
+        {
+            _report.Record(<span class="hljs-keyword">new</span> VerificationReport.CandidateFailure(query, result,
+                failure.GetType().Name + <span class="hljs-string">&quot;: &quot;</span> + failure.Message));
+        }
+        <span class="hljs-keyword">return</span> result;
+    }
+}
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony; równoważność obejmuje wszystkie trzy tryby, <code>Step4CandidateModeIsAuthoritativeAndRejectsUnknownFormat</code> pokazuje świadomą zmianę dla 4DX.
 <strong>Co powiedzieć:</strong> tryb zamiast flagi <code>bool</code>, wybór w jednym miejscu. <code>Legacy</code> to natychmiastowe wycofanie, dopóki nie usuniemy starego kodu.
@@ -695,15 +1089,88 @@ Money price = @base.Minus(@base.Percent(DiscountPercent(query.Type)));
 <li>Zmień sygnaturę konstruktora <code>NewBookingFlow</code>: parametr <code>IEffects effects</code> zamiast <code>Infrastructure infra</code>. Pole <code>_effects</code> zastępuje <code>_infra</code>, a wywołania <code>_infra.*</code> w <code>Book</code> zmieniają się na <code>_effects.*</code>.</li>
 <li>W konstruktorze <code>ShadowBooking</code> kandydat dostaje <code>new NewBookingFlow(new RealEffects(infra))</code>.</li>
 </ol>
-<p><strong>Przed:</strong></p>
+<p><strong>Po (<code>IEffects.cs</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">using</span> Training.Workshop.Shared;
+
+<span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span>Port efektów ubocznych - nowa ścieżka nie sięga już bezpośrednio do infrastruktury.<span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title">IEffects</span>
+{
+    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">SendMail</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> to, <span class="hljs-built_in">string</span> text</span>)</span>;
+
+    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">Charge</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> card, Money amount</span>)</span>;
+
+    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">Save</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> row</span>)</span>;
+}
+</code></pre>
+<p><strong>Po (<code>RealEffects.cs</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">using</span> Training.Workshop.Shared;
+
+<span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span>Adapter portu na prawdziwą infrastrukturę (poczta, płatności, baza).<span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">RealEffects</span> : <span class="hljs-title">IEffects</span>
+{
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> Infrastructure _infra;
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">RealEffects</span>(<span class="hljs-params">Infrastructure infra</span>)</span>
+    {
+        _infra = infra;
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">SendMail</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> to, <span class="hljs-built_in">string</span> text</span>)</span>
+    {
+        _infra.SendMail(to, text);
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Charge</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> card, Money amount</span>)</span>
+    {
+        _infra.Charge(card, amount);
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Save</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> row</span>)</span>
+    {
+        _infra.Save(row);
+    }
+}
+</code></pre>
+<p><strong>Przed (<code>NewBookingFlow.cs</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> Infrastructure _infra;
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">NewBookingFlow</span>(<span class="hljs-params">Infrastructure infra</span>)</span>
+{
+    _infra = infra;
+}
+</code></pre>
+<p><strong>Po (<code>NewBookingFlow.cs</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> IEffects _effects;
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">NewBookingFlow</span>(<span class="hljs-params">IEffects effects</span>)</span>
+{
+    _effects = effects;
+}
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Book</span>(<span class="hljs-params">BookingRequest request</span>)</span>
+{
+    Money tickets = Ticket2D.Times(request.Tickets);
+    Money total = tickets.Plus(OnlineFee.Times(request.Tickets));
+    _effects.Charge(request.Card, total);
+    _effects.Save(request.Title + <span class="hljs-string">&quot;;&quot;</span> + request.Email + <span class="hljs-string">&quot;;&quot;</span> + request.Tickets + <span class="hljs-string">&quot;;&quot;</span> + total);
+    _effects.SendMail(request.Email,
+        <span class="hljs-string">&quot;Bilety &quot;</span> + request.Title + <span class="hljs-string">&quot; x&quot;</span> + request.Tickets + <span class="hljs-string">&quot;, zaplacono &quot;</span> + tickets);
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;OK &quot;</span> + total;
+}
+</code></pre>
+<p><strong>Przed (<code>ShadowBooking.cs</code>):</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ShadowBooking</span>(<span class="hljs-params">Infrastructure infra</span>)</span>
 {
     _legacy = <span class="hljs-keyword">new</span> LegacyBookingFlow(infra);
     _candidate = <span class="hljs-keyword">new</span> NewBookingFlow(infra);
 }
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs">_candidate = <span class="hljs-keyword">new</span> NewBookingFlow(<span class="hljs-keyword">new</span> RealEffects(infra));
+<p><strong>Po (<code>ShadowBooking.cs</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ShadowBooking</span>(<span class="hljs-params">Infrastructure infra</span>)</span>
+{
+    _legacy = <span class="hljs-keyword">new</span> LegacyBookingFlow(infra);
+    _candidate = <span class="hljs-keyword">new</span> NewBookingFlow(<span class="hljs-keyword">new</span> RealEffects(infra));
+}
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony; <code>Step1PreparatoryRefactoringKeepsTheBugOnPurpose</code> - nadal dwa maile.
 <strong>Co powiedzieć:</strong> refaktoryzacja przygotowawcza zachowuje zachowanie, także błędne. Mamy szew, który w następnym kroku zmieni wszystko.
@@ -716,7 +1183,39 @@ Money price = @base.Minus(@base.Percent(DiscountPercent(query.Type)));
 <li>W bloku <code>try</code> utwórz nagrywarkę i przekaż ją świeżemu kandydatowi: <code>new NewBookingFlow(recorder).Book(request)</code>.</li>
 <li>Dodaj prywatną metodę <code>Compare(what, legacyValues, candidateValues)</code>, która porównuje listy pozycja po pozycji i dopisuje rozbieżności do <code>_divergences</code>. Porównaj osobno <code>&quot;wynik&quot;</code> i <code>&quot;efekty&quot;</code>.</li>
 </ol>
-<p><strong>Przed:</strong></p>
+<p><strong>Po (<code>RecordingEffects.cs</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">using</span> Training.Workshop.Shared;
+
+<span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span></span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span> Nagrywa zamiary kandydata w formacie dziennika infrastruktury;</span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span> niczego nie wysyła, nie obciąża i nie zapisuje.</span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">RecordingEffects</span> : <span class="hljs-title">IEffects</span>
+{
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> List&lt;<span class="hljs-built_in">string</span>&gt; _recorded = [];
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">SendMail</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> to, <span class="hljs-built_in">string</span> text</span>)</span>
+    {
+        _recorded.Add(<span class="hljs-string">&quot;MAIL &quot;</span> + to + <span class="hljs-string">&quot;: &quot;</span> + text);
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Charge</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> card, Money amount</span>)</span>
+    {
+        _recorded.Add(<span class="hljs-string">&quot;CHARGE &quot;</span> + card + <span class="hljs-string">&quot;: &quot;</span> + amount);
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Save</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> row</span>)</span>
+    {
+        _recorded.Add(<span class="hljs-string">&quot;SAVE &quot;</span> + row);
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> IReadOnlyList&lt;<span class="hljs-built_in">string</span>&gt; <span class="hljs-title">Recorded</span>()</span>
+    {
+        <span class="hljs-keyword">return</span> _recorded.ToList();
+    }
+}
+</code></pre>
+<p><strong>Przed (<code>ShadowBooking.cs</code>):</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Book</span>(<span class="hljs-params">BookingRequest request</span>)</span>
 {
     <span class="hljs-built_in">string</span> result = _legacy.Book(request);
@@ -729,11 +1228,56 @@ Money price = @base.Minus(@base.Percent(DiscountPercent(query.Type)));
         }
     }
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">var</span> recorder = <span class="hljs-keyword">new</span> RecordingEffects();
-<span class="hljs-built_in">string</span> shadow = <span class="hljs-keyword">new</span> NewBookingFlow(recorder).Book(request);
-Compare(<span class="hljs-string">&quot;wynik&quot;</span>, [result], [shadow]);
-Compare(<span class="hljs-string">&quot;efekty&quot;</span>, legacyEffects, recorder.Recorded());
+<p><strong>Po (<code>ShadowBooking.cs</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">ShadowBooking</span>
+{
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> Infrastructure _infra;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> LegacyBookingFlow _legacy;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> List&lt;<span class="hljs-built_in">string</span>&gt; _divergences = [];
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ShadowBooking</span>(<span class="hljs-params">Infrastructure infra</span>)</span>
+    {
+        _infra = infra;
+        _legacy = <span class="hljs-keyword">new</span> LegacyBookingFlow(infra);
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Book</span>(<span class="hljs-params">BookingRequest request</span>)</span>
+    {
+        <span class="hljs-built_in">int</span> before = _infra.Log().Count;
+        <span class="hljs-built_in">string</span> result = _legacy.Book(request);
+        IReadOnlyList&lt;<span class="hljs-built_in">string</span>&gt; legacyEffects = _infra.Log().Skip(before).ToList();
+        <span class="hljs-keyword">try</span>
+        {
+            <span class="hljs-keyword">var</span> recorder = <span class="hljs-keyword">new</span> RecordingEffects();
+            <span class="hljs-built_in">string</span> shadow = <span class="hljs-keyword">new</span> NewBookingFlow(recorder).Book(request);
+            Compare(<span class="hljs-string">&quot;wynik&quot;</span>, [result], [shadow]);
+            Compare(<span class="hljs-string">&quot;efekty&quot;</span>, legacyEffects, recorder.Recorded());
+        }
+        <span class="hljs-keyword">catch</span> (Exception failure)
+        {
+            _divergences.Add(<span class="hljs-string">&quot;kandydat: &quot;</span> + failure.Message);
+        }
+        <span class="hljs-keyword">return</span> result;
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Compare</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> what, IReadOnlyList&lt;<span class="hljs-built_in">string</span>&gt; legacyValues, IReadOnlyList&lt;<span class="hljs-built_in">string</span>&gt; candidateValues</span>)</span>
+    {
+        <span class="hljs-keyword">for</span> (<span class="hljs-built_in">int</span> i = <span class="hljs-number">0</span>; i &lt; Math.Max(legacyValues.Count, candidateValues.Count); i++)
+        {
+            <span class="hljs-built_in">string</span> legacyValue = i &lt; legacyValues.Count ? legacyValues[i] : <span class="hljs-string">&quot;-&quot;</span>;
+            <span class="hljs-built_in">string</span> candidateValue = i &lt; candidateValues.Count ? candidateValues[i] : <span class="hljs-string">&quot;-&quot;</span>;
+            <span class="hljs-keyword">if</span> (!legacyValue.Equals(candidateValue))
+            {
+                _divergences.Add(what + <span class="hljs-string">&quot; legacy: &quot;</span> + legacyValue + <span class="hljs-string">&quot; | kandydat: &quot;</span> + candidateValue);
+            }
+        }
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> IReadOnlyList&lt;<span class="hljs-built_in">string</span>&gt; <span class="hljs-title">Divergences</span>()</span>
+    {
+        <span class="hljs-keyword">return</span> _divergences.ToList();
+    }
+}
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony; <code>Step2RecordsCandidateEffectsInsteadOfExecutingThem</code> - jeden mail, jedno obciążenie, a raport pokazuje rozbieżność w treści maila (kandydat pisze 50.00 zamiast 54.00).
 <strong>Co powiedzieć:</strong> porównanie efektów znalazło błąd, którego porównanie wyniku nie widziało.
@@ -742,19 +1286,136 @@ Compare(<span class="hljs-string">&quot;efekty&quot;</span>, legacyEffects, reco
 <p><strong>Zmiany:</strong></p>
 <ol>
 <li>Nowy plik <code>BookingPlan.cs</code>: rekord <code>BookingPlan(string Result, IReadOnlyList&lt;BookingPlan.IEffect&gt; Effects)</code> z zagnieżdżonym interfejsem <code>IEffect</code> (metody <code>Describe()</code> i <code>ApplyTo(IEffects port)</code>) oraz rekordami <code>Charge</code>, <code>Save</code> i <code>SendMail</code>.</li>
-<li>Nowy plik <code>BookingPlanner.cs</code>: z <code>NewBookingFlow.Book</code> wydziel czyste obliczenie do metody <code>Plan</code> (Extract Method) i przenieś ją do nowej klasy <code>BookingPlanner</code> (Move Method). <code>Plan</code> zwraca <code>BookingPlan</code> z wynikiem i listą efektów jako danymi.</li>
-<li><code>NewBookingFlow.Book</code> woła <code>_planner.Plan(request)</code>, wykonuje każdy efekt planu na porcie (<code>effect.ApplyTo(_effects)</code>) i zwraca <code>plan.Result</code>.</li>
-<li>W <code>ShadowBooking</code> zamień pole kandydata na <code>BookingPlanner</code>; w <code>try</code> porównaj <code>plan.Result</code> z wynikiem legacy, a opisy efektów (<code>Describe()</code>) z <code>legacyEffects</code>.</li>
+<li>Nowy plik <code>BookingPlanner.cs</code>: z <code>NewBookingFlow.Book</code> wydziel czyste obliczenie do metody <code>Plan</code> (Extract Method) i przenieś ją do nowej klasy <code>BookingPlanner</code> (Move Method) razem ze stałymi <code>Ticket2D</code> i <code>OnlineFee</code>. <code>Plan</code> zwraca <code>BookingPlan</code> z wynikiem i listą efektów jako danymi.</li>
+<li><code>NewBookingFlow</code> dostaje pole <code>private readonly BookingPlanner _planner = new();</code>, a <code>Book</code> woła <code>_planner.Plan(request)</code>, wykonuje każdy efekt planu na porcie (<code>effect.ApplyTo(_effects)</code>) i zwraca <code>plan.Result</code>.</li>
+<li>W <code>ShadowBooking</code> dodaj pole kandydata <code>private readonly BookingPlanner _candidate = new();</code> (pole <code>NewBookingFlow</code> zniknęło już w kroku 2); w <code>try</code> porównaj <code>plan.Result</code> z wynikiem legacy, a opisy efektów (<code>Describe()</code>) z <code>legacyEffects</code>.</li>
 <li>Plik <code>RecordingEffects.cs</code> znika: usuń klasę, nikt już jej nie używa.</li>
 </ol>
-<p><strong>Przed:</strong></p>
+<p><strong>Po (<code>BookingPlan.cs</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">using</span> Training.Workshop.Shared;
+
+<span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span></span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span> Wynik czystego obliczenia - odpowiedź dla klienta i lista efektów DO wykonania.</span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span> Efekty to dane: można je porównać, zalogować albo wykonać, ale plan sam niczego nie robi.</span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">record</span> <span class="hljs-title">BookingPlan</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> Result, IReadOnlyList&lt;BookingPlan.IEffect&gt; Effects</span>)</span>
+{
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title">IEffect</span>
+    {
+        <span class="hljs-function"><span class="hljs-built_in">string</span> <span class="hljs-title">Describe</span>()</span>;
+
+        <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">ApplyTo</span>(<span class="hljs-params">IEffects port</span>)</span>;
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">record</span> <span class="hljs-title">Charge</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> Card, Money Amount</span>) : IEffect</span>
+    {
+        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Describe</span>()</span>
+        {
+            <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;CHARGE &quot;</span> + Card + <span class="hljs-string">&quot;: &quot;</span> + Amount;
+        }
+
+        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">ApplyTo</span>(<span class="hljs-params">IEffects port</span>)</span>
+        {
+            port.Charge(Card, Amount);
+        }
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">record</span> <span class="hljs-title">Save</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> Row</span>) : IEffect</span>
+    {
+        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Describe</span>()</span>
+        {
+            <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;SAVE &quot;</span> + Row;
+        }
+
+        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">ApplyTo</span>(<span class="hljs-params">IEffects port</span>)</span>
+        {
+            port.Save(Row);
+        }
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">record</span> <span class="hljs-title">SendMail</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> To, <span class="hljs-built_in">string</span> Text</span>) : IEffect</span>
+    {
+        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Describe</span>()</span>
+        {
+            <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;MAIL &quot;</span> + To + <span class="hljs-string">&quot;: &quot;</span> + Text;
+        }
+
+        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">ApplyTo</span>(<span class="hljs-params">IEffects port</span>)</span>
+        {
+            port.SendMail(To, Text);
+        }
+    }
+}
+</code></pre>
+<p><strong>Po (<code>BookingPlanner.cs</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">using</span> Training.Workshop.Shared;
+
+<span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span></span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span> Separate Query from Modifier - czysta część nowej ścieżki. Nie ma dostępu do</span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span> żadnego portu efektów, więc w cieniu nie da się jej użyć &quot;za mocno&quot;.</span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">BookingPlanner</span>
+{
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">readonly</span> Money Ticket2D = Money.Of(<span class="hljs-string">&quot;25.00&quot;</span>);
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">readonly</span> Money OnlineFee = Money.Of(<span class="hljs-string">&quot;2.00&quot;</span>);
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> BookingPlan <span class="hljs-title">Plan</span>(<span class="hljs-params">BookingRequest request</span>)</span>
+    {
+        Money tickets = Ticket2D.Times(request.Tickets);
+        Money total = tickets.Plus(OnlineFee.Times(request.Tickets));
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> BookingPlan(<span class="hljs-string">&quot;OK &quot;</span> + total,
+        [
+            <span class="hljs-keyword">new</span> BookingPlan.Charge(request.Card, total),
+            <span class="hljs-keyword">new</span> BookingPlan.Save(request.Title + <span class="hljs-string">&quot;;&quot;</span> + request.Email + <span class="hljs-string">&quot;;&quot;</span>
+                + request.Tickets + <span class="hljs-string">&quot;;&quot;</span> + total),
+            <span class="hljs-keyword">new</span> BookingPlan.SendMail(request.Email,
+                <span class="hljs-string">&quot;Bilety &quot;</span> + request.Title + <span class="hljs-string">&quot; x&quot;</span> + request.Tickets + <span class="hljs-string">&quot;, zaplacono &quot;</span> + tickets),
+        ]);
+    }
+}
+</code></pre>
+<p><strong>Przed (<code>NewBookingFlow.cs</code>, stan z kroku 1 - pełne <code>Book</code> w Po kroku 1):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">readonly</span> Money Ticket2D = Money.Of(<span class="hljs-string">&quot;25.00&quot;</span>);
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">readonly</span> Money OnlineFee = Money.Of(<span class="hljs-string">&quot;2.00&quot;</span>);
+
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> IEffects _effects;
+</code></pre>
+<p><strong>Po (<code>NewBookingFlow.cs</code>, cały plik; <code>using Training.Workshop.Shared;</code> znika):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span></span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span> Nowa ścieżka = plan (czysty) + wykonanie planu na porcie efektów.</span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span> Tylko ta klasa wykonuje efekty i używa jej wyłącznie ścieżka autorytatywna.</span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">NewBookingFlow</span>
+{
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> BookingPlanner _planner = <span class="hljs-keyword">new</span>();
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> IEffects _effects;
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">NewBookingFlow</span>(<span class="hljs-params">IEffects effects</span>)</span>
+    {
+        _effects = effects;
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Book</span>(<span class="hljs-params">BookingRequest request</span>)</span>
+    {
+        BookingPlan plan = _planner.Plan(request);
+        <span class="hljs-keyword">foreach</span> (BookingPlan.IEffect effect <span class="hljs-keyword">in</span> plan.Effects)
+        {
+            effect.ApplyTo(_effects);
+        }
+        <span class="hljs-keyword">return</span> plan.Result;
+    }
+}
+</code></pre>
+<p><strong>Przed (<code>ShadowBooking.cs</code>, blok <code>try</code> w <code>Book</code>):</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">var</span> recorder = <span class="hljs-keyword">new</span> RecordingEffects();
 <span class="hljs-built_in">string</span> shadow = <span class="hljs-keyword">new</span> NewBookingFlow(recorder).Book(request);
 Compare(<span class="hljs-string">&quot;wynik&quot;</span>, [result], [shadow]);
 Compare(<span class="hljs-string">&quot;efekty&quot;</span>, legacyEffects, recorder.Recorded());
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs">BookingPlan plan = _candidate.Plan(request);
+<p><strong>Po (<code>ShadowBooking.cs</code>, pole i blok <code>try</code> w <code>Book</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> BookingPlanner _candidate = <span class="hljs-keyword">new</span>();
+...
+BookingPlan plan = _candidate.Plan(request);
 Compare(<span class="hljs-string">&quot;wynik&quot;</span>, [result], [plan.Result]);
 IReadOnlyList&lt;<span class="hljs-built_in">string</span>&gt; planned = plan.Effects.Select(effect =&gt; effect.Describe()).ToList();
 Compare(<span class="hljs-string">&quot;efekty&quot;</span>, legacyEffects, planned);

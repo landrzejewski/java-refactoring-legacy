@@ -229,7 +229,7 @@ scripts/warsztat.sh --lang cs reset m2/s09         <span class="hljs-comment"># 
 <li>Plik <code>RuleRegistry.cs</code> znika - klasa nie ma już żadnego klienta.</li>
 <li>Z interfejsu <code>IPricingRule</code> oraz z <code>MorningRule</code> i <code>VipRule</code> usuwamy właściwość <code>Priority</code> - była potrzebna tylko do sortowania w rejestrze.</li>
 </ol>
-<p><strong>Przed:</strong></p>
+<p><strong>Przed (<code>TicketPricer.cs</code>):</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> RuleRegistry _registry;
 <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">string</span> _activeRules;
 
@@ -244,8 +244,28 @@ scripts/warsztat.sh --lang cs reset m2/s09         <span class="hljs-comment"># 
     _activeRules = activeRules;
 }
 </code></pre>
-<p><strong>Po:</strong></p>
+<p><strong>Po (<code>TicketPricer.cs</code>):</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> IReadOnlyList&lt;IPricingRule&gt; _rules = [<span class="hljs-keyword">new</span> MorningRule(), <span class="hljs-keyword">new</span> VipRule()];
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">decimal</span> <span class="hljs-title">Price</span>(<span class="hljs-params">TicketQuote quote</span>)</span>
+{
+    <span class="hljs-keyword">var</span> context = <span class="hljs-keyword">new</span> Dictionary&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">object</span>&gt;
+    {
+        [<span class="hljs-string">&quot;format&quot;</span>] = quote.Format,
+        [<span class="hljs-string">&quot;start&quot;</span>] = quote.Start,
+        [<span class="hljs-string">&quot;row&quot;</span>] = quote.Row,
+        [<span class="hljs-string">&quot;vipFromRow&quot;</span>] = quote.VipFromRow,
+    };
+    <span class="hljs-keyword">var</span> price = BasePrice(quote.Format);
+    <span class="hljs-keyword">foreach</span> (<span class="hljs-keyword">var</span> rule <span class="hljs-keyword">in</span> _rules)
+    {
+        <span class="hljs-keyword">if</span> (rule.AppliesTo(context))
+        {
+            price = rule.Apply(context, price);
+        }
+    }
+    <span class="hljs-keyword">return</span> Math.Round(price, <span class="hljs-number">2</span>, MidpointRounding.AwayFromZero);
+}
 </code></pre>
 <p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m2/<wbr>s01</code> - 16 testów zielonych.
 <strong>Co powiedzieć:</strong> konfiguracja napisem nie miała żadnego klienta. Teraz literówka w nazwie reguły nie skompiluje się.
@@ -257,16 +277,67 @@ scripts/warsztat.sh --lang cs reset m2/s09         <span class="hljs-comment"># 
 <li><code>MorningRule</code> i <code>VipRule</code> dostosowują sygnatury i czytają pola rekordu (<code>quote.Start.Hour</code>, <code>quote.Row</code>, <code>quote.VipFromRow</code>) - rzutowania <code>(TimeOnly)</code> i <code>(int)</code> znikają.</li>
 <li>W <code>TicketPricer.Price</code> usuwamy budowanie słownika <code>context</code>; pętla woła <code>rule.AppliesTo(quote)</code> i <code>rule.Apply(price)</code>.</li>
 </ol>
-<p><strong>Przed:</strong></p>
+<p><strong>Przed (<code>IPricingRule.cs</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title">IPricingRule</span>
+{
+    <span class="hljs-function"><span class="hljs-built_in">bool</span> <span class="hljs-title">AppliesTo</span>(<span class="hljs-params">IDictionary&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">object</span>&gt; context</span>)</span>;
+
+    <span class="hljs-function"><span class="hljs-built_in">decimal</span> <span class="hljs-title">Apply</span>(<span class="hljs-params">IDictionary&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">object</span>&gt; context, <span class="hljs-built_in">decimal</span> price</span>)</span>;
+}
+</code></pre>
+<p><strong>Po (<code>IPricingRule.cs</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title">IPricingRule</span>
+{
+    <span class="hljs-function"><span class="hljs-built_in">bool</span> <span class="hljs-title">AppliesTo</span>(<span class="hljs-params">TicketQuote quote</span>)</span>;
+
+    <span class="hljs-function"><span class="hljs-built_in">decimal</span> <span class="hljs-title">Apply</span>(<span class="hljs-params"><span class="hljs-built_in">decimal</span> price</span>)</span>;
+}
+</code></pre>
+<p><strong>Przed (<code>VipRule.cs</code>):</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">bool</span> <span class="hljs-title">AppliesTo</span>(<span class="hljs-params">IDictionary&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">object</span>&gt; context</span>)</span>
 {
     <span class="hljs-keyword">return</span> (<span class="hljs-built_in">int</span>)context[<span class="hljs-string">&quot;row&quot;</span>] &gt;= (<span class="hljs-built_in">int</span>)context[<span class="hljs-string">&quot;vipFromRow&quot;</span>];
 }
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">decimal</span> <span class="hljs-title">Apply</span>(<span class="hljs-params">IDictionary&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">object</span>&gt; context, <span class="hljs-built_in">decimal</span> price</span>)</span>
+{
+    <span class="hljs-keyword">return</span> price + <span class="hljs-number">10.00m</span>;
+}
 </code></pre>
-<p><strong>Po:</strong></p>
+<p><strong>Po (<code>VipRule.cs</code>):</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">bool</span> <span class="hljs-title">AppliesTo</span>(<span class="hljs-params">TicketQuote quote</span>)</span>
 {
     <span class="hljs-keyword">return</span> quote.Row &gt;= quote.VipFromRow;
+}
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">decimal</span> <span class="hljs-title">Apply</span>(<span class="hljs-params"><span class="hljs-built_in">decimal</span> price</span>)</span>
+{
+    <span class="hljs-keyword">return</span> price + <span class="hljs-number">10.00m</span>;
+}
+</code></pre>
+<p><strong>Po (<code>MorningRule.cs</code>):</strong> (analogicznie)</p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">bool</span> <span class="hljs-title">AppliesTo</span>(<span class="hljs-params">TicketQuote quote</span>)</span>
+{
+    <span class="hljs-keyword">return</span> quote.Start.Hour &lt; <span class="hljs-number">12</span>;
+}
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">decimal</span> <span class="hljs-title">Apply</span>(<span class="hljs-params"><span class="hljs-built_in">decimal</span> price</span>)</span>
+{
+    <span class="hljs-keyword">return</span> price - <span class="hljs-number">5.00m</span>;
+}
+</code></pre>
+<p><strong>Po (<code>TicketPricer.cs</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">decimal</span> <span class="hljs-title">Price</span>(<span class="hljs-params">TicketQuote quote</span>)</span>
+{
+    <span class="hljs-keyword">var</span> price = BasePrice(quote.Format);
+    <span class="hljs-keyword">foreach</span> (<span class="hljs-keyword">var</span> rule <span class="hljs-keyword">in</span> _rules)
+    {
+        <span class="hljs-keyword">if</span> (rule.AppliesTo(quote))
+        {
+            price = rule.Apply(price);
+        }
+    }
+    <span class="hljs-keyword">return</span> Math.Round(price, <span class="hljs-number">2</span>, MidpointRounding.AwayFromZero);
 }
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony.
@@ -281,7 +352,9 @@ scripts/warsztat.sh --lang cs reset m2/s09         <span class="hljs-comment"># 
 <li>Pliki <code>MorningRule.cs</code>, <code>VipRule.cs</code> i <code>IPricingRule.cs</code> znikają - nie mają już klientów.</li>
 </ol>
 <p><strong>Przed:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">decimal</span> <span class="hljs-title">Price</span>(<span class="hljs-params">TicketQuote quote</span>)</span>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> IReadOnlyList&lt;IPricingRule&gt; _rules = [<span class="hljs-keyword">new</span> MorningRule(), <span class="hljs-keyword">new</span> VipRule()];
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">decimal</span> <span class="hljs-title">Price</span>(<span class="hljs-params">TicketQuote quote</span>)</span>
 {
     <span class="hljs-keyword">var</span> price = BasePrice(quote.Format);
     <span class="hljs-keyword">foreach</span> (<span class="hljs-keyword">var</span> rule <span class="hljs-keyword">in</span> _rules)
@@ -295,7 +368,10 @@ scripts/warsztat.sh --lang cs reset m2/s09         <span class="hljs-comment"># 
 }
 </code></pre>
 <p><strong>Po:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">decimal</span> <span class="hljs-title">Price</span>(<span class="hljs-params">TicketQuote quote</span>)</span>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">const</span> <span class="hljs-built_in">decimal</span> MorningDiscount = <span class="hljs-number">5.00m</span>;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">const</span> <span class="hljs-built_in">decimal</span> VipSurcharge = <span class="hljs-number">10.00m</span>;
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">decimal</span> <span class="hljs-title">Price</span>(<span class="hljs-params">TicketQuote quote</span>)</span>
 {
     <span class="hljs-keyword">var</span> price = BasePrice(quote.Format);
     <span class="hljs-keyword">if</span> (IsMorning(quote))
@@ -307,6 +383,16 @@ scripts/warsztat.sh --lang cs reset m2/s09         <span class="hljs-comment"># 
         price += VipSurcharge;
     }
     <span class="hljs-keyword">return</span> price;
+}
+
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-built_in">bool</span> <span class="hljs-title">IsMorning</span>(<span class="hljs-params">TicketQuote quote</span>)</span>
+{
+    <span class="hljs-keyword">return</span> quote.Start.Hour &lt; <span class="hljs-number">12</span>;
+}
+
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-built_in">bool</span> <span class="hljs-title">IsVip</span>(<span class="hljs-params">TicketQuote quote</span>)</span>
+{
+    <span class="hljs-keyword">return</span> quote.Row &gt;= quote.VipFromRow;
 }
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony.
@@ -347,23 +433,89 @@ scripts/warsztat.sh --lang cs reset m2/s09         <span class="hljs-comment"># 
 <li>Z <code>TicketPricing</code> znikają pole <code>_mailer</code>, konstruktor i wywołanie <code>GroupDiscountGranted</code>; znika też dyrektywa <code>using ...Notification</code>.</li>
 <li><code>BookingService</code> tworzy <code>TicketPricing</code> bez argumentów i sam wysyła mail, gdy <code>quote.GroupDiscount</code> jest prawdziwe.</li>
 </ol>
-<p><strong>Przed:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">double</span> <span class="hljs-title">Total</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> organizer, <span class="hljs-built_in">int</span> tickets, <span class="hljs-built_in">double</span> unitPrice</span>)</span>
+<p><strong>Po (<code>Pricing/<wbr>Quote.cs</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span>Wynik cennika niesie informację o rabacie - zamiast efektu ubocznego mamy daną.<span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">record</span> <span class="hljs-title">Quote</span>(<span class="hljs-params"><span class="hljs-built_in">double</span> Total, <span class="hljs-built_in">bool</span> GroupDiscount</span>)</span>;
+</code></pre>
+<p><strong>Przed (<code>Pricing/<wbr>TicketPricing.cs</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">using</span> Training.Workshop.M2.S02Adr.Start.Notification;
+
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">TicketPricing</span>
 {
-    <span class="hljs-built_in">double</span> sum = unitPrice * tickets;
-    <span class="hljs-keyword">if</span> (tickets &gt;= <span class="hljs-number">10</span>)
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> GroupMailer _mailer;
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">TicketPricing</span>(<span class="hljs-params">GroupMailer mailer</span>)</span>
     {
-        sum = sum - sum * <span class="hljs-number">0.10</span>;
-        _mailer.GroupDiscountGranted(organizer, tickets);
+        _mailer = mailer;
     }
-    <span class="hljs-keyword">return</span> Math.Floor(sum * <span class="hljs-number">100</span> + <span class="hljs-number">0.5</span>) / <span class="hljs-number">100.0</span>;
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">double</span> <span class="hljs-title">Total</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> organizer, <span class="hljs-built_in">int</span> tickets, <span class="hljs-built_in">double</span> unitPrice</span>)</span>
+    {
+        <span class="hljs-built_in">double</span> sum = unitPrice * tickets;
+        <span class="hljs-keyword">if</span> (tickets &gt;= <span class="hljs-number">10</span>)
+        {
+            sum = sum - sum * <span class="hljs-number">0.10</span>;
+            _mailer.GroupDiscountGranted(organizer, tickets);
+        }
+        <span class="hljs-keyword">return</span> Math.Floor(sum * <span class="hljs-number">100</span> + <span class="hljs-number">0.5</span>) / <span class="hljs-number">100.0</span>;
+    }
 }
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs">Quote quote = _pricing.Total(tickets, unitPrice);
-<span class="hljs-keyword">if</span> (quote.GroupDiscount)
+<p><strong>Po (<code>Pricing/<wbr>TicketPricing.cs</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">TicketPricing</span>
 {
-    _mailer.GroupDiscountGranted(organizer, tickets);
+    <span class="hljs-function"><span class="hljs-keyword">public</span> Quote <span class="hljs-title">Total</span>(<span class="hljs-params"><span class="hljs-built_in">int</span> tickets, <span class="hljs-built_in">double</span> unitPrice</span>)</span>
+    {
+        <span class="hljs-built_in">double</span> sum = unitPrice * tickets;
+        <span class="hljs-built_in">bool</span> groupDiscount = tickets &gt;= <span class="hljs-number">10</span>;
+        <span class="hljs-keyword">if</span> (groupDiscount)
+        {
+            sum = sum - sum * <span class="hljs-number">0.10</span>;
+        }
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Quote(Math.Floor(sum * <span class="hljs-number">100</span> + <span class="hljs-number">0.5</span>) / <span class="hljs-number">100.0</span>, groupDiscount);
+    }
+}
+</code></pre>
+<p><strong>Przed (<code>BookingService.cs</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> GroupMailer _mailer;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> TicketPricing _pricing;
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">BookingService</span>()</span>
+{
+    _mailer = <span class="hljs-keyword">new</span> GroupMailer();
+    _pricing = <span class="hljs-keyword">new</span> TicketPricing(_mailer);
+}
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Book</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> organizer, <span class="hljs-built_in">int</span> tickets, <span class="hljs-built_in">string</span> format</span>)</span>
+{
+    <span class="hljs-built_in">double</span> unitPrice = format <span class="hljs-keyword">switch</span>
+    {
+        <span class="hljs-string">&quot;IMAX&quot;</span> =&gt; <span class="hljs-number">40.00</span>,
+        <span class="hljs-string">&quot;3D&quot;</span> =&gt; <span class="hljs-number">32.00</span>,
+        _ =&gt; <span class="hljs-number">25.00</span>,
+    };
+    <span class="hljs-built_in">double</span> total = _pricing.Total(organizer, tickets, unitPrice);
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;DO ZAPLATY &quot;</span> + total.ToString(<span class="hljs-string">&quot;F2&quot;</span>, CultureInfo.InvariantCulture);
+}
+</code></pre>
+<p><strong>Po (<code>BookingService.cs</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> GroupMailer _mailer = <span class="hljs-keyword">new</span>();
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> TicketPricing _pricing = <span class="hljs-keyword">new</span>();
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Book</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> organizer, <span class="hljs-built_in">int</span> tickets, <span class="hljs-built_in">string</span> format</span>)</span>
+{
+    <span class="hljs-built_in">double</span> unitPrice = format <span class="hljs-keyword">switch</span>
+    {
+        <span class="hljs-string">&quot;IMAX&quot;</span> =&gt; <span class="hljs-number">40.00</span>,
+        <span class="hljs-string">&quot;3D&quot;</span> =&gt; <span class="hljs-number">32.00</span>,
+        _ =&gt; <span class="hljs-number">25.00</span>,
+    };
+    Quote quote = _pricing.Total(tickets, unitPrice);
+    <span class="hljs-keyword">if</span> (quote.GroupDiscount)
+    {
+        _mailer.GroupDiscountGranted(organizer, tickets);
+    }
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;DO ZAPLATY &quot;</span> + quote.Total.ToString(<span class="hljs-string">&quot;F2&quot;</span>, CultureInfo.InvariantCulture);
 }
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony; <code>Step1RemovesDependencyOnNotification</code> - zostało tylko naruszenie <code>ADR-0007/<wbr>R2</code>.
@@ -376,8 +528,9 @@ scripts/warsztat.sh --lang cs reset m2/s09         <span class="hljs-comment"># 
 <li>Obliczenia przechodzą na metody <code>Money</code>: <code>unitPrice.Times(tickets)</code> i <code>sum.Minus(sum.Percent(...))</code>; ręczne zaokrąglanie <code>Math.Floor(sum * 100 + 0.5) /<wbr> 100.0</code> znika.</li>
 <li>Próg <code>10</code> i procent <code>10</code> stają się stałymi <code>GroupSize</code> i <code>GroupDiscountPercent</code> (Introduce Constant).</li>
 <li><code>BookingService</code> wybiera cenę jednostkową jako <code>Money</code> (<code>Money.Of(&quot;25.00&quot;)</code> itd.) i skleja odpowiedź wprost z <code>quote.Total</code> - <code>Money</code> sam drukuje dwie cyfry po kropce.</li>
+<li>W <code>Quote.cs</code>, <code>TicketPricing.cs</code> i <code>BookingService.cs</code> dochodzi dyrektywa <code>using Training.Workshop.Shared</code> (tam leży <code>Money</code>); z <code>BookingService.cs</code> znika <code>using System.Globalization</code>.</li>
 </ol>
-<p><strong>Przed:</strong></p>
+<p><strong>Przed (<code>Pricing/<wbr>TicketPricing.cs</code>):</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> Quote <span class="hljs-title">Total</span>(<span class="hljs-params"><span class="hljs-built_in">int</span> tickets, <span class="hljs-built_in">double</span> unitPrice</span>)</span>
 {
     <span class="hljs-built_in">double</span> sum = unitPrice * tickets;
@@ -389,10 +542,60 @@ scripts/warsztat.sh --lang cs reset m2/s09         <span class="hljs-comment"># 
     <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Quote(Math.Floor(sum * <span class="hljs-number">100</span> + <span class="hljs-number">0.5</span>) / <span class="hljs-number">100.0</span>, groupDiscount);
 }
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> Quote <span class="hljs-title">Total</span>(<span class="hljs-params"><span class="hljs-built_in">int</span> tickets, Money unitPrice</span>)</span>
+<p><strong>Po (<code>Pricing/<wbr>TicketPricing.cs</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">TicketPricing</span>
 {
-    Money sum = unitPrice.Times(tickets);
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">const</span> <span class="hljs-built_in">int</span> GroupSize = <span class="hljs-number">10</span>;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">const</span> <span class="hljs-built_in">int</span> GroupDiscountPercent = <span class="hljs-number">10</span>;
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> Quote <span class="hljs-title">Total</span>(<span class="hljs-params"><span class="hljs-built_in">int</span> tickets, Money unitPrice</span>)</span>
+    {
+        Money sum = unitPrice.Times(tickets);
+        <span class="hljs-built_in">bool</span> groupDiscount = tickets &gt;= GroupSize;
+        <span class="hljs-keyword">if</span> (groupDiscount)
+        {
+            sum = sum.Minus(sum.Percent(GroupDiscountPercent));
+        }
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Quote(sum, groupDiscount);
+    }
+}
+</code></pre>
+<p><strong>Po (<code>Pricing/<wbr>Quote.cs</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">record</span> <span class="hljs-title">Quote</span>(<span class="hljs-params">Money Total, <span class="hljs-built_in">bool</span> GroupDiscount</span>)</span>;
+</code></pre>
+<p><strong>Przed (<code>BookingService.cs</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Book</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> organizer, <span class="hljs-built_in">int</span> tickets, <span class="hljs-built_in">string</span> format</span>)</span>
+{
+    <span class="hljs-built_in">double</span> unitPrice = format <span class="hljs-keyword">switch</span>
+    {
+        <span class="hljs-string">&quot;IMAX&quot;</span> =&gt; <span class="hljs-number">40.00</span>,
+        <span class="hljs-string">&quot;3D&quot;</span> =&gt; <span class="hljs-number">32.00</span>,
+        _ =&gt; <span class="hljs-number">25.00</span>,
+    };
+    Quote quote = _pricing.Total(tickets, unitPrice);
+    <span class="hljs-keyword">if</span> (quote.GroupDiscount)
+    {
+        _mailer.GroupDiscountGranted(organizer, tickets);
+    }
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;DO ZAPLATY &quot;</span> + quote.Total.ToString(<span class="hljs-string">&quot;F2&quot;</span>, CultureInfo.InvariantCulture);
+}
+</code></pre>
+<p><strong>Po (<code>BookingService.cs</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Book</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> organizer, <span class="hljs-built_in">int</span> tickets, <span class="hljs-built_in">string</span> format</span>)</span>
+{
+    Money unitPrice = format <span class="hljs-keyword">switch</span>
+    {
+        <span class="hljs-string">&quot;IMAX&quot;</span> =&gt; Money.Of(<span class="hljs-string">&quot;40.00&quot;</span>),
+        <span class="hljs-string">&quot;3D&quot;</span> =&gt; Money.Of(<span class="hljs-string">&quot;32.00&quot;</span>),
+        _ =&gt; Money.Of(<span class="hljs-string">&quot;25.00&quot;</span>),
+    };
+    Quote quote = _pricing.Total(tickets, unitPrice);
+    <span class="hljs-keyword">if</span> (quote.GroupDiscount)
+    {
+        _mailer.GroupDiscountGranted(organizer, tickets);
+    }
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;DO ZAPLATY &quot;</span> + quote.Total;
+}
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony; <code>Step2CompliesWithTheDecision</code> - pusta lista naruszeń.
 <strong>Co powiedzieć:</strong> moduł jest zgodny z decyzją, a test pilnuje, żeby tak zostało.
@@ -439,30 +642,65 @@ ArrayList seats = (ArrayList)_seatsByRow[row];
 <li><code>TakenPerRow</code> iteruje po parach słownika - rzutowania <code>(int)</code> i <code>(ArrayList)</code> znikają.</li>
 <li>Dyrektywa <code>using System.Collections</code> znika.</li>
 </ol>
-<p><strong>Przed:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> Hashtable _seatsByRow = <span class="hljs-keyword">new</span>();
+<p><strong>Przed (<code>SeatMap.cs</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">using</span> System.Collections;
+<span class="hljs-keyword">using</span> System.Globalization;
 
-<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Take</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> seat</span>)</span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">SeatMap</span>
 {
-    <span class="hljs-built_in">object</span> row = <span class="hljs-built_in">int</span>.Parse(seat.Substring(<span class="hljs-number">1</span>), CultureInfo.InvariantCulture);
-    ArrayList seats = (ArrayList)_seatsByRow[row];
-    <span class="hljs-keyword">if</span> (seats == <span class="hljs-literal">null</span>)
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> Hashtable _seatsByRow = <span class="hljs-keyword">new</span>();
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Take</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> seat</span>)</span>
     {
-        seats = <span class="hljs-keyword">new</span> ArrayList();
-        _seatsByRow[row] = seats;
+        <span class="hljs-built_in">object</span> row = <span class="hljs-built_in">int</span>.Parse(seat.Substring(<span class="hljs-number">1</span>), CultureInfo.InvariantCulture);
+        ArrayList seats = (ArrayList)_seatsByRow[row];
+        <span class="hljs-keyword">if</span> (seats == <span class="hljs-literal">null</span>)
+        {
+            seats = <span class="hljs-keyword">new</span> ArrayList();
+            _seatsByRow[row] = seats;
+        }
+        seats.Add(seat);
     }
-    seats.Add(seat);
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> IReadOnlyDictionary&lt;<span class="hljs-built_in">int</span>, <span class="hljs-built_in">int</span>&gt; <span class="hljs-title">TakenPerRow</span>()</span>
+    {
+        <span class="hljs-keyword">var</span> result = <span class="hljs-keyword">new</span> SortedDictionary&lt;<span class="hljs-built_in">int</span>, <span class="hljs-built_in">int</span>&gt;();
+        <span class="hljs-keyword">foreach</span> (<span class="hljs-built_in">object</span> row <span class="hljs-keyword">in</span> _seatsByRow.Keys)
+        {
+            result[(<span class="hljs-built_in">int</span>)row] = ((ArrayList)_seatsByRow[row]).Count;
+        }
+        <span class="hljs-keyword">return</span> result;
+    }
 }
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> SortedDictionary&lt;<span class="hljs-built_in">int</span>, List&lt;<span class="hljs-built_in">string</span>&gt;&gt; _seatsByRow = <span class="hljs-keyword">new</span>();
-...
-<span class="hljs-keyword">if</span> (!_seatsByRow.TryGetValue(row, <span class="hljs-keyword">out</span> List&lt;<span class="hljs-built_in">string</span>&gt;? seats))
+<p><strong>Po (<code>SeatMap.cs</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">using</span> System.Globalization;
+
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">SeatMap</span>
 {
-    seats = [];
-    _seatsByRow[row] = seats;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> SortedDictionary&lt;<span class="hljs-built_in">int</span>, List&lt;<span class="hljs-built_in">string</span>&gt;&gt; _seatsByRow = <span class="hljs-keyword">new</span>();
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Take</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> seat</span>)</span>
+    {
+        <span class="hljs-built_in">int</span> row = <span class="hljs-built_in">int</span>.Parse(seat.Substring(<span class="hljs-number">1</span>), CultureInfo.InvariantCulture);
+        <span class="hljs-keyword">if</span> (!_seatsByRow.TryGetValue(row, <span class="hljs-keyword">out</span> List&lt;<span class="hljs-built_in">string</span>&gt;? seats))
+        {
+            seats = [];
+            _seatsByRow[row] = seats;
+        }
+        seats.Add(seat);
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> IReadOnlyDictionary&lt;<span class="hljs-built_in">int</span>, <span class="hljs-built_in">int</span>&gt; <span class="hljs-title">TakenPerRow</span>()</span>
+    {
+        <span class="hljs-keyword">var</span> result = <span class="hljs-keyword">new</span> SortedDictionary&lt;<span class="hljs-built_in">int</span>, <span class="hljs-built_in">int</span>&gt;();
+        <span class="hljs-keyword">foreach</span> (<span class="hljs-keyword">var</span> (row, seats) <span class="hljs-keyword">in</span> _seatsByRow)
+        {
+            result[row] = seats.Count;
+        }
+        <span class="hljs-keyword">return</span> result;
+    }
 }
-seats.Add(seat);
 </code></pre>
 <p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m2/<wbr>s03</code> - zostają kategorie <code>CS0162</code>, <code>CS0618</code>.
 <strong>Co powiedzieć:</strong> jedna przyczyna ostrzeżeń na krok - łatwy przegląd, łatwe wycofanie. Znane typy elementów to także koniec rzutowań, na których analiza nullable nie mogła nic udowodnić.
@@ -558,9 +796,41 @@ seats.Add(seat);
 }
 </code></pre>
 <p><strong>Po:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">if</span> (line.Contains(<span class="hljs-string">&quot;TODO&quot;</span>) || line.Contains(<span class="hljs-string">&quot;FIXME&quot;</span>))
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> IReadOnlyList&lt;<span class="hljs-built_in">string</span>&gt; <span class="hljs-title">Evaluate</span>(<span class="hljs-params">GateInput input</span>)</span>
 {
-    findings.Add(<span class="hljs-string">&quot;TODO &quot;</span> + <span class="hljs-keyword">where</span>);
+    <span class="hljs-keyword">var</span> findings = <span class="hljs-keyword">new</span> List&lt;<span class="hljs-built_in">string</span>&gt;();
+    ScanSources(input, findings);
+    <span class="hljs-keyword">return</span> findings;
+}
+
+<span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span>TODO/FIXME i wydruki na konsolę w źródłach domeny.<span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">ScanSources</span>(<span class="hljs-params">GateInput input, List&lt;<span class="hljs-built_in">string</span>&gt; findings</span>)</span>
+{
+    <span class="hljs-keyword">foreach</span> (<span class="hljs-function"><span class="hljs-built_in">string</span> <span class="hljs-keyword">file</span> <span class="hljs-keyword">in</span> <span class="hljs-title">CSharpFiles</span>(<span class="hljs-params">input.Sources</span>))</span>
+    {
+        <span class="hljs-built_in">string</span>[] lines = File.ReadAllLines(<span class="hljs-keyword">file</span>);
+        <span class="hljs-keyword">for</span> (<span class="hljs-built_in">int</span> i = <span class="hljs-number">0</span>; i &lt; lines.Length; i++)
+        {
+            <span class="hljs-built_in">string</span> line = lines[i];
+            <span class="hljs-built_in">string</span> <span class="hljs-keyword">where</span> = Path.GetFileName(<span class="hljs-keyword">file</span>) + <span class="hljs-string">&quot;:&quot;</span> + (i + <span class="hljs-number">1</span>);
+            <span class="hljs-keyword">if</span> (line.Contains(<span class="hljs-string">&quot;TODO&quot;</span>) || line.Contains(<span class="hljs-string">&quot;FIXME&quot;</span>))
+            {
+                findings.Add(<span class="hljs-string">&quot;TODO &quot;</span> + <span class="hljs-keyword">where</span>);
+            }
+            <span class="hljs-keyword">if</span> (line.Contains(<span class="hljs-string">&quot;Console.Write&quot;</span>) || line.Contains(<span class="hljs-string">&quot;Console.Error&quot;</span>))
+            {
+                findings.Add(<span class="hljs-string">&quot;Console &quot;</span> + <span class="hljs-keyword">where</span>);
+            }
+        }
+    }
+}
+
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> IReadOnlyList&lt;<span class="hljs-built_in">string</span>&gt; <span class="hljs-title">CSharpFiles</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> dir</span>)</span>
+{
+    <span class="hljs-keyword">return</span> Directory.GetFiles(dir)
+        .Where(f =&gt; f.EndsWith(<span class="hljs-string">&quot;.cs&quot;</span>, StringComparison.Ordinal))
+        .Order(StringComparer.Ordinal)
+        .ToList();
 }
 </code></pre>
 <p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m2/<wbr>s04</code> - <code>TODO PriceTable.cs:15</code>, <code>Console PriceTable.cs:26</code>.
@@ -573,6 +843,7 @@ seats.Add(seat);
 <li>Każde ostrzeżenie i błąd w źródłach daje wynik w formacie <code>kompilator Plik.cs:linia IDENTYFIKATOR</code>.</li>
 <li>Dochodzą pola pomocnicze: stała <code>ImplicitUsings</code>, <code>ParseOptions</code> i leniwie ładowane referencje platformy (<code>LoadPlatformReferences</code>).</li>
 <li><code>Evaluate</code> woła <code>CompileSources</code> przed <code>ScanSources</code>.</li>
+<li>Na górze pliku dochodzą dyrektywy <code>using System.Collections.Immutable</code>, <code>using Microsoft.CodeAnalysis</code> i <code>using Microsoft.CodeAnalysis.CSharp</code>.</li>
 </ol>
 <p><strong>Przed:</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> IReadOnlyList&lt;<span class="hljs-built_in">string</span>&gt; <span class="hljs-title">Evaluate</span>(<span class="hljs-params">GateInput input</span>)</span>
@@ -583,8 +854,74 @@ seats.Add(seat);
 }
 </code></pre>
 <p><strong>Po:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs">findings.Add(<span class="hljs-string">&quot;kompilator &quot;</span> + Path.GetFileName(d.Location.SourceTree!.FilePath) + <span class="hljs-string">&quot;:&quot;</span>
-    + (d.Location.GetLineSpan().StartLinePosition.Line + <span class="hljs-number">1</span>) + <span class="hljs-string">&quot; &quot;</span> + d.Id);
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span>Te same globalne dyrektywy using, które SDK dodaje przy ImplicitUsings (jak w projekcie).<span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">const</span> <span class="hljs-built_in">string</span> ImplicitUsings = <span class="hljs-string">&quot;&quot;&quot;
+    global using System;
+    global using System.Collections.Generic;
+    global using System.IO;
+    global using System.Linq;
+    global using System.Net.Http;
+    global using System.Threading;
+    global using System.Threading.Tasks;
+    &quot;&quot;&quot;</span>;
+
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">readonly</span> CSharpParseOptions ParseOptions = <span class="hljs-keyword">new</span>(LanguageVersion.Latest);
+
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">readonly</span> Lazy&lt;ImmutableArray&lt;MetadataReference&gt;&gt; PlatformReferences = <span class="hljs-keyword">new</span>(LoadPlatformReferences);
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> IReadOnlyList&lt;<span class="hljs-built_in">string</span>&gt; <span class="hljs-title">Evaluate</span>(<span class="hljs-params">GateInput input</span>)</span>
+{
+    <span class="hljs-keyword">var</span> findings = <span class="hljs-keyword">new</span> List&lt;<span class="hljs-built_in">string</span>&gt;();
+    CompileSources(input, findings);
+    ScanSources(input, findings);
+    <span class="hljs-keyword">return</span> findings;
+}
+
+<span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span>Kompilacja źródeł domeny (nullable, wszystkie fale ostrzeżeń); każde ostrzeżenie to wynik bramki.<span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">CompileSources</span>(<span class="hljs-params">GateInput input, List&lt;<span class="hljs-built_in">string</span>&gt; findings</span>)</span>
+{
+    CSharpCompilation compilation = Compile(CSharpFiles(input.Sources), PlatformReferences.Value);
+    IEnumerable&lt;Diagnostic&gt; problems = compilation.GetDiagnostics()
+        .Where(d =&gt; d.Severity <span class="hljs-keyword">is</span> DiagnosticSeverity.Warning <span class="hljs-keyword">or</span> DiagnosticSeverity.Error &amp;&amp; d.Location.IsInSource)
+        .OrderBy(d =&gt; d.Location.SourceTree!.FilePath, StringComparer.Ordinal)
+        .ThenBy(d =&gt; d.Location.SourceSpan.Start)
+        .ThenBy(d =&gt; d.Id, StringComparer.Ordinal);
+    <span class="hljs-keyword">foreach</span> (Diagnostic d <span class="hljs-keyword">in</span> problems)
+    {
+        findings.Add(<span class="hljs-string">&quot;kompilator &quot;</span> + Path.GetFileName(d.Location.SourceTree!.FilePath) + <span class="hljs-string">&quot;:&quot;</span>
+            + (d.Location.GetLineSpan().StartLinePosition.Line + <span class="hljs-number">1</span>) + <span class="hljs-string">&quot; &quot;</span> + d.Id);
+    }
+}
+
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> CSharpCompilation <span class="hljs-title">Compile</span>(<span class="hljs-params">IEnumerable&lt;<span class="hljs-built_in">string</span>&gt; files, IEnumerable&lt;MetadataReference&gt; references</span>)</span>
+{
+    List&lt;SyntaxTree&gt; trees = files
+        .Select(<span class="hljs-keyword">file</span> =&gt; CSharpSyntaxTree.ParseText(File.ReadAllText(<span class="hljs-keyword">file</span>), ParseOptions, path: <span class="hljs-keyword">file</span>))
+        .ToList();
+    trees.Add(CSharpSyntaxTree.ParseText(ImplicitUsings, ParseOptions, path: <span class="hljs-string">&quot;GlobalUsings.g.cs&quot;</span>));
+    <span class="hljs-keyword">return</span> CSharpCompilation.Create(
+        <span class="hljs-string">&quot;QualityGate&quot;</span>,
+        trees,
+        references,
+        <span class="hljs-keyword">new</span> CSharpCompilationOptions(
+            OutputKind.DynamicallyLinkedLibrary,
+            nullableContextOptions: NullableContextOptions.Enable,
+            warningLevel: <span class="hljs-number">9999</span>));
+}
+
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> ImmutableArray&lt;MetadataReference&gt; <span class="hljs-title">LoadPlatformReferences</span>()</span>
+{
+    <span class="hljs-built_in">string</span> trustedAssemblies = AppContext.GetData(<span class="hljs-string">&quot;TRUSTED_PLATFORM_ASSEMBLIES&quot;</span>) <span class="hljs-keyword">as</span> <span class="hljs-built_in">string</span>
+        ?? <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> InvalidOperationException(<span class="hljs-string">&quot;brak bibliotek platformy - uruchom na .NET&quot;</span>);
+    <span class="hljs-keyword">return</span>
+    [
+        .. trustedAssemblies
+            .Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries)
+            .Where(path =&gt; Path.GetFileName(path).StartsWith(<span class="hljs-string">&quot;System.&quot;</span>, StringComparison.Ordinal)
+                || Path.GetFileName(path) <span class="hljs-keyword">is</span> <span class="hljs-string">&quot;mscorlib.dll&quot;</span> <span class="hljs-keyword">or</span> <span class="hljs-string">&quot;netstandard.dll&quot;</span>)
+            .Select(path =&gt; MetadataReference.CreateFromFile(path)),
+    ];
+}
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony; dochodzą dwa wyniki: <code>kompilator PriceTable.cs:11 CS0649</code> (pole nigdy nie jest przypisane) i <code>kompilator PriceTable.cs:11 CS8618</code> (pole nie dopuszcza null, a konstruktor go nie ustawia).
 <strong>Co powiedzieć:</strong> to ta sama idea co w s03, tu jako jeden z kilku sygnałów bramki.
@@ -595,6 +932,7 @@ seats.Add(seat);
 <li>Powstaje metoda <code>CheckCoverage(GateInput, List&lt;string&gt;)</code>: wyrażenie regularne <code>PublicMethod</code> wyszukuje publiczne metody kluczowej klasy, a bramka sprawdza, czy tekst testu zawiera wywołanie <code>.Nazwa(</code>.</li>
 <li>Metoda bez wywołania w teście daje wynik <code>pokrycie Klasa.Metoda bez testu</code>.</li>
 <li><code>Evaluate</code> woła <code>CheckCoverage</code> po <code>ScanSources</code>.</li>
+<li>Na górze pliku dochodzi dyrektywa <code>using System.Text.RegularExpressions</code>.</li>
 </ol>
 <p><strong>Przed:</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> IReadOnlyList&lt;<span class="hljs-built_in">string</span>&gt; <span class="hljs-title">Evaluate</span>(<span class="hljs-params">GateInput input</span>)</span>
@@ -606,9 +944,30 @@ seats.Add(seat);
 }
 </code></pre>
 <p><strong>Po:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">if</span> (!test.Contains(<span class="hljs-string">&quot;.&quot;</span> + method.Groups[<span class="hljs-number">1</span>].Value + <span class="hljs-string">&quot;(&quot;</span>))
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">readonly</span> Regex PublicMethod =
+    <span class="hljs-keyword">new</span>(<span class="hljs-string">@&quot;public\s+(?:static\s+)?[\w&lt;&gt;\[\],?]+\s+(\w+)\s*\(&quot;</span>);
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> IReadOnlyList&lt;<span class="hljs-built_in">string</span>&gt; <span class="hljs-title">Evaluate</span>(<span class="hljs-params">GateInput input</span>)</span>
 {
-    findings.Add(<span class="hljs-string">&quot;pokrycie &quot;</span> + input.KeyClass + <span class="hljs-string">&quot;.&quot;</span> + method.Groups[<span class="hljs-number">1</span>].Value + <span class="hljs-string">&quot; bez testu&quot;</span>);
+    <span class="hljs-keyword">var</span> findings = <span class="hljs-keyword">new</span> List&lt;<span class="hljs-built_in">string</span>&gt;();
+    CompileSources(input, findings);
+    ScanSources(input, findings);
+    CheckCoverage(input, findings);
+    <span class="hljs-keyword">return</span> findings;
+}
+
+<span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span>Przybliżenie pokrycia: publiczna metoda kluczowej klasy musi być wywołana w jej teście.<span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">CheckCoverage</span>(<span class="hljs-params">GateInput input, List&lt;<span class="hljs-built_in">string</span>&gt; findings</span>)</span>
+{
+    <span class="hljs-built_in">string</span> source = File.ReadAllText(Path.Combine(input.Sources, input.KeyClass + <span class="hljs-string">&quot;.cs&quot;</span>));
+    <span class="hljs-built_in">string</span> test = File.ReadAllText(input.TestSource);
+    <span class="hljs-keyword">foreach</span> (Match method <span class="hljs-keyword">in</span> PublicMethod.Matches(source))
+    {
+        <span class="hljs-keyword">if</span> (!test.Contains(<span class="hljs-string">&quot;.&quot;</span> + method.Groups[<span class="hljs-number">1</span>].Value + <span class="hljs-string">&quot;(&quot;</span>))
+        {
+            findings.Add(<span class="hljs-string">&quot;pokrycie &quot;</span> + input.KeyClass + <span class="hljs-string">&quot;.&quot;</span> + method.Groups[<span class="hljs-number">1</span>].Value + <span class="hljs-string">&quot; bez testu&quot;</span>);
+        }
+    }
 }
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony; <code>VipSurcharge</code> i <code>LookupCount</code> bez testu.
@@ -621,6 +980,7 @@ seats.Add(seat);
 <li>Każda porażka (<code>TargetInvocationException</code>) daje wynik <code>test Klasa.Metoda nie przechodzi: TypWyjatku</code>; nieudana kompilacja zestawu testowego też jest wynikiem.</li>
 <li>Pomocnicza metoda <code>TestReferences()</code> dokłada do referencji platformy zestawy załadowane w bieżącym procesie.</li>
 <li><code>Evaluate</code> woła <code>RunTests</code> jako pierwszy punkt listy.</li>
+<li>Na górze pliku dochodzą dyrektywy <code>using System.Reflection</code> i <code>using System.Runtime.Loader</code>.</li>
 </ol>
 <p><strong>Przed:</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> IReadOnlyList&lt;<span class="hljs-built_in">string</span>&gt; <span class="hljs-title">Evaluate</span>(<span class="hljs-params">GateInput input</span>)</span>
@@ -633,14 +993,76 @@ seats.Add(seat);
 }
 </code></pre>
 <p><strong>Po:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">try</span>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> IReadOnlyList&lt;<span class="hljs-built_in">string</span>&gt; <span class="hljs-title">Evaluate</span>(<span class="hljs-params">GateInput input</span>)</span>
 {
-    test.Invoke(Activator.CreateInstance(type, nonPublic: <span class="hljs-literal">true</span>), <span class="hljs-literal">null</span>);
+    <span class="hljs-keyword">var</span> findings = <span class="hljs-keyword">new</span> List&lt;<span class="hljs-built_in">string</span>&gt;();
+    RunTests(input, findings);
+    CompileSources(input, findings);
+    ScanSources(input, findings);
+    CheckCoverage(input, findings);
+    <span class="hljs-keyword">return</span> findings;
 }
-<span class="hljs-keyword">catch</span> (TargetInvocationException failure)
+
+<span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span></span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span> Kompiluje domenę razem z plikiem testu i uruchamia metody oznaczone atrybutem o nazwie</span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span> Fact albo Test (xUnit albo dowolny inny). Zestaw testowy ładowany jest do osobnego,</span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span> zwalnianego kontekstu (AssemblyLoadContext).</span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">RunTests</span>(<span class="hljs-params">GateInput input, List&lt;<span class="hljs-built_in">string</span>&gt; findings</span>)</span>
 {
-    findings.Add(<span class="hljs-string">&quot;test &quot;</span> + type.Name + <span class="hljs-string">&quot;.&quot;</span> + test.Name + <span class="hljs-string">&quot; nie przechodzi: &quot;</span>
-        + failure.InnerException?.GetType().Name);
+    CSharpCompilation compilation = Compile(
+        [.. CSharpFiles(input.Sources), input.TestSource], TestReferences());
+    <span class="hljs-keyword">using</span> <span class="hljs-keyword">var</span> image = <span class="hljs-keyword">new</span> MemoryStream();
+    <span class="hljs-keyword">if</span> (!compilation.Emit(image).Success)
+    {
+        findings.Add(<span class="hljs-string">&quot;test &quot;</span> + input.TestClass + <span class="hljs-string">&quot; nie da się uruchomić: błędy kompilacji&quot;</span>);
+        <span class="hljs-keyword">return</span>;
+    }
+    image.Position = <span class="hljs-number">0</span>;
+    <span class="hljs-keyword">var</span> context = <span class="hljs-keyword">new</span> AssemblyLoadContext(<span class="hljs-string">&quot;QualityGate&quot;</span>, isCollectible: <span class="hljs-literal">true</span>);
+    <span class="hljs-keyword">try</span>
+    {
+        Type? type = context.LoadFromStream(image).GetType(input.TestClass);
+        <span class="hljs-keyword">if</span> (type <span class="hljs-keyword">is</span> <span class="hljs-literal">null</span>)
+        {
+            findings.Add(<span class="hljs-string">&quot;test &quot;</span> + input.TestClass + <span class="hljs-string">&quot; nie da się uruchomić: brak klasy&quot;</span>);
+            <span class="hljs-keyword">return</span>;
+        }
+        IEnumerable&lt;MethodInfo&gt; tests = type
+            .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly)
+            .Where(m =&gt; m.GetCustomAttributes().Any(a =&gt; a.GetType().Name <span class="hljs-keyword">is</span> <span class="hljs-string">&quot;FactAttribute&quot;</span> <span class="hljs-keyword">or</span> <span class="hljs-string">&quot;TestAttribute&quot;</span>))
+            .OrderBy(m =&gt; m.Name, StringComparer.Ordinal);
+        <span class="hljs-keyword">foreach</span> (MethodInfo test <span class="hljs-keyword">in</span> tests)
+        {
+            <span class="hljs-keyword">try</span>
+            {
+                test.Invoke(Activator.CreateInstance(type, nonPublic: <span class="hljs-literal">true</span>), <span class="hljs-literal">null</span>);
+            }
+            <span class="hljs-keyword">catch</span> (TargetInvocationException failure)
+            {
+                findings.Add(<span class="hljs-string">&quot;test &quot;</span> + type.Name + <span class="hljs-string">&quot;.&quot;</span> + test.Name + <span class="hljs-string">&quot; nie przechodzi: &quot;</span>
+                    + failure.InnerException?.GetType().Name);
+            }
+        }
+    }
+    <span class="hljs-keyword">finally</span>
+    {
+        context.Unload();
+    }
+}
+
+<span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span>Biblioteki platformy i zestawy załadowane w bieżącym procesie (np. xUnit dla testów próbek).<span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> IEnumerable&lt;MetadataReference&gt; <span class="hljs-title">TestReferences</span>()</span>
+{
+    IEnumerable&lt;<span class="hljs-built_in">string</span>&gt; loaded = AppDomain.CurrentDomain.GetAssemblies()
+        .Where(assembly =&gt; !assembly.IsDynamic &amp;&amp; assembly.Location.Length &gt; <span class="hljs-number">0</span>)
+        .Select(assembly =&gt; assembly.Location);
+    <span class="hljs-keyword">return</span> PlatformReferences.Value
+        .OfType&lt;PortableExecutableReference&gt;()
+        .Select(reference =&gt; reference.FilePath!)
+        .Concat(loaded)
+        .Distinct(StringComparer.Ordinal)
+        .Select(path =&gt; MetadataReference.CreateFromFile(path));
 }
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony; <code>Step4AddsGreenTestsAndCatchesAFailingOne</code> - fikstura <code>Sample/<wbr>Broken</code> (celowo nie xUnit, żeby nie psuć buildu) daje wynik <code>test PriceTableTest.VipSurchargeStartsAtRowNine nie przechodzi: AssertionException</code>.
@@ -682,7 +1104,7 @@ seats.Add(seat);
 <ol>
 <li>Tego kroku nie wykonujemy ręcznie - antyprzykład wstawiamy poleceniem <code>scripts/<wbr>warsztat.sh --lang cs jump m2/<wbr>s05 1</code>.</li>
 <li>Obok dobrych ruchów (nazwa <code>ticket</code>, <code>StringBuilder</code>, <code>string.Join</code>) snapshot przemyca trzy zmiany zachowania: miejsca posortowane porządkiem ordinalnym, e-mail pisany małymi literami i brak linii <code>Tel: -</code>, gdy klient nie podał telefonu.</li>
-<li>Kwota przechodzi przez <code>new Money((decimal)ticket.Total)</code> zamiast dotychczasowego jawnego formatowania z dwoma miejscami po przecinku.</li>
+<li>Kwota przechodzi przez <code>new Money((decimal)ticket.Total)</code> zamiast dotychczasowego jawnego formatowania z dwoma miejscami po przecinku; na górze pliku dochodzą dyrektywy <code>using System.Text</code> i <code>using Training.Workshop.Shared</code>.</li>
 </ol>
 <p><strong>Przed:</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-built_in">string</span> x = <span class="hljs-string">&quot;&quot;</span>;
@@ -697,9 +1119,23 @@ seats.Add(seat);
 s = s + <span class="hljs-string">&quot;Miejsca: &quot;</span> + x + <span class="hljs-string">&quot;\n&quot;</span>;
 s = s + <span class="hljs-string">&quot;Klient: &quot;</span> + t.Email.Trim() + <span class="hljs-string">&quot;\n&quot;</span>;
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs">IReadOnlyList&lt;<span class="hljs-built_in">string</span>&gt; sortedSeats = ticket.Seats.Order(StringComparer.Ordinal).ToList();
-text.Append(<span class="hljs-string">&quot;Klient: &quot;</span>).Append(ticket.Email.Trim().ToLowerInvariant()).Append(<span class="hljs-string">&#x27;\n&#x27;</span>);
+<p><strong>Po:</strong> (cała metoda ze snapshotu <code>Step1</code>)</p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Print</span>(<span class="hljs-params">Ticket ticket</span>)</span>
+{
+    <span class="hljs-keyword">var</span> text = <span class="hljs-keyword">new</span> StringBuilder();
+    text.Append(<span class="hljs-string">&quot;Film: &quot;</span>).Append(ticket.Title).Append(<span class="hljs-string">&#x27;\n&#x27;</span>);
+    text.Append(<span class="hljs-string">&quot;Seans: &quot;</span>).Append(ticket.Start.ToString(<span class="hljs-string">&quot;yyyy-MM-dd&quot;</span>, CultureInfo.InvariantCulture)).Append(<span class="hljs-string">&#x27; &#x27;</span>)
+        .Append(ticket.Start.ToString(<span class="hljs-string">&quot;HH:mm&quot;</span>, CultureInfo.InvariantCulture)).Append(<span class="hljs-string">&#x27;\n&#x27;</span>);
+    IReadOnlyList&lt;<span class="hljs-built_in">string</span>&gt; sortedSeats = ticket.Seats.Order(StringComparer.Ordinal).ToList();
+    text.Append(<span class="hljs-string">&quot;Miejsca: &quot;</span>).Append(<span class="hljs-built_in">string</span>.Join(<span class="hljs-string">&quot;, &quot;</span>, sortedSeats)).Append(<span class="hljs-string">&#x27;\n&#x27;</span>);
+    text.Append(<span class="hljs-string">&quot;Klient: &quot;</span>).Append(ticket.Email.Trim().ToLowerInvariant()).Append(<span class="hljs-string">&#x27;\n&#x27;</span>);
+    <span class="hljs-keyword">if</span> (ticket.Phone != <span class="hljs-literal">null</span>)
+    {
+        text.Append(<span class="hljs-string">&quot;Tel: &quot;</span>).Append(ticket.Phone).Append(<span class="hljs-string">&#x27;\n&#x27;</span>);
+    }
+    text.Append(<span class="hljs-string">&quot;Do zaplaty: &quot;</span>).Append(<span class="hljs-keyword">new</span> Money((<span class="hljs-built_in">decimal</span>)ticket.Total)).Append(<span class="hljs-string">&#x27;\n&#x27;</span>);
+    <span class="hljs-keyword">return</span> text.ToString();
+}
 </code></pre>
 <p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m2/<wbr>s05</code> - równoważność czerwona w trzech przypadkach (m.in. <code>A9, A10</code> staje się <code>A10, A9</code>). <code>S05SolutionTest.AbusiveCleanupChangesBehaviourInThreeCases</code> dokumentuje, które.
 <strong>Co powiedzieć:</strong> każda z tych zmian może być dobrym pomysłem, ale to decyzje biznesowe, nie sprzątanie. Cofamy: <code>scripts/<wbr>warsztat.sh --lang cs reset m2/<wbr>s05</code>.
@@ -711,24 +1147,58 @@ text.Append(<span class="hljs-string">&quot;Klient: &quot;</span>).Append(ticket
 <li>Ręczna pętla sklejająca listę miejsc zamienia się w <code>string.Join(&quot;, &quot;, ticket.Seats)</code>.</li>
 <li>Konkatenacja napisów zamienia się w jeden łańcuch wywołań <code>StringBuilder</code>.</li>
 <li>Linia telefonu trafia do prywatnej metody <code>PhoneLine(Ticket)</code> zwracającej <code>&quot;Tel: &quot; + (ticket.Phone ?? &quot;-&quot;)</code> (Extract Method).</li>
-<li>Treść wydruku, kolejność linii i formaty zostają dokładnie takie same.</li>
+<li>Treść wydruku, kolejność linii i formaty zostają dokładnie takie same. Na górze pliku dochodzi dyrektywa <code>using System.Text</code>.</li>
 </ol>
 <p><strong>Przed:</strong> (ze <code>Start</code> - antyprzykład z kroku 1 cofnęliśmy)</p>
-<pre class="code" data-lang="csharp"><code class="hljs">s = s + <span class="hljs-string">&quot;Miejsca: &quot;</span> + x + <span class="hljs-string">&quot;\n&quot;</span>;
-s = s + <span class="hljs-string">&quot;Klient: &quot;</span> + t.Email.Trim() + <span class="hljs-string">&quot;\n&quot;</span>;
-<span class="hljs-keyword">if</span> (t.Phone != <span class="hljs-literal">null</span>)
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Print</span>(<span class="hljs-params">Ticket t</span>)</span>
 {
-    s = s + <span class="hljs-string">&quot;Tel: &quot;</span> + t.Phone + <span class="hljs-string">&quot;\n&quot;</span>;
-}
-<span class="hljs-keyword">else</span>
-{
-    s = s + <span class="hljs-string">&quot;Tel: -\n&quot;</span>;
+    <span class="hljs-built_in">string</span> s = <span class="hljs-string">&quot;&quot;</span>;
+    s = s + <span class="hljs-string">&quot;Film: &quot;</span> + t.Title + <span class="hljs-string">&quot;\n&quot;</span>;
+    <span class="hljs-built_in">string</span> d = t.Start.ToString(<span class="hljs-string">&quot;yyyy-MM-dd&quot;</span>, CultureInfo.InvariantCulture) + <span class="hljs-string">&quot; &quot;</span>
+        + t.Start.ToString(<span class="hljs-string">&quot;HH:mm&quot;</span>, CultureInfo.InvariantCulture);
+    s = s + <span class="hljs-string">&quot;Seans: &quot;</span> + d + <span class="hljs-string">&quot;\n&quot;</span>;
+    <span class="hljs-built_in">string</span> x = <span class="hljs-string">&quot;&quot;</span>;
+    <span class="hljs-keyword">for</span> (<span class="hljs-built_in">int</span> i = <span class="hljs-number">0</span>; i &lt; t.Seats.Count; i++)
+    {
+        <span class="hljs-keyword">if</span> (i &gt; <span class="hljs-number">0</span>)
+        {
+            x = x + <span class="hljs-string">&quot;, &quot;</span>;
+        }
+        x = x + t.Seats[i];
+    }
+    s = s + <span class="hljs-string">&quot;Miejsca: &quot;</span> + x + <span class="hljs-string">&quot;\n&quot;</span>;
+    s = s + <span class="hljs-string">&quot;Klient: &quot;</span> + t.Email.Trim() + <span class="hljs-string">&quot;\n&quot;</span>;
+    <span class="hljs-keyword">if</span> (t.Phone != <span class="hljs-literal">null</span>)
+    {
+        s = s + <span class="hljs-string">&quot;Tel: &quot;</span> + t.Phone + <span class="hljs-string">&quot;\n&quot;</span>;
+    }
+    <span class="hljs-keyword">else</span>
+    {
+        s = s + <span class="hljs-string">&quot;Tel: -\n&quot;</span>;
+    }
+    s = s + <span class="hljs-string">&quot;Do zaplaty: &quot;</span> + t.Total.ToString(<span class="hljs-string">&quot;F2&quot;</span>, CultureInfo.InvariantCulture) + <span class="hljs-string">&quot;\n&quot;</span>;
+    <span class="hljs-keyword">return</span> s;
 }
 </code></pre>
 <p><strong>Po:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs">.Append(<span class="hljs-string">&quot;Miejsca: &quot;</span>).Append(<span class="hljs-built_in">string</span>.Join(<span class="hljs-string">&quot;, &quot;</span>, ticket.Seats)).Append(<span class="hljs-string">&#x27;\n&#x27;</span>)
-.Append(<span class="hljs-string">&quot;Klient: &quot;</span>).Append(ticket.Email.Trim()).Append(<span class="hljs-string">&#x27;\n&#x27;</span>)
-.Append(PhoneLine(ticket)).Append(<span class="hljs-string">&#x27;\n&#x27;</span>)
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Print</span>(<span class="hljs-params">Ticket ticket</span>)</span>
+{
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> StringBuilder()
+        .Append(<span class="hljs-string">&quot;Film: &quot;</span>).Append(ticket.Title).Append(<span class="hljs-string">&#x27;\n&#x27;</span>)
+        .Append(<span class="hljs-string">&quot;Seans: &quot;</span>).Append(ticket.Start.ToString(<span class="hljs-string">&quot;yyyy-MM-dd&quot;</span>, CultureInfo.InvariantCulture)).Append(<span class="hljs-string">&#x27; &#x27;</span>)
+        .Append(ticket.Start.ToString(<span class="hljs-string">&quot;HH:mm&quot;</span>, CultureInfo.InvariantCulture)).Append(<span class="hljs-string">&#x27;\n&#x27;</span>)
+        .Append(<span class="hljs-string">&quot;Miejsca: &quot;</span>).Append(<span class="hljs-built_in">string</span>.Join(<span class="hljs-string">&quot;, &quot;</span>, ticket.Seats)).Append(<span class="hljs-string">&#x27;\n&#x27;</span>)
+        .Append(<span class="hljs-string">&quot;Klient: &quot;</span>).Append(ticket.Email.Trim()).Append(<span class="hljs-string">&#x27;\n&#x27;</span>)
+        .Append(PhoneLine(ticket)).Append(<span class="hljs-string">&#x27;\n&#x27;</span>)
+        .Append(<span class="hljs-string">&quot;Do zaplaty: &quot;</span>).Append(ticket.Total.ToString(<span class="hljs-string">&quot;F2&quot;</span>, CultureInfo.InvariantCulture))
+        .Append(<span class="hljs-string">&#x27;\n&#x27;</span>)
+        .ToString();
+}
+
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-built_in">string</span> <span class="hljs-title">PhoneLine</span>(<span class="hljs-params">Ticket ticket</span>)</span>
+{
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;Tel: &quot;</span> + (ticket.Phone ?? <span class="hljs-string">&quot;-&quot;</span>);
+}
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony.
 <strong>Co powiedzieć:</strong> tylko dotykana metoda, bez zmiany kontraktu, diff do przejrzenia w minutę. Nowa linia &quot;Sala&quot; to osobny commit (patrz s06).
@@ -768,28 +1238,80 @@ s = s + <span class="hljs-string">&quot;Klient: &quot;</span> + t.Email.Trim() +
 <li>Kwoty przechodzą z <code>decimal</code> na <code>Money</code> (<code>Money.Of(&quot;40.00&quot;)</code>, <code>price.Minus(...)</code>, <code>price.Plus(...)</code>); zmienna <code>q</code> zmienia nazwę na <code>query</code>, a <code>p</code> i <code>d</code> zastępują nazwane <code>@base</code> i <code>price</code>.</li>
 </ol>
 <p><strong>Przed:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-built_in">decimal</span> d;
-<span class="hljs-keyword">if</span> (q.Type.Equals(<span class="hljs-string">&quot;STUDENT&quot;</span>))
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> Money <span class="hljs-title">Price</span>(<span class="hljs-params">TicketQuery q</span>)</span>
 {
-    d = p * <span class="hljs-number">0.25m</span>;
+    <span class="hljs-built_in">decimal</span> p;
+    <span class="hljs-keyword">if</span> (q.Format.Equals(<span class="hljs-string">&quot;IMAX&quot;</span>))
+    {
+        p = <span class="hljs-number">40.00m</span>;
+    }
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (q.Format.Equals(<span class="hljs-string">&quot;3D&quot;</span>))
+    {
+        p = <span class="hljs-number">32.00m</span>;
+    }
+    <span class="hljs-keyword">else</span>
+    {
+        p = <span class="hljs-number">25.00m</span>;
+    }
+    <span class="hljs-built_in">decimal</span> d;
+    <span class="hljs-keyword">if</span> (q.Type.Equals(<span class="hljs-string">&quot;STUDENT&quot;</span>))
+    {
+        d = p * <span class="hljs-number">0.25m</span>;
+    }
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (q.Type.Equals(<span class="hljs-string">&quot;SENIOR&quot;</span>))
+    {
+        d = p * <span class="hljs-number">0.30m</span>;
+    }
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (q.Type.Equals(<span class="hljs-string">&quot;CHILD&quot;</span>))
+    {
+        d = p * <span class="hljs-number">0.40m</span>;
+    }
+    <span class="hljs-keyword">else</span>
+    {
+        d = <span class="hljs-number">0m</span>;
+    }
+    p = p - d;
+    <span class="hljs-keyword">if</span> (q.Start.Hour &lt; <span class="hljs-number">12</span>)
+    {
+        p = p - <span class="hljs-number">5.00m</span>;
+    }
+    <span class="hljs-keyword">if</span> (q.Row &gt;= <span class="hljs-number">10</span>)
+    {
+        p = p + <span class="hljs-number">10.00m</span>;
+    }
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Money(p);
 }
-<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (q.Type.Equals(<span class="hljs-string">&quot;SENIOR&quot;</span>))
-{
-    d = p * <span class="hljs-number">0.30m</span>;
-}
-<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (q.Type.Equals(<span class="hljs-string">&quot;CHILD&quot;</span>))
-{
-    d = p * <span class="hljs-number">0.40m</span>;
-}
-<span class="hljs-keyword">else</span>
-{
-    d = <span class="hljs-number">0m</span>;
-}
-p = p - d;
 </code></pre>
 <p><strong>Po:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs">Money @base = BasePrice(query.Format);
-Money price = @base.Minus(@base.Percent(DiscountPercent(query.Type)));
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> Money <span class="hljs-title">Price</span>(<span class="hljs-params">TicketQuery query</span>)</span>
+{
+    Money @base = BasePrice(query.Format);
+    Money price = @base.Minus(@base.Percent(DiscountPercent(query.Type)));
+    <span class="hljs-keyword">if</span> (query.Start.Hour &lt; <span class="hljs-number">12</span>)
+    {
+        price = price.Minus(Money.Of(<span class="hljs-string">&quot;5.00&quot;</span>));
+    }
+    <span class="hljs-keyword">if</span> (query.Row &gt;= <span class="hljs-number">10</span>)
+    {
+        price = price.Plus(Money.Of(<span class="hljs-string">&quot;10.00&quot;</span>));
+    }
+    <span class="hljs-keyword">return</span> price;
+}
+
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> Money <span class="hljs-title">BasePrice</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> format</span>)</span> =&gt; format <span class="hljs-keyword">switch</span>
+{
+    <span class="hljs-string">&quot;IMAX&quot;</span> =&gt; Money.Of(<span class="hljs-string">&quot;40.00&quot;</span>),
+    <span class="hljs-string">&quot;3D&quot;</span> =&gt; Money.Of(<span class="hljs-string">&quot;32.00&quot;</span>),
+    _ =&gt; Money.Of(<span class="hljs-string">&quot;25.00&quot;</span>),
+};
+
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-built_in">int</span> <span class="hljs-title">DiscountPercent</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> type</span>)</span> =&gt; type <span class="hljs-keyword">switch</span>
+{
+    <span class="hljs-string">&quot;STUDENT&quot;</span> =&gt; <span class="hljs-number">25</span>,
+    <span class="hljs-string">&quot;SENIOR&quot;</span> =&gt; <span class="hljs-number">30</span>,
+    <span class="hljs-string">&quot;CHILD&quot;</span> =&gt; <span class="hljs-number">40</span>,
+    _ =&gt; <span class="hljs-number">0</span>,
+};
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony - równoważność na przypadkach, w tym wtorkowych.
 <strong>Co powiedzieć:</strong> opis commita: &quot;refaktoryzacja, bez zmiany zachowania, dowód: S06EquivalenceTest&quot;. Recenzent sprawdza tylko mechanikę.
@@ -810,9 +1332,14 @@ Money price = @base.Minus(@base.Percent(DiscountPercent(query.Type)));
 };
 </code></pre>
 <p><strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs">Money price = @base.Minus(@base.Percent(DiscountPercent(query)));
+</code></pre>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-built_in">int</span> <span class="hljs-title">DiscountPercent</span>(<span class="hljs-params">TicketQuery query</span>)</span> =&gt; query.Type <span class="hljs-keyword">switch</span>
 {
-    ...
+    <span class="hljs-string">&quot;STUDENT&quot;</span> =&gt; <span class="hljs-number">25</span>,
+    <span class="hljs-string">&quot;SENIOR&quot;</span> =&gt; <span class="hljs-number">30</span>,
+    <span class="hljs-string">&quot;CHILD&quot;</span> =&gt; <span class="hljs-number">40</span>,
+    _ =&gt; <span class="hljs-number">0</span>,
 };
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony.
@@ -834,7 +1361,20 @@ Money price = @base.Minus(@base.Percent(DiscountPercent(query.Type)));
 };
 </code></pre>
 <p><strong>Po:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs">_ =&gt; IsCheapTuesday(query) ? CheapTuesdayPercent : <span class="hljs-number">0</span>,
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">const</span> <span class="hljs-built_in">int</span> CheapTuesdayPercent = <span class="hljs-number">20</span>;
+
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-built_in">int</span> <span class="hljs-title">DiscountPercent</span>(<span class="hljs-params">TicketQuery query</span>)</span> =&gt; query.Type <span class="hljs-keyword">switch</span>
+{
+    <span class="hljs-string">&quot;STUDENT&quot;</span> =&gt; <span class="hljs-number">25</span>,
+    <span class="hljs-string">&quot;SENIOR&quot;</span> =&gt; <span class="hljs-number">30</span>,
+    <span class="hljs-string">&quot;CHILD&quot;</span> =&gt; <span class="hljs-number">40</span>,
+    _ =&gt; IsCheapTuesday(query) ? CheapTuesdayPercent : <span class="hljs-number">0</span>,
+};
+
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-built_in">bool</span> <span class="hljs-title">IsCheapTuesday</span>(<span class="hljs-params">TicketQuery query</span>)</span>
+{
+    <span class="hljs-keyword">return</span> query.Start.DayOfWeek == DayOfWeek.Tuesday;
+}
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony; <code>S06SolutionTest.CheapTuesdayGivesNormalTicketTwentyPercentOff</code> (2D wtorek 20.00) i <code>BehaviourChangeIsLimitedToNormalTicketsOnTuesday</code> - na siatce 336 przypadków zmieniło się dokładnie 12, wszystkie NORMAL we wtorek.
 <strong>Co powiedzieć:</strong> diff to kilka linii. Test różnicowy commitu 2 kontra 3 mówi recenzentowi dokładnie, gdzie zmieniło się zachowanie.
@@ -887,18 +1427,91 @@ byTitle[sale.Title] = byTitle.GetValueOrDefault(sale.Title) + Revenue(sale); <sp
         tickets += sale.TicketRevenue;
         bar += sale.BarRevenue;
     }
-    ...
+    @out.Append(<span class="hljs-string">&quot;KSIEGOWOSC\n&quot;</span>);
+    @out.Append(CultureInfo.InvariantCulture, <span class="hljs-string">$&quot;Bilety brutto <span class="hljs-subst">{tickets:<span class="hljs-number">0.00</span>}</span>, netto <span class="hljs-subst">{Net(tickets, <span class="hljs-number">8</span>):<span class="hljs-number">0.00</span>}</span>\n&quot;</span>);
+    @out.Append(CultureInfo.InvariantCulture, <span class="hljs-string">$&quot;Bar brutto <span class="hljs-subst">{bar:<span class="hljs-number">0.00</span>}</span>, netto <span class="hljs-subst">{Net(bar, <span class="hljs-number">23</span>):<span class="hljs-number">0.00</span>}</span>\n&quot;</span>);
+    <span class="hljs-keyword">var</span> total = <span class="hljs-number">0.00m</span>;
+    <span class="hljs-keyword">foreach</span> (<span class="hljs-keyword">var</span> sale <span class="hljs-keyword">in</span> sales)
+    {
+        total += Revenue(sale);
+    }
+    @out.Append(CultureInfo.InvariantCulture, <span class="hljs-string">$&quot;Razem brutto <span class="hljs-subst">{total:<span class="hljs-number">0.00</span>}</span>\n&quot;</span>);
     <span class="hljs-comment">// marketing</span>
     @out.Append(<span class="hljs-string">&quot;MARKETING\n&quot;</span>);
     <span class="hljs-keyword">var</span> byTitle = <span class="hljs-keyword">new</span> SortedDictionary&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">decimal</span>&gt;(StringComparer.Ordinal);
-    ...
+    <span class="hljs-keyword">var</span> sold = <span class="hljs-number">0</span>;
+    <span class="hljs-keyword">foreach</span> (<span class="hljs-keyword">var</span> sale <span class="hljs-keyword">in</span> sales)
+    {
+        byTitle[sale.Title] = byTitle.GetValueOrDefault(sale.Title) + Revenue(sale);
+        sold += sale.Tickets;
+    }
+    <span class="hljs-keyword">var</span> hit = <span class="hljs-string">&quot;brak&quot;</span>;
+    <span class="hljs-keyword">var</span> best = <span class="hljs-number">0m</span>;
+    <span class="hljs-keyword">foreach</span> (<span class="hljs-keyword">var</span> (title, amount) <span class="hljs-keyword">in</span> byTitle)
+    {
+        <span class="hljs-keyword">if</span> (amount &gt; best)
+        {
+            hit = <span class="hljs-built_in">string</span>.Create(CultureInfo.InvariantCulture, <span class="hljs-string">$&quot;<span class="hljs-subst">{title}</span> (<span class="hljs-subst">{amount:<span class="hljs-number">0.00</span>}</span>)&quot;</span>);
+            best = amount;
+        }
+    }
+    @out.Append(<span class="hljs-string">&quot;Hit dnia: &quot;</span>).Append(hit).Append(<span class="hljs-string">&#x27;\n&#x27;</span>);
+    @out.Append(<span class="hljs-string">&quot;Sprzedanych biletow: &quot;</span>).Append(sold).Append(<span class="hljs-string">&#x27;\n&#x27;</span>);
     <span class="hljs-keyword">return</span> @out.ToString();
 }
 </code></pre>
-<p><strong>Po:</strong></p>
+<p><strong>Po:</strong> (helpery <code>Revenue</code> i <code>Net</code> zostają bez zmian)</p>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Render</span>(<span class="hljs-params">IReadOnlyList&lt;Sale&gt; sales</span>)</span>
 {
     <span class="hljs-keyword">return</span> AccountingSection(sales) + MarketingSection(sales);
+}
+
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-built_in">string</span> <span class="hljs-title">AccountingSection</span>(<span class="hljs-params">IReadOnlyList&lt;Sale&gt; sales</span>)</span>
+{
+    <span class="hljs-keyword">var</span> @out = <span class="hljs-keyword">new</span> StringBuilder();
+    <span class="hljs-keyword">var</span> tickets = <span class="hljs-number">0.00m</span>;
+    <span class="hljs-keyword">var</span> bar = <span class="hljs-number">0.00m</span>;
+    <span class="hljs-keyword">foreach</span> (<span class="hljs-keyword">var</span> sale <span class="hljs-keyword">in</span> sales)
+    {
+        tickets += sale.TicketRevenue;
+        bar += sale.BarRevenue;
+    }
+    @out.Append(<span class="hljs-string">&quot;KSIEGOWOSC\n&quot;</span>);
+    @out.Append(CultureInfo.InvariantCulture, <span class="hljs-string">$&quot;Bilety brutto <span class="hljs-subst">{tickets:<span class="hljs-number">0.00</span>}</span>, netto <span class="hljs-subst">{Net(tickets, <span class="hljs-number">8</span>):<span class="hljs-number">0.00</span>}</span>\n&quot;</span>);
+    @out.Append(CultureInfo.InvariantCulture, <span class="hljs-string">$&quot;Bar brutto <span class="hljs-subst">{bar:<span class="hljs-number">0.00</span>}</span>, netto <span class="hljs-subst">{Net(bar, <span class="hljs-number">23</span>):<span class="hljs-number">0.00</span>}</span>\n&quot;</span>);
+    <span class="hljs-keyword">var</span> total = <span class="hljs-number">0.00m</span>;
+    <span class="hljs-keyword">foreach</span> (<span class="hljs-keyword">var</span> sale <span class="hljs-keyword">in</span> sales)
+    {
+        total += Revenue(sale);
+    }
+    @out.Append(CultureInfo.InvariantCulture, <span class="hljs-string">$&quot;Razem brutto <span class="hljs-subst">{total:<span class="hljs-number">0.00</span>}</span>\n&quot;</span>);
+    <span class="hljs-keyword">return</span> @out.ToString();
+}
+
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-built_in">string</span> <span class="hljs-title">MarketingSection</span>(<span class="hljs-params">IReadOnlyList&lt;Sale&gt; sales</span>)</span>
+{
+    <span class="hljs-keyword">var</span> @out = <span class="hljs-keyword">new</span> StringBuilder();
+    @out.Append(<span class="hljs-string">&quot;MARKETING\n&quot;</span>);
+    <span class="hljs-keyword">var</span> byTitle = <span class="hljs-keyword">new</span> SortedDictionary&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">decimal</span>&gt;(StringComparer.Ordinal);
+    <span class="hljs-keyword">var</span> sold = <span class="hljs-number">0</span>;
+    <span class="hljs-keyword">foreach</span> (<span class="hljs-keyword">var</span> sale <span class="hljs-keyword">in</span> sales)
+    {
+        byTitle[sale.Title] = byTitle.GetValueOrDefault(sale.Title) + Revenue(sale);
+        sold += sale.Tickets;
+    }
+    <span class="hljs-keyword">var</span> hit = <span class="hljs-string">&quot;brak&quot;</span>;
+    <span class="hljs-keyword">var</span> best = <span class="hljs-number">0m</span>;
+    <span class="hljs-keyword">foreach</span> (<span class="hljs-keyword">var</span> (title, amount) <span class="hljs-keyword">in</span> byTitle)
+    {
+        <span class="hljs-keyword">if</span> (amount &gt; best)
+        {
+            hit = <span class="hljs-built_in">string</span>.Create(CultureInfo.InvariantCulture, <span class="hljs-string">$&quot;<span class="hljs-subst">{title}</span> (<span class="hljs-subst">{amount:<span class="hljs-number">0.00</span>}</span>)&quot;</span>);
+            best = amount;
+        }
+    }
+    @out.Append(<span class="hljs-string">&quot;Hit dnia: &quot;</span>).Append(hit).Append(<span class="hljs-string">&#x27;\n&#x27;</span>);
+    @out.Append(<span class="hljs-string">&quot;Sprzedanych biletow: &quot;</span>).Append(sold).Append(<span class="hljs-string">&#x27;\n&#x27;</span>);
+    <span class="hljs-keyword">return</span> @out.ToString();
 }
 </code></pre>
 <p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m2/<wbr>s07</code> - 12 testów zielonych (w tym remis tytułów i dzień bez sprzedaży).
@@ -920,6 +1533,8 @@ byTitle[sale.Title] = byTitle.GetValueOrDefault(sale.Title) + Revenue(sale); <sp
 }
 </code></pre>
 <p><strong>Po:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs">byTitle[sale.Title] = byTitle.GetValueOrDefault(sale.Title) + Popularity(sale);
+</code></pre>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span>Księgowość: przychód brutto seansu.<span class="hljs-doctag">&lt;/summary&gt;</span></span>
 <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-built_in">decimal</span> <span class="hljs-title">Revenue</span>(<span class="hljs-params">Sale sale</span>)</span>
 {
@@ -940,9 +1555,9 @@ byTitle[sale.Title] = byTitle.GetValueOrDefault(sale.Title) + Revenue(sale); <sp
 <ol>
 <li>Nowy plik <code>AccountingSection.cs</code>: klasa <code>internal sealed AccountingSection</code> przejmuje metodę sekcji księgowości (pod nazwą <code>Render</code>) oraz helpery <code>Revenue</code> i <code>Net</code> (Extract Class).</li>
 <li>Nowy plik <code>MarketingSection.cs</code>: klasa <code>internal sealed MarketingSection</code> przejmuje sekcję marketingu (też jako <code>Render</code>) i helper <code>Popularity</code>.</li>
-<li><code>DailyReport</code> zostaje z polami <code>_accounting</code> i <code>_marketing</code> i tylko skleja wyniki obu <code>Render</code>; przeniesione metody znikają z <code>DailyReport</code>.</li>
+<li><code>DailyReport</code> zostaje z polami <code>_accounting</code> i <code>_marketing</code> i tylko skleja wyniki obu <code>Render</code>; przeniesione metody znikają z <code>DailyReport</code> razem z dyrektywami <code>using System.Globalization</code> i <code>using System.Text</code>.</li>
 </ol>
-<p><strong>Przed:</strong></p>
+<p><strong>Przed (<code>DailyReport.cs</code>):</strong> (ciała metod jak w kroku 2)</p>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">DailyReport</span>
 {
     <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Render</span>(<span class="hljs-params">IReadOnlyList&lt;Sale&gt; sales</span>)</span>
@@ -950,19 +1565,18 @@ byTitle[sale.Title] = byTitle.GetValueOrDefault(sale.Title) + Revenue(sale); <sp
         <span class="hljs-keyword">return</span> AccountingSection(sales) + MarketingSection(sales);
     }
 
-    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-built_in">string</span> <span class="hljs-title">AccountingSection</span>(<span class="hljs-params">IReadOnlyList&lt;Sale&gt; sales</span>)</span>
-    {
-        ...
-    }
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-built_in">string</span> <span class="hljs-title">AccountingSection</span>(<span class="hljs-params">IReadOnlyList&lt;Sale&gt; sales</span>)</span> { ... }
 
-    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-built_in">string</span> <span class="hljs-title">MarketingSection</span>(<span class="hljs-params">IReadOnlyList&lt;Sale&gt; sales</span>)</span>
-    {
-        ...
-    }
-    ...
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-built_in">string</span> <span class="hljs-title">MarketingSection</span>(<span class="hljs-params">IReadOnlyList&lt;Sale&gt; sales</span>)</span> { ... }
+
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-built_in">decimal</span> <span class="hljs-title">Revenue</span>(<span class="hljs-params">Sale sale</span>)</span> { ... }
+
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-built_in">decimal</span> <span class="hljs-title">Popularity</span>(<span class="hljs-params">Sale sale</span>)</span> { ... }
+
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-built_in">decimal</span> <span class="hljs-title">Net</span>(<span class="hljs-params"><span class="hljs-built_in">decimal</span> gross, <span class="hljs-built_in">int</span> vatPercent</span>)</span> { ... }
 }
 </code></pre>
-<p><strong>Po:</strong></p>
+<p><strong>Po (<code>DailyReport.cs</code>):</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">DailyReport</span>
 {
     <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> AccountingSection _accounting = <span class="hljs-keyword">new</span>();
@@ -971,6 +1585,85 @@ byTitle[sale.Title] = byTitle.GetValueOrDefault(sale.Title) + Revenue(sale); <sp
     <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Render</span>(<span class="hljs-params">IReadOnlyList&lt;Sale&gt; sales</span>)</span>
     {
         <span class="hljs-keyword">return</span> _accounting.Render(sales) + _marketing.Render(sales);
+    }
+}
+</code></pre>
+<p><strong>Po (<code>AccountingSection.cs</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">using</span> System.Globalization;
+<span class="hljs-keyword">using</span> System.Text;
+
+<span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span>Aktor - księgowość. Zmienia się, gdy zmieniają się stawki VAT lub wymogi sprawozdań.<span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-keyword">internal</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">AccountingSection</span>
+{
+    <span class="hljs-function"><span class="hljs-keyword">internal</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Render</span>(<span class="hljs-params">IReadOnlyList&lt;Sale&gt; sales</span>)</span>
+    {
+        <span class="hljs-keyword">var</span> @out = <span class="hljs-keyword">new</span> StringBuilder();
+        <span class="hljs-keyword">var</span> tickets = <span class="hljs-number">0.00m</span>;
+        <span class="hljs-keyword">var</span> bar = <span class="hljs-number">0.00m</span>;
+        <span class="hljs-keyword">foreach</span> (<span class="hljs-keyword">var</span> sale <span class="hljs-keyword">in</span> sales)
+        {
+            tickets += sale.TicketRevenue;
+            bar += sale.BarRevenue;
+        }
+        @out.Append(<span class="hljs-string">&quot;KSIEGOWOSC\n&quot;</span>);
+        @out.Append(CultureInfo.InvariantCulture, <span class="hljs-string">$&quot;Bilety brutto <span class="hljs-subst">{tickets:<span class="hljs-number">0.00</span>}</span>, netto <span class="hljs-subst">{Net(tickets, <span class="hljs-number">8</span>):<span class="hljs-number">0.00</span>}</span>\n&quot;</span>);
+        @out.Append(CultureInfo.InvariantCulture, <span class="hljs-string">$&quot;Bar brutto <span class="hljs-subst">{bar:<span class="hljs-number">0.00</span>}</span>, netto <span class="hljs-subst">{Net(bar, <span class="hljs-number">23</span>):<span class="hljs-number">0.00</span>}</span>\n&quot;</span>);
+        <span class="hljs-keyword">var</span> total = <span class="hljs-number">0.00m</span>;
+        <span class="hljs-keyword">foreach</span> (<span class="hljs-keyword">var</span> sale <span class="hljs-keyword">in</span> sales)
+        {
+            total += Revenue(sale);
+        }
+        @out.Append(CultureInfo.InvariantCulture, <span class="hljs-string">$&quot;Razem brutto <span class="hljs-subst">{total:<span class="hljs-number">0.00</span>}</span>\n&quot;</span>);
+        <span class="hljs-keyword">return</span> @out.ToString();
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-built_in">decimal</span> <span class="hljs-title">Revenue</span>(<span class="hljs-params">Sale sale</span>)</span>
+    {
+        <span class="hljs-keyword">return</span> sale.TicketRevenue + sale.BarRevenue;
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-built_in">decimal</span> <span class="hljs-title">Net</span>(<span class="hljs-params"><span class="hljs-built_in">decimal</span> gross, <span class="hljs-built_in">int</span> vatPercent</span>)</span>
+    {
+        <span class="hljs-keyword">return</span> Math.Round(gross * <span class="hljs-number">100</span> / (<span class="hljs-number">100</span> + vatPercent), <span class="hljs-number">2</span>, MidpointRounding.AwayFromZero);
+    }
+}
+</code></pre>
+<p><strong>Po (<code>MarketingSection.cs</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">using</span> System.Globalization;
+<span class="hljs-keyword">using</span> System.Text;
+
+<span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span>Aktor - marketing. Zmienia się, gdy marketing zmienia definicję &quot;hitu&quot;.<span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-keyword">internal</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">MarketingSection</span>
+{
+    <span class="hljs-function"><span class="hljs-keyword">internal</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Render</span>(<span class="hljs-params">IReadOnlyList&lt;Sale&gt; sales</span>)</span>
+    {
+        <span class="hljs-keyword">var</span> @out = <span class="hljs-keyword">new</span> StringBuilder();
+        @out.Append(<span class="hljs-string">&quot;MARKETING\n&quot;</span>);
+        <span class="hljs-keyword">var</span> byTitle = <span class="hljs-keyword">new</span> SortedDictionary&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">decimal</span>&gt;(StringComparer.Ordinal);
+        <span class="hljs-keyword">var</span> sold = <span class="hljs-number">0</span>;
+        <span class="hljs-keyword">foreach</span> (<span class="hljs-keyword">var</span> sale <span class="hljs-keyword">in</span> sales)
+        {
+            byTitle[sale.Title] = byTitle.GetValueOrDefault(sale.Title) + Popularity(sale);
+            sold += sale.Tickets;
+        }
+        <span class="hljs-keyword">var</span> hit = <span class="hljs-string">&quot;brak&quot;</span>;
+        <span class="hljs-keyword">var</span> best = <span class="hljs-number">0m</span>;
+        <span class="hljs-keyword">foreach</span> (<span class="hljs-keyword">var</span> (title, amount) <span class="hljs-keyword">in</span> byTitle)
+        {
+            <span class="hljs-keyword">if</span> (amount &gt; best)
+            {
+                hit = <span class="hljs-built_in">string</span>.Create(CultureInfo.InvariantCulture, <span class="hljs-string">$&quot;<span class="hljs-subst">{title}</span> (<span class="hljs-subst">{amount:<span class="hljs-number">0.00</span>}</span>)&quot;</span>);
+                best = amount;
+            }
+        }
+        @out.Append(<span class="hljs-string">&quot;Hit dnia: &quot;</span>).Append(hit).Append(<span class="hljs-string">&#x27;\n&#x27;</span>);
+        @out.Append(<span class="hljs-string">&quot;Sprzedanych biletow: &quot;</span>).Append(sold).Append(<span class="hljs-string">&#x27;\n&#x27;</span>);
+        <span class="hljs-keyword">return</span> @out.ToString();
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-built_in">decimal</span> <span class="hljs-title">Popularity</span>(<span class="hljs-params">Sale sale</span>)</span>
+    {
+        <span class="hljs-keyword">return</span> sale.TicketRevenue + sale.BarRevenue;
     }
 }
 </code></pre>
@@ -1012,7 +1705,7 @@ byTitle[sale.Title] = byTitle.GetValueOrDefault(sale.Title) + Revenue(sale); <sp
 <li>W <code>ConfirmReservation</code> znika inicjalizator pola <code>_mail</code>; powstaje konstruktor <code>ConfirmReservation(SmtpMailSender mail)</code>, który przypisuje parametr do pola (Introduce Parameter).</li>
 <li>Tworzenie <code>new SmtpMailSender(&quot;smtp.kino.pl&quot;, 25)</code> przenosi się do composition root: <code>Main.ConfirmReservation()</code> woła teraz <code>new ConfirmReservation(new SmtpMailSender(&quot;smtp.kino.pl&quot;, 25))</code>, a <code>Main</code> dostaje <code>using ...Infra</code>.</li>
 </ol>
-<p><strong>Przed:</strong></p>
+<p><strong>Przed (<code>App/<wbr>ConfirmReservation.cs</code>):</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">ConfirmReservation</span>
 {
     <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> SmtpMailSender _mail = <span class="hljs-keyword">new</span>(<span class="hljs-string">&quot;smtp.kino.pl&quot;</span>, <span class="hljs-number">25</span>);
@@ -1021,10 +1714,24 @@ byTitle[sale.Title] = byTitle.GetValueOrDefault(sale.Title) + Revenue(sale); <sp
     {
         ...
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ConfirmReservation</span>(<span class="hljs-params">SmtpMailSender mail</span>)</span>
+<p><strong>Po (<code>App/<wbr>ConfirmReservation.cs</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> SmtpMailSender _mail;
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ConfirmReservation</span>(<span class="hljs-params">SmtpMailSender mail</span>)</span>
 {
     _mail = mail;
+}
+</code></pre>
+<p><strong>Przed (<code>Main.cs</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ConfirmReservation <span class="hljs-title">ConfirmReservation</span>()</span>
+{
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> ConfirmReservation();
+}
+</code></pre>
+<p><strong>Po (<code>Main.cs</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ConfirmReservation <span class="hljs-title">ConfirmReservation</span>()</span>
+{
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> ConfirmReservation(<span class="hljs-keyword">new</span> SmtpMailSender(<span class="hljs-string">&quot;smtp.kino.pl&quot;</span>, <span class="hljs-number">25</span>));
 }
 </code></pre>
 <p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m2/<wbr>s08</code> - 18 testów zielonych.
@@ -1037,17 +1744,47 @@ byTitle[sale.Title] = byTitle.GetValueOrDefault(sale.Title) + Revenue(sale); <sp
 <li><code>Confirm</code> woła <code>NotifyCustomer(reservation.Email, message)</code> i zwraca odpowiedź.</li>
 </ol>
 <p><strong>Przed:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">var</span> mime = <span class="hljs-string">&quot;To: &quot;</span> + reservation.Email + <span class="hljs-string">&quot;\r\nSubject: Rezerwacja\r\n\r\n&quot;</span> + message;
-<span class="hljs-keyword">var</span> reply = _mail.Send(reservation.Email, mime);
-<span class="hljs-keyword">if</span> (!reply.StartsWith(<span class="hljs-string">&quot;250&quot;</span>, StringComparison.Ordinal))
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Confirm</span>(<span class="hljs-params">Reservation reservation</span>)</span>
 {
-    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> InvalidOperationException(<span class="hljs-string">&quot;SMTP odrzucil: &quot;</span> + reply);
+    <span class="hljs-keyword">if</span> (reservation.Seats &lt; <span class="hljs-number">1</span>)
+    {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> ArgumentException(<span class="hljs-string">&quot;rezerwacja bez miejsc&quot;</span>);
+    }
+    <span class="hljs-keyword">var</span> message = <span class="hljs-string">&quot;Rezerwacja: &quot;</span> + reservation.Title + <span class="hljs-string">&quot;, &quot;</span>
+        + reservation.Start.ToString(<span class="hljs-string">&quot;yyyy-MM-dd&#x27;T&#x27;HH:mm&quot;</span>, CultureInfo.InvariantCulture)
+        + <span class="hljs-string">&quot;, miejsc: &quot;</span> + reservation.Seats + <span class="hljs-string">&quot;. Zaplac w ciagu 15 minut.&quot;</span>;
+    <span class="hljs-keyword">var</span> mime = <span class="hljs-string">&quot;To: &quot;</span> + reservation.Email + <span class="hljs-string">&quot;\r\nSubject: Rezerwacja\r\n\r\n&quot;</span> + message;
+    <span class="hljs-keyword">var</span> reply = _mail.Send(reservation.Email, mime);
+    <span class="hljs-keyword">if</span> (!reply.StartsWith(<span class="hljs-string">&quot;250&quot;</span>, StringComparison.Ordinal))
+    {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> InvalidOperationException(<span class="hljs-string">&quot;SMTP odrzucil: &quot;</span> + reply);
+    }
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;potwierdzono: &quot;</span> + reservation.Email;
 }
-<span class="hljs-keyword">return</span> <span class="hljs-string">&quot;potwierdzono: &quot;</span> + reservation.Email;
 </code></pre>
 <p><strong>Po:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs">NotifyCustomer(reservation.Email, message);
-<span class="hljs-keyword">return</span> <span class="hljs-string">&quot;potwierdzono: &quot;</span> + reservation.Email;
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Confirm</span>(<span class="hljs-params">Reservation reservation</span>)</span>
+{
+    <span class="hljs-keyword">if</span> (reservation.Seats &lt; <span class="hljs-number">1</span>)
+    {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> ArgumentException(<span class="hljs-string">&quot;rezerwacja bez miejsc&quot;</span>);
+    }
+    <span class="hljs-keyword">var</span> message = <span class="hljs-string">&quot;Rezerwacja: &quot;</span> + reservation.Title + <span class="hljs-string">&quot;, &quot;</span>
+        + reservation.Start.ToString(<span class="hljs-string">&quot;yyyy-MM-dd&#x27;T&#x27;HH:mm&quot;</span>, CultureInfo.InvariantCulture)
+        + <span class="hljs-string">&quot;, miejsc: &quot;</span> + reservation.Seats + <span class="hljs-string">&quot;. Zaplac w ciagu 15 minut.&quot;</span>;
+    NotifyCustomer(reservation.Email, message);
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;potwierdzono: &quot;</span> + reservation.Email;
+}
+
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">NotifyCustomer</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> email, <span class="hljs-built_in">string</span> message</span>)</span>
+{
+    <span class="hljs-keyword">var</span> mime = <span class="hljs-string">&quot;To: &quot;</span> + email + <span class="hljs-string">&quot;\r\nSubject: Rezerwacja\r\n\r\n&quot;</span> + message;
+    <span class="hljs-keyword">var</span> reply = _mail.Send(email, mime);
+    <span class="hljs-keyword">if</span> (!reply.StartsWith(<span class="hljs-string">&quot;250&quot;</span>, StringComparison.Ordinal))
+    {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> InvalidOperationException(<span class="hljs-string">&quot;SMTP odrzucil: &quot;</span> + reply);
+    }
+}
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony.
 <strong>Co powiedzieć:</strong> tak wygląda port, zanim stanie się interfejsem: potrzeba nazwana w języku problemu (&quot;powiadom klienta&quot;), a cała technologia w jednym miejscu. Nie robimy Extract Interface z <code>SmtpMailSender</code> - dostalibyśmy port <code>Send(to, mime)</code>, czyli kształt technologii, nie potrzeby.
@@ -1060,7 +1797,7 @@ byTitle[sale.Title] = byTitle.GetValueOrDefault(sale.Title) + Revenue(sale); <sp
 <li>W <code>ConfirmReservation</code> typ pola i parametru konstruktora zmienia się na <code>ICustomerNotifier</code>, a dyrektywa <code>using ...Infra</code> znika z polityki.</li>
 <li><code>Main</code> składa graf: <code>new ConfirmReservation(new SmtpCustomerNotifier(new SmtpMailSender(&quot;smtp.kino.pl&quot;, 25)))</code>.</li>
 </ol>
-<p><strong>Przed:</strong></p>
+<p><strong>Przed (<code>App/<wbr>ConfirmReservation.cs</code>):</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> SmtpMailSender _mail;
 
 <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ConfirmReservation</span>(<span class="hljs-params">SmtpMailSender mail</span>)</span>
@@ -1078,14 +1815,60 @@ byTitle[sale.Title] = byTitle.GetValueOrDefault(sale.Title) + Revenue(sale); <sp
     }
 }
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title">ICustomerNotifier</span>                         <span class="hljs-comment">// App</span>
+<p><strong>Po (<code>App/<wbr>ICustomerNotifier.cs</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span></span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span> Port wyjściowy należy do polityki i nazywa JEJ potrzebę (&quot;powiadom klienta&quot;),</span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span> a nie możliwości technologii. Niepowodzenie: InvalidOperationException.</span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title">ICustomerNotifier</span>
 {
     <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">NotifyCustomer</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> email, <span class="hljs-built_in">string</span> message</span>)</span>;
 }
+</code></pre>
+<p><strong>Po (<code>Infra/<wbr>SmtpCustomerNotifier.cs</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">using</span> Training.Workshop.M2.S08Dip.Step3.App;
 
-<span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">SmtpCustomerNotifier</span> : <span class="hljs-title">ICustomerNotifier</span>   <span class="hljs-comment">// Infra</span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span>Adapter: implementuje port polityki (using Infra -&gt; App) i tłumaczy go na protokół.<span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">SmtpCustomerNotifier</span> : <span class="hljs-title">ICustomerNotifier</span>
 {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> SmtpMailSender _mail;
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">SmtpCustomerNotifier</span>(<span class="hljs-params">SmtpMailSender mail</span>)</span>
+    {
+        _mail = mail;
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">NotifyCustomer</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> email, <span class="hljs-built_in">string</span> message</span>)</span>
+    {
+        <span class="hljs-keyword">var</span> mime = <span class="hljs-string">&quot;To: &quot;</span> + email + <span class="hljs-string">&quot;\r\nSubject: Rezerwacja\r\n\r\n&quot;</span> + message;
+        <span class="hljs-keyword">var</span> reply = _mail.Send(email, mime);
+        <span class="hljs-keyword">if</span> (!reply.StartsWith(<span class="hljs-string">&quot;250&quot;</span>, StringComparison.Ordinal))
+        {
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> InvalidOperationException(<span class="hljs-string">&quot;SMTP odrzucil: &quot;</span> + reply);
+        }
+    }
+}
+</code></pre>
+<p><strong>Po (<code>App/<wbr>ConfirmReservation.cs</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> ICustomerNotifier _notifier;
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ConfirmReservation</span>(<span class="hljs-params">ICustomerNotifier notifier</span>)</span>
+{
+    _notifier = notifier;
+}
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Confirm</span>(<span class="hljs-params">Reservation reservation</span>)</span>
+{
+    <span class="hljs-keyword">if</span> (reservation.Seats &lt; <span class="hljs-number">1</span>)
+    {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> ArgumentException(<span class="hljs-string">&quot;rezerwacja bez miejsc&quot;</span>);
+    }
+    <span class="hljs-keyword">var</span> message = <span class="hljs-string">&quot;Rezerwacja: &quot;</span> + reservation.Title + <span class="hljs-string">&quot;, &quot;</span>
+        + reservation.Start.ToString(<span class="hljs-string">&quot;yyyy-MM-dd&#x27;T&#x27;HH:mm&quot;</span>, CultureInfo.InvariantCulture)
+        + <span class="hljs-string">&quot;, miejsc: &quot;</span> + reservation.Seats + <span class="hljs-string">&quot;. Zaplac w ciagu 15 minut.&quot;</span>;
+    _notifier.NotifyCustomer(reservation.Email, message);
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;potwierdzono: &quot;</span> + reservation.Email;
+}
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony; <code>StepsSendTheSameMimeMessage</code> potwierdza identyczny MIME, <code>Step3PolicyDependsOnlyOnItsOwnPort</code> - że polityka nie ma już pól z <code>Infra</code>, a <code>Step3PolicyIsTestableWithAHandWrittenFake</code> testuje politykę ręcznym fake'iem.
 <strong>Co powiedzieć:</strong> sterowanie nadal płynie <code>App -&gt; Infra</code> (<code>Confirm</code> woła notifier), ale zależność źródłowa odwróciła się: <code>Infra -&gt; App</code>. To jest DIP.
@@ -1131,34 +1914,235 @@ _outbox.Publish(<span class="hljs-string">&quot;reservation-created&quot;</span>
 <li>Nowy plik <code>BookSeats.cs</code>: klasa przejmuje z kontrolera wycenę (prywatna metoda <code>Price</code>), zapis i publikację (Extract Method + Extract Class); publiczna metoda <code>Execute(BookSeatsCommand)</code> zwraca <code>Booking</code>, a przy braku miejsc rzuca <code>ArgumentException</code>.</li>
 <li><code>ReservationController</code> trzyma pole <code>_bookSeats</code> (tworzy je w konstruktorze z <code>db</code> i <code>outbox</code>), tłumaczy parametry na <code>BookSeatsCommand</code> i mapuje wyjątki: <code>ArgumentException</code> -&gt; 400, <code>InvalidOperationException</code> -&gt; 503.</li>
 </ol>
-<p><strong>Przed:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">var</span> @base = format <span class="hljs-keyword">switch</span>
+<p><strong>Po (<code>BookSeatsCommand.cs</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span>Dane wejściowe przypadku użycia - prosty rekord, bez słownika z HTTP.<span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">record</span> <span class="hljs-title">BookSeatsCommand</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> Email, <span class="hljs-built_in">string</span> Format, IReadOnlyList&lt;<span class="hljs-built_in">int</span>&gt; Rows</span>)</span>
 {
-    <span class="hljs-string">&quot;IMAX&quot;</span> =&gt; <span class="hljs-number">40.00m</span>,
-    <span class="hljs-string">&quot;3D&quot;</span> =&gt; <span class="hljs-number">32.00m</span>,
-    _ =&gt; <span class="hljs-number">25.00m</span>,
-};
-<span class="hljs-keyword">var</span> total = <span class="hljs-number">0.00m</span>;
-<span class="hljs-keyword">foreach</span> (<span class="hljs-keyword">var</span> row <span class="hljs-keyword">in</span> rows)
-{
-    total += @base;
-    <span class="hljs-keyword">if</span> (row &gt;= <span class="hljs-number">10</span>)
-    {
-        total += <span class="hljs-number">10.00m</span>;
-    }
-}
-<span class="hljs-built_in">string</span> id;
-<span class="hljs-keyword">try</span>
-{
-    id = _db.Insert([email, format, rows.Count, total]);
-}
-<span class="hljs-keyword">catch</span> (InvalidOperationException e)
-{
-    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;503 &quot;</span> + e.Message;
+    <span class="hljs-keyword">public</span> IReadOnlyList&lt;<span class="hljs-built_in">int</span>&gt; Rows { <span class="hljs-keyword">get</span>; } = Rows.ToList().AsReadOnly();
 }
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> Booking <span class="hljs-title">Execute</span>(<span class="hljs-params">BookSeatsCommand command</span>)</span>
+<p><strong>Po (<code>Booking.cs</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span>Wynik przypadku użycia.<span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">record</span> <span class="hljs-title">Booking</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> Id, <span class="hljs-built_in">decimal</span> Total</span>)</span>;
+</code></pre>
+<p><strong>Po (<code>BookSeats.cs</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">using</span> System.Globalization;
+
+<span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span>Przypadek użycia: wyceń, zapisz, powiadom. Wciąż zna wiersz object[] i temat komunikatu.<span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">BookSeats</span>
+{
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> RowStore _db;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> Outbox _outbox;
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">BookSeats</span>(<span class="hljs-params">RowStore db, Outbox outbox</span>)</span>
+    {
+        _db = db;
+        _outbox = outbox;
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> Booking <span class="hljs-title">Execute</span>(<span class="hljs-params">BookSeatsCommand command</span>)</span>
+    {
+        <span class="hljs-keyword">if</span> (command.Rows.Count == <span class="hljs-number">0</span>)
+        {
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> ArgumentException(<span class="hljs-string">&quot;brak miejsc&quot;</span>);
+        }
+        <span class="hljs-keyword">var</span> total = Price(command);
+        <span class="hljs-keyword">var</span> id = _db.Insert(
+            [<span class="hljs-meta">command.Email, command.Format, command.Rows.Count, total</span>]);
+        _outbox.Publish(<span class="hljs-string">&quot;reservation-created&quot;</span>,
+            id + <span class="hljs-string">&quot;;&quot;</span> + command.Email + <span class="hljs-string">&quot;;&quot;</span> + total.ToString(CultureInfo.InvariantCulture));
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Booking(id, total);
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-built_in">decimal</span> <span class="hljs-title">Price</span>(<span class="hljs-params">BookSeatsCommand command</span>)</span>
+    {
+        <span class="hljs-keyword">var</span> @base = command.Format <span class="hljs-keyword">switch</span>
+        {
+            <span class="hljs-string">&quot;IMAX&quot;</span> =&gt; <span class="hljs-number">40.00m</span>,
+            <span class="hljs-string">&quot;3D&quot;</span> =&gt; <span class="hljs-number">32.00m</span>,
+            _ =&gt; <span class="hljs-number">25.00m</span>,
+        };
+        <span class="hljs-keyword">var</span> total = <span class="hljs-number">0.00m</span>;
+        <span class="hljs-keyword">foreach</span> (<span class="hljs-keyword">var</span> row <span class="hljs-keyword">in</span> command.Rows)
+        {
+            total += @base;
+            <span class="hljs-keyword">if</span> (row &gt;= <span class="hljs-number">10</span>)
+            {
+                total += <span class="hljs-number">10.00m</span>;
+            }
+        }
+        <span class="hljs-keyword">return</span> total;
+    }
+}
+</code></pre>
+<p><strong>Przed (<code>ReservationController.cs</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> RowStore _db;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> Outbox _outbox;
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ReservationController</span>(<span class="hljs-params">RowStore db, Outbox outbox</span>)</span>
+{
+    _db = db;
+    _outbox = outbox;
+}
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Handle</span>(<span class="hljs-params">IReadOnlyDictionary&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">string</span>&gt; parameters</span>)</span>
+{
+    <span class="hljs-keyword">var</span> email = parameters.GetValueOrDefault(<span class="hljs-string">&quot;email&quot;</span>);
+    <span class="hljs-keyword">if</span> (<span class="hljs-built_in">string</span>.IsNullOrWhiteSpace(email))
+    {
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;400 brak email&quot;</span>;
+    }
+    <span class="hljs-keyword">var</span> format = parameters.GetValueOrDefault(<span class="hljs-string">&quot;format&quot;</span>, <span class="hljs-string">&quot;2D&quot;</span>);
+    <span class="hljs-keyword">var</span> rows = parameters.GetValueOrDefault(<span class="hljs-string">&quot;rows&quot;</span>, <span class="hljs-string">&quot;&quot;</span>).Split(<span class="hljs-string">&#x27;,&#x27;</span>)
+        .Where(s =&gt; !<span class="hljs-built_in">string</span>.IsNullOrWhiteSpace(s)).Select(s =&gt; <span class="hljs-built_in">int</span>.Parse(s, CultureInfo.InvariantCulture)).ToList();
+    <span class="hljs-keyword">if</span> (rows.Count == <span class="hljs-number">0</span>)
+    {
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;400 brak miejsc&quot;</span>;
+    }
+    <span class="hljs-keyword">var</span> @base = format <span class="hljs-keyword">switch</span>
+    {
+        <span class="hljs-string">&quot;IMAX&quot;</span> =&gt; <span class="hljs-number">40.00m</span>,
+        <span class="hljs-string">&quot;3D&quot;</span> =&gt; <span class="hljs-number">32.00m</span>,
+        _ =&gt; <span class="hljs-number">25.00m</span>,
+    };
+    <span class="hljs-keyword">var</span> total = <span class="hljs-number">0.00m</span>;
+    <span class="hljs-keyword">foreach</span> (<span class="hljs-keyword">var</span> row <span class="hljs-keyword">in</span> rows)
+    {
+        total += @base;
+        <span class="hljs-keyword">if</span> (row &gt;= <span class="hljs-number">10</span>)
+        {
+            total += <span class="hljs-number">10.00m</span>;
+        }
+    }
+    <span class="hljs-built_in">string</span> id;
+    <span class="hljs-keyword">try</span>
+    {
+        id = _db.Insert([email, format, rows.Count, total]);
+    }
+    <span class="hljs-keyword">catch</span> (InvalidOperationException e)
+    {
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;503 &quot;</span> + e.Message;
+    }
+    _outbox.Publish(<span class="hljs-string">&quot;reservation-created&quot;</span>,
+        id + <span class="hljs-string">&quot;;&quot;</span> + email + <span class="hljs-string">&quot;;&quot;</span> + total.ToString(CultureInfo.InvariantCulture));
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;201 &quot;</span> + id + <span class="hljs-string">&quot; &quot;</span> + total.ToString(CultureInfo.InvariantCulture);
+}
+</code></pre>
+<p><strong>Po (<code>ReservationController.cs</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> BookSeats _bookSeats;
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ReservationController</span>(<span class="hljs-params">RowStore db, Outbox outbox</span>)</span>
+{
+    _bookSeats = <span class="hljs-keyword">new</span> BookSeats(db, outbox);
+}
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Handle</span>(<span class="hljs-params">IReadOnlyDictionary&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">string</span>&gt; parameters</span>)</span>
+{
+    <span class="hljs-keyword">var</span> email = parameters.GetValueOrDefault(<span class="hljs-string">&quot;email&quot;</span>);
+    <span class="hljs-keyword">if</span> (<span class="hljs-built_in">string</span>.IsNullOrWhiteSpace(email))
+    {
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;400 brak email&quot;</span>;
+    }
+    <span class="hljs-keyword">var</span> rows = parameters.GetValueOrDefault(<span class="hljs-string">&quot;rows&quot;</span>, <span class="hljs-string">&quot;&quot;</span>).Split(<span class="hljs-string">&#x27;,&#x27;</span>)
+        .Where(s =&gt; !<span class="hljs-built_in">string</span>.IsNullOrWhiteSpace(s)).Select(s =&gt; <span class="hljs-built_in">int</span>.Parse(s, CultureInfo.InvariantCulture)).ToList();
+    <span class="hljs-keyword">try</span>
+    {
+        <span class="hljs-keyword">var</span> booking = _bookSeats.Execute(
+            <span class="hljs-keyword">new</span> BookSeatsCommand(email, parameters.GetValueOrDefault(<span class="hljs-string">&quot;format&quot;</span>, <span class="hljs-string">&quot;2D&quot;</span>), rows));
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;201 &quot;</span> + booking.Id + <span class="hljs-string">&quot; &quot;</span> + booking.Total.ToString(CultureInfo.InvariantCulture);
+    }
+    <span class="hljs-keyword">catch</span> (ArgumentException e)
+    {
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;400 &quot;</span> + e.Message;
+    }
+    <span class="hljs-keyword">catch</span> (InvalidOperationException e)
+    {
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;503 &quot;</span> + e.Message;
+    }
+}
+</code></pre>
+<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m2/<wbr>s09</code> - 22 testy zielone.
+<strong>Co powiedzieć:</strong> przypadek użycia czyta się jak scenariusz: wyceń, zapisz, powiadom. Granicę przekraczają proste rekordy, nie słownik z HTTP. Wciąż zna jednak kolumny tabeli i temat komunikatu.
+<strong>Snapshot:</strong> <code>Step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m2/<wbr>s09 0 1</code></p>
+<h3 id="krok-2-porty-zdefiniowane-przez-potrzebe-adaptery" tabindex="-1"><a class="header-anchor" href="#krok-2-porty-zdefiniowane-przez-potrzebe-adaptery"><span>Krok 2: Porty zdefiniowane przez potrzebę, adaptery</span></a></h3>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Nowy plik <code>NewReservation.cs</code>: rekord danych przekraczających granicę do portu zapisu.</li>
+<li>Nowe pliki <code>IReservationStore.cs</code> i <code>IBookingNotifier.cs</code>: porty <code>string Save(NewReservation)</code> i <code>void ReservationCreated(string id, NewReservation reservation)</code>.</li>
+<li>Nowe pliki <code>RowStoreReservationStore.cs</code> i <code>OutboxBookingNotifier.cs</code>: adaptery przejmują mapowanie na <code>object[]</code> oraz temat i format komunikatu (Extract Class).</li>
+<li><code>BookSeats</code> zamiast <code>RowStore</code> i <code>Outbox</code> dostaje w konstruktorze porty; <code>Execute</code> buduje <code>NewReservation</code>, woła <code>_store.Save</code>, potem <code>_notifier.ReservationCreated</code>. Dyrektywa <code>using System.Globalization</code> przenosi się z <code>BookSeats.cs</code> do <code>OutboxBookingNotifier.cs</code>.</li>
+<li>Kontroler w konstruktorze składa <code>new BookSeats(new RowStoreReservationStore(db), new OutboxBookingNotifier(outbox))</code>.</li>
+</ol>
+<p><strong>Po (<code>NewReservation.cs</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span>Dane przekraczające granicę do portu zapisu - rekord, nie object[].<span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">record</span> <span class="hljs-title">NewReservation</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> Email, <span class="hljs-built_in">string</span> Format, <span class="hljs-built_in">int</span> Seats, <span class="hljs-built_in">decimal</span> Total</span>)</span>;
+</code></pre>
+<p><strong>Po (<code>IReservationStore.cs</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span></span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span> Port wyjściowy zdefiniowany przez potrzebę przypadku użycia.</span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span> Zwraca identyfikator; gdy nie da się zapisać - InvalidOperationException.</span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title">IReservationStore</span>
+{
+    <span class="hljs-function"><span class="hljs-built_in">string</span> <span class="hljs-title">Save</span>(<span class="hljs-params">NewReservation reservation</span>)</span>;
+}
+</code></pre>
+<p><strong>Po (<code>IBookingNotifier.cs</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span>Port wyjściowy - &quot;daj znać, że rezerwacja powstała&quot;.<span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title">IBookingNotifier</span>
+{
+    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">ReservationCreated</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> id, NewReservation reservation</span>)</span>;
+}
+</code></pre>
+<p><strong>Po (<code>RowStoreReservationStore.cs</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span>Adapter wyjściowy - mapuje rekord na kolumny tabeli.<span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">RowStoreReservationStore</span> : <span class="hljs-title">IReservationStore</span>
+{
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> RowStore _db;
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">RowStoreReservationStore</span>(<span class="hljs-params">RowStore db</span>)</span>
+    {
+        _db = db;
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Save</span>(<span class="hljs-params">NewReservation reservation</span>)</span>
+    {
+        <span class="hljs-keyword">return</span> _db.Insert([
+            reservation.Email, reservation.Format, reservation.Seats, reservation.Total]);
+    }
+}
+</code></pre>
+<p><strong>Po (<code>OutboxBookingNotifier.cs</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">using</span> System.Globalization;
+
+<span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span>Adapter wyjściowy - zna temat i format komunikatu.<span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">OutboxBookingNotifier</span> : <span class="hljs-title">IBookingNotifier</span>
+{
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> Outbox _outbox;
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">OutboxBookingNotifier</span>(<span class="hljs-params">Outbox outbox</span>)</span>
+    {
+        _outbox = outbox;
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">ReservationCreated</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> id, NewReservation reservation</span>)</span>
+    {
+        _outbox.Publish(<span class="hljs-string">&quot;reservation-created&quot;</span>,
+            id + <span class="hljs-string">&quot;;&quot;</span> + reservation.Email + <span class="hljs-string">&quot;;&quot;</span> + reservation.Total.ToString(CultureInfo.InvariantCulture));
+    }
+}
+</code></pre>
+<p><strong>Przed (<code>BookSeats.cs</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> RowStore _db;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> Outbox _outbox;
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">BookSeats</span>(<span class="hljs-params">RowStore db, Outbox outbox</span>)</span>
+{
+    _db = db;
+    _outbox = outbox;
+}
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> Booking <span class="hljs-title">Execute</span>(<span class="hljs-params">BookSeatsCommand command</span>)</span>
 {
     <span class="hljs-keyword">if</span> (command.Rows.Count == <span class="hljs-number">0</span>)
     {
@@ -1172,30 +2156,35 @@ _outbox.Publish(<span class="hljs-string">&quot;reservation-created&quot;</span>
     <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Booking(id, total);
 }
 </code></pre>
-<p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m2/<wbr>s09</code> - 22 testy zielone.
-<strong>Co powiedzieć:</strong> przypadek użycia czyta się jak scenariusz: wyceń, zapisz, powiadom. Granicę przekraczają proste rekordy, nie słownik z HTTP. Wciąż zna jednak kolumny tabeli i temat komunikatu.
-<strong>Snapshot:</strong> <code>Step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m2/<wbr>s09 0 1</code></p>
-<h3 id="krok-2-porty-zdefiniowane-przez-potrzebe-adaptery" tabindex="-1"><a class="header-anchor" href="#krok-2-porty-zdefiniowane-przez-potrzebe-adaptery"><span>Krok 2: Porty zdefiniowane przez potrzebę, adaptery</span></a></h3>
-<p><strong>Zmiany:</strong></p>
-<ol>
-<li>Nowy plik <code>NewReservation.cs</code>: rekord danych przekraczających granicę do portu zapisu.</li>
-<li>Nowe pliki <code>IReservationStore.cs</code> i <code>IBookingNotifier.cs</code>: porty <code>string Save(NewReservation)</code> i <code>void ReservationCreated(string id, NewReservation reservation)</code>.</li>
-<li>Nowe pliki <code>RowStoreReservationStore.cs</code> i <code>OutboxBookingNotifier.cs</code>: adaptery przejmują mapowanie na <code>object[]</code> oraz temat i format komunikatu (Extract Class).</li>
-<li><code>BookSeats</code> zamiast <code>RowStore</code> i <code>Outbox</code> dostaje w konstruktorze porty; <code>Execute</code> buduje <code>NewReservation</code>, woła <code>_store.Save</code>, potem <code>_notifier.ReservationCreated</code>.</li>
-<li>Kontroler w konstruktorze składa <code>new BookSeats(new RowStoreReservationStore(db), new OutboxBookingNotifier(outbox))</code>.</li>
-</ol>
-<p><strong>Przed:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">var</span> total = Price(command);
-<span class="hljs-keyword">var</span> id = _db.Insert(
-    [<span class="hljs-meta">command.Email, command.Format, command.Rows.Count, total</span>]);
-_outbox.Publish(<span class="hljs-string">&quot;reservation-created&quot;</span>,
-    id + <span class="hljs-string">&quot;;&quot;</span> + command.Email + <span class="hljs-string">&quot;;&quot;</span> + total.ToString(CultureInfo.InvariantCulture));
-<span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Booking(id, total);
+<p><strong>Po (<code>BookSeats.cs</code>):</strong> (metoda <code>Price</code> bez zmian)</p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> IReservationStore _store;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> IBookingNotifier _notifier;
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">BookSeats</span>(<span class="hljs-params">IReservationStore store, IBookingNotifier notifier</span>)</span>
+{
+    _store = store;
+    _notifier = notifier;
+}
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> Booking <span class="hljs-title">Execute</span>(<span class="hljs-params">BookSeatsCommand command</span>)</span>
+{
+    <span class="hljs-keyword">if</span> (command.Rows.Count == <span class="hljs-number">0</span>)
+    {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> ArgumentException(<span class="hljs-string">&quot;brak miejsc&quot;</span>);
+    }
+    <span class="hljs-keyword">var</span> reservation = <span class="hljs-keyword">new</span> NewReservation(
+        command.Email, command.Format, command.Rows.Count, Price(command));
+    <span class="hljs-keyword">var</span> id = _store.Save(reservation);
+    _notifier.ReservationCreated(id, reservation);
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Booking(id, reservation.Total);
+}
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">var</span> id = _store.Save(reservation);
-_notifier.ReservationCreated(id, reservation);
-<span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Booking(id, reservation.Total);
+<p><strong>Po (<code>ReservationController.cs</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ReservationController</span>(<span class="hljs-params">RowStore db, Outbox outbox</span>)</span>
+{
+    _bookSeats = <span class="hljs-keyword">new</span> BookSeats(
+        <span class="hljs-keyword">new</span> RowStoreReservationStore(db), <span class="hljs-keyword">new</span> OutboxBookingNotifier(outbox));
+}
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony, także przypadek &quot;baza niedostępna - brak powiadomienia&quot;.
 <strong>Co powiedzieć:</strong> kolejność zapis -&gt; powiadomienie to decyzja protokołu: błąd zapisu oznacza brak powiadomienia. Kolejność nie daje atomowości - w systemie rozproszonym potrzebny byłby outbox transakcyjny.
@@ -1217,6 +2206,14 @@ _notifier.ReservationCreated(id, reservation);
 <pre class="code" data-lang="text"><code class="hljs">Step3/App/       BookSeats, BookSeatsCommand, Booking, NewReservation, IReservationStore, IBookingNotifier
 Step3/Adapter/   ReservationController, RowStoreReservationStore, OutboxBookingNotifier
 </code></pre>
+<p>Nagłówek każdego adaptera wygląda teraz tak (np. <code>Adapter/<wbr>RowStoreReservationStore.cs</code>); analogicznie <code>ReservationController.cs</code> i <code>OutboxBookingNotifier.cs</code> zachowują swoje <code>using System.Globalization</code>:</p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">using</span> Training.Workshop.M2.S09CleanArchitecture.Step3.App;
+
+<span class="hljs-keyword">namespace</span> <span class="hljs-title">Training.Workshop.M2.S09CleanArchitecture.Step3.Adapter</span>;
+
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">RowStoreReservationStore</span> : <span class="hljs-title">IReservationStore</span>
+</code></pre>
+<p>W <code>CinemaApplication.cs</code> dochodzi <code>using Training.Workshop.M2.S09CleanArchitecture.Step3.Adapter;</code>, a pliki w <code>App/<wbr></code> dostają tylko przyrostek <code>.App</code> w przestrzeni nazw - bez nowych dyrektyw <code>using</code>.</p>
 <p><strong>Uruchom:</strong> test zielony.
 <strong>Co powiedzieć:</strong> <code>App</code> nie ma żadnego <code>using ...Adapter</code>; adaptery używają <code>App</code>. Nazwy przestrzeni nazw są drugorzędne - liczy się kierunek zależności. Zauważ, że w jednym projekcie (csproj) kompilator tego kierunku nie pilnuje - wrócimy do tego w s10.
 <strong>Snapshot:</strong> <code>Step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m2/<wbr>s09 2 3</code></p>
@@ -1224,16 +2221,28 @@ Step3/Adapter/   ReservationController, RowStoreReservationStore, OutboxBookingN
 <p><strong>Zmiany:</strong></p>
 <ol>
 <li>Konstruktor <code>ReservationController</code> zamiast <code>RowStore db, Outbox outbox</code> przyjmuje gotowy <code>BookSeats</code> i tylko przypisuje pole (Introduce Parameter); nieużywane już parametry <code>db</code> i <code>outbox</code> znikają z kontrolera (Change Signature), a razem z nimi składanie grafu.</li>
-<li><code>CinemaApplication.ReservationController(db, outbox)</code> przejmuje budowę całego grafu: oba adaptery, <code>BookSeats</code> i kontroler - staje się prawdziwym composition root.</li>
+<li><code>CinemaApplication.ReservationController(db, outbox)</code> przejmuje budowę całego grafu: oba adaptery, <code>BookSeats</code> i kontroler - staje się prawdziwym composition root. W <code>CinemaApplication.cs</code> dochodzi dyrektywa <code>using ...App</code> (obok dotychczasowej <code>using ...Adapter</code>).</li>
 </ol>
-<p><strong>Przed:</strong></p>
+<p><strong>Przed (<code>Adapter/<wbr>ReservationController.cs</code>):</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ReservationController</span>(<span class="hljs-params">RowStore db, Outbox outbox</span>)</span>
 {
     _bookSeats = <span class="hljs-keyword">new</span> BookSeats(
         <span class="hljs-keyword">new</span> RowStoreReservationStore(db), <span class="hljs-keyword">new</span> OutboxBookingNotifier(outbox));
 }
 </code></pre>
-<p><strong>Po:</strong></p>
+<p><strong>Po (<code>Adapter/<wbr>ReservationController.cs</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ReservationController</span>(<span class="hljs-params">BookSeats bookSeats</span>)</span>
+{
+    _bookSeats = bookSeats;
+}
+</code></pre>
+<p><strong>Przed (<code>CinemaApplication.cs</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ReservationController <span class="hljs-title">ReservationController</span>(<span class="hljs-params">RowStore db, Outbox outbox</span>)</span>
+{
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> ReservationController(db, outbox);
+}
+</code></pre>
+<p><strong>Po (<code>CinemaApplication.cs</code>):</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ReservationController <span class="hljs-title">ReservationController</span>(<span class="hljs-params">RowStore db, Outbox outbox</span>)</span>
 {
     <span class="hljs-keyword">var</span> bookSeats = <span class="hljs-keyword">new</span> BookSeats(
@@ -1284,8 +2293,19 @@ Step3/Adapter/   ReservationController, RowStoreReservationStore, OutboxBookingN
 <li><code>ScreeningService</code> zostaje z polami <code>_basePrice</code> i <code>_morningDiscount</code> oraz metodami <code>Price</code> i <code>IsMorning</code>; konstruktor traci parametr <code>table</code>, a obie technologiczne dyrektywy <code>using</code> znikają z tego pliku.</li>
 <li><code>CinemaApp.Describe</code> (composition root) tworzy obie klasy: <code>new ScreeningService(25.00m, 5.00m)</code> i <code>new ScreeningRowMapper(&quot;screenings&quot;)</code>, i woła <code>mapper.ToRow</code>/<code>mapper.FromRow</code>.</li>
 </ol>
-<p><strong>Przed:</strong></p>
-<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> ScreeningRow <span class="hljs-title">ToRow</span>(<span class="hljs-params">Screening screening</span>)</span>
+<p><strong>Przed (<code>Domain/<wbr>ScreeningService.cs</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">decimal</span> _basePrice;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">decimal</span> _morningDiscount;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">string</span> _table;
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ScreeningService</span>(<span class="hljs-params"><span class="hljs-built_in">decimal</span> basePrice, <span class="hljs-built_in">decimal</span> morningDiscount, <span class="hljs-built_in">string</span> table</span>)</span>
+{
+    _basePrice = basePrice;
+    _morningDiscount = morningDiscount;
+    _table = table;
+}
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> ScreeningRow <span class="hljs-title">ToRow</span>(<span class="hljs-params">Screening screening</span>)</span>
 {
     <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> ScreeningRow(_table, screening.Title, <span class="hljs-keyword">new</span> SqlDateTime(screening.Start));
 }
@@ -1299,21 +2319,63 @@ Step3/Adapter/   ReservationController, RowStoreReservationStore, OutboxBookingN
     <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Screening(row.Title, row.Start.Value);
 }
 </code></pre>
-<p><strong>Po:</strong></p>
+<p><strong>Po (<code>Domain/<wbr>ScreeningRowMapper.cs</code>, nowy plik):</strong> (w przestrzeni nazw <code>...Domain</code> - klasa zostaje w <code>Domain</code>)</p>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">using</span> System.Data.SqlTypes;
 <span class="hljs-keyword">using</span> Training.Workshop.M2.S10BoundaryCheck.Step1.Adapter;
-
-<span class="hljs-keyword">namespace</span> <span class="hljs-title">Training.Workshop.M2.S10BoundaryCheck.Step1.Domain</span>;
 
 <span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">ScreeningRowMapper</span>
 {
     <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">string</span> _table;
-    ...
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ScreeningRowMapper</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> table</span>)</span>
+    {
+        _table = table;
+    }
+
     <span class="hljs-function"><span class="hljs-keyword">public</span> ScreeningRow <span class="hljs-title">ToRow</span>(<span class="hljs-params">Screening screening</span>)</span>
     {
         <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> ScreeningRow(_table, screening.Title, <span class="hljs-keyword">new</span> SqlDateTime(screening.Start));
     }
-    ...
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> Screening <span class="hljs-title">FromRow</span>(<span class="hljs-params">ScreeningRow row</span>)</span>
+    {
+        <span class="hljs-keyword">if</span> (row.Table != _table)
+        {
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> ArgumentException(<span class="hljs-string">&quot;obca tabela: &quot;</span> + row.Table);
+        }
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Screening(row.Title, row.Start.Value);
+    }
+}
+</code></pre>
+<p><strong>Po (<code>Domain/<wbr>ScreeningService.cs</code>):</strong> (metody <code>Price</code> i <code>IsMorning</code> bez zmian)</p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">decimal</span> _basePrice;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">decimal</span> _morningDiscount;
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ScreeningService</span>(<span class="hljs-params"><span class="hljs-built_in">decimal</span> basePrice, <span class="hljs-built_in">decimal</span> morningDiscount</span>)</span>
+{
+    _basePrice = basePrice;
+    _morningDiscount = morningDiscount;
+}
+</code></pre>
+<p><strong>Przed (<code>CinemaApp.cs</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Describe</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> title, DateTime start</span>)</span>
+{
+    <span class="hljs-keyword">var</span> service = <span class="hljs-keyword">new</span> ScreeningService(<span class="hljs-number">25.00m</span>, <span class="hljs-number">5.00m</span>, <span class="hljs-string">&quot;screenings&quot;</span>);
+    <span class="hljs-keyword">var</span> screening = <span class="hljs-keyword">new</span> Screening(title, start);
+    <span class="hljs-keyword">var</span> row = service.ToRow(screening);
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">string</span>.Create(CultureInfo.InvariantCulture,
+        <span class="hljs-string">$&quot;<span class="hljs-subst">{service.Price(screening)}</span> | <span class="hljs-subst">{row}</span> | <span class="hljs-subst">{service.FromRow(row).Equals(screening)}</span>&quot;</span>);
+}
+</code></pre>
+<p><strong>Po (<code>CinemaApp.cs</code>):</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Describe</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> title, DateTime start</span>)</span>
+{
+    <span class="hljs-keyword">var</span> service = <span class="hljs-keyword">new</span> ScreeningService(<span class="hljs-number">25.00m</span>, <span class="hljs-number">5.00m</span>);
+    <span class="hljs-keyword">var</span> mapper = <span class="hljs-keyword">new</span> ScreeningRowMapper(<span class="hljs-string">&quot;screenings&quot;</span>);
+    <span class="hljs-keyword">var</span> screening = <span class="hljs-keyword">new</span> Screening(title, start);
+    <span class="hljs-keyword">var</span> row = mapper.ToRow(screening);
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">string</span>.Create(CultureInfo.InvariantCulture,
+        <span class="hljs-string">$&quot;<span class="hljs-subst">{service.Price(screening)}</span> | <span class="hljs-subst">{row}</span> | <span class="hljs-subst">{mapper.FromRow(row).Equals(screening)}</span>&quot;</span>);
 }
 </code></pre>
 <p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh --lang cs test m2/<wbr>s10</code> - 13 testów zielonych; LCOM4 obu klas = 1 (<code>Step1ClassesAreCohesive</code>), ale <code>Step1StillViolatesTheBoundaryButOnlyInTheMapper</code> pokazuje, że naruszenie granicy tylko się przeniosło.

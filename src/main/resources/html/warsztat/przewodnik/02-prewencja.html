@@ -214,11 +214,11 @@ context.put(<span class="hljs-string">&quot;row&quot;</span>, quote.row());
 <h3 id="krok-1-inline-class-rejestr-pluginow-znika" tabindex="-1"><a class="header-anchor" href="#krok-1-inline-class-rejestr-pluginow-znika"><span>Krok 1: Inline Class - rejestr pluginów znika</span></a></h3>
 <p><strong>Zmiany:</strong></p>
 <ol>
-<li>W <code>TicketPricer</code> usuń pola <code>registry</code> i <code>activeRules</code> oraz oba konstruktory; w ich miejsce dodaj pole <code>rules</code> z listą <code>List.of(new MorningRule(), new VipRule())</code> i iteruj w pętli po <code>rules</code> (Inline Class).</li>
+<li>W <code>TicketPricer</code> usuń pola <code>registry</code> i <code>activeRules</code> oraz oba konstruktory; w ich miejsce dodaj pole <code>rules</code> z listą <code>List.of(new MorningRule(), new VipRule())</code> i iteruj w pętli po <code>rules</code> (Inline Class). Dochodzi import <code>java.util.List</code>.</li>
 <li>Usuń klasę <code>RuleRegistry</code> - nikt jej już nie woła.</li>
-<li>Usuń metodę <code>priority()</code> z interfejsu <code>PricingRule</code> i z obu reguł - była potrzebna tylko do sortowania w rejestrze.</li>
+<li>Usuń metodę <code>priority()</code> z interfejsu <code>PricingRule</code> i z obu reguł (<code>MorningRule</code> zwracała 10, <code>VipRule</code> 20) - była potrzebna tylko do sortowania w rejestrze. Reszta tych trzech plików bez zmian.</li>
 </ol>
-<p><strong>Przed:</strong></p>
+<p><strong>Przed (<code>TicketPricer.java</code>):</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> RuleRegistry registry;
 <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String activeRules;
 
@@ -233,8 +233,23 @@ context.put(<span class="hljs-string">&quot;row&quot;</span>, quote.row());
 ...
 <span class="hljs-keyword">for</span> (PricingRule rule : registry.resolve(activeRules)) {
 </code></pre>
-<p><strong>Po:</strong></p>
+<p><strong>Po (<code>TicketPricer.java</code>, pole i cała metoda <code>price</code>; <code>basePrice</code> bez zmian):</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">List</span>&lt;PricingRule&gt; <span class="hljs-variable">rules</span> <span class="hljs-operator">=</span> List.of(<span class="hljs-keyword">new</span> <span class="hljs-title class_">MorningRule</span>(), <span class="hljs-keyword">new</span> <span class="hljs-title class_">VipRule</span>());
+
+<span class="hljs-keyword">public</span> <span class="hljs-type">BigDecimal</span> <span class="hljs-title function_">price</span><span class="hljs-params">(TicketQuote quote)</span> {
+    <span class="hljs-type">Map</span>&lt;String, Object&gt; <span class="hljs-variable">context</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;();
+    context.put(<span class="hljs-string">&quot;format&quot;</span>, quote.format());
+    context.put(<span class="hljs-string">&quot;start&quot;</span>, quote.start());
+    context.put(<span class="hljs-string">&quot;row&quot;</span>, quote.row());
+    context.put(<span class="hljs-string">&quot;vipFromRow&quot;</span>, quote.vipFromRow());
+    <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">price</span> <span class="hljs-operator">=</span> basePrice(quote.format());
+    <span class="hljs-keyword">for</span> (PricingRule rule : rules) {
+        <span class="hljs-keyword">if</span> (rule.appliesTo(context)) {
+            price = rule.apply(context, price);
+        }
+    }
+    <span class="hljs-keyword">return</span> price.setScale(<span class="hljs-number">2</span>, RoundingMode.HALF_UP);
+}
 </code></pre>
 <p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh test m2/<wbr>s01</code> - 16 testów zielonych.
 <strong>Co powiedzieć:</strong> konfiguracja napisem nie miała żadnego klienta. Teraz literówka w nazwie reguły nie skompiluje się.
@@ -244,17 +259,109 @@ context.put(<span class="hljs-string">&quot;row&quot;</span>, quote.row());
 <ol>
 <li>W interfejsie <code>PricingRule</code> zmień typ parametru <code>appliesTo</code> z <code>Map&lt;String, Object&gt;</code> na <code>TicketQuote</code>, a z <code>apply</code> usuń parametr kontekstu - zostaje samo <code>apply(BigDecimal price)</code> (Change Signature).</li>
 <li>Popraw obie implementacje: rzutowania z mapy zastąp odczytami pól rekordu (<code>quote.start().getHour() &lt; 12</code>, <code>quote.row() &gt;= quote.vipFromRow()</code>).</li>
-<li>W <code>TicketPricer.price</code> usuń budowanie mapy kontekstu i przekazuj <code>quote</code> wprost do <code>appliesTo</code>.</li>
+<li>W <code>TicketPricer.price</code> usuń budowanie mapy kontekstu i przekazuj <code>quote</code> wprost do <code>appliesTo</code>; z importów znikają <code>HashMap</code> i <code>Map</code>.</li>
 </ol>
-<p><strong>Przed:</strong></p>
-<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-meta">@Override</span>
-<span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">appliesTo</span><span class="hljs-params">(Map&lt;String, Object&gt; context)</span> {
-    <span class="hljs-keyword">return</span> (<span class="hljs-type">int</span>) context.get(<span class="hljs-string">&quot;row&quot;</span>) &gt;= (<span class="hljs-type">int</span>) context.get(<span class="hljs-string">&quot;vipFromRow&quot;</span>);
+<p><strong>Przed (<code>PricingRule.java</code>, cały plik):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">import</span> java.math.BigDecimal;
+<span class="hljs-keyword">import</span> java.util.Map;
+
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">PricingRule</span> {
+    <span class="hljs-type">boolean</span> <span class="hljs-title function_">appliesTo</span><span class="hljs-params">(Map&lt;String, Object&gt; context)</span>;
+
+    <span class="hljs-type">BigDecimal</span> <span class="hljs-title function_">apply</span><span class="hljs-params">(Map&lt;String, Object&gt; context, BigDecimal price)</span>;
 }
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">appliesTo</span><span class="hljs-params">(TicketQuote quote)</span> {
-    <span class="hljs-keyword">return</span> quote.row() &gt;= quote.vipFromRow();
+<p><strong>Po (<code>PricingRule.java</code>, cały plik):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">import</span> java.math.BigDecimal;
+
+<span class="hljs-keyword">import</span> pl.training.workshop.m2.s01_yagni.TicketQuote;
+
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">PricingRule</span> {
+    <span class="hljs-type">boolean</span> <span class="hljs-title function_">appliesTo</span><span class="hljs-params">(TicketQuote quote)</span>;
+
+    <span class="hljs-type">BigDecimal</span> <span class="hljs-title function_">apply</span><span class="hljs-params">(BigDecimal price)</span>;
+}
+</code></pre>
+<p><strong>Przed (<code>MorningRule.java</code>, cały plik):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">import</span> java.math.BigDecimal;
+<span class="hljs-keyword">import</span> java.time.LocalTime;
+<span class="hljs-keyword">import</span> java.util.Map;
+
+<span class="hljs-comment">/** Seans poranny -5.00. */</span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">MorningRule</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">PricingRule</span> {
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">appliesTo</span><span class="hljs-params">(Map&lt;String, Object&gt; context)</span> {
+        <span class="hljs-keyword">return</span> ((LocalTime) context.get(<span class="hljs-string">&quot;start&quot;</span>)).getHour() &lt; <span class="hljs-number">12</span>;
+    }
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-type">BigDecimal</span> <span class="hljs-title function_">apply</span><span class="hljs-params">(Map&lt;String, Object&gt; context, BigDecimal price)</span> {
+        <span class="hljs-keyword">return</span> price.subtract(<span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;5.00&quot;</span>));
+    }
+}
+</code></pre>
+<p><strong>Po (<code>MorningRule.java</code>, cały plik):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">import</span> java.math.BigDecimal;
+
+<span class="hljs-keyword">import</span> pl.training.workshop.m2.s01_yagni.TicketQuote;
+
+<span class="hljs-comment">/** Seans poranny -5.00. */</span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">MorningRule</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">PricingRule</span> {
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">appliesTo</span><span class="hljs-params">(TicketQuote quote)</span> {
+        <span class="hljs-keyword">return</span> quote.start().getHour() &lt; <span class="hljs-number">12</span>;
+    }
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-type">BigDecimal</span> <span class="hljs-title function_">apply</span><span class="hljs-params">(BigDecimal price)</span> {
+        <span class="hljs-keyword">return</span> price.subtract(<span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;5.00&quot;</span>));
+    }
+}
+</code></pre>
+<p><strong>Przed (<code>VipRule.java</code>, cały plik):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">import</span> java.math.BigDecimal;
+<span class="hljs-keyword">import</span> java.util.Map;
+
+<span class="hljs-comment">/** Miejsce VIP +10.00. */</span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">VipRule</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">PricingRule</span> {
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">appliesTo</span><span class="hljs-params">(Map&lt;String, Object&gt; context)</span> {
+        <span class="hljs-keyword">return</span> (<span class="hljs-type">int</span>) context.get(<span class="hljs-string">&quot;row&quot;</span>) &gt;= (<span class="hljs-type">int</span>) context.get(<span class="hljs-string">&quot;vipFromRow&quot;</span>);
+    }
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-type">BigDecimal</span> <span class="hljs-title function_">apply</span><span class="hljs-params">(Map&lt;String, Object&gt; context, BigDecimal price)</span> {
+        <span class="hljs-keyword">return</span> price.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;10.00&quot;</span>));
+    }
+}
+</code></pre>
+<p><strong>Po (<code>VipRule.java</code>, cały plik):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">import</span> java.math.BigDecimal;
+
+<span class="hljs-keyword">import</span> pl.training.workshop.m2.s01_yagni.TicketQuote;
+
+<span class="hljs-comment">/** Miejsce VIP +10.00. */</span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">VipRule</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">PricingRule</span> {
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">appliesTo</span><span class="hljs-params">(TicketQuote quote)</span> {
+        <span class="hljs-keyword">return</span> quote.row() &gt;= quote.vipFromRow();
+    }
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-type">BigDecimal</span> <span class="hljs-title function_">apply</span><span class="hljs-params">(BigDecimal price)</span> {
+        <span class="hljs-keyword">return</span> price.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;10.00&quot;</span>));
+    }
+}
+</code></pre>
+<p><strong>Po (<code>TicketPricer.java</code>, cała metoda <code>price</code>; <code>basePrice</code> i pole <code>rules</code> bez zmian):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">BigDecimal</span> <span class="hljs-title function_">price</span><span class="hljs-params">(TicketQuote quote)</span> {
+    <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">price</span> <span class="hljs-operator">=</span> basePrice(quote.format());
+    <span class="hljs-keyword">for</span> (PricingRule rule : rules) {
+        <span class="hljs-keyword">if</span> (rule.appliesTo(quote)) {
+            price = rule.apply(price);
+        }
+    }
+    <span class="hljs-keyword">return</span> price.setScale(<span class="hljs-number">2</span>, RoundingMode.HALF_UP);
 }
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony.
@@ -264,9 +371,9 @@ context.put(<span class="hljs-string">&quot;row&quot;</span>, quote.row());
 <p><strong>Zmiany:</strong></p>
 <ol>
 <li>Wklej ciała obu reguł do <code>TicketPricer</code>: pętlę po <code>rules</code> zastąp dwoma <code>if</code> z prywatnymi metodami <code>isMorning(quote)</code> i <code>isVip(quote)</code> (Inline Class).</li>
-<li>Usuń klasy <code>MorningRule</code> i <code>VipRule</code> oraz interfejs <code>PricingRule</code> - nie mają już klientów; znika też pole <code>rules</code>.</li>
+<li>Usuń klasy <code>MorningRule</code> i <code>VipRule</code> oraz interfejs <code>PricingRule</code> - nie mają już klientów; znika też pole <code>rules</code> i import <code>java.util.List</code>.</li>
 <li>Kwoty -5.00 i +10.00 wyciągnij do stałych <code>MORNING_DISCOUNT</code> i <code>VIP_SURCHARGE</code> (Extract Constant).</li>
-<li>Usuń końcowe <code>setScale(2, RoundingMode.HALF_UP)</code> - wszystkie kwoty mają już dwa miejsca po przecinku.</li>
+<li>Usuń końcowe <code>setScale(2, RoundingMode.HALF_UP)</code> - wszystkie kwoty mają już dwa miejsca po przecinku; znika import <code>java.math.RoundingMode</code>.</li>
 </ol>
 <p><strong>Przed:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">List</span>&lt;PricingRule&gt; <span class="hljs-variable">rules</span> <span class="hljs-operator">=</span> List.of(<span class="hljs-keyword">new</span> <span class="hljs-title class_">MorningRule</span>(), <span class="hljs-keyword">new</span> <span class="hljs-title class_">VipRule</span>());
@@ -281,8 +388,11 @@ context.put(<span class="hljs-string">&quot;row&quot;</span>, quote.row());
     <span class="hljs-keyword">return</span> price.setScale(<span class="hljs-number">2</span>, RoundingMode.HALF_UP);
 }
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">BigDecimal</span> <span class="hljs-title function_">price</span><span class="hljs-params">(TicketQuote quote)</span> {
+<p><strong>Po (stałe, <code>price</code> i nowe metody prywatne; <code>basePrice</code> bez zmian):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">MORNING_DISCOUNT</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;5.00&quot;</span>);
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">VIP_SURCHARGE</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;10.00&quot;</span>);
+
+<span class="hljs-keyword">public</span> <span class="hljs-type">BigDecimal</span> <span class="hljs-title function_">price</span><span class="hljs-params">(TicketQuote quote)</span> {
     <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">price</span> <span class="hljs-operator">=</span> basePrice(quote.format());
     <span class="hljs-keyword">if</span> (isMorning(quote)) {
         price = price.subtract(MORNING_DISCOUNT);
@@ -291,6 +401,14 @@ context.put(<span class="hljs-string">&quot;row&quot;</span>, quote.row());
         price = price.add(VIP_SURCHARGE);
     }
     <span class="hljs-keyword">return</span> price;
+}
+
+<span class="hljs-keyword">private</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">isMorning</span><span class="hljs-params">(TicketQuote quote)</span> {
+    <span class="hljs-keyword">return</span> quote.start().getHour() &lt; <span class="hljs-number">12</span>;
+}
+
+<span class="hljs-keyword">private</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">isVip</span><span class="hljs-params">(TicketQuote quote)</span> {
+    <span class="hljs-keyword">return</span> quote.row() &gt;= quote.vipFromRow();
 }
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony.
@@ -327,14 +445,23 @@ context.put(<span class="hljs-string">&quot;row&quot;</span>, quote.row());
 <li>W pakiecie <code>pricing</code> dodaj rekord <code>Quote(double total, boolean groupDiscount)</code> - wynik cennika niesie informację o rabacie zamiast efektu ubocznego.</li>
 <li>Zmień sygnaturę <code>TicketPricing.total</code>: usuń parametr <code>organizer</code>, metoda zwraca <code>Quote</code> zamiast <code>double</code> (Change Signature).</li>
 <li>Usuń z <code>TicketPricing</code> pole <code>mailer</code>, konstruktor i wywołanie <code>mailer.groupDiscountGranted(...)</code> - razem z importem pakietu <code>notification</code>.</li>
-<li>W <code>BookingService</code> odbierz <code>Quote</code> i wyślij mail tam, gdy <code>quote.groupDiscount()</code> jest prawdą.</li>
+<li>W <code>BookingService</code> odbierz <code>Quote</code> i wyślij mail tam, gdy <code>quote.groupDiscount()</code> jest prawdą; pole <code>pricing</code> tworzone jest teraz przez <code>new TicketPricing()</code> bez argumentu, dochodzi import <code>pricing.Quote</code>.</li>
 </ol>
-<p><strong>Przed:</strong></p>
+<p><strong>Po (<code>pricing/<wbr>Quote.java</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-comment">/** Wynik cennika niesie informację o rabacie - zamiast efektu ubocznego mamy daną. */</span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">record</span> <span class="hljs-title class_">Quote</span><span class="hljs-params">(<span class="hljs-type">double</span> total, <span class="hljs-type">boolean</span> groupDiscount)</span> {
+}
+</code></pre>
+<p><strong>Przed (<code>pricing/<wbr>TicketPricing.java</code>):</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">import</span> pl.training.workshop.m2.s02_adr.start.notification.GroupMailer;
 
 <span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">TicketPricing</span> {
     <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> GroupMailer mailer;
-    ...
+
+    <span class="hljs-type">public</span> <span class="hljs-title function_">TicketPricing</span><span class="hljs-params">(GroupMailer mailer)</span> {
+        <span class="hljs-built_in">this</span>.mailer = mailer;
+    }
+
     <span class="hljs-keyword">public</span> <span class="hljs-type">double</span> <span class="hljs-title function_">total</span><span class="hljs-params">(String organizer, <span class="hljs-type">int</span> tickets, <span class="hljs-type">double</span> unitPrice)</span> {
         <span class="hljs-type">double</span> <span class="hljs-variable">sum</span> <span class="hljs-operator">=</span> unitPrice * tickets;
         <span class="hljs-keyword">if</span> (tickets &gt;= <span class="hljs-number">10</span>) {
@@ -345,10 +472,47 @@ context.put(<span class="hljs-string">&quot;row&quot;</span>, quote.row());
     }
 }
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">Quote</span> <span class="hljs-variable">quote</span> <span class="hljs-operator">=</span> pricing.total(tickets, unitPrice);
-<span class="hljs-keyword">if</span> (quote.groupDiscount()) {
-    mailer.groupDiscountGranted(organizer, tickets);
+<p><strong>Po (<code>pricing/<wbr>TicketPricing.java</code>):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">TicketPricing</span> {
+    <span class="hljs-keyword">public</span> <span class="hljs-type">Quote</span> <span class="hljs-title function_">total</span><span class="hljs-params">(<span class="hljs-type">int</span> tickets, <span class="hljs-type">double</span> unitPrice)</span> {
+        <span class="hljs-type">double</span> <span class="hljs-variable">sum</span> <span class="hljs-operator">=</span> unitPrice * tickets;
+        <span class="hljs-type">boolean</span> <span class="hljs-variable">groupDiscount</span> <span class="hljs-operator">=</span> tickets &gt;= <span class="hljs-number">10</span>;
+        <span class="hljs-keyword">if</span> (groupDiscount) {
+            sum = sum - sum * <span class="hljs-number">0.10</span>;
+        }
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Quote</span>(Math.round(sum * <span class="hljs-number">100</span>) / <span class="hljs-number">100.0</span>, groupDiscount);
+    }
+}
+</code></pre>
+<p><strong>Przed (<code>BookingService.java</code>, pola i metoda <code>book</code>):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">GroupMailer</span> <span class="hljs-variable">mailer</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">GroupMailer</span>();
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">TicketPricing</span> <span class="hljs-variable">pricing</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">TicketPricing</span>(mailer);
+
+<span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">book</span><span class="hljs-params">(String organizer, <span class="hljs-type">int</span> tickets, String format)</span> {
+    <span class="hljs-type">double</span> <span class="hljs-variable">unitPrice</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">switch</span> (format) {
+        <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;IMAX&quot;</span> -&gt; <span class="hljs-number">40.00</span>;
+        <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;3D&quot;</span> -&gt; <span class="hljs-number">32.00</span>;
+        <span class="hljs-keyword">default</span> -&gt; <span class="hljs-number">25.00</span>;
+    };
+    <span class="hljs-type">double</span> <span class="hljs-variable">total</span> <span class="hljs-operator">=</span> pricing.total(organizer, tickets, unitPrice);
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;DO ZAPLATY &quot;</span> + String.format(Locale.ROOT, <span class="hljs-string">&quot;%.2f&quot;</span>, total);
+}
+</code></pre>
+<p><strong>Po (<code>BookingService.java</code>, pola i metoda <code>book</code>; <code>sentMails</code> bez zmian):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">GroupMailer</span> <span class="hljs-variable">mailer</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">GroupMailer</span>();
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">TicketPricing</span> <span class="hljs-variable">pricing</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">TicketPricing</span>();
+
+<span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">book</span><span class="hljs-params">(String organizer, <span class="hljs-type">int</span> tickets, String format)</span> {
+    <span class="hljs-type">double</span> <span class="hljs-variable">unitPrice</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">switch</span> (format) {
+        <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;IMAX&quot;</span> -&gt; <span class="hljs-number">40.00</span>;
+        <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;3D&quot;</span> -&gt; <span class="hljs-number">32.00</span>;
+        <span class="hljs-keyword">default</span> -&gt; <span class="hljs-number">25.00</span>;
+    };
+    <span class="hljs-type">Quote</span> <span class="hljs-variable">quote</span> <span class="hljs-operator">=</span> pricing.total(tickets, unitPrice);
+    <span class="hljs-keyword">if</span> (quote.groupDiscount()) {
+        mailer.groupDiscountGranted(organizer, tickets);
+    }
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;DO ZAPLATY &quot;</span> + String.format(Locale.ROOT, <span class="hljs-string">&quot;%.2f&quot;</span>, quote.total());
 }
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony; <code>step1RemovesDependencyOnNotification</code> - zostało tylko naruszenie <code>ADR-0007/<wbr>R2</code>.
@@ -357,11 +521,17 @@ context.put(<span class="hljs-string">&quot;row&quot;</span>, quote.row());
 <h3 id="krok-2-spelnienie-r2-money" tabindex="-1"><a class="header-anchor" href="#krok-2-spelnienie-r2-money"><span>Krok 2: spełnienie R2 - Money</span></a></h3>
 <p><strong>Zmiany:</strong></p>
 <ol>
-<li>W <code>Quote</code> i <code>TicketPricing</code> zamień typ kwot <code>double</code> na <code>Money</code>; arytmetyka przechodzi na <code>times</code>, <code>minus</code> i <code>percent</code>.</li>
+<li>W <code>Quote</code> i <code>TicketPricing</code> zamień typ kwot <code>double</code> na <code>Money</code> (import <code>pl.training.workshop.shared.Money</code>); arytmetyka przechodzi na <code>times</code>, <code>minus</code> i <code>percent</code>.</li>
 <li>Próg i procent rabatu grupowego zapisz jako stałe <code>GROUP_SIZE</code> i <code>GROUP_DISCOUNT_PERCENT</code>.</li>
-<li>W <code>BookingService</code> podawaj cenę jednostkową jako <code>Money.of(&quot;25.00&quot;)</code> itd. i wypisuj <code>quote.total()</code> bez <code>String.format</code>.</li>
+<li>W <code>BookingService</code> podawaj cenę jednostkową jako <code>Money.of(&quot;25.00&quot;)</code> itd. i wypisuj <code>quote.total()</code> bez <code>String.format</code>; dochodzi import <code>Money</code>, znika import <code>java.util.Locale</code>.</li>
 </ol>
-<p><strong>Przed:</strong></p>
+<p><strong>Po (<code>pricing/<wbr>Quote.java</code>, cały plik):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">import</span> pl.training.workshop.shared.Money;
+
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">record</span> <span class="hljs-title class_">Quote</span><span class="hljs-params">(Money total, <span class="hljs-type">boolean</span> groupDiscount)</span> {
+}
+</code></pre>
+<p><strong>Przed (<code>pricing/<wbr>TicketPricing.java</code>):</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">Quote</span> <span class="hljs-title function_">total</span><span class="hljs-params">(<span class="hljs-type">int</span> tickets, <span class="hljs-type">double</span> unitPrice)</span> {
     <span class="hljs-type">double</span> <span class="hljs-variable">sum</span> <span class="hljs-operator">=</span> unitPrice * tickets;
     <span class="hljs-type">boolean</span> <span class="hljs-variable">groupDiscount</span> <span class="hljs-operator">=</span> tickets &gt;= <span class="hljs-number">10</span>;
@@ -371,9 +541,50 @@ context.put(<span class="hljs-string">&quot;row&quot;</span>, quote.row());
     <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Quote</span>(Math.round(sum * <span class="hljs-number">100</span>) / <span class="hljs-number">100.0</span>, groupDiscount);
 }
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">Quote</span> <span class="hljs-title function_">total</span><span class="hljs-params">(<span class="hljs-type">int</span> tickets, Money unitPrice)</span> {
-    <span class="hljs-type">Money</span> <span class="hljs-variable">sum</span> <span class="hljs-operator">=</span> unitPrice.times(tickets);
+<p><strong>Po (<code>pricing/<wbr>TicketPricing.java</code>):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">import</span> pl.training.workshop.shared.Money;
+
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">TicketPricing</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">int</span> <span class="hljs-variable">GROUP_SIZE</span> <span class="hljs-operator">=</span> <span class="hljs-number">10</span>;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">int</span> <span class="hljs-variable">GROUP_DISCOUNT_PERCENT</span> <span class="hljs-operator">=</span> <span class="hljs-number">10</span>;
+
+    <span class="hljs-keyword">public</span> <span class="hljs-type">Quote</span> <span class="hljs-title function_">total</span><span class="hljs-params">(<span class="hljs-type">int</span> tickets, Money unitPrice)</span> {
+        <span class="hljs-type">Money</span> <span class="hljs-variable">sum</span> <span class="hljs-operator">=</span> unitPrice.times(tickets);
+        <span class="hljs-type">boolean</span> <span class="hljs-variable">groupDiscount</span> <span class="hljs-operator">=</span> tickets &gt;= GROUP_SIZE;
+        <span class="hljs-keyword">if</span> (groupDiscount) {
+            sum = sum.minus(sum.percent(GROUP_DISCOUNT_PERCENT));
+        }
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Quote</span>(sum, groupDiscount);
+    }
+}
+</code></pre>
+<p><strong>Przed (<code>BookingService.java</code>, metoda <code>book</code>):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">book</span><span class="hljs-params">(String organizer, <span class="hljs-type">int</span> tickets, String format)</span> {
+    <span class="hljs-type">double</span> <span class="hljs-variable">unitPrice</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">switch</span> (format) {
+        <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;IMAX&quot;</span> -&gt; <span class="hljs-number">40.00</span>;
+        <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;3D&quot;</span> -&gt; <span class="hljs-number">32.00</span>;
+        <span class="hljs-keyword">default</span> -&gt; <span class="hljs-number">25.00</span>;
+    };
+    <span class="hljs-type">Quote</span> <span class="hljs-variable">quote</span> <span class="hljs-operator">=</span> pricing.total(tickets, unitPrice);
+    <span class="hljs-keyword">if</span> (quote.groupDiscount()) {
+        mailer.groupDiscountGranted(organizer, tickets);
+    }
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;DO ZAPLATY &quot;</span> + String.format(Locale.ROOT, <span class="hljs-string">&quot;%.2f&quot;</span>, quote.total());
+}
+</code></pre>
+<p><strong>Po (<code>BookingService.java</code>, metoda <code>book</code>; pola i <code>sentMails</code> bez zmian):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">book</span><span class="hljs-params">(String organizer, <span class="hljs-type">int</span> tickets, String format)</span> {
+    <span class="hljs-type">Money</span> <span class="hljs-variable">unitPrice</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">switch</span> (format) {
+        <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;IMAX&quot;</span> -&gt; Money.of(<span class="hljs-string">&quot;40.00&quot;</span>);
+        <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;3D&quot;</span> -&gt; Money.of(<span class="hljs-string">&quot;32.00&quot;</span>);
+        <span class="hljs-keyword">default</span> -&gt; Money.of(<span class="hljs-string">&quot;25.00&quot;</span>);
+    };
+    <span class="hljs-type">Quote</span> <span class="hljs-variable">quote</span> <span class="hljs-operator">=</span> pricing.total(tickets, unitPrice);
+    <span class="hljs-keyword">if</span> (quote.groupDiscount()) {
+        mailer.groupDiscountGranted(organizer, tickets);
+    }
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;DO ZAPLATY &quot;</span> + quote.total();
+}
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony; <code>step2CompliesWithTheDecision</code> - pusta lista naruszeń.
 <strong>Co powiedzieć:</strong> moduł jest zgodny z decyzją, a test pilnuje, żeby tak zostało.
@@ -425,11 +636,28 @@ context.put(<span class="hljs-string">&quot;row&quot;</span>, quote.row());
     }
     seats.add(seat);
 }
+
+<span class="hljs-keyword">public</span> <span class="hljs-type">Map</span>&lt;Integer, Integer&gt; <span class="hljs-title function_">takenPerRow</span><span class="hljs-params">()</span> {
+    <span class="hljs-type">Map</span>&lt;Integer, Integer&gt; <span class="hljs-variable">result</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">TreeMap</span>&lt;&gt;();
+    <span class="hljs-keyword">for</span> (Object row : seatsByRow.keySet()) {
+        result.put((Integer) row, ((List) seatsByRow.get(row)).size());
+    }
+    <span class="hljs-keyword">return</span> result;
+}
 </code></pre>
 <p><strong>Po:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">Map</span>&lt;Integer, List&lt;String&gt;&gt; <span class="hljs-variable">seatsByRow</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">TreeMap</span>&lt;&gt;();
-...
-seatsByRow.computeIfAbsent(row, r -&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;()).add(seat);
+
+<span class="hljs-keyword">public</span> <span class="hljs-type">void</span> <span class="hljs-title function_">take</span><span class="hljs-params">(String seat)</span> {
+    <span class="hljs-type">Integer</span> <span class="hljs-variable">row</span> <span class="hljs-operator">=</span> Integer.valueOf(seat.substring(<span class="hljs-number">1</span>));
+    seatsByRow.computeIfAbsent(row, r -&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;()).add(seat);
+}
+
+<span class="hljs-keyword">public</span> <span class="hljs-type">Map</span>&lt;Integer, Integer&gt; <span class="hljs-title function_">takenPerRow</span><span class="hljs-params">()</span> {
+    <span class="hljs-type">Map</span>&lt;Integer, Integer&gt; <span class="hljs-variable">result</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">TreeMap</span>&lt;&gt;();
+    seatsByRow.forEach((row, seats) -&gt; result.put(row, seats.size()));
+    <span class="hljs-keyword">return</span> result;
+}
 </code></pre>
 <p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh test m2/<wbr>s03</code> - zostają kategorie <code>deprecation</code>, <code>fallthrough</code>.
 <strong>Co powiedzieć:</strong> jedna kategoria ostrzeżeń na krok - łatwy przegląd, łatwe wycofanie.
@@ -509,7 +737,7 @@ seatsByRow.computeIfAbsent(row, r -&gt; <span class="hljs-keyword">new</span> <s
 <ol>
 <li>W <code>QualityGate</code> dodaj prywatną metodę <code>scanSources(GateInput, List&lt;String&gt;)</code>: dla każdego pliku <code>.java</code> w katalogu źródeł czyta linie, a linię z <code>TODO</code>/<code>FIXME</code> albo <code>System.out</code>/<code>System.err</code> zamienia na wynik z nazwą pliku i numerem linii.</li>
 <li>Dodaj pomocnicze metody <code>javaFiles(Path)</code> i <code>read(Path)</code> (lista plików <code>.java</code> i odczyt linii).</li>
-<li><code>evaluate</code> zbiera wyniki do listy <code>findings</code> i zwraca ją zamiast pustego <code>List.of()</code>.</li>
+<li><code>evaluate</code> zbiera wyniki do listy <code>findings</code> i zwraca ją zamiast pustego <code>List.of()</code>; metoda <code>passes</code> bez zmian. Dochodzą importy: <code>java.io.IOException</code>, <code>java.io.UncheckedIOException</code>, <code>java.nio.file.Files</code>, <code>java.nio.file.Path</code>, <code>java.util.ArrayList</code>, <code>java.util.stream.Stream</code>.</li>
 </ol>
 <p><strong>Przed:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-title function_">evaluate</span><span class="hljs-params">(GateInput input)</span> {
@@ -517,8 +745,43 @@ seatsByRow.computeIfAbsent(row, r -&gt; <span class="hljs-keyword">new</span> <s
 }
 </code></pre>
 <p><strong>Po:</strong></p>
-<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">if</span> (line.contains(<span class="hljs-string">&quot;TODO&quot;</span>) || line.contains(<span class="hljs-string">&quot;FIXME&quot;</span>)) {
-    findings.add(<span class="hljs-string">&quot;TODO &quot;</span> + where);
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-title function_">evaluate</span><span class="hljs-params">(GateInput input)</span> {
+    <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-variable">findings</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();
+    scanSources(input, findings);
+    <span class="hljs-keyword">return</span> findings;
+}
+
+<span class="hljs-comment">/** TODO/FIXME i wydruki na konsolę w źródłach domeny. */</span>
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">scanSources</span><span class="hljs-params">(GateInput input, List&lt;String&gt; findings)</span> {
+    <span class="hljs-keyword">for</span> (Path file : javaFiles(input.sources())) {
+        <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-variable">lines</span> <span class="hljs-operator">=</span> read(file);
+        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; lines.size(); i++) {
+            <span class="hljs-type">String</span> <span class="hljs-variable">line</span> <span class="hljs-operator">=</span> lines.get(i);
+            <span class="hljs-type">String</span> <span class="hljs-variable">where</span> <span class="hljs-operator">=</span> file.getFileName() + <span class="hljs-string">&quot;:&quot;</span> + (i + <span class="hljs-number">1</span>);
+            <span class="hljs-keyword">if</span> (line.contains(<span class="hljs-string">&quot;TODO&quot;</span>) || line.contains(<span class="hljs-string">&quot;FIXME&quot;</span>)) {
+                findings.add(<span class="hljs-string">&quot;TODO &quot;</span> + where);
+            }
+            <span class="hljs-keyword">if</span> (line.contains(<span class="hljs-string">&quot;System.out&quot;</span>) || line.contains(<span class="hljs-string">&quot;System.err&quot;</span>)) {
+                findings.add(<span class="hljs-string">&quot;System.out &quot;</span> + where);
+            }
+        }
+    }
+}
+
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-type">List</span>&lt;Path&gt; <span class="hljs-title function_">javaFiles</span><span class="hljs-params">(Path dir)</span> {
+    <span class="hljs-keyword">try</span> (<span class="hljs-type">Stream</span>&lt;Path&gt; <span class="hljs-variable">files</span> <span class="hljs-operator">=</span> Files.list(dir)) {
+        <span class="hljs-keyword">return</span> files.filter(f -&gt; f.toString().endsWith(<span class="hljs-string">&quot;.java&quot;</span>)).sorted().toList();
+    } <span class="hljs-keyword">catch</span> (IOException e) {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">UncheckedIOException</span>(e);
+    }
+}
+
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-title function_">read</span><span class="hljs-params">(Path file)</span> {
+    <span class="hljs-keyword">try</span> {
+        <span class="hljs-keyword">return</span> Files.readAllLines(file);
+    } <span class="hljs-keyword">catch</span> (IOException e) {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">UncheckedIOException</span>(e);
+    }
 }
 </code></pre>
 <p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh test m2/<wbr>s04</code> - <code>TODO PriceTable.java:14</code>, <code>System.out PriceTable.java:23</code>.
@@ -529,7 +792,7 @@ seatsByRow.computeIfAbsent(row, r -&gt; <span class="hljs-keyword">new</span> <s
 <ol>
 <li>Dodaj metodę <code>compileSources(GateInput, List&lt;String&gt;)</code>: kompiluje źródła domeny przez <code>javax.tools</code> z opcjami <code>--release 25 -Xlint:all</code>, a każdą diagnostykę inną niż NOTE zamienia na wynik z plikiem, linią i kodem ostrzeżenia.</li>
 <li>Dodaj pomocnicze <code>tempDir()</code> i <code>delete(Path)</code> - kompilacja pisze do katalogu tymczasowego, sprzątanego po zakończeniu.</li>
-<li>W <code>evaluate</code> wywołaj <code>compileSources</code> przed <code>scanSources</code>.</li>
+<li>W <code>evaluate</code> wywołaj <code>compileSources</code> przed <code>scanSources</code>. Dochodzą importy: <code>java.nio.charset.StandardCharsets</code>, <code>java.util.Comparator</code>, <code>java.util.Locale</code> oraz z pakietu <code>javax.tools</code>: <code>Diagnostic</code>, <code>DiagnosticCollector</code>, <code>JavaCompiler</code>, <code>JavaFileObject</code>, <code>StandardJavaFileManager</code>, <code>ToolProvider</code>.</li>
 </ol>
 <p><strong>Przed:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-title function_">evaluate</span><span class="hljs-params">(GateInput input)</span> {
@@ -538,9 +801,54 @@ seatsByRow.computeIfAbsent(row, r -&gt; <span class="hljs-keyword">new</span> <s
     <span class="hljs-keyword">return</span> findings;
 }
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="java"><code class="hljs">findings.add(<span class="hljs-string">&quot;kompilator &quot;</span> + Path.of(d.getSource().toUri()).getFileName() + <span class="hljs-string">&quot;:&quot;</span>
-        + d.getLineNumber() + <span class="hljs-string">&quot; &quot;</span> + d.getCode());
+<p><strong>Po (<code>evaluate</code> i nowe metody; reszta klasy bez zmian):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-title function_">evaluate</span><span class="hljs-params">(GateInput input)</span> {
+    <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-variable">findings</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();
+    compileSources(input, findings);
+    scanSources(input, findings);
+    <span class="hljs-keyword">return</span> findings;
+}
+
+<span class="hljs-comment">/** Kompilacja źródeł domeny z -Xlint:all; każde ostrzeżenie to wynik bramki. */</span>
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">compileSources</span><span class="hljs-params">(GateInput input, List&lt;String&gt; findings)</span> {
+    <span class="hljs-type">JavaCompiler</span> <span class="hljs-variable">compiler</span> <span class="hljs-operator">=</span> ToolProvider.getSystemJavaCompiler();
+    <span class="hljs-type">DiagnosticCollector</span>&lt;JavaFileObject&gt; <span class="hljs-variable">diagnostics</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">DiagnosticCollector</span>&lt;&gt;();
+    <span class="hljs-type">Path</span> <span class="hljs-variable">output</span> <span class="hljs-operator">=</span> tempDir();
+    <span class="hljs-keyword">try</span> (<span class="hljs-type">StandardJavaFileManager</span> <span class="hljs-variable">files</span> <span class="hljs-operator">=</span>
+            compiler.getStandardFileManager(diagnostics, Locale.ROOT, StandardCharsets.UTF_8)) {
+        compiler.getTask(<span class="hljs-literal">null</span>, files, diagnostics,
+                List.of(<span class="hljs-string">&quot;--release&quot;</span>, <span class="hljs-string">&quot;25&quot;</span>, <span class="hljs-string">&quot;-proc:none&quot;</span>, <span class="hljs-string">&quot;-Xlint:all&quot;</span>, <span class="hljs-string">&quot;-d&quot;</span>, output.toString()), <span class="hljs-literal">null</span>,
+                files.getJavaFileObjectsFromPaths(javaFiles(input.sources()))).call();
+    } <span class="hljs-keyword">catch</span> (IOException e) {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">UncheckedIOException</span>(e);
+    } <span class="hljs-keyword">finally</span> {
+        delete(output);
+    }
+    <span class="hljs-keyword">for</span> (Diagnostic&lt;? <span class="hljs-keyword">extends</span> <span class="hljs-title class_">JavaFileObject</span>&gt; d : diagnostics.getDiagnostics()) {
+        <span class="hljs-keyword">if</span> (d.getKind() != Diagnostic.Kind.NOTE &amp;&amp; d.getSource() != <span class="hljs-literal">null</span>) {
+            findings.add(<span class="hljs-string">&quot;kompilator &quot;</span> + Path.of(d.getSource().toUri()).getFileName() + <span class="hljs-string">&quot;:&quot;</span>
+                    + d.getLineNumber() + <span class="hljs-string">&quot; &quot;</span> + d.getCode());
+        }
+    }
+}
+
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-type">Path</span> <span class="hljs-title function_">tempDir</span><span class="hljs-params">()</span> {
+    <span class="hljs-keyword">try</span> {
+        <span class="hljs-keyword">return</span> Files.createTempDirectory(<span class="hljs-string">&quot;quality-gate&quot;</span>);
+    } <span class="hljs-keyword">catch</span> (IOException e) {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">UncheckedIOException</span>(e);
+    }
+}
+
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">delete</span><span class="hljs-params">(Path dir)</span> {
+    <span class="hljs-keyword">try</span> (<span class="hljs-type">Stream</span>&lt;Path&gt; <span class="hljs-variable">paths</span> <span class="hljs-operator">=</span> Files.walk(dir)) {
+        <span class="hljs-keyword">for</span> (Path path : paths.sorted(Comparator.reverseOrder()).toList()) {
+            Files.deleteIfExists(path);
+        }
+    } <span class="hljs-keyword">catch</span> (IOException e) {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">UncheckedIOException</span>(e);
+    }
+}
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony; dochodzą dwa wyniki <code>compiler.warn.raw.class.use</code>.
 <strong>Co powiedzieć:</strong> to ta sama idea co w s03, tu jako jeden z kilku sygnałów bramki.
@@ -550,7 +858,7 @@ seatsByRow.computeIfAbsent(row, r -&gt; <span class="hljs-keyword">new</span> <s
 <ol>
 <li>Dodaj stałą <code>PUBLIC_METHOD</code> - wyrażenie regularne wyłapujące nazwy publicznych metod.</li>
 <li>Dodaj metodę <code>checkCoverage(GateInput, List&lt;String&gt;)</code>: dla każdej publicznej metody kluczowej klasy sprawdza, czy źródło testu zawiera wywołanie <code>.nazwa(</code>; brak wywołania to wynik &quot;pokrycie ... bez testu&quot;.</li>
-<li>W <code>evaluate</code> dołóż <code>checkCoverage</code> po <code>scanSources</code>.</li>
+<li>W <code>evaluate</code> dołóż <code>checkCoverage</code> po <code>scanSources</code>. Dochodzą importy <code>java.util.regex.Matcher</code> i <code>java.util.regex.Pattern</code>.</li>
 </ol>
 <p><strong>Przed:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-title function_">evaluate</span><span class="hljs-params">(GateInput input)</span> {
@@ -560,9 +868,29 @@ seatsByRow.computeIfAbsent(row, r -&gt; <span class="hljs-keyword">new</span> <s
     <span class="hljs-keyword">return</span> findings;
 }
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">if</span> (!test.contains(<span class="hljs-string">&quot;.&quot;</span> + method.group(<span class="hljs-number">1</span>) + <span class="hljs-string">&quot;(&quot;</span>)) {
-    findings.add(<span class="hljs-string">&quot;pokrycie &quot;</span> + input.keyClass() + <span class="hljs-string">&quot;.&quot;</span> + method.group(<span class="hljs-number">1</span>) + <span class="hljs-string">&quot; bez testu&quot;</span>);
+<p><strong>Po (stała, <code>evaluate</code> i nowa metoda; reszta klasy bez zmian):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">Pattern</span> <span class="hljs-variable">PUBLIC_METHOD</span> <span class="hljs-operator">=</span>
+        Pattern.compile(<span class="hljs-string">&quot;public\\s+(?:static\\s+)?[\\w&lt;&gt;\\[\\],]+\\s+(\\w+)\\s*\\(&quot;</span>);
+
+<span class="hljs-comment">/** Lista wyników bramki; pusta lista = bramka przepuszcza zmianę. */</span>
+<span class="hljs-keyword">public</span> <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-title function_">evaluate</span><span class="hljs-params">(GateInput input)</span> {
+    <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-variable">findings</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();
+    compileSources(input, findings);
+    scanSources(input, findings);
+    checkCoverage(input, findings);
+    <span class="hljs-keyword">return</span> findings;
+}
+
+<span class="hljs-comment">/** Przybliżenie pokrycia: publiczna metoda kluczowej klasy musi być wywołana w jej teście. */</span>
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">checkCoverage</span><span class="hljs-params">(GateInput input, List&lt;String&gt; findings)</span> {
+    <span class="hljs-type">String</span> <span class="hljs-variable">source</span> <span class="hljs-operator">=</span> String.join(<span class="hljs-string">&quot;\n&quot;</span>, read(input.sources().resolve(input.keyClass() + <span class="hljs-string">&quot;.java&quot;</span>)));
+    <span class="hljs-type">String</span> <span class="hljs-variable">test</span> <span class="hljs-operator">=</span> String.join(<span class="hljs-string">&quot;\n&quot;</span>, read(input.testSource()));
+    <span class="hljs-type">Matcher</span> <span class="hljs-variable">method</span> <span class="hljs-operator">=</span> PUBLIC_METHOD.matcher(source);
+    <span class="hljs-keyword">while</span> (method.find()) {
+        <span class="hljs-keyword">if</span> (!test.contains(<span class="hljs-string">&quot;.&quot;</span> + method.group(<span class="hljs-number">1</span>) + <span class="hljs-string">&quot;(&quot;</span>)) {
+            findings.add(<span class="hljs-string">&quot;pokrycie &quot;</span> + input.keyClass() + <span class="hljs-string">&quot;.&quot;</span> + method.group(<span class="hljs-number">1</span>) + <span class="hljs-string">&quot; bez testu&quot;</span>);
+        }
+    }
 }
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony; <code>vipSurcharge</code> i <code>lookupCount</code> bez testu.
@@ -573,7 +901,7 @@ seatsByRow.computeIfAbsent(row, r -&gt; <span class="hljs-keyword">new</span> <s
 <ol>
 <li>Dodaj metodę <code>runTests(GateInput, List&lt;String&gt;)</code>: refleksją ładuje klasę testową, wybiera metody z adnotacją o prostej nazwie <code>Test</code> (JUnit albo dowolna inna), uruchamia każdą na świeżej instancji i porażkę (<code>InvocationTargetException</code>) zamienia na wynik z nazwą testu i typem wyjątku.</li>
 <li>Gdy klasy testowej nie da się uruchomić, bramka zgłasza to jako wynik zamiast przepuszczać zmianę.</li>
-<li>W <code>evaluate</code> wywołaj <code>runTests</code> jako pierwsze sprawdzenie.</li>
+<li>W <code>evaluate</code> wywołaj <code>runTests</code> jako pierwsze sprawdzenie. Dochodzą importy: <code>java.lang.reflect.InvocationTargetException</code>, <code>java.lang.reflect.Method</code>, <code>java.util.Arrays</code>.</li>
 </ol>
 <p><strong>Przed:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-title function_">evaluate</span><span class="hljs-params">(GateInput input)</span> {
@@ -584,12 +912,39 @@ seatsByRow.computeIfAbsent(row, r -&gt; <span class="hljs-keyword">new</span> <s
     <span class="hljs-keyword">return</span> findings;
 }
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">try</span> {
-    test.invoke(constructor.newInstance());
-} <span class="hljs-keyword">catch</span> (InvocationTargetException failure) {
-    findings.add(<span class="hljs-string">&quot;test &quot;</span> + type.getSimpleName() + <span class="hljs-string">&quot;.&quot;</span> + test.getName() + <span class="hljs-string">&quot; nie przechodzi: &quot;</span>
-            + failure.getCause().getClass().getSimpleName());
+<p><strong>Po (<code>evaluate</code> i nowa metoda; reszta klasy bez zmian):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-title function_">evaluate</span><span class="hljs-params">(GateInput input)</span> {
+    <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-variable">findings</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();
+    runTests(input, findings);
+    compileSources(input, findings);
+    scanSources(input, findings);
+    checkCoverage(input, findings);
+    <span class="hljs-keyword">return</span> findings;
+}
+
+<span class="hljs-comment">/** Uruchamia metody oznaczone adnotacją o nazwie Test (JUnit albo dowolna inna). */</span>
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">runTests</span><span class="hljs-params">(GateInput input, List&lt;String&gt; findings)</span> {
+    <span class="hljs-keyword">try</span> {
+        <span class="hljs-type">Class</span>&lt;?&gt; <span class="hljs-variable">type</span> <span class="hljs-operator">=</span> Class.forName(input.testClass());
+        <span class="hljs-type">List</span>&lt;Method&gt; <span class="hljs-variable">tests</span> <span class="hljs-operator">=</span> Arrays.stream(type.getDeclaredMethods())
+                .filter(m -&gt; Arrays.stream(m.getAnnotations())
+                        .anyMatch(a -&gt; a.annotationType().getSimpleName().equals(<span class="hljs-string">&quot;Test&quot;</span>)))
+                .sorted((a, b) -&gt; a.getName().compareTo(b.getName()))
+                .toList();
+        <span class="hljs-keyword">for</span> (Method test : tests) {
+            <span class="hljs-type">var</span> <span class="hljs-variable">constructor</span> <span class="hljs-operator">=</span> type.getDeclaredConstructor();
+            constructor.setAccessible(<span class="hljs-literal">true</span>);
+            test.setAccessible(<span class="hljs-literal">true</span>);
+            <span class="hljs-keyword">try</span> {
+                test.invoke(constructor.newInstance());
+            } <span class="hljs-keyword">catch</span> (InvocationTargetException failure) {
+                findings.add(<span class="hljs-string">&quot;test &quot;</span> + type.getSimpleName() + <span class="hljs-string">&quot;.&quot;</span> + test.getName() + <span class="hljs-string">&quot; nie przechodzi: &quot;</span>
+                        + failure.getCause().getClass().getSimpleName());
+            }
+        }
+    } <span class="hljs-keyword">catch</span> (ReflectiveOperationException e) {
+        findings.add(<span class="hljs-string">&quot;test &quot;</span> + input.testClass() + <span class="hljs-string">&quot; nie da się uruchomić: &quot;</span> + e);
+    }
 }
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony; <code>step4AddsGreenTestsAndCatchesAFailingOne</code> - fikstura <code>sample/<wbr>broken</code> (celowo nie JUnit, żeby nie psuć buildu) daje wynik <code>test PriceTableTest.vipSurchargeStartsAtRowNine nie przechodzi: AssertionError</code>.
@@ -627,7 +982,7 @@ seatsByRow.computeIfAbsent(row, r -&gt; <span class="hljs-keyword">new</span> <s
 <p><strong>Zmiany:</strong></p>
 <ol>
 <li>Nie rób tego kroku ręcznie - wczytaj gotowy antyprzykład: <code>scripts/<wbr>warsztat.sh jump m2/<wbr>s05 1</code>.</li>
-<li>W antyprzykładzie obok dobrych ruchów (nazwy, <code>StringBuilder</code>, <code>String.join</code>) przemycono trzy zmiany zachowania: miejsca są sortowane, e-mail przechodzi na małe litery, a linia &quot;Tel&quot; znika, gdy telefonu brak; dodatkowo kwotę formatuje <code>Money</code> zamiast <code>String.format</code>.</li>
+<li>W antyprzykładzie obok dobrych ruchów (nazwy, <code>StringBuilder</code>, <code>String.join</code>) przemycono trzy zmiany zachowania: miejsca są sortowane, e-mail przechodzi na małe litery, a linia &quot;Tel&quot; znika, gdy telefonu brak; dodatkowo kwotę formatuje <code>Money</code> zamiast <code>String.format</code> (dochodzą importy <code>java.math.BigDecimal</code>, <code>java.util.List</code> i <code>pl.training.workshop.shared.Money</code>).</li>
 </ol>
 <p><strong>Przed:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs">s = s + <span class="hljs-string">&quot;Miejsca: &quot;</span> + x + <span class="hljs-string">&quot;\n&quot;</span>;
@@ -638,9 +993,21 @@ s = s + <span class="hljs-string">&quot;Klient: &quot;</span> + t.email().trim()
     s = s + <span class="hljs-string">&quot;Tel: -\n&quot;</span>;
 }
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-variable">sortedSeats</span> <span class="hljs-operator">=</span> ticket.seats().stream().sorted().toList();
-text.append(<span class="hljs-string">&quot;Klient: &quot;</span>).append(ticket.email().trim().toLowerCase(Locale.ROOT)).append(<span class="hljs-string">&#x27;\n&#x27;</span>);
+<p><strong>Po (cała metoda <code>print</code> antyprzykładu):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">print</span><span class="hljs-params">(Ticket ticket)</span> {
+    <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">text</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>();
+    text.append(<span class="hljs-string">&quot;Film: &quot;</span>).append(ticket.title()).append(<span class="hljs-string">&#x27;\n&#x27;</span>);
+    text.append(<span class="hljs-string">&quot;Seans: &quot;</span>).append(ticket.start().toLocalDate()).append(<span class="hljs-string">&#x27; &#x27;</span>)
+            .append(ticket.start().toLocalTime()).append(<span class="hljs-string">&#x27;\n&#x27;</span>);
+    <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-variable">sortedSeats</span> <span class="hljs-operator">=</span> ticket.seats().stream().sorted().toList();
+    text.append(<span class="hljs-string">&quot;Miejsca: &quot;</span>).append(String.join(<span class="hljs-string">&quot;, &quot;</span>, sortedSeats)).append(<span class="hljs-string">&#x27;\n&#x27;</span>);
+    text.append(<span class="hljs-string">&quot;Klient: &quot;</span>).append(ticket.email().trim().toLowerCase(Locale.ROOT)).append(<span class="hljs-string">&#x27;\n&#x27;</span>);
+    <span class="hljs-keyword">if</span> (ticket.phone() != <span class="hljs-literal">null</span>) {
+        text.append(<span class="hljs-string">&quot;Tel: &quot;</span>).append(ticket.phone()).append(<span class="hljs-string">&#x27;\n&#x27;</span>);
+    }
+    text.append(<span class="hljs-string">&quot;Do zaplaty: &quot;</span>).append(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Money</span>(BigDecimal.valueOf(ticket.total()))).append(<span class="hljs-string">&#x27;\n&#x27;</span>);
+    <span class="hljs-keyword">return</span> text.toString();
+}
 </code></pre>
 <p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh test m2/<wbr>s05</code> - równoważność czerwona w trzech przypadkach (m.in. <code>A9, A10</code> staje się <code>A10, A9</code>). <code>S05SolutionTest.abusiveCleanupChangesBehaviourInThreeCases</code> dokumentuje, które.
 <strong>Co powiedzieć:</strong> każda z tych zmian może być dobrym pomysłem, ale to decyzje biznesowe, nie sprzątanie. Cofamy: <code>scripts/<wbr>warsztat.sh reset m2/<wbr>s05</code>.
@@ -668,13 +1035,33 @@ text.append(<span class="hljs-string">&quot;Klient: &quot;</span>).append(ticket
         x = x + t.seats().get(i);
     }
     s = s + <span class="hljs-string">&quot;Miejsca: &quot;</span> + x + <span class="hljs-string">&quot;\n&quot;</span>;
-    ...
+    s = s + <span class="hljs-string">&quot;Klient: &quot;</span> + t.email().trim() + <span class="hljs-string">&quot;\n&quot;</span>;
+    <span class="hljs-keyword">if</span> (t.phone() != <span class="hljs-literal">null</span>) {
+        s = s + <span class="hljs-string">&quot;Tel: &quot;</span> + t.phone() + <span class="hljs-string">&quot;\n&quot;</span>;
+    } <span class="hljs-keyword">else</span> {
+        s = s + <span class="hljs-string">&quot;Tel: -\n&quot;</span>;
+    }
+    s = s + <span class="hljs-string">&quot;Do zaplaty: &quot;</span> + String.format(Locale.ROOT, <span class="hljs-string">&quot;%.2f&quot;</span>, t.total()) + <span class="hljs-string">&quot;\n&quot;</span>;
+    <span class="hljs-keyword">return</span> s;
 }
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="java"><code class="hljs">.append(<span class="hljs-string">&quot;Miejsca: &quot;</span>).append(String.join(<span class="hljs-string">&quot;, &quot;</span>, ticket.seats())).append(<span class="hljs-string">&#x27;\n&#x27;</span>)
-.append(<span class="hljs-string">&quot;Klient: &quot;</span>).append(ticket.email().trim()).append(<span class="hljs-string">&#x27;\n&#x27;</span>)
-.append(phoneLine(ticket)).append(<span class="hljs-string">&#x27;\n&#x27;</span>)
+<p><strong>Po (cała metoda <code>print</code> i nowa metoda; importy bez zmian):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">print</span><span class="hljs-params">(Ticket ticket)</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>()
+            .append(<span class="hljs-string">&quot;Film: &quot;</span>).append(ticket.title()).append(<span class="hljs-string">&#x27;\n&#x27;</span>)
+            .append(<span class="hljs-string">&quot;Seans: &quot;</span>).append(ticket.start().toLocalDate()).append(<span class="hljs-string">&#x27; &#x27;</span>)
+            .append(ticket.start().toLocalTime()).append(<span class="hljs-string">&#x27;\n&#x27;</span>)
+            .append(<span class="hljs-string">&quot;Miejsca: &quot;</span>).append(String.join(<span class="hljs-string">&quot;, &quot;</span>, ticket.seats())).append(<span class="hljs-string">&#x27;\n&#x27;</span>)
+            .append(<span class="hljs-string">&quot;Klient: &quot;</span>).append(ticket.email().trim()).append(<span class="hljs-string">&#x27;\n&#x27;</span>)
+            .append(phoneLine(ticket)).append(<span class="hljs-string">&#x27;\n&#x27;</span>)
+            .append(<span class="hljs-string">&quot;Do zaplaty: &quot;</span>).append(String.format(Locale.ROOT, <span class="hljs-string">&quot;%.2f&quot;</span>, ticket.total()))
+            .append(<span class="hljs-string">&#x27;\n&#x27;</span>)
+            .toString();
+}
+
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-type">String</span> <span class="hljs-title function_">phoneLine</span><span class="hljs-params">(Ticket ticket)</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;Tel: &quot;</span> + (ticket.phone() != <span class="hljs-literal">null</span> ? ticket.phone() : <span class="hljs-string">&quot;-&quot;</span>);
+}
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony.
 <strong>Co powiedzieć:</strong> tylko dotykana metoda, bez zmiany kontraktu, diff do przejrzenia w minutę. Nowa linia &quot;Sala&quot; to osobny commit (patrz s06).
@@ -709,32 +1096,67 @@ text.append(<span class="hljs-string">&quot;Klient: &quot;</span>).append(ticket
 <ol>
 <li>Wybór ceny bazowej wydziel do metody <code>basePrice(String format)</code> (Extract Method).</li>
 <li>Wybór zniżki wydziel do metody <code>discountPercent(String type)</code>, która zwraca procent zamiast kwoty (Extract Method).</li>
-<li>Kwoty przejdź z <code>BigDecimal</code> na <code>Money</code>: <code>base.minus(base.percent(...))</code>, <code>Money.of(&quot;5.00&quot;)</code>, <code>Money.of(&quot;10.00&quot;)</code>; przy okazji zmień nazwę parametru <code>q</code> na <code>query</code> (Rename).</li>
+<li>Kwoty przejdź z <code>BigDecimal</code> na <code>Money</code>: <code>base.minus(base.percent(...))</code>, <code>Money.of(&quot;5.00&quot;)</code>, <code>Money.of(&quot;10.00&quot;)</code>; przy okazji zmień nazwę parametru <code>q</code> na <code>query</code> (Rename). Znika import <code>java.math.BigDecimal</code>.</li>
 </ol>
-<p><strong>Przed:</strong></p>
-<pre class="code" data-lang="java"><code class="hljs">BigDecimal p;
-<span class="hljs-keyword">if</span> (q.format().equals(<span class="hljs-string">&quot;IMAX&quot;</span>)) {
-    p = <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;40.00&quot;</span>);
-} <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (q.format().equals(<span class="hljs-string">&quot;3D&quot;</span>)) {
-    p = <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;32.00&quot;</span>);
-} <span class="hljs-keyword">else</span> {
-    p = <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;25.00&quot;</span>);
+<p><strong>Przed (cała metoda <code>price</code>):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">Money</span> <span class="hljs-title function_">price</span><span class="hljs-params">(TicketQuery q)</span> {
+    BigDecimal p;
+    <span class="hljs-keyword">if</span> (q.format().equals(<span class="hljs-string">&quot;IMAX&quot;</span>)) {
+        p = <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;40.00&quot;</span>);
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (q.format().equals(<span class="hljs-string">&quot;3D&quot;</span>)) {
+        p = <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;32.00&quot;</span>);
+    } <span class="hljs-keyword">else</span> {
+        p = <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;25.00&quot;</span>);
+    }
+    BigDecimal d;
+    <span class="hljs-keyword">if</span> (q.type().equals(<span class="hljs-string">&quot;STUDENT&quot;</span>)) {
+        d = p.multiply(<span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;0.25&quot;</span>));
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (q.type().equals(<span class="hljs-string">&quot;SENIOR&quot;</span>)) {
+        d = p.multiply(<span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;0.30&quot;</span>));
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (q.type().equals(<span class="hljs-string">&quot;CHILD&quot;</span>)) {
+        d = p.multiply(<span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;0.40&quot;</span>));
+    } <span class="hljs-keyword">else</span> {
+        d = BigDecimal.ZERO;
+    }
+    p = p.subtract(d);
+    <span class="hljs-keyword">if</span> (q.start().getHour() &lt; <span class="hljs-number">12</span>) {
+        p = p.subtract(<span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;5.00&quot;</span>));
+    }
+    <span class="hljs-keyword">if</span> (q.row() &gt;= <span class="hljs-number">10</span>) {
+        p = p.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;10.00&quot;</span>));
+    }
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Money</span>(p);
 }
-BigDecimal d;
-<span class="hljs-keyword">if</span> (q.type().equals(<span class="hljs-string">&quot;STUDENT&quot;</span>)) {
-    d = p.multiply(<span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;0.25&quot;</span>));
-} <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (q.type().equals(<span class="hljs-string">&quot;SENIOR&quot;</span>)) {
-    d = p.multiply(<span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;0.30&quot;</span>));
-} <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (q.type().equals(<span class="hljs-string">&quot;CHILD&quot;</span>)) {
-    d = p.multiply(<span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;0.40&quot;</span>));
-} <span class="hljs-keyword">else</span> {
-    d = BigDecimal.ZERO;
-}
-p = p.subtract(d);
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">Money</span> <span class="hljs-variable">base</span> <span class="hljs-operator">=</span> basePrice(query.format());
-<span class="hljs-type">Money</span> <span class="hljs-variable">price</span> <span class="hljs-operator">=</span> base.minus(base.percent(discountPercent(query.type())));
+<p><strong>Po (cała treść klasy):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">Money</span> <span class="hljs-title function_">price</span><span class="hljs-params">(TicketQuery query)</span> {
+    <span class="hljs-type">Money</span> <span class="hljs-variable">base</span> <span class="hljs-operator">=</span> basePrice(query.format());
+    <span class="hljs-type">Money</span> <span class="hljs-variable">price</span> <span class="hljs-operator">=</span> base.minus(base.percent(discountPercent(query.type())));
+    <span class="hljs-keyword">if</span> (query.start().getHour() &lt; <span class="hljs-number">12</span>) {
+        price = price.minus(Money.of(<span class="hljs-string">&quot;5.00&quot;</span>));
+    }
+    <span class="hljs-keyword">if</span> (query.row() &gt;= <span class="hljs-number">10</span>) {
+        price = price.plus(Money.of(<span class="hljs-string">&quot;10.00&quot;</span>));
+    }
+    <span class="hljs-keyword">return</span> price;
+}
+
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-type">Money</span> <span class="hljs-title function_">basePrice</span><span class="hljs-params">(String format)</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">switch</span> (format) {
+        <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;IMAX&quot;</span> -&gt; Money.of(<span class="hljs-string">&quot;40.00&quot;</span>);
+        <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;3D&quot;</span> -&gt; Money.of(<span class="hljs-string">&quot;32.00&quot;</span>);
+        <span class="hljs-keyword">default</span> -&gt; Money.of(<span class="hljs-string">&quot;25.00&quot;</span>);
+    };
+}
+
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">discountPercent</span><span class="hljs-params">(String type)</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">switch</span> (type) {
+        <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;STUDENT&quot;</span> -&gt; <span class="hljs-number">25</span>;
+        <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;SENIOR&quot;</span> -&gt; <span class="hljs-number">30</span>;
+        <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;CHILD&quot;</span> -&gt; <span class="hljs-number">40</span>;
+        <span class="hljs-keyword">default</span> -&gt; <span class="hljs-number">0</span>;
+    };
+}
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony - równoważność na przypadkach, w tym wtorkowych.
 <strong>Co powiedzieć:</strong> opis commita: &quot;refaktoryzacja, bez zmiany zachowania, dowód: S06EquivalenceTest&quot;. Recenzent sprawdza tylko mechanikę.
@@ -758,8 +1180,15 @@ p = p.subtract(d);
 }
 </code></pre>
 <p><strong>Po:</strong></p>
-<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">discountPercent</span><span class="hljs-params">(TicketQuery query)</span> {
-    <span class="hljs-keyword">return</span> <span class="hljs-keyword">switch</span> (query.type()) { ... };
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">Money</span> <span class="hljs-variable">price</span> <span class="hljs-operator">=</span> base.minus(base.percent(discountPercent(query)));
+...
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">discountPercent</span><span class="hljs-params">(TicketQuery query)</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">switch</span> (query.type()) {
+        <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;STUDENT&quot;</span> -&gt; <span class="hljs-number">25</span>;
+        <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;SENIOR&quot;</span> -&gt; <span class="hljs-number">30</span>;
+        <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;CHILD&quot;</span> -&gt; <span class="hljs-number">40</span>;
+        <span class="hljs-keyword">default</span> -&gt; <span class="hljs-number">0</span>;
+    };
 }
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony.
@@ -768,7 +1197,7 @@ p = p.subtract(d);
 <h3 id="krok-3-commit-3-zmiana-zachowania" tabindex="-1"><a class="header-anchor" href="#krok-3-commit-3-zmiana-zachowania"><span>Krok 3: commit 3 - zmiana zachowania</span></a></h3>
 <p><strong>Zmiany:</strong></p>
 <ol>
-<li>Dodaj stałą <code>CHEAP_TUESDAY_PERCENT = 20</code> i metodę pomocniczą <code>isCheapTuesday(query)</code> sprawdzającą <code>DayOfWeek.TUESDAY</code>.</li>
+<li>Dodaj stałą <code>CHEAP_TUESDAY_PERCENT = 20</code> i metodę pomocniczą <code>isCheapTuesday(query)</code> sprawdzającą <code>DayOfWeek.TUESDAY</code> (dochodzi import <code>java.time.DayOfWeek</code>).</li>
 <li>W gałęzi <code>default</code> metody <code>discountPercent</code> zwracaj <code>isCheapTuesday(query) ? CHEAP_TUESDAY_PERCENT : 0</code>.</li>
 </ol>
 <p><strong>Przed:</strong></p>
@@ -781,8 +1210,21 @@ p = p.subtract(d);
     };
 }
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">default</span> -&gt; isCheapTuesday(query) ? CHEAP_TUESDAY_PERCENT : <span class="hljs-number">0</span>;
+<p><strong>Po (stała, <code>discountPercent</code> i nowa metoda; <code>price</code> i <code>basePrice</code> bez zmian):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">int</span> <span class="hljs-variable">CHEAP_TUESDAY_PERCENT</span> <span class="hljs-operator">=</span> <span class="hljs-number">20</span>;
+
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">discountPercent</span><span class="hljs-params">(TicketQuery query)</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">switch</span> (query.type()) {
+        <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;STUDENT&quot;</span> -&gt; <span class="hljs-number">25</span>;
+        <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;SENIOR&quot;</span> -&gt; <span class="hljs-number">30</span>;
+        <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;CHILD&quot;</span> -&gt; <span class="hljs-number">40</span>;
+        <span class="hljs-keyword">default</span> -&gt; isCheapTuesday(query) ? CHEAP_TUESDAY_PERCENT : <span class="hljs-number">0</span>;
+    };
+}
+
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">isCheapTuesday</span><span class="hljs-params">(TicketQuery query)</span> {
+    <span class="hljs-keyword">return</span> query.start().getDayOfWeek() == DayOfWeek.TUESDAY;
+}
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony; <code>S06SolutionTest.cheapTuesdayGivesNormalTicketTwentyPercentOff</code> (2D wtorek 20.00) i <code>behaviourChangeIsLimitedToNormalTicketsOnTuesday</code> - na siatce 336 przypadków zmieniło się dokładnie 12, wszystkie NORMAL we wtorek.
 <strong>Co powiedzieć:</strong> diff to kilka linii. Test różnicowy commitu 2 kontra 3 mówi recenzentowi dokładnie, gdzie zmieniło się zachowanie.
@@ -835,9 +1277,51 @@ byTitle.merge(sale.title(), revenue(sale), BigDecimal::add);   <span class="hljs
     <span class="hljs-keyword">return</span> out.toString();
 }
 </code></pre>
-<p><strong>Po:</strong></p>
+<p><strong>Po (<code>render</code> i obie nowe metody; <code>revenue</code> i <code>net</code> bez zmian):</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">render</span><span class="hljs-params">(List&lt;Sale&gt; sales)</span> {
     <span class="hljs-keyword">return</span> accountingSection(sales) + marketingSection(sales);
+}
+
+<span class="hljs-keyword">private</span> <span class="hljs-type">String</span> <span class="hljs-title function_">accountingSection</span><span class="hljs-params">(List&lt;Sale&gt; sales)</span> {
+    <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">out</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>();
+    <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">tickets</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;0.00&quot;</span>);
+    <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">bar</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;0.00&quot;</span>);
+    <span class="hljs-keyword">for</span> (Sale sale : sales) {
+        tickets = tickets.add(sale.ticketRevenue());
+        bar = bar.add(sale.barRevenue());
+    }
+    out.append(<span class="hljs-string">&quot;KSIEGOWOSC\n&quot;</span>);
+    out.append(<span class="hljs-string">&quot;Bilety brutto &quot;</span>).append(tickets)
+            .append(<span class="hljs-string">&quot;, netto &quot;</span>).append(net(tickets, <span class="hljs-number">8</span>)).append(<span class="hljs-string">&#x27;\n&#x27;</span>);
+    out.append(<span class="hljs-string">&quot;Bar brutto &quot;</span>).append(bar).append(<span class="hljs-string">&quot;, netto &quot;</span>).append(net(bar, <span class="hljs-number">23</span>)).append(<span class="hljs-string">&#x27;\n&#x27;</span>);
+    <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">total</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;0.00&quot;</span>);
+    <span class="hljs-keyword">for</span> (Sale sale : sales) {
+        total = total.add(revenue(sale));
+    }
+    out.append(<span class="hljs-string">&quot;Razem brutto &quot;</span>).append(total).append(<span class="hljs-string">&#x27;\n&#x27;</span>);
+    <span class="hljs-keyword">return</span> out.toString();
+}
+
+<span class="hljs-keyword">private</span> <span class="hljs-type">String</span> <span class="hljs-title function_">marketingSection</span><span class="hljs-params">(List&lt;Sale&gt; sales)</span> {
+    <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">out</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>();
+    out.append(<span class="hljs-string">&quot;MARKETING\n&quot;</span>);
+    <span class="hljs-type">Map</span>&lt;String, BigDecimal&gt; <span class="hljs-variable">byTitle</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">TreeMap</span>&lt;&gt;();
+    <span class="hljs-type">int</span> <span class="hljs-variable">sold</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;
+    <span class="hljs-keyword">for</span> (Sale sale : sales) {
+        byTitle.merge(sale.title(), revenue(sale), BigDecimal::add);
+        sold += sale.tickets();
+    }
+    <span class="hljs-type">String</span> <span class="hljs-variable">hit</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;brak&quot;</span>;
+    <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">best</span> <span class="hljs-operator">=</span> BigDecimal.ZERO;
+    <span class="hljs-keyword">for</span> (Map.Entry&lt;String, BigDecimal&gt; entry : byTitle.entrySet()) {
+        <span class="hljs-keyword">if</span> (entry.getValue().compareTo(best) &gt; <span class="hljs-number">0</span>) {
+            hit = entry.getKey() + <span class="hljs-string">&quot; (&quot;</span> + entry.getValue() + <span class="hljs-string">&quot;)&quot;</span>;
+            best = entry.getValue();
+        }
+    }
+    out.append(<span class="hljs-string">&quot;Hit dnia: &quot;</span>).append(hit).append(<span class="hljs-string">&#x27;\n&#x27;</span>);
+    out.append(<span class="hljs-string">&quot;Sprzedanych biletow: &quot;</span>).append(sold).append(<span class="hljs-string">&#x27;\n&#x27;</span>);
+    <span class="hljs-keyword">return</span> out.toString();
 }
 </code></pre>
 <p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh test m2/<wbr>s07</code> - 12 testów zielonych (w tym remis tytułów i dzień bez sprzedaży).
@@ -857,12 +1341,18 @@ byTitle.merge(sale.title(), revenue(sale), BigDecimal::add);   <span class="hljs
     <span class="hljs-keyword">return</span> sale.ticketRevenue().add(sale.barRevenue());
 }
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-comment">/** Księgowość: przychód brutto seansu. */</span>
-<span class="hljs-keyword">private</span> <span class="hljs-type">BigDecimal</span> <span class="hljs-title function_">revenue</span><span class="hljs-params">(Sale sale)</span> { ... }
+<p><strong>Po (zmieniona linia w <code>marketingSection</code> i oba helpery):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs">byTitle.merge(sale.title(), popularity(sale), BigDecimal::add);
+...
+<span class="hljs-comment">/** Księgowość: przychód brutto seansu. */</span>
+<span class="hljs-keyword">private</span> <span class="hljs-type">BigDecimal</span> <span class="hljs-title function_">revenue</span><span class="hljs-params">(Sale sale)</span> {
+    <span class="hljs-keyword">return</span> sale.ticketRevenue().add(sale.barRevenue());
+}
 
 <span class="hljs-comment">/** Marketing: miara popularności filmu (dziś: bilety + bar). */</span>
-<span class="hljs-keyword">private</span> <span class="hljs-type">BigDecimal</span> <span class="hljs-title function_">popularity</span><span class="hljs-params">(Sale sale)</span> { ... }
+<span class="hljs-keyword">private</span> <span class="hljs-type">BigDecimal</span> <span class="hljs-title function_">popularity</span><span class="hljs-params">(Sale sale)</span> {
+    <span class="hljs-keyword">return</span> sale.ticketRevenue().add(sale.barRevenue());
+}
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony.
 <strong>Co powiedzieć:</strong> świadomie powtarzamy kod, nie wiedzę - dziś formuły są równe przypadkiem. To lekcja z DRY (slajd 2.6: dwie identyczne dziś formuły to nie duplikacja wiedzy) w kontekście SRP.
@@ -871,10 +1361,10 @@ byTitle.merge(sale.title(), revenue(sale), BigDecimal::add);   <span class="hljs
 <p><strong>Zmiany:</strong></p>
 <ol>
 <li>Utwórz klasę <code>AccountingSection</code> i przenieś do niej <code>accountingSection</code> (pod nazwą <code>render</code>) oraz <code>revenue</code> i <code>net</code> (Extract Class).</li>
-<li>Utwórz klasę <code>MarketingSection</code> i przenieś do niej <code>marketingSection</code> (pod nazwą <code>render</code>) oraz <code>popularity</code>.</li>
-<li>W <code>DailyReport</code> zostają tylko pola <code>accounting</code> i <code>marketing</code> oraz <code>render</code>, który skleja wyniki obu sekcji.</li>
+<li>Utwórz klasę <code>MarketingSection</code> i przenieś do niej <code>marketingSection</code> (pod nazwą <code>render</code>) oraz <code>popularity</code>. Obie nowe klasy i ich metody <code>render</code> mają widoczność pakietową; ciała metod przenosisz bez zmian.</li>
+<li>W <code>DailyReport</code> zostają tylko pola <code>accounting</code> i <code>marketing</code> oraz <code>render</code>, który skleja wyniki obu sekcji; z importów zostają tylko <code>java.util.List</code> i <code>Sale</code>.</li>
 </ol>
-<p><strong>Przed:</strong></p>
+<p><strong>Przed (<code>DailyReport.java</code>, szkielet - ciała metod jak w kroku 2):</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">DailyReport</span> {
     <span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">render</span><span class="hljs-params">(List&lt;Sale&gt; sales)</span> {
         <span class="hljs-keyword">return</span> accountingSection(sales) + marketingSection(sales);
@@ -891,13 +1381,93 @@ byTitle.merge(sale.title(), revenue(sale), BigDecimal::add);   <span class="hljs
     <span class="hljs-keyword">private</span> <span class="hljs-type">BigDecimal</span> <span class="hljs-title function_">net</span><span class="hljs-params">(BigDecimal gross, <span class="hljs-type">int</span> vatPercent)</span> { ... }
 }
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">DailyReport</span> {
+<p><strong>Po (<code>DailyReport.java</code>, cały plik):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">import</span> java.util.List;
+
+<span class="hljs-keyword">import</span> pl.training.workshop.m2.s07_srp.Sale;
+
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">DailyReport</span> {
     <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">AccountingSection</span> <span class="hljs-variable">accounting</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">AccountingSection</span>();
     <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">MarketingSection</span> <span class="hljs-variable">marketing</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">MarketingSection</span>();
 
     <span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">render</span><span class="hljs-params">(List&lt;Sale&gt; sales)</span> {
         <span class="hljs-keyword">return</span> accounting.render(sales) + marketing.render(sales);
+    }
+}
+</code></pre>
+<p><strong>Po (<code>AccountingSection.java</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">import</span> java.math.BigDecimal;
+<span class="hljs-keyword">import</span> java.math.RoundingMode;
+<span class="hljs-keyword">import</span> java.util.List;
+
+<span class="hljs-keyword">import</span> pl.training.workshop.m2.s07_srp.Sale;
+
+<span class="hljs-comment">/** Aktor - księgowość. Zmienia się, gdy zmieniają się stawki VAT lub wymogi sprawozdań. */</span>
+<span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">AccountingSection</span> {
+    <span class="hljs-type">String</span> <span class="hljs-title function_">render</span><span class="hljs-params">(List&lt;Sale&gt; sales)</span> {
+        <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">out</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>();
+        <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">tickets</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;0.00&quot;</span>);
+        <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">bar</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;0.00&quot;</span>);
+        <span class="hljs-keyword">for</span> (Sale sale : sales) {
+            tickets = tickets.add(sale.ticketRevenue());
+            bar = bar.add(sale.barRevenue());
+        }
+        out.append(<span class="hljs-string">&quot;KSIEGOWOSC\n&quot;</span>);
+        out.append(<span class="hljs-string">&quot;Bilety brutto &quot;</span>).append(tickets)
+                .append(<span class="hljs-string">&quot;, netto &quot;</span>).append(net(tickets, <span class="hljs-number">8</span>)).append(<span class="hljs-string">&#x27;\n&#x27;</span>);
+        out.append(<span class="hljs-string">&quot;Bar brutto &quot;</span>).append(bar).append(<span class="hljs-string">&quot;, netto &quot;</span>).append(net(bar, <span class="hljs-number">23</span>)).append(<span class="hljs-string">&#x27;\n&#x27;</span>);
+        <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">total</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;0.00&quot;</span>);
+        <span class="hljs-keyword">for</span> (Sale sale : sales) {
+            total = total.add(revenue(sale));
+        }
+        out.append(<span class="hljs-string">&quot;Razem brutto &quot;</span>).append(total).append(<span class="hljs-string">&#x27;\n&#x27;</span>);
+        <span class="hljs-keyword">return</span> out.toString();
+    }
+
+    <span class="hljs-keyword">private</span> <span class="hljs-type">BigDecimal</span> <span class="hljs-title function_">revenue</span><span class="hljs-params">(Sale sale)</span> {
+        <span class="hljs-keyword">return</span> sale.ticketRevenue().add(sale.barRevenue());
+    }
+
+    <span class="hljs-keyword">private</span> <span class="hljs-type">BigDecimal</span> <span class="hljs-title function_">net</span><span class="hljs-params">(BigDecimal gross, <span class="hljs-type">int</span> vatPercent)</span> {
+        <span class="hljs-keyword">return</span> gross.multiply(BigDecimal.valueOf(<span class="hljs-number">100</span>))
+                .divide(BigDecimal.valueOf(<span class="hljs-number">100</span> + vatPercent), <span class="hljs-number">2</span>, RoundingMode.HALF_UP);
+    }
+}
+</code></pre>
+<p><strong>Po (<code>MarketingSection.java</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">import</span> java.math.BigDecimal;
+<span class="hljs-keyword">import</span> java.util.List;
+<span class="hljs-keyword">import</span> java.util.Map;
+<span class="hljs-keyword">import</span> java.util.TreeMap;
+
+<span class="hljs-keyword">import</span> pl.training.workshop.m2.s07_srp.Sale;
+
+<span class="hljs-comment">/** Aktor - marketing. Zmienia się, gdy marketing zmienia definicję &quot;hitu&quot;. */</span>
+<span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">MarketingSection</span> {
+    <span class="hljs-type">String</span> <span class="hljs-title function_">render</span><span class="hljs-params">(List&lt;Sale&gt; sales)</span> {
+        <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">out</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>();
+        out.append(<span class="hljs-string">&quot;MARKETING\n&quot;</span>);
+        <span class="hljs-type">Map</span>&lt;String, BigDecimal&gt; <span class="hljs-variable">byTitle</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">TreeMap</span>&lt;&gt;();
+        <span class="hljs-type">int</span> <span class="hljs-variable">sold</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;
+        <span class="hljs-keyword">for</span> (Sale sale : sales) {
+            byTitle.merge(sale.title(), popularity(sale), BigDecimal::add);
+            sold += sale.tickets();
+        }
+        <span class="hljs-type">String</span> <span class="hljs-variable">hit</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;brak&quot;</span>;
+        <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">best</span> <span class="hljs-operator">=</span> BigDecimal.ZERO;
+        <span class="hljs-keyword">for</span> (Map.Entry&lt;String, BigDecimal&gt; entry : byTitle.entrySet()) {
+            <span class="hljs-keyword">if</span> (entry.getValue().compareTo(best) &gt; <span class="hljs-number">0</span>) {
+                hit = entry.getKey() + <span class="hljs-string">&quot; (&quot;</span> + entry.getValue() + <span class="hljs-string">&quot;)&quot;</span>;
+                best = entry.getValue();
+            }
+        }
+        out.append(<span class="hljs-string">&quot;Hit dnia: &quot;</span>).append(hit).append(<span class="hljs-string">&#x27;\n&#x27;</span>);
+        out.append(<span class="hljs-string">&quot;Sprzedanych biletow: &quot;</span>).append(sold).append(<span class="hljs-string">&#x27;\n&#x27;</span>);
+        <span class="hljs-keyword">return</span> out.toString();
+    }
+
+    <span class="hljs-keyword">private</span> <span class="hljs-type">BigDecimal</span> <span class="hljs-title function_">popularity</span><span class="hljs-params">(Sale sale)</span> {
+        <span class="hljs-keyword">return</span> sale.ticketRevenue().add(sale.barRevenue());
     }
 }
 </code></pre>
@@ -934,10 +1504,10 @@ byTitle.merge(sale.title(), revenue(sale), BigDecimal::add);   <span class="hljs
 <h3 id="krok-1-introduce-parameter-dependency-injection" tabindex="-1"><a class="header-anchor" href="#krok-1-introduce-parameter-dependency-injection"><span>Krok 1: Introduce Parameter - dependency injection</span></a></h3>
 <p><strong>Zmiany:</strong></p>
 <ol>
-<li>W <code>ConfirmReservation</code> usuń inicjalizator pola <code>mail</code> - klasa dostaje <code>SmtpMailSender</code> przez nowy konstruktor (Introduce Parameter).</li>
-<li>Tworzenie <code>new SmtpMailSender(&quot;smtp.kino.pl&quot;, 25)</code> przenieś do <code>Main</code>, który składa graf obiektów.</li>
+<li>W <code>ConfirmReservation</code> usuń inicjalizator pola <code>mail</code> - klasa dostaje <code>SmtpMailSender</code> przez nowy konstruktor (Introduce Parameter); metoda <code>confirm</code> bez zmian.</li>
+<li>Tworzenie <code>new SmtpMailSender(&quot;smtp.kino.pl&quot;, 25)</code> przenieś do <code>Main</code>, który składa graf obiektów; w <code>Main</code> dochodzi import <code>infra.SmtpMailSender</code>.</li>
 </ol>
-<p><strong>Przed:</strong></p>
+<p><strong>Przed (<code>app/<wbr>ConfirmReservation.java</code> i <code>Main.java</code>):</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ConfirmReservation</span> {
     <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">SmtpMailSender</span> <span class="hljs-variable">mail</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">SmtpMailSender</span>(<span class="hljs-string">&quot;smtp.kino.pl&quot;</span>, <span class="hljs-number">25</span>);
 ...
@@ -945,9 +1515,16 @@ byTitle.merge(sale.title(), revenue(sale), BigDecimal::add);   <span class="hljs
     <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ConfirmReservation</span>();
 }
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">public</span> <span class="hljs-title function_">ConfirmReservation</span><span class="hljs-params">(SmtpMailSender mail)</span> {
+<p><strong>Po (<code>app/<wbr>ConfirmReservation.java</code>, pole i nowy konstruktor):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> SmtpMailSender mail;
+
+<span class="hljs-type">public</span> <span class="hljs-title function_">ConfirmReservation</span><span class="hljs-params">(SmtpMailSender mail)</span> {
     <span class="hljs-built_in">this</span>.mail = mail;
+}
+</code></pre>
+<p><strong>Po (<code>Main.java</code>):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">ConfirmReservation</span> <span class="hljs-title function_">confirmReservation</span><span class="hljs-params">()</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ConfirmReservation</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">SmtpMailSender</span>(<span class="hljs-string">&quot;smtp.kino.pl&quot;</span>, <span class="hljs-number">25</span>));
 }
 </code></pre>
 <p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh test m2/<wbr>s08</code> - zielono.
@@ -967,9 +1544,24 @@ byTitle.merge(sale.title(), revenue(sale), BigDecimal::add);   <span class="hljs
 }
 <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;potwierdzono: &quot;</span> + reservation.email();
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="java"><code class="hljs">notifyCustomer(reservation.email(), message);
-<span class="hljs-keyword">return</span> <span class="hljs-string">&quot;potwierdzono: &quot;</span> + reservation.email();
+<p><strong>Po (cała metoda <code>confirm</code> i nowa metoda):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">confirm</span><span class="hljs-params">(Reservation reservation)</span> {
+    <span class="hljs-keyword">if</span> (reservation.seats() &lt; <span class="hljs-number">1</span>) {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;rezerwacja bez miejsc&quot;</span>);
+    }
+    <span class="hljs-type">String</span> <span class="hljs-variable">message</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;Rezerwacja: &quot;</span> + reservation.title() + <span class="hljs-string">&quot;, &quot;</span> + reservation.start()
+            + <span class="hljs-string">&quot;, miejsc: &quot;</span> + reservation.seats() + <span class="hljs-string">&quot;. Zaplac w ciagu 15 minut.&quot;</span>;
+    notifyCustomer(reservation.email(), message);
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;potwierdzono: &quot;</span> + reservation.email();
+}
+
+<span class="hljs-keyword">private</span> <span class="hljs-type">void</span> <span class="hljs-title function_">notifyCustomer</span><span class="hljs-params">(String email, String message)</span> {
+    <span class="hljs-type">String</span> <span class="hljs-variable">mime</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;To: &quot;</span> + email + <span class="hljs-string">&quot;\r\nSubject: Rezerwacja\r\n\r\n&quot;</span> + message;
+    <span class="hljs-type">String</span> <span class="hljs-variable">reply</span> <span class="hljs-operator">=</span> mail.send(email, mime);
+    <span class="hljs-keyword">if</span> (!reply.startsWith(<span class="hljs-string">&quot;250&quot;</span>)) {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(<span class="hljs-string">&quot;SMTP odrzucil: &quot;</span> + reply);
+    }
+}
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony.
 <strong>Co powiedzieć:</strong> tak wygląda port, zanim stanie się interfejsem: potrzeba nazwana w języku problemu (&quot;powiadom klienta&quot;), a cała technologia w jednym miejscu. Nie robimy Extract Interface z <code>SmtpMailSender</code> - dostalibyśmy port <code>send(to, mime)</code>, czyli kształt technologii, nie potrzeby.
@@ -979,10 +1571,10 @@ byTitle.merge(sale.title(), revenue(sale), BigDecimal::add);   <span class="hljs
 <ol>
 <li>W pakiecie <code>app</code> utwórz interfejs <code>CustomerNotifier</code> z metodą <code>notifyCustomer(String email, String message)</code> (Extract Interface).</li>
 <li>W <code>infra</code> utwórz klasę <code>SmtpCustomerNotifier implements CustomerNotifier</code> i przenieś do niej ciało <code>notifyCustomer</code> wraz z polem <code>mail</code> (Move Method).</li>
-<li>W <code>ConfirmReservation</code> zmień typ pola i parametru konstruktora na <code>CustomerNotifier</code> - import <code>infra</code> znika z polityki.</li>
-<li>W <code>Main</code> złóż graf: <code>new ConfirmReservation(new SmtpCustomerNotifier(new SmtpMailSender(&quot;smtp.kino.pl&quot;, 25)))</code>.</li>
+<li>W <code>ConfirmReservation</code> zmień typ pola i parametru konstruktora na <code>CustomerNotifier</code> (pole nazwij <code>notifier</code>), w <code>confirm</code> wołaj <code>notifier.notifyCustomer(...)</code>, a prywatną metodę <code>notifyCustomer</code> usuń - import <code>infra</code> znika z polityki.</li>
+<li>W <code>Main</code> złóż graf: <code>new ConfirmReservation(new SmtpCustomerNotifier(new SmtpMailSender(&quot;smtp.kino.pl&quot;, 25)))</code>; dochodzi import <code>infra.SmtpCustomerNotifier</code>.</li>
 </ol>
-<p><strong>Przed:</strong></p>
+<p><strong>Przed (<code>app/<wbr>ConfirmReservation.java</code>):</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">import</span> pl.training.workshop.m2.s08_dip.step2.infra.SmtpMailSender;
 ...
 <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> SmtpMailSender mail;
@@ -995,12 +1587,62 @@ byTitle.merge(sale.title(), revenue(sale), BigDecimal::add);   <span class="hljs
     }
 }
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">CustomerNotifier</span> {           <span class="hljs-comment">// app</span>
+<p><strong>Po (<code>app/<wbr>CustomerNotifier.java</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-comment">/**
+ * Port wyjściowy należy do polityki i nazywa JEJ potrzebę (&quot;powiadom klienta&quot;),
+ * a nie możliwości technologii (brak MIME, hosta, kodów SMTP).
+ * Niepowodzenie: IllegalStateException - bez szczegółów protokołu w kontrakcie.
+ */</span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">CustomerNotifier</span> {
     <span class="hljs-type">void</span> <span class="hljs-title function_">notifyCustomer</span><span class="hljs-params">(String email, String message)</span>;
 }
+</code></pre>
+<p><strong>Po (<code>infra/<wbr>SmtpCustomerNotifier.java</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">import</span> pl.training.workshop.m2.s08_dip.step3.app.CustomerNotifier;
 
-<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">SmtpCustomerNotifier</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">CustomerNotifier</span> {   <span class="hljs-comment">// infra</span>
+<span class="hljs-comment">/** Adapter: implementuje port polityki (import infra -&gt; app) i tłumaczy go na protokół SMTP. */</span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">SmtpCustomerNotifier</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">CustomerNotifier</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> SmtpMailSender mail;
+
+    <span class="hljs-type">public</span> <span class="hljs-title function_">SmtpCustomerNotifier</span><span class="hljs-params">(SmtpMailSender mail)</span> {
+        <span class="hljs-built_in">this</span>.mail = mail;
+    }
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-type">void</span> <span class="hljs-title function_">notifyCustomer</span><span class="hljs-params">(String email, String message)</span> {
+        <span class="hljs-type">String</span> <span class="hljs-variable">mime</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;To: &quot;</span> + email + <span class="hljs-string">&quot;\r\nSubject: Rezerwacja\r\n\r\n&quot;</span> + message;
+        <span class="hljs-type">String</span> <span class="hljs-variable">reply</span> <span class="hljs-operator">=</span> mail.send(email, mime);
+        <span class="hljs-keyword">if</span> (!reply.startsWith(<span class="hljs-string">&quot;250&quot;</span>)) {
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(<span class="hljs-string">&quot;SMTP odrzucil: &quot;</span> + reply);
+        }
+    }
+}
+</code></pre>
+<p><strong>Po (<code>app/<wbr>ConfirmReservation.java</code>, cały plik):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">import</span> pl.training.workshop.m2.s08_dip.Reservation;
+
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ConfirmReservation</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> CustomerNotifier notifier;
+
+    <span class="hljs-type">public</span> <span class="hljs-title function_">ConfirmReservation</span><span class="hljs-params">(CustomerNotifier notifier)</span> {
+        <span class="hljs-built_in">this</span>.notifier = notifier;
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">confirm</span><span class="hljs-params">(Reservation reservation)</span> {
+        <span class="hljs-keyword">if</span> (reservation.seats() &lt; <span class="hljs-number">1</span>) {
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;rezerwacja bez miejsc&quot;</span>);
+        }
+        <span class="hljs-type">String</span> <span class="hljs-variable">message</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;Rezerwacja: &quot;</span> + reservation.title() + <span class="hljs-string">&quot;, &quot;</span> + reservation.start()
+                + <span class="hljs-string">&quot;, miejsc: &quot;</span> + reservation.seats() + <span class="hljs-string">&quot;. Zaplac w ciagu 15 minut.&quot;</span>;
+        notifier.notifyCustomer(reservation.email(), message);
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;potwierdzono: &quot;</span> + reservation.email();
+    }
+}
+</code></pre>
+<p><strong>Po (<code>Main.java</code>):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">ConfirmReservation</span> <span class="hljs-title function_">confirmReservation</span><span class="hljs-params">()</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ConfirmReservation</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">SmtpCustomerNotifier</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">SmtpMailSender</span>(<span class="hljs-string">&quot;smtp.kino.pl&quot;</span>, <span class="hljs-number">25</span>)));
+}
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony; <code>stepsSendTheSameMimeMessage</code> potwierdza identyczny MIME, <code>step3PolicyIsTestableWithAHandWrittenFake</code> testuje politykę lambdą.
 <strong>Co powiedzieć:</strong> sterowanie nadal płynie <code>app -&gt; infra</code> (confirm woła notifier), ale zależność źródłowa odwróciła się: <code>infra -&gt; app</code>. To jest DIP.
@@ -1040,9 +1682,9 @@ outbox.publish(<span class="hljs-string">&quot;reservation-created&quot;</span>,
 <li>Utwórz rekordy <code>BookSeatsCommand(email, format, rows)</code> i <code>Booking(id, total)</code> - proste dane przekraczające granicę.</li>
 <li>Wycenę, zapis i publikację wydziel z kontrolera do metody <code>execute</code>, a metodę przenieś do nowej klasy <code>BookSeats</code> z polami <code>db</code> i <code>outbox</code> (Extract Method, Move Method).</li>
 <li>Walidację &quot;brak miejsc&quot; przenieś do <code>BookSeats.execute</code> jako <code>IllegalArgumentException</code>.</li>
-<li>Kontroler tylko tłumaczy: parametry na <code>BookSeatsCommand</code>, wynik na &quot;201 ...&quot;, a wyjątki na kody: <code>IllegalArgumentException</code> -&gt; 400, <code>IllegalStateException</code> -&gt; 503.</li>
+<li>Kontroler tylko tłumaczy: parametry na <code>BookSeatsCommand</code>, wynik na &quot;201 ...&quot;, a wyjątki na kody: <code>IllegalArgumentException</code> -&gt; 400, <code>IllegalStateException</code> -&gt; 503. Pola <code>db</code> i <code>outbox</code> zastępuje pole <code>bookSeats</code> (konstruktor sam składa <code>new BookSeats(db, outbox)</code> - do kroku 4), z importów znika <code>java.math.BigDecimal</code>. <code>CinemaApplication</code> bez zmian.</li>
 </ol>
-<p><strong>Przed:</strong></p>
+<p><strong>Przed (<code>ReservationController.java</code>, druga połowa metody <code>handle</code>):</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">BigDecimal</span> <span class="hljs-variable">total</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;0.00&quot;</span>);
 <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> row : rows) {
     total = total.add(base);
@@ -1059,16 +1701,93 @@ String id;
 outbox.publish(<span class="hljs-string">&quot;reservation-created&quot;</span>, id + <span class="hljs-string">&quot;;&quot;</span> + email + <span class="hljs-string">&quot;;&quot;</span> + total);
 <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;201 &quot;</span> + id + <span class="hljs-string">&quot; &quot;</span> + total;
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">Booking</span> <span class="hljs-title function_">execute</span><span class="hljs-params">(BookSeatsCommand command)</span> {
-    <span class="hljs-keyword">if</span> (command.rows().isEmpty()) {
-        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;brak miejsc&quot;</span>);
+<p><strong>Po (<code>BookSeatsCommand.java</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">import</span> java.util.List;
+
+<span class="hljs-comment">/** Dane wejściowe przypadku użycia - prosty rekord, bez Map z HTTP. */</span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">record</span> <span class="hljs-title class_">BookSeatsCommand</span><span class="hljs-params">(String email, String format, List&lt;Integer&gt; rows)</span> {
+    <span class="hljs-keyword">public</span> BookSeatsCommand {
+        rows = List.copyOf(rows);
     }
-    <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">total</span> <span class="hljs-operator">=</span> price(command);
-    <span class="hljs-type">String</span> <span class="hljs-variable">id</span> <span class="hljs-operator">=</span> db.insert(
-            <span class="hljs-keyword">new</span> <span class="hljs-title class_">Object</span>[] {command.email(), command.format(), command.rows().size(), total});
-    outbox.publish(<span class="hljs-string">&quot;reservation-created&quot;</span>, id + <span class="hljs-string">&quot;;&quot;</span> + command.email() + <span class="hljs-string">&quot;;&quot;</span> + total);
-    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Booking</span>(id, total);
+}
+</code></pre>
+<p><strong>Po (<code>Booking.java</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">import</span> java.math.BigDecimal;
+
+<span class="hljs-comment">/** Wynik przypadku użycia. */</span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">record</span> <span class="hljs-title class_">Booking</span><span class="hljs-params">(String id, BigDecimal total)</span> {
+}
+</code></pre>
+<p><strong>Po (<code>BookSeats.java</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">import</span> java.math.BigDecimal;
+
+<span class="hljs-keyword">import</span> pl.training.workshop.m2.s09_cleanarchitecture.Outbox;
+<span class="hljs-keyword">import</span> pl.training.workshop.m2.s09_cleanarchitecture.RowStore;
+
+<span class="hljs-comment">/**
+ * Przypadek użycia jako jawna orkiestracja jednego celu: wyceń, zapisz, powiadom.
+ * Wciąż zna jednak wiersz Object[] i temat komunikatu (szczegóły techniczne).
+ */</span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">BookSeats</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> RowStore db;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Outbox outbox;
+
+    <span class="hljs-type">public</span> <span class="hljs-title function_">BookSeats</span><span class="hljs-params">(RowStore db, Outbox outbox)</span> {
+        <span class="hljs-built_in">this</span>.db = db;
+        <span class="hljs-built_in">this</span>.outbox = outbox;
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-type">Booking</span> <span class="hljs-title function_">execute</span><span class="hljs-params">(BookSeatsCommand command)</span> {
+        <span class="hljs-keyword">if</span> (command.rows().isEmpty()) {
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;brak miejsc&quot;</span>);
+        }
+        <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">total</span> <span class="hljs-operator">=</span> price(command);
+        <span class="hljs-type">String</span> <span class="hljs-variable">id</span> <span class="hljs-operator">=</span> db.insert(
+                <span class="hljs-keyword">new</span> <span class="hljs-title class_">Object</span>[] {command.email(), command.format(), command.rows().size(), total});
+        outbox.publish(<span class="hljs-string">&quot;reservation-created&quot;</span>, id + <span class="hljs-string">&quot;;&quot;</span> + command.email() + <span class="hljs-string">&quot;;&quot;</span> + total);
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Booking</span>(id, total);
+    }
+
+    <span class="hljs-keyword">private</span> <span class="hljs-type">BigDecimal</span> <span class="hljs-title function_">price</span><span class="hljs-params">(BookSeatsCommand command)</span> {
+        <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">base</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">switch</span> (command.format()) {
+            <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;IMAX&quot;</span> -&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;40.00&quot;</span>);
+            <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;3D&quot;</span> -&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;32.00&quot;</span>);
+            <span class="hljs-keyword">default</span> -&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;25.00&quot;</span>);
+        };
+        <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">total</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;0.00&quot;</span>);
+        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> row : command.rows()) {
+            total = total.add(base);
+            <span class="hljs-keyword">if</span> (row &gt;= <span class="hljs-number">10</span>) {
+                total = total.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;10.00&quot;</span>));
+            }
+        }
+        <span class="hljs-keyword">return</span> total;
+    }
+}
+</code></pre>
+<p><strong>Po (<code>ReservationController.java</code>, pole, konstruktor i cała metoda <code>handle</code>):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> BookSeats bookSeats;
+
+<span class="hljs-type">public</span> <span class="hljs-title function_">ReservationController</span><span class="hljs-params">(RowStore db, Outbox outbox)</span> {
+    <span class="hljs-built_in">this</span>.bookSeats = <span class="hljs-keyword">new</span> <span class="hljs-title class_">BookSeats</span>(db, outbox);
+}
+
+<span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">handle</span><span class="hljs-params">(Map&lt;String, String&gt; params)</span> {
+    <span class="hljs-type">String</span> <span class="hljs-variable">email</span> <span class="hljs-operator">=</span> params.get(<span class="hljs-string">&quot;email&quot;</span>);
+    <span class="hljs-keyword">if</span> (email == <span class="hljs-literal">null</span> || email.isBlank()) {
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;400 brak email&quot;</span>;
+    }
+    <span class="hljs-type">List</span>&lt;Integer&gt; <span class="hljs-variable">rows</span> <span class="hljs-operator">=</span> Arrays.stream(params.getOrDefault(<span class="hljs-string">&quot;rows&quot;</span>, <span class="hljs-string">&quot;&quot;</span>).split(<span class="hljs-string">&quot;,&quot;</span>))
+            .filter(s -&gt; !s.isBlank()).map(Integer::parseInt).toList();
+    <span class="hljs-keyword">try</span> {
+        <span class="hljs-type">Booking</span> <span class="hljs-variable">booking</span> <span class="hljs-operator">=</span> bookSeats.execute(
+                <span class="hljs-keyword">new</span> <span class="hljs-title class_">BookSeatsCommand</span>(email, params.getOrDefault(<span class="hljs-string">&quot;format&quot;</span>, <span class="hljs-string">&quot;2D&quot;</span>), rows));
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;201 &quot;</span> + booking.id() + <span class="hljs-string">&quot; &quot;</span> + booking.total();
+    } <span class="hljs-keyword">catch</span> (IllegalArgumentException e) {
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;400 &quot;</span> + e.getMessage();
+    } <span class="hljs-keyword">catch</span> (IllegalStateException e) {
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;503 &quot;</span> + e.getMessage();
+    }
 }
 </code></pre>
 <p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh test m2/<wbr>s09</code> - 22 testy zielone.
@@ -1080,19 +1799,110 @@ outbox.publish(<span class="hljs-string">&quot;reservation-created&quot;</span>,
 <li>Dodaj rekord <code>NewReservation(email, format, seats, total)</code> - dane przekraczające granicę do zapisu.</li>
 <li>Dodaj porty: interfejs <code>ReservationStore</code> z metodą <code>save(NewReservation)</code> i interfejs <code>BookingNotifier</code> z metodą <code>reservationCreated(id, reservation)</code> - nazwane potrzebą przypadku użycia.</li>
 <li>Mapowanie na <code>Object[]</code> przenieś do adaptera <code>RowStoreReservationStore</code>, a publikację komunikatu do <code>OutboxBookingNotifier</code>.</li>
-<li><code>BookSeats</code> przyjmuje w konstruktorze porty zamiast <code>RowStore</code> i <code>Outbox</code>; adaptery składa na razie kontroler (do kroku 4).</li>
+<li><code>BookSeats</code> przyjmuje w konstruktorze porty zamiast <code>RowStore</code> i <code>Outbox</code> (pola <code>store</code> i <code>notifier</code>; znikają importy <code>Outbox</code> i <code>RowStore</code>); adaptery składa na razie kontroler (do kroku 4) - w jego konstruktorze zamień <code>new BookSeats(db, outbox)</code> na <code>new BookSeats(new RowStoreReservationStore(db), new OutboxBookingNotifier(outbox))</code>.</li>
 </ol>
-<p><strong>Przed:</strong></p>
-<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">BigDecimal</span> <span class="hljs-variable">total</span> <span class="hljs-operator">=</span> price(command);
-<span class="hljs-type">String</span> <span class="hljs-variable">id</span> <span class="hljs-operator">=</span> db.insert(
-        <span class="hljs-keyword">new</span> <span class="hljs-title class_">Object</span>[] {command.email(), command.format(), command.rows().size(), total});
-outbox.publish(<span class="hljs-string">&quot;reservation-created&quot;</span>, id + <span class="hljs-string">&quot;;&quot;</span> + command.email() + <span class="hljs-string">&quot;;&quot;</span> + total);
-<span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Booking</span>(id, total);
+<p><strong>Przed (<code>BookSeats.java</code>, pola, konstruktor i <code>execute</code>):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> RowStore db;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Outbox outbox;
+
+<span class="hljs-type">public</span> <span class="hljs-title function_">BookSeats</span><span class="hljs-params">(RowStore db, Outbox outbox)</span> {
+    <span class="hljs-built_in">this</span>.db = db;
+    <span class="hljs-built_in">this</span>.outbox = outbox;
+}
+
+<span class="hljs-keyword">public</span> <span class="hljs-type">Booking</span> <span class="hljs-title function_">execute</span><span class="hljs-params">(BookSeatsCommand command)</span> {
+    <span class="hljs-keyword">if</span> (command.rows().isEmpty()) {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;brak miejsc&quot;</span>);
+    }
+    <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">total</span> <span class="hljs-operator">=</span> price(command);
+    <span class="hljs-type">String</span> <span class="hljs-variable">id</span> <span class="hljs-operator">=</span> db.insert(
+            <span class="hljs-keyword">new</span> <span class="hljs-title class_">Object</span>[] {command.email(), command.format(), command.rows().size(), total});
+    outbox.publish(<span class="hljs-string">&quot;reservation-created&quot;</span>, id + <span class="hljs-string">&quot;;&quot;</span> + command.email() + <span class="hljs-string">&quot;;&quot;</span> + total);
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Booking</span>(id, total);
+}
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">String</span> <span class="hljs-variable">id</span> <span class="hljs-operator">=</span> store.save(reservation);
-notifier.reservationCreated(id, reservation);
-<span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Booking</span>(id, reservation.total());
+<p><strong>Po (<code>NewReservation.java</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">import</span> java.math.BigDecimal;
+
+<span class="hljs-comment">/** Dane przekraczające granicę do portu zapisu - rekord, nie Object[]. */</span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">record</span> <span class="hljs-title class_">NewReservation</span><span class="hljs-params">(String email, String format, <span class="hljs-type">int</span> seats, BigDecimal total)</span> {
+}
+</code></pre>
+<p><strong>Po (<code>ReservationStore.java</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-comment">/**
+ * Port wyjściowy zdefiniowany przez potrzebę przypadku użycia.
+ * Zwraca identyfikator; gdy nie da się zapisać - IllegalStateException.
+ */</span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">ReservationStore</span> {
+    <span class="hljs-type">String</span> <span class="hljs-title function_">save</span><span class="hljs-params">(NewReservation reservation)</span>;
+}
+</code></pre>
+<p><strong>Po (<code>BookingNotifier.java</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-comment">/** Port wyjściowy - &quot;daj znać, że rezerwacja powstała&quot;. */</span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">BookingNotifier</span> {
+    <span class="hljs-type">void</span> <span class="hljs-title function_">reservationCreated</span><span class="hljs-params">(String id, NewReservation reservation)</span>;
+}
+</code></pre>
+<p><strong>Po (<code>RowStoreReservationStore.java</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">import</span> pl.training.workshop.m2.s09_cleanarchitecture.RowStore;
+
+<span class="hljs-comment">/** Adapter wyjściowy - mapuje rekord na kolumny tabeli. */</span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">RowStoreReservationStore</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">ReservationStore</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> RowStore db;
+
+    <span class="hljs-type">public</span> <span class="hljs-title function_">RowStoreReservationStore</span><span class="hljs-params">(RowStore db)</span> {
+        <span class="hljs-built_in">this</span>.db = db;
+    }
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">save</span><span class="hljs-params">(NewReservation reservation)</span> {
+        <span class="hljs-keyword">return</span> db.insert(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Object</span>[] {
+                reservation.email(), reservation.format(), reservation.seats(), reservation.total()});
+    }
+}
+</code></pre>
+<p><strong>Po (<code>OutboxBookingNotifier.java</code>, nowy plik):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">import</span> pl.training.workshop.m2.s09_cleanarchitecture.Outbox;
+
+<span class="hljs-comment">/** Adapter wyjściowy - zna temat i format komunikatu. */</span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">OutboxBookingNotifier</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">BookingNotifier</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Outbox outbox;
+
+    <span class="hljs-type">public</span> <span class="hljs-title function_">OutboxBookingNotifier</span><span class="hljs-params">(Outbox outbox)</span> {
+        <span class="hljs-built_in">this</span>.outbox = outbox;
+    }
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-type">void</span> <span class="hljs-title function_">reservationCreated</span><span class="hljs-params">(String id, NewReservation reservation)</span> {
+        outbox.publish(<span class="hljs-string">&quot;reservation-created&quot;</span>, id + <span class="hljs-string">&quot;;&quot;</span> + reservation.email() + <span class="hljs-string">&quot;;&quot;</span> + reservation.total());
+    }
+}
+</code></pre>
+<p><strong>Po (<code>BookSeats.java</code>, pola, konstruktor i <code>execute</code>; <code>price</code> bez zmian):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> ReservationStore store;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> BookingNotifier notifier;
+
+<span class="hljs-type">public</span> <span class="hljs-title function_">BookSeats</span><span class="hljs-params">(ReservationStore store, BookingNotifier notifier)</span> {
+    <span class="hljs-built_in">this</span>.store = store;
+    <span class="hljs-built_in">this</span>.notifier = notifier;
+}
+
+<span class="hljs-keyword">public</span> <span class="hljs-type">Booking</span> <span class="hljs-title function_">execute</span><span class="hljs-params">(BookSeatsCommand command)</span> {
+    <span class="hljs-keyword">if</span> (command.rows().isEmpty()) {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;brak miejsc&quot;</span>);
+    }
+    <span class="hljs-type">NewReservation</span> <span class="hljs-variable">reservation</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">NewReservation</span>(
+            command.email(), command.format(), command.rows().size(), price(command));
+    <span class="hljs-type">String</span> <span class="hljs-variable">id</span> <span class="hljs-operator">=</span> store.save(reservation);
+    notifier.reservationCreated(id, reservation);
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Booking</span>(id, reservation.total());
+}
+</code></pre>
+<p><strong>Po (<code>ReservationController.java</code>, konstruktor; reszta bez zmian):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">public</span> <span class="hljs-title function_">ReservationController</span><span class="hljs-params">(RowStore db, Outbox outbox)</span> {
+    <span class="hljs-built_in">this</span>.bookSeats = <span class="hljs-keyword">new</span> <span class="hljs-title class_">BookSeats</span>(
+            <span class="hljs-keyword">new</span> <span class="hljs-title class_">RowStoreReservationStore</span>(db), <span class="hljs-keyword">new</span> <span class="hljs-title class_">OutboxBookingNotifier</span>(outbox));
+}
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony, także przypadek &quot;baza niedostępna - brak powiadomienia&quot;.
 <strong>Co powiedzieć:</strong> kolejność zapis -&gt; powiadomienie to decyzja protokołu: błąd zapisu oznacza brak powiadomienia. Kolejność nie daje atomowości - w systemie rozproszonym potrzebny byłby outbox transakcyjny.
@@ -1102,7 +1912,7 @@ notifier.reservationCreated(id, reservation);
 <ol>
 <li>Przenieś <code>BookSeats</code>, <code>BookSeatsCommand</code>, <code>Booking</code>, <code>NewReservation</code>, <code>ReservationStore</code> i <code>BookingNotifier</code> do nowego pakietu <code>app</code> (Move Class).</li>
 <li>Przenieś <code>ReservationController</code>, <code>RowStoreReservationStore</code> i <code>OutboxBookingNotifier</code> do nowego pakietu <code>adapter</code> (Move Class).</li>
-<li>Popraw importy u wszystkich klientów, także w <code>CinemaApplication</code> - adaptery importują <code>app</code>, nigdy odwrotnie.</li>
+<li>Popraw importy u wszystkich klientów, także w <code>CinemaApplication</code> - adaptery importują <code>app</code>, nigdy odwrotnie. Konkretnie: <code>CinemaApplication</code> importuje <code>adapter.ReservationController</code>; <code>ReservationController</code> dodatkowo <code>app.BookSeats</code>, <code>app.BookSeatsCommand</code> i <code>app.Booking</code>; <code>RowStoreReservationStore</code> - <code>app.NewReservation</code> i <code>app.ReservationStore</code>; <code>OutboxBookingNotifier</code> - <code>app.BookingNotifier</code> i <code>app.NewReservation</code>. Poza pakietami i importami treść klas się nie zmienia.</li>
 </ol>
 <p><strong>Przed:</strong></p>
 <pre class="code" data-lang="text"><code class="hljs">step2/   BookSeats, BookSeatsCommand, Booking, NewReservation, ReservationStore,
@@ -1121,9 +1931,9 @@ step3/adapter/   ReservationController, RowStoreReservationStore, OutboxBookingN
 <ol>
 <li>W konstruktorze kontrolera zastąp składanie <code>new BookSeats(...)</code> parametrem <code>BookSeats bookSeats</code> - tworzenie grafu przenosi się do <code>CinemaApplication</code> (Introduce Parameter).</li>
 <li>Usuń z konstruktora kontrolera nieużywane już parametry <code>db</code> i <code>outbox</code> wraz z importami <code>RowStore</code> i <code>Outbox</code> (Change Signature).</li>
-<li><code>CinemaApplication.reservationController</code> składa cały graf: oba adaptery wyjściowe, przypadek użycia i kontroler.</li>
+<li><code>CinemaApplication.reservationController</code> składa cały graf: oba adaptery wyjściowe, przypadek użycia i kontroler; dochodzą importy <code>adapter.OutboxBookingNotifier</code>, <code>adapter.RowStoreReservationStore</code> i <code>app.BookSeats</code>.</li>
 </ol>
-<p><strong>Przed:</strong></p>
+<p><strong>Przed (<code>adapter/<wbr>ReservationController.java</code> i <code>CinemaApplication.java</code>):</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">public</span> <span class="hljs-title function_">ReservationController</span><span class="hljs-params">(RowStore db, Outbox outbox)</span> {
     <span class="hljs-built_in">this</span>.bookSeats = <span class="hljs-keyword">new</span> <span class="hljs-title class_">BookSeats</span>(
             <span class="hljs-keyword">new</span> <span class="hljs-title class_">RowStoreReservationStore</span>(db), <span class="hljs-keyword">new</span> <span class="hljs-title class_">OutboxBookingNotifier</span>(outbox));
@@ -1133,7 +1943,12 @@ step3/adapter/   ReservationController, RowStoreReservationStore, OutboxBookingN
     <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ReservationController</span>(db, outbox);                <span class="hljs-comment">// CinemaApplication</span>
 }
 </code></pre>
-<p><strong>Po:</strong></p>
+<p><strong>Po (<code>adapter/<wbr>ReservationController.java</code>, konstruktor; <code>handle</code> bez zmian):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">public</span> <span class="hljs-title function_">ReservationController</span><span class="hljs-params">(BookSeats bookSeats)</span> {
+    <span class="hljs-built_in">this</span>.bookSeats = bookSeats;
+}
+</code></pre>
+<p><strong>Po (<code>CinemaApplication.java</code>):</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">ReservationController</span> <span class="hljs-title function_">reservationController</span><span class="hljs-params">(RowStore db, Outbox outbox)</span> {
     <span class="hljs-type">BookSeats</span> <span class="hljs-variable">bookSeats</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BookSeats</span>(
             <span class="hljs-keyword">new</span> <span class="hljs-title class_">RowStoreReservationStore</span>(db), <span class="hljs-keyword">new</span> <span class="hljs-title class_">OutboxBookingNotifier</span>(outbox));
@@ -1178,14 +1993,33 @@ step3/adapter/   ReservationController, RowStoreReservationStore, OutboxBookingN
 <ol>
 <li>Utwórz w pakiecie <code>domain</code> klasę <code>ScreeningRowMapper</code> i przenieś do niej pole <code>table</code> oraz metody <code>toRow</code> i <code>fromRow</code> z <code>ScreeningService</code> (Extract Class).</li>
 <li>W <code>ScreeningService</code> zostaje sama polityka cenowa: pola <code>basePrice</code> i <code>morningDiscount</code>, metody <code>price</code> i <code>isMorning</code>; konstruktor traci parametr <code>table</code>.</li>
-<li>Popraw composition root <code>CinemaApp</code>: tworzy <code>ScreeningService</code> i osobno <code>ScreeningRowMapper(&quot;screenings&quot;)</code>, a <code>toRow</code>/<code>fromRow</code> woła na maperze.</li>
+<li>Popraw composition root <code>CinemaApp</code>: tworzy <code>ScreeningService</code> i osobno <code>ScreeningRowMapper(&quot;screenings&quot;)</code>, a <code>toRow</code>/<code>fromRow</code> woła na maperze; dochodzi import <code>domain.ScreeningRowMapper</code>.</li>
 </ol>
-<p><strong>Przed:</strong></p>
-<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ScreeningService</span> {
+<p><strong>Przed (<code>domain/<wbr>ScreeningService.java</code>, cały plik):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">import</span> java.math.BigDecimal;
+<span class="hljs-keyword">import</span> java.sql.Timestamp;
+
+<span class="hljs-keyword">import</span> pl.training.workshop.m2.s10_boundarycheck.start.adapter.ScreeningRow;
+
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ScreeningService</span> {
     <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> BigDecimal basePrice;
     <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> BigDecimal morningDiscount;
     <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String table;
-    ...
+
+    <span class="hljs-type">public</span> <span class="hljs-title function_">ScreeningService</span><span class="hljs-params">(BigDecimal basePrice, BigDecimal morningDiscount, String table)</span> {
+        <span class="hljs-built_in">this</span>.basePrice = basePrice;
+        <span class="hljs-built_in">this</span>.morningDiscount = morningDiscount;
+        <span class="hljs-built_in">this</span>.table = table;
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-type">BigDecimal</span> <span class="hljs-title function_">price</span><span class="hljs-params">(Screening screening)</span> {
+        <span class="hljs-keyword">return</span> isMorning(screening) ? basePrice.subtract(morningDiscount) : basePrice;
+    }
+
+    <span class="hljs-keyword">private</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">isMorning</span><span class="hljs-params">(Screening screening)</span> {
+        <span class="hljs-keyword">return</span> screening.start().getHour() &lt; <span class="hljs-number">12</span>;
+    }
+
     <span class="hljs-keyword">public</span> <span class="hljs-type">ScreeningRow</span> <span class="hljs-title function_">toRow</span><span class="hljs-params">(Screening screening)</span> {
         <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ScreeningRow</span>(table, screening.title(), Timestamp.valueOf(screening.start()));
     }
@@ -1198,11 +2032,72 @@ step3/adapter/   ReservationController, RowStoreReservationStore, OutboxBookingN
     }
 }
 </code></pre>
-<p><strong>Po:</strong></p>
-<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ScreeningRowMapper</span> {    <span class="hljs-comment">// wciąż w domain</span>
+<p><strong>Po (<code>domain/<wbr>ScreeningService.java</code>, cały plik):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">import</span> java.math.BigDecimal;
+
+<span class="hljs-comment">/** Po Extract Class zostaje sama polityka cenowa (LCOM4 = 1) i żadnego importu technologii. */</span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ScreeningService</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> BigDecimal basePrice;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> BigDecimal morningDiscount;
+
+    <span class="hljs-type">public</span> <span class="hljs-title function_">ScreeningService</span><span class="hljs-params">(BigDecimal basePrice, BigDecimal morningDiscount)</span> {
+        <span class="hljs-built_in">this</span>.basePrice = basePrice;
+        <span class="hljs-built_in">this</span>.morningDiscount = morningDiscount;
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-type">BigDecimal</span> <span class="hljs-title function_">price</span><span class="hljs-params">(Screening screening)</span> {
+        <span class="hljs-keyword">return</span> isMorning(screening) ? basePrice.subtract(morningDiscount) : basePrice;
+    }
+
+    <span class="hljs-keyword">private</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">isMorning</span><span class="hljs-params">(Screening screening)</span> {
+        <span class="hljs-keyword">return</span> screening.start().getHour() &lt; <span class="hljs-number">12</span>;
+    }
+}
+</code></pre>
+<p><strong>Po (<code>domain/<wbr>ScreeningRowMapper.java</code>, nowy plik - wciąż w <code>domain</code>):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">import</span> java.sql.Timestamp;
+
+<span class="hljs-keyword">import</span> pl.training.workshop.m2.s10_boundarycheck.step1.adapter.ScreeningRow;
+
+<span class="hljs-comment">/**
+ * Mapowanie na wiersz jako osobna, spójna klasa (LCOM4 = 1). Wciąż leży w domain,
+ * więc test granicy nadal jest czerwony: spójność poprawiona, kierunek zależności jeszcze nie.
+ */</span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ScreeningRowMapper</span> {
     <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String table;
-    <span class="hljs-keyword">public</span> <span class="hljs-type">ScreeningRow</span> <span class="hljs-title function_">toRow</span><span class="hljs-params">(Screening screening)</span> { ... }
-    <span class="hljs-keyword">public</span> <span class="hljs-type">Screening</span> <span class="hljs-title function_">fromRow</span><span class="hljs-params">(ScreeningRow row)</span> { ... }
+
+    <span class="hljs-type">public</span> <span class="hljs-title function_">ScreeningRowMapper</span><span class="hljs-params">(String table)</span> {
+        <span class="hljs-built_in">this</span>.table = table;
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-type">ScreeningRow</span> <span class="hljs-title function_">toRow</span><span class="hljs-params">(Screening screening)</span> {
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ScreeningRow</span>(table, screening.title(), Timestamp.valueOf(screening.start()));
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-type">Screening</span> <span class="hljs-title function_">fromRow</span><span class="hljs-params">(ScreeningRow row)</span> {
+        <span class="hljs-keyword">if</span> (!row.table().equals(table)) {
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;obca tabela: &quot;</span> + row.table());
+        }
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Screening</span>(row.title(), row.start().toLocalDateTime());
+    }
+}
+</code></pre>
+<p><strong>Przed (<code>CinemaApp.java</code>, metoda <code>describe</code>):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">String</span> <span class="hljs-title function_">describe</span><span class="hljs-params">(String title, LocalDateTime start)</span> {
+    <span class="hljs-type">ScreeningService</span> <span class="hljs-variable">service</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ScreeningService</span>(
+            <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;25.00&quot;</span>), <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;5.00&quot;</span>), <span class="hljs-string">&quot;screenings&quot;</span>);
+    <span class="hljs-type">Screening</span> <span class="hljs-variable">screening</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Screening</span>(title, start);
+    <span class="hljs-type">ScreeningRow</span> <span class="hljs-variable">row</span> <span class="hljs-operator">=</span> service.toRow(screening);
+    <span class="hljs-keyword">return</span> service.price(screening) + <span class="hljs-string">&quot; | &quot;</span> + row + <span class="hljs-string">&quot; | &quot;</span> + service.fromRow(row).equals(screening);
+}
+</code></pre>
+<p><strong>Po (<code>CinemaApp.java</code>, metoda <code>describe</code>):</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">String</span> <span class="hljs-title function_">describe</span><span class="hljs-params">(String title, LocalDateTime start)</span> {
+    <span class="hljs-type">ScreeningService</span> <span class="hljs-variable">service</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ScreeningService</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;25.00&quot;</span>), <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;5.00&quot;</span>));
+    <span class="hljs-type">ScreeningRowMapper</span> <span class="hljs-variable">mapper</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ScreeningRowMapper</span>(<span class="hljs-string">&quot;screenings&quot;</span>);
+    <span class="hljs-type">Screening</span> <span class="hljs-variable">screening</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Screening</span>(title, start);
+    <span class="hljs-type">ScreeningRow</span> <span class="hljs-variable">row</span> <span class="hljs-operator">=</span> mapper.toRow(screening);
+    <span class="hljs-keyword">return</span> service.price(screening) + <span class="hljs-string">&quot; | &quot;</span> + row + <span class="hljs-string">&quot; | &quot;</span> + mapper.fromRow(row).equals(screening);
 }
 </code></pre>
 <p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh test m2/<wbr>s10</code> - zielono; LCOM4 obu klas = 1, ale <code>step1StillViolatesTheBoundaryButOnlyInTheMapper</code> pokazuje, że naruszenie granicy tylko się przeniosło.
@@ -1212,7 +2107,7 @@ step3/adapter/   ReservationController, RowStoreReservationStore, OutboxBookingN
 <p><strong>Zmiany:</strong></p>
 <ol>
 <li>Przenieś <code>ScreeningRowMapper</code> z pakietu <code>domain</code> do pakietu <code>adapter</code> (Move Class).</li>
-<li>W maperze dochodzi import <code>domain.Screening</code>; popraw też import mapera w <code>CinemaApp</code>.</li>
+<li>W maperze dochodzi import <code>domain.Screening</code>, a znika import <code>adapter.ScreeningRow</code> (mapper leży teraz obok tej klasy); pola i metody bez zmian. Popraw też import mapera w <code>CinemaApp</code> (z <code>domain.ScreeningRowMapper</code> na <code>adapter.ScreeningRowMapper</code>) - reszta <code>CinemaApp</code> bez zmian.</li>
 </ol>
 <p><strong>Przed:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">package</span> pl.training.workshop.m2.s10_boundarycheck.step1.domain;

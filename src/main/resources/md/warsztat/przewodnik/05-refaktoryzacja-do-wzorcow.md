@@ -125,28 +125,80 @@ Klientem jest `PriceBoard.priceFor(request)` - przez niego woła test. Test rów
 2. W `TicketPricer` wydzielamy cały łańcuch `if` do nowej prywatnej metody statycznej `legacyDiscount(Money base, String ticketType, String program)` (Extract Method); gałęzie zamiast przypisywać zmienną `discount` zwracają wynik.
 3. W `price` tworzymy lambdę `DiscountPolicy policy = (b, type) -> legacyDiscount(b, type, program);` i liczymy cenę przez `policy.discount(base, ticketType)`.
 
-**Przed:**
+**Przed (`TicketPricer.java`):**
 
 ```java
-Money discount;
-if (program.equals("PREMIERE")) {
-    discount = Money.ZERO;
-} else if (program.equals("STUDENT_WEEK") && ticketType.equals("S")) {
-    discount = base.percent(50);
-} else if (program.equals("STANDARD") || program.equals("STUDENT_WEEK")) {
-    int percent = switch (ticketType) { ... };
-    discount = base.percent(percent);
-} else {
-    throw new IllegalArgumentException("unknown program: " + program);
+public Money price(Money base, String ticketType, String program) {
+    if (base.compareTo(Money.ZERO) < 0) {
+        throw new IllegalArgumentException("base price must not be negative");
+    }
+    if (program == null) {
+        throw new IllegalArgumentException("program must not be null");
+    }
+    Money discount;
+    if (program.equals("PREMIERE")) {
+        discount = Money.ZERO;
+    } else if (program.equals("STUDENT_WEEK") && ticketType.equals("S")) {
+        discount = base.percent(50);
+    } else if (program.equals("STANDARD") || program.equals("STUDENT_WEEK")) {
+        int percent = switch (ticketType) {
+            case "N" -> 0;
+            case "S" -> 25;
+            case "E" -> 30;
+            case "C" -> 40;
+            default -> throw new IllegalArgumentException("unknown ticket type: " + ticketType);
+        };
+        discount = base.percent(percent);
+    } else {
+        throw new IllegalArgumentException("unknown program: " + program);
+    }
+    return base.minus(discount);
 }
-return base.minus(discount);
 ```
 
-**Po:**
+**Po (`DiscountPolicy.java`, nowy plik):**
 
 ```java
-DiscountPolicy policy = (b, type) -> legacyDiscount(b, type, program);
-return base.minus(policy.discount(base, ticketType));
+import pl.training.workshop.shared.Money;
+
+/** Kontrakt strategii - wysokość zniżki dla ceny bazowej i typu biletu. */
+@FunctionalInterface
+public interface DiscountPolicy {
+    Money discount(Money base, String ticketType);
+}
+```
+
+**Po (`TicketPricer.java`):**
+
+```java
+public Money price(Money base, String ticketType, String program) {
+    if (base.compareTo(Money.ZERO) < 0) {
+        throw new IllegalArgumentException("base price must not be negative");
+    }
+    if (program == null) {
+        throw new IllegalArgumentException("program must not be null");
+    }
+    DiscountPolicy policy = (b, type) -> legacyDiscount(b, type, program);
+    return base.minus(policy.discount(base, ticketType));
+}
+
+private static Money legacyDiscount(Money base, String ticketType, String program) {
+    if (program.equals("PREMIERE")) {
+        return Money.ZERO;
+    } else if (program.equals("STUDENT_WEEK") && ticketType.equals("S")) {
+        return base.percent(50);
+    } else if (program.equals("STANDARD") || program.equals("STUDENT_WEEK")) {
+        int percent = switch (ticketType) {
+            case "N" -> 0;
+            case "S" -> 25;
+            case "E" -> 30;
+            case "C" -> 40;
+            default -> throw new IllegalArgumentException("unknown ticket type: " + ticketType);
+        };
+        return base.percent(percent);
+    }
+    throw new IllegalArgumentException("unknown program: " + program);
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh test m5/s01` - zielone.
@@ -162,31 +214,115 @@ return base.minus(policy.discount(base, ticketType));
 3. Powstaje nowy plik `StudentWeekDiscount.java`: student dostaje 50%, pozostałe typy klasa deleguje do strategii `fallback` przekazanej w konstruktorze (będzie nią `StandardDiscount`). Test.
 4. W `TicketPricer` metoda `legacyDiscount` znika; w jej miejsce powstaje prywatna metoda `policyFor(String program)` ze `switch`, która zwraca strategię. `price` woła `policyFor(program).discount(base, ticketType)`.
 
-**Przed:**
+**Przed (`TicketPricer.java`):**
 
 ```java
+public Money price(Money base, String ticketType, String program) {
+    if (base.compareTo(Money.ZERO) < 0) {
+        throw new IllegalArgumentException("base price must not be negative");
+    }
+    if (program == null) {
+        throw new IllegalArgumentException("program must not be null");
+    }
+    DiscountPolicy policy = (b, type) -> legacyDiscount(b, type, program);
+    return base.minus(policy.discount(base, ticketType));
+}
+
 private static Money legacyDiscount(Money base, String ticketType, String program) {
     if (program.equals("PREMIERE")) {
         return Money.ZERO;
     } else if (program.equals("STUDENT_WEEK") && ticketType.equals("S")) {
         return base.percent(50);
     } else if (program.equals("STANDARD") || program.equals("STUDENT_WEEK")) {
-        int percent = switch (ticketType) { ... };
+        int percent = switch (ticketType) {
+            case "N" -> 0;
+            case "S" -> 25;
+            case "E" -> 30;
+            case "C" -> 40;
+            default -> throw new IllegalArgumentException("unknown ticket type: " + ticketType);
+        };
         return base.percent(percent);
     }
     throw new IllegalArgumentException("unknown program: " + program);
 }
 ```
 
-**Po:**
+**Po (`StandardDiscount.java`, nowy plik):**
 
 ```java
-return switch (program) {
-    case "STANDARD" -> new StandardDiscount();
-    case "STUDENT_WEEK" -> new StudentWeekDiscount(new StandardDiscount());
-    case "PREMIERE" -> new PremiereDiscount();
-    default -> throw new IllegalArgumentException("unknown program: " + program);
-};
+import pl.training.workshop.shared.Money;
+
+/** Gałąź STANDARD przeniesiona do strategii. Bezstanowa - można ją współdzielić. */
+public final class StandardDiscount implements DiscountPolicy {
+    @Override
+    public Money discount(Money base, String ticketType) {
+        int percent = switch (ticketType) {
+            case "N" -> 0;
+            case "S" -> 25;
+            case "E" -> 30;
+            case "C" -> 40;
+            default -> throw new IllegalArgumentException("unknown ticket type: " + ticketType);
+        };
+        return base.percent(percent);
+    }
+}
+```
+
+**Po (`PremiereDiscount.java`, nowy plik):**
+
+```java
+import pl.training.workshop.shared.Money;
+
+/** Premiera - brak zniżek (typ biletu nie jest nawet sprawdzany, jak w start). */
+public final class PremiereDiscount implements DiscountPolicy {
+    @Override
+    public Money discount(Money base, String ticketType) {
+        return Money.ZERO;
+    }
+}
+```
+
+**Po (`StudentWeekDiscount.java`, nowy plik):**
+
+```java
+import pl.training.workshop.shared.Money;
+
+/** Tydzień studenta - student 50%, pozostali jak w programie standardowym. */
+public final class StudentWeekDiscount implements DiscountPolicy {
+    private final DiscountPolicy fallback;
+
+    public StudentWeekDiscount(DiscountPolicy fallback) {
+        this.fallback = fallback;
+    }
+
+    @Override
+    public Money discount(Money base, String ticketType) {
+        return ticketType.equals("S") ? base.percent(50) : fallback.discount(base, ticketType);
+    }
+}
+```
+
+**Po (`TicketPricer.java`):**
+
+```java
+public Money price(Money base, String ticketType, String program) {
+    if (base.compareTo(Money.ZERO) < 0) {
+        throw new IllegalArgumentException("base price must not be negative");
+    }
+    if (program == null) {
+        throw new IllegalArgumentException("program must not be null");
+    }
+    return base.minus(policyFor(program).discount(base, ticketType));
+}
+
+private static DiscountPolicy policyFor(String program) {
+    return switch (program) {
+        case "STANDARD" -> new StandardDiscount();
+        case "STUDENT_WEEK" -> new StudentWeekDiscount(new StandardDiscount());
+        case "PREMIERE" -> new PremiereDiscount();
+        default -> throw new IllegalArgumentException("unknown program: " + program);
+    };
+}
 ```
 
 **Uruchom:** test po każdej przeniesionej gałęzi.
@@ -201,29 +337,107 @@ return switch (program) {
 2. `TicketPricer` dostaje pole `DiscountPolicy policy` i konstruktor `TicketPricer(DiscountPolicy policy)`. Metoda `price` traci parametr `program` - nowa sygnatura to `price(Money base, String ticketType)` (Change Signature). Metoda `policyFor` znika z tej klasy.
 3. W `PriceBoard.priceFor` składamy kontekst na nowo: strategia z `DiscountPrograms.forName(request.program())` idzie do konstruktora `TicketPricer`. Pole `pricer` znika.
 
-**Przed:**
+**Przed (`TicketPricer.java`):**
 
 ```java
-public Money price(Money base, String ticketType, String program) {
-    ...
-    return base.minus(policyFor(program).discount(base, ticketType));
-}
+public final class TicketPricer {
+    public Money price(Money base, String ticketType, String program) {
+        if (base.compareTo(Money.ZERO) < 0) {
+            throw new IllegalArgumentException("base price must not be negative");
+        }
+        if (program == null) {
+            throw new IllegalArgumentException("program must not be null");
+        }
+        return base.minus(policyFor(program).discount(base, ticketType));
+    }
 
-private static DiscountPolicy policyFor(String program) {
-    return switch (program) {
-        case "STANDARD" -> new StandardDiscount();
-        case "STUDENT_WEEK" -> new StudentWeekDiscount(new StandardDiscount());
-        case "PREMIERE" -> new PremiereDiscount();
-        default -> throw new IllegalArgumentException("unknown program: " + program);
-    };
+    private static DiscountPolicy policyFor(String program) {
+        return switch (program) {
+            case "STANDARD" -> new StandardDiscount();
+            case "STUDENT_WEEK" -> new StudentWeekDiscount(new StandardDiscount());
+            case "PREMIERE" -> new PremiereDiscount();
+            default -> throw new IllegalArgumentException("unknown program: " + program);
+        };
+    }
 }
 ```
 
-**Po:**
+**Przed (`PriceBoard.java`):**
 
 ```java
-return new TicketPricer(DiscountPrograms.forName(request.program()))
-        .price(request.base(), request.ticketType());
+public final class PriceBoard {
+    private final TicketPricer pricer = new TicketPricer();
+
+    public Money priceFor(PriceRequest request) {
+        return pricer.price(request.base(), request.ticketType(), request.program());
+    }
+}
+```
+
+**Po (`DiscountPrograms.java`, nowy plik):**
+
+```java
+/**
+ * Wybór strategii przeniesiony do korzenia kompozycji (konfiguracja kina).
+ * Strategie są bezstanowe, więc współdzielimy jedne instancje.
+ */
+public final class DiscountPrograms {
+    private static final DiscountPolicy STANDARD = new StandardDiscount();
+    private static final DiscountPolicy STUDENT_WEEK = new StudentWeekDiscount(STANDARD);
+    private static final DiscountPolicy PREMIERE = new PremiereDiscount();
+
+    private DiscountPrograms() {
+    }
+
+    public static DiscountPolicy forName(String program) {
+        if (program == null) {
+            throw new IllegalArgumentException("program must not be null");
+        }
+        return switch (program) {
+            case "STANDARD" -> STANDARD;
+            case "STUDENT_WEEK" -> STUDENT_WEEK;
+            case "PREMIERE" -> PREMIERE;
+            default -> throw new IllegalArgumentException("unknown program: " + program);
+        };
+    }
+}
+```
+
+**Po (`TicketPricer.java`):**
+
+```java
+import java.util.Objects;
+
+import pl.training.workshop.shared.Money;
+
+public final class TicketPricer {
+    private final DiscountPolicy policy;
+
+    public TicketPricer(DiscountPolicy policy) {
+        this.policy = Objects.requireNonNull(policy, "policy");
+    }
+
+    public Money price(Money base, String ticketType) {
+        if (base.compareTo(Money.ZERO) < 0) {
+            throw new IllegalArgumentException("base price must not be negative");
+        }
+        return base.minus(policy.discount(base, ticketType));
+    }
+}
+```
+
+**Po (`PriceBoard.java`):**
+
+```java
+import pl.training.workshop.m5.s01_strategy.PriceRequest;
+import pl.training.workshop.shared.Money;
+
+public final class PriceBoard {
+    public Money priceFor(PriceRequest request) {
+        return new TicketPricer(DiscountPrograms.forName(request.program()))
+                .price(request.base(), request.ticketType());
+    }
+}
 ```
 
 **Uruchom:** test zielony; `S01SolutionTest` pokazuje nowy program zniżek jako lambdę bez zmiany kontekstu.
@@ -284,24 +498,148 @@ Tworzenie jest w jednym miejscu: `Screening.fromRow(ScreeningRow)` (mapowanie wi
 3. W `fromRow` gałąź `"MARATHON"` tworzy `new MarathonScreening(row.title(), row.value())` zamiast bazowego `Screening`.
 4. W klasie bazowej gałęzie MARATHON trzech switchy stają się martwe - rzucają `IllegalStateException("handled by MarathonScreening")`.
 
-**Przed:**
+**Przed (`Screening.java`):**
 
 ```java
-public static Screening fromRow(ScreeningRow row) {
-    Kind kind = switch (row.kind()) {
-        case "REGULAR" -> Kind.REGULAR;
-        case "PREMIERE" -> Kind.PREMIERE;
-        case "MARATHON" -> Kind.MARATHON;
-        default -> throw new IllegalArgumentException("unknown screening kind: " + row.kind());
-    };
-    return new Screening(kind, row.title(), row.value());
+import pl.training.workshop.m5.s02_polymorphism.ScreeningRow;
+import pl.training.workshop.shared.Money;
+
+public final class Screening {
+    public enum Kind { REGULAR, PREMIERE, MARATHON }
+
+    private final Kind kind;
+    private final String title;
+    private final int value;
+
+    private Screening(Kind kind, String title, int value) {
+        this.kind = kind;
+        this.title = title;
+        this.value = value;
+    }
+
+    public static Screening fromRow(ScreeningRow row) {
+        Kind kind = switch (row.kind()) {
+            case "REGULAR" -> Kind.REGULAR;
+            case "PREMIERE" -> Kind.PREMIERE;
+            case "MARATHON" -> Kind.MARATHON;
+            default -> throw new IllegalArgumentException("unknown screening kind: " + row.kind());
+        };
+        return new Screening(kind, row.title(), row.value());
+    }
+
+    public String label() {
+        return switch (kind) {
+            case REGULAR -> title;
+            case PREMIERE -> "Premiera: " + title;
+            case MARATHON -> "Maraton: " + title + " (" + value + " filmy)";
+        };
+    }
+
+    public int durationMinutes() {
+        return switch (kind) {
+            case REGULAR -> 20 + value;
+            case PREMIERE -> 30 + value;
+            case MARATHON -> value * 120 + (value - 1) * 15;
+        };
+    }
+
+    public Money price() {
+        return switch (kind) {
+            case REGULAR -> Money.of("25.00");
+            case PREMIERE -> Money.of("35.00");
+            case MARATHON -> Money.of("20.00").times(value);
+        };
+    }
 }
 ```
 
-**Po:**
+**Po (`MarathonScreening.java`, nowy plik):**
 
 ```java
-case "MARATHON" -> new MarathonScreening(row.title(), row.value());
+import pl.training.workshop.shared.Money;
+
+/** Pierwsza podklasa - maraton ma własne, nazwane dane (films zamiast value). */
+public final class MarathonScreening extends Screening {
+    private final int films;
+
+    MarathonScreening(String title, int films) {
+        super(Kind.MARATHON, title, films);
+        this.films = films;
+    }
+
+    @Override
+    public String label() {
+        return "Maraton: " + title() + " (" + films + " filmy)";
+    }
+
+    @Override
+    public int durationMinutes() {
+        return films * 120 + (films - 1) * 15;
+    }
+
+    @Override
+    public Money price() {
+        return Money.of("20.00").times(films);
+    }
+}
+```
+
+**Po (`Screening.java`):**
+
+```java
+import pl.training.workshop.m5.s02_polymorphism.ScreeningRow;
+import pl.training.workshop.shared.Money;
+
+public sealed class Screening permits MarathonScreening {
+    public enum Kind { REGULAR, PREMIERE, MARATHON }
+
+    private final Kind kind;
+    private final String title;
+    private final int value;
+
+    Screening(Kind kind, String title, int value) {
+        this.kind = kind;
+        this.title = title;
+        this.value = value;
+    }
+
+    public static Screening fromRow(ScreeningRow row) {
+        return switch (row.kind()) {
+            case "REGULAR" -> new Screening(Kind.REGULAR, row.title(), row.value());
+            case "PREMIERE" -> new Screening(Kind.PREMIERE, row.title(), row.value());
+            case "MARATHON" -> new MarathonScreening(row.title(), row.value());
+            default -> throw new IllegalArgumentException("unknown screening kind: " + row.kind());
+        };
+    }
+
+    protected final String title() {
+        return title;
+    }
+
+    public String label() {
+        return switch (kind) {
+            case REGULAR -> title;
+            case PREMIERE -> "Premiera: " + title;
+            case MARATHON -> throw new IllegalStateException("handled by MarathonScreening");
+        };
+    }
+
+    public int durationMinutes() {
+        return switch (kind) {
+            case REGULAR -> 20 + value;
+            case PREMIERE -> 30 + value;
+            case MARATHON -> throw new IllegalStateException("handled by MarathonScreening");
+        };
+    }
+
+    public Money price() {
+        return switch (kind) {
+            case REGULAR -> Money.of("25.00");
+            case PREMIERE -> Money.of("35.00");
+            case MARATHON -> throw new IllegalStateException("handled by MarathonScreening");
+        };
+    }
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh test m5/s02` - zielone.
@@ -316,7 +654,7 @@ case "MARATHON" -> new MarathonScreening(row.title(), row.value());
 2. Metody `label()`, `durationMinutes()` i `price()` w bazie stają się `abstract`; klasa to teraz `abstract sealed class Screening permits RegularScreening, PremiereScreening, MarathonScreening`.
 3. Pole `kind`, pole `value` i enum `Kind` znikają (bezpieczne usunięcie nieużywanych elementów). Konstruktor bazy przyjmuje tylko `title`, podklasy wołają `super(title)`. Jedynym `switch` zostaje `fromRow`.
 
-**Przed:**
+**Przed (`Screening.java`):**
 
 ```java
 public int durationMinutes() {
@@ -328,12 +666,114 @@ public int durationMinutes() {
 }
 ```
 
-**Po:**
+(analogiczne martwe gałęzie w `label()` i `price()` - wersja z kroku 1)
+
+**Po (`RegularScreening.java`, nowy plik):**
 
 ```java
-public abstract sealed class Screening permits RegularScreening, PremiereScreening, MarathonScreening {
-    public abstract int durationMinutes();
+import pl.training.workshop.shared.Money;
+
+/** Zwykły seans - 20 minut reklam przed filmem. */
+public final class RegularScreening extends Screening {
+    private final int runtime;
+
+    RegularScreening(String title, int runtime) {
+        super(title);
+        this.runtime = runtime;
+    }
+
+    @Override
+    public String label() {
+        return title();
+    }
+
+    @Override
+    public int durationMinutes() {
+        return 20 + runtime;
+    }
+
+    @Override
+    public Money price() {
+        return Money.of("25.00");
+    }
+}
 ```
+
+**Po (`PremiereScreening.java`, nowy plik):**
+
+```java
+import pl.training.workshop.shared.Money;
+
+/** Premiera - 30 minut spotkania z twórcami zamiast reklam. */
+public final class PremiereScreening extends Screening {
+    private final int runtime;
+
+    PremiereScreening(String title, int runtime) {
+        super(title);
+        this.runtime = runtime;
+    }
+
+    @Override
+    public String label() {
+        return "Premiera: " + title();
+    }
+
+    @Override
+    public int durationMinutes() {
+        return 30 + runtime;
+    }
+
+    @Override
+    public Money price() {
+        return Money.of("35.00");
+    }
+}
+```
+
+**Po (`Screening.java`):**
+
+```java
+import pl.training.workshop.m5.s02_polymorphism.ScreeningRow;
+import pl.training.workshop.shared.Money;
+
+public abstract sealed class Screening permits RegularScreening, PremiereScreening, MarathonScreening {
+    private final String title;
+
+    Screening(String title) {
+        this.title = title;
+    }
+
+    public static Screening fromRow(ScreeningRow row) {
+        return switch (row.kind()) {
+            case "REGULAR" -> new RegularScreening(row.title(), row.value());
+            case "PREMIERE" -> new PremiereScreening(row.title(), row.value());
+            case "MARATHON" -> new MarathonScreening(row.title(), row.value());
+            default -> throw new IllegalArgumentException("unknown screening kind: " + row.kind());
+        };
+    }
+
+    protected final String title() {
+        return title;
+    }
+
+    public abstract String label();
+
+    public abstract int durationMinutes();
+
+    public abstract Money price();
+}
+```
+
+**Po (`MarathonScreening.java`):**
+
+```java
+MarathonScreening(String title, int films) {
+    super(title);
+    this.films = films;
+}
+```
+
+(reszta klasy bez zmian względem kroku 1)
 
 **Uruchom:** test zielony.
 **Co powiedzieć:** `switch` w miejscu tworzenia jest właściwy - to jest wiedza o konstrukcji. Znikają za to switche w zachowaniu.
@@ -347,9 +787,11 @@ public abstract sealed class Screening permits RegularScreening, PremiereScreeni
 2. Podklasy zamieniamy na rekordy: `RegularScreening(String title, int runtime)`, `PremiereScreening(String title, int runtime)`, `MarathonScreening(String title, int films)`.
 3. Pola prywatne i akcesor `title()` w bazie znikają - każdy rekord ma nazwane dane (`runtime`, `films`), a komponent `title` realizuje metodę interfejsu.
 
-**Przed:**
+**Przed (`MarathonScreening.java`):**
 
 ```java
+import pl.training.workshop.shared.Money;
+
 public final class MarathonScreening extends Screening {
     private final int films;
 
@@ -359,16 +801,117 @@ public final class MarathonScreening extends Screening {
     }
 
     @Override
-    public int durationMinutes() { return films * 120 + (films - 1) * 15; }
-    ...
+    public String label() {
+        return "Maraton: " + title() + " (" + films + " filmy)";
+    }
+
+    @Override
+    public int durationMinutes() {
+        return films * 120 + (films - 1) * 15;
+    }
+
+    @Override
+    public Money price() {
+        return Money.of("20.00").times(films);
+    }
 }
 ```
 
-**Po:**
+(`RegularScreening` i `PremiereScreening` wyglądają jak w kroku 2)
+
+**Po (`Screening.java`):**
 
 ```java
+import pl.training.workshop.m5.s02_polymorphism.ScreeningRow;
+import pl.training.workshop.shared.Money;
+
+public sealed interface Screening permits RegularScreening, PremiereScreening, MarathonScreening {
+    static Screening fromRow(ScreeningRow row) {
+        return switch (row.kind()) {
+            case "REGULAR" -> new RegularScreening(row.title(), row.value());
+            case "PREMIERE" -> new PremiereScreening(row.title(), row.value());
+            case "MARATHON" -> new MarathonScreening(row.title(), row.value());
+            default -> throw new IllegalArgumentException("unknown screening kind: " + row.kind());
+        };
+    }
+
+    String title();
+
+    String label();
+
+    int durationMinutes();
+
+    Money price();
+}
+```
+
+**Po (`MarathonScreening.java`):**
+
+```java
+import pl.training.workshop.shared.Money;
+
 public record MarathonScreening(String title, int films) implements Screening {
-    public int durationMinutes() { return films * 120 + (films - 1) * 15; }
+    @Override
+    public String label() {
+        return "Maraton: " + title + " (" + films + " filmy)";
+    }
+
+    @Override
+    public int durationMinutes() {
+        return films * 120 + (films - 1) * 15;
+    }
+
+    @Override
+    public Money price() {
+        return Money.of("20.00").times(films);
+    }
+}
+```
+
+**Po (`RegularScreening.java`):**
+
+```java
+import pl.training.workshop.shared.Money;
+
+public record RegularScreening(String title, int runtime) implements Screening {
+    @Override
+    public String label() {
+        return title;
+    }
+
+    @Override
+    public int durationMinutes() {
+        return 20 + runtime;
+    }
+
+    @Override
+    public Money price() {
+        return Money.of("25.00");
+    }
+}
+```
+
+**Po (`PremiereScreening.java`):**
+
+```java
+import pl.training.workshop.shared.Money;
+
+public record PremiereScreening(String title, int runtime) implements Screening {
+    @Override
+    public String label() {
+        return "Premiera: " + title;
+    }
+
+    @Override
+    public int durationMinutes() {
+        return 30 + runtime;
+    }
+
+    @Override
+    public Money price() {
+        return Money.of("35.00");
+    }
+}
 ```
 
 **Uruchom:** test zielony; `S02SolutionTest` zawiera `switch` klienta bez `default`.
@@ -426,74 +969,71 @@ private Money basePrice(int formatCode) {
 3. Metody prywatne `label`, `basePrice`, `needsGlasses` i `toCsv` zmieniają sygnaturę: zamiast `int` przyjmują `Format` (Change Signature). Ich switche przechodzą na stałe enuma i tracą gałąź `default`. Stałe `FORMAT_2D`, `FORMAT_3D`, `FORMAT_IMAX` znikają.
 4. Do CSV nadal trafia ten sam int: `toCsv` zapisuje `format.code()`.
 
-**Przed:**
+**Przed (`ScreeningCsv.java`):**
 
 ```java
-int formatCode = Integer.parseInt(parts[1].trim());
-return title + "|" + label(formatCode) + "|" + basePrice(formatCode)
-        + "|okulary:" + (needsGlasses(formatCode) ? "tak" : "nie")
-        + "|csv=" + toCsv(title, formatCode);
-```
+import pl.training.workshop.shared.Money;
 
-**Po:**
+public final class ScreeningCsv {
+    public static final int FORMAT_2D = 1;
+    public static final int FORMAT_3D = 2;
+    public static final int FORMAT_IMAX = 3;
 
-```java
-Format format = Format.fromCode(Integer.parseInt(parts[1].trim()));
-```
+    /** Wiersz "tytuł;kod" - np. "Diuna;3". */
+    public String describe(String line) {
+        String[] parts = line.split(";");
+        String title = parts[0];
+        int formatCode = Integer.parseInt(parts[1].trim());
+        return title + "|" + label(formatCode) + "|" + basePrice(formatCode)
+                + "|okulary:" + (needsGlasses(formatCode) ? "tak" : "nie")
+                + "|csv=" + toCsv(title, formatCode);
+    }
 
-**Uruchom:** `scripts/warsztat.sh test m5/s03` - zielone, łącznie z "nieznany kod" i "kod nie jest liczbą".
-**Co powiedzieć:** enum wystarcza, bo zestaw jest mały i zamknięty. Trwały kod to jawne pole, nigdy `ordinal()` ani `name()`.
-**Snapshot:** `step1/` · **Różnica:** `scripts/warsztat.sh diff m5/s03 0 1`
+    private String label(int formatCode) {
+        return switch (formatCode) {
+            case FORMAT_2D -> "2D";
+            case FORMAT_3D -> "3D";
+            case FORMAT_IMAX -> "IMAX";
+            default -> throw new IllegalArgumentException("unknown format code: " + formatCode);
+        };
+    }
 
-### Krok 2: Move Method do typu
+    private Money basePrice(int formatCode) {
+        return switch (formatCode) {
+            case FORMAT_2D -> Money.of("25.00");
+            case FORMAT_3D -> Money.of("32.00");
+            case FORMAT_IMAX -> Money.of("40.00");
+            default -> throw new IllegalArgumentException("unknown format code: " + formatCode);
+        };
+    }
 
-**Zmiany:**
+    private boolean needsGlasses(int formatCode) {
+        return formatCode == FORMAT_3D;
+    }
 
-1. Zachowanie zależne od formatu przenosimy do enuma (Move Method): każda stała dostaje w konstruktorze `label`, `basePrice` i `requiresGlasses`, a `Format` publiczne akcesory `label()`, `basePrice()`, `requiresGlasses()`.
-2. Z `ScreeningCsv` znikają metody prywatne `label`, `basePrice`, `needsGlasses` i `toCsv` - `describe` pyta obiekt formatu: `format.label()`, `format.basePrice()`, `format.requiresGlasses()`, `format.code()`.
-
-**Przed:**
-
-```java
-private Money basePrice(Format format) {
-    return switch (format) {
-        case TWO_D -> Money.of("25.00");
-        case THREE_D -> Money.of("32.00");
-        case IMAX -> Money.of("40.00");
-    };
+    private String toCsv(String title, int formatCode) {
+        return title + ";" + formatCode;
+    }
 }
-
-private boolean needsGlasses(Format format) {
-    return format == Format.THREE_D;
-}
 ```
 
-**Po:**
+**Po (`Format.java`, nowy plik):**
 
 ```java
-TWO_D(1, "2D", "25.00", false),
-THREE_D(2, "3D", "32.00", true),
-IMAX(3, "IMAX", "40.00", false);
-```
-
-**Uruchom:** test zielony.
-**Co powiedzieć:** nowy typ przejmuje walidację, normalizację i operacje pojęcia. Nie oznacza to automatycznie hierarchii klas.
-**Snapshot:** `step2/` · **Różnica:** `scripts/warsztat.sh diff m5/s03 1 2`
-
-### Krok 3: mapper migracyjny na granicy trwałości
-
-**Zmiany:**
-
-1. Powstaje nowy plik `FormatCodes.java` (Extract Class): mapa `EnumMap<Format, Integer>` z kodami 1, 2, 3 oraz statyczne `fromCode(int)` i `toCode(Format)`. Wyjątek dla nieznanego kodu bez zmian.
-2. Z enuma `Format` znikają pole `code`, akcesor `code()` i metoda `fromCode` - typ domenowy nie wie już nic o kodach trwałych.
-3. `ScreeningCsv.describe` czyta przez `FormatCodes.fromCode(...)` i zapisuje przez `FormatCodes.toCode(format)`; reszta kodu rozmawia wyłącznie z `Format`.
-
-**Przed:**
-
-```java
+/**
+ * Nowy typ dla kodu. Enum wystarcza - zestaw formatów jest mały i zamknięty.
+ * Trwały kod int jest jawnym polem, nie ordinal().
+ */
 public enum Format {
-    TWO_D(1, "2D", "25.00", false),
-    ...
+    TWO_D(1),
+    THREE_D(2),
+    IMAX(3);
+
+    private final int code;
+
+    Format(int code) {
+        this.code = code;
+    }
 
     public int code() {
         return code;
@@ -510,11 +1050,265 @@ public enum Format {
 }
 ```
 
-**Po:**
+**Po (`ScreeningCsv.java`):**
 
 ```java
-Format format = FormatCodes.fromCode(Integer.parseInt(parts[1].trim()));
-... + "|csv=" + title + ";" + FormatCodes.toCode(format);
+import pl.training.workshop.shared.Money;
+
+public final class ScreeningCsv {
+    /** Wiersz "tytuł;kod" - np. "Diuna;3". */
+    public String describe(String line) {
+        String[] parts = line.split(";");
+        String title = parts[0];
+        Format format = Format.fromCode(Integer.parseInt(parts[1].trim()));
+        return title + "|" + label(format) + "|" + basePrice(format)
+                + "|okulary:" + (needsGlasses(format) ? "tak" : "nie")
+                + "|csv=" + toCsv(title, format);
+    }
+
+    private String label(Format format) {
+        return switch (format) {
+            case TWO_D -> "2D";
+            case THREE_D -> "3D";
+            case IMAX -> "IMAX";
+        };
+    }
+
+    private Money basePrice(Format format) {
+        return switch (format) {
+            case TWO_D -> Money.of("25.00");
+            case THREE_D -> Money.of("32.00");
+            case IMAX -> Money.of("40.00");
+        };
+    }
+
+    private boolean needsGlasses(Format format) {
+        return format == Format.THREE_D;
+    }
+
+    private String toCsv(String title, Format format) {
+        return title + ";" + format.code();
+    }
+}
+```
+
+**Uruchom:** `scripts/warsztat.sh test m5/s03` - zielone, łącznie z "nieznany kod" i "kod nie jest liczbą".
+**Co powiedzieć:** enum wystarcza, bo zestaw jest mały i zamknięty. Trwały kod to jawne pole, nigdy `ordinal()` ani `name()`.
+**Snapshot:** `step1/` · **Różnica:** `scripts/warsztat.sh diff m5/s03 0 1`
+
+### Krok 2: Move Method do typu
+
+**Zmiany:**
+
+1. Zachowanie zależne od formatu przenosimy do enuma (Move Method): każda stała dostaje w konstruktorze `label`, `basePrice` i `requiresGlasses`, a `Format` publiczne akcesory `label()`, `basePrice()`, `requiresGlasses()`.
+2. Z `ScreeningCsv` znikają metody prywatne `label`, `basePrice`, `needsGlasses` i `toCsv` - `describe` pyta obiekt formatu: `format.label()`, `format.basePrice()`, `format.requiresGlasses()`, `format.code()`.
+
+**Przed (`ScreeningCsv.java`):**
+
+```java
+private Money basePrice(Format format) {
+    return switch (format) {
+        case TWO_D -> Money.of("25.00");
+        case THREE_D -> Money.of("32.00");
+        case IMAX -> Money.of("40.00");
+    };
+}
+
+private boolean needsGlasses(Format format) {
+    return format == Format.THREE_D;
+}
+```
+
+(analogicznie `label` i `toCsv` - wersja z kroku 1)
+
+**Po (`Format.java`):**
+
+```java
+import pl.training.workshop.shared.Money;
+
+/** Move Method - zachowanie zależne od formatu przeniesione do typu Format. */
+public enum Format {
+    TWO_D(1, "2D", "25.00", false),
+    THREE_D(2, "3D", "32.00", true),
+    IMAX(3, "IMAX", "40.00", false);
+
+    private final int code;
+    private final String label;
+    private final Money basePrice;
+    private final boolean requiresGlasses;
+
+    Format(int code, String label, String basePrice, boolean requiresGlasses) {
+        this.code = code;
+        this.label = label;
+        this.basePrice = Money.of(basePrice);
+        this.requiresGlasses = requiresGlasses;
+    }
+
+    public int code() {
+        return code;
+    }
+
+    public String label() {
+        return label;
+    }
+
+    public Money basePrice() {
+        return basePrice;
+    }
+
+    public boolean requiresGlasses() {
+        return requiresGlasses;
+    }
+
+    public static Format fromCode(int code) {
+        for (Format format : values()) {
+            if (format.code == code) {
+                return format;
+            }
+        }
+        throw new IllegalArgumentException("unknown format code: " + code);
+    }
+}
+```
+
+**Po (`ScreeningCsv.java`):**
+
+```java
+/** Klient pyta obiekt formatu zamiast wykonywać switch. */
+public final class ScreeningCsv {
+    /** Wiersz "tytuł;kod" - np. "Diuna;3". */
+    public String describe(String line) {
+        String[] parts = line.split(";");
+        String title = parts[0];
+        Format format = Format.fromCode(Integer.parseInt(parts[1].trim()));
+        return title + "|" + format.label() + "|" + format.basePrice()
+                + "|okulary:" + (format.requiresGlasses() ? "tak" : "nie")
+                + "|csv=" + title + ";" + format.code();
+    }
+}
+```
+
+(import `Money` w `ScreeningCsv` przestaje być potrzebny)
+
+**Uruchom:** test zielony.
+**Co powiedzieć:** nowy typ przejmuje walidację, normalizację i operacje pojęcia. Nie oznacza to automatycznie hierarchii klas.
+**Snapshot:** `step2/` · **Różnica:** `scripts/warsztat.sh diff m5/s03 1 2`
+
+### Krok 3: mapper migracyjny na granicy trwałości
+
+**Zmiany:**
+
+1. Powstaje nowy plik `FormatCodes.java` (Extract Class): mapa `EnumMap<Format, Integer>` z kodami 1, 2, 3 oraz statyczne `fromCode(int)` i `toCode(Format)`. Wyjątek dla nieznanego kodu bez zmian.
+2. Z enuma `Format` znikają pole `code`, akcesor `code()` i metoda `fromCode` - typ domenowy nie wie już nic o kodach trwałych.
+3. `ScreeningCsv.describe` czyta przez `FormatCodes.fromCode(...)` i zapisuje przez `FormatCodes.toCode(format)`; reszta kodu rozmawia wyłącznie z `Format`.
+
+**Przed (`Format.java`):**
+
+```java
+public enum Format {
+    TWO_D(1, "2D", "25.00", false),
+    THREE_D(2, "3D", "32.00", true),
+    IMAX(3, "IMAX", "40.00", false);
+
+    private final int code;
+
+    public int code() {
+        return code;
+    }
+
+    public static Format fromCode(int code) {
+        for (Format format : values()) {
+            if (format.code == code) {
+                return format;
+            }
+        }
+        throw new IllegalArgumentException("unknown format code: " + code);
+    }
+}
+```
+
+(pokazane tylko elementy do usunięcia; pola `label`, `basePrice`, `requiresGlasses` i ich akcesory jak w kroku 2)
+
+**Po (`FormatCodes.java`, nowy plik):**
+
+```java
+import java.util.EnumMap;
+import java.util.Map;
+
+/**
+ * Mapper migracyjny int - Format. Baza i CSV zostają przy kodzie int;
+ * gdy kiedyś przejdziemy na kody tekstowe, zmieni się tylko ta klasa.
+ */
+public final class FormatCodes {
+    private static final Map<Format, Integer> CODES = new EnumMap<>(Map.of(
+            Format.TWO_D, 1,
+            Format.THREE_D, 2,
+            Format.IMAX, 3));
+
+    private FormatCodes() {
+    }
+
+    public static Format fromCode(int code) {
+        for (Map.Entry<Format, Integer> entry : CODES.entrySet()) {
+            if (entry.getValue() == code) {
+                return entry.getKey();
+            }
+        }
+        throw new IllegalArgumentException("unknown format code: " + code);
+    }
+
+    public static int toCode(Format format) {
+        return CODES.get(format);
+    }
+}
+```
+
+**Po (`Format.java`):**
+
+```java
+import pl.training.workshop.shared.Money;
+
+/** Typ domenowy bez wiedzy o kodach trwałych. */
+public enum Format {
+    TWO_D("2D", "25.00", false),
+    THREE_D("3D", "32.00", true),
+    IMAX("IMAX", "40.00", false);
+
+    private final String label;
+    private final Money basePrice;
+    private final boolean requiresGlasses;
+
+    Format(String label, String basePrice, boolean requiresGlasses) {
+        this.label = label;
+        this.basePrice = Money.of(basePrice);
+        this.requiresGlasses = requiresGlasses;
+    }
+
+    public String label() {
+        return label;
+    }
+
+    public Money basePrice() {
+        return basePrice;
+    }
+
+    public boolean requiresGlasses() {
+        return requiresGlasses;
+    }
+}
+```
+
+**Po (`ScreeningCsv.java`):**
+
+```java
+public String describe(String line) {
+    String[] parts = line.split(";");
+    String title = parts[0];
+    Format format = FormatCodes.fromCode(Integer.parseInt(parts[1].trim()));
+    return title + "|" + format.label() + "|" + format.basePrice()
+            + "|okulary:" + (format.requiresGlasses() ? "tak" : "nie")
+            + "|csv=" + title + ";" + FormatCodes.toCode(format);
+}
 ```
 
 **Uruchom:** test zielony; `S03SolutionTest` sprawdza, że `ordinal()` IMAX to 2, a kod trwały to 3.
@@ -566,7 +1360,7 @@ tickets.add(row >= 10
 1. W pakiecie `tickets` powstaje nowy plik `Tickets.java`: klasa z prywatnym konstruktorem i statycznymi metodami tworzącymi `standard(title, base, row)` i `vip(title, base, row)`; obie zwracają typ `Ticket` (Replace Constructor with Factory Method).
 2. W `BoxOffice` każde `new StandardTicket(...)` i `new VipTicket(...)` zastępujemy wywołaniem `Tickets.standard(...)` / `Tickets.vip(...)` - w `sell` i w `sellAll`. Importy klas konkretnych znikają z klienta.
 
-**Przed:**
+**Przed (`BoxOffice.java`):**
 
 ```java
 public Ticket sell(String title, Money base, int row) {
@@ -575,13 +1369,58 @@ public Ticket sell(String title, Money base, int row) {
     }
     return new StandardTicket(title, base, row);
 }
+
+public List<Ticket> sellAll(String title, Money base, List<Integer> rows) {
+    List<Ticket> tickets = new ArrayList<>();
+    for (int row : rows) {
+        tickets.add(row >= 10
+                ? new VipTicket(title, base, row)
+                : new StandardTicket(title, base, row));
+    }
+    return tickets;
+}
 ```
 
-**Po:**
+**Po (`Tickets.java`, nowy plik w pakiecie `tickets`):**
 
 ```java
-return Tickets.vip(title, base, row);
+import pl.training.workshop.shared.Money;
+
+/** Metody tworzące (Creation Method) obok klas biletów - zwracają typ Ticket. */
+public final class Tickets {
+    private Tickets() {
+    }
+
+    public static Ticket standard(String title, Money base, int row) {
+        return new StandardTicket(title, base, row);
+    }
+
+    public static Ticket vip(String title, Money base, int row) {
+        return new VipTicket(title, base, row);
+    }
+}
 ```
+
+**Po (`BoxOffice.java`):**
+
+```java
+public Ticket sell(String title, Money base, int row) {
+    if (row >= 10) {
+        return Tickets.vip(title, base, row);
+    }
+    return Tickets.standard(title, base, row);
+}
+
+public List<Ticket> sellAll(String title, Money base, List<Integer> rows) {
+    List<Ticket> tickets = new ArrayList<>();
+    for (int row : rows) {
+        tickets.add(row >= 10 ? Tickets.vip(title, base, row) : Tickets.standard(title, base, row));
+    }
+    return tickets;
+}
+```
+
+(w importach `BoxOffice` klasy `StandardTicket` i `VipTicket` zastępuje `Tickets`)
 
 **Uruchom:** `scripts/warsztat.sh test m5/s04` - zielone.
 **Co powiedzieć:** przekierowujemy tworzenie pojedynczo; klient nie importuje już klas konkretnych.
@@ -594,7 +1433,7 @@ return Tickets.vip(title, base, row);
 1. W `Tickets` metody `standard` i `vip` zastępujemy jedną metodą `forSeat(String title, Money base, int row)`, do której przenosimy warunek `row >= 10` (Move Method). Liczbę 10 zapisujemy jako stałą `VIP_FROM_ROW`.
 2. `BoxOffice.sell` woła tylko `Tickets.forSeat(title, base, row)`; `sellAll` przestaje powielać warunek i woła `sell`.
 
-**Przed:**
+**Przed (`BoxOffice.java`):**
 
 ```java
 public Ticket sell(String title, Money base, int row) {
@@ -603,13 +1442,50 @@ public Ticket sell(String title, Money base, int row) {
     }
     return Tickets.standard(title, base, row);
 }
+
+public List<Ticket> sellAll(String title, Money base, List<Integer> rows) {
+    List<Ticket> tickets = new ArrayList<>();
+    for (int row : rows) {
+        tickets.add(row >= 10 ? Tickets.vip(title, base, row) : Tickets.standard(title, base, row));
+    }
+    return tickets;
+}
 ```
 
-**Po:**
+**Po (`Tickets.java`):**
+
+```java
+import pl.training.workshop.shared.Money;
+
+/** Move Method - decyzja "który bilet" należy do fabryki, nie do klienta. */
+public final class Tickets {
+    private static final int VIP_FROM_ROW = 10;
+
+    private Tickets() {
+    }
+
+    public static Ticket forSeat(String title, Money base, int row) {
+        if (row >= VIP_FROM_ROW) {
+            return new VipTicket(title, base, row);
+        }
+        return new StandardTicket(title, base, row);
+    }
+}
+```
+
+**Po (`BoxOffice.java`):**
 
 ```java
 public Ticket sell(String title, Money base, int row) {
     return Tickets.forSeat(title, base, row);
+}
+
+public List<Ticket> sellAll(String title, Money base, List<Integer> rows) {
+    List<Ticket> tickets = new ArrayList<>();
+    for (int row : rows) {
+        tickets.add(sell(title, base, row));
+    }
+    return tickets;
 }
 ```
 
@@ -624,9 +1500,11 @@ public Ticket sell(String title, Money base, int row) {
 1. `StandardTicket` i `VipTicket` tracą modyfikator `public` - stają się pakietowe, więc poza pakietem `tickets` nie da się ich utworzyć ani zaimportować. Każde pozostałe użycie spoza pakietu zgłosi kompilator - to inwentaryzacja, którą robi za nas.
 2. Przy okazji obie klasy zamieniamy na rekordy pakietowe: `record StandardTicket(String title, Money base, int row) implements Ticket` i analogicznie `VipTicket`. Ręcznie pisane pola i konstruktory znikają.
 
-**Przed:**
+**Przed (`VipTicket.java`):**
 
 ```java
+import pl.training.workshop.shared.Money;
+
 public final class VipTicket implements Ticket {
     private final String title;
     private final Money base;
@@ -637,14 +1515,57 @@ public final class VipTicket implements Ticket {
         this.base = base;
         this.row = row;
     }
-    ...
+
+    @Override
+    public Money price() {
+        return base.plus(Money.of("10.00"));
+    }
+
+    @Override
+    public String describe() {
+        return title + " r" + row + " VIP " + price();
+    }
 }
 ```
 
-**Po:**
+(`StandardTicket` analogicznie: `price()` zwraca `base`, `describe()` bez członu "VIP")
+
+**Po (`VipTicket.java`):**
 
 ```java
-record VipTicket(String title, Money base, int row) implements Ticket { ... }
+import pl.training.workshop.shared.Money;
+
+/** Klasa pakietowa, miejsce VIP: +10.00. */
+record VipTicket(String title, Money base, int row) implements Ticket {
+    @Override
+    public Money price() {
+        return base.plus(Money.of("10.00"));
+    }
+
+    @Override
+    public String describe() {
+        return title + " r" + row + " VIP " + price();
+    }
+}
+```
+
+**Po (`StandardTicket.java`):**
+
+```java
+import pl.training.workshop.shared.Money;
+
+/** Klasa pakietowa - poza pakietem tickets nie da się jej utworzyć ani zaimportować. */
+record StandardTicket(String title, Money base, int row) implements Ticket {
+    @Override
+    public Money price() {
+        return base;
+    }
+
+    @Override
+    public String describe() {
+        return title + " r" + row + " " + price();
+    }
+}
 ```
 
 **Uruchom:** test zielony; `S04SolutionTest` sprawdza widoczność refleksją.
@@ -715,18 +1636,72 @@ public Reservation reserve(String channel, String email, List<String> seats) {
     if (!channel.equals("ONLINE") && !channel.equals("BOX_OFFICE")) {
         throw new IllegalArgumentException("unknown channel: " + channel);
     }
-    ...
+    Money fee = channel.equals("ONLINE") ? Money.of("2.00").times(seats.size()) : Money.ZERO;
+    LocalDateTime expiresAt = channel.equals("ONLINE")
+            ? LocalDateTime.now(clock).plusMinutes(15)
+            : null;
     takenSeats.addAll(seats);
     return new Reservation(id, channel, email, List.copyOf(seats), fee, expiresAt);
+}
+
+public Reservation reserveGroup(String email, List<String> seats) {
+    if (seats.size() < 10) {
+        throw new IllegalArgumentException("group needs 10+ seats");
+    }
+    for (String seat : seats) {
+        if (takenSeats.contains(seat)) {
+            throw new IllegalStateException("seat taken: " + seat);
+        }
+    }
+    sequence++;
+    String id = "R" + sequence;
+    Money fee = Money.of("2.00").times(seats.size());
+    LocalDateTime expiresAt = LocalDateTime.now(clock).plusMinutes(15);
+    takenSeats.addAll(seats);
+    return new Reservation(id, "ONLINE", email, List.copyOf(seats), fee, expiresAt);
 }
 ```
 
 **Po:**
 
 ```java
-requireFree(seats);
-Reservation reservation = newReservation(channel, email, seats);
-takenSeats.addAll(seats);
+public Reservation reserve(String channel, String email, List<String> seats) {
+    requireFree(seats);
+    Reservation reservation = newReservation(channel, email, seats);
+    takenSeats.addAll(seats);
+    return reservation;
+}
+
+public Reservation reserveGroup(String email, List<String> seats) {
+    if (seats.size() < 10) {
+        throw new IllegalArgumentException("group needs 10+ seats");
+    }
+    requireFree(seats);
+    Reservation reservation = newReservation("ONLINE", email, seats);
+    takenSeats.addAll(seats);
+    return reservation;
+}
+
+private void requireFree(List<String> seats) {
+    for (String seat : seats) {
+        if (takenSeats.contains(seat)) {
+            throw new IllegalStateException("seat taken: " + seat);
+        }
+    }
+}
+
+private Reservation newReservation(String channel, String email, List<String> seats) {
+    sequence++;
+    String id = "R" + sequence;
+    if (!channel.equals("ONLINE") && !channel.equals("BOX_OFFICE")) {
+        throw new IllegalArgumentException("unknown channel: " + channel);
+    }
+    Money fee = channel.equals("ONLINE") ? Money.of("2.00").times(seats.size()) : Money.ZERO;
+    LocalDateTime expiresAt = channel.equals("ONLINE")
+            ? LocalDateTime.now(clock).plusMinutes(15)
+            : null;
+    return new Reservation(id, channel, email, List.copyOf(seats), fee, expiresAt);
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh test m5/s05` - zielone.
@@ -741,7 +1716,7 @@ takenSeats.addAll(seats);
 2. Z `ReservationService` znikają pola `clock` i `sequence`; w ich miejsce pojawia się pole `factory`. Konstruktor `ReservationService(Clock clock)` sam tworzy fabrykę, więc jego sygnatura się nie zmienia.
 3. `reserve` i `reserveGroup` wołają `factory.create(...)` zamiast `newReservation(...)`.
 
-**Przed:**
+**Przed (`ReservationService.java`):**
 
 ```java
 private final Clock clock;
@@ -751,21 +1726,76 @@ private int sequence;
 public ReservationService(Clock clock) {
     this.clock = clock;
 }
-...
-private Reservation newReservation(String channel, String email, List<String> seats) {
-    sequence++;
-    String id = "R" + sequence;
-    ...
+```
+
+(oraz metoda `newReservation` w wersji z kroku 1 - cała przechodzi do fabryki)
+
+**Po (`ReservationFactory.java`, nowy plik):**
+
+```java
+import java.time.Clock;
+import java.time.LocalDateTime;
+import java.util.List;
+
+import pl.training.workshop.m5.s05_extractfactory.Reservation;
+import pl.training.workshop.shared.Money;
+
+/**
+ * Extract Factory Class - cała wiedza o budowie rezerwacji (numeracja, opłata,
+ * termin ważności) w jednej klasie. Pole sequence i zegar przeniesione razem z metodą.
+ */
+public final class ReservationFactory {
+    private final Clock clock;
+    private int sequence;
+
+    public ReservationFactory(Clock clock) {
+        this.clock = clock;
+    }
+
+    public Reservation create(String channel, String email, List<String> seats) {
+        sequence++;
+        String id = "R" + sequence;
+        if (!channel.equals("ONLINE") && !channel.equals("BOX_OFFICE")) {
+            throw new IllegalArgumentException("unknown channel: " + channel);
+        }
+        Money fee = channel.equals("ONLINE") ? Money.of("2.00").times(seats.size()) : Money.ZERO;
+        LocalDateTime expiresAt = channel.equals("ONLINE")
+                ? LocalDateTime.now(clock).plusMinutes(15)
+                : null;
+        return new Reservation(id, channel, email, List.copyOf(seats), fee, expiresAt);
+    }
 }
 ```
 
-**Po:**
+**Po (`ReservationService.java`):**
 
 ```java
+private final ReservationFactory factory;
+private final Set<String> takenSeats = new HashSet<>();
+
 public ReservationService(Clock clock) {
     this.factory = new ReservationFactory(clock);
 }
+
+public Reservation reserve(String channel, String email, List<String> seats) {
+    requireFree(seats);
+    Reservation reservation = factory.create(channel, email, seats);
+    takenSeats.addAll(seats);
+    return reservation;
+}
+
+public Reservation reserveGroup(String email, List<String> seats) {
+    if (seats.size() < 10) {
+        throw new IllegalArgumentException("group needs 10+ seats");
+    }
+    requireFree(seats);
+    Reservation reservation = factory.create("ONLINE", email, seats);
+    takenSeats.addAll(seats);
+    return reservation;
+}
 ```
+
+(metoda `requireFree` bez zmian; metoda `newReservation` znika, a wraz z nią importy `LocalDateTime` i `Money`)
 
 **Uruchom:** test zielony.
 **Co powiedzieć:** klienci serwisu niczego nie zauważyli. Serwis ma jedną odpowiedzialność: dostępność miejsc.
@@ -789,12 +1819,17 @@ public ReservationService(Clock clock) {
 **Po:**
 
 ```java
+/** Dotychczasowy konstruktor zostaje jako wygodny skrót - klienci nie muszą się zmieniać. */
 public ReservationService(Clock clock) {
     this(new ReservationFactory(clock));
 }
 
-public ReservationService(ReservationFactory factory) { ... }
+public ReservationService(ReservationFactory factory) {
+    this.factory = Objects.requireNonNull(factory, "factory");
+}
 ```
+
+(dochodzi import `java.util.Objects`)
 
 **Uruchom:** test zielony; `S05SolutionTest` testuje fabrykę osobno i pokazuje współdzieloną numerację.
 **Co powiedzieć:** fabryka to zwykła zależność wstrzykiwana konstruktorem, nie globalny rejestr. Dwie usługi z jedną fabryką dzielą numerację - to decyzja korzenia kompozycji.
@@ -849,27 +1884,94 @@ day.add(hall2);
 2. `WeekendPlanner.plan` przepisujemy na wywołania buildera: znikają zmienne `hall1`-`hall3` oraz ręczne `new Hall`, `new Screening` i `day.add(...)`. Warunki `weekend` zostają jako zwykłe `if` wokół wywołań `screening`.
 3. Węzły drzewa (`DaySchedule`, `Hall`, `Screening`) na razie bez zmian.
 
-**Przed:**
+**Przed (`WeekendPlanner.java`):**
 
 ```java
-DaySchedule day = new DaySchedule(date);
-Hall hall1 = new Hall("Sala 1");
-hall1.add(new Screening("Diuna", LocalTime.of(18, 0)));
-hall1.add(new Screening("Diuna", LocalTime.of(21, 0)));
-day.add(hall1);
-Hall hall2 = new Hall("Sala 2");
-...
+public DaySchedule plan(LocalDate date) {
+    DayOfWeek dayOfWeek = date.getDayOfWeek();
+    boolean weekend = dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY;
+    DaySchedule day = new DaySchedule(date);
+    Hall hall1 = new Hall("Sala 1");
+    hall1.add(new Screening("Diuna", LocalTime.of(18, 0)));
+    hall1.add(new Screening("Diuna", LocalTime.of(21, 0)));
+    day.add(hall1);
+    Hall hall2 = new Hall("Sala 2");
+    if (weekend) {
+        hall2.add(new Screening("Kraina Lodu", LocalTime.of(10, 0)));
+    }
+    hall2.add(new Screening("Amator", LocalTime.of(17, 30)));
+    day.add(hall2);
+    Hall hall3 = new Hall("Sala 3 VIP");
+    if (weekend) {
+        hall3.add(new Screening("Amator", LocalTime.of(20, 0)));
+    }
+    day.add(hall3);
+    return day;
+}
 ```
 
-**Po:**
+**Po (`ScheduleBuilder.java`, nowy plik):**
 
 ```java
-ScheduleBuilder builder = new ScheduleBuilder(date)
-        .hall("Sala 1")
-        .screening("Diuna", 18, 0)
-        .screening("Diuna", 21, 0)
-        .hall("Sala 2");
+import java.time.LocalDate;
+import java.time.LocalTime;
+
+/**
+ * Klasyczny Builder (Encapsulate Composite with Builder) - pamięta bieżącą salę,
+ * więc klient nie operuje węzłami ani add. Drzewo pod spodem bez zmian.
+ */
+public final class ScheduleBuilder {
+    private final DaySchedule day;
+    private Hall current;
+
+    public ScheduleBuilder(LocalDate date) {
+        this.day = new DaySchedule(date);
+    }
+
+    public ScheduleBuilder hall(String name) {
+        current = new Hall(name);
+        day.add(current);
+        return this;
+    }
+
+    public ScheduleBuilder screening(String title, int hour, int minute) {
+        if (current == null) {
+            throw new IllegalStateException("screening without hall");
+        }
+        current.add(new Screening(title, LocalTime.of(hour, minute)));
+        return this;
+    }
+
+    public DaySchedule build() {
+        return day;
+    }
+}
 ```
+
+**Po (`WeekendPlanner.java`):**
+
+```java
+public DaySchedule plan(LocalDate date) {
+    DayOfWeek dayOfWeek = date.getDayOfWeek();
+    boolean weekend = dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY;
+    ScheduleBuilder builder = new ScheduleBuilder(date)
+            .hall("Sala 1")
+            .screening("Diuna", 18, 0)
+            .screening("Diuna", 21, 0)
+            .hall("Sala 2");
+    if (weekend) {
+        builder.screening("Kraina Lodu", 10, 0);
+    }
+    builder.screening("Amator", 17, 30)
+            .hall("Sala 3 VIP");
+    if (weekend) {
+        builder.screening("Amator", 20, 0);
+    }
+    return builder.build();
+}
+```
+
+(import `LocalTime` znika z `WeekendPlanner`)
 
 **Uruchom:** `scripts/warsztat.sh test m5/s06` - zielone (sobota i piątek z pustą salą VIP).
 **Co powiedzieć:** klient mówi "co" zbudować. Seans przed salą to teraz jawny błąd (`screening without hall`).
@@ -884,9 +1986,12 @@ ScheduleBuilder builder = new ScheduleBuilder(date)
 3. Builder staje się jednorazowy: pole `built` i pomocnicza metoda `requireNotBuilt()` sprawiają, że drugie `build()` (i każde wywołanie po nim) rzuca `IllegalStateException("builder already used")`.
 4. `hall(name)` odrzuca powtórzoną nazwę sali wyjątkiem `IllegalStateException("duplicate hall: ...")` - to świadomie dodany nowy niezmiennik.
 
-**Przed:**
+**Przed (`Hall.java`):**
 
 ```java
+import java.util.ArrayList;
+import java.util.List;
+
 public final class Hall {
     private final String name;
     private final List<Screening> screenings = new ArrayList<>();
@@ -898,15 +2003,141 @@ public final class Hall {
     public void add(Screening screening) {
         screenings.add(screening);
     }
-    ...
+
+    public int size() {
+        return screenings.size();
+    }
+
+    public String render() {
+        StringBuilder text = new StringBuilder(name).append('\n');
+        if (screenings.isEmpty()) {
+            text.append("  (brak seansow)\n");
+        }
+        screenings.forEach(screening -> text.append(screening.render()));
+        return text.toString();
+    }
 }
 ```
 
-**Po:**
+(`DaySchedule` i `Screening` analogicznie - mutowalne klasy z kroku 1)
+
+**Po (`Screening.java`):**
 
 ```java
+import java.time.LocalTime;
+
+/** Liść jako rekord. */
+public record Screening(String title, LocalTime start) {
+    public String render() {
+        return "  " + start + " " + title + "\n";
+    }
+}
+```
+
+**Po (`Hall.java`):**
+
+```java
+import java.util.List;
+
+/** Niemutowalny węzeł - lista kopiowana w konstruktorze, bez add. */
 public record Hall(String name, List<Screening> screenings) {
-    public Hall { screenings = List.copyOf(screenings); }
+    public Hall {
+        screenings = List.copyOf(screenings);
+    }
+
+    public String render() {
+        StringBuilder text = new StringBuilder(name).append('\n');
+        if (screenings.isEmpty()) {
+            text.append("  (brak seansow)\n");
+        }
+        screenings.forEach(screening -> text.append(screening.render()));
+        return text.toString();
+    }
+}
+```
+
+**Po (`DaySchedule.java`):**
+
+```java
+import java.time.LocalDate;
+import java.util.List;
+
+/** Niemutowalny korzeń - builder jest jedyną wygodną drogą budowy. */
+public record DaySchedule(LocalDate date, List<Hall> halls) {
+    public DaySchedule {
+        halls = List.copyOf(halls);
+    }
+
+    public String render() {
+        StringBuilder text = new StringBuilder()
+                .append(date).append(' ').append(date.getDayOfWeek()).append('\n');
+        int count = 0;
+        for (Hall hall : halls) {
+            text.append(hall.render());
+            count += hall.screenings().size();
+        }
+        return text.append("Seansow: ").append(count).append('\n').toString();
+    }
+}
+```
+
+**Po (`ScheduleBuilder.java`):**
+
+```java
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Builder zbiera dane, a drzewo (rekordy) powstaje w build(). Builder jest jednorazowy -
+ * drugie build() rzuca wyjątek, bo wynik nie może zależeć od późniejszych wywołań.
+ */
+public final class ScheduleBuilder {
+    private final LocalDate date;
+    private final Map<String, List<Screening>> halls = new LinkedHashMap<>();
+    private List<Screening> current;
+    private boolean built;
+
+    public ScheduleBuilder(LocalDate date) {
+        this.date = date;
+    }
+
+    public ScheduleBuilder hall(String name) {
+        requireNotBuilt();
+        if (halls.containsKey(name)) {
+            throw new IllegalStateException("duplicate hall: " + name);
+        }
+        current = new ArrayList<>();
+        halls.put(name, current);
+        return this;
+    }
+
+    public ScheduleBuilder screening(String title, int hour, int minute) {
+        requireNotBuilt();
+        if (current == null) {
+            throw new IllegalStateException("screening without hall");
+        }
+        current.add(new Screening(title, LocalTime.of(hour, minute)));
+        return this;
+    }
+
+    public DaySchedule build() {
+        requireNotBuilt();
+        built = true;
+        List<Hall> result = new ArrayList<>();
+        halls.forEach((name, screenings) -> result.add(new Hall(name, screenings)));
+        return new DaySchedule(date, result);
+    }
+
+    private void requireNotBuilt() {
+        if (built) {
+            throw new IllegalStateException("builder already used");
+        }
+    }
+}
 ```
 
 **Uruchom:** test zielony; `S06SolutionTest` sprawdza jednorazowość i niemutowalność.
@@ -922,7 +2153,7 @@ public record Hall(String name, List<Screening> screenings) {
 3. Konstruktor `ScheduleBuilder` staje się prywatny; wejściem jest statyczna metoda `ScheduleBuilder.day(date)`.
 4. `WeekendPlanner.plan` przepisujemy na zagnieżdżone lambdy - wcięcia kodu odpowiadają poziomom drzewa.
 
-**Przed:**
+**Przed (`ScheduleBuilder.java`):**
 
 ```java
 public ScheduleBuilder hall(String name) {
@@ -936,15 +2167,94 @@ public ScheduleBuilder hall(String name) {
 }
 ```
 
-**Po:**
+(reszta buildera - wersja z kroku 2)
+
+**Po (`ScheduleBuilder.java`):**
 
 ```java
-return ScheduleBuilder.day(date)
-        .hall("Sala 1", hall -> hall
-                .screening("Diuna", 18, 0)
-                .screening("Diuna", 21, 0))
-        .hall("Sala 2", hall -> { ... })
-        .build();
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
+
+/**
+ * Zagnieżdżony builder - sala konfigurowana lambdą, więc znika ukryty stan
+ * "bieżąca sala". Lambda jest wywoływana synchronicznie, dokładnie raz.
+ */
+public final class ScheduleBuilder {
+    private final LocalDate date;
+    private final List<Hall> halls = new ArrayList<>();
+    private boolean built;
+
+    private ScheduleBuilder(LocalDate date) {
+        this.date = date;
+    }
+
+    public static ScheduleBuilder day(LocalDate date) {
+        return new ScheduleBuilder(date);
+    }
+
+    public ScheduleBuilder hall(String name, Consumer<HallBuilder> content) {
+        requireNotBuilt();
+        if (halls.stream().anyMatch(hall -> hall.name().equals(name))) {
+            throw new IllegalStateException("duplicate hall: " + name);
+        }
+        HallBuilder hall = new HallBuilder();
+        content.accept(hall);
+        halls.add(new Hall(name, hall.screenings));
+        return this;
+    }
+
+    public DaySchedule build() {
+        requireNotBuilt();
+        built = true;
+        return new DaySchedule(date, halls);
+    }
+
+    private void requireNotBuilt() {
+        if (built) {
+            throw new IllegalStateException("builder already used");
+        }
+    }
+
+    public static final class HallBuilder {
+        private final List<Screening> screenings = new ArrayList<>();
+
+        private HallBuilder() {
+        }
+
+        public HallBuilder screening(String title, int hour, int minute) {
+            screenings.add(new Screening(title, LocalTime.of(hour, minute)));
+            return this;
+        }
+    }
+}
+```
+
+**Po (`WeekendPlanner.java`):**
+
+```java
+public DaySchedule plan(LocalDate date) {
+    DayOfWeek dayOfWeek = date.getDayOfWeek();
+    boolean weekend = dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY;
+    return ScheduleBuilder.day(date)
+            .hall("Sala 1", hall -> hall
+                    .screening("Diuna", 18, 0)
+                    .screening("Diuna", 21, 0))
+            .hall("Sala 2", hall -> {
+                if (weekend) {
+                    hall.screening("Kraina Lodu", 10, 0);
+                }
+                hall.screening("Amator", 17, 30);
+            })
+            .hall("Sala 3 VIP", hall -> {
+                if (weekend) {
+                    hall.screening("Amator", 20, 0);
+                }
+            })
+            .build();
+}
 ```
 
 **Uruchom:** test zielony.
@@ -998,7 +2308,7 @@ return title + " " + format
 2. `Ticket` deklaruje `implements PricedTicket` - ciało bez zmian, flagi na razie zostają.
 3. `TicketAssembler.assemble` zmienia typ zwracany z `Ticket` na `PricedTicket`.
 
-**Przed:**
+**Przed (`TicketAssembler.java`):**
 
 ```java
 public final class TicketAssembler {
@@ -1008,7 +2318,28 @@ public final class TicketAssembler {
 }
 ```
 
-**Po:**
+**Po (`PricedTicket.java`, nowy plik):**
+
+```java
+import pl.training.workshop.shared.Money;
+
+/** Wąski kontrakt wspólny dla rdzenia i przyszłych dekoratorów. */
+public interface PricedTicket {
+    Money price();
+
+    String description();
+}
+```
+
+**Po (`Ticket.java`):**
+
+```java
+public final class Ticket implements PricedTicket {
+```
+
+(tylko deklaracja klasy; ciało bez zmian)
+
+**Po (`TicketAssembler.java`):**
 
 ```java
 public PricedTicket assemble(TicketOrder order) {
@@ -1028,9 +2359,20 @@ public PricedTicket assemble(TicketOrder order) {
 2. Z `Ticket` znika pole `insurance` razem z jego `if` w `price()` i członem w `description()` (bezpieczne usunięcie).
 3. W `TicketAssembler.assemble` rdzeń owijamy dekoratorem, gdy `order.insurance()`.
 
-**Przed:**
+**Przed (`Ticket.java`):**
 
 ```java
+private final boolean insurance;
+
+public Ticket(TicketOrder order) {
+    this.title = order.title();
+    this.format = order.format();
+    this.base = order.base();
+    this.vip = order.vip();
+    this.glasses = order.format().equals("3D") && !order.ownGlasses();
+    this.insurance = order.insurance();
+}
+
 public Money price() {
     Money price = base;
     if (vip) {
@@ -1044,14 +2386,77 @@ public Money price() {
     }
     return price;
 }
+
+public String description() {
+    return title + " " + format
+            + (vip ? " +VIP" : "")
+            + (glasses ? " +okulary 3D" : "")
+            + (insurance ? " +ubezpieczenie" : "");
+}
 ```
 
-**Po:**
+**Po (`Insurance.java`, nowy plik):**
 
 ```java
-PricedTicket ticket = new Ticket(order);
-if (order.insurance()) {
-    ticket = new Insurance(ticket);
+import pl.training.workshop.shared.Money;
+
+/**
+ * Pierwszy dodatek jako dekorator. Zaczynamy od ubezpieczenia, bo w opisie jest
+ * ostatnie - dekorator dopisuje się na końcu opisu obiektu, który owija.
+ */
+public record Insurance(PricedTicket inner) implements PricedTicket {
+    @Override
+    public Money price() {
+        return inner.price().plus(Money.of("4.00"));
+    }
+
+    @Override
+    public String description() {
+        return inner.description() + " +ubezpieczenie";
+    }
+}
+```
+
+**Po (`Ticket.java`):**
+
+```java
+public Ticket(TicketOrder order) {
+    this.title = order.title();
+    this.format = order.format();
+    this.base = order.base();
+    this.vip = order.vip();
+    this.glasses = order.format().equals("3D") && !order.ownGlasses();
+}
+
+@Override
+public Money price() {
+    Money price = base;
+    if (vip) {
+        price = price.plus(Money.of("10.00"));
+    }
+    if (glasses) {
+        price = price.plus(Money.of("3.00"));
+    }
+    return price;
+}
+
+@Override
+public String description() {
+    return title + " " + format
+            + (vip ? " +VIP" : "")
+            + (glasses ? " +okulary 3D" : "");
+}
+```
+
+**Po (`TicketAssembler.java`):**
+
+```java
+public PricedTicket assemble(TicketOrder order) {
+    PricedTicket ticket = new Ticket(order);
+    if (order.insurance()) {
+        ticket = new Insurance(ticket);
+    }
+    return ticket;
 }
 ```
 
@@ -1067,40 +2472,82 @@ if (order.insurance()) {
 2. Rdzeń `Ticket` staje się rekordem `Ticket(String title, String format, Money base)`: `price()` zwraca `base`, a `description()` to `title + " " + format`. Flagi `vip` i `glasses` oraz konstruktor przyjmujący `TicketOrder` znikają.
 3. `TicketAssembler.assemble` składa cały łańcuch w ustalonej kolejności: rdzeń, potem `VipSeat`, `Glasses3D`, `Insurance`. Decyzja "czy okulary potrzebne" (format 3D i brak własnych) zostaje w assemblerze.
 
-**Przed:**
+**Przed (`Ticket.java`):** wersja z kroku 2 - klasa z polami `title`, `format`, `base`, `vip`, `glasses`, konstruktorem z `TicketOrder` oraz warunkami w `price()` i `description()`.
+
+**Po (`VipSeat.java`, nowy plik):**
 
 ```java
-public final class Ticket implements PricedTicket {
-    private final String title;
-    private final String format;
-    private final Money base;
-    private final boolean vip;
-    private final boolean glasses;
-    ...
+import pl.training.workshop.shared.Money;
+
+/** Dopłata za miejsce VIP jako dekorator. */
+public record VipSeat(PricedTicket inner) implements PricedTicket {
+    @Override
     public Money price() {
-        Money price = base;
-        if (vip) {
-            price = price.plus(Money.of("10.00"));
-        }
-        if (glasses) {
-            price = price.plus(Money.of("3.00"));
-        }
-        return price;
+        return inner.price().plus(Money.of("10.00"));
     }
+
+    @Override
+    public String description() {
+        return inner.description() + " +VIP";
+    }
+}
 ```
 
-**Po:**
+**Po (`Glasses3D.java`, nowy plik):**
 
 ```java
-PricedTicket ticket = new Ticket(order.title(), order.format(), order.base());
-if (order.vip()) {
-    ticket = new VipSeat(ticket);
+import pl.training.workshop.shared.Money;
+
+/** Okulary 3D jako dekorator; decyzja "czy potrzebne" została w fabryce. */
+public record Glasses3D(PricedTicket inner) implements PricedTicket {
+    @Override
+    public Money price() {
+        return inner.price().plus(Money.of("3.00"));
+    }
+
+    @Override
+    public String description() {
+        return inner.description() + " +okulary 3D";
+    }
 }
-if (order.format().equals("3D") && !order.ownGlasses()) {
-    ticket = new Glasses3D(ticket);
+```
+
+**Po (`Ticket.java`):**
+
+```java
+import pl.training.workshop.shared.Money;
+
+/** Czysty rdzeń - tylko to, co ma każdy bilet. Bez flag. */
+public record Ticket(String title, String format, Money base) implements PricedTicket {
+    @Override
+    public Money price() {
+        return base;
+    }
+
+    @Override
+    public String description() {
+        return title + " " + format;
+    }
 }
-if (order.insurance()) {
-    ticket = new Insurance(ticket);
+```
+
+(import `TicketOrder` znika z `Ticket`)
+
+**Po (`TicketAssembler.java`):**
+
+```java
+public PricedTicket assemble(TicketOrder order) {
+    PricedTicket ticket = new Ticket(order.title(), order.format(), order.base());
+    if (order.vip()) {
+        ticket = new VipSeat(ticket);
+    }
+    if (order.format().equals("3D") && !order.ownGlasses()) {
+        ticket = new Glasses3D(ticket);
+    }
+    if (order.insurance()) {
+        ticket = new Insurance(ticket);
+    }
+    return ticket;
 }
 ```
 
@@ -1179,17 +2626,149 @@ public void pay() {
     status = Status.PAID;
     effects.add("charged");
 }
+
+@Override
+public void use() {
+    if (status != Status.PAID) {
+        throw new IllegalStateException("cannot use in " + status);
+    }
+    status = Status.USED;
+    effects.add("gate opened");
+}
+
+@Override
+public void expire() {
+    if (status != Status.NEW) {
+        throw new IllegalStateException("cannot expire in " + status);
+    }
+    status = Status.EXPIRED;
+    effects.add("seats released");
+}
+
+@Override
+public void cancel() {
+    if (status == Status.NEW) {
+        status = Status.CANCELLED;
+        effects.add("seats released");
+    } else if (status == Status.PAID) {
+        status = Status.CANCELLED;
+        effects.add("refund");
+        effects.add("seats released");
+    } else {
+        throw new IllegalStateException("cannot cancel in " + status);
+    }
+}
+
+@Override
+public Status status() {
+    return status;
+}
 ```
 
 **Po:**
 
 ```java
 private ReservationState state = NewState.INSTANCE;
-...
-charge();
-moveTo(PaidState.INSTANCE);
-record("charged");
+
+@Override
+public void pay() {
+    if (state.status() != Status.NEW) {
+        throw new IllegalStateException("cannot pay in " + state.status());
+    }
+    charge();
+    moveTo(PaidState.INSTANCE);
+    record("charged");
+}
+
+@Override
+public void use() {
+    if (state.status() != Status.PAID) {
+        throw new IllegalStateException("cannot use in " + state.status());
+    }
+    moveTo(ClosedState.USED);
+    record("gate opened");
+}
+
+@Override
+public void expire() {
+    if (state.status() != Status.NEW) {
+        throw new IllegalStateException("cannot expire in " + state.status());
+    }
+    moveTo(ClosedState.EXPIRED);
+    record("seats released");
+}
+
+@Override
+public void cancel() {
+    if (state.status() == Status.NEW) {
+        moveTo(ClosedState.CANCELLED);
+        record("seats released");
+    } else if (state.status() == Status.PAID) {
+        moveTo(ClosedState.CANCELLED);
+        record("refund");
+        record("seats released");
+    } else {
+        throw new IllegalStateException("cannot cancel in " + state.status());
+    }
+}
+
+@Override
+public Status status() {
+    return state.status();
+}
+
+private void charge() {
+    payments.charge(id);
+}
+
+private void moveTo(ReservationState next) {
+    state = next;
+}
+
+private void record(String effect) {
+    effects.add(effect);
+}
+
+private sealed interface ReservationState permits NewState, PaidState, ClosedState {
+    Status status();
+}
+
+private enum NewState implements ReservationState {
+    INSTANCE;
+
+    @Override
+    public Status status() {
+        return Status.NEW;
+    }
+}
+
+private enum PaidState implements ReservationState {
+    INSTANCE;
+
+    @Override
+    public Status status() {
+        return Status.PAID;
+    }
+}
+
+/** Stany końcowe - żadne przejście nie jest dozwolone. */
+private enum ClosedState implements ReservationState {
+    USED(Status.USED), EXPIRED(Status.EXPIRED), CANCELLED(Status.CANCELLED);
+
+    private final Status status;
+
+    ClosedState(Status status) {
+        this.status = status;
+    }
+
+    @Override
+    public Status status() {
+        return status;
+    }
+}
 ```
+
+(pola `id`, `payments`, `effects`, konstruktor i metoda `effects()` bez zmian)
 
 **Uruchom:** `scripts/warsztat.sh test m5/s08` - 84 testy zielone.
 **Co powiedzieć:** stany końcowe to jeden enum z trzema stałymi - wszystkie zachowują się tak samo (każde przejście jest błędem).
@@ -1215,15 +2794,83 @@ public void pay() {
     moveTo(PaidState.INSTANCE);
     record("charged");
 }
+
+@Override
+public void use() {
+    if (state.status() != Status.PAID) {
+        throw new IllegalStateException("cannot use in " + state.status());
+    }
+    moveTo(ClosedState.USED);
+    record("gate opened");
+}
 ```
 
-**Po:**
+**Po (kontekst):**
 
 ```java
-public void pay(Reservation reservation) {
-    reservation.charge();
-    reservation.moveTo(PaidState.INSTANCE);
-    reservation.record("charged");
+@Override
+public void pay() {
+    state.pay(this);
+}
+
+@Override
+public void use() {
+    state.use(this);
+}
+```
+
+**Po (interfejs stanu):**
+
+```java
+private sealed interface ReservationState permits NewState, PaidState, ClosedState {
+    Status status();
+
+    default void pay(Reservation reservation) {
+        throw invalid("pay");
+    }
+
+    default void use(Reservation reservation) {
+        throw invalid("use");
+    }
+
+    private IllegalStateException invalid(String action) {
+        return new IllegalStateException("cannot " + action + " in " + status());
+    }
+}
+```
+
+**Po (nadpisania w stanach):**
+
+```java
+private enum NewState implements ReservationState {
+    INSTANCE;
+
+    @Override
+    public Status status() {
+        return Status.NEW;
+    }
+
+    @Override
+    public void pay(Reservation reservation) {
+        reservation.charge();
+        reservation.moveTo(PaidState.INSTANCE);
+        reservation.record("charged");
+    }
+}
+
+private enum PaidState implements ReservationState {
+    INSTANCE;
+
+    @Override
+    public Status status() {
+        return Status.PAID;
+    }
+
+    @Override
+    public void use(Reservation reservation) {
+        reservation.moveTo(ClosedState.USED);
+        reservation.record("gate opened");
+    }
 }
 ```
 
@@ -1243,6 +2890,15 @@ public void pay(Reservation reservation) {
 
 ```java
 @Override
+public void expire() {
+    if (state.status() != Status.NEW) {
+        throw new IllegalStateException("cannot expire in " + state.status());
+    }
+    moveTo(ClosedState.EXPIRED);
+    record("seats released");
+}
+
+@Override
 public void cancel() {
     if (state.status() == Status.NEW) {
         moveTo(ClosedState.CANCELLED);
@@ -1257,11 +2913,56 @@ public void cancel() {
 }
 ```
 
-**Po:**
+**Po (kontekst):**
 
 ```java
+@Override
+public void expire() {
+    state.expire(this);
+}
+
+@Override
 public void cancel() {
     state.cancel(this);
+}
+```
+
+**Po (interfejs stanu - nowe metody domyślne obok `pay` i `use`):**
+
+```java
+default void expire(Reservation reservation) {
+    throw invalid("expire");
+}
+
+default void cancel(Reservation reservation) {
+    throw invalid("cancel");
+}
+```
+
+**Po (nadpisania w `NewState`):**
+
+```java
+@Override
+public void expire(Reservation reservation) {
+    reservation.moveTo(ClosedState.EXPIRED);
+    reservation.record("seats released");
+}
+
+@Override
+public void cancel(Reservation reservation) {
+    reservation.moveTo(ClosedState.CANCELLED);
+    reservation.record("seats released");
+}
+```
+
+**Po (nadpisanie w `PaidState`):**
+
+```java
+@Override
+public void cancel(Reservation reservation) {
+    reservation.moveTo(ClosedState.CANCELLED);
+    reservation.record("refund");
+    reservation.record("seats released");
 }
 ```
 
@@ -1319,7 +3020,7 @@ Test używa fake'ów zapisujących do wspólnego logu i sprawdza kolejność ora
 2. Trzy powiadomienia z `confirm` wydzielamy do prywatnej metody `notifyPaid(ReservationPaid event)` (Extract Method); w jej ciele dane pochodzą ze zdarzenia (`event.email()` itd.), nie z `payment`.
 3. `confirm` po zapisaniu opłaty tworzy zdarzenie i woła `notifyPaid(...)`.
 
-**Przed:**
+**Przed (`PaymentService.java`):**
 
 ```java
 paid.add(payment.reservationId());
@@ -1329,12 +3030,31 @@ sms.send(payment.phone(), "Oplacono " + payment.reservationId());
 loyalty.addPoints(payment.email(), payment.amount().amount().intValue() / 10);
 ```
 
-**Po:**
+**Po (`ReservationPaid.java`, nowy plik):**
+
+```java
+import pl.training.workshop.shared.Money;
+
+/** Zdarzenie - fakt "rezerwacja opłacona" z danymi potrzebnymi odbiorcom. */
+public record ReservationPaid(String reservationId, String email, String phone, Money amount) {
+}
+```
+
+**Po (`PaymentService.java`):**
 
 ```java
 paid.add(payment.reservationId());
 notifyPaid(new ReservationPaid(
         payment.reservationId(), payment.email(), payment.phone(), payment.amount()));
+```
+
+```java
+private void notifyPaid(ReservationPaid event) {
+    mailer.send(event.email(),
+            "Potwierdzenie platnosci " + event.reservationId() + ": " + event.amount());
+    sms.send(event.phone(), "Oplacono " + event.reservationId());
+    loyalty.addPoints(event.email(), event.amount().amount().intValue() / 10);
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh test m5/s09` - zielone.
@@ -1350,7 +3070,20 @@ notifyPaid(new ReservationPaid(
 3. `PaymentService` zamiast pól `mailer`, `sms`, `loyalty` trzyma pole `List<PaymentListener> listeners`; konstruktor (sygnatura bez zmian) buduje `List.of(...)` z trzech obserwatorów w starej kolejności.
 4. `notifyPaid` staje się pętlą po słuchaczach, celowo bez `try/catch` - fail-fast jak w start.
 
-**Przed:**
+**Przed (`PaymentService.java`):**
+
+```java
+private final Mailer mailer;
+private final SmsGateway sms;
+private final LoyaltyProgram loyalty;
+private final List<String> paid = new ArrayList<>();
+
+public PaymentService(Mailer mailer, SmsGateway sms, LoyaltyProgram loyalty) {
+    this.mailer = mailer;
+    this.sms = sms;
+    this.loyalty = loyalty;
+}
+```
 
 ```java
 private void notifyPaid(ReservationPaid event) {
@@ -1361,11 +3094,76 @@ private void notifyPaid(ReservationPaid event) {
 }
 ```
 
-**Po:**
+**Po (`PaymentListener.java`, nowy plik):**
 
 ```java
-for (PaymentListener listener : listeners) {
-    listener.onPaid(event);
+/** Kontrakt obserwatora - subject zna tylko ten interfejs. Wywołanie synchroniczne. */
+@FunctionalInterface
+public interface PaymentListener {
+    void onPaid(ReservationPaid event);
+}
+```
+
+**Po (`MailConfirmation.java`, nowy plik):**
+
+```java
+import pl.training.workshop.m5.s09_observer.Mailer;
+
+/** Obserwator - potwierdzenie mailem. */
+public record MailConfirmation(Mailer mailer) implements PaymentListener {
+    @Override
+    public void onPaid(ReservationPaid event) {
+        mailer.send(event.email(),
+                "Potwierdzenie platnosci " + event.reservationId() + ": " + event.amount());
+    }
+}
+```
+
+**Po (`SmsConfirmation.java`, nowy plik):**
+
+```java
+import pl.training.workshop.m5.s09_observer.SmsGateway;
+
+/** Obserwator - potwierdzenie SMS. */
+public record SmsConfirmation(SmsGateway sms) implements PaymentListener {
+    @Override
+    public void onPaid(ReservationPaid event) {
+        sms.send(event.phone(), "Oplacono " + event.reservationId());
+    }
+}
+```
+
+**Po (`LoyaltyPoints.java`, nowy plik):**
+
+```java
+import pl.training.workshop.m5.s09_observer.LoyaltyProgram;
+
+/** Obserwator - 1 punkt za każde pełne 10.00. */
+public record LoyaltyPoints(LoyaltyProgram loyalty) implements PaymentListener {
+    @Override
+    public void onPaid(ReservationPaid event) {
+        loyalty.addPoints(event.email(), event.amount().amount().intValue() / 10);
+    }
+}
+```
+
+**Po (`PaymentService.java`):**
+
+```java
+private final List<PaymentListener> listeners;
+private final List<String> paid = new ArrayList<>();
+
+public PaymentService(Mailer mailer, SmsGateway sms, LoyaltyProgram loyalty) {
+    this.listeners = List.of(
+            new MailConfirmation(mailer), new SmsConfirmation(sms), new LoyaltyPoints(loyalty));
+}
+```
+
+```java
+private void notifyPaid(ReservationPaid event) {
+    for (PaymentListener listener : listeners) {
+        listener.onPaid(event);
+    }
 }
 ```
 
@@ -1382,7 +3180,7 @@ for (PaymentListener listener : listeners) {
 3. Konstruktor serwisu staje się bezargumentowy - importy `Mailer`, `SmsGateway`, `LoyaltyProgram` znikają z serwisu. `confirm` publikuje zdarzenie pętlą po rejestracjach; prywatna metoda `notifyPaid` znika.
 4. Subskrypcje przenosimy do istniejącego `PaymentServices.standard(...)`: korzeń kompozycji tworzy serwis i rejestruje trzech odbiorców w starej kolejności.
 
-**Przed:**
+**Przed (`PaymentService.java`):**
 
 ```java
 public PaymentService(Mailer mailer, SmsGateway sms, LoyaltyProgram loyalty) {
@@ -1391,13 +3189,84 @@ public PaymentService(Mailer mailer, SmsGateway sms, LoyaltyProgram loyalty) {
 }
 ```
 
-**Po:**
+**Po (`Subscription.java`, nowy plik):**
 
 ```java
-PaymentService service = new PaymentService();
-service.subscribe(new MailConfirmation(mailer));
-service.subscribe(new SmsConfirmation(sms));
-service.subscribe(new LoyaltyPoints(loyalty));
+/** Uchwyt subskrypcji - close() wyrejestrowuje, idempotentnie. */
+@FunctionalInterface
+public interface Subscription extends AutoCloseable {
+    @Override
+    void close();
+}
+```
+
+**Po (`PaymentService.java`):**
+
+```java
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import pl.training.workshop.m5.s09_observer.Payment;
+
+public final class PaymentService {
+    private final List<Registration> listeners = new CopyOnWriteArrayList<>();
+    private final List<String> paid = new ArrayList<>();
+
+    public Subscription subscribe(PaymentListener listener) {
+        Registration registration = new Registration(Objects.requireNonNull(listener, "listener"));
+        listeners.add(registration);
+        AtomicBoolean active = new AtomicBoolean(true);
+        return () -> {
+            if (active.compareAndSet(true, false)) {
+                listeners.remove(registration);
+            }
+        };
+    }
+
+    public void confirm(Payment payment) {
+        if (payment.amount().amount().signum() <= 0) {
+            throw new IllegalArgumentException("amount must be positive");
+        }
+        paid.add(payment.reservationId());
+        ReservationPaid event = new ReservationPaid(
+                payment.reservationId(), payment.email(), payment.phone(), payment.amount());
+        for (Registration registration : listeners) {
+            registration.listener().onPaid(event);
+        }
+    }
+
+    public List<String> paid() {
+        return List.copyOf(paid);
+    }
+
+    /** Osobny obiekt na każde subscribe - ta sama lambda zapisana dwa razy to dwie rejestracje. */
+    private static final class Registration {
+        private final PaymentListener listener;
+
+        private Registration(PaymentListener listener) {
+            this.listener = listener;
+        }
+
+        PaymentListener listener() {
+            return listener;
+        }
+    }
+}
+```
+
+**Po (`PaymentServices.java`):**
+
+```java
+public static PaymentService standard(Mailer mailer, SmsGateway sms, LoyaltyProgram loyalty) {
+    PaymentService service = new PaymentService();
+    service.subscribe(new MailConfirmation(mailer));
+    service.subscribe(new SmsConfirmation(sms));
+    service.subscribe(new LoyaltyPoints(loyalty));
+    return service;
+}
 ```
 
 **Uruchom:** test zielony; `S09SolutionTest` pokazuje podwójną subskrypcję, idempotentne wyrejestrowanie i nowego odbiorcę.
@@ -1453,14 +3322,105 @@ Testy: `S10EquivalenceTest` (niezależne oczekiwania policzone ręcznie, także 
 3. `BarMenu` zostaje bez zmian - obie reprezentacje żyją obok siebie, porównuje je test różnicowy.
 
 **Przed:** brak - nowe pliki `MenuItem.java`, `Product.java`, `Combo.java`, `MenuMapper.java`; stary kod nietknięty.
-**Po:**
+
+**Po (`MenuItem.java`, nowy plik):**
 
 ```java
-items.add(switch (element) {
-    case String product -> product(product);
-    case List<?> nested -> fromNested(nested);
-    default -> throw new IllegalArgumentException("unsupported element: " + element);
-});
+import pl.training.workshop.shared.Money;
+
+/** Jawny Composite - produkt (liść) albo zestaw (węzeł). */
+public sealed interface MenuItem permits Product, Combo {
+    String name();
+
+    Money price();
+
+    void render(int depth, StringBuilder text);
+}
+```
+
+**Po (`Product.java`, nowy plik):**
+
+```java
+import pl.training.workshop.shared.Money;
+
+/** Liść - produkt baru z ceną. */
+public record Product(String name, Money price) implements MenuItem {
+    @Override
+    public void render(int depth, StringBuilder text) {
+        text.append("  ".repeat(depth)).append(name).append(' ').append(price).append('\n');
+    }
+}
+```
+
+**Po (`Combo.java`, nowy plik):**
+
+```java
+import java.util.List;
+
+import pl.training.workshop.shared.Money;
+
+/** Węzeł - zestaw, którego cena to suma elementów. Niemutowalny. */
+public record Combo(String name, List<MenuItem> items) implements MenuItem {
+    public Combo {
+        items = List.copyOf(items);
+    }
+
+    @Override
+    public Money price() {
+        Money total = Money.ZERO;
+        for (MenuItem item : items) {
+            total = total.plus(item.price());
+        }
+        return total;
+    }
+
+    @Override
+    public void render(int depth, StringBuilder text) {
+        text.append("  ".repeat(depth)).append(name).append(' ').append(price()).append('\n');
+        items.forEach(item -> item.render(depth + 1, text));
+    }
+}
+```
+
+**Po (`MenuMapper.java`, nowy plik):**
+
+```java
+import java.util.ArrayList;
+import java.util.List;
+
+import pl.training.workshop.shared.Money;
+
+/**
+ * Mapper starego formatu (zagnieżdżone listy) na Composite. Zachowuje komunikaty
+ * błędów starego kodu - to też jest obserwowalne zachowanie.
+ */
+public final class MenuMapper {
+    private MenuMapper() {
+    }
+
+    public static Combo fromNested(List<?> combo) {
+        if (combo.isEmpty() || !(combo.getFirst() instanceof String name)) {
+            throw new IllegalArgumentException("combo needs a name");
+        }
+        List<MenuItem> items = new ArrayList<>();
+        for (Object element : combo.subList(1, combo.size())) {
+            items.add(switch (element) {
+                case String product -> product(product);
+                case List<?> nested -> fromNested(nested);
+                default -> throw new IllegalArgumentException("unsupported element: " + element);
+            });
+        }
+        return new Combo(name, items);
+    }
+
+    private static Product product(String text) {
+        if (!text.contains("=")) {
+            throw new IllegalArgumentException("product needs a price: " + text);
+        }
+        int separator = text.indexOf('=');
+        return new Product(text.substring(0, separator), Money.of(text.substring(separator + 1)));
+    }
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh test m5/s10` - zielone, w tym `compositeFromMapperMatchesLegacyAlready`.
@@ -1535,10 +3495,14 @@ private void render(List<?> combo, int depth, StringBuilder text) {
 **Po:**
 
 ```java
-StringBuilder text = new StringBuilder();
-MenuMapper.fromNested(combo).render(0, text);
-return text.toString();
+public String render(List<?> combo) {
+    StringBuilder text = new StringBuilder();
+    MenuMapper.fromNested(combo).render(0, text);
+    return text.toString();
+}
 ```
+
+(w `BarMenu` zostają tylko `price` i `render` - dwie delegacje do drzewa)
 
 **Uruchom:** test zielony, test różnicowy `finalBarMenuMatchesLegacy` zielony.
 **Co powiedzieć:** format trwały (zagnieżdżone listy) zostaje. Jego zmiana na JSON czy tabelę w bazie to osobna decyzja z osobnym testem.
@@ -1593,6 +3557,10 @@ public void add(MenuComponent child) {
 **Przed:**
 
 ```java
+import java.util.List;
+
+import pl.training.workshop.shared.Money;
+
 public abstract class MenuComponent {
     public abstract String name();
 
@@ -1605,16 +3573,79 @@ public abstract class MenuComponent {
     public List<MenuComponent> children() {
         return List.of();
     }
-    ...
+
+    public String describe() {
+        String text = name() + " " + price();
+        if (children().isEmpty()) {
+            return text;
+        }
+        return text + " " + children().stream().map(MenuComponent::describe).toList();
+    }
 }
 ```
 
-**Po:**
+**Po (`MenuComponent.java`):**
 
 ```java
-Combo combo = new Combo("Zestaw Rodzinny");
-combo.add(new Product("Popcorn XL", "24.00"));
+import pl.training.workshop.shared.Money;
+
+public abstract class MenuComponent {
+    public abstract String name();
+
+    public abstract Money price();
+
+    public String describe() {
+        return name() + " " + price();
+    }
+}
 ```
+
+**Po (`Combo.java`):**
+
+```java
+public void add(MenuComponent child) {
+    children.add(child);
+}
+
+public List<MenuComponent> children() {
+    return List.copyOf(children);
+}
+
+@Override
+public String describe() {
+    if (children.isEmpty()) {
+        return super.describe();
+    }
+    return super.describe() + " " + children.stream().map(MenuComponent::describe).toList();
+}
+```
+
+(`add` i `children` tracą adnotację `@Override` - w bazie już ich nie ma; `describe` to nowe nadpisanie; reszta `Combo` bez zmian)
+
+**Po (`ComboCatalog.java`):**
+
+```java
+private MenuComponent family() {
+    Combo combo = new Combo("Zestaw Rodzinny");
+    combo.add(new Product("Popcorn XL", "24.00"));
+    Combo drinks = new Combo("Napoje");
+    drinks.add(new Product("Cola", "9.00"));
+    drinks.add(new Product("Cola", "9.00"));
+    drinks.add(new Product("Woda", "7.00"));
+    combo.add(drinks);
+    return combo;
+}
+
+private MenuComponent duo() {
+    Combo combo = new Combo("Zestaw Duo");
+    combo.add(new Product("Popcorn L", "18.00"));
+    combo.add(new Product("Cola", "9.00"));
+    combo.add(new Product("Cola", "9.00"));
+    return combo;
+}
+```
+
+(jedyna zmiana: zmienne `combo` i `drinks` mają typ `Combo` zamiast `MenuComponent`; `Product` zmienia się tylko w komentarzu)
 
 **Uruchom:** `scripts/warsztat.sh test m5/s11` - zielone; `S11SolutionTest` pokazuje, że `Product` nie ma już `add`.
 **Co powiedzieć:** błąd przeniósł się z runtime do kompilacji. Ceną jest to, że klient musi wiedzieć, czy ma w ręku węzeł.
@@ -1629,7 +3660,7 @@ combo.add(new Product("Popcorn XL", "24.00"));
 3. `Combo` staje się rekordem `Combo(String name, List<MenuComponent> children)`: konstruktor kopiuje listę przez `List.copyOf`, dochodzi statyczna metoda `Combo.of(name, children...)`, a metoda `add` znika zupełnie.
 4. `ComboCatalog` zapisuje drzewa deklaratywnie zagnieżdżonymi wywołaniami `Combo.of(...)`; prywatne metody `family()` i `duo()` znikają.
 
-**Przed:**
+**Przed (`ComboCatalog.java`):**
 
 ```java
 private MenuComponent duo() {
@@ -1641,13 +3672,100 @@ private MenuComponent duo() {
 }
 ```
 
-**Po:**
+(pozostałe pliki - wersje z kroku 1)
+
+**Po (`MenuComponent.java`):**
 
 ```java
-case "duo" -> Combo.of("Zestaw Duo",
-        new Product("Popcorn L", "18.00"),
-        new Product("Cola", "9.00"),
-        new Product("Cola", "9.00"));
+import pl.training.workshop.shared.Money;
+
+/** Forma Java 25 - zamknięty zestaw węzłów, rekordy, brak mutacji po zbudowaniu. */
+public sealed interface MenuComponent permits Product, Combo {
+    String name();
+
+    Money price();
+
+    String describe();
+}
+```
+
+**Po (`Product.java`):**
+
+```java
+import pl.training.workshop.shared.Money;
+
+/** Liść jako rekord. */
+public record Product(String name, Money price) implements MenuComponent {
+    public Product(String name, String price) {
+        this(name, Money.of(price));
+    }
+
+    @Override
+    public String describe() {
+        return name + " " + price;
+    }
+}
+```
+
+**Po (`Combo.java`):**
+
+```java
+import java.util.List;
+
+import pl.training.workshop.shared.Money;
+
+/** Węzeł z dziećmi podanymi przy tworzeniu - add() nie istnieje nigdzie. */
+public record Combo(String name, List<MenuComponent> children) implements MenuComponent {
+    public Combo {
+        children = List.copyOf(children);
+    }
+
+    public static Combo of(String name, MenuComponent... children) {
+        return new Combo(name, List.of(children));
+    }
+
+    @Override
+    public Money price() {
+        Money total = Money.ZERO;
+        for (MenuComponent child : children) {
+            total = total.plus(child.price());
+        }
+        return total;
+    }
+
+    @Override
+    public String describe() {
+        String text = name + " " + price();
+        if (children.isEmpty()) {
+            return text;
+        }
+        return text + " " + children.stream().map(MenuComponent::describe).toList();
+    }
+}
+```
+
+**Po (`ComboCatalog.java`):**
+
+```java
+/** Drzewo zapisane deklaratywnie - kształt kodu to kształt zestawu. */
+public final class ComboCatalog {
+    public MenuComponent find(String code) {
+        return switch (code) {
+            case "family" -> Combo.of("Zestaw Rodzinny",
+                    new Product("Popcorn XL", "24.00"),
+                    Combo.of("Napoje",
+                            new Product("Cola", "9.00"),
+                            new Product("Cola", "9.00"),
+                            new Product("Woda", "7.00")));
+            case "duo" -> Combo.of("Zestaw Duo",
+                    new Product("Popcorn L", "18.00"),
+                    new Product("Cola", "9.00"),
+                    new Product("Cola", "9.00"));
+            case "nachos" -> new Product("Nachos", "14.00");
+            default -> throw new IllegalArgumentException("unknown combo: " + code);
+        };
+    }
+}
 ```
 
 **Uruchom:** test zielony.
@@ -1718,12 +3836,43 @@ public Money refund(TicketData ticket, LocalDateTime now) {
     }
     return amount.minus(FEE).max(Money.ZERO);
 }
+
+public Money refundAll(List<TicketData> tickets, LocalDateTime now) {
+    Money total = Money.ZERO;
+    for (TicketData ticket : tickets) {
+        if (now.isBefore(ticket.showStart())) {
+            long hours = Duration.between(now, ticket.showStart()).toHours();
+            total = total.plus(hours >= 24 ? ticket.price() : ticket.price().percent(50));
+        }
+    }
+    return total.minus(FEE).max(Money.ZERO);
+}
 ```
 
 **Po:**
 
 ```java
-total = total.plus(ticketShare(ticket, now));
+public Money refund(TicketData ticket, LocalDateTime now) {
+    return ticketShare(ticket, now).minus(FEE).max(Money.ZERO);
+}
+
+public Money refundAll(List<TicketData> tickets, LocalDateTime now) {
+    Money total = Money.ZERO;
+    for (TicketData ticket : tickets) {
+        total = total.plus(ticketShare(ticket, now));
+    }
+    return total.minus(FEE).max(Money.ZERO);
+}
+
+private static Money ticketShare(TicketData ticket, LocalDateTime now) {
+    if (!now.isBefore(ticket.showStart())) {
+        return Money.ZERO;
+    }
+    if (Duration.between(now, ticket.showStart()).toHours() >= 24) {
+        return ticket.price();
+    }
+    return ticket.price().percent(50);
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh test m5/s12` - zielone.
@@ -1738,7 +3887,7 @@ total = total.plus(ticketShare(ticket, now));
 2. `RefundService` dostaje nową metodę `refund(Refundable, now)`. Stare `refund(TicketData, ...)` i `refundAll` zostają jako cienkie delegacje oznaczone `@Deprecated`; metoda `ticketShare` znika z serwisu.
 3. `CancellationDesk` przechodzi na nowy kontrakt - na razie nadal wybiera `SingleTicket` albo `TicketGroup` w zależności od rozmiaru listy.
 
-**Przed:**
+**Przed (`RefundService.java`):**
 
 ```java
 public Money refund(TicketData ticket, LocalDateTime now) {
@@ -1754,11 +3903,114 @@ public Money refundAll(List<TicketData> tickets, LocalDateTime now) {
 }
 ```
 
-**Po:**
+**Przed (`CancellationDesk.java`):**
+
+```java
+public Money refund(List<TicketData> tickets, LocalDateTime now) {
+    if (tickets.size() == 1) {
+        return service.refund(tickets.getFirst(), now);
+    }
+    return service.refundAll(tickets, now);
+}
+```
+
+**Po (`Refundable.java`, nowy plik):**
+
+```java
+import java.time.LocalDateTime;
+
+import pl.training.workshop.shared.Money;
+
+/** Wspólny kontrakt "jednego" i "wielu" - kwota do zwrotu przed potrąceniem. */
+public sealed interface Refundable permits SingleTicket, TicketGroup {
+    Money refundableAmount(LocalDateTime now);
+}
+```
+
+**Po (`SingleTicket.java`, nowy plik):**
+
+```java
+import java.time.Duration;
+import java.time.LocalDateTime;
+
+import pl.training.workshop.m5.s12_onemany.TicketData;
+import pl.training.workshop.shared.Money;
+
+/** Liść - reguła zwrotu jednego biletu (przeniesiona z ticketShare). */
+public record SingleTicket(TicketData ticket) implements Refundable {
+    @Override
+    public Money refundableAmount(LocalDateTime now) {
+        if (!now.isBefore(ticket.showStart())) {
+            return Money.ZERO;
+        }
+        if (Duration.between(now, ticket.showStart()).toHours() >= 24) {
+            return ticket.price();
+        }
+        return ticket.price().percent(50);
+    }
+}
+```
+
+**Po (`TicketGroup.java`, nowy plik):**
+
+```java
+import java.time.LocalDateTime;
+import java.util.List;
+
+import pl.training.workshop.m5.s12_onemany.TicketData;
+import pl.training.workshop.shared.Money;
+
+/** Węzeł - suma zwrotów elementów; pusta grupa daje 0.00. */
+public record TicketGroup(List<Refundable> items) implements Refundable {
+    public TicketGroup {
+        items = List.copyOf(items);
+    }
+
+    public static TicketGroup of(List<TicketData> tickets) {
+        return new TicketGroup(tickets.stream().<Refundable>map(SingleTicket::new).toList());
+    }
+
+    @Override
+    public Money refundableAmount(LocalDateTime now) {
+        Money total = Money.ZERO;
+        for (Refundable item : items) {
+            total = total.plus(item.refundableAmount(now));
+        }
+        return total;
+    }
+}
+```
+
+**Po (`RefundService.java`):**
 
 ```java
 public Money refund(Refundable refundable, LocalDateTime now) {
     return refundable.refundableAmount(now).minus(FEE).max(Money.ZERO);
+}
+
+/** @deprecated użyj {@link #refund(Refundable, LocalDateTime)} z {@link SingleTicket}. */
+@Deprecated
+public Money refund(TicketData ticket, LocalDateTime now) {
+    return refund(new SingleTicket(ticket), now);
+}
+
+/** @deprecated użyj {@link #refund(Refundable, LocalDateTime)} z {@link TicketGroup}. */
+@Deprecated
+public Money refundAll(List<TicketData> tickets, LocalDateTime now) {
+    return refund(TicketGroup.of(tickets), now);
+}
+```
+
+(metoda `ticketShare` i import `Duration` znikają z serwisu)
+
+**Po (`CancellationDesk.java`):**
+
+```java
+public Money refund(List<TicketData> tickets, LocalDateTime now) {
+    Refundable refundable = tickets.size() == 1
+            ? new SingleTicket(tickets.getFirst())
+            : TicketGroup.of(tickets);
+    return service.refund(refundable, now);
 }
 ```
 
@@ -1784,10 +4036,29 @@ public Money refund(List<TicketData> tickets, LocalDateTime now) {
 }
 ```
 
-**Po:**
+**Po (`CancellationDesk.java`):**
 
 ```java
-return service.refund(TicketGroup.of(tickets), now);
+public Money refund(List<TicketData> tickets, LocalDateTime now) {
+    return service.refund(TicketGroup.of(tickets), now);
+}
+```
+
+**Po (`RefundService.java`):**
+
+```java
+import java.time.LocalDateTime;
+
+import pl.training.workshop.shared.Money;
+
+/** Po migracji klientów stare metody usunięte - został jeden kontrakt. */
+public final class RefundService {
+    private static final Money FEE = Money.of("3.00");
+
+    public Money refund(Refundable refundable, LocalDateTime now) {
+        return refundable.refundableAmount(now).minus(FEE).max(Money.ZERO);
+    }
+}
 ```
 
 **Uruchom:** test zielony; `S12SolutionTest` pokazuje zagnieżdżone grupy.
@@ -1838,13 +4109,21 @@ return children.isEmpty() ? 0 : total + 15 * (children.size() - 1);
 2. `Marathon` deklaruje `extends CompositeProgramItem`; jego własne kopie pola i obu metod znikają, a `minutes()` i `describe()` korzystają z odziedziczonego `children()`.
 3. `ShortsBlock` deklaruje `extends CompositeProgramItem` i również traci zduplikowaną obsługę dzieci.
 
-**Przed:**
+**Przed (`Marathon.java`):**
 
 ```java
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
 public final class Marathon implements ProgramItem {
     private final String name;
     private final List<ProgramItem> children = new ArrayList<>();
-    ...
+
+    public Marathon(String name) {
+        this.name = name;
+    }
+
     public void add(ProgramItem child) {
         children.add(Objects.requireNonNull(child, "child"));
     }
@@ -1852,33 +4131,87 @@ public final class Marathon implements ProgramItem {
     public List<ProgramItem> children() {
         return List.copyOf(children);
     }
+
+    @Override
+    public int minutes() {
+        int total = 0;
+        for (ProgramItem child : children) {
+            total += child.minutes();
+        }
+        return children.isEmpty() ? 0 : total + 15 * (children.size() - 1);
+    }
+
+    @Override
+    public String describe() {
+        return "Maraton " + name + " (" + minutes() + " min) "
+                + children.stream().map(ProgramItem::describe).toList();
+    }
+}
 ```
 
-**Po:**
+(`ShortsBlock` analogicznie, z sumą bez przerw i etykietą "Blok")
+
+**Po (`CompositeProgramItem.java`, nowy plik):**
 
 ```java
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
+/** Extract Superclass - wspólna obsługa dzieci (pole, add, children) w jednym miejscu. */
 public abstract class CompositeProgramItem implements ProgramItem {
     private final List<ProgramItem> children = new ArrayList<>();
-    public final void add(ProgramItem child) { ... }
+
+    public final void add(ProgramItem child) {
+        children.add(Objects.requireNonNull(child, "child"));
+    }
+
+    public final List<ProgramItem> children() {
+        return List.copyOf(children);
+    }
+}
 ```
 
-**Uruchom:** `scripts/warsztat.sh test m5/s13` - zielone.
-**Co powiedzieć:** kontrakt dzieci (brak `null`, kopia listy) jest teraz w jednym miejscu dla wszystkich kontenerów.
-**Snapshot:** `step1/` · **Różnica:** `scripts/warsztat.sh diff m5/s13 0 1`
+**Po (`Marathon.java`):**
 
-### Krok 2: Pull Up sumy i opisu
+```java
+import java.util.List;
 
-**Zmiany:**
+public final class Marathon extends CompositeProgramItem {
+    private final String name;
 
-1. Do nadklasy podciągamy to, co wspólne (Pull Up Method): pole `name` z chronionym konstruktorem, metodę `protected final childrenMinutes()` sumującą minuty dzieci oraz finalne `describe()` jako szkielet opisu z abstrakcyjnym hookiem `label()`.
-2. `Marathon` zostaje z `minutes()` (suma dzieci plus 15 minut przerwy między pozycjami) i `label()` zwracającym "Maraton"; `ShortsBlock` z `minutes()` bez przerw i `label()` zwracającym "Blok".
+    public Marathon(String name) {
+        this.name = name;
+    }
 
-**Przed:**
+    @Override
+    public int minutes() {
+        List<ProgramItem> children = children();
+        int total = 0;
+        for (ProgramItem child : children) {
+            total += child.minutes();
+        }
+        return children.isEmpty() ? 0 : total + 15 * (children.size() - 1);
+    }
+
+    @Override
+    public String describe() {
+        return "Maraton " + name + " (" + minutes() + " min) "
+                + children().stream().map(ProgramItem::describe).toList();
+    }
+}
+```
+
+**Po (`ShortsBlock.java`):**
 
 ```java
 public final class ShortsBlock extends CompositeProgramItem {
     private final String name;
-    ...
+
+    public ShortsBlock(String name) {
+        this.name = name;
+    }
+
     @Override
     public int minutes() {
         int total = 0;
@@ -1896,12 +4229,104 @@ public final class ShortsBlock extends CompositeProgramItem {
 }
 ```
 
-**Po:**
+**Uruchom:** `scripts/warsztat.sh test m5/s13` - zielone.
+**Co powiedzieć:** kontrakt dzieci (brak `null`, kopia listy) jest teraz w jednym miejscu dla wszystkich kontenerów.
+**Snapshot:** `step1/` · **Różnica:** `scripts/warsztat.sh diff m5/s13 0 1`
+
+### Krok 2: Pull Up sumy i opisu
+
+**Zmiany:**
+
+1. Do nadklasy podciągamy to, co wspólne (Pull Up Method): pole `name` z chronionym konstruktorem, metodę `protected final childrenMinutes()` sumującą minuty dzieci oraz finalne `describe()` jako szkielet opisu z abstrakcyjnym hookiem `label()`.
+2. `Marathon` zostaje z `minutes()` (suma dzieci plus 15 minut przerwy między pozycjami) i `label()` zwracającym "Maraton"; `ShortsBlock` z `minutes()` bez przerw i `label()` zwracającym "Blok".
+
+**Przed (`ShortsBlock.java`):** wersja z kroku 1 - własne pole `name`, pętla sumująca w `minutes()` i pełne `describe()` (analogicznie `Marathon`).
+
+**Po (`CompositeProgramItem.java`):**
 
 ```java
-public int minutes() {
-    int count = children().size();
-    return count == 0 ? 0 : childrenMinutes() + 15 * (count - 1);
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
+/**
+ * Pull Up Method - suma czasu dzieci i szkielet opisu też w nadklasie. Podklasy
+ * dostarczają tylko to, czym naprawdę się różnią: etykietę i regułę przerw.
+ */
+public abstract class CompositeProgramItem implements ProgramItem {
+    private final String name;
+    private final List<ProgramItem> children = new ArrayList<>();
+
+    protected CompositeProgramItem(String name) {
+        this.name = name;
+    }
+
+    public final void add(ProgramItem child) {
+        children.add(Objects.requireNonNull(child, "child"));
+    }
+
+    public final List<ProgramItem> children() {
+        return List.copyOf(children);
+    }
+
+    protected final int childrenMinutes() {
+        int total = 0;
+        for (ProgramItem child : children) {
+            total += child.minutes();
+        }
+        return total;
+    }
+
+    @Override
+    public final String describe() {
+        return label() + " " + name + " (" + minutes() + " min) "
+                + children.stream().map(ProgramItem::describe).toList();
+    }
+
+    protected abstract String label();
+}
+```
+
+**Po (`Marathon.java`):**
+
+```java
+/** Maraton = suma dzieci + 15 minut przerwy między pozycjami. */
+public final class Marathon extends CompositeProgramItem {
+    public Marathon(String name) {
+        super(name);
+    }
+
+    @Override
+    public int minutes() {
+        int count = children().size();
+        return count == 0 ? 0 : childrenMinutes() + 15 * (count - 1);
+    }
+
+    @Override
+    protected String label() {
+        return "Maraton";
+    }
+}
+```
+
+**Po (`ShortsBlock.java`):**
+
+```java
+/** Blok krótkich metraży = suma dzieci, bez przerw. */
+public final class ShortsBlock extends CompositeProgramItem {
+    public ShortsBlock(String name) {
+        super(name);
+    }
+
+    @Override
+    public int minutes() {
+        return childrenMinutes();
+    }
+
+    @Override
+    protected String label() {
+        return "Blok";
+    }
 }
 ```
 
@@ -1966,7 +4391,13 @@ public PaymentResult pay(String provider, String reservationId, Money amount) {
         }
         return PaymentResult.declined(attribute(response, "code"));
     } else if (provider.equals("REST")) {
-        ...
+        try {
+            return PaymentResult.accepted(
+                    rest.charge(new ChargeRequest(amount.amount(), "PLN", reservationId))
+                        .transactionId());
+        } catch (RestPayException exception) {
+            return PaymentResult.declined(exception.code());
+        }
     }
     throw new IllegalArgumentException("unknown provider: " + provider);
 }
@@ -1975,12 +4406,36 @@ public PaymentResult pay(String provider, String reservationId, Money amount) {
 **Po:**
 
 ```java
-if (provider.equals("XML")) {
-    return payWithXml(reservationId, amount);
-} else if (provider.equals("REST")) {
-    return payWithRest(reservationId, amount);
+public PaymentResult pay(String provider, String reservationId, Money amount) {
+    if (provider.equals("XML")) {
+        return payWithXml(reservationId, amount);
+    } else if (provider.equals("REST")) {
+        return payWithRest(reservationId, amount);
+    }
+    throw new IllegalArgumentException("unknown provider: " + provider);
+}
+
+private PaymentResult payWithXml(String reservationId, Money amount) {
+    long grosze = amount.amount().movePointRight(2).longValueExact();
+    String response = xml.submit("<charge ref='" + reservationId + "' amount='" + grosze + "'/>");
+    if (response.contains("status='OK'")) {
+        return PaymentResult.accepted(attribute(response, "id"));
+    }
+    return PaymentResult.declined(attribute(response, "code"));
+}
+
+private PaymentResult payWithRest(String reservationId, Money amount) {
+    try {
+        return PaymentResult.accepted(
+                rest.charge(new ChargeRequest(amount.amount(), "PLN", reservationId))
+                        .transactionId());
+    } catch (RestPayException exception) {
+        return PaymentResult.declined(exception.code());
+    }
 }
 ```
+
+(metoda `attribute` bez zmian)
 
 **Uruchom:** `scripts/warsztat.sh test m5/s14` - zielone.
 **Co powiedzieć:** identyczna sygnatura dwóch metod to gotowy kontrakt adaptera.
@@ -1995,27 +4450,119 @@ if (provider.equals("XML")) {
 3. Powstaje nowy plik `RestPayAdapter.java`: analogiczna implementacja dla `RestPayClient` z ciałem `payWithRest` - wyjątek odmowy staje się wynikiem `declined`.
 4. W `CheckoutService` pola `xml` i `rest` zmieniają typ na `PaymentGateway`; konstruktor (sygnatura bez zmian) tworzy adaptery. Metody `payWithXml`, `payWithRest` i `attribute` znikają z serwisu.
 
-**Przed:**
+**Przed (`CheckoutService.java`):**
 
 ```java
-private PaymentResult payWithXml(String reservationId, Money amount) {
-    long grosze = amount.amount().movePointRight(2).longValueExact();
-    String response = xml.submit("<charge ref='" + reservationId + "' amount='" + grosze + "'/>");
-    if (response.contains("status='OK'")) {
-        return PaymentResult.accepted(attribute(response, "id"));
-    }
-    return PaymentResult.declined(attribute(response, "code"));
+private final XmlPayGateway xml;
+private final RestPayClient rest;
+
+public CheckoutService(XmlPayGateway xml, RestPayClient rest) {
+    this.xml = xml;
+    this.rest = rest;
 }
 ```
 
-**Po:**
+(oraz metody `payWithXml`, `payWithRest` i `attribute` z kroku 1 - całe przechodzą do adapterów)
+
+**Po (`PaymentGateway.java`, nowy plik):**
 
 ```java
+import pl.training.workshop.m5.s14_adapter.PaymentResult;
+import pl.training.workshop.shared.Money;
+
+/** Preferowany interfejs kina - kwota jako Money, odmowa jako wynik, nie wyjątek. */
+public interface PaymentGateway {
+    PaymentResult pay(String reservationId, Money amount);
+}
+```
+
+**Po (`XmlPayAdapter.java`, nowy plik):**
+
+```java
+import pl.training.workshop.m5.s14_adapter.PaymentResult;
+import pl.training.workshop.m5.s14_adapter.XmlPayGateway;
+import pl.training.workshop.shared.Money;
+
+/**
+ * Adapter starej bramki - tłumaczy jednostki (złote na grosze), format (XML)
+ * i wynik (atrybuty status/id/code). Nie jest właścicielem bramki.
+ */
+public final class XmlPayAdapter implements PaymentGateway {
+    private final XmlPayGateway xml;
+
+    public XmlPayAdapter(XmlPayGateway xml) {
+        this.xml = xml;
+    }
+
+    @Override
+    public PaymentResult pay(String reservationId, Money amount) {
+        long grosze = amount.amount().movePointRight(2).longValueExact();
+        String response = xml.submit("<charge ref='" + reservationId + "' amount='" + grosze + "'/>");
+        if (response.contains("status='OK'")) {
+            return PaymentResult.accepted(attribute(response, "id"));
+        }
+        return PaymentResult.declined(attribute(response, "code"));
+    }
+
+    private static String attribute(String xml, String name) {
+        int start = xml.indexOf(name + "='") + name.length() + 2;
+        return xml.substring(start, xml.indexOf('\'', start));
+    }
+}
+```
+
+**Po (`RestPayAdapter.java`, nowy plik):**
+
+```java
+import pl.training.workshop.m5.s14_adapter.PaymentResult;
+import pl.training.workshop.m5.s14_adapter.RestPayClient;
+import pl.training.workshop.m5.s14_adapter.RestPayClient.ChargeRequest;
+import pl.training.workshop.m5.s14_adapter.RestPayClient.RestPayException;
+import pl.training.workshop.shared.Money;
+
+/** Adapter nowej bramki - odmowa zgłaszana wyjątkiem staje się wynikiem declined. */
+public final class RestPayAdapter implements PaymentGateway {
+    private final RestPayClient rest;
+
+    public RestPayAdapter(RestPayClient rest) {
+        this.rest = rest;
+    }
+
+    @Override
+    public PaymentResult pay(String reservationId, Money amount) {
+        try {
+            return PaymentResult.accepted(
+                    rest.charge(new ChargeRequest(amount.amount(), "PLN", reservationId))
+                            .transactionId());
+        } catch (RestPayException exception) {
+            return PaymentResult.declined(exception.code());
+        }
+    }
+}
+```
+
+**Po (`CheckoutService.java`):**
+
+```java
+private final PaymentGateway xml;
+private final PaymentGateway rest;
+
 public CheckoutService(XmlPayGateway xml, RestPayClient rest) {
     this.xml = new XmlPayAdapter(xml);
     this.rest = new RestPayAdapter(rest);
 }
+
+public PaymentResult pay(String provider, String reservationId, Money amount) {
+    if (provider.equals("XML")) {
+        return xml.pay(reservationId, amount);
+    } else if (provider.equals("REST")) {
+        return rest.pay(reservationId, amount);
+    }
+    throw new IllegalArgumentException("unknown provider: " + provider);
+}
 ```
+
+(z serwisu znikają metody `payWithXml`, `payWithRest`, `attribute` oraz importy `ChargeRequest` i `RestPayException`)
 
 **Uruchom:** test zielony; `S14SolutionTest` sprawdza, że do starej bramki idzie `amount='4000'`.
 **Co powiedzieć:** adapter tłumaczy jednostki (złote - grosze), format i sposób zgłaszania odmowy (atrybut kontra wyjątek). Nie udaje, że semantyka jest taka sama.
@@ -2045,11 +4592,33 @@ public PaymentResult pay(String provider, String reservationId, Money amount) {
 **Po:**
 
 ```java
-PaymentGateway gateway = gateways.get(provider);
-if (gateway == null) {
-    throw new IllegalArgumentException("unknown provider: " + provider);
+import java.util.Map;
+
+import pl.training.workshop.m5.s14_adapter.PaymentResult;
+import pl.training.workshop.m5.s14_adapter.RestPayClient;
+import pl.training.workshop.m5.s14_adapter.XmlPayGateway;
+import pl.training.workshop.shared.Money;
+
+public final class CheckoutService {
+    private final Map<String, PaymentGateway> gateways;
+
+    /** Dotychczasowy konstruktor jako skrót: standardowy zestaw dwóch adapterów. */
+    public CheckoutService(XmlPayGateway xml, RestPayClient rest) {
+        this(Map.of("XML", new XmlPayAdapter(xml), "REST", new RestPayAdapter(rest)));
+    }
+
+    public CheckoutService(Map<String, PaymentGateway> gateways) {
+        this.gateways = Map.copyOf(gateways);
+    }
+
+    public PaymentResult pay(String provider, String reservationId, Money amount) {
+        PaymentGateway gateway = gateways.get(provider);
+        if (gateway == null) {
+            throw new IllegalArgumentException("unknown provider: " + provider);
+        }
+        return gateway.pay(reservationId, amount);
+    }
 }
-return gateway.pay(reservationId, amount);
 ```
 
 **Uruchom:** test zielony.
@@ -2110,7 +4679,60 @@ Test to sesja poleceń: sprzedaż, zwrot, raport oraz błędne polecenia, które
 **Przed:**
 
 ```java
-if (command.equals("SELL")) {
+public String handle(String line) {
+    String[] parts = line.strip().split(" ", 2);
+    String command = parts[0].toUpperCase(Locale.ROOT);
+    String args = parts.length > 1 ? parts[1] : "";
+    if (command.equals("SELL")) {
+        String[] sell = args.split(" ", 2);
+        if (sell.length < 2 || !sell[0].matches("\\d+")) {
+            return "Blad: SELL <liczba> <tytul>";
+        }
+        int quantity = Integer.parseInt(sell[0]);
+        Money price = PRICES.get(sell[1]);
+        if (price == null) {
+            return "Blad: nieznany film " + sell[1];
+        }
+        Money total = price.times(quantity);
+        cash = cash.plus(total);
+        tickets += quantity;
+        return "Sprzedano " + quantity + " x " + sell[1] + " = " + total;
+    } else if (command.equals("REFUND")) {
+        Money price = PRICES.get(args);
+        if (price == null) {
+            return "Blad: nieznany film " + args;
+        }
+        if (tickets == 0) {
+            return "Blad: brak biletow do zwrotu";
+        }
+        cash = cash.minus(price);
+        tickets--;
+        return "Zwrot 1 x " + args + " = " + price;
+    } else if (command.equals("REPORT")) {
+        return "Kasa: " + cash + ", biletow: " + tickets;
+    }
+    return "Nieznana komenda: " + parts[0];
+}
+```
+
+**Po:**
+
+```java
+public String handle(String line) {
+    String[] parts = line.strip().split(" ", 2);
+    String command = parts[0].toUpperCase(Locale.ROOT);
+    String args = parts.length > 1 ? parts[1] : "";
+    if (command.equals("SELL")) {
+        return sell(args);
+    } else if (command.equals("REFUND")) {
+        return refund(args);
+    } else if (command.equals("REPORT")) {
+        return report(args);
+    }
+    return "Nieznana komenda: " + parts[0];
+}
+
+private String sell(String args) {
     String[] sell = args.split(" ", 2);
     if (sell.length < 2 || !sell[0].matches("\\d+")) {
         return "Blad: SELL <liczba> <tytul>";
@@ -2124,15 +4746,23 @@ if (command.equals("SELL")) {
     cash = cash.plus(total);
     tickets += quantity;
     return "Sprzedano " + quantity + " x " + sell[1] + " = " + total;
-} else if (command.equals("REFUND")) {
-    ...
-```
+}
 
-**Po:**
+private String refund(String args) {
+    Money price = PRICES.get(args);
+    if (price == null) {
+        return "Blad: nieznany film " + args;
+    }
+    if (tickets == 0) {
+        return "Blad: brak biletow do zwrotu";
+    }
+    cash = cash.minus(price);
+    tickets--;
+    return "Zwrot 1 x " + args + " = " + price;
+}
 
-```java
-if (command.equals("SELL")) {
-    return sell(args);
+private String report(String args) {
+    return "Kasa: " + cash + ", biletow: " + tickets;
 }
 ```
 
@@ -2149,31 +4779,142 @@ if (command.equals("SELL")) {
 3. Powstają nowe pliki `SellCommand.java`, `RefundCommand.java`, `ReportCommand.java`: każda klasa dostaje ciało jednej z metod `sell`/`refund`/`report`, a na stanie operuje przez `Till`.
 4. `CashierConsole` trzyma pole `till` i trzy komendy; gałęzie `if` wołają `sell.execute(args, till)` itd. Prywatne metody `sell`, `refund`, `report` oraz stare pola stanu i cennik znikają z konsoli.
 
-**Przed:**
+**Przed (`CashierConsole.java`):** wersja z kroku 1 - pola `PRICES`, `cash`, `tickets` i prywatne metody `sell`, `refund`, `report` (całe przechodzą do komend i `Till`).
+
+**Po (`Till.java`, nowy plik):**
 
 ```java
-private Money cash = Money.ZERO;
-private int tickets;
-...
-private String refund(String args) {
-    Money price = PRICES.get(args);
-    if (price == null) {
-        return "Blad: nieznany film " + args;
+import java.util.Map;
+
+import pl.training.workshop.shared.Money;
+
+/** Stan kasy wydzielony z konsoli - komendy dostają go jako argument i same są bezstanowe. */
+public final class Till {
+    private static final Map<String, Money> PRICES = Map.of(
+            "Diuna", Money.of("40.00"),
+            "Kraina Lodu", Money.of("32.00"),
+            "Amator", Money.of("25.00"));
+
+    private Money cash = Money.ZERO;
+    private int tickets;
+
+    Money priceOf(String title) {
+        return PRICES.get(title);
     }
-    if (tickets == 0) {
-        return "Blad: brak biletow do zwrotu";
+
+    void sold(int quantity, Money total) {
+        cash = cash.plus(total);
+        tickets += quantity;
     }
-    cash = cash.minus(price);
-    tickets--;
-    return "Zwrot 1 x " + args + " = " + price;
+
+    void refunded(Money price) {
+        cash = cash.minus(price);
+        tickets--;
+    }
+
+    Money cash() {
+        return cash;
+    }
+
+    int tickets() {
+        return tickets;
+    }
 }
 ```
 
-**Po:**
+**Po (`ConsoleCommand.java`, nowy plik):**
 
 ```java
-if (command.equals("SELL")) {
-    return sell.execute(args, till);
+/** Kontrakt komendy - dane żądania (args) i stan (till) przychodzą jako argumenty. */
+@FunctionalInterface
+public interface ConsoleCommand {
+    String execute(String args, Till till);
+}
+```
+
+**Po (`SellCommand.java`, nowy plik):**
+
+```java
+import pl.training.workshop.shared.Money;
+
+/** Gałąź SELL jako obiekt komendy. */
+public final class SellCommand implements ConsoleCommand {
+    @Override
+    public String execute(String args, Till till) {
+        String[] sell = args.split(" ", 2);
+        if (sell.length < 2 || !sell[0].matches("\\d+")) {
+            return "Blad: SELL <liczba> <tytul>";
+        }
+        int quantity = Integer.parseInt(sell[0]);
+        Money price = till.priceOf(sell[1]);
+        if (price == null) {
+            return "Blad: nieznany film " + sell[1];
+        }
+        Money total = price.times(quantity);
+        till.sold(quantity, total);
+        return "Sprzedano " + quantity + " x " + sell[1] + " = " + total;
+    }
+}
+```
+
+**Po (`RefundCommand.java`, nowy plik):**
+
+```java
+import pl.training.workshop.shared.Money;
+
+/** Gałąź REFUND jako obiekt komendy. */
+public final class RefundCommand implements ConsoleCommand {
+    @Override
+    public String execute(String args, Till till) {
+        Money price = till.priceOf(args);
+        if (price == null) {
+            return "Blad: nieznany film " + args;
+        }
+        if (till.tickets() == 0) {
+            return "Blad: brak biletow do zwrotu";
+        }
+        till.refunded(price);
+        return "Zwrot 1 x " + args + " = " + price;
+    }
+}
+```
+
+**Po (`ReportCommand.java`, nowy plik):**
+
+```java
+/** Gałąź REPORT jako obiekt komendy. */
+public final class ReportCommand implements ConsoleCommand {
+    @Override
+    public String execute(String args, Till till) {
+        return "Kasa: " + till.cash() + ", biletow: " + till.tickets();
+    }
+}
+```
+
+**Po (`CashierConsole.java`):**
+
+```java
+import java.util.Locale;
+
+public final class CashierConsole {
+    private final Till till = new Till();
+    private final ConsoleCommand sell = new SellCommand();
+    private final ConsoleCommand refund = new RefundCommand();
+    private final ConsoleCommand report = new ReportCommand();
+
+    public String handle(String line) {
+        String[] parts = line.strip().split(" ", 2);
+        String command = parts[0].toUpperCase(Locale.ROOT);
+        String args = parts.length > 1 ? parts[1] : "";
+        if (command.equals("SELL")) {
+            return sell.execute(args, till);
+        } else if (command.equals("REFUND")) {
+            return refund.execute(args, till);
+        } else if (command.equals("REPORT")) {
+            return report.execute(args, till);
+        }
+        return "Nieznana komenda: " + parts[0];
+    }
 }
 ```
 
@@ -2204,9 +4945,32 @@ return "Nieznana komenda: " + parts[0];
 **Po:**
 
 ```java
-ConsoleCommand command = commands.get(parts[0].toUpperCase(Locale.ROOT));
-if (command == null) {
-    return "Nieznana komenda: " + parts[0];
+import java.util.Locale;
+import java.util.Map;
+
+public final class CashierConsole {
+    private final Till till = new Till();
+    private final Map<String, ConsoleCommand> commands;
+
+    public CashierConsole() {
+        this(Map.of(
+                "SELL", new SellCommand(),
+                "REFUND", new RefundCommand(),
+                "REPORT", new ReportCommand()));
+    }
+
+    public CashierConsole(Map<String, ConsoleCommand> commands) {
+        this.commands = Map.copyOf(commands);
+    }
+
+    public String handle(String line) {
+        String[] parts = line.strip().split(" ", 2);
+        ConsoleCommand command = commands.get(parts[0].toUpperCase(Locale.ROOT));
+        if (command == null) {
+            return "Nieznana komenda: " + parts[0];
+        }
+        return command.execute(parts.length > 1 ? parts[1] : "", till);
+    }
 }
 ```
 
@@ -2254,33 +5018,114 @@ Jak dodalibyście `UNDO` dla ostatniej sprzedaży? Czego wymaga to od komend?
 2. W `HtmlSalesReport` robimy to samo, z tymi samymi nazwami i sygnaturami; escapowanie `&` i `<` trafia do `row`.
 3. `render` w HTML przepisujemy na dokładnie ten sam kształt co w CSV: kopia listy i `sort` zamiast streama, te same nazwy zmiennych (`sorted`, `text`, `tickets`, `total`). Po tym kroku `render` obu klas jest identyczny znak w znak.
 
-**Przed:**
+**Przed (`CsvSalesReport.java`):**
 
 ```java
-StringBuilder html = new StringBuilder();
-html.append("<table>\n<tr><th>Godzina</th><th>Film</th><th>Bilety</th><th>Kwota</th></tr>\n");
-Money sum = Money.ZERO;
-int count = 0;
-for (Sale sale : sales.stream().sorted(Comparator.comparing(Sale::time)).toList()) {
+public String render(List<Sale> sales) {
+    List<Sale> sorted = new ArrayList<>(sales);
+    sorted.sort(Comparator.comparing(Sale::time));
+    StringBuilder csv = new StringBuilder("godzina;film;bilety;kwota\n");
+    int tickets = 0;
+    Money total = Money.ZERO;
+    for (Sale sale : sorted) {
+        String title = sale.title().contains(";") ? "\"" + sale.title() + "\"" : sale.title();
+        csv.append(sale.time()).append(';').append(title).append(';')
+                .append(sale.tickets()).append(';').append(sale.amount()).append('\n');
+        tickets += sale.tickets();
+        total = total.plus(sale.amount());
+    }
+    csv.append("SUMA;;").append(tickets).append(';').append(total).append('\n');
+    return csv.toString();
+}
+```
+
+**Przed (`HtmlSalesReport.java`):**
+
+```java
+public String render(List<Sale> sales) {
+    StringBuilder html = new StringBuilder();
+    html.append("<table>\n<tr><th>Godzina</th><th>Film</th><th>Bilety</th><th>Kwota</th></tr>\n");
+    Money sum = Money.ZERO;
+    int count = 0;
+    for (Sale sale : sales.stream().sorted(Comparator.comparing(Sale::time)).toList()) {
+        String title = sale.title().replace("&", "&amp;").replace("<", "&lt;");
+        html.append("<tr><td>").append(sale.time()).append("</td><td>").append(title)
+                .append("</td><td>").append(sale.tickets()).append("</td><td>").append(sale.amount())
+                .append("</td></tr>\n");
+        sum = sum.plus(sale.amount());
+        count += sale.tickets();
+    }
+    html.append("<tr><td colspan=\"2\">Suma</td><td>").append(count).append("</td><td>").append(sum)
+            .append("</td></tr>\n</table>\n");
+    return html.toString();
+}
+```
+
+**Po (`CsvSalesReport.java`):**
+
+```java
+public String render(List<Sale> sales) {
+    List<Sale> sorted = new ArrayList<>(sales);
+    sorted.sort(Comparator.comparing(Sale::time));
+    StringBuilder text = new StringBuilder(header());
+    int tickets = 0;
+    Money total = Money.ZERO;
+    for (Sale sale : sorted) {
+        text.append(row(sale));
+        tickets += sale.tickets();
+        total = total.plus(sale.amount());
+    }
+    return text.append(footer(tickets, total)).toString();
+}
+
+private String header() {
+    return "godzina;film;bilety;kwota\n";
+}
+
+private String row(Sale sale) {
+    String title = sale.title().contains(";") ? "\"" + sale.title() + "\"" : sale.title();
+    return sale.time() + ";" + title + ";" + sale.tickets() + ";" + sale.amount() + "\n";
+}
+
+private String footer(int tickets, Money total) {
+    return "SUMA;;" + tickets + ";" + total + "\n";
+}
+```
+
+**Po (`HtmlSalesReport.java`):**
+
+```java
+public String render(List<Sale> sales) {
+    List<Sale> sorted = new ArrayList<>(sales);
+    sorted.sort(Comparator.comparing(Sale::time));
+    StringBuilder text = new StringBuilder(header());
+    int tickets = 0;
+    Money total = Money.ZERO;
+    for (Sale sale : sorted) {
+        text.append(row(sale));
+        tickets += sale.tickets();
+        total = total.plus(sale.amount());
+    }
+    return text.append(footer(tickets, total)).toString();
+}
+
+private String header() {
+    return "<table>\n<tr><th>Godzina</th><th>Film</th><th>Bilety</th><th>Kwota</th></tr>\n";
+}
+
+private String row(Sale sale) {
     String title = sale.title().replace("&", "&amp;").replace("<", "&lt;");
-    html.append("<tr><td>").append(sale.time()).append("</td><td>").append(title)
-            .append("</td><td>").append(sale.tickets()).append("</td><td>").append(sale.amount())
-            .append("</td></tr>\n");
-    sum = sum.plus(sale.amount());
-    count += sale.tickets();
+    return "<tr><td>" + sale.time() + "</td><td>" + title + "</td><td>" + sale.tickets()
+            + "</td><td>" + sale.amount() + "</td></tr>\n";
+}
+
+private String footer(int tickets, Money total) {
+    return "<tr><td colspan=\"2\">Suma</td><td>" + tickets + "</td><td>" + total + "</td></tr>\n"
+            + "</table>\n";
 }
 ```
 
-**Po:**
-
-```java
-StringBuilder text = new StringBuilder(header());
-for (Sale sale : sorted) {
-    text.append(row(sale));
-    ...
-}
-return text.append(footer(tickets, total)).toString();
-```
+(w `HtmlSalesReport` dochodzi import `java.util.ArrayList`)
 
 **Uruchom:** `scripts/warsztat.sh test m5/s16` - zielone.
 **Co powiedzieć:** ujednolicamy sygnatury po kroku, aż `render` obu klas będzie identyczny znak w znak.
@@ -2294,7 +5139,7 @@ return text.append(footer(tickets, total)).toString();
 2. `render` w bazie oznaczamy `final` - kolejność kroków i liczenie sumy należą do szkieletu.
 3. `CsvSalesReport` i `HtmlSalesReport` deklarują `extends SalesReport`: obie tracą własną kopię `render`, a ich metody formatujące dostają `@Override` i widoczność `protected`.
 
-**Przed:**
+**Przed (`CsvSalesReport.java`):**
 
 ```java
 public final class CsvSalesReport {
@@ -2311,17 +5156,99 @@ public final class CsvSalesReport {
         }
         return text.append(footer(tickets, total)).toString();
     }
-    ...
+```
+
+(dalej prywatne `header`, `row`, `footer` z kroku 1; `HtmlSalesReport` analogicznie)
+
+**Po (`SalesReport.java`, nowy plik):**
+
+```java
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+import pl.training.workshop.m5.s16_templatemethod.Sale;
+import pl.training.workshop.shared.Money;
+
+/**
+ * Form Template Method - Extract Superclass + Pull Up render(). Szkielet jest final:
+ * kolejność kroków i liczenie sumy należą do bazy, podklasy dostarczają tylko formatowanie.
+ */
+public abstract class SalesReport {
+    public final String render(List<Sale> sales) {
+        List<Sale> sorted = new ArrayList<>(sales);
+        sorted.sort(Comparator.comparing(Sale::time));
+        StringBuilder text = new StringBuilder(header());
+        int tickets = 0;
+        Money total = Money.ZERO;
+        for (Sale sale : sorted) {
+            text.append(row(sale));
+            tickets += sale.tickets();
+            total = total.plus(sale.amount());
+        }
+        return text.append(footer(tickets, total)).toString();
+    }
+
+    protected abstract String header();
+
+    protected abstract String row(Sale sale);
+
+    protected abstract String footer(int tickets, Money total);
 }
 ```
 
-**Po:**
+**Po (`CsvSalesReport.java`):**
 
 ```java
-public final String render(List<Sale> sales) { ... }
-protected abstract String header();
-protected abstract String row(Sale sale);
-protected abstract String footer(int tickets, Money total);
+import pl.training.workshop.m5.s16_templatemethod.Sale;
+import pl.training.workshop.shared.Money;
+
+/** Raport CSV to już tylko trzy metody formatujące. */
+public final class CsvSalesReport extends SalesReport {
+    @Override
+    protected String header() {
+        return "godzina;film;bilety;kwota\n";
+    }
+
+    @Override
+    protected String row(Sale sale) {
+        String title = sale.title().contains(";") ? "\"" + sale.title() + "\"" : sale.title();
+        return sale.time() + ";" + title + ";" + sale.tickets() + ";" + sale.amount() + "\n";
+    }
+
+    @Override
+    protected String footer(int tickets, Money total) {
+        return "SUMA;;" + tickets + ";" + total + "\n";
+    }
+}
+```
+
+**Po (`HtmlSalesReport.java`):**
+
+```java
+import pl.training.workshop.m5.s16_templatemethod.Sale;
+import pl.training.workshop.shared.Money;
+
+/** Raport HTML to już tylko trzy metody formatujące. */
+public final class HtmlSalesReport extends SalesReport {
+    @Override
+    protected String header() {
+        return "<table>\n<tr><th>Godzina</th><th>Film</th><th>Bilety</th><th>Kwota</th></tr>\n";
+    }
+
+    @Override
+    protected String row(Sale sale) {
+        String title = sale.title().replace("&", "&amp;").replace("<", "&lt;");
+        return "<tr><td>" + sale.time() + "</td><td>" + title + "</td><td>" + sale.tickets()
+                + "</td><td>" + sale.amount() + "</td></tr>\n";
+    }
+
+    @Override
+    protected String footer(int tickets, Money total) {
+        return "<tr><td colspan=\"2\">Suma</td><td>" + tickets + "</td><td>" + total + "</td></tr>\n"
+                + "</table>\n";
+    }
+}
 ```
 
 **Uruchom:** test zielony; `S16SolutionTest` sprawdza `final` i dodaje format Markdown trzema metodami.
@@ -2372,7 +5299,7 @@ Money price = new PriceList().basePrice(format);
 2. Licznik pomiarowy `CREATED` (`AtomicInteger`) i metoda `created()` znikają z `PriceList`.
 3. W `TicketDesk.quote` zamieniamy `new PriceList()` na `PriceList.getInstance()`.
 
-**Przed:**
+**Przed (`PriceList.java`):**
 
 ```java
 public final class PriceList {
@@ -2388,9 +5315,36 @@ public final class PriceList {
         }
         CREATED.incrementAndGet();
     }
+
+    public static int created() {
+        return CREATED.get();
+    }
 ```
 
-**Po:**
+**Po (`PriceList.java`):**
+
+```java
+public final class PriceList {
+    private static final String TARIFF = "2D=25.00;3D=32.00;IMAX=40.00";
+    private static final PriceList INSTANCE = new PriceList();
+
+    private final Map<String, Money> prices = new HashMap<>();
+
+    private PriceList() {
+        for (String entry : TARIFF.split(";")) {
+            String[] pair = entry.split("=");
+            prices.put(pair[0], Money.of(pair[1]));
+        }
+    }
+
+    public static PriceList getInstance() {
+        return INSTANCE;
+    }
+```
+
+(metoda `basePrice` bez zmian; znika import `java.util.concurrent.atomic.AtomicInteger`)
+
+**Po (`TicketDesk.quote`):**
 
 ```java
 Money price = PriceList.getInstance().basePrice(format);
@@ -2408,7 +5362,7 @@ Money price = PriceList.getInstance().basePrice(format);
 2. Konstruktor enumu parsuje taryfę do lokalnej mapy i zapisuje ją w polu `prices` przez `Map.copyOf` - mapa jest niemodyfikowalna po zbudowaniu.
 3. W `TicketDesk.quote` zamieniamy `PriceList.getInstance()` na `PriceList.INSTANCE`.
 
-**Przed:**
+**Przed (`PriceList.java`):**
 
 ```java
 public final class PriceList {
@@ -2418,7 +5372,10 @@ public final class PriceList {
     private final Map<String, Money> prices = new HashMap<>();
 
     private PriceList() {
-        ...
+        for (String entry : TARIFF.split(";")) {
+            String[] pair = entry.split("=");
+            prices.put(pair[0], Money.of(pair[1]));
+        }
     }
 
     public static PriceList getInstance() {
@@ -2426,7 +5383,29 @@ public final class PriceList {
     }
 ```
 
-**Po:**
+**Po (`PriceList.java`):**
+
+```java
+public enum PriceList {
+    INSTANCE;
+
+    private static final String TARIFF = "2D=25.00;3D=32.00;IMAX=40.00";
+
+    private final Map<String, Money> prices;
+
+    PriceList() {
+        Map<String, Money> parsed = new HashMap<>();
+        for (String entry : TARIFF.split(";")) {
+            String[] pair = entry.split("=");
+            parsed.put(pair[0], Money.of(pair[1]));
+        }
+        prices = Map.copyOf(parsed);
+    }
+```
+
+(metoda `basePrice` bez zmian)
+
+**Po (`TicketDesk.quote`):**
 
 ```java
 Money price = PriceList.INSTANCE.basePrice(format);
@@ -2445,7 +5424,7 @@ Money price = PriceList.INSTANCE.basePrice(format);
 3. `TicketDesk` dostaje pole `private final Tariff tariff` i konstruktor `TicketDesk(Tariff tariff)`; `quote` woła `tariff.basePrice(format)`.
 4. Dochodzi konstruktor bezargumentowy delegujący `this(PriceList.INSTANCE)` - dotychczasowi klienci działają bez zmian.
 
-**Przed:**
+**Przed (`TicketDesk.java`):**
 
 ```java
 public final class TicketDesk {
@@ -2456,11 +5435,48 @@ public final class TicketDesk {
 }
 ```
 
-**Po:**
+**Po (`Tariff.java`, nowy plik):**
 
 ```java
-public TicketDesk() {
-    this(PriceList.INSTANCE);
+import pl.training.workshop.shared.Money;
+
+/** Kontrakt cennika - klient zależy od niego, nie od singletona. */
+@FunctionalInterface
+public interface Tariff {
+    Money basePrice(String format);
+}
+```
+
+**Po (`PriceList.java`, deklaracja enumu):**
+
+```java
+public enum PriceList implements Tariff {
+```
+
+(oraz `@Override` nad `basePrice` - reszta enumu bez zmian)
+
+**Po (`TicketDesk.java`):**
+
+```java
+import java.util.Objects;
+
+import pl.training.workshop.shared.Money;
+
+public final class TicketDesk {
+    private final Tariff tariff;
+
+    public TicketDesk() {
+        this(PriceList.INSTANCE);
+    }
+
+    public TicketDesk(Tariff tariff) {
+        this.tariff = Objects.requireNonNull(tariff, "tariff");
+    }
+
+    public Money quote(String format, boolean online) {
+        Money price = tariff.basePrice(format);
+        return online ? price.plus(Money.of("2.00")) : price;
+    }
 }
 ```
 
@@ -2529,14 +5545,79 @@ public String validate(ReservationDraft draft) {
     }
     return warnings.isEmpty() ? "OK" : warnings.substring(0, warnings.length() - 2);
 }
+
+private String checkEmail(String email) {
+    if (email == null || email.isBlank()) {
+        return "brak e-maila; ";
+    }
+    if (!email.contains("@")) {
+        return "niepoprawny e-mail: " + email + "; ";
+    }
+    return "";
+}
+
+private String checkSeats(List<String> seats) {
+    if (seats.isEmpty()) {
+        return "brak miejsc; ";
+    }
+    String result = "";
+    Set<String> seen = new HashSet<>();
+    Set<String> reported = new HashSet<>();
+    for (String seat : seats) {
+        if (!seen.add(seat) && reported.add(seat)) {
+            result += "miejsce " + seat + " zdublowane; ";
+        }
+    }
+    if (seats.size() >= 10) {
+        result += "grupa 10+: zastosuj rabat grupowy; ";
+    }
+    return result;
+}
 ```
 
 **Po:**
 
 ```java
-warnings.addAll(checkEmail(draft.email()));
-warnings.addAll(checkSeats(draft.seats()));
+public String validate(ReservationDraft draft) {
+    List<String> warnings = new ArrayList<>();
+    warnings.addAll(checkEmail(draft.email()));
+    warnings.addAll(checkSeats(draft.seats()));
+    if (!draft.now().isBefore(draft.showStart())) {
+        warnings.add("seans juz sie rozpoczal");
+    }
+    return warnings.isEmpty() ? "OK" : String.join("; ", warnings);
+}
+
+private List<String> checkEmail(String email) {
+    if (email == null || email.isBlank()) {
+        return List.of("brak e-maila");
+    }
+    if (!email.contains("@")) {
+        return List.of("niepoprawny e-mail: " + email);
+    }
+    return List.of();
+}
+
+private List<String> checkSeats(List<String> seats) {
+    if (seats.isEmpty()) {
+        return List.of("brak miejsc");
+    }
+    List<String> result = new ArrayList<>();
+    Set<String> seen = new HashSet<>();
+    Set<String> reported = new HashSet<>();
+    for (String seat : seats) {
+        if (!seen.add(seat) && reported.add(seat)) {
+            result.add("miejsce " + seat + " zdublowane");
+        }
+    }
+    if (seats.size() >= 10) {
+        result.add("grupa 10+: zastosuj rabat grupowy");
+    }
+    return result;
+}
 ```
+
+(dochodzi import `java.util.ArrayList`)
 
 **Uruchom:** `scripts/warsztat.sh test m5/s18` - zielone.
 **Co powiedzieć:** separator dokłada teraz jedno miejsce. Metody wciąż tworzą własne listy.
@@ -2546,7 +5627,7 @@ warnings.addAll(checkSeats(draft.seats()));
 
 **Zmiany:**
 
-1. `checkEmail` i `checkSeats` dostają w sygnaturze dodatkowy parametr `List<String> warnings`, a zwracany typ zmienia się na `void`; każde `return List.of(x)` zamieniamy na `warnings.add(x)`.
+1. `checkEmail` i `checkSeats` dostają w sygnaturze dodatkowy parametr `List<String> warnings`, a zwracany typ zmienia się na `void`; każde `return List.of(x)` zamieniamy na `warnings.add(x)`. W `checkEmail` dwa niezależne `if ... return` stają się `if / else if`; w `checkSeats` lokalna lista `result` znika (dopisujemy wprost do `warnings`), a po "brak miejsc" metoda kończy się pustym `return;`.
 2. W `validate` wywołania `warnings.addAll(checkEmail(...))` stają się `checkEmail(draft.email(), warnings)` - metody dopisują do przekazanego akumulatora.
 3. Warunek czasu seansu wydzielamy do nowej metody `checkShowTime(ReservationDraft draft, List<String> warnings)`.
 
@@ -2558,21 +5639,51 @@ warnings.addAll(checkSeats(draft.seats()));
 if (!draft.now().isBefore(draft.showStart())) {
     warnings.add("seans juz sie rozpoczal");
 }
-...
-private List<String> checkEmail(String email) {
-    if (email == null || email.isBlank()) {
-        return List.of("brak e-maila");
-    }
-    ...
-}
 ```
+
+(metody `checkEmail` i `checkSeats` jak w Po kroku 1)
 
 **Po:**
 
 ```java
-checkEmail(draft.email(), warnings);
-checkSeats(draft.seats(), warnings);
-checkShowTime(draft, warnings);
+public String validate(ReservationDraft draft) {
+    List<String> warnings = new ArrayList<>();
+    checkEmail(draft.email(), warnings);
+    checkSeats(draft.seats(), warnings);
+    checkShowTime(draft, warnings);
+    return warnings.isEmpty() ? "OK" : String.join("; ", warnings);
+}
+
+private void checkEmail(String email, List<String> warnings) {
+    if (email == null || email.isBlank()) {
+        warnings.add("brak e-maila");
+    } else if (!email.contains("@")) {
+        warnings.add("niepoprawny e-mail: " + email);
+    }
+}
+
+private void checkSeats(List<String> seats, List<String> warnings) {
+    if (seats.isEmpty()) {
+        warnings.add("brak miejsc");
+        return;
+    }
+    Set<String> seen = new HashSet<>();
+    Set<String> reported = new HashSet<>();
+    for (String seat : seats) {
+        if (!seen.add(seat) && reported.add(seat)) {
+            warnings.add("miejsce " + seat + " zdublowane");
+        }
+    }
+    if (seats.size() >= 10) {
+        warnings.add("grupa 10+: zastosuj rabat grupowy");
+    }
+}
+
+private void checkShowTime(ReservationDraft draft, List<String> warnings) {
+    if (!draft.now().isBefore(draft.showStart())) {
+        warnings.add("seans juz sie rozpoczal");
+    }
+}
 ```
 
 **Uruchom:** test zielony.
@@ -2599,13 +5710,39 @@ public String validate(ReservationDraft draft) {
 }
 ```
 
-**Po:**
+**Po (`Warnings.java`, nowy plik):**
 
 ```java
-Warnings warnings = new Warnings();
-...
-return warnings.summary();
+import java.util.ArrayList;
+import java.util.List;
+
+/** Wąski parametr zbierający - można tylko dopisać ostrzeżenie. */
+public final class Warnings {
+    private final List<String> items = new ArrayList<>();
+
+    public void add(String warning) {
+        items.add(warning);
+    }
+
+    public String summary() {
+        return items.isEmpty() ? "OK" : String.join("; ", items);
+    }
+}
 ```
+
+**Po (`ReservationValidator.java`, metoda `validate`):**
+
+```java
+public String validate(ReservationDraft draft) {
+    Warnings warnings = new Warnings();
+    checkEmail(draft.email(), warnings);
+    checkSeats(draft.seats(), warnings);
+    checkShowTime(draft, warnings);
+    return warnings.summary();
+}
+```
+
+(w `checkEmail`, `checkSeats` i `checkShowTime` zmienia się wyłącznie typ parametru - `List<String> warnings` na `Warnings warnings`; z walidatora znika import `java.util.ArrayList`)
 
 **Uruchom:** test zielony.
 **Co powiedzieć:** metoda pomocnicza może tylko dopisać - nie wyczyści ani nie przestawi cudzych ostrzeżeń.
@@ -2663,7 +5800,7 @@ throw new IllegalArgumentException("unknown item: " + item);
 3. Powstaje nowy plik `ReceiptLineVisitor.java`: implementacja `OrderItemVisitor<String>`, do której trafiają trzy gałęzie z metody `line`.
 4. Metoda `line` znika z `ReceiptPrinter`; drukarka trzyma pole `lines = new ReceiptLineVisitor()` i w pętli woła `item.accept(lines)`.
 
-**Przed:**
+**Przed (`ReceiptPrinter.java`, metoda `line` - znika):**
 
 ```java
 private String line(OrderItem item) {
@@ -2678,11 +5815,83 @@ private String line(OrderItem item) {
 }
 ```
 
-**Po:**
+**Po (`OrderItemVisitor.java`, nowy plik):**
 
 ```java
-text.append(item.accept(lines)).append('\n');
+/** Klasyczny Visitor - jedna metoda na rodzaj pozycji; brak metody = błąd kompilacji. */
+public interface OrderItemVisitor<R> {
+    R visitTicket(TicketItem ticket);
+
+    R visitSnack(SnackItem snack);
+
+    R visitVoucher(VoucherItem voucher);
+}
 ```
+
+**Po (`OrderItem.java`):**
+
+```java
+public interface OrderItem {
+    <R> R accept(OrderItemVisitor<R> visitor);
+}
+```
+
+**Po (`TicketItem.java`):**
+
+```java
+public record TicketItem(String title, String format, Money price) implements OrderItem {
+    @Override
+    public <R> R accept(OrderItemVisitor<R> visitor) {
+        return visitor.visitTicket(this);
+    }
+}
+```
+
+(analogicznie `SnackItem` woła `visitor.visitSnack(this)`, a `VoucherItem` - `visitor.visitVoucher(this)`)
+
+**Po (`ReceiptLineVisitor.java`, nowy plik):**
+
+```java
+/** Operacja "linia paragonu" jako Visitor. */
+public final class ReceiptLineVisitor implements OrderItemVisitor<String> {
+    @Override
+    public String visitTicket(TicketItem ticket) {
+        return "Bilet " + ticket.title() + " " + ticket.format() + " " + ticket.price();
+    }
+
+    @Override
+    public String visitSnack(SnackItem snack) {
+        return snack.name() + " " + snack.price();
+    }
+
+    @Override
+    public String visitVoucher(VoucherItem voucher) {
+        return "Voucher " + voucher.code() + " -" + voucher.value();
+    }
+}
+```
+
+**Po (`ReceiptPrinter.java`):**
+
+```java
+public final class ReceiptPrinter {
+    private final ReceiptLineVisitor lines = new ReceiptLineVisitor();
+
+    public String print(List<OrderItem> items) {
+        StringBuilder text = new StringBuilder();
+        Money total = Money.ZERO;
+        Money vat = Money.ZERO;
+        for (OrderItem item : items) {
+            text.append(item.accept(lines)).append('\n');
+            total = total.plus(amount(item));
+            vat = vat.plus(vat(item));
+        }
+        return text.append("Razem: ").append(total.max(Money.ZERO)).append('\n')
+                .append("VAT: ").append(vat).append('\n').toString();
+    }
+```
+
+(metody `amount`, `vat` i `vatOf` zostają bez zmian; metoda `line` znika)
 
 **Uruchom:** `scripts/warsztat.sh test m5/s19` - zielone.
 **Co powiedzieć:** double dispatch - element wybiera metodę odwiedzającego. Brak metody dla typu to błąd kompilacji.
@@ -2696,9 +5905,20 @@ text.append(item.accept(lines)).append('\n');
 2. Powstaje nowy plik `VatVisitor.java`: implementacja `OrderItemVisitor<Money>`, która przejmuje gałęzie metody `vat` razem z pomocniczą metodą `vatOf`.
 3. Metody `amount`, `vat` i `vatOf` znikają z `ReceiptPrinter`; drukarka trzyma pola `amounts` i `vats`, a w pętli sumuje `item.accept(amounts)` i `item.accept(vats)`. Ostatnie łańcuchy `instanceof` znikają.
 
-**Przed:**
+**Przed (`ReceiptPrinter.java`, metody przenoszone do Visitorów):**
 
 ```java
+private Money amount(OrderItem item) {
+    if (item instanceof TicketItem ticket) {
+        return ticket.price();
+    } else if (item instanceof SnackItem snack) {
+        return snack.price();
+    } else if (item instanceof VoucherItem voucher) {
+        return Money.ZERO.minus(voucher.value());
+    }
+    throw new IllegalArgumentException("unknown item: " + item);
+}
+
 private Money vat(OrderItem item) {
     if (item instanceof TicketItem ticket) {
         return vatOf(ticket.price(), 8);
@@ -2709,13 +5929,95 @@ private Money vat(OrderItem item) {
     }
     throw new IllegalArgumentException("unknown item: " + item);
 }
+
+/** VAT zawarty w cenie brutto: brutto * stawka / (100 + stawka). */
+private static Money vatOf(Money gross, int rate) {
+    return new Money(gross.amount().multiply(BigDecimal.valueOf(rate))
+            .divide(BigDecimal.valueOf(100L + rate), 2, RoundingMode.HALF_UP));
+}
 ```
 
-**Po:**
+**Po (`AmountVisitor.java`, nowy plik):**
 
 ```java
-total = total.plus(item.accept(amounts));
-vat = vat.plus(item.accept(vats));
+import pl.training.workshop.shared.Money;
+
+/** Operacja "kwota do zapłaty" jako Visitor. */
+public final class AmountVisitor implements OrderItemVisitor<Money> {
+    @Override
+    public Money visitTicket(TicketItem ticket) {
+        return ticket.price();
+    }
+
+    @Override
+    public Money visitSnack(SnackItem snack) {
+        return snack.price();
+    }
+
+    @Override
+    public Money visitVoucher(VoucherItem voucher) {
+        return Money.ZERO.minus(voucher.value());
+    }
+}
+```
+
+**Po (`VatVisitor.java`, nowy plik):**
+
+```java
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
+import pl.training.workshop.shared.Money;
+
+/** Operacja "VAT zawarty w cenie" jako Visitor (bilety 8%, bar 23%, voucher 0). */
+public final class VatVisitor implements OrderItemVisitor<Money> {
+    @Override
+    public Money visitTicket(TicketItem ticket) {
+        return vatOf(ticket.price(), 8);
+    }
+
+    @Override
+    public Money visitSnack(SnackItem snack) {
+        return vatOf(snack.price(), 23);
+    }
+
+    @Override
+    public Money visitVoucher(VoucherItem voucher) {
+        return Money.ZERO;
+    }
+
+    private static Money vatOf(Money gross, int rate) {
+        return new Money(gross.amount().multiply(BigDecimal.valueOf(rate))
+                .divide(BigDecimal.valueOf(100L + rate), 2, RoundingMode.HALF_UP));
+    }
+}
+```
+
+**Po (`ReceiptPrinter.java`, cały plik):**
+
+```java
+import java.util.List;
+
+import pl.training.workshop.shared.Money;
+
+public final class ReceiptPrinter {
+    private final ReceiptLineVisitor lines = new ReceiptLineVisitor();
+    private final AmountVisitor amounts = new AmountVisitor();
+    private final VatVisitor vats = new VatVisitor();
+
+    public String print(List<OrderItem> items) {
+        StringBuilder text = new StringBuilder();
+        Money total = Money.ZERO;
+        Money vat = Money.ZERO;
+        for (OrderItem item : items) {
+            text.append(item.accept(lines)).append('\n');
+            total = total.plus(item.accept(amounts));
+            vat = vat.plus(item.accept(vats));
+        }
+        return text.append("Razem: ").append(total.max(Money.ZERO)).append('\n')
+                .append("VAT: ").append(vat).append('\n').toString();
+    }
+}
 ```
 
 **Uruchom:** test zielony; `S19SolutionTest` dodaje operację "grupa VAT" jako nowy Visitor.
@@ -2747,14 +6049,68 @@ public final class ReceiptPrinter {
         }
 ```
 
-**Po:**
+**Po (`OrderItem.java`):**
 
 ```java
-return switch (item) {
-    case TicketItem ticket -> vatOf(ticket.price(), 8);
-    case SnackItem snack -> vatOf(snack.price(), 23);
-    case VoucherItem voucher -> Money.ZERO;
-};
+public sealed interface OrderItem permits TicketItem, SnackItem, VoucherItem {
+}
+```
+
+(rekordy `TicketItem`, `SnackItem` i `VoucherItem` tracą metodę `accept` - zostają czyste dane)
+
+**Po (`ReceiptPrinter.java`, cały plik):**
+
+```java
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.List;
+
+import pl.training.workshop.shared.Money;
+
+public final class ReceiptPrinter {
+    public String print(List<OrderItem> items) {
+        StringBuilder text = new StringBuilder();
+        Money total = Money.ZERO;
+        Money vat = Money.ZERO;
+        for (OrderItem item : items) {
+            text.append(line(item)).append('\n');
+            total = total.plus(amount(item));
+            vat = vat.plus(vat(item));
+        }
+        return text.append("Razem: ").append(total.max(Money.ZERO)).append('\n')
+                .append("VAT: ").append(vat).append('\n').toString();
+    }
+
+    static String line(OrderItem item) {
+        return switch (item) {
+            case TicketItem(String title, String format, Money price) ->
+                    "Bilet " + title + " " + format + " " + price;
+            case SnackItem(String name, Money price) -> name + " " + price;
+            case VoucherItem(String code, Money value) -> "Voucher " + code + " -" + value;
+        };
+    }
+
+    static Money amount(OrderItem item) {
+        return switch (item) {
+            case TicketItem ticket -> ticket.price();
+            case SnackItem snack -> snack.price();
+            case VoucherItem voucher -> Money.ZERO.minus(voucher.value());
+        };
+    }
+
+    static Money vat(OrderItem item) {
+        return switch (item) {
+            case TicketItem ticket -> vatOf(ticket.price(), 8);
+            case SnackItem snack -> vatOf(snack.price(), 23);
+            case VoucherItem voucher -> Money.ZERO;
+        };
+    }
+
+    private static Money vatOf(Money gross, int rate) {
+        return new Money(gross.amount().multiply(BigDecimal.valueOf(rate))
+                .divide(BigDecimal.valueOf(100L + rate), 2, RoundingMode.HALF_UP));
+    }
+}
 ```
 
 **Uruchom:** test zielony.
@@ -2839,6 +6195,23 @@ public Money price(DayOfWeek day, String format) {
 public Money price(DayOfWeek day, String format) {
     return adjustForDay(day, basePrice(format));
 }
+
+private static Money basePrice(String format) {
+    return switch (format) {
+        case "2D" -> Money.of("25.00");
+        case "3D" -> Money.of("32.00");
+        case "IMAX" -> Money.of("40.00");
+        default -> throw new IllegalArgumentException("unknown format: " + format);
+    };
+}
+
+private static Money adjustForDay(DayOfWeek day, Money base) {
+    return switch (day) {
+        case TUESDAY -> base.minus(base.percent(30));
+        case SATURDAY, SUNDAY -> base.plus(Money.of("2.00"));
+        default -> base;
+    };
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh test m5/s20` - zielone (9 cen i nieznany format).
@@ -2869,11 +6242,70 @@ private static Money adjustForDay(DayOfWeek day, Money base) {
 }
 ```
 
-**Po:**
+**Po (`DayPolicy.java`, nowy plik):**
 
 ```java
-return calendar.apply(day).apply(basePrice(format));
+import pl.training.workshop.shared.Money;
+
+/** Korekta ceny za dzień jako wymienny algorytm - Strategy. */
+@FunctionalInterface
+public interface DayPolicy {
+    Money apply(Money base);
+}
 ```
+
+**Po (`DayPolicies.java`, nowy plik):**
+
+```java
+import java.time.DayOfWeek;
+
+import pl.training.workshop.shared.Money;
+
+/** Kalendarz polityk - nowa akcja dniowa zmienia tylko ten plik. */
+public final class DayPolicies {
+    public static final DayPolicy CHEAP_TUESDAY = base -> base.minus(base.percent(30));
+    public static final DayPolicy WEEKEND = base -> base.plus(Money.of("2.00"));
+    public static final DayPolicy REGULAR = base -> base;
+
+    private DayPolicies() {
+    }
+
+    public static DayPolicy standard(DayOfWeek day) {
+        return switch (day) {
+            case TUESDAY -> CHEAP_TUESDAY;
+            case SATURDAY, SUNDAY -> WEEKEND;
+            default -> REGULAR;
+        };
+    }
+}
+```
+
+**Po (`ShowPricing.java`):**
+
+```java
+import java.time.DayOfWeek;
+import java.util.Objects;
+import java.util.function.Function;
+
+import pl.training.workshop.shared.Money;
+
+public final class ShowPricing {
+    private final Function<DayOfWeek, DayPolicy> calendar;
+
+    public ShowPricing() {
+        this(DayPolicies::standard);
+    }
+
+    public ShowPricing(Function<DayOfWeek, DayPolicy> calendar) {
+        this.calendar = Objects.requireNonNull(calendar, "calendar");
+    }
+
+    public Money price(DayOfWeek day, String format) {
+        return calendar.apply(day).apply(basePrice(format));
+    }
+```
+
+(metoda `basePrice` bez zmian; metoda `adjustForDay` znika)
 
 **Uruchom:** test zielony; `pathAMakesANewDayCampaignCheap` dodaje "środę seniora" bez dotykania formatów.
 **Co powiedzieć:** wybierz tę ścieżkę, gdy marketing co miesiąc zmienia akcje dniowe, a formaty są stabilne. Zestaw polityk jest otwarty i wstrzykiwany.
@@ -2900,13 +6332,61 @@ private static Money basePrice(String format) {
 }
 ```
 
-**Po:**
+**Po (`Format.java`, nowy plik):**
 
 ```java
-public Money price(DayOfWeek day, String format) {
-    return Format.of(format).priceOn(day);
+import java.time.DayOfWeek;
+
+import pl.training.workshop.shared.Money;
+
+/** Format jako typ z zachowaniem - nowy format to jedna stała. */
+public enum Format {
+    TWO_D("2D", "25.00"),
+    THREE_D("3D", "32.00"),
+    IMAX("IMAX", "40.00");
+
+    private final String code;
+    private final Money base;
+
+    Format(String code, String base) {
+        this.code = code;
+        this.base = Money.of(base);
+    }
+
+    public static Format of(String code) {
+        for (Format format : values()) {
+            if (format.code.equals(code)) {
+                return format;
+            }
+        }
+        throw new IllegalArgumentException("unknown format: " + code);
+    }
+
+    public Money priceOn(DayOfWeek day) {
+        return switch (day) {
+            case TUESDAY -> base.minus(base.percent(30));
+            case SATURDAY, SUNDAY -> base.plus(Money.of("2.00"));
+            default -> base;
+        };
+    }
 }
 ```
+
+**Po (`ShowPricing.java`, cały plik):**
+
+```java
+import java.time.DayOfWeek;
+
+import pl.training.workshop.shared.Money;
+
+public final class ShowPricing {
+    public Money price(DayOfWeek day, String format) {
+        return Format.of(format).priceOn(day);
+    }
+}
+```
+
+(w tej ścieżce nie ma plików `DayPolicy.java` i `DayPolicies.java` - punktem wyjścia jest krok 1)
 
 **Uruchom:** test zielony.
 **Co powiedzieć:** wybierz tę ścieżkę, gdy dochodzą formaty (4DX, ScreenX) z własnymi wyjątkami od reguł, a kalendarz jest stabilny. Porównaj `scripts/warsztat.sh diff m5/s20 1 3` z `diff m5/s20 1 2`.
@@ -2988,12 +6468,86 @@ public BigDecimal payout(Deal deal, int week, BigDecimal ticketRevenue) {
 }
 ```
 
-**Po:**
+**Po (`SettlementModel.java`, nowy plik):**
 
 ```java
-private final Map<String, SettlementModel> models = Map.of(
-        "PERCENT", new PercentageModel(),
-        "FESTIVAL", new FestivalFeeAdapter(new FestivalTariffClient()));
+import java.math.BigDecimal;
+
+import pl.training.workshop.m5.s21_reversiblepattern.Deal;
+
+/** Strategy - wspólny kontrakt modeli rozliczeń. */
+public interface SettlementModel {
+    BigDecimal payout(Deal deal, int week, BigDecimal ticketRevenue);
+}
+```
+
+**Po (`PercentageModel.java`, nowy plik):**
+
+```java
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
+import pl.training.workshop.m5.s21_reversiblepattern.Deal;
+
+/** Procent od przychodu - tydzień 1: 50%, 2: 40%, dalej 35%; minimalna gwarancja 500.00. */
+public final class PercentageModel implements SettlementModel {
+    private static final BigDecimal MINIMUM_GUARANTEE = new BigDecimal("500.00");
+
+    @Override
+    public BigDecimal payout(Deal deal, int week, BigDecimal ticketRevenue) {
+        int percent = week == 1 ? 50 : week == 2 ? 40 : 35;
+        BigDecimal share = ticketRevenue.multiply(BigDecimal.valueOf(percent))
+                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+        return share.max(MINIMUM_GUARANTEE);
+    }
+}
+```
+
+**Po (`FestivalFeeAdapter.java`, nowy plik):**
+
+```java
+import java.math.BigDecimal;
+
+import pl.training.workshop.m5.s21_reversiblepattern.Deal;
+import pl.training.workshop.m5.s21_reversiblepattern.FestivalTariffClient;
+
+/** Adapter - tłumaczy obcy interfejs (grosze w long) na kontrakt SettlementModel. */
+public final class FestivalFeeAdapter implements SettlementModel {
+    private final FestivalTariffClient client;
+
+    public FestivalFeeAdapter(FestivalTariffClient client) {
+        this.client = client;
+    }
+
+    @Override
+    public BigDecimal payout(Deal deal, int week, BigDecimal ticketRevenue) {
+        return BigDecimal.valueOf(client.weeklyFeeInCents(deal.title(), week), 2);
+    }
+}
+```
+
+**Po (`DistributorSettlement.java`):**
+
+```java
+import java.math.BigDecimal;
+import java.util.Map;
+
+import pl.training.workshop.m5.s21_reversiblepattern.Deal;
+import pl.training.workshop.m5.s21_reversiblepattern.FestivalTariffClient;
+
+public final class DistributorSettlement {
+    private final Map<String, SettlementModel> models = Map.of(
+            "PERCENT", new PercentageModel(),
+            "FESTIVAL", new FestivalFeeAdapter(new FestivalTariffClient()));
+
+    public BigDecimal payout(Deal deal, int week, BigDecimal ticketRevenue) {
+        SettlementModel model = models.get(deal.model());
+        if (model == null) {
+            throw new IllegalArgumentException("nieznany model: " + deal.model());
+        }
+        return model.payout(deal, week, ticketRevenue);
+    }
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh test m5/s21` - zielono; `step1AdapterPaysTheFestivalFeeConvertedFromCents` sprawdza 300.00 i 150.00.
@@ -3053,12 +6607,22 @@ public BigDecimal payout(Deal deal, int week, BigDecimal ticketRevenue) {
 **Po:**
 
 ```java
-public BigDecimal payout(Deal deal, int week, BigDecimal ticketRevenue) {
-    if (!deal.model().equals("PERCENT")) {
-        throw new IllegalArgumentException("nieznany model: " + deal.model());
+public final class DistributorSettlement {
+    private static final BigDecimal MINIMUM_GUARANTEE = new BigDecimal("500.00");
+
+    public BigDecimal payout(Deal deal, int week, BigDecimal ticketRevenue) {
+        if (!deal.model().equals("PERCENT")) {
+            throw new IllegalArgumentException("nieznany model: " + deal.model());
+        }
+        int percent = week == 1 ? 50 : week == 2 ? 40 : 35;
+        BigDecimal share = ticketRevenue.multiply(BigDecimal.valueOf(percent))
+                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+        return share.max(MINIMUM_GUARANTEE);
     }
-    int percent = week == 1 ? 50 : week == 2 ? 40 : 35;
+}
 ```
+
+(w importach `java.math.RoundingMode` zastępuje `java.util.Map`)
 
 **Uruchom:** test zielony - model procentowy rozlicza się tak samo przed wzorcem, ze wzorcem i po jego usunięciu.
 **Co powiedzieć:** usunięcie wzorca jest równie poprawną refaktoryzacją jak jego wprowadzenie. Gdy wróci drugi model, przywrócimy Strategy tymi samymi krokami w przód.
@@ -3162,11 +6726,36 @@ public final class SeatBadge {
     }
 ```
 
-**Po:**
+**Po (`SeatBadge.java`, cały plik):**
 
 ```java
-public SeatBadge(ScreeningCatalog catalog) {
-    this.catalog = Objects.requireNonNull(catalog, "catalog");
+import java.util.NoSuchElementException;
+import java.util.Objects;
+
+import pl.training.workshop.m5.s22_middleman.ScreeningCatalog;
+
+public final class SeatBadge {
+    private final ScreeningCatalog catalog;
+
+    public SeatBadge(ScreeningCatalog catalog) {
+        this.catalog = Objects.requireNonNull(catalog, "catalog");
+    }
+
+    public String badge(String id) {
+        int free = freeSeats(id);
+        if (free == 0) {
+            return id + ": WYPRZEDANE";
+        }
+        return catalog.title(id) + " (" + catalog.format(id) + "): " + free + " wolnych";
+    }
+
+    private int freeSeats(String id) {
+        try {
+            return catalog.freeSeats(id);
+        } catch (NoSuchElementException e) {
+            return 0;
+        }
+    }
 }
 ```
 
@@ -3193,13 +6782,30 @@ public String render() {
 }
 ```
 
-**Po:**
+**Po (`DailyBoard.java`, cały plik):**
 
 ```java
-return catalog.all().stream()
-        .map(screening -> screening.id() + " " + screening.title() + " " + screening.format())
-        .collect(Collectors.joining("\n"));
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import pl.training.workshop.m5.s22_middleman.ScreeningCatalog;
+
+public final class DailyBoard {
+    private final ScreeningCatalog catalog;
+
+    public DailyBoard(ScreeningCatalog catalog) {
+        this.catalog = Objects.requireNonNull(catalog, "catalog");
+    }
+
+    public String render() {
+        return catalog.all().stream()
+                .map(screening -> screening.id() + " " + screening.title() + " " + screening.format())
+                .collect(Collectors.joining("\n"));
+    }
+}
 ```
+
+(plik `CinemaFacade.java` znika; `SeatBadge` bez zmian)
 
 **Uruchom:** test zielony.
 **Co powiedzieć:** odwrotny ruch to Hide Delegate. Fasada modułu albo seam testowy mogą być wartościowe - usuwamy pośrednika, który nic nie wnosi.
@@ -3270,7 +6876,24 @@ refund = refund - 3.00;
 **Po:**
 
 ```java
-double refund = ticketsPaid * share(minutesBeforeStart) - 3.00;
+public String refund(double ticketsPaid, long minutesBeforeStart) {
+    double refund = ticketsPaid * share(minutesBeforeStart) - 3.00;
+    if (refund < 0) {
+        refund = 0;
+    }
+    refund = Math.round(refund * 100) / 100.0;
+    return String.format(Locale.ROOT, "%.2f", refund);
+}
+
+private static double share(long minutesBeforeStart) {
+    if (minutesBeforeStart <= 0) {
+        return 0;
+    }
+    if (minutesBeforeStart >= 24 * 60) {
+        return 1.0;
+    }
+    return 0.5;
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh test m5/s23` - wszystko zielone, łącznie z przypadkami brzegowymi (29.17 i 0.00).
@@ -3301,13 +6924,34 @@ public String refund(double ticketsPaid, long minutesBeforeStart) {
 **Po:**
 
 ```java
-BigDecimal refund = BigDecimal.valueOf(ticketsPaid)
-        .multiply(share(minutesBeforeStart))
-        .subtract(FEE)
-        .setScale(2, RoundingMode.HALF_UP)
-        .max(BigDecimal.ZERO);
-return refund.toPlainString();
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
+public final class RefundCalculator {
+    private static final BigDecimal FEE = new BigDecimal("3.00");
+
+    public String refund(double ticketsPaid, long minutesBeforeStart) {
+        BigDecimal refund = BigDecimal.valueOf(ticketsPaid)
+                .multiply(share(minutesBeforeStart))
+                .subtract(FEE)
+                .setScale(2, RoundingMode.HALF_UP)
+                .max(BigDecimal.ZERO);
+        return refund.toPlainString();
+    }
+
+    private static BigDecimal share(long minutesBeforeStart) {
+        if (minutesBeforeStart <= 0) {
+            return BigDecimal.ZERO;
+        }
+        if (minutesBeforeStart >= 24 * 60) {
+            return BigDecimal.ONE;
+        }
+        return new BigDecimal("0.5");
+    }
+}
 ```
+
+(import `java.util.Locale` znika)
 
 **Uruchom:** test zwykłych zwrotów zielony, ale `byTheWayStepChangedTwoThingsAtOnce` dokumentuje dwie zmiany: 64.35 zapłacone, anulowanie 2 h przed seansem daje 29.18 zamiast 29.17, a zwrot po starcie to "0" zamiast "0.00".
 **Co powiedzieć:** krok wyglądał na porządki, a zmienił dwa elementy kontraktu. Pierwszy (grosz) można uzasadnić regułą domeny, drugi (format) to czysta regresja - paragon i mail pokażą "Zwrot: 0".
@@ -3421,7 +7065,25 @@ public String calc2(List<Sale> sales, boolean onlineOnly) {
     Map<String, Line> linesByTitle = new TreeMap<>();
     for (Sale sale : sales) {
         if (onlineOnly && !sale.online()) {
+            continue;
+        }
+        Line previous = linesByTitle.get(sale.title());
+        if (previous == null) {
+            linesByTitle.put(sale.title(), new Line(sale.title(), sale.tickets(), sale.amount()));
+        } else {
+            linesByTitle.put(sale.title(), new Line(sale.title(),
+                    previous.n() + sale.tickets(), previous.d().add(sale.amount())));
+        }
+    }
+    StringBuilder csv = new StringBuilder(header()).append('\n');
+    for (Line line : linesByTitle.values()) {
+        csv.append(row(line)).append('\n');
+    }
+    return csv.toString();
+}
 ```
+
+(w `row` analogicznie: `row(Line line)`, lista `values`, pętla po `component`; metoda `header()` bez zmian)
 
 **Uruchom:** `scripts/warsztat.sh test m5/s24` - 14 testów zielonych.
 **Co powiedzieć:** zasięg lokalny, zero użyć poza metodą, więc IDE robi to w stu procentach bezpiecznie. Od tego zaczynamy każde porządkowanie, bo tanie nazwy ułatwiają następne kroki.
@@ -3495,6 +7157,8 @@ private static String row(Line line) {
     return line.title() + ";" + line.tickets() + ";" + line.revenue();
 }
 ```
+
+(w `revenueCsv` dwie zmiany: agregacja używa `previous.tickets() + sale.tickets()` i `previous.revenue().add(sale.amount())`, a nagłówek to `new StringBuilder(CSV_HEADER)` zamiast `new StringBuilder(header())`; znikają importy `java.lang.reflect.RecordComponent`, `java.util.ArrayList`, `java.util.Arrays` i `java.util.stream.Collectors`)
 
 **Uruchom:** test zielony, także `S24RenameLimitsTest.reflectionTurnsJavaNamesIntoTheCsvHeader`, który pokazuje, że refleksja na nowym rekordzie dałaby `title;tickets;revenue`.
 **Co powiedzieć:** nazwa w Javie i nazwa w kontrakcie zewnętrznym to dwie różne rzeczy. Dopóki są sklejone refleksją, każdy Rename jest zmianą API.
@@ -3576,6 +7240,25 @@ if (order.start().getHour() < 12) {
 BigDecimal base = basePrice(order);
 ```
 
+(w miejscu całego bloku; reszta `describe` bez zmian; na końcu klasy dochodzi nowa metoda)
+
+```java
+private BigDecimal basePrice(Order order) {
+    BigDecimal base;
+    if (order.format().equals("IMAX")) {
+        base = new BigDecimal("40.00");
+    } else if (order.format().equals("3D")) {
+        base = new BigDecimal("32.00");
+    } else {
+        base = new BigDecimal("25.00");
+    }
+    if (order.start().getHour() < 12) {
+        base = base.subtract(new BigDecimal("5.00"));
+    }
+    return base;
+}
+```
+
 **Uruchom:** `scripts/warsztat.sh test m5/s25` - 16 testów zielonych.
 **Co powiedzieć:** blok z jednym wyjściem to najprostszy przypadek, IDE robi to bezpiecznie. Komentarz stał się nazwą metody.
 **Snapshot:** `step1/` · **Różnica:** `scripts/warsztat.sh diff m5/s25 0 1`
@@ -3611,6 +7294,32 @@ BigDecimal subtotal = subtotal(order, base);
 int vipSeats = vipSeats(order);
 ```
 
+(w miejscu pętli; nowe metody na końcu klasy)
+
+```java
+private BigDecimal subtotal(Order order, BigDecimal base) {
+    BigDecimal subtotal = BigDecimal.ZERO;
+    for (int row : order.rows()) {
+        BigDecimal price = base;
+        if (row >= 10) {
+            price = price.add(new BigDecimal("10.00"));
+        }
+        subtotal = subtotal.add(price);
+    }
+    return subtotal.setScale(2, RoundingMode.HALF_UP);
+}
+
+private int vipSeats(Order order) {
+    int vipSeats = 0;
+    for (int row : order.rows()) {
+        if (row >= 10) {
+            vipSeats++;
+        }
+    }
+    return vipSeats;
+}
+```
+
 **Uruchom:** test po Split Loop i po każdej ekstrakcji.
 **Co powiedzieć:** zamiast zwracać parę (record z dwoma polami) rozdzielamy odpowiedzialności. Dwa przejścia po liście to koszt pomijalny wobec czytelności. Jeśli wydajność miałaby znaczenie, mierzymy, a nie zgadujemy.
 **Snapshot:** `step2/` · **Różnica:** `scripts/warsztat.sh diff m5/s25 1 2`
@@ -3644,6 +7353,24 @@ public String describe(Order order) {
     BigDecimal subtotal = subtotal(order, basePrice(order));
     int vipSeats = vipSeats(order);
     return render(order, subtotal, vipSeats);
+}
+```
+
+(nowa metoda na końcu klasy; `basePrice`, `subtotal` i `vipSeats` bez zmian)
+
+```java
+private String render(Order order, BigDecimal subtotal, int vipSeats) {
+    StringBuilder text = new StringBuilder();
+    text.append("BILETY: ").append(order.title()).append('\n');
+    text.append("Format: ").append(order.format())
+            .append(", start ").append(order.start()).append('\n');
+    text.append("Miejsc: ").append(order.rows().size());
+    if (vipSeats > 0) {
+        text.append(" (w tym VIP: ").append(vipSeats).append(')');
+    }
+    text.append('\n');
+    text.append("Razem: ").append(subtotal).append('\n');
+    return text.toString();
 }
 ```
 
@@ -3724,7 +7451,51 @@ for (int i = 3; i < args.length; i++) {
 }
 ```
 
-**Po:**
+**Po (`TicketPricing.java`, nowy plik):**
+
+```java
+import pl.training.workshop.shared.Money;
+
+/** Strategy - wymienny algorytm ceny jednego biletu. Zna tylko cenę bazową formatu. */
+@FunctionalInterface
+public interface TicketPricing {
+    Money price(Money formatBase);
+}
+```
+
+**Po (`TicketPricings.java`, nowy plik):**
+
+```java
+import java.util.Map;
+
+import pl.training.workshop.shared.Money;
+
+/** Jedno miejsce wyboru strategii po kodzie typu biletu (N, S, E, C). */
+public final class TicketPricings {
+    private static final Map<String, TicketPricing> BY_TYPE = Map.of(
+            "N", base -> base,
+            "S", discounted(25),
+            "E", discounted(30),
+            "C", discounted(40));
+
+    private TicketPricings() {
+    }
+
+    public static TicketPricing forType(String code) {
+        TicketPricing pricing = BY_TYPE.get(code);
+        if (pricing == null) {
+            throw new IllegalArgumentException("unknown ticket type: " + code);
+        }
+        return pricing;
+    }
+
+    private static TicketPricing discounted(int percent) {
+        return base -> base.minus(base.percent(percent));
+    }
+}
+```
+
+**Po (`BoxOfficeDesk.java`, pętla w metodzie `book`):**
 
 ```java
 for (int i = 3; i < args.length; i++) {
@@ -3766,14 +7537,358 @@ switch (last.operation()) {
 }
 ```
 
-**Po:**
+**Po (`BookingLedger.java`, nowy plik):**
 
 ```java
-DeskCommand command = factory.apply(args);
-String result = command.execute(ledger);
-history.add(command);
-return result;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import pl.training.workshop.m5.s26_variability.Status;
+import pl.training.workshop.shared.Money;
+
+/** Odbiorca poleceń - rezerwacje i kasa wydzielone z pulpitu (Extract Class). */
+public final class BookingLedger {
+    private final Map<String, Status> statuses = new LinkedHashMap<>();
+    private final Map<String, Money> amounts = new LinkedHashMap<>();
+    private Money till = Money.ZERO;
+
+    void open(String id, Money amount) {
+        if (statuses.containsKey(id)) {
+            throw new IllegalArgumentException("booking exists: " + id);
+        }
+        statuses.put(id, Status.NEW);
+        amounts.put(id, amount);
+    }
+
+    void remove(String id) {
+        statuses.remove(id);
+        amounts.remove(id);
+    }
+
+    Status status(String id) {
+        Status status = statuses.get(id);
+        if (status == null) {
+            throw new IllegalArgumentException("no booking " + id);
+        }
+        return status;
+    }
+
+    Money pay(String id) {
+        Status status = status(id);
+        if (status != Status.NEW) {
+            throw invalid("pay", status);
+        }
+        till = till.plus(amounts.get(id));
+        statuses.put(id, Status.PAID);
+        return amounts.get(id);
+    }
+
+    void use(String id) {
+        Status status = status(id);
+        if (status != Status.PAID) {
+            throw invalid("use", status);
+        }
+        statuses.put(id, Status.USED);
+    }
+
+    Money cancel(String id) {
+        Status status = status(id);
+        if (status == Status.NEW) {
+            statuses.put(id, Status.CANCELLED);
+            return Money.ZERO;
+        } else if (status == Status.PAID) {
+            till = till.minus(amounts.get(id));
+            statuses.put(id, Status.CANCELLED);
+            return amounts.get(id);
+        }
+        throw invalid("cancel", status);
+    }
+
+    void restore(String id, Status previous) {
+        statuses.put(id, previous);
+    }
+
+    void deposit(Money amount) {
+        till = till.plus(amount);
+    }
+
+    void withdraw(Money amount) {
+        till = till.minus(amount);
+    }
+
+    String summary() {
+        String bookings = statuses.isEmpty() ? "-" : statuses.entrySet().stream()
+                .map(entry -> entry.getKey() + "=" + entry.getValue())
+                .collect(Collectors.joining(", "));
+        return "Kasa: " + till + "; " + bookings;
+    }
+
+    private static IllegalStateException invalid(String action, Status status) {
+        return new IllegalStateException("cannot " + action + " in " + status);
+    }
+}
 ```
+
+**Po (`DeskCommand.java`, nowy plik):**
+
+```java
+/** Command - żądanie kasjera jako obiekt: wykonanie, cofnięcie i wpis do dziennika razem. */
+public interface DeskCommand {
+    String execute(BookingLedger ledger);
+
+    void undo(BookingLedger ledger);
+
+    String journalEntry();
+
+    /** Wspólna walidacja poleceń "OPERACJA <id>". */
+    static String idFrom(String[] args, String operation) {
+        if (args.length < 2) {
+            throw new IllegalArgumentException(operation + " <id>");
+        }
+        return args[1];
+    }
+}
+```
+
+**Po (`BookCommand.java`, nowy plik):**
+
+```java
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import pl.training.workshop.shared.Money;
+
+/** BOOK jako polecenie. Cenę liczą strategie z kroku 1, cofnięcie usuwa rezerwację. */
+public final class BookCommand implements DeskCommand {
+    private static final Map<String, Money> FORMATS = Map.of(
+            "2D", Money.of("25.00"), "3D", Money.of("32.00"), "IMAX", Money.of("40.00"));
+
+    private final String id;
+    private final String format;
+    private final List<String> ticketTypes;
+
+    private BookCommand(String id, String format, List<String> ticketTypes) {
+        this.id = id;
+        this.format = format;
+        this.ticketTypes = List.copyOf(ticketTypes);
+    }
+
+    static BookCommand from(String[] args) {
+        if (args.length < 4) {
+            throw new IllegalArgumentException("BOOK <id> <format> <typ>...");
+        }
+        return new BookCommand(args[1], args[2], Arrays.asList(args).subList(3, args.length));
+    }
+
+    @Override
+    public String execute(BookingLedger ledger) {
+        Money base = FORMATS.get(format);
+        if (base == null) {
+            throw new IllegalArgumentException("unknown format: " + format);
+        }
+        Money total = Money.ZERO;
+        for (String type : ticketTypes) {
+            total = total.plus(TicketPricings.forType(type).price(base));
+        }
+        ledger.open(id, total);
+        return id + " NEW " + total;
+    }
+
+    @Override
+    public void undo(BookingLedger ledger) {
+        ledger.remove(id);
+    }
+
+    @Override
+    public String journalEntry() {
+        return "BOOK " + id;
+    }
+}
+```
+
+**Po (`PayCommand.java`, nowy plik):**
+
+```java
+import pl.training.workshop.m5.s26_variability.Status;
+import pl.training.workshop.shared.Money;
+
+/** PAY jako polecenie - pamięta poprzedni status i pobraną kwotę, żeby je odwrócić. */
+public final class PayCommand implements DeskCommand {
+    private final String id;
+    private Status previous;
+    private Money paid;
+
+    private PayCommand(String id) {
+        this.id = id;
+    }
+
+    static PayCommand from(String[] args) {
+        return new PayCommand(DeskCommand.idFrom(args, "PAY"));
+    }
+
+    @Override
+    public String execute(BookingLedger ledger) {
+        previous = ledger.status(id);
+        paid = ledger.pay(id);
+        return id + " PAID " + paid;
+    }
+
+    @Override
+    public void undo(BookingLedger ledger) {
+        ledger.withdraw(paid);
+        ledger.restore(id, previous);
+    }
+
+    @Override
+    public String journalEntry() {
+        return "PAY " + id;
+    }
+}
+```
+
+**Po (`UseCommand.java`, nowy plik):**
+
+```java
+import pl.training.workshop.m5.s26_variability.Status;
+
+/** USE jako polecenie - cofnięcie przywraca tylko poprzedni status. */
+public final class UseCommand implements DeskCommand {
+    private final String id;
+    private Status previous;
+
+    private UseCommand(String id) {
+        this.id = id;
+    }
+
+    static UseCommand from(String[] args) {
+        return new UseCommand(DeskCommand.idFrom(args, "USE"));
+    }
+
+    @Override
+    public String execute(BookingLedger ledger) {
+        previous = ledger.status(id);
+        ledger.use(id);
+        return id + " USED";
+    }
+
+    @Override
+    public void undo(BookingLedger ledger) {
+        ledger.restore(id, previous);
+    }
+
+    @Override
+    public String journalEntry() {
+        return "USE " + id;
+    }
+}
+```
+
+**Po (`CancelCommand.java`, nowy plik):**
+
+```java
+import pl.training.workshop.m5.s26_variability.Status;
+import pl.training.workshop.shared.Money;
+
+/** CANCEL jako polecenie. Ile oddać, decyduje odbiorca; polecenie pamięta wynik dla cofnięcia. */
+public final class CancelCommand implements DeskCommand {
+    private final String id;
+    private Status previous;
+    private Money refunded;
+
+    private CancelCommand(String id) {
+        this.id = id;
+    }
+
+    static CancelCommand from(String[] args) {
+        return new CancelCommand(DeskCommand.idFrom(args, "CANCEL"));
+    }
+
+    @Override
+    public String execute(BookingLedger ledger) {
+        previous = ledger.status(id);
+        refunded = ledger.cancel(id);
+        return id + " CANCELLED" + (refunded.isGreaterThan(Money.ZERO) ? " zwrot " + refunded : "");
+    }
+
+    @Override
+    public void undo(BookingLedger ledger) {
+        ledger.deposit(refunded);
+        ledger.restore(id, previous);
+    }
+
+    @Override
+    public String journalEntry() {
+        return "CANCEL " + id;
+    }
+}
+```
+
+**Po (`BoxOfficeDesk.java`, cały plik):**
+
+```java
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+public final class BoxOfficeDesk {
+    private static final Map<String, Function<String[], DeskCommand>> COMMANDS = Map.of(
+            "BOOK", BookCommand::from,
+            "PAY", PayCommand::from,
+            "USE", UseCommand::from,
+            "CANCEL", CancelCommand::from);
+
+    private final BookingLedger ledger = new BookingLedger();
+    private final List<DeskCommand> history = new ArrayList<>();
+
+    public String handle(String line) {
+        String[] args = line.strip().split(" +");
+        String operation = args[0].toUpperCase(Locale.ROOT);
+        try {
+            return switch (operation) {
+                case "UNDO" -> undo();
+                case "REPORT" -> report();
+                default -> execute(operation, args);
+            };
+        } catch (IllegalArgumentException | IllegalStateException exception) {
+            return "Blad: " + exception.getMessage();
+        }
+    }
+
+    private String execute(String operation, String[] args) {
+        Function<String[], DeskCommand> factory = COMMANDS.get(operation);
+        if (factory == null) {
+            return "Nieznana operacja: " + args[0];
+        }
+        DeskCommand command = factory.apply(args);
+        String result = command.execute(ledger);
+        history.add(command);
+        return result;
+    }
+
+    private String undo() {
+        if (history.isEmpty()) {
+            throw new IllegalStateException("nothing to undo");
+        }
+        DeskCommand last = history.removeLast();
+        last.undo(ledger);
+        return "Cofnieto: " + last.journalEntry();
+    }
+
+    private String report() {
+        String log = history.isEmpty() ? "-" : history.stream()
+                .map(DeskCommand::journalEntry)
+                .collect(Collectors.joining(", "));
+        return ledger.summary() + "; dziennik: " + log;
+    }
+}
+```
+
+(`TicketPricing` i `TicketPricings` bez zmian)
 
 **Uruchom:** test zielony.
 **Co powiedzieć:** wykonanie i cofnięcie są obok siebie w jednej klasie, a nie w dwóch `switch`. Polecenie pamięta tylko to, czego potrzebuje do cofnięcia (poprzedni status, przesuniętą kwotę) - to stan **tego** żądania, dlatego każde wywołanie tworzy nowy obiekt przez `from(args)`, a komenda nie jest współdzieloną stałą jak w s15. Do historii trafia dopiero polecenie wykonane bez wyjątku, jak w start. UNDO i REPORT zostały w `switch` pulpitu, bo nie są operacjami na rezerwacji. Cykl życia nadal siedzi w warunkach `BookingLedger` - to zapach na krok 3.
@@ -3805,37 +7920,174 @@ Money cancel(String id) {
 }
 ```
 
-**Po:**
+**Po (`Booking.java`, nowy plik):**
 
 ```java
-NEW {
-    @Override
-    Money pay(Booking booking) {
-        booking.state = PAID;
-        return booking.amount;
+import java.util.Objects;
+
+import pl.training.workshop.m5.s26_variability.Status;
+import pl.training.workshop.shared.Money;
+
+/** State - cykl życia rezerwacji. Każdy stan zna tylko swoje dozwolone przejścia. */
+public final class Booking {
+    private final Money amount;
+    private State state = State.NEW;
+
+    public Booking(Money amount) {
+        this.amount = Objects.requireNonNull(amount, "amount");
     }
 
-    @Override
-    Money cancel(Booking booking) {
-        booking.state = CANCELLED;
-        return Money.ZERO;
-    }
-},
-PAID {
-    @Override
-    void use(Booking booking) {
-        booking.state = USED;
+    public Status status() {
+        return state.status();
     }
 
-    @Override
-    Money cancel(Booking booking) {
-        booking.state = CANCELLED;
-        return booking.amount;
+    /** Zwraca kwotę pobraną do kasy. */
+    public Money pay() {
+        return state.pay(this);
     }
-},
-USED,
-CANCELLED;
+
+    public void use() {
+        state.use(this);
+    }
+
+    /** Zwraca kwotę oddaną klientowi (zero, gdy rezerwacja nie była opłacona). */
+    public Money cancel() {
+        return state.cancel(this);
+    }
+
+    /** Dla cofania poleceń: powrót do zapamiętanego stanu z pominięciem reguł przejść. */
+    void restore(Status status) {
+        state = State.valueOf(status.name());
+    }
+
+    private enum State {
+        NEW {
+            @Override
+            Money pay(Booking booking) {
+                booking.state = PAID;
+                return booking.amount;
+            }
+
+            @Override
+            Money cancel(Booking booking) {
+                booking.state = CANCELLED;
+                return Money.ZERO;
+            }
+        },
+        PAID {
+            @Override
+            void use(Booking booking) {
+                booking.state = USED;
+            }
+
+            @Override
+            Money cancel(Booking booking) {
+                booking.state = CANCELLED;
+                return booking.amount;
+            }
+        },
+        USED,
+        CANCELLED;
+
+        Money pay(Booking booking) {
+            throw invalid("pay");
+        }
+
+        void use(Booking booking) {
+            throw invalid("use");
+        }
+
+        Money cancel(Booking booking) {
+            throw invalid("cancel");
+        }
+
+        Status status() {
+            return Status.valueOf(name());
+        }
+
+        private IllegalStateException invalid(String action) {
+            return new IllegalStateException("cannot " + action + " in " + status());
+        }
+    }
+}
 ```
+
+**Po (`BookingLedger.java`, cały plik):**
+
+```java
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import pl.training.workshop.m5.s26_variability.Status;
+import pl.training.workshop.shared.Money;
+
+/** Odbiorca poleceń bez warunków po statusie - prowadzi tylko kasę i rejestr. */
+public final class BookingLedger {
+    private final Map<String, Booking> bookings = new LinkedHashMap<>();
+    private Money till = Money.ZERO;
+
+    void open(String id, Money amount) {
+        if (bookings.containsKey(id)) {
+            throw new IllegalArgumentException("booking exists: " + id);
+        }
+        bookings.put(id, new Booking(amount));
+    }
+
+    void remove(String id) {
+        bookings.remove(id);
+    }
+
+    Status status(String id) {
+        return booking(id).status();
+    }
+
+    Money pay(String id) {
+        Money paid = booking(id).pay();
+        till = till.plus(paid);
+        return paid;
+    }
+
+    void use(String id) {
+        booking(id).use();
+    }
+
+    Money cancel(String id) {
+        Money refunded = booking(id).cancel();
+        till = till.minus(refunded);
+        return refunded;
+    }
+
+    void restore(String id, Status previous) {
+        booking(id).restore(previous);
+    }
+
+    void deposit(Money amount) {
+        till = till.plus(amount);
+    }
+
+    void withdraw(Money amount) {
+        till = till.minus(amount);
+    }
+
+    String summary() {
+        String list = bookings.isEmpty() ? "-" : bookings.entrySet().stream()
+                .map(entry -> entry.getKey() + "=" + entry.getValue().status())
+                .collect(Collectors.joining(", "));
+        return "Kasa: " + till + "; " + list;
+    }
+
+    private Booking booking(String id) {
+        Booking booking = bookings.get(id);
+        if (booking == null) {
+            throw new IllegalArgumentException("no booking " + id);
+        }
+        return booking;
+    }
+}
+```
+
+(pulpit, polecenia i strategie bez zmian; metoda pomocnicza `invalid` znika z `BookingLedger`)
 
 **Uruchom:** test zielony; `S26SolutionTest` sprawdza, że cena to bezstanowa strategia, każda operacja to polecenie z `undo`, a stan jest prywatnym typem rezerwacji.
 **Co powiedzieć:** CANCEL w NEW i w PAID to ta sama operacja z innym zachowaniem - tego nie wyrazi ani Strategy (nikt z zewnątrz nie wybiera), ani Command (polecenie jest to samo). `axesAreNotMixed` pilnuje, że stan nie zna cennika ani nazw operacji, a polecenia nie sięgają do stanu. `restore` celowo omija reguły przejść: cofnięcie to kompensacja, nie przejście biznesowe (USED -> PAID nie jest dozwolone, ale UNDO po USE musi je wykonać).
@@ -3913,13 +8165,122 @@ return text.append(footer(total.tickets(), total.revenue())).toString();
 protected abstract String header(String label);
 ```
 
-**Po:**
+**Po (`ReportFormat.java`, nowy plik):**
 
 ```java
-public DailyCsvReport() {
-    super(new CsvFormat());
+import pl.training.workshop.shared.Money;
+
+/** Strategy dla osi "format" - trzy haki formatu wyjęte z hierarchii. */
+public interface ReportFormat {
+    String header(String label);
+
+    String row(String title, int tickets, Money revenue);
+
+    String footer(int tickets, Money revenue);
 }
 ```
+
+**Po (`CsvFormat.java`, nowy plik):**
+
+```java
+import pl.training.workshop.shared.Money;
+
+/** Format CSV w jednym miejscu (był skopiowany w DailyCsvReport i WeeklyCsvReport). */
+public final class CsvFormat implements ReportFormat {
+    @Override
+    public String header(String label) {
+        return "# raport " + label + "\nfilm;bilety;przychod\n";
+    }
+
+    @Override
+    public String row(String title, int tickets, Money revenue) {
+        String cell = title.contains(";") ? "\"" + title + "\"" : title;
+        return cell + ";" + tickets + ";" + revenue + "\n";
+    }
+
+    @Override
+    public String footer(int tickets, Money revenue) {
+        return "SUMA;" + tickets + ";" + revenue + "\n";
+    }
+}
+```
+
+**Po (`TextFormat.java`, nowy plik):**
+
+```java
+import java.util.Locale;
+
+import pl.training.workshop.shared.Money;
+
+/** Format tekstowy w jednym miejscu (był skopiowany w DailyTextReport i WeeklyTextReport). */
+public final class TextFormat implements ReportFormat {
+    @Override
+    public String header(String label) {
+        return "RAPORT " + label.toUpperCase(Locale.ROOT) + "\n" + "-".repeat(37) + "\n";
+    }
+
+    @Override
+    public String row(String title, int tickets, Money revenue) {
+        return String.format(Locale.ROOT, "%-20s %5d %10s", title, tickets, revenue) + "\n";
+    }
+
+    @Override
+    public String footer(int tickets, Money revenue) {
+        return "-".repeat(37) + "\n" + row("RAZEM", tickets, revenue);
+    }
+}
+```
+
+**Po (`ScreeningReport.java`):**
+
+```java
+public abstract class ScreeningReport {
+    private final ReportFormat format;
+
+    protected ScreeningReport(ReportFormat format) {
+        this.format = Objects.requireNonNull(format, "format");
+    }
+
+    public final String render(LocalDate day, List<ScreeningSale> sales) {
+        Map<String, Line> byTitle = new TreeMap<>();
+        for (ScreeningSale sale : sales) {
+            if (includes(day, sale.day())) {
+                byTitle.merge(sale.title(), new Line(sale.tickets(), sale.revenue()), Line::plus);
+            }
+        }
+        StringBuilder text = new StringBuilder(format.header(label(day)));
+        Line total = new Line(0, Money.ZERO);
+        for (Map.Entry<String, Line> entry : byTitle.entrySet()) {
+            text.append(format.row(entry.getKey(), entry.getValue().tickets(), entry.getValue().revenue()));
+            total = total.plus(entry.getValue());
+        }
+        return text.append(format.footer(total.tickets(), total.revenue())).toString();
+    }
+```
+
+(haki okresu `includes` i `label` oraz rekord `Line` bez zmian; trzy abstrakcyjne haki formatu znikają; dochodzi import `java.util.Objects`)
+
+**Po (`DailyCsvReport.java`):**
+
+```java
+public final class DailyCsvReport extends ScreeningReport {
+    public DailyCsvReport() {
+        super(new CsvFormat());
+    }
+
+    @Override
+    protected boolean includes(LocalDate day, LocalDate saleDay) {
+        return saleDay.equals(day);
+    }
+
+    @Override
+    protected String label(LocalDate day) {
+        return "dzien " + day;
+    }
+}
+```
+
+(analogicznie: `DailyTextReport` woła `super(new TextFormat())`, `WeeklyCsvReport` - `super(new CsvFormat())`, `WeeklyTextReport` - `super(new TextFormat())`; każda podklasa traci metody `header`, `row` i `footer`, a haki okresu zostawia bez zmian)
 
 **Uruchom:** `scripts/warsztat.sh test m5/s27` - zielone.
 **Co powiedzieć:** najpierw grupujemy haki według osi, dopiero potem cokolwiek przenosimy. Hak wołamy teraz na delegacie, nie na `this` - strategia nie widzi stanu `protected` bazy i wszystko dostaje parametrami. `Reports` jest bez zmian, klienci niczego nie zauważyli.
@@ -3956,13 +8317,90 @@ public final class WeeklyTextReport extends ScreeningReport {
 }
 ```
 
-**Po:**
+**Po (`ReportPeriod.java`, nowy plik):**
 
 ```java
-public WeeklyTextReport() {
-    super(new WeeklyPeriod(), new TextFormat());
+import java.time.LocalDate;
+
+/** Strategy dla osi "okres" - dwa haki okresu wyjęte z hierarchii. */
+public interface ReportPeriod {
+    boolean includes(LocalDate day, LocalDate saleDay);
+
+    String label(LocalDate day);
 }
 ```
+
+**Po (`DailyPeriod.java`, nowy plik):**
+
+```java
+import java.time.LocalDate;
+
+/** Okres dzienny w jednym miejscu. */
+public final class DailyPeriod implements ReportPeriod {
+    @Override
+    public boolean includes(LocalDate day, LocalDate saleDay) {
+        return saleDay.equals(day);
+    }
+
+    @Override
+    public String label(LocalDate day) {
+        return "dzien " + day;
+    }
+}
+```
+
+**Po (`WeeklyPeriod.java`, nowy plik):**
+
+```java
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
+
+/** Tydzień poniedziałek-niedziela w jednym miejscu. */
+public final class WeeklyPeriod implements ReportPeriod {
+    @Override
+    public boolean includes(LocalDate day, LocalDate saleDay) {
+        LocalDate monday = monday(day);
+        return !saleDay.isBefore(monday) && !saleDay.isAfter(monday.plusDays(6));
+    }
+
+    @Override
+    public String label(LocalDate day) {
+        LocalDate monday = monday(day);
+        return "tydzien " + monday + ".." + monday.plusDays(6);
+    }
+
+    private static LocalDate monday(LocalDate day) {
+        return day.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+    }
+}
+```
+
+**Po (`ScreeningReport.java`, pola i konstruktor):**
+
+```java
+private final ReportPeriod period;
+private final ReportFormat format;
+
+protected ScreeningReport(ReportPeriod period, ReportFormat format) {
+    this.period = Objects.requireNonNull(period, "period");
+    this.format = Objects.requireNonNull(format, "format");
+}
+```
+
+(w `render` dwie zamiany: `includes(day, sale.day())` na `period.includes(day, sale.day())` oraz `format.header(label(day))` na `format.header(period.label(day))`; abstrakcyjne `includes` i `label` znikają z bazy)
+
+**Po (`WeeklyTextReport.java`):**
+
+```java
+public final class WeeklyTextReport extends ScreeningReport {
+    public WeeklyTextReport() {
+        super(new WeeklyPeriod(), new TextFormat());
+    }
+}
+```
+
+(analogicznie pozostałe trzy podklasy: `DailyCsvReport` - `super(new DailyPeriod(), new CsvFormat())`, `DailyTextReport` - `super(new DailyPeriod(), new TextFormat())`, `WeeklyCsvReport` - `super(new WeeklyPeriod(), new CsvFormat())`; wszystkie tracą haki okresu)
 
 **Uruchom:** test zielony.
 **Co powiedzieć:** baza nie ma już żadnego haka, a podklasy są tylko konfiguracją konstruktora - kandydatami do Inline Class. `render` jest wciąż `final` (`beforeTheCollapseTheSkeletonWasStillAProtectedTemplateMethod`), więc kolejność kroków jest chroniona tak jak w Template Method.
@@ -3996,19 +8434,49 @@ public static ScreeningReport of(String period, String format) {
 }
 ```
 
-**Po:**
+**Po (`Reports.java`, cały plik):**
 
 ```java
-ReportPeriod chosenPeriod = PERIODS.get(period);
-if (chosenPeriod == null) {
-    throw new IllegalArgumentException("unknown period: " + period);
+import java.util.Map;
+
+public final class Reports {
+    private static final Map<String, ReportPeriod> PERIODS = Map.of(
+            "DAILY", new DailyPeriod(),
+            "WEEKLY", new WeeklyPeriod());
+    private static final Map<String, ReportFormat> FORMATS = Map.of(
+            "CSV", new CsvFormat(),
+            "TEXT", new TextFormat());
+
+    private Reports() {
+    }
+
+    public static ScreeningReport of(String period, String format) {
+        ReportPeriod chosenPeriod = PERIODS.get(period);
+        if (chosenPeriod == null) {
+            throw new IllegalArgumentException("unknown period: " + period);
+        }
+        ReportFormat chosenFormat = FORMATS.get(format);
+        if (chosenFormat == null) {
+            throw new IllegalArgumentException("unknown format: " + format);
+        }
+        return new ScreeningReport(chosenPeriod, chosenFormat);
+    }
 }
-ReportFormat chosenFormat = FORMATS.get(format);
-if (chosenFormat == null) {
-    throw new IllegalArgumentException("unknown format: " + format);
-}
-return new ScreeningReport(chosenPeriod, chosenFormat);
 ```
+
+(metoda pomocnicza `unknownFormat` znika)
+
+**Po (`ScreeningReport.java`, deklaracje):**
+
+```java
+public final class ScreeningReport {
+    ...
+    public ScreeningReport(ReportPeriod period, ReportFormat format) {
+    ...
+    public String render(LocalDate day, List<ScreeningSale> sales) {
+```
+
+(tylko modyfikatory: klasa `final` zamiast `abstract`, konstruktor `public` zamiast `protected`, `render` bez `final`; ciała bez zmian)
 
 **Uruchom:** test zielony; `S27SolutionTest.newFormatWorksWithEveryPeriodWithoutNewClasses` dodaje format Markdown jedną klasą testową i od razu używa go z oboma okresami.
 **Co powiedzieć:** N + M zamiast N × M; nowa kombinacja to nowe złożenie, nie nowa klasa. Przypadek "najpierw okres, potem format" (MONTHLY i PDF daje `unknown period`) pilnuje, że zamiana zagnieżdżonego `switch` na dwie mapy nie zmieniła kolejności walidacji.
@@ -4078,15 +8546,65 @@ if (!request.requestedAt().isBefore(request.screeningStart())) {
 }
 ```
 
-**Po:**
+**Po (`RefundHandler.java`, nowy plik):**
 
 ```java
-Optional<RefundDecision> decision = afterScreening.handle(request);
-if (decision.isPresent()) {
-    return decision.get();
-} else if (Duration.between(request.requestedAt(), request.screeningStart()).toHours() >= 24) {
-    return RefundDecision.approvedBy("AUTO");
+import java.util.Optional;
+
+import pl.training.workshop.m5.s28_chain.RefundDecision;
+import pl.training.workshop.m5.s28_chain.RefundRequest;
+
+/** Ogniwo decyzji - pusta odpowiedź znaczy "to nie moja sprawa, pytaj dalej". */
+@FunctionalInterface
+public interface RefundHandler {
+    Optional<RefundDecision> handle(RefundRequest request);
+}
 ```
+
+**Po (`AfterScreeningHandler.java`, nowy plik):**
+
+```java
+import java.util.Optional;
+
+import pl.training.workshop.m5.s28_chain.RefundDecision;
+import pl.training.workshop.m5.s28_chain.RefundRequest;
+
+/** Pierwsza gałąź jako ogniwo - po rozpoczęciu seansu zwrotu nie ma. */
+public final class AfterScreeningHandler implements RefundHandler {
+    @Override
+    public Optional<RefundDecision> handle(RefundRequest request) {
+        if (!request.requestedAt().isBefore(request.screeningStart())) {
+            return Optional.of(RefundDecision.rejected("seans juz sie rozpoczal"));
+        }
+        return Optional.empty();
+    }
+}
+```
+
+**Po (`RefundApprover.java`):**
+
+```java
+private final RefundHandler afterScreening = new AfterScreeningHandler();
+
+public RefundDecision decide(RefundRequest request) {
+    if (!request.amount().isGreaterThan(Money.ZERO)) {
+        throw new IllegalArgumentException("amount must be positive");
+    }
+    Optional<RefundDecision> decision = afterScreening.handle(request);
+    if (decision.isPresent()) {
+        return decision.get();
+    } else if (Duration.between(request.requestedAt(), request.screeningStart()).toHours() >= 24) {
+        return RefundDecision.approvedBy("AUTO");
+    } else if (!request.amount().isGreaterThan(CASHIER_LIMIT)) {
+        return RefundDecision.approvedBy("CASHIER");
+    } else if (!request.amount().isGreaterThan(MANAGER_LIMIT)) {
+        return RefundDecision.approvedBy("MANAGER");
+    }
+    return RefundDecision.rejected("brak uprawnionego zatwierdzajacego");
+}
+```
+
+(dochodzi import `java.util.Optional`)
 
 **Uruchom:** `scripts/warsztat.sh test m5/s28` - zielone.
 **Co powiedzieć:** zaczynamy od pierwszej gałęzi, bo wszystkie pozostałe zakładają, że ona odmówiła. `Optional` to przejściowy kontrakt "obsłużyłem albo nie" - jeszcze bez następnika.
@@ -4116,17 +8634,81 @@ if (decision.isPresent()) {
 return RefundDecision.rejected("brak uprawnionego zatwierdzajacego");
 ```
 
-**Po:**
+**Po (`AutoRefundHandler.java`, nowy plik):**
 
 ```java
-for (RefundHandler handler : handlers) {
-    Optional<RefundDecision> decision = handler.handle(request);
-    if (decision.isPresent()) {
-        return decision.get();
+import java.time.Duration;
+import java.util.Optional;
+
+import pl.training.workshop.m5.s28_chain.RefundDecision;
+import pl.training.workshop.m5.s28_chain.RefundRequest;
+
+/** Co najmniej 24 h przed seansem zwrot jest automatyczny - bez limitu kwoty. */
+public final class AutoRefundHandler implements RefundHandler {
+    @Override
+    public Optional<RefundDecision> handle(RefundRequest request) {
+        if (Duration.between(request.requestedAt(), request.screeningStart()).toHours() >= 24) {
+            return Optional.of(RefundDecision.approvedBy("AUTO"));
+        }
+        return Optional.empty();
     }
 }
-return RefundDecision.rejected("brak uprawnionego zatwierdzajacego");
 ```
+
+**Po (`CashierHandler.java`, nowy plik):**
+
+```java
+import java.util.Objects;
+import java.util.Optional;
+
+import pl.training.workshop.m5.s28_chain.RefundDecision;
+import pl.training.workshop.m5.s28_chain.RefundRequest;
+import pl.training.workshop.shared.Money;
+
+/** Poziom CASHIER zatwierdza zwroty do swojego limitu (włącznie). */
+public final class CashierHandler implements RefundHandler {
+    private final Money limit;
+
+    public CashierHandler(Money limit) {
+        this.limit = Objects.requireNonNull(limit, "limit");
+    }
+
+    @Override
+    public Optional<RefundDecision> handle(RefundRequest request) {
+        if (!request.amount().isGreaterThan(limit)) {
+            return Optional.of(RefundDecision.approvedBy("CASHIER"));
+        }
+        return Optional.empty();
+    }
+}
+```
+
+(nowy plik `ManagerHandler.java` jest identyczny poza nazwą klasy i decyzją `RefundDecision.approvedBy("MANAGER")`)
+
+**Po (`RefundApprover.java`):**
+
+```java
+private final List<RefundHandler> handlers = List.of(
+        new AfterScreeningHandler(),
+        new AutoRefundHandler(),
+        new CashierHandler(CASHIER_LIMIT),
+        new ManagerHandler(MANAGER_LIMIT));
+
+public RefundDecision decide(RefundRequest request) {
+    if (!request.amount().isGreaterThan(Money.ZERO)) {
+        throw new IllegalArgumentException("amount must be positive");
+    }
+    for (RefundHandler handler : handlers) {
+        Optional<RefundDecision> decision = handler.handle(request);
+        if (decision.isPresent()) {
+            return decision.get();
+        }
+    }
+    return RefundDecision.rejected("brak uprawnionego zatwierdzajacego");
+}
+```
+
+(import `java.util.List` zastępuje `java.time.Duration`)
 
 **Uruchom:** test zielony.
 **Co powiedzieć:** kolejność reguł ma nazwy i jest w jednym miejscu - to kolejność elementów listy. Lista bywa wystarczająca i prostsza niż klasyczny łańcuch; jeśli nikt nie musi składać innych ścieżek, można się tu zatrzymać.
@@ -4159,15 +8741,95 @@ for (RefundHandler handler : handlers) {
 return RefundDecision.rejected("brak uprawnionego zatwierdzajacego");
 ```
 
-**Po:**
+**Po (`RefundHandler.java`):**
 
 ```java
-public RefundApprover() {
-    this(new AfterScreeningHandler(
-            new AutoRefundHandler(
-                    new CashierHandler(CASHIER_LIMIT,
-                            new ManagerHandler(MANAGER_LIMIT,
-                                    new NoApproverHandler())))));
+import pl.training.workshop.m5.s28_chain.RefundDecision;
+import pl.training.workshop.m5.s28_chain.RefundRequest;
+
+/** Chain of Responsibility - ogniwo zwraca decyzję: własną albo następnika. */
+@FunctionalInterface
+public interface RefundHandler {
+    RefundDecision handle(RefundRequest request);
+}
+```
+
+**Po (`AfterScreeningHandler.java`):**
+
+```java
+import java.util.Objects;
+
+import pl.training.workshop.m5.s28_chain.RefundDecision;
+import pl.training.workshop.m5.s28_chain.RefundRequest;
+
+/** Po rozpoczęciu seansu odrzuca i kończy łańcuch; wcześniej przekazuje dalej. */
+public final class AfterScreeningHandler implements RefundHandler {
+    private final RefundHandler next;
+
+    public AfterScreeningHandler(RefundHandler next) {
+        this.next = Objects.requireNonNull(next, "next");
+    }
+
+    @Override
+    public RefundDecision handle(RefundRequest request) {
+        if (!request.requestedAt().isBefore(request.screeningStart())) {
+            return RefundDecision.rejected("seans juz sie rozpoczal");
+        }
+        return next.handle(request);
+    }
+}
+```
+
+(ten sam wzór w pozostałych ogniwach: `AutoRefundHandler` dostaje konstruktor `AutoRefundHandler(RefundHandler next)` i zamiast `Optional.empty()` zwraca `next.handle(request)`, a decyzję bez opakowania w `Optional.of`; `CashierHandler` i `ManagerHandler` dostają konstruktor `(Money limit, RefundHandler next)` i analogiczne ciało `handle`)
+
+**Po (`NoApproverHandler.java`, nowy plik):**
+
+```java
+import pl.training.workshop.m5.s28_chain.RefundDecision;
+import pl.training.workshop.m5.s28_chain.RefundRequest;
+
+/** Jawny koniec łańcucha - żądanie nie może po cichu "spaść" bez odpowiedzi. */
+public final class NoApproverHandler implements RefundHandler {
+    @Override
+    public RefundDecision handle(RefundRequest request) {
+        return RefundDecision.rejected("brak uprawnionego zatwierdzajacego");
+    }
+}
+```
+
+**Po (`RefundApprover.java`, cały plik):**
+
+```java
+import java.util.Objects;
+
+import pl.training.workshop.m5.s28_chain.RefundDecision;
+import pl.training.workshop.m5.s28_chain.RefundRequest;
+import pl.training.workshop.shared.Money;
+
+public final class RefundApprover {
+    private static final Money CASHIER_LIMIT = Money.of("100.00");
+    private static final Money MANAGER_LIMIT = Money.of("1000.00");
+
+    private final RefundHandler chain;
+
+    public RefundApprover() {
+        this(new AfterScreeningHandler(
+                new AutoRefundHandler(
+                        new CashierHandler(CASHIER_LIMIT,
+                                new ManagerHandler(MANAGER_LIMIT,
+                                        new NoApproverHandler())))));
+    }
+
+    public RefundApprover(RefundHandler chain) {
+        this.chain = Objects.requireNonNull(chain, "chain");
+    }
+
+    public RefundDecision decide(RefundRequest request) {
+        if (!request.amount().isGreaterThan(Money.ZERO)) {
+            throw new IllegalArgumentException("amount must be positive");
+        }
+        return chain.handle(request);
+    }
 }
 ```
 
@@ -4250,18 +8912,95 @@ public String pay(String bookingId, Money amount) {
 }
 ```
 
-**Po:**
+**Po (`PaymentConfirmation.java`, nowy plik):**
 
 ```java
-PaymentConfirmation confirmation = parse(terminal.authorize(bookingId, grosze));
-confirmations.put(bookingId, confirmation);
-if (!confirmation.approved()) {
-    return confirmation.outcome() + " " + confirmation.code();
-}
-if (confirmation.isPartialFor(amount)) {
-    return "PARTIAL " + confirmation.code() + " brakuje " + amount.minus(confirmation.authorized());
+import java.util.Objects;
+
+import pl.training.workshop.shared.Money;
+
+/** Boundary Object - odpowiedź terminala jako niezmienna, zwalidowana wartość w języku kina. */
+public record PaymentConfirmation(Outcome outcome, String code, Money authorized) {
+    public enum Outcome { APPROVED, DECLINED, ERROR }
+
+    public PaymentConfirmation {
+        Objects.requireNonNull(outcome, "outcome");
+        Objects.requireNonNull(authorized, "authorized");
+        if (code == null || code.isBlank()) {
+            throw new IllegalArgumentException("code must not be blank");
+        }
+        if (authorized.compareTo(Money.ZERO) < 0) {
+            throw new IllegalArgumentException("authorized amount must not be negative");
+        }
+        if (outcome != Outcome.APPROVED && authorized.isGreaterThan(Money.ZERO)) {
+            throw new IllegalArgumentException("only approved payment can authorize money");
+        }
+    }
+
+    public boolean approved() {
+        return outcome == Outcome.APPROVED;
+    }
+
+    /** Autoryzacja częściowa: terminal zgodził się na mniej, niż prosiliśmy. */
+    public boolean isPartialFor(Money requested) {
+        return approved() && authorized.compareTo(requested) < 0;
+    }
 }
 ```
+
+**Po (`PaymentService.java`):**
+
+```java
+private final Map<String, PaymentConfirmation> confirmations = new LinkedHashMap<>();
+
+public String pay(String bookingId, Money amount) {
+    long grosze = amount.amount().movePointRight(2).longValueExact();
+    PaymentConfirmation confirmation = parse(terminal.authorize(bookingId, grosze));
+    confirmations.put(bookingId, confirmation);
+    if (!confirmation.approved()) {
+        return confirmation.outcome() + " " + confirmation.code();
+    }
+    if (confirmation.isPartialFor(amount)) {
+        return "PARTIAL " + confirmation.code() + " brakuje " + amount.minus(confirmation.authorized());
+    }
+    return "PAID " + confirmation.code();
+}
+
+public String receipt(String bookingId) {
+    PaymentConfirmation confirmation = confirmations.get(bookingId);
+    if (confirmation == null) {
+        return "Brak platnosci " + bookingId;
+    }
+    if (!confirmation.approved()) {
+        return "Platnosc " + bookingId + " nieudana: " + confirmation.code();
+    }
+    return "Platnosc " + bookingId + ": " + confirmation.authorized() + " (" + confirmation.code() + ")";
+}
+
+public Money totalAuthorized() {
+    Money total = Money.ZERO;
+    for (PaymentConfirmation confirmation : confirmations.values()) {
+        total = total.plus(confirmation.authorized());
+    }
+    return total;
+}
+
+private static PaymentConfirmation parse(String raw) {
+    String[] parts = raw.split(";", -1);
+    if (parts.length != 3) {
+        throw new IllegalArgumentException("malformed terminal response: " + raw);
+    }
+    Outcome outcome = switch (parts[0]) {
+        case "OK" -> Outcome.APPROVED;
+        case "DECLINED" -> Outcome.DECLINED;
+        case "ERROR" -> Outcome.ERROR;
+        default -> throw new IllegalArgumentException("malformed terminal response: " + raw);
+    };
+    return new PaymentConfirmation(outcome, parts[1], new Money(new BigDecimal(parts[2]).movePointLeft(2)));
+}
+```
+
+(pole `terminal` i konstruktor bez zmian; dochodzi import `PaymentConfirmation.Outcome`)
 
 **Uruchom:** `scripts/warsztat.sh test m5/s29` - zielone.
 **Co powiedzieć:** zamiast trzech parserów jest jeden, w miejscu wejścia danych. `totalAuthorized` nie sprawdza już `startsWith("OK")` i po prostu sumuje - niezmiennik obiektu gwarantuje zero dla odmowy. `parse` sprawdza liczbę pól i znany status: to pierwszy moment, w którym zmienia się zachowanie dla danych błędnych (start przyjąłby `OK;;4500` i wydrukował pusty kod).
@@ -4292,12 +9031,60 @@ private static PaymentConfirmation parse(String raw) {
 }
 ```
 
-**Po:**
+**Po (`TerminalResponseMapper.java`, nowy plik):**
 
 ```java
-String raw = terminal.authorize(bookingId, mapper.toGrosze(amount));
-PaymentConfirmation confirmation = mapper.toConfirmation(raw);
+import java.math.BigDecimal;
+
+import pl.training.workshop.m5.s29_boundaryobject.step2.PaymentConfirmation.Outcome;
+import pl.training.workshop.shared.Money;
+
+/** Jedyne miejsce, które zna format terminala: grosze w obie strony i tekst "STATUS;KOD;KWOTA". */
+public final class TerminalResponseMapper {
+    public long toGrosze(Money amount) {
+        return amount.amount().movePointRight(2).longValueExact();
+    }
+
+    public PaymentConfirmation toConfirmation(String raw) {
+        String[] parts = raw.split(";", -1);
+        if (parts.length != 3) {
+            throw new IllegalArgumentException("malformed terminal response: " + raw);
+        }
+        Outcome outcome = switch (parts[0]) {
+            case "OK" -> Outcome.APPROVED;
+            case "DECLINED" -> Outcome.DECLINED;
+            case "ERROR" -> Outcome.ERROR;
+            default -> throw new IllegalArgumentException("malformed terminal response: " + raw);
+        };
+        return new PaymentConfirmation(outcome, parts[1], new Money(new BigDecimal(parts[2]).movePointLeft(2)));
+    }
+}
 ```
+
+**Po (`PaymentService.java`):**
+
+```java
+private final LegacyTerminalClient terminal;
+private final TerminalResponseMapper mapper = new TerminalResponseMapper();
+private final Map<String, PaymentConfirmation> confirmations = new LinkedHashMap<>();
+```
+
+```java
+public String pay(String bookingId, Money amount) {
+    String raw = terminal.authorize(bookingId, mapper.toGrosze(amount));
+    PaymentConfirmation confirmation = mapper.toConfirmation(raw);
+    confirmations.put(bookingId, confirmation);
+    if (!confirmation.approved()) {
+        return confirmation.outcome() + " " + confirmation.code();
+    }
+    if (confirmation.isPartialFor(amount)) {
+        return "PARTIAL " + confirmation.code() + " brakuje " + amount.minus(confirmation.authorized());
+    }
+    return "PAID " + confirmation.code();
+}
+```
+
+(`receipt` i `totalAuthorized` bez zmian; metoda `parse` znika razem z importami `java.math.BigDecimal` i `PaymentConfirmation.Outcome`)
 
 **Uruchom:** test zielony; `S29SolutionTest.malformedResponseIsRejectedAtTheBoundary` sprawdza `OK;AUTH-R1`, `MAYBE;X;0`, `OK;;4500` i `OK;AUTH-R1;abc`.
 **Co powiedzieć:** mapper to jedyne miejsce, które zna format `STATUS;KOD;KWOTA` i grosze w obie strony. Serwis nie zna już formatu, ale wciąż sam woła `LegacyTerminalClient` i składa wywołanie z mapperem.
@@ -4326,7 +9113,68 @@ public String pay(String bookingId, Money amount) {
 }
 ```
 
-**Po:**
+**Po (`PaymentTerminal.java`, nowy plik):**
+
+```java
+import pl.training.workshop.shared.Money;
+
+/** Port domeny - terminal płatniczy oczami kina: Money na wejściu, obiekt graniczny na wyjściu. */
+@FunctionalInterface
+public interface PaymentTerminal {
+    PaymentConfirmation authorize(String bookingId, Money amount);
+}
+```
+
+**Po (`LegacyTerminalAdapter.java`, nowy plik):**
+
+```java
+import java.util.Objects;
+
+import pl.training.workshop.m5.s29_boundaryobject.LegacyTerminalClient;
+import pl.training.workshop.shared.Money;
+
+/** Adapter implementujący port - poza tą klasą nikt nie widzi groszy ani tekstu "OK;AUTH;4500". */
+public final class LegacyTerminalAdapter implements PaymentTerminal {
+    private final LegacyTerminalClient client;
+    private final TerminalResponseMapper mapper = new TerminalResponseMapper();
+
+    public LegacyTerminalAdapter(LegacyTerminalClient client) {
+        this.client = Objects.requireNonNull(client, "client");
+    }
+
+    @Override
+    public PaymentConfirmation authorize(String bookingId, Money amount) {
+        return mapper.toConfirmation(client.authorize(bookingId, mapper.toGrosze(amount)));
+    }
+}
+```
+
+**Po (`PaymentService.java`):**
+
+```java
+private final PaymentTerminal terminal;
+private final Map<String, PaymentConfirmation> confirmations = new LinkedHashMap<>();
+
+public PaymentService(PaymentTerminal terminal) {
+    this.terminal = Objects.requireNonNull(terminal, "terminal");
+}
+
+public String pay(String bookingId, Money amount) {
+    PaymentConfirmation confirmation = terminal.authorize(bookingId, amount);
+    confirmations.put(bookingId, confirmation);
+    if (!confirmation.approved()) {
+        return confirmation.outcome() + " " + confirmation.code();
+    }
+    if (confirmation.isPartialFor(amount)) {
+        return "PARTIAL " + confirmation.code() + " brakuje " + amount.minus(confirmation.authorized());
+    }
+    return "PAID " + confirmation.code();
+}
+```
+
+(`receipt` i `totalAuthorized` bez zmian; z serwisu znika import `LegacyTerminalClient`)
+
+**Po (`PaymentModule.java`):**
 
 ```java
 public static PaymentService paymentService(LegacyTerminalClient terminal) {
@@ -4414,13 +9262,75 @@ public String buy(TicketOrder order) {
 }
 ```
 
-**Po:**
+**Po (`BookingFacade.java`, nowy plik):**
 
 ```java
-public String buy(TicketOrder order) {
-    return booking.book(order, BOOKING_FEE);
+import pl.training.workshop.m5.s30_facade.TicketOrder;
+import pl.training.workshop.shared.Money;
+
+/** Facade - kolejność kroków w jednym miejscu; różnica kanałów przychodzi parametrem. */
+public final class BookingFacade {
+    private final SeatRegistry seats;
+    private final PriceList prices;
+    private final PaymentClient payments;
+    private final TicketMailer mailer;
+
+    public BookingFacade(SeatRegistry seats, PriceList prices, PaymentClient payments, TicketMailer mailer) {
+        this.seats = seats;
+        this.prices = prices;
+        this.payments = payments;
+        this.mailer = mailer;
+    }
+
+    public String book(TicketOrder order, Money feePerSeat) {
+        Money total = prices.price(order.ticketType()).plus(feePerSeat).times(order.seats().size());
+        try {
+            seats.reserve(order.screening(), order.seats());
+        } catch (IllegalStateException exception) {
+            return "ERROR " + exception.getMessage();
+        }
+        if (!payments.charge(order.card(), total)) {
+            seats.release(order.screening(), order.seats());
+            return "ERROR payment declined";
+        }
+        mailer.send(order.email(), "Bilety " + order.screening() + " " + String.join(",", order.seats()) + " = " + total);
+        return "OK " + total;
+    }
 }
 ```
+
+**Po (`OnlineShop.java`, cały plik):**
+
+```java
+import java.util.Objects;
+
+import pl.training.workshop.m5.s30_facade.TicketOrder;
+import pl.training.workshop.shared.Money;
+
+/** Sklep deleguje cały zakup do fasady; zna już tylko swoją opłatę rezerwacyjną. */
+public final class OnlineShop {
+    private static final Money BOOKING_FEE = Money.of("2.00");
+
+    private final BookingFacade booking;
+
+    public OnlineShop(BookingFacade booking) {
+        this.booking = Objects.requireNonNull(booking, "booking");
+    }
+
+    public String buy(TicketOrder order) {
+        return booking.book(order, BOOKING_FEE);
+    }
+}
+```
+
+**Po (`Cinema.java`, pola):**
+
+```java
+private final BookingFacade booking = new BookingFacade(seats, prices, payments, mailer);
+private final OnlineShop onlineShop = new OnlineShop(booking);
+```
+
+(pozostałe pola i metody `Cinema` oraz cała `BoxOffice` bez zmian)
 
 **Uruchom:** `scripts/warsztat.sh test m5/s30` - zielone; `step1StillLeaksBecauseOnlyTheShopUsesTheFacade` pokazuje, że błąd kasy wciąż żyje.
 **Co powiedzieć:** zaczynamy od klienta, którego orkiestracja jest poprawna (kompensuje odmowę płatności). To, czym różnią się kanały, przychodzi parametrem, a nie flagą `if (online)`.
@@ -4452,12 +9362,32 @@ public String sell(TicketOrder order) {
 }
 ```
 
-**Po:**
+**Po (`BoxOffice.java`, cały plik):**
 
 ```java
-public String sell(TicketOrder order) {
-    return booking.book(order, Money.ZERO);
+import java.util.Objects;
+
+import pl.training.workshop.m5.s30_facade.TicketOrder;
+import pl.training.workshop.shared.Money;
+
+/** Kasa korzysta z tej samej fasady co sklep, bez opłaty rezerwacyjnej. */
+public final class BoxOffice {
+    private final BookingFacade booking;
+
+    public BoxOffice(BookingFacade booking) {
+        this.booking = Objects.requireNonNull(booking, "booking");
+    }
+
+    public String sell(TicketOrder order) {
+        return booking.book(order, Money.ZERO);
+    }
 }
+```
+
+**Po (`Cinema.java`, pole kasy):**
+
+```java
+private final BoxOffice boxOffice = new BoxOffice(booking);
 ```
 
 **Uruchom:** test równoważności zielony, a `S30BehaviourChangeTest.step2FacadeReleasesSeatsForBothChannels` pokazuje zmianę: po odmowie w kasie miejsce A1 jest wolne i sklep może je sprzedać (`OK 27.00` zamiast `ERROR seat taken A1`).
@@ -4480,7 +9410,7 @@ if (!payments.charge(order.card(), total)) {
 }
 ```
 
-**Po:**
+**Po (`BookingFacade.book`, środek metody):**
 
 ```java
 boolean paid = false;
@@ -4491,7 +9421,12 @@ try {
         seats.release(order.screening(), order.seats());
     }
 }
+if (!paid) {
+    return "ERROR payment declined";
+}
 ```
+
+(reszta `book` bez zmian; deklaracje tracą `public`: `final class SeatRegistry`, `final class PriceList`, `final class PaymentClient`, `final class TicketMailer`, wszystkie ich metody oraz konstruktor `BookingFacade(...)` stają się pakietowe)
 
 **Uruchom:** test zielony; `S30SolutionTest` sprawdza, że podsystemy są niewidoczne poza pakietem, a kanały zależą tylko od fasady.
 **Co powiedzieć:** zawężenie widoczności to zmiana API dla klientów spoza pakietu - robimy je po migracji, jako osobny krok. `finally` to druga zmiana zachowania: karta `TIMEOUT` (wyjątek bramki) w kroku 2 zostawiała miejsce zajęte (`beforeStep3AGatewayFailureLeakedSeats`), teraz nie (`gatewayFailureNoLongerLeavesSeatsTaken`). Fasada pilnuje niezmiennika "miejsce zajęte tylko po udanej płatności", ale nie jest transakcją: błąd wysyłki maila po płatności nadal niczego nie cofa.
@@ -4567,17 +9502,88 @@ Money due = revenue.percent(percent).max(minimum);
 String title = record.titleUpper().charAt(0) + record.titleUpper().substring(1).toLowerCase(Locale.ROOT);
 ```
 
-**Po:**
+**Po (`FilmLicense.java`, nowy plik):**
 
 ```java
-FilmLicense license = toLicense(record);
-if (!license.active()) {
-    return "LICENCJA ZAWIESZONA " + filmCode;
-}
-if (!license.covers(day)) {
-    return "LICENCJA NIEWAZNA " + filmCode + " w dniu " + day;
+import java.time.LocalDate;
+import java.util.Objects;
+
+import pl.training.workshop.shared.Money;
+
+/** Licencja filmu w języku kina - typy domeny, niezmienniki w konstruktorze, reguły przy danych. */
+public record FilmLicense(String filmCode, String title, boolean active, LocalDate validFrom, LocalDate validTo,
+                          int sharePercent, Money minimumGuarantee) {
+    public FilmLicense {
+        Objects.requireNonNull(filmCode, "filmCode");
+        Objects.requireNonNull(title, "title");
+        Objects.requireNonNull(validFrom, "validFrom");
+        Objects.requireNonNull(validTo, "validTo");
+        Objects.requireNonNull(minimumGuarantee, "minimumGuarantee");
+        if (validTo.isBefore(validFrom)) {
+            throw new IllegalArgumentException("license ends before it starts");
+        }
+        if (sharePercent < 0 || sharePercent > 100) {
+            throw new IllegalArgumentException("share out of range: " + sharePercent);
+        }
+        if (minimumGuarantee.compareTo(Money.ZERO) < 0) {
+            throw new IllegalArgumentException("minimum guarantee must not be negative");
+        }
+    }
+
+    public boolean covers(LocalDate day) {
+        return !day.isBefore(validFrom) && !day.isAfter(validTo);
+    }
+
+    public boolean allowsScreeningOn(LocalDate day) {
+        return active && covers(day);
+    }
+
+    /** Udział dystrybutora, ale nie mniej niż minimalna gwarancja. */
+    public Money dueFor(Money revenue) {
+        return revenue.percent(sharePercent).max(minimumGuarantee);
+    }
 }
 ```
+
+**Po (`SettlementService.java`):**
+
+```java
+public boolean canScreen(String filmCode, LocalDate day) {
+    DistributorRecord record = feed.fetch(filmCode);
+    return record != null && toLicense(record).allowsScreeningOn(day);
+}
+
+public String settle(String filmCode, LocalDate day, Money revenue) {
+    DistributorRecord record = feed.fetch(filmCode);
+    if (record == null) {
+        return "BRAK LICENCJI " + filmCode;
+    }
+    FilmLicense license = toLicense(record);
+    if (!license.active()) {
+        return "LICENCJA ZAWIESZONA " + filmCode;
+    }
+    if (!license.covers(day)) {
+        return "LICENCJA NIEWAZNA " + filmCode + " w dniu " + day;
+    }
+    return "ROZLICZENIE " + license.title() + " " + day + ": przychod " + revenue + ", udzial "
+            + license.sharePercent() + "%, minimum " + license.minimumGuarantee()
+            + ", dla dystrybutora " + license.dueFor(revenue);
+}
+
+private static FilmLicense toLicense(DistributorRecord record) {
+    String title = record.titleUpper().charAt(0) + record.titleUpper().substring(1).toLowerCase(Locale.ROOT);
+    return new FilmLicense(
+            record.filmCode(),
+            title,
+            record.statusCode().equals("A"),
+            LocalDate.parse(record.validFrom(), DateTimeFormatter.BASIC_ISO_DATE),
+            LocalDate.parse(record.validTo(), DateTimeFormatter.BASIC_ISO_DATE),
+            Integer.parseInt(record.share().replace("%", "").strip()),
+            new Money(new BigDecimal(record.minGuaranteeCents()).movePointLeft(2)));
+}
+```
+
+(pole `feed` i konstruktor bez zmian)
 
 **Uruchom:** `scripts/warsztat.sh test m5/s31` - zielone.
 **Co powiedzieć:** reguły brzmią teraz jak reguły kina, a nie jak `statusCode().equals("A")`. Zauważ, że tłumaczenie jest zachłanne: rekord zawieszony z zepsutą datą dawał w start po prostu "LICENCJA ZAWIESZONA", a teraz parsowanie dat wybuchnie wcześniej. Dla poprawnych danych z testu wynik jest ten sam - to przesunięcie trzeba nazwać.
@@ -4607,17 +9613,55 @@ private static FilmLicense toLicense(DistributorRecord record) {
 }
 ```
 
-**Po:**
+**Po (`DistributorTranslator.java`, nowy plik):**
 
 ```java
-private static LocalDate date(String legacy) {
-    try {
-        return LocalDate.parse(legacy, DateTimeFormatter.BASIC_ISO_DATE);
-    } catch (DateTimeParseException exception) {
-        throw new IllegalArgumentException("invalid legacy date: " + legacy, exception);
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.Locale;
+
+import pl.training.workshop.m5.s31_anticorruptionlayer.DistributorRecord;
+import pl.training.workshop.shared.Money;
+
+/** Translator modelu - jedyne miejsce, które zna konwencje dystrybutora. */
+public final class DistributorTranslator {
+    private static final String ACTIVE = "A";
+
+    public FilmLicense toLicense(DistributorRecord record) {
+        return new FilmLicense(
+                record.filmCode(),
+                title(record.titleUpper()),
+                record.statusCode().equals(ACTIVE),
+                date(record.validFrom()),
+                date(record.validTo()),
+                Integer.parseInt(record.share().replace("%", "").strip()),
+                new Money(new BigDecimal(record.minGuaranteeCents()).movePointLeft(2)));
+    }
+
+    private static String title(String upper) {
+        return upper.charAt(0) + upper.substring(1).toLowerCase(Locale.ROOT);
+    }
+
+    private static LocalDate date(String legacy) {
+        try {
+            return LocalDate.parse(legacy, DateTimeFormatter.BASIC_ISO_DATE);
+        } catch (DateTimeParseException exception) {
+            throw new IllegalArgumentException("invalid legacy date: " + legacy, exception);
+        }
     }
 }
 ```
+
+**Po (`SettlementService.java`):**
+
+```java
+private final DistributorFeed feed;
+private final DistributorTranslator translator = new DistributorTranslator();
+```
+
+(w `canScreen` i `settle` wywołania `toLicense(record)` stają się `translator.toLicense(record)`; prywatna metoda `toLicense` znika z serwisu razem z importami `java.math.BigDecimal`, `java.time.format.DateTimeFormatter` i `java.util.Locale`)
 
 **Uruchom:** test zielony; `S31SolutionTest.aclRejectsMalformedLegacyDataAtTheBoundary` dokumentuje nowy komunikat dla daty `2026-10-01` w formacie ISO zamiast `yyyyMMdd`.
 **Co powiedzieć:** zepsuty rekord zgłasza się w języku granicy, z komunikatem, który mówi, co jest nie tak. To zmiana typu wyjątku i trzeba ją zatwierdzić. Serwis nadal jednak sam pobiera `DistributorRecord` i obsługuje jego `null`.
@@ -4649,14 +9693,90 @@ public final class SettlementService {
     }
 ```
 
-**Po:**
+**Po (`FilmLicenses.java`, nowy plik):**
 
 ```java
-@Override
-public Optional<FilmLicense> find(String filmCode) {
-    return Optional.ofNullable(feed.fetch(filmCode)).map(translator::toLicense);
+import java.util.Optional;
+
+/** Port domeny - skąd kino bierze licencje; brak to Optional.empty, nie null. */
+@FunctionalInterface
+public interface FilmLicenses {
+    Optional<FilmLicense> find(String filmCode);
 }
 ```
+
+**Po (`DistributorAcl.java`, nowy plik):**
+
+```java
+import java.util.Objects;
+import java.util.Optional;
+
+import pl.training.workshop.m5.s31_anticorruptionlayer.DistributorFeed;
+
+/** Anti-Corruption Layer - tylko ta warstwa widzi DistributorFeed i DistributorRecord. */
+public final class DistributorAcl implements FilmLicenses {
+    private final DistributorFeed feed;
+    private final DistributorTranslator translator = new DistributorTranslator();
+
+    public DistributorAcl(DistributorFeed feed) {
+        this.feed = Objects.requireNonNull(feed, "feed");
+    }
+
+    @Override
+    public Optional<FilmLicense> find(String filmCode) {
+        return Optional.ofNullable(feed.fetch(filmCode)).map(translator::toLicense);
+    }
+}
+```
+
+**Po (`SettlementService.java`, cały plik):**
+
+```java
+import java.time.LocalDate;
+import java.util.Objects;
+import java.util.Optional;
+
+import pl.training.workshop.shared.Money;
+
+public final class SettlementService {
+    private final FilmLicenses licenses;
+
+    public SettlementService(FilmLicenses licenses) {
+        this.licenses = Objects.requireNonNull(licenses, "licenses");
+    }
+
+    public boolean canScreen(String filmCode, LocalDate day) {
+        return licenses.find(filmCode).map(license -> license.allowsScreeningOn(day)).orElse(false);
+    }
+
+    public String settle(String filmCode, LocalDate day, Money revenue) {
+        Optional<FilmLicense> found = licenses.find(filmCode);
+        if (found.isEmpty()) {
+            return "BRAK LICENCJI " + filmCode;
+        }
+        FilmLicense license = found.get();
+        if (!license.active()) {
+            return "LICENCJA ZAWIESZONA " + filmCode;
+        }
+        if (!license.covers(day)) {
+            return "LICENCJA NIEWAZNA " + filmCode + " w dniu " + day;
+        }
+        return "ROZLICZENIE " + license.title() + " " + day + ": przychod " + revenue + ", udzial "
+                + license.sharePercent() + "%, minimum " + license.minimumGuarantee()
+                + ", dla dystrybutora " + license.dueFor(revenue);
+    }
+}
+```
+
+**Po (`SettlementModule.java`):**
+
+```java
+public static SettlementService settlementService(DistributorFeed feed) {
+    return new SettlementService(new DistributorAcl(feed));
+}
+```
+
+(w `DistributorTranslator` deklaracja klasy i `toLicense` tracą `public`)
 
 **Uruchom:** test zielony; `domainServiceUsesNoLegacyType` sprawdza sygnatury serwisu refleksją, a `serviceWorksWithAnyLicenseSource` rozlicza licencję festiwalową podaną lambdą, bez żadnego rekordu dystrybutora.
 **Co powiedzieć:** żaden typ dystrybutora nie przekracza ACL, a "brak licencji" to `Optional.empty()`, nie `null`. Fasada by tu nie wystarczyła - uprościłaby wywołania, ale domena dalej mówiłaby kodami `A`/`S`. ACL to też naturalny punkt dla Strangler Fig: za portem może stać stary i nowy dostawca licencji.
@@ -4736,15 +9856,70 @@ public void click(String seat) {
 }
 ```
 
-**Po:**
+**Po (`SelectionMediator.java`, nowy plik):**
 
 ```java
-boolean nowSelected = !selected.remove(seat);
-if (nowSelected) {
-    selected.add(seat);
+/** Mediator - komponent zgłasza, CO się stało, a mediator decyduje, KTO ma zareagować. */
+public interface SelectionMediator {
+    void seatToggled(String seat, boolean selected);
 }
-mediator.seatToggled(seat, nowSelected);
 ```
+
+**Po (`SeatMap.java`):**
+
+```java
+private final Set<String> hall = hall();
+private final Set<String> sold = new TreeSet<>(Set.of("B2"));
+private final Set<String> selected = new TreeSet<>();
+private final SelectionMediator mediator;
+
+public SeatMap(SelectionMediator mediator) {
+    this.mediator = Objects.requireNonNull(mediator, "mediator");
+}
+
+/** Akcja użytkownika: zaznacza albo odznacza miejsce; sprzedane i spoza sali są ignorowane. */
+public void click(String seat) {
+    if (!hall.contains(seat) || sold.contains(seat)) {
+        return;
+    }
+    boolean nowSelected = !selected.remove(seat);
+    if (nowSelected) {
+        selected.add(seat);
+    }
+    mediator.seatToggled(seat, nowSelected);
+}
+```
+
+(pozostałe metody mapy - `deselect`, `deselectAll`, `markSold` i spółka - bez zmian; dochodzi import `java.util.Objects`)
+
+**Po (`SeatSelectionScreen.java`):**
+
+```java
+public final class SeatSelectionScreen implements SelectionMediator {
+    private final SeatMap seatMap = new SeatMap(this);
+    private final Basket basket = new Basket();
+    private final PriceSummary summary = new PriceSummary();
+    private final PayButton payButton = new PayButton();
+
+    public SeatSelectionScreen() {
+        basket.connect(seatMap, summary, payButton);
+        summary.connect(basket, payButton);
+        payButton.connect(seatMap, basket, summary);
+    }
+
+    @Override
+    public void seatToggled(String seat, boolean selected) {
+        if (selected) {
+            basket.add(seat);
+        } else {
+            basket.drop(seat);
+        }
+        summary.recalculate(basket.seats());
+        payButton.refresh(basket.seats().size(), summary.total());
+    }
+```
+
+(z konstruktora znika linia `seatMap.connect(basket, summary, payButton)`; gettery i `render` bez zmian)
 
 **Uruchom:** `scripts/warsztat.sh test m5/s32` - zielone.
 **Co powiedzieć:** komponent mówi "co się stało", a nie "kto ma zareagować". `new SeatMap(this)` w inicjalizatorze pola przekazuje `this` przed końcem konstrukcji ekranu - bezpieczne tylko dlatego, że mediator działa dopiero po akcji użytkownika. Pozostałe komponenty są nadal połączone wprost: jeden komponent naraz.
@@ -4773,15 +9948,156 @@ public void seatToggled(String seat, boolean selected) {
 }
 ```
 
-**Po:**
+**Po (`SelectionMediator.java`):**
 
 ```java
+import java.util.List;
+
+public interface SelectionMediator {
+    void seatToggled(String seat, boolean selected);
+
+    void seatRemoved(String seat);
+
+    void basketCleared();
+
+    void voucherApplied();
+
+    void seatsPaid(List<String> seats);
+}
+```
+
+**Po (`Basket.java`):**
+
+```java
+private final List<String> seats = new ArrayList<>();
+private final SelectionMediator mediator;
+
+public Basket(SelectionMediator mediator) {
+    this.mediator = Objects.requireNonNull(mediator, "mediator");
+}
+
+/** Akcja użytkownika: usuwa miejsce z koszyka (i odznacza je na mapie). */
+public void remove(String seat) {
+    if (!seats.remove(seat)) {
+        return;
+    }
+    mediator.seatRemoved(seat);
+}
+
+/** Akcja użytkownika: czyści koszyk. Woła ją też mediator po płatności. */
+public void clear() {
+    seats.clear();
+    mediator.basketCleared();
+}
+```
+
+(metody `add`, `drop`, `seats` i `describe` bez zmian; metoda `connect` znika, dochodzi import `java.util.Objects`)
+
+**Po (`PriceSummary.java`):**
+
+```java
+private int discountPercent;
+private Money total = Money.ZERO;
+private final SelectionMediator mediator;
+
+public PriceSummary(SelectionMediator mediator) {
+    this.mediator = Objects.requireNonNull(mediator, "mediator");
+}
+
+/** Akcja użytkownika: voucher; nieznany kod usuwa zniżkę. */
+public void applyVoucher(String code) {
+    discountPercent = code.equals("KINO10") ? 10 : 0;
+    mediator.voucherApplied();
+}
+```
+
+(`recalculate` i reszta bez zmian; metoda `connect` znika)
+
+**Po (`PayButton.java`):**
+
+```java
+private boolean enabled;
+private String label = "Wybierz miejsca";
+private final SelectionMediator mediator;
+private Basket basket;
+private PriceSummary summary;
+
+public PayButton(SelectionMediator mediator) {
+    this.mediator = Objects.requireNonNull(mediator, "mediator");
+}
+
+void connect(Basket basket, PriceSummary summary) {
+    this.basket = basket;
+    this.summary = summary;
+}
+
+/** Akcja użytkownika: płatność za zawartość koszyka. */
+public String press() {
+    if (!enabled) {
+        return "Nieaktywny: " + label;
+    }
+    List<String> paid = basket.seats();
+    Money amount = summary.total();
+    mediator.seatsPaid(paid);
+    return "Zaplacono " + amount + " za " + String.join(",", paid);
+}
+```
+
+(`refresh` i reszta przycisku bez zmian; pole `seatMap` znika)
+
+**Po (`SeatSelectionScreen.java`):**
+
+```java
+private final SeatMap seatMap = new SeatMap(this);
+private final Basket basket = new Basket(this);
+private final PriceSummary summary = new PriceSummary(this);
+private final PayButton payButton = new PayButton(this);
+
+public SeatSelectionScreen() {
+    payButton.connect(basket, summary);
+}
+
+@Override
+public void seatToggled(String seat, boolean selected) {
+    if (selected) {
+        basket.add(seat);
+    } else {
+        basket.drop(seat);
+    }
+    refresh();
+}
+
+@Override
+public void seatRemoved(String seat) {
+    seatMap.deselect(seat);
+    refresh();
+}
+
+@Override
+public void basketCleared() {
+    seatMap.deselectAll();
+    refresh();
+}
+
+@Override
+public void voucherApplied() {
+    refresh();
+}
+
+@Override
+public void seatsPaid(List<String> seats) {
+    seatMap.markSold(seats);
+    basket.clear();
+}
+
 /** Jedno miejsce, które zna kolejność odświeżania: najpierw suma, potem przycisk. */
 private void refresh() {
     summary.recalculate(basket.seats());
     payButton.refresh(basket.seats().size(), summary.total());
 }
 ```
+
+(gettery i `render` bez zmian; dochodzi import `java.util.List`)
 
 **Uruchom:** test zielony.
 **Co powiedzieć:** kolejność odświeżania jest zachowaniem - przycisk pokazuje kwotę, więc suma musi być przeliczona wcześniej. Teraz jest zapisana raz zamiast czterech razy. Uwaga na reentrancję: `seatsPaid` woła `basket.clear()`, które znów woła mediatora (`basketCleared`) - kaskada działa, ale jest ukryta.
@@ -4810,7 +10126,16 @@ public String press() {
 }
 ```
 
-**Po:**
+**Po (`SelectionMediator.java`, zmieniona metoda):**
+
+```java
+/** Zwraca komunikat dla użytkownika. */
+String payRequested();
+```
+
+(w miejsce `void seatsPaid(List<String> seats)`; import `java.util.List` znika z interfejsu)
+
+**Po (`PayButton.java`):**
 
 ```java
 public String press() {
@@ -4820,6 +10145,23 @@ public String press() {
     return mediator.payRequested();
 }
 ```
+
+(pola `basket` i `summary` oraz metoda `connect` znikają z przycisku razem z importem `java.util.List`; `refresh` bez zmian)
+
+**Po (`SeatSelectionScreen.java`, zmieniona metoda):**
+
+```java
+@Override
+public String payRequested() {
+    List<String> paid = basket.seats();
+    Money amount = summary.total();
+    seatMap.markSold(paid);
+    basket.clear();
+    return "Zaplacono " + amount + " za " + String.join(",", paid);
+}
+```
+
+(w miejsce `seatsPaid`; pusty konstruktor ekranu znika, dochodzi import `pl.training.workshop.shared.Money`)
 
 **Uruchom:** test zielony; `S32SolutionTest.everyComponentKnowsOnlyTheMediator` sprawdza pola komponentów refleksją, a `componentReportsWhatHappenedWithoutKnowingWhoReacts` testuje komponent z atrapą mediatora.
 **Co powiedzieć:** przycisk pilnuje własnej reguły (aktywny dla 1-4 miejsc) i zgłasza "użytkownik chce zapłacić", a dane zbiera mediator. Ekran jest jedynym miejscem, które zna wszystkie cztery komponenty - i to jest zarazem ryzyko: pilnuj, żeby mediator nie zaczął liczyć cen.

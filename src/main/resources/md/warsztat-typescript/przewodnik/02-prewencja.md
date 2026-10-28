@@ -88,14 +88,19 @@ Na żywo: zmień w konstruktorze wartość domyślną `'morning,vip'` na `'morni
 
 **Zmiany:**
 
-1. W `TicketPricer` usuń konstruktor z parametrami `registry` i `activeRules`; w ich miejsce dodaj pole `rules` z niezmienną listą `Object.freeze([new MorningRule(), new VipRule()])` (Inline Class dla rejestru).
+1. W `TicketPricer` usuń konstruktor z parametrami `registry` i `activeRules`; w ich miejsce dodaj pole `rules` z niezmienną listą `Object.freeze([new MorningRule(), new VipRule()])` (Inline Class dla rejestru). W importach miejsce `RuleRegistry` zajmują `MorningRule`, `VipRule` i `import type { PricingRule }`.
 2. W `price` pętla iteruje po `this.rules` zamiast po `this.registry.resolve(this.activeRules)`.
 3. Usuń plik `RuleRegistry.ts` - rejestr pluginów i konfiguracja napisem znikają.
-4. Usuń metodę `priority()` z interfejsu `PricingRule` oraz z `MorningRule` i `VipRule` - była potrzebna tylko do sortowania w rejestrze; przed usunięciem upewnij się, że nie ma innych użyć (Safe Delete).
+4. Usuń metodę `priority()` z interfejsu `PricingRule` oraz jej implementacje w `MorningRule` (`return 10`) i `VipRule` (`return 20`) - była potrzebna tylko do sortowania w rejestrze; przed usunięciem upewnij się, że nie ma innych użyć (Safe Delete). Pozostała treść obu reguł nie zmienia się.
 
-**Przed:**
+**Przed (`TicketPricer.ts`):**
 
 ```typescript
+import { Decimal } from 'decimal.js';
+
+import type { TicketQuote } from '../TicketQuote.js';
+import { RuleRegistry } from './RuleRegistry.js';
+
 export class TicketPricer {
   constructor(
     private readonly registry: RuleRegistry = RuleRegistry.withDefaults(),
@@ -103,18 +108,60 @@ export class TicketPricer {
   ) {}
 
   price(quote: TicketQuote): Decimal {
-    ...
+    const context = new Map<string, unknown>();
+    context.set('format', quote.format);
+    context.set('start', quote.start);
+    context.set('row', quote.row);
+    context.set('vipFromRow', quote.vipFromRow);
+    let price = this.basePrice(quote.format);
     for (const rule of this.registry.resolve(this.activeRules)) {
       if (rule.appliesTo(context)) {
         price = rule.apply(context, price);
       }
     }
+    return price.toDecimalPlaces(2, Decimal.ROUND_HALF_UP);
+  }
 ```
 
-**Po:**
+**Po (`TicketPricer.ts`; metoda `basePrice` bez zmian):**
 
 ```typescript
-private readonly rules: readonly PricingRule[] = Object.freeze([new MorningRule(), new VipRule()]);
+import { Decimal } from 'decimal.js';
+
+import type { TicketQuote } from '../TicketQuote.js';
+import { MorningRule } from './MorningRule.js';
+import type { PricingRule } from './PricingRule.js';
+import { VipRule } from './VipRule.js';
+
+export class TicketPricer {
+  private readonly rules: readonly PricingRule[] = Object.freeze([new MorningRule(), new VipRule()]);
+
+  price(quote: TicketQuote): Decimal {
+    const context = new Map<string, unknown>();
+    context.set('format', quote.format);
+    context.set('start', quote.start);
+    context.set('row', quote.row);
+    context.set('vipFromRow', quote.vipFromRow);
+    let price = this.basePrice(quote.format);
+    for (const rule of this.rules) {
+      if (rule.appliesTo(context)) {
+        price = rule.apply(context, price);
+      }
+    }
+    return price.toDecimalPlaces(2, Decimal.ROUND_HALF_UP);
+  }
+```
+
+**Po (`PricingRule.ts`):**
+
+```typescript
+import type { Decimal } from 'decimal.js';
+
+export interface PricingRule {
+  appliesTo(context: ReadonlyMap<string, unknown>): boolean;
+
+  apply(context: ReadonlyMap<string, unknown>, price: Decimal): Decimal;
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang ts test m2/s01` - 16 testów zielonych.
@@ -125,39 +172,87 @@ private readonly rules: readonly PricingRule[] = Object.freeze([new MorningRule(
 
 **Zmiany:**
 
-1. W interfejsie `PricingRule` zmień sygnaturę `appliesTo`: parametr `context: ReadonlyMap<string, unknown>` zastąp `quote: TicketQuote`; z `apply` usuń parametr kontekstu - zostaje `apply(price: Decimal)` (Change Signature, ręcznie).
-2. Popraw obie implementacje, które wskaże kompilator: w `MorningRule` warunek to `quote.start.hour < 12`, w `VipRule` - `quote.row >= quote.vipFromRow`; rzutowania `as LocalTime` i `as number` znikają.
+1. W interfejsie `PricingRule` zmień sygnaturę `appliesTo`: parametr `context: ReadonlyMap<string, unknown>` zastąp `quote: TicketQuote`; z `apply` usuń parametr kontekstu - zostaje `apply(price: Decimal)` (Change Signature, ręcznie). Interfejs dostaje `import type { TicketQuote } from '../TicketQuote.js'`.
+2. Popraw obie implementacje, które wskaże kompilator: w `MorningRule` warunek to `quote.start.hour < 12`, w `VipRule` - `quote.row >= quote.vipFromRow`; rzutowania `as LocalTime` i `as number` znikają. Obie reguły importują `TicketQuote` (`import type`), a `MorningRule` przestaje importować `LocalTime`.
 3. W `TicketPricer.price` usuń budowanie mapy `context` i przekazuj regułom `quote` oraz `price`.
 
-**Przed:**
+**Przed (`PricingRule.ts`):**
+
+```typescript
+import type { Decimal } from 'decimal.js';
+
+export interface PricingRule {
+  appliesTo(context: ReadonlyMap<string, unknown>): boolean;
+
+  apply(context: ReadonlyMap<string, unknown>, price: Decimal): Decimal;
+}
+```
+
+**Przed (`VipRule.ts`, metody; w `MorningRule` analogicznie):**
 
 ```typescript
 appliesTo(context: ReadonlyMap<string, unknown>): boolean {
   return (context.get('row') as number) >= (context.get('vipFromRow') as number);
 }
-```
 
-**Po:**
-
-```typescript
-appliesTo(quote: TicketQuote): boolean {
-  return quote.row >= quote.vipFromRow;
+apply(_context: ReadonlyMap<string, unknown>, price: Decimal): Decimal {
+  return price.plus(new Decimal('10.00'));
 }
 ```
 
-**Uruchom:** test zielony.
-**Co powiedzieć:** generyczny kontekst to typowa spekulacja "reguła może potrzebować czegokolwiek". Kompilator znów pilnuje nazw pól.
-**Snapshot:** `step2/` · **Różnica:** `scripts/warsztat.sh --lang ts diff m2/s01 1 2`
+**Po (`PricingRule.ts`):**
 
-### Krok 3: Inline Class dla reguł, usunięcie interfejsu
+```typescript
+import type { Decimal } from 'decimal.js';
 
-**Zmiany:**
+import type { TicketQuote } from '../TicketQuote.js';
 
-1. Do `TicketPricer` dodaj prywatne metody `isMorning(quote)` i `isVip(quote)` z ciałami `appliesTo` obu reguł (Inline Class dla `MorningRule` i `VipRule`); w `price` pętlę po regułach zastąp dwoma `if`, a `return` zwraca `price` bez końcowego `toDecimalPlaces`.
-2. Kwoty zniżki i dopłaty wydziel do pól `private static readonly MORNING_DISCOUNT = new Decimal('5.00')` i `VIP_SURCHARGE = new Decimal('10.00')` (Extract Constant).
-3. Usuń pliki `MorningRule.ts`, `VipRule.ts` i `PricingRule.ts`; pole `rules` w `TicketPricer` znika razem z nimi.
+export interface PricingRule {
+  appliesTo(quote: TicketQuote): boolean;
 
-**Przed:**
+  apply(price: Decimal): Decimal;
+}
+```
+
+**Po (`MorningRule.ts`):**
+
+```typescript
+import { Decimal } from 'decimal.js';
+
+import type { TicketQuote } from '../TicketQuote.js';
+import type { PricingRule } from './PricingRule.js';
+
+export class MorningRule implements PricingRule {
+  appliesTo(quote: TicketQuote): boolean {
+    return quote.start.hour < 12;
+  }
+
+  apply(price: Decimal): Decimal {
+    return price.minus(new Decimal('5.00'));
+  }
+}
+```
+
+**Po (`VipRule.ts`):**
+
+```typescript
+import { Decimal } from 'decimal.js';
+
+import type { TicketQuote } from '../TicketQuote.js';
+import type { PricingRule } from './PricingRule.js';
+
+export class VipRule implements PricingRule {
+  appliesTo(quote: TicketQuote): boolean {
+    return quote.row >= quote.vipFromRow;
+  }
+
+  apply(price: Decimal): Decimal {
+    return price.plus(new Decimal('10.00'));
+  }
+}
+```
+
+**Po (`TicketPricer.ts`, metoda `price`; reszta pliku bez zmian):**
 
 ```typescript
 price(quote: TicketQuote): Decimal {
@@ -171,19 +266,63 @@ price(quote: TicketQuote): Decimal {
 }
 ```
 
-**Po:**
+**Uruchom:** test zielony.
+**Co powiedzieć:** generyczny kontekst to typowa spekulacja "reguła może potrzebować czegokolwiek". Kompilator znów pilnuje nazw pól.
+**Snapshot:** `step2/` · **Różnica:** `scripts/warsztat.sh --lang ts diff m2/s01 1 2`
+
+### Krok 3: Inline Class dla reguł, usunięcie interfejsu
+
+**Zmiany:**
+
+1. Do `TicketPricer` dodaj prywatne metody `isMorning(quote)` i `isVip(quote)` z ciałami `appliesTo` obu reguł (Inline Class dla `MorningRule` i `VipRule`); w `price` pętlę po regułach zastąp dwoma `if`, a `return` zwraca `price` bez końcowego `toDecimalPlaces`.
+2. Kwoty zniżki i dopłaty wydziel do pól `private static readonly MORNING_DISCOUNT = new Decimal('5.00')` i `VIP_SURCHARGE = new Decimal('10.00')` (Extract Constant).
+3. Usuń pliki `MorningRule.ts`, `VipRule.ts` i `PricingRule.ts`; pole `rules` w `TicketPricer` i importy tych trzech modułów znikają razem z nimi.
+
+**Przed (`TicketPricer.ts`, fragment):**
 
 ```typescript
+private readonly rules: readonly PricingRule[] = Object.freeze([new MorningRule(), new VipRule()]);
+
 price(quote: TicketQuote): Decimal {
   let price = this.basePrice(quote.format);
-  if (this.isMorning(quote)) {
-    price = price.minus(TicketPricer.MORNING_DISCOUNT);
+  for (const rule of this.rules) {
+    if (rule.appliesTo(quote)) {
+      price = rule.apply(price);
+    }
   }
-  if (this.isVip(quote)) {
-    price = price.plus(TicketPricer.VIP_SURCHARGE);
-  }
-  return price;
+  return price.toDecimalPlaces(2, Decimal.ROUND_HALF_UP);
 }
+```
+
+**Po (`TicketPricer.ts`; metoda `basePrice` bez zmian):**
+
+```typescript
+import { Decimal } from 'decimal.js';
+
+import type { TicketQuote } from '../TicketQuote.js';
+
+export class TicketPricer {
+  private static readonly MORNING_DISCOUNT = new Decimal('5.00');
+  private static readonly VIP_SURCHARGE = new Decimal('10.00');
+
+  price(quote: TicketQuote): Decimal {
+    let price = this.basePrice(quote.format);
+    if (this.isMorning(quote)) {
+      price = price.minus(TicketPricer.MORNING_DISCOUNT);
+    }
+    if (this.isVip(quote)) {
+      price = price.plus(TicketPricer.VIP_SURCHARGE);
+    }
+    return price;
+  }
+
+  private isMorning(quote: TicketQuote): boolean {
+    return quote.start.hour < 12;
+  }
+
+  private isVip(quote: TicketQuote): boolean {
+    return quote.row >= quote.vipFromRow;
+  }
 ```
 
 **Uruchom:** test zielony.
@@ -238,13 +377,13 @@ total(organizer: string, tickets: number, unitPrice: number): number {
 1. Nowy plik `pricing/Quote.ts`: klasa `Quote` z polami `readonly total: number` i `readonly groupDiscount: boolean`.
 2. W `TicketPricing` zmień sygnaturę `total(organizer, tickets, unitPrice): number` na `total(tickets, unitPrice): Quote` - parametr `organizer` znika, a informacja o rabacie wraca w polu `groupDiscount` (Change Signature, ręcznie; wywołania wskaże `npm run typecheck`).
 3. Usuń z `TicketPricing` konstruktor z polem `mailer` i import `GroupMailer` - cennik przestaje zależeć od katalogu `notification`.
-4. W `BookingService.book` twórz `TicketPricing` bez argumentu, a wywołanie `mailer.groupDiscountGranted(organizer, tickets)` wykonuj po wycenie, gdy `quote.groupDiscount` jest prawdziwe.
+4. W `BookingService.book` twórz `TicketPricing` bez argumentu, a wywołanie `mailer.groupDiscountGranted(organizer, tickets)` wykonuj po wycenie, gdy `quote.groupDiscount` jest prawdziwe. (`GroupMailer` zostaje bez zmian; w snapshotach zmienia się tylko jego komentarz wariantu.)
 
-**Przed:**
+**Przed (`pricing/TicketPricing.ts`):**
 
 ```typescript
 import type { GroupMailer } from '../notification/GroupMailer.js';
-...
+
 export class TicketPricing {
   constructor(private readonly mailer: GroupMailer) {}
 
@@ -259,13 +398,61 @@ export class TicketPricing {
 }
 ```
 
-**Po:**
+**Przed (`BookingService.ts`, pola i metoda `book`):**
 
 ```typescript
-const quote = this.pricing.total(tickets, unitPrice);
-if (quote.groupDiscount) {
-  this.mailer.groupDiscountGranted(organizer, tickets);
+export class BookingService {
+  private readonly mailer = new GroupMailer();
+  private readonly pricing = new TicketPricing(this.mailer);
+
+  book(organizer: string, tickets: number, format: string): string {
+    const unitPrice = BookingService.unitPrice(format);
+    const total = this.pricing.total(organizer, tickets, unitPrice);
+    return 'DO ZAPLATY ' + total.toFixed(2);
+  }
+```
+
+**Po (`pricing/Quote.ts`, nowy plik):**
+
+```typescript
+/** Wynik cennika niesie informację o rabacie - zamiast efektu ubocznego mamy daną. */
+export class Quote {
+  constructor(readonly total: number, readonly groupDiscount: boolean) {}
 }
+```
+
+**Po (`pricing/TicketPricing.ts`):**
+
+```typescript
+import { Quote } from './Quote.js';
+
+export class TicketPricing {
+  total(tickets: number, unitPrice: number): Quote {
+    let sum = unitPrice * tickets;
+    const groupDiscount = tickets >= 10;
+    if (groupDiscount) {
+      sum = sum - sum * 0.10;
+    }
+    return new Quote(Math.round(sum * 100) / 100.0, groupDiscount);
+  }
+}
+```
+
+**Po (`BookingService.ts`, pola i metoda `book`; importy i reszta pliku bez zmian):**
+
+```typescript
+export class BookingService {
+  private readonly mailer = new GroupMailer();
+  private readonly pricing = new TicketPricing();
+
+  book(organizer: string, tickets: number, format: string): string {
+    const unitPrice = BookingService.unitPrice(format);
+    const quote = this.pricing.total(tickets, unitPrice);
+    if (quote.groupDiscount) {
+      this.mailer.groupDiscountGranted(organizer, tickets);
+    }
+    return 'DO ZAPLATY ' + quote.total.toFixed(2);
+  }
 ```
 
 **Uruchom:** test zielony; `step1RemovesDependencyOnNotification` - zostało tylko naruszenie `ADR-0007/R2`.
@@ -276,11 +463,11 @@ if (quote.groupDiscount) {
 
 **Zmiany:**
 
-1. Zmień typ pola `Quote.total` i parametru `unitPrice` w `TicketPricing.total` z `number` na `Money` (Type Migration, ręcznie); przez kolejne miejsca prowadzi `npm run typecheck`.
+1. Zmień typ pola `Quote.total` i parametru `unitPrice` w `TicketPricing.total` z `number` na `Money` (Type Migration, ręcznie); przez kolejne miejsca prowadzi `npm run typecheck`. Oba pliki `pricing` dostają `import type { Money } from '../../../../shared/Money.js'`.
 2. Obliczenia przechodzą na `Money`: `unitPrice.times(tickets)` i `sum.minus(sum.percent(...))`; próg i procent rabatu wydziel do stałych `GROUP_SIZE = 10` i `GROUP_DISCOUNT_PERCENT = 10`.
-3. W `BookingService` metoda `unitPrice(format)` zwraca `Money` (`Money.of('40.00')`, `Money.of('32.00')`, `Money.of('25.00')`), a odpowiedź formatuje `quote.total.toString()` zamiast `toFixed(2)`.
+3. W `BookingService` metoda `unitPrice(format)` zwraca `Money` (`Money.of('40.00')`, `Money.of('32.00')`, `Money.of('25.00')`), a odpowiedź formatuje `quote.total.toString()` zamiast `toFixed(2)`; dochodzi `import { Money } from '../../../shared/Money.js'`. (`GroupMailer` nadal bez zmian.)
 
-**Przed:**
+**Przed (`pricing/TicketPricing.ts`, metoda `total`):**
 
 ```typescript
 total(tickets: number, unitPrice: number): Quote {
@@ -293,11 +480,63 @@ total(tickets: number, unitPrice: number): Quote {
 }
 ```
 
-**Po:**
+**Przed (`BookingService.ts`, metoda `unitPrice`):**
 
 ```typescript
-total(tickets: number, unitPrice: Money): Quote {
-  let sum = unitPrice.times(tickets);
+private static unitPrice(format: string): number {
+  switch (format) {
+    case 'IMAX': return 40.00;
+    case '3D': return 32.00;
+    default: return 25.00;
+  }
+}
+```
+
+**Po (`pricing/Quote.ts`):**
+
+```typescript
+import type { Money } from '../../../../shared/Money.js';
+
+export class Quote {
+  constructor(readonly total: Money, readonly groupDiscount: boolean) {}
+}
+```
+
+**Po (`pricing/TicketPricing.ts`):**
+
+```typescript
+import type { Money } from '../../../../shared/Money.js';
+import { Quote } from './Quote.js';
+
+export class TicketPricing {
+  private static readonly GROUP_SIZE = 10;
+  private static readonly GROUP_DISCOUNT_PERCENT = 10;
+
+  total(tickets: number, unitPrice: Money): Quote {
+    let sum = unitPrice.times(tickets);
+    const groupDiscount = tickets >= TicketPricing.GROUP_SIZE;
+    if (groupDiscount) {
+      sum = sum.minus(sum.percent(TicketPricing.GROUP_DISCOUNT_PERCENT));
+    }
+    return new Quote(sum, groupDiscount);
+  }
+}
+```
+
+**Po (`BookingService.ts`, zmienione miejsca):**
+
+```typescript
+import { Money } from '../../../shared/Money.js';
+...
+    return 'DO ZAPLATY ' + quote.total.toString();
+...
+  private static unitPrice(format: string): Money {
+    switch (format) {
+      case 'IMAX': return Money.of('40.00');
+      case '3D': return Money.of('32.00');
+      default: return Money.of('25.00');
+    }
+  }
 ```
 
 **Uruchom:** test zielony; `step2CompliesWithTheDecision` - pusta lista naruszeń.
@@ -356,32 +595,53 @@ switch (format) {
 
 1. W `SeatMap` dopisz argumenty typu na polu: `new Map<number, string[]>()` zamiast surowego `new Map()`.
 2. W `take` zastąp sprawdzanie `undefined` wyrażeniem `this.seatsByRow.get(row) ?? []` i usuń asercję `as string[] | undefined`.
-3. W `takenPerRow` zbuduj wynik z posortowanych wpisów mapy bez asercji `as number` i `as string[]` - kompilator zna już typy.
+3. W `takenPerRow` zbuduj wynik z posortowanych wpisów mapy bez asercji `as number` i `as string[]` - kompilator zna już typy. (`OccupancyReport` i `PriceTable` bez zmian; w snapshotach zmieniają się tylko ich komentarze wariantów.)
 
-**Przed:**
+**Przed (`SeatMap.ts`):**
 
 ```typescript
-private readonly seatsByRow = new Map();
+export class SeatMap {
+  private readonly seatsByRow = new Map();
 
-take(seat: string): void {
-  const row = Number.parseInt(seat.substring(1), 10);
-  let seats = this.seatsByRow.get(row) as string[] | undefined;
-  if (seats === undefined) {
-    seats = [];
-    this.seatsByRow.set(row, seats);
+  take(seat: string): void {
+    const row = Number.parseInt(seat.substring(1), 10);
+    let seats = this.seatsByRow.get(row) as string[] | undefined;
+    if (seats === undefined) {
+      seats = [];
+      this.seatsByRow.set(row, seats);
+    }
+    seats.push(seat);
   }
-  seats.push(seat);
+
+  takenPerRow(): Map<number, number> {
+    const result = new Map<number, number>();
+    for (const row of [...this.seatsByRow.keys()].sort((a, b) => a - b)) {
+      result.set(row as number, (this.seatsByRow.get(row) as string[]).length);
+    }
+    return result;
+  }
 }
 ```
 
-**Po:**
+**Po (`SeatMap.ts`):**
 
 ```typescript
-private readonly seatsByRow = new Map<number, string[]>();
-...
-const seats = this.seatsByRow.get(row) ?? [];
-this.seatsByRow.set(row, seats);
-seats.push(seat);
+export class SeatMap {
+  private readonly seatsByRow = new Map<number, string[]>();
+
+  take(seat: string): void {
+    const row = Number.parseInt(seat.substring(1), 10);
+    const seats = this.seatsByRow.get(row) ?? [];
+    this.seatsByRow.set(row, seats);
+    seats.push(seat);
+  }
+
+  takenPerRow(): Map<number, number> {
+    return new Map([...this.seatsByRow]
+      .sort(([a], [b]) => a - b)
+      .map(([row, seats]) => [row, seats.length]));
+  }
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang ts test m2/s03` - zostają kategorie `deprecation`, `fallthrough`.
@@ -393,7 +653,7 @@ seats.push(seat);
 **Zmiany:**
 
 1. W `OccupancyReport.describe` zamień w `return` argument wywołania `PriceTable.basePrice(format)` na istniejącą już zmienną `name` - wywołanie trafia do przeciążenia `basePrice(format: string)`, a przestarzałe przeciążenie z tagiem `@deprecated` przestaje być używane.
-2. Samo przestarzałe przeciążenie `basePrice(format: number)` zostaje w `PriceTable` - usuniemy je dopiero, gdy nikt go nie woła.
+2. Samo przestarzałe przeciążenie `basePrice(format: number)` zostaje w `PriceTable` - usuniemy je dopiero, gdy nikt go nie woła. (To jedyna zmiana kodu w tym kroku; `SeatMap` i `PriceTable` zmieniają w snapshotach tylko komentarze wariantów.)
 
 **Przed:**
 
@@ -420,27 +680,39 @@ return name + ' [' + features + '], cena ' + PriceTable.basePrice(name)
 
 1. Wydziel cały `switch` z `describe` do prywatnej statycznej metody `features(format: number): string` (Extract Method); TypeScript nie ma wyrażenia `switch`, więc to zwykła metoda.
 2. W każdym `case` zamień przypisania do `features` na `return`; przelot zapisany wprost: `case 3: return 'duzy ekran, dzwiek Dolby'`, `case 2: return 'dzwiek Dolby'`, `default: return 'standard'`.
-3. Usuń dyrektywę `// @ts-expect-error` - znika razem z przelotem; w `describe` zostaje `const features = OccupancyReport.features(format);`.
+3. Usuń dyrektywę `// @ts-expect-error` - znika razem z przelotem; w `describe` zostaje `const features = OccupancyReport.features(format);`. (Metoda `show` i pozostałe pliki bez zmian.)
 
-**Przed:**
+**Przed (`OccupancyReport.ts`, metoda `describe`):**
 
 ```typescript
-let features = '';
-switch (format) {
-  // @ts-expect-error TS7029 - celowy przelot: IMAX ma też dźwięk Dolby
-  case 3:
-    features = features + 'duzy ekran, ';
-  case 2:
-    features = features + 'dzwiek Dolby';
-    break;
-  default:
-    features = 'standard';
+describe(map: SeatMap, format: number): string {
+  let features = '';
+  switch (format) {
+    // @ts-expect-error TS7029 - celowy przelot: IMAX ma też dźwięk Dolby
+    case 3:
+      features = features + 'duzy ekran, ';
+    case 2:
+      features = features + 'dzwiek Dolby';
+      break;
+    default:
+      features = 'standard';
+  }
+  const name = format === 3 ? 'IMAX' : format === 2 ? '3D' : '2D';
+  return name + ' [' + features + '], cena ' + PriceTable.basePrice(name)
+    + ' zl, zajete: ' + OccupancyReport.show(map.takenPerRow());
 }
 ```
 
-**Po:**
+**Po (`OccupancyReport.ts`, metody `describe` i `features`):**
 
 ```typescript
+describe(map: SeatMap, format: number): string {
+  const features = OccupancyReport.features(format);
+  const name = format === 3 ? 'IMAX' : format === 2 ? '3D' : '2D';
+  return name + ' [' + features + '], cena ' + PriceTable.basePrice(name)
+    + ' zl, zajete: ' + OccupancyReport.show(map.takenPerRow());
+}
+
 private static features(format: number): string {
   switch (format) {
     case 3: return 'duzy ekran, dzwiek Dolby';
@@ -500,7 +772,7 @@ evaluate(_input: GateInput): string[] {
 
 1. W `QualityGate` dodaj prywatną statyczną metodę `scanSources(input, findings)`: dla każdego pliku `.ts` z katalogu `input.sources` i każdej linii z `TODO`/`FIXME` dopisuje wynik `'TODO <plik>:<linia>'`, a dla linii z `console.` - `'console <plik>:<linia>'`.
 2. Dodaj pomocnicze metody `sourceFiles(dir)` (posortowana lista plików `.ts` katalogu) i `read(file)` (linie pliku).
-3. `evaluate` przestaje zwracać pustą listę - zbiera wyniki `scanSources` do listy `findings`.
+3. `evaluate` przestaje zwracać pustą listę - zbiera wyniki `scanSources` do listy `findings`. Plik dostaje importy `readdirSync`, `readFileSync` z `node:fs` i `path` z `node:path`; metoda `passes` i lista kontrolna w komentarzu zostają (komentarz można skrócić do opisu kroku).
 
 **Przed:**
 
@@ -510,11 +782,51 @@ evaluate(_input: GateInput): string[] {
 }
 ```
 
-**Po:**
+**Po (`QualityGate.ts`; metoda `passes` bez zmian):**
 
 ```typescript
-if (line.includes('TODO') || line.includes('FIXME')) {
-  findings.push('TODO ' + where);
+import { readdirSync, readFileSync } from 'node:fs';
+import path from 'node:path';
+
+import type { GateInput } from '../GateInput.js';
+
+export class QualityGate {
+  /** Lista wyników bramki; pusta lista = bramka przepuszcza zmianę. */
+  evaluate(input: GateInput): string[] {
+    const findings: string[] = [];
+    QualityGate.scanSources(input, findings);
+    return findings;
+  }
+
+  passes(input: GateInput): boolean {
+    return this.evaluate(input).length === 0;
+  }
+
+  /** TODO/FIXME i wydruki na konsolę w źródłach domeny. */
+  private static scanSources(input: GateInput, findings: string[]): void {
+    for (const file of QualityGate.sourceFiles(input.sources)) {
+      QualityGate.read(file).forEach((line, i) => {
+        const where = path.basename(file) + ':' + (i + 1);
+        if (line.includes('TODO') || line.includes('FIXME')) {
+          findings.push('TODO ' + where);
+        }
+        if (line.includes('console.')) {
+          findings.push('console ' + where);
+        }
+      });
+    }
+  }
+
+  private static sourceFiles(dir: string): string[] {
+    return readdirSync(dir)
+      .filter((name) => name.endsWith('.ts'))
+      .sort()
+      .map((name) => path.join(dir, name));
+  }
+
+  private static read(file: string): string[] {
+    return readFileSync(file, 'utf8').split(/\r?\n/);
+  }
 }
 ```
 
@@ -528,7 +840,7 @@ if (line.includes('TODO') || line.includes('FIXME')) {
 
 1. Dodaj stałą `COMPILER_OPTIONS` (opcje projektu plus `strict`, `noUnusedLocals`, `noUnusedParameters`, `noImplicitReturns`, `noEmit`) i metodę `compileSources(input, findings)`, która buduje program `ts.createProgram` z pakietu `typescript-api` na plikach domeny.
 2. Każdą diagnostykę składniową i semantyczną zamień na wynik `'kompilator <plik>:<linia> TS<kod>'`.
-3. W `evaluate` wywołaj `compileSources` przed `scanSources`.
+3. W `evaluate` wywołaj `compileSources` przed `scanSources`. Na górze pliku dochodzi `import ts from 'typescript-api'`; pozostałe metody bez zmian.
 
 **Przed:**
 
@@ -540,11 +852,50 @@ evaluate(input: GateInput): string[] {
 }
 ```
 
-**Po:**
+**Po (`QualityGate.ts`, nowe i zmienione fragmenty):**
 
 ```typescript
-const line = sourceFile.getLineAndCharacterOfPosition(d.start ?? 0).line + 1;
-findings.push('kompilator ' + path.basename(sourceFile.fileName) + ':' + line + ' TS' + d.code);
+import ts from 'typescript-api';
+...
+  private static readonly COMPILER_OPTIONS: ts.CompilerOptions = {
+    target: ts.ScriptTarget.ES2023,
+    module: ts.ModuleKind.NodeNext,
+    moduleResolution: ts.ModuleResolutionKind.NodeNext,
+    lib: ['lib.es2023.d.ts', 'lib.dom.d.ts'],
+    types: [],
+    strict: true,
+    noUncheckedIndexedAccess: true,
+    exactOptionalPropertyTypes: true,
+    noImplicitOverride: true,
+    noFallthroughCasesInSwitch: true,
+    noUnusedLocals: true,
+    noUnusedParameters: true,
+    noImplicitReturns: true,
+    skipLibCheck: true,
+    noEmit: true,
+  };
+
+  /** Lista wyników bramki; pusta lista = bramka przepuszcza zmianę. */
+  evaluate(input: GateInput): string[] {
+    const findings: string[] = [];
+    QualityGate.compileSources(input, findings);
+    QualityGate.scanSources(input, findings);
+    return findings;
+  }
+
+  /** Kompilacja źródeł domeny (typescript-api, strict i opcje "lint"); każda diagnostyka to wynik bramki. */
+  private static compileSources(input: GateInput, findings: string[]): void {
+    const program = ts.createProgram(QualityGate.sourceFiles(input.sources), QualityGate.COMPILER_OPTIONS);
+    for (const sourceFile of program.getRootFileNames().map((name) => program.getSourceFile(name))) {
+      if (sourceFile === undefined) {
+        continue;
+      }
+      for (const d of [...program.getSyntacticDiagnostics(sourceFile), ...program.getSemanticDiagnostics(sourceFile)]) {
+        const line = sourceFile.getLineAndCharacterOfPosition(d.start ?? 0).line + 1;
+        findings.push('kompilator ' + path.basename(sourceFile.fileName) + ':' + line + ' TS' + d.code);
+      }
+    }
+  }
 ```
 
 **Uruchom:** test zielony; dochodzą dwa wyniki `kompilator PriceTable.ts:28 TS7006` (parametry `what` i `kind` bez typu - niejawne `any`).
@@ -557,7 +908,7 @@ findings.push('kompilator ' + path.basename(sourceFile.fileName) + ':' + line + 
 
 1. Dodaj stałą `PUBLIC_METHOD` - wyrażenie regularne wyszukujące na poziomie wcięcia składowej metody bez `private`/`protected` (konstruktor pominięty) - i metodę `checkCoverage(input, findings)`, która czyta plik `input.keyClass + '.ts'` oraz plik testu `input.testSource`.
 2. Każda publiczna metoda, której wywołania (`.` + nazwa + `(`) nie ma w tekście testu, daje wynik `'pokrycie <klasa>.<metoda> bez testu'`.
-3. W `evaluate` dołóż `checkCoverage` po `scanSources`.
+3. W `evaluate` dołóż `checkCoverage` po `scanSources`; pozostałe metody bez zmian.
 
 **Przed:**
 
@@ -570,12 +921,30 @@ evaluate(input: GateInput): string[] {
 }
 ```
 
-**Po:**
+**Po (`QualityGate.ts`, nowe i zmienione fragmenty):**
 
 ```typescript
-if (!test.includes('.' + method[1]! + '(')) {
-  findings.push('pokrycie ' + input.keyClass + '.' + method[1]! + ' bez testu');
-}
+  // Metoda publiczna na poziomie klasy: bez private/protected, poza konstruktorem.
+  private static readonly PUBLIC_METHOD = /^ {2}(?:public\s+)?(?:static\s+)?(?!constructor\b)([A-Za-z_]\w*)\s*\(/gm;
+...
+  evaluate(input: GateInput): string[] {
+    const findings: string[] = [];
+    QualityGate.compileSources(input, findings);
+    QualityGate.scanSources(input, findings);
+    QualityGate.checkCoverage(input, findings);
+    return findings;
+  }
+
+  /** Przybliżenie pokrycia: publiczna metoda kluczowej klasy musi być wywołana w jej teście. */
+  private static checkCoverage(input: GateInput, findings: string[]): void {
+    const source = readFileSync(path.join(input.sources, input.keyClass + '.ts'), 'utf8');
+    const test = readFileSync(input.testSource, 'utf8');
+    for (const method of source.matchAll(QualityGate.PUBLIC_METHOD)) {
+      if (!test.includes('.' + method[1]! + '(')) {
+        findings.push('pokrycie ' + input.keyClass + '.' + method[1]! + ' bez testu');
+      }
+    }
+  }
 ```
 
 **Uruchom:** test zielony; `vipSurcharge` i `lookupCount` bez testu.
@@ -587,7 +956,7 @@ if (!test.includes('.' + method[1]! + '(')) {
 **Zmiany:**
 
 1. Dodaj metodę `runTests(input, findings)`: dla każdego przypadku z `input.testSuite.tests` (nazwy posortowane) wywołuje funkcję przypadku, a złapany wyjątek zamienia na wynik `'test <zestaw>.<nazwa> nie przechodzi: <nazwa błędu>'` - bez zależności od vitest.
-2. W `evaluate` wywołaj `runTests` jako pierwsze z czterech sprawdzeń.
+2. W `evaluate` wywołaj `runTests` jako pierwsze z czterech sprawdzeń; pozostałe metody bez zmian.
 
 **Przed:**
 
@@ -601,14 +970,29 @@ evaluate(input: GateInput): string[] {
 }
 ```
 
-**Po:**
+**Po (`QualityGate.ts`, nowe i zmienione fragmenty):**
 
 ```typescript
-try {
-  suite.tests[name]!();
-} catch (failure) {
-  findings.push('test ' + suite.name + '.' + name + ' nie przechodzi: ' + (failure as Error).name);
-}
+  evaluate(input: GateInput): string[] {
+    const findings: string[] = [];
+    QualityGate.runTests(input, findings);
+    QualityGate.compileSources(input, findings);
+    QualityGate.scanSources(input, findings);
+    QualityGate.checkCoverage(input, findings);
+    return findings;
+  }
+
+  /** Uruchamia przypadki zestawu testów (bez zależności od vitest) i zgłasza porażki. */
+  private static runTests(input: GateInput, findings: string[]): void {
+    const suite = input.testSuite;
+    for (const name of Object.keys(suite.tests).sort()) {
+      try {
+        suite.tests[name]!();
+      } catch (failure) {
+        findings.push('test ' + suite.name + '.' + name + ' nie przechodzi: ' + (failure as Error).name);
+      }
+    }
+  }
 ```
 
 **Uruchom:** test zielony; `step4AddsGreenTestsAndCatchesAFailingOne` - fikstura `sample/broken` (celowo nie plik `*.test.ts`, żeby nie psuć przebiegu vitest) daje wynik `test PriceTableTest.vipSurchargeStartsAtRowNine nie przechodzi: AssertionError`.
@@ -665,33 +1049,62 @@ for (let i = 0; i < t.seats.length; i++) {
 
 1. Antyprzykładu nie piszemy na żywo - wstaw gotowy snapshot: `scripts/warsztat.sh --lang ts jump m2/s05 1`.
 2. W `print` obok dobrych ruchów (nazwa `ticket`, tablica linii, `join`) przemycono trzy zmiany zachowania: miejsca są sortowane (`[...ticket.seats].sort()`), e-mail przechodzi na małe litery (`toLowerCase()`), a linia "Tel" znika, gdy klient nie podał telefonu.
-3. Dodatkowo kwota jest drukowana przez `Money` zamiast `toFixed(2)`.
+3. Dodatkowo kwota jest drukowana przez `Money` zamiast `toFixed(2)` - stąd importy `Decimal` z `decimal.js` i `Money` z `../../../shared/Money.js`.
 
-**Przed:**
+**Przed (`TicketPrinter.ts`):**
 
 ```typescript
-let x = '';
-for (let i = 0; i < t.seats.length; i++) {
-  if (i > 0) {
-    x = x + ', ';
+import type { Ticket } from '../Ticket.js';
+
+export class TicketPrinter {
+  print(t: Ticket): string {
+    let s = '';
+    s = s + 'Film: ' + t.title + '\n';
+    const d = t.start.toLocalDate().toString() + ' ' + t.start.toLocalTime().toString();
+    s = s + 'Seans: ' + d + '\n';
+    let x = '';
+    for (let i = 0; i < t.seats.length; i++) {
+      if (i > 0) {
+        x = x + ', ';
+      }
+      x = x + t.seats[i]!;
+    }
+    s = s + 'Miejsca: ' + x + '\n';
+    s = s + 'Klient: ' + t.email.trim() + '\n';
+    if (t.phone != null) {
+      s = s + 'Tel: ' + t.phone + '\n';
+    } else {
+      s = s + 'Tel: -\n';
+    }
+    s = s + 'Do zaplaty: ' + t.total.toFixed(2) + '\n';
+    return s;
   }
-  x = x + t.seats[i]!;
-}
-s = s + 'Miejsca: ' + x + '\n';
-s = s + 'Klient: ' + t.email.trim() + '\n';
-if (t.phone != null) {
-  s = s + 'Tel: ' + t.phone + '\n';
-} else {
-  s = s + 'Tel: -\n';
 }
 ```
 
-**Po:**
+**Po (`TicketPrinter.ts`):**
 
 ```typescript
-const sortedSeats = [...ticket.seats].sort();
-lines.push(`Miejsca: ${sortedSeats.join(', ')}`);
-lines.push(`Klient: ${ticket.email.trim().toLowerCase()}`);
+import { Decimal } from 'decimal.js';
+
+import { Money } from '../../../shared/Money.js';
+import type { Ticket } from '../Ticket.js';
+
+export class TicketPrinter {
+  print(ticket: Ticket): string {
+    const lines: string[] = [];
+    lines.push(`Film: ${ticket.title}`);
+    lines.push(`Seans: ${ticket.start.toLocalDate().toString()} ${ticket.start.toLocalTime().toString()}`);
+    const sortedSeats = [...ticket.seats].sort();
+    lines.push(`Miejsca: ${sortedSeats.join(', ')}`);
+    lines.push(`Klient: ${ticket.email.trim().toLowerCase()}`);
+    if (ticket.phone != null) {
+      lines.push(`Tel: ${ticket.phone}`);
+    }
+    lines.push(`Do zaplaty: ${new Money(new Decimal(ticket.total)).toString()}`);
+    return lines.map((line) => line + '\n').join('');
+  }
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang ts test m2/s05` - równoważność czerwona w trzech przypadkach (m.in. `A9, A10` staje się `A10, A9`). `S05SolutionTest` → `abusiveCleanupChangesBehaviourInThreeCases` dokumentuje, które.
@@ -705,31 +1118,31 @@ lines.push(`Klient: ${ticket.email.trim().toLowerCase()}`);
 1. Pracujemy znów na `start` (krok 1 został cofnięty). Zmień nazwę parametru `t` na `ticket` (Rename); zmienne `s`, `d` i `x` znikają razem z konkatenacją.
 2. Pętlę sklejającą miejsca zastąp wyrażeniem `ticket.seats.join(', ')`.
 3. Zbuduj wydruk z literału tablicy linii złączonego `.map((line) => line + '\n').join('')` zamiast doklejania do zmiennej.
-4. Wydziel linię telefonu do prywatnej statycznej metody `phoneLine(ticket)` (Extract Method) - zachowanie `Tel: -` bez telefonu zostaje bez zmian.
+4. Wydziel linię telefonu do prywatnej statycznej metody `phoneLine(ticket)` (Extract Method) - zachowanie `Tel: -` bez telefonu zostaje bez zmian. Import `Ticket` zostaje jedynym importem pliku.
 
-**Przed:**
+**Przed (`TicketPrinter.ts`):** kod `start` - pełna metoda `print` jest w bloku Przed kroku 1.
+
+**Po (`TicketPrinter.ts`):**
 
 ```typescript
-print(t: Ticket): string {
-  let s = '';
-  s = s + 'Film: ' + t.title + '\n';
-  const d = t.start.toLocalDate().toString() + ' ' + t.start.toLocalTime().toString();
-  s = s + 'Seans: ' + d + '\n';
-  let x = '';
-  for (let i = 0; i < t.seats.length; i++) {
-    ...
+import type { Ticket } from '../Ticket.js';
+
+export class TicketPrinter {
+  print(ticket: Ticket): string {
+    return [
+      `Film: ${ticket.title}`,
+      `Seans: ${ticket.start.toLocalDate().toString()} ${ticket.start.toLocalTime().toString()}`,
+      `Miejsca: ${ticket.seats.join(', ')}`,
+      `Klient: ${ticket.email.trim()}`,
+      TicketPrinter.phoneLine(ticket),
+      `Do zaplaty: ${ticket.total.toFixed(2)}`,
+    ].map((line) => line + '\n').join('');
   }
-  s = s + 'Miejsca: ' + x + '\n';
-  ...
+
+  private static phoneLine(ticket: Ticket): string {
+    return 'Tel: ' + (ticket.phone != null ? ticket.phone : '-');
+  }
 }
-```
-
-**Po:**
-
-```typescript
-`Miejsca: ${ticket.seats.join(', ')}`,
-`Klient: ${ticket.email.trim()}`,
-TicketPrinter.phoneLine(ticket),
 ```
 
 **Uruchom:** test zielony.
@@ -783,32 +1196,84 @@ if (q.type === 'STUDENT') {
 
 1. Wydziel wybór ceny bazowej do prywatnej statycznej metody `basePrice(format: string): Money` z `switch` i `return` w każdym `case` (Extract Method).
 2. Wydziel wybór zniżki do `discountPercent(type: string): number` zwracającej procent (Extract Method).
-3. Przejdź z `Decimal` na `Money`: `Money.of('40.00')` itd., zniżka to `base.minus(base.percent(...))`, a rabat poranny i dopłata VIP to `Money.of('5.00')` i `Money.of('10.00')`. Parametr `q` zmienia nazwę na `query` (Rename).
+3. Przejdź z `Decimal` na `Money`: `Money.of('40.00')` itd., zniżka to `base.minus(base.percent(...))`, a rabat poranny i dopłata VIP to `Money.of('5.00')` i `Money.of('10.00')`. Parametr `q` zmienia nazwę na `query` (Rename); import `Decimal` z `decimal.js` znika.
 
-**Przed:**
+**Przed (`PriceList.ts`):**
 
 ```typescript
-price(q: TicketQuery): Money {
-  let p: Decimal;
-  if (q.format === 'IMAX') {
-    p = new Decimal('40.00');
-  } else if (q.format === '3D') {
-    p = new Decimal('32.00');
-  } else {
-    p = new Decimal('25.00');
+import { Decimal } from 'decimal.js';
+
+import { Money } from '../../../shared/Money.js';
+import type { TicketQuery } from '../TicketQuery.js';
+
+export class PriceList {
+  price(q: TicketQuery): Money {
+    let p: Decimal;
+    if (q.format === 'IMAX') {
+      p = new Decimal('40.00');
+    } else if (q.format === '3D') {
+      p = new Decimal('32.00');
+    } else {
+      p = new Decimal('25.00');
+    }
+    let d: Decimal;
+    if (q.type === 'STUDENT') {
+      d = p.times(new Decimal('0.25'));
+    } else if (q.type === 'SENIOR') {
+      d = p.times(new Decimal('0.30'));
+    } else if (q.type === 'CHILD') {
+      d = p.times(new Decimal('0.40'));
+    } else {
+      d = new Decimal(0);
+    }
+    p = p.minus(d);
+    if (q.start.hour < 12) {
+      p = p.minus(new Decimal('5.00'));
+    }
+    if (q.row >= 10) {
+      p = p.plus(new Decimal('10.00'));
+    }
+    return new Money(p);
   }
-  let d: Decimal;
-  if (q.type === 'STUDENT') {
-    d = p.times(new Decimal('0.25'));
-  } else if (q.type === 'SENIOR') {
-    ...
+}
 ```
 
-**Po:**
+**Po (`PriceList.ts`):**
 
 ```typescript
-const base = PriceList.basePrice(query.format);
-let price = base.minus(base.percent(PriceList.discountPercent(query.type)));
+import { Money } from '../../../shared/Money.js';
+import type { TicketQuery } from '../TicketQuery.js';
+
+export class PriceList {
+  price(query: TicketQuery): Money {
+    const base = PriceList.basePrice(query.format);
+    let price = base.minus(base.percent(PriceList.discountPercent(query.type)));
+    if (query.start.hour < 12) {
+      price = price.minus(Money.of('5.00'));
+    }
+    if (query.row >= 10) {
+      price = price.plus(Money.of('10.00'));
+    }
+    return price;
+  }
+
+  private static basePrice(format: string): Money {
+    switch (format) {
+      case 'IMAX': return Money.of('40.00');
+      case '3D': return Money.of('32.00');
+      default: return Money.of('25.00');
+    }
+  }
+
+  private static discountPercent(type: string): number {
+    switch (type) {
+      case 'STUDENT': return 25;
+      case 'SENIOR': return 30;
+      case 'CHILD': return 40;
+      default: return 0;
+    }
+  }
+}
 ```
 
 **Uruchom:** test zielony - równoważność na przypadkach, w tym wtorkowych.
@@ -835,12 +1300,19 @@ private static discountPercent(type: string): number {
 }
 ```
 
-**Po:**
+**Po (`PriceList.ts`, zmienione fragmenty):**
 
 ```typescript
-private static discountPercent(query: TicketQuery): number {
-  switch (query.type) { ... }
-}
+    let price = base.minus(base.percent(PriceList.discountPercent(query)));
+...
+  private static discountPercent(query: TicketQuery): number {
+    switch (query.type) {
+      case 'STUDENT': return 25;
+      case 'SENIOR': return 30;
+      case 'CHILD': return 40;
+      default: return 0;
+    }
+  }
 ```
 
 **Uruchom:** test zielony.
@@ -852,7 +1324,7 @@ private static discountPercent(query: TicketQuery): number {
 **Zmiany:**
 
 1. Dodaj stałą `private static readonly CHEAP_TUESDAY_PERCENT = 20` i prywatną statyczną metodę `isCheapTuesday(query)` sprawdzającą `query.start.dayOfWeek === 'TUESDAY'`.
-2. W gałęzi `default` metody `discountPercent` zwróć `PriceList.isCheapTuesday(query) ? PriceList.CHEAP_TUESDAY_PERCENT : 0` zamiast `0`.
+2. W gałęzi `default` metody `discountPercent` zwróć `PriceList.isCheapTuesday(query) ? PriceList.CHEAP_TUESDAY_PERCENT : 0` zamiast `0`. Metody `price` i `basePrice` bez zmian.
 
 **Przed:**
 
@@ -867,10 +1339,25 @@ private static discountPercent(query: TicketQuery): number {
 }
 ```
 
-**Po:**
+**Po (`PriceList.ts`, nowe i zmienione fragmenty):**
 
 ```typescript
-default: return PriceList.isCheapTuesday(query) ? PriceList.CHEAP_TUESDAY_PERCENT : 0;
+export class PriceList {
+  private static readonly CHEAP_TUESDAY_PERCENT = 20;
+...
+  private static discountPercent(query: TicketQuery): number {
+    switch (query.type) {
+      case 'STUDENT': return 25;
+      case 'SENIOR': return 30;
+      case 'CHILD': return 40;
+      default: return PriceList.isCheapTuesday(query) ? PriceList.CHEAP_TUESDAY_PERCENT : 0;
+    }
+  }
+
+  private static isCheapTuesday(query: TicketQuery): boolean {
+    return query.start.dayOfWeek === 'TUESDAY';
+  }
+}
 ```
 
 **Uruchom:** test zielony; `S06SolutionTest` → `cheapTuesdayGivesNormalTicketTwentyPercentOff` (2D wtorek 20.00) i `behaviourChangeIsLimitedToNormalTicketsOnTuesday` - na siatce 336 przypadków zmieniło się dokładnie 12, wszystkie NORMAL we wtorek.
@@ -926,9 +1413,9 @@ byTitle.set(sale.title, (byTitle.get(sale.title) ?? new Decimal(0)).plus(this.re
 
 1. Wydziel blok pod komentarzem `// księgowość` do prywatnej metody `accountingSection(sales): string` z własną zmienną `out` (Extract Method).
 2. To samo dla bloku pod `// marketing` - metoda `marketingSection(sales): string`.
-3. `render` zwraca sklejenie wyników obu metod; komentarze `// księgowość` i `// marketing` znikają - zastępują je nazwy metod.
+3. `render` zwraca sklejenie wyników obu metod; komentarze `// księgowość` i `// marketing` znikają - zastępują je nazwy metod. Helpery `revenue` i `net` zostają bez zmian.
 
-**Przed:**
+**Przed (`DailyReport.ts`, metoda `render`):**
 
 ```typescript
 render(sales: readonly Sale[]): string {
@@ -936,21 +1423,88 @@ render(sales: readonly Sale[]): string {
   // księgowość
   let tickets = new Decimal('0.00');
   let bar = new Decimal('0.00');
-  ...
+  for (const sale of sales) {
+    tickets = tickets.plus(sale.ticketRevenue);
+    bar = bar.plus(sale.barRevenue);
+  }
+  out += 'KSIEGOWOSC\n';
+  out += `Bilety brutto ${tickets.toFixed(2)}, netto ${this.net(tickets, 8).toFixed(2)}\n`;
+  out += `Bar brutto ${bar.toFixed(2)}, netto ${this.net(bar, 23).toFixed(2)}\n`;
+  let total = new Decimal('0.00');
+  for (const sale of sales) {
+    total = total.plus(this.revenue(sale));
+  }
   out += `Razem brutto ${total.toFixed(2)}\n`;
   // marketing
   out += 'MARKETING\n';
-  ...
+  const byTitle = new Map<string, Decimal>();
+  let sold = 0;
+  for (const sale of sales) {
+    byTitle.set(sale.title, (byTitle.get(sale.title) ?? new Decimal(0)).plus(this.revenue(sale)));
+    sold += sale.tickets;
+  }
+  let hit = 'brak';
+  let best = new Decimal(0);
+  // tytuły w kolejności alfabetycznej - przy remisie wygrywa pierwszy
+  for (const [title, value] of [...byTitle.entries()].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) {
+    if (value.comparedTo(best) > 0) {
+      hit = `${title} (${value.toFixed(2)})`;
+      best = value;
+    }
+  }
+  out += `Hit dnia: ${hit}\n`;
   out += `Sprzedanych biletow: ${sold}\n`;
   return out;
 }
 ```
 
-**Po:**
+**Po (`DailyReport.ts`, metody `render`, `accountingSection` i `marketingSection`; `revenue` i `net` bez zmian):**
 
 ```typescript
 render(sales: readonly Sale[]): string {
   return this.accountingSection(sales) + this.marketingSection(sales);
+}
+
+private accountingSection(sales: readonly Sale[]): string {
+  let out = '';
+  let tickets = new Decimal('0.00');
+  let bar = new Decimal('0.00');
+  for (const sale of sales) {
+    tickets = tickets.plus(sale.ticketRevenue);
+    bar = bar.plus(sale.barRevenue);
+  }
+  out += 'KSIEGOWOSC\n';
+  out += `Bilety brutto ${tickets.toFixed(2)}, netto ${this.net(tickets, 8).toFixed(2)}\n`;
+  out += `Bar brutto ${bar.toFixed(2)}, netto ${this.net(bar, 23).toFixed(2)}\n`;
+  let total = new Decimal('0.00');
+  for (const sale of sales) {
+    total = total.plus(this.revenue(sale));
+  }
+  out += `Razem brutto ${total.toFixed(2)}\n`;
+  return out;
+}
+
+private marketingSection(sales: readonly Sale[]): string {
+  let out = '';
+  out += 'MARKETING\n';
+  const byTitle = new Map<string, Decimal>();
+  let sold = 0;
+  for (const sale of sales) {
+    byTitle.set(sale.title, (byTitle.get(sale.title) ?? new Decimal(0)).plus(this.revenue(sale)));
+    sold += sale.tickets;
+  }
+  let hit = 'brak';
+  let best = new Decimal(0);
+  // tytuły w kolejności alfabetycznej - przy remisie wygrywa pierwszy
+  for (const [title, value] of [...byTitle.entries()].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) {
+    if (value.comparedTo(best) > 0) {
+      hit = `${title} (${value.toFixed(2)})`;
+      best = value;
+    }
+  }
+  out += `Hit dnia: ${hit}\n`;
+  out += `Sprzedanych biletow: ${sold}\n`;
+  return out;
 }
 ```
 
@@ -976,14 +1530,20 @@ private revenue(sale: Sale): Decimal {
 }
 ```
 
-**Po:**
+**Po (`DailyReport.ts`, zmienione fragmenty; reszta pliku bez zmian):**
 
 ```typescript
-/** Księgowość: przychód brutto seansu. */
-private revenue(sale: Sale): Decimal { ... }
+    byTitle.set(sale.title, (byTitle.get(sale.title) ?? new Decimal(0)).plus(this.popularity(sale)));
+...
+  /** Księgowość: przychód brutto seansu. */
+  private revenue(sale: Sale): Decimal {
+    return sale.ticketRevenue.plus(sale.barRevenue);
+  }
 
-/** Marketing: miara popularności filmu (dziś: bilety + bar). */
-private popularity(sale: Sale): Decimal { ... }
+  /** Marketing: miara popularności filmu (dziś: bilety + bar). */
+  private popularity(sale: Sale): Decimal {
+    return sale.ticketRevenue.plus(sale.barRevenue);
+  }
 ```
 
 **Uruchom:** test zielony.
@@ -996,9 +1556,9 @@ private popularity(sale: Sale): Decimal { ... }
 
 1. Nowy plik `AccountingSection.ts`: klasa `AccountingSection` z metodami `render` (dawna `accountingSection`), `revenue` i `net`, przeniesionymi z `DailyReport` (Extract Class, ręcznie).
 2. Nowy plik `MarketingSection.ts`: klasa `MarketingSection` z metodami `render` (dawna `marketingSection`) i `popularity`.
-3. W `DailyReport` zostają dwa pola (`accounting = new AccountingSection()`, `marketing = new MarketingSection()`) i delegujące `render`; metody sekcji, `revenue`, `popularity` i `net` znikają z `DailyReport`.
+3. W `DailyReport` zostają dwa pola (`accounting = new AccountingSection()`, `marketing = new MarketingSection()`) i delegujące `render`; metody sekcji, `revenue`, `popularity` i `net` znikają z `DailyReport` razem z importem `Decimal`.
 
-**Przed:**
+**Przed (`DailyReport.ts`, szkic; pełne ciała metod pokazują bloki kroków 1 i 2):**
 
 ```typescript
 export class DailyReport {
@@ -1020,9 +1580,90 @@ export class DailyReport {
 }
 ```
 
-**Po:**
+**Po (`AccountingSection.ts`, nowy plik):**
 
 ```typescript
+import { Decimal } from 'decimal.js';
+
+import type { Sale } from '../Sale.js';
+
+/** Aktor: księgowość. Zmienia się, gdy zmieniają się stawki VAT lub wymogi sprawozdań. */
+export class AccountingSection {
+  render(sales: readonly Sale[]): string {
+    let out = '';
+    let tickets = new Decimal('0.00');
+    let bar = new Decimal('0.00');
+    for (const sale of sales) {
+      tickets = tickets.plus(sale.ticketRevenue);
+      bar = bar.plus(sale.barRevenue);
+    }
+    out += 'KSIEGOWOSC\n';
+    out += `Bilety brutto ${tickets.toFixed(2)}, netto ${this.net(tickets, 8).toFixed(2)}\n`;
+    out += `Bar brutto ${bar.toFixed(2)}, netto ${this.net(bar, 23).toFixed(2)}\n`;
+    let total = new Decimal('0.00');
+    for (const sale of sales) {
+      total = total.plus(this.revenue(sale));
+    }
+    out += `Razem brutto ${total.toFixed(2)}\n`;
+    return out;
+  }
+
+  private revenue(sale: Sale): Decimal {
+    return sale.ticketRevenue.plus(sale.barRevenue);
+  }
+
+  private net(gross: Decimal, vatPercent: number): Decimal {
+    return gross.times(100)
+      .dividedBy(100 + vatPercent).toDecimalPlaces(2, Decimal.ROUND_HALF_UP);
+  }
+}
+```
+
+**Po (`MarketingSection.ts`, nowy plik):**
+
+```typescript
+import { Decimal } from 'decimal.js';
+
+import type { Sale } from '../Sale.js';
+
+/** Aktor: marketing. Zmienia się, gdy marketing zmienia definicję "hitu". */
+export class MarketingSection {
+  render(sales: readonly Sale[]): string {
+    let out = '';
+    out += 'MARKETING\n';
+    const byTitle = new Map<string, Decimal>();
+    let sold = 0;
+    for (const sale of sales) {
+      byTitle.set(sale.title, (byTitle.get(sale.title) ?? new Decimal(0)).plus(this.popularity(sale)));
+      sold += sale.tickets;
+    }
+    let hit = 'brak';
+    let best = new Decimal(0);
+    // tytuły w kolejności alfabetycznej - przy remisie wygrywa pierwszy
+    for (const [title, value] of [...byTitle.entries()].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) {
+      if (value.comparedTo(best) > 0) {
+        hit = `${title} (${value.toFixed(2)})`;
+        best = value;
+      }
+    }
+    out += `Hit dnia: ${hit}\n`;
+    out += `Sprzedanych biletow: ${sold}\n`;
+    return out;
+  }
+
+  private popularity(sale: Sale): Decimal {
+    return sale.ticketRevenue.plus(sale.barRevenue);
+  }
+}
+```
+
+**Po (`DailyReport.ts`):**
+
+```typescript
+import type { Sale } from '../Sale.js';
+import { AccountingSection } from './AccountingSection.js';
+import { MarketingSection } from './MarketingSection.js';
+
 export class DailyReport {
   private readonly accounting = new AccountingSection();
   private readonly marketing = new MarketingSection();
@@ -1086,9 +1727,9 @@ if (!reply.startsWith('250')) {
 
 1. W `ConfirmReservation` zamień pole `private readonly mail = new SmtpMailSender('smtp.kino.pl', 25)` na właściwość parametru konstruktora: `constructor(private readonly mail: SmtpMailSender) {}` (Introduce Parameter, ręcznie).
 2. Tworzenie `new SmtpMailSender('smtp.kino.pl', 25)` przenieś do `Main.ts` - funkcja `confirmReservation()` składa teraz `new ConfirmReservation(new SmtpMailSender('smtp.kino.pl', 25))`; wywołanie do poprawy wskaże kompilator.
-3. Import `SmtpMailSender` w `ConfirmReservation` staje się `import type`.
+3. Import `SmtpMailSender` w `ConfirmReservation` staje się `import type`. Metoda `confirm` zostaje bez zmian.
 
-**Przed:**
+**Przed (`app/ConfirmReservation.ts`, zmienione fragmenty):**
 
 ```typescript
 import { SmtpMailSender } from '../infra/SmtpMailSender.js';
@@ -1097,11 +1738,35 @@ export class ConfirmReservation {
   private readonly mail = new SmtpMailSender('smtp.kino.pl', 25);
 ```
 
-**Po:**
+**Przed (`Main.ts`):**
 
 ```typescript
+import { ConfirmReservation } from './app/ConfirmReservation.js';
+
+export function confirmReservation(): ConfirmReservation {
+  return new ConfirmReservation();
+}
+```
+
+**Po (`app/ConfirmReservation.ts`, zmienione fragmenty):**
+
+```typescript
+import type { SmtpMailSender } from '../infra/SmtpMailSender.js';
+...
 export class ConfirmReservation {
   constructor(private readonly mail: SmtpMailSender) {}
+```
+
+**Po (`Main.ts`):**
+
+```typescript
+import { ConfirmReservation } from './app/ConfirmReservation.js';
+import { SmtpMailSender } from './infra/SmtpMailSender.js';
+
+/** Composition root wariantu: jedyne miejsce, które składa graf obiektów. */
+export function confirmReservation(): ConfirmReservation {
+  return new ConfirmReservation(new SmtpMailSender('smtp.kino.pl', 25));
+}
 ```
 
 **Uruchom:** `scripts/warsztat.sh --lang ts test m2/s08` - 18 testów zielonych.
@@ -1113,9 +1778,9 @@ export class ConfirmReservation {
 **Zmiany:**
 
 1. Wydziel składanie MIME, wywołanie `send` i sprawdzenie kodu odpowiedzi do prywatnej metody `notifyCustomer` (Extract Method).
-2. Parametry metody nazwij `email` i `message` (Rename); `confirm` kończy się wywołaniem `this.notifyCustomer(reservation.email, message)` i zwróceniem potwierdzenia.
+2. Parametry metody nazwij `email` i `message` (Rename); `confirm` kończy się wywołaniem `this.notifyCustomer(reservation.email, message)` i zwróceniem potwierdzenia. Importy i konstruktor bez zmian; zmienia się tylko `ConfirmReservation`.
 
-**Przed:**
+**Przed (`app/ConfirmReservation.ts`, koniec metody `confirm`):**
 
 ```typescript
 const mime = `To: ${reservation.email}\r\nSubject: Rezerwacja\r\n\r\n${message}`;
@@ -1126,11 +1791,26 @@ if (!reply.startsWith('250')) {
 return `potwierdzono: ${reservation.email}`;
 ```
 
-**Po:**
+**Po (`app/ConfirmReservation.ts`, metody `confirm` i `notifyCustomer`):**
 
 ```typescript
-this.notifyCustomer(reservation.email, message);
-return `potwierdzono: ${reservation.email}`;
+confirm(reservation: Reservation): string {
+  if (reservation.seats < 1) {
+    throw new IllegalArgumentError('rezerwacja bez miejsc');
+  }
+  const message = `Rezerwacja: ${reservation.title}, ${reservation.start.toString()}`
+    + `, miejsc: ${reservation.seats}. Zaplac w ciagu 15 minut.`;
+  this.notifyCustomer(reservation.email, message);
+  return `potwierdzono: ${reservation.email}`;
+}
+
+private notifyCustomer(email: string, message: string): void {
+  const mime = `To: ${email}\r\nSubject: Rezerwacja\r\n\r\n${message}`;
+  const reply = this.mail.send(email, mime);
+  if (!reply.startsWith('250')) {
+    throw new IllegalStateError(`SMTP odrzucil: ${reply}`);
+  }
+}
 ```
 
 **Uruchom:** test zielony.
@@ -1143,8 +1823,8 @@ return `potwierdzono: ${reservation.email}`;
 
 1. Nowy plik `app/CustomerNotifier.ts`: interfejs `CustomerNotifier` z metodą `notifyCustomer(email: string, message: string): void` (Extract Interface z potrzeby polityki, ręcznie).
 2. Nowy plik `infra/SmtpCustomerNotifier.ts`: klasa `SmtpCustomerNotifier implements CustomerNotifier` z klientem `SmtpMailSender` w konstruktorze; przenieś do niej metodę `notifyCustomer` z `ConfirmReservation` (Move Method, ręcznie) razem z tłumaczeniem kodu SMTP na `IllegalStateError`.
-3. W `ConfirmReservation` parametr konstruktora zmienia typ na `notifier: CustomerNotifier`, a `confirm` woła `this.notifier.notifyCustomer(...)`; import z `infra` znika z polityki.
-4. W `Main.ts` złóż graf: `new ConfirmReservation(new SmtpCustomerNotifier(new SmtpMailSender('smtp.kino.pl', 25)))`.
+3. W `ConfirmReservation` parametr konstruktora zmienia typ na `notifier: CustomerNotifier`, a `confirm` woła `this.notifier.notifyCustomer(...)`; import z `infra` znika z polityki, a z importu błędów znika `IllegalStateError` (rzuca go już tylko adapter).
+4. W `Main.ts` złóż graf: `new ConfirmReservation(new SmtpCustomerNotifier(new SmtpMailSender('smtp.kino.pl', 25)))`; dochodzi import `SmtpCustomerNotifier` z `./infra/SmtpCustomerNotifier.js`.
 
 **Przed:**
 
@@ -1162,14 +1842,72 @@ export class ConfirmReservation {
 }
 ```
 
-**Po:**
+**Po (`app/CustomerNotifier.ts`, nowy plik):**
 
 ```typescript
-export interface CustomerNotifier {           // app
+/**
+ * Port wyjściowy należy do polityki i nazywa JEJ potrzebę ("powiadom klienta"),
+ * a nie możliwości technologii (brak MIME, hosta, kodów SMTP).
+ */
+export interface CustomerNotifier {
   notifyCustomer(email: string, message: string): void;
 }
+```
 
-export class SmtpCustomerNotifier implements CustomerNotifier {   // infra
+**Po (`infra/SmtpCustomerNotifier.ts`, nowy plik):**
+
+```typescript
+import { IllegalStateError } from '../../../../../shared/errors.js';
+import type { CustomerNotifier } from '../app/CustomerNotifier.js';
+import type { SmtpMailSender } from './SmtpMailSender.js';
+
+/** Adapter: implementuje port polityki (import infra -> app) i tłumaczy go na protokół. */
+export class SmtpCustomerNotifier implements CustomerNotifier {
+  constructor(private readonly mail: SmtpMailSender) {}
+
+  notifyCustomer(email: string, message: string): void {
+    const mime = `To: ${email}\r\nSubject: Rezerwacja\r\n\r\n${message}`;
+    const reply = this.mail.send(email, mime);
+    if (!reply.startsWith('250')) {
+      throw new IllegalStateError(`SMTP odrzucil: ${reply}`);
+    }
+  }
+}
+```
+
+**Po (`app/ConfirmReservation.ts`):**
+
+```typescript
+import { IllegalArgumentError } from '../../../../../shared/errors.js';
+import type { Reservation } from '../../Reservation.js';
+import type { CustomerNotifier } from './CustomerNotifier.js';
+
+export class ConfirmReservation {
+  constructor(private readonly notifier: CustomerNotifier) {}
+
+  confirm(reservation: Reservation): string {
+    if (reservation.seats < 1) {
+      throw new IllegalArgumentError('rezerwacja bez miejsc');
+    }
+    const message = `Rezerwacja: ${reservation.title}, ${reservation.start.toString()}`
+      + `, miejsc: ${reservation.seats}. Zaplac w ciagu 15 minut.`;
+    this.notifier.notifyCustomer(reservation.email, message);
+    return `potwierdzono: ${reservation.email}`;
+  }
+}
+```
+
+**Po (`Main.ts`):**
+
+```typescript
+import { ConfirmReservation } from './app/ConfirmReservation.js';
+import { SmtpCustomerNotifier } from './infra/SmtpCustomerNotifier.js';
+import { SmtpMailSender } from './infra/SmtpMailSender.js';
+
+/** Composition root wariantu: jedyne miejsce, które zna adapter i składa graf obiektów. */
+export function confirmReservation(): ConfirmReservation {
+  return new ConfirmReservation(new SmtpCustomerNotifier(new SmtpMailSender('smtp.kino.pl', 25)));
+}
 ```
 
 **Uruchom:** test zielony; `stepsSendTheSameMimeMessage` potwierdza identyczny MIME, `step3PolicyIsTestableWithAHandWrittenFake` testuje politykę literałem obiektu `{ notifyCustomer: (email, message) => ... }`.
@@ -1232,38 +1970,161 @@ return `201 ${id} ${total.toString()}`;
 2. Nowy plik `BookSeats.ts`: klasa `BookSeats` z `db` i `outbox` w konstruktorze oraz metodą `execute(command): Booking` - przenieś do niej z kontrolera wycenę, zapis i publikację (Extract Class, ręcznie); wycenę wydziel w niej jako prywatną metodę `price(command)`, a walidacja "brak miejsc" rzuca `IllegalArgumentError`.
 3. `ReservationController` tylko tłumaczy: parsuje parametry, tworzy `BookSeatsCommand`, woła `execute` i mapuje wyjątki (`IllegalArgumentError` na `400`, `IllegalStateError` na `503`); pole `bookSeats` tworzy na razie w konstruktorze.
 
-**Przed:**
+**Przed (`ReservationController.ts`):**
 
 ```typescript
-handle(params: ReadonlyMap<string, string>): string {
-  const email = params.get('email');
-  ...
-  let base: Money;
-  switch (format) {
-    case 'IMAX': base = Money.of('40.00'); break;
-    ...
-  let id: string;
-  try {
-    id = this.db.insert([email, format, rows.length, total]);
-  } catch (error) {
-    ...
+import { IllegalStateError } from '../../../../shared/errors.js';
+import { Money } from '../../../shared/Money.js';
+import type { Outbox } from '../Outbox.js';
+import type { RowStore } from '../RowStore.js';
+
+export class ReservationController {
+  constructor(private readonly db: RowStore, private readonly outbox: Outbox) {}
+
+  handle(params: ReadonlyMap<string, string>): string {
+    const email = params.get('email');
+    if (email === undefined || email.trim() === '') {
+      return '400 brak email';
+    }
+    const format = params.get('format') ?? '2D';
+    const rows = (params.get('rows') ?? '').split(',')
+      .filter((s) => s.trim() !== '').map((s) => Number.parseInt(s, 10));
+    if (rows.length === 0) {
+      return '400 brak miejsc';
+    }
+    let base: Money;
+    switch (format) {
+      case 'IMAX': base = Money.of('40.00'); break;
+      case '3D': base = Money.of('32.00'); break;
+      default: base = Money.of('25.00');
+    }
+    let total = Money.of('0.00');
+    for (const row of rows) {
+      total = total.plus(base);
+      if (row >= 10) {
+        total = total.plus(Money.of('10.00'));
+      }
+    }
+    let id: string;
+    try {
+      id = this.db.insert([email, format, rows.length, total]);
+    } catch (error) {
+      if (error instanceof IllegalStateError) {
+        return `503 ${error.message}`;
+      }
+      throw error;
+    }
+    this.outbox.publish('reservation-created', `${id};${email};${total.toString()}`);
+    return `201 ${id} ${total.toString()}`;
   }
-  this.outbox.publish('reservation-created', `${id};${email};${total.toString()}`);
-  return `201 ${id} ${total.toString()}`;
 }
 ```
 
-**Po:**
+**Po (`BookSeatsCommand.ts`, nowy plik):**
 
 ```typescript
-execute(command: BookSeatsCommand): Booking {
-  if (command.rows.length === 0) {
-    throw new IllegalArgumentError('brak miejsc');
+/** Dane wejściowe przypadku użycia - prosty rekord, bez Map z HTTP. */
+export class BookSeatsCommand {
+  readonly rows: readonly number[];
+
+  constructor(readonly email: string, readonly format: string, rows: readonly number[]) {
+    this.rows = Object.freeze([...rows]);
   }
-  const total = this.price(command);
-  const id = this.db.insert([command.email, command.format, command.rows.length, total]);
-  this.outbox.publish('reservation-created', `${id};${command.email};${total.toString()}`);
-  return new Booking(id, total);
+}
+```
+
+**Po (`Booking.ts`, nowy plik):**
+
+```typescript
+import type { Money } from '../../../shared/Money.js';
+
+/** Wynik przypadku użycia. */
+export class Booking {
+  constructor(readonly id: string, readonly total: Money) {}
+}
+```
+
+**Po (`BookSeats.ts`, nowy plik):**
+
+```typescript
+import { IllegalArgumentError } from '../../../../shared/errors.js';
+import { Money } from '../../../shared/Money.js';
+import type { Outbox } from '../Outbox.js';
+import type { RowStore } from '../RowStore.js';
+import type { BookSeatsCommand } from './BookSeatsCommand.js';
+import { Booking } from './Booking.js';
+
+/** Przypadek użycia jako jawna orkiestracja jednego celu: wyceń, zapisz, powiadom. */
+export class BookSeats {
+  constructor(private readonly db: RowStore, private readonly outbox: Outbox) {}
+
+  execute(command: BookSeatsCommand): Booking {
+    if (command.rows.length === 0) {
+      throw new IllegalArgumentError('brak miejsc');
+    }
+    const total = this.price(command);
+    const id = this.db.insert([command.email, command.format, command.rows.length, total]);
+    this.outbox.publish('reservation-created', `${id};${command.email};${total.toString()}`);
+    return new Booking(id, total);
+  }
+
+  private price(command: BookSeatsCommand): Money {
+    let base: Money;
+    switch (command.format) {
+      case 'IMAX': base = Money.of('40.00'); break;
+      case '3D': base = Money.of('32.00'); break;
+      default: base = Money.of('25.00');
+    }
+    let total = Money.of('0.00');
+    for (const row of command.rows) {
+      total = total.plus(base);
+      if (row >= 10) {
+        total = total.plus(Money.of('10.00'));
+      }
+    }
+    return total;
+  }
+}
+```
+
+**Po (`ReservationController.ts`):**
+
+```typescript
+import { IllegalArgumentError, IllegalStateError } from '../../../../shared/errors.js';
+import type { Outbox } from '../Outbox.js';
+import type { RowStore } from '../RowStore.js';
+import { BookSeats } from './BookSeats.js';
+import { BookSeatsCommand } from './BookSeatsCommand.js';
+
+/** Kontroler tylko tłumaczy - parametry na BookSeatsCommand, wynik i wyjątki na kody odpowiedzi. */
+export class ReservationController {
+  private readonly bookSeats: BookSeats;
+
+  constructor(db: RowStore, outbox: Outbox) {
+    this.bookSeats = new BookSeats(db, outbox);
+  }
+
+  handle(params: ReadonlyMap<string, string>): string {
+    const email = params.get('email');
+    if (email === undefined || email.trim() === '') {
+      return '400 brak email';
+    }
+    const rows = (params.get('rows') ?? '').split(',')
+      .filter((s) => s.trim() !== '').map((s) => Number.parseInt(s, 10));
+    try {
+      const booking = this.bookSeats.execute(
+        new BookSeatsCommand(email, params.get('format') ?? '2D', rows));
+      return `201 ${booking.id} ${booking.total.toString()}`;
+    } catch (error) {
+      if (error instanceof IllegalArgumentError) {
+        return `400 ${error.message}`;
+      }
+      if (error instanceof IllegalStateError) {
+        return `503 ${error.message}`;
+      }
+      throw error;
+    }
+  }
 }
 ```
 
@@ -1279,9 +2140,9 @@ execute(command: BookSeatsCommand): Booking {
 2. Nowe pliki portów: `ReservationStore.ts` z metodą `save(reservation: NewReservation): string` i `BookingNotifier.ts` z metodą `reservationCreated(id, reservation)`.
 3. Nowy plik `RowStoreReservationStore.ts`: adapter mapujący `NewReservation` na kolumny `db.insert([...])`; nowy plik `OutboxBookingNotifier.ts`: adapter znający temat `reservation-created` i format komunikatu.
 4. `BookSeats` przyjmuje w konstruktorze porty `store` i `notifier` zamiast `db` i `outbox`; `execute` tworzy `NewReservation`, woła `store.save`, a potem `notifier.reservationCreated`.
-5. Kontroler składa na razie graf w konstruktorze: `new BookSeats(new RowStoreReservationStore(db), new OutboxBookingNotifier(outbox))`.
+5. Kontroler składa na razie graf w konstruktorze: `new BookSeats(new RowStoreReservationStore(db), new OutboxBookingNotifier(outbox))` - dochodzą importy obu adapterów.
 
-**Przed:**
+**Przed (`BookSeats.ts`, metoda `execute`):**
 
 ```typescript
 execute(command: BookSeatsCommand): Booking {
@@ -1295,12 +2156,118 @@ execute(command: BookSeatsCommand): Booking {
 }
 ```
 
-**Po:**
+**Po (`NewReservation.ts`, nowy plik):**
 
 ```typescript
-const id = this.store.save(reservation);
-this.notifier.reservationCreated(id, reservation);
-return new Booking(id, reservation.total);
+import type { Money } from '../../../shared/Money.js';
+
+/** Dane przekraczające granicę do portu zapisu - rekord, nie unknown[]. */
+export class NewReservation {
+  constructor(
+    readonly email: string,
+    readonly format: string,
+    readonly seats: number,
+    readonly total: Money,
+  ) {}
+}
+```
+
+**Po (`ReservationStore.ts`, nowy plik):**
+
+```typescript
+import type { NewReservation } from './NewReservation.js';
+
+/**
+ * Port wyjściowy zdefiniowany przez potrzebę przypadku użycia.
+ * Zwraca identyfikator; gdy nie da się zapisać - `IllegalStateError`.
+ */
+export interface ReservationStore {
+  save(reservation: NewReservation): string;
+}
+```
+
+**Po (`BookingNotifier.ts`, nowy plik):**
+
+```typescript
+import type { NewReservation } from './NewReservation.js';
+
+/** Port wyjściowy - "daj znać, że rezerwacja powstała". */
+export interface BookingNotifier {
+  reservationCreated(id: string, reservation: NewReservation): void;
+}
+```
+
+**Po (`RowStoreReservationStore.ts`, nowy plik):**
+
+```typescript
+import type { RowStore } from '../RowStore.js';
+import type { NewReservation } from './NewReservation.js';
+import type { ReservationStore } from './ReservationStore.js';
+
+/** Adapter wyjściowy - mapuje rekord na kolumny tabeli. */
+export class RowStoreReservationStore implements ReservationStore {
+  constructor(private readonly db: RowStore) {}
+
+  save(reservation: NewReservation): string {
+    return this.db.insert([
+      reservation.email, reservation.format, reservation.seats, reservation.total]);
+  }
+}
+```
+
+**Po (`OutboxBookingNotifier.ts`, nowy plik):**
+
+```typescript
+import type { Outbox } from '../Outbox.js';
+import type { BookingNotifier } from './BookingNotifier.js';
+import type { NewReservation } from './NewReservation.js';
+
+/** Adapter wyjściowy - zna temat i format komunikatu. */
+export class OutboxBookingNotifier implements BookingNotifier {
+  constructor(private readonly outbox: Outbox) {}
+
+  reservationCreated(id: string, reservation: NewReservation): void {
+    this.outbox.publish('reservation-created', `${id};${reservation.email};${reservation.total.toString()}`);
+  }
+}
+```
+
+**Po (`BookSeats.ts`, importy, konstruktor i `execute`; metoda `price` bez zmian):**
+
+```typescript
+import { IllegalArgumentError } from '../../../../shared/errors.js';
+import { Money } from '../../../shared/Money.js';
+import type { BookingNotifier } from './BookingNotifier.js';
+import type { BookSeatsCommand } from './BookSeatsCommand.js';
+import { Booking } from './Booking.js';
+import { NewReservation } from './NewReservation.js';
+import type { ReservationStore } from './ReservationStore.js';
+
+export class BookSeats {
+  constructor(private readonly store: ReservationStore, private readonly notifier: BookingNotifier) {}
+
+  execute(command: BookSeatsCommand): Booking {
+    if (command.rows.length === 0) {
+      throw new IllegalArgumentError('brak miejsc');
+    }
+    const reservation = new NewReservation(
+      command.email, command.format, command.rows.length, this.price(command));
+    const id = this.store.save(reservation);
+    this.notifier.reservationCreated(id, reservation);
+    return new Booking(id, reservation.total);
+  }
+```
+
+**Po (`ReservationController.ts`, zmienione fragmenty; `handle` bez zmian):**
+
+```typescript
+import { OutboxBookingNotifier } from './OutboxBookingNotifier.js';
+import { RowStoreReservationStore } from './RowStoreReservationStore.js';
+...
+  constructor(db: RowStore, outbox: Outbox) {
+    this.bookSeats = new BookSeats(
+      new RowStoreReservationStore(db), new OutboxBookingNotifier(outbox));
+  }
 ```
 
 **Uruchom:** test zielony, także przypadek "baza niedostępna - brak powiadomienia".
@@ -1313,9 +2280,9 @@ return new Booking(id, reservation.total);
 
 1. Utwórz katalog `app` i przenieś do niego pliki `BookSeats.ts`, `BookSeatsCommand.ts`, `Booking.ts`, `NewReservation.ts`, `ReservationStore.ts` i `BookingNotifier.ts` (Move).
 2. Utwórz katalog `adapter` i przenieś do niego `ReservationController.ts`, `RowStoreReservationStore.ts` i `OutboxBookingNotifier.ts`.
-3. Popraw ścieżki importów w przenoszonych plikach (adaptery importują porty z `../app/...`, świat zewnętrzny z `../../...`) oraz w `CinemaApplication.ts` (kontroler z `./adapter/ReservationController.js`).
+3. Popraw ścieżki importów w przenoszonych plikach (adaptery importują porty z `../app/...`, świat zewnętrzny z `../../...`) oraz w `CinemaApplication.ts` (kontroler z `./adapter/ReservationController.js`). Pliki w `app` importujące `Money` i `errors` dostają jeden poziom `../` więcej (np. `../../../../shared/Money.js`); treść klas i funkcji nigdzie się nie zmienia.
 
-**Przed:**
+**Przed (`ReservationController.ts`, importy lokalne):**
 
 ```typescript
 import { BookSeats } from './BookSeats.js';
@@ -1324,11 +2291,57 @@ import { OutboxBookingNotifier } from './OutboxBookingNotifier.js';
 import { RowStoreReservationStore } from './RowStoreReservationStore.js';
 ```
 
-**Po:**
+**Po (układ katalogów):**
 
 ```text
 step3/app/       BookSeats, BookSeatsCommand, Booking, NewReservation, ReservationStore, BookingNotifier
 step3/adapter/   ReservationController, RowStoreReservationStore, OutboxBookingNotifier
+```
+
+**Po (`adapter/ReservationController.ts`, importy):**
+
+```typescript
+import { IllegalArgumentError, IllegalStateError } from '../../../../../shared/errors.js';
+import type { Outbox } from '../../Outbox.js';
+import type { RowStore } from '../../RowStore.js';
+import { BookSeats } from '../app/BookSeats.js';
+import { BookSeatsCommand } from '../app/BookSeatsCommand.js';
+import { OutboxBookingNotifier } from './OutboxBookingNotifier.js';
+import { RowStoreReservationStore } from './RowStoreReservationStore.js';
+```
+
+**Po (`adapter/RowStoreReservationStore.ts`, importy):**
+
+```typescript
+import type { RowStore } from '../../RowStore.js';
+import type { NewReservation } from '../app/NewReservation.js';
+import type { ReservationStore } from '../app/ReservationStore.js';
+```
+
+**Po (`adapter/OutboxBookingNotifier.ts`, importy):**
+
+```typescript
+import type { Outbox } from '../../Outbox.js';
+import type { BookingNotifier } from '../app/BookingNotifier.js';
+import type { NewReservation } from '../app/NewReservation.js';
+```
+
+**Po (`app/BookSeats.ts`, importy):**
+
+```typescript
+import { IllegalArgumentError } from '../../../../../shared/errors.js';
+import { Money } from '../../../../shared/Money.js';
+import type { BookingNotifier } from './BookingNotifier.js';
+import type { BookSeatsCommand } from './BookSeatsCommand.js';
+import { Booking } from './Booking.js';
+import { NewReservation } from './NewReservation.js';
+import type { ReservationStore } from './ReservationStore.js';
+```
+
+**Po (`CinemaApplication.ts`, zmieniony import):**
+
+```typescript
+import { ReservationController } from './adapter/ReservationController.js';
 ```
 
 **Uruchom:** test zielony.
@@ -1340,7 +2353,7 @@ step3/adapter/   ReservationController, RowStoreReservationStore, OutboxBookingN
 **Zmiany:**
 
 1. W `ReservationController` zamień tworzenie `new BookSeats(...)` w konstruktorze na właściwość parametru `constructor(private readonly bookSeats: BookSeats) {}` (Introduce Parameter, ręcznie); parametry `db` i `outbox` znikają z konstruktora kontrolera.
-2. Składanie grafu przenieś do funkcji `reservationController(db, outbox)` w `CinemaApplication.ts`: tworzy oba adaptery, `BookSeats` i przekazuje go kontrolerowi; wywołanie do poprawy wskaże kompilator.
+2. Składanie grafu przenieś do funkcji `reservationController(db, outbox)` w `CinemaApplication.ts`: tworzy oba adaptery, `BookSeats` i przekazuje go kontrolerowi; wywołanie do poprawy wskaże kompilator. Importy wędrują razem z kodem: kontroler przestaje importować `Outbox`, `RowStore` i oba adaptery (`BookSeats` staje się `import type`), a `CinemaApplication.ts` importuje oba adaptery i `BookSeats`.
 
 **Przed:**
 
@@ -1354,9 +2367,28 @@ export class ReservationController {
   }
 ```
 
-**Po:**
+**Po (`adapter/ReservationController.ts`, importy i konstruktor; metoda `handle` bez zmian):**
 
 ```typescript
+import { IllegalArgumentError, IllegalStateError } from '../../../../../shared/errors.js';
+import type { BookSeats } from '../app/BookSeats.js';
+import { BookSeatsCommand } from '../app/BookSeatsCommand.js';
+
+export class ReservationController {
+  constructor(private readonly bookSeats: BookSeats) {}
+```
+
+**Po (`CinemaApplication.ts`):**
+
+```typescript
+import type { Outbox } from '../Outbox.js';
+import type { RowStore } from '../RowStore.js';
+import { OutboxBookingNotifier } from './adapter/OutboxBookingNotifier.js';
+import { ReservationController } from './adapter/ReservationController.js';
+import { RowStoreReservationStore } from './adapter/RowStoreReservationStore.js';
+import { BookSeats } from './app/BookSeats.js';
+
+/** Composition root: jedyne miejsce, które zna wszystkie konkrety i składa graf. */
 export function reservationController(db: RowStore, outbox: Outbox): ReservationController {
   const bookSeats = new BookSeats(
     new RowStoreReservationStore(db), new OutboxBookingNotifier(outbox));
@@ -1423,9 +2455,9 @@ Uruchom test z logami (`scripts/warsztat.sh --lang ts test m2/s10` - skrypt uruc
 
 1. Nowy plik `domain/ScreeningRowMapper.ts`: klasa `ScreeningRowMapper` z parametrem konstruktora `table` oraz metodami `toRow` i `fromRow` przeniesionymi z `ScreeningService` (Extract Class, ręcznie); importy `Timestamp`, `ScreeningRow` i `IllegalArgumentError` idą razem z kodem.
 2. W `ScreeningService` zostają pola `basePrice` i `morningDiscount` oraz metody `price` i `isMorning`; parametr `table`, metody `toRow`/`fromRow` i importy technologii znikają.
-3. Popraw composition root `CinemaApp.ts`: tworzy `new ScreeningService(new Decimal('25.00'), new Decimal('5.00'))` i `new ScreeningRowMapper('screenings')`, a wiersz i odczyt idą przez maper.
+3. Popraw composition root `CinemaApp.ts`: tworzy `new ScreeningService(new Decimal('25.00'), new Decimal('5.00'))` i `new ScreeningRowMapper('screenings')`, a wiersz i odczyt idą przez maper; dochodzi import mapera z `./domain/ScreeningRowMapper.js`.
 
-**Przed:**
+**Przed (`domain/ScreeningService.ts`; metody `price` i `isMorning` bez zmian):**
 
 ```typescript
 export class ScreeningService {
@@ -1448,15 +2480,75 @@ export class ScreeningService {
 }
 ```
 
-**Po:**
+**Przed (`CinemaApp.ts`, funkcja `describe`):**
 
 ```typescript
-export class ScreeningRowMapper {    // wciąż w domain
+export function describe(title: string, start: LocalDateTime): string {
+  const service = new ScreeningService(
+    new Decimal('25.00'), new Decimal('5.00'), 'screenings');
+  const screening = new Screening(title, start);
+  const row: ScreeningRow = service.toRow(screening);
+  return `${service.price(screening).toFixed(2)} | ${row.toString()} | ${service.fromRow(row).equals(screening)}`;
+}
+```
+
+**Po (`domain/ScreeningRowMapper.ts`, nowy plik - wciąż w domain):**
+
+```typescript
+import { IllegalArgumentError } from '../../../../../shared/errors.js';
+import { Timestamp } from '../../sql/Timestamp.js';
+import { ScreeningRow } from '../adapter/ScreeningRow.js';
+import { Screening } from './Screening.js';
+
+/** Mapowanie na wiersz jako osobna, spójna klasa (LCOM4 = 1); granica wciąż naruszona. */
+export class ScreeningRowMapper {
   constructor(private readonly table: string) {}
 
-  toRow(screening: Screening): ScreeningRow { ... }
+  toRow(screening: Screening): ScreeningRow {
+    return new ScreeningRow(this.table, screening.title, Timestamp.valueOf(screening.start));
+  }
 
-  fromRow(row: ScreeningRow): Screening { ... }
+  fromRow(row: ScreeningRow): Screening {
+    if (row.table !== this.table) {
+      throw new IllegalArgumentError(`obca tabela: ${row.table}`);
+    }
+    return new Screening(row.title, row.start.toLocalDateTime());
+  }
+}
+```
+
+**Po (`domain/ScreeningService.ts`):**
+
+```typescript
+import type { Decimal } from 'decimal.js';
+
+import type { Screening } from './Screening.js';
+
+/** Po Extract Class zostaje sama polityka cenowa (LCOM4 = 1) i żadnego importu technologii. */
+export class ScreeningService {
+  constructor(private readonly basePrice: Decimal, private readonly morningDiscount: Decimal) {}
+
+  price(screening: Screening): Decimal {
+    return this.isMorning(screening) ? this.basePrice.minus(this.morningDiscount) : this.basePrice;
+  }
+
+  private isMorning(screening: Screening): boolean {
+    return screening.start.hour < 12;
+  }
+}
+```
+
+**Po (`CinemaApp.ts`, funkcja `describe`):**
+
+```typescript
+import { ScreeningRowMapper } from './domain/ScreeningRowMapper.js';
+...
+export function describe(title: string, start: LocalDateTime): string {
+  const service = new ScreeningService(new Decimal('25.00'), new Decimal('5.00'));
+  const mapper = new ScreeningRowMapper('screenings');
+  const screening = new Screening(title, start);
+  const row: ScreeningRow = mapper.toRow(screening);
+  return `${service.price(screening).toFixed(2)} | ${row.toString()} | ${mapper.fromRow(row).equals(screening)}`;
 }
 ```
 
@@ -1468,10 +2560,10 @@ export class ScreeningRowMapper {    // wciąż w domain
 
 **Zmiany:**
 
-1. Przenieś plik `ScreeningRowMapper.ts` z katalogu `domain` do `adapter` (Move Class).
-2. Popraw ścieżki importów w maperze (`Screening` z `../domain/Screening.js`, `ScreeningRow` z `./ScreeningRow.js`) i w `CinemaApp.ts` (maper z `./adapter/ScreeningRowMapper.js`).
+1. Przenieś plik `ScreeningRowMapper.ts` z katalogu `domain` do `adapter` (Move Class) - plik `domain/ScreeningRowMapper.ts` znika.
+2. Popraw ścieżki importów w maperze (`Screening` z `../domain/Screening.js`, `ScreeningRow` z `./ScreeningRow.js`; `errors` i `Timestamp` bez zmian, bo `adapter` leży na tej samej głębokości co `domain`) i w `CinemaApp.ts` (maper z `./adapter/ScreeningRowMapper.js`). Treść klasy `ScreeningRowMapper` nie zmienia się.
 
-**Przed:**
+**Przed (`domain/ScreeningRowMapper.ts`, importy):**
 
 ```typescript
 import { IllegalArgumentError } from '../../../../../shared/errors.js';
@@ -1480,12 +2572,19 @@ import { ScreeningRow } from '../adapter/ScreeningRow.js';
 import { Screening } from './Screening.js';
 ```
 
-**Po:**
+**Po (`adapter/ScreeningRowMapper.ts`, importy):**
 
 ```typescript
+import { IllegalArgumentError } from '../../../../../shared/errors.js';
 import { Timestamp } from '../../sql/Timestamp.js';
 import { Screening } from '../domain/Screening.js';
 import { ScreeningRow } from './ScreeningRow.js';
+```
+
+**Po (`CinemaApp.ts`, zmieniony import):**
+
+```typescript
+import { ScreeningRowMapper } from './adapter/ScreeningRowMapper.js';
 ```
 
 **Uruchom:** test zielony; `step2DomainIsFreeOfTechnology` - lista naruszeń pusta.

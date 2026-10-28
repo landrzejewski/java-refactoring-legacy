@@ -82,7 +82,7 @@ W trakcie wychodzą dwa znaleziska, które test zapisuje, a nie poprawia:
 
 **Zmiany:**
 
-1. W klasie `BookingConfirmation` dodajemy prywatne finalne pole `Clock clock`.
+1. W klasie `BookingConfirmation` dodajemy prywatne finalne pole `Clock clock` (dochodzi import `java.time.Clock`).
 2. Dodajemy konstruktor `BookingConfirmation(Clock clock)`, który przypisuje pole, oraz konstruktor bezargumentowy delegujący do `this(Clock.systemDefaultZone())` - dotychczasowi klienci niczego nie zmieniają (Parameterize Constructor).
 3. W `confirm` zamieniamy `LocalDateTime.now()` na `LocalDateTime.now(clock)`.
 
@@ -161,13 +161,30 @@ for (String t : b.ticketTypes()) {
 **Po:**
 
 ```java
+double sum = 0;
 for (String t : b.ticketTypes()) {
     sum = sum + ticketPrice(b, t);
 }
 ...
 private double ticketPrice(Booking b, String t) {
     double p;
-    ...
+    if (b.format() == 3) {
+        p = 40.00;
+    } else if (b.format() == 2) {
+        p = 32.00;
+    } else {
+        p = 25.00;
+    }
+    if (t.equals("S")) {
+        p = p * 0.75;
+    } else if (t.equals("E")) {
+        p = p * 0.70;
+    } else if (t.equals("C")) {
+        p = p * 0.60;
+    }
+    if (b.start().getHour() < 12) {
+        p = p - 5.00;
+    }
     return p;
 }
 ```
@@ -224,12 +241,47 @@ Sekwencja rozrywania zależności: nazwij zachowanie i punkt obserwacji, wprowad
 
 **Zmiany:**
 
-1. Z klasy `LegacyDatabase` wydzielamy nowy interfejs `BookingStore` z dwiema metodami: `paidBookings()` i `markReminded(String bookingId)`; `LegacyDatabase` zaczyna go implementować (Extract Interface).
-2. W `ShowtimeReminderJob` dodajemy pole `Supplier<BookingStore> stores` i konstruktor z tym parametrem.
+1. Z klasy `LegacyDatabase` wydzielamy nowy interfejs `BookingStore` z dwiema metodami: `paidBookings()` i `markReminded(String bookingId)`; `LegacyDatabase` zaczyna go implementować, a obie jej metody dostają `@Override` (Extract Interface).
+2. W `ShowtimeReminderJob` dodajemy pole `Supplier<BookingStore> stores` i konstruktor z tym parametrem (dochodzą importy `java.util.Objects` i `java.util.function.Supplier`).
 3. Dodajemy konstruktor bezargumentowy delegujący do `this(LegacyDatabase::new)` - produkcja składa to samo co wcześniej (Parameterize Constructor).
-4. W `run()` zamieniamy `new LegacyDatabase()` na `stores.get()`; zmienna lokalna `database` ma teraz typ `BookingStore`.
+4. W `run()` zamieniamy `new LegacyDatabase()` na `stores.get()`; zmienna lokalna `database` ma teraz typ `BookingStore`. Reszta metody `run()` bez zmian.
 
-**Przed:**
+**Po (`BookingStore.java`, nowy plik):**
+
+```java
+import java.util.List;
+
+import pl.training.workshop.m3.s02_breakdependencies.PaidBooking;
+
+/** Najwęższy kontrakt, którego potrzebuje ShowtimeReminderJob (wydzielony z LegacyDatabase). */
+public interface BookingStore {
+    List<PaidBooking> paidBookings();
+
+    void markReminded(String bookingId);
+}
+```
+
+**Po (`LegacyDatabase.java`):**
+
+```java
+public final class LegacyDatabase implements BookingStore {
+    public LegacyDatabase() {
+        throw new IllegalStateException("brak polaczenia z jdbc:oracle:thin:@prod-db:1521/CINEMA");
+    }
+
+    @Override
+    public List<PaidBooking> paidBookings() {
+        return List.of();
+    }
+
+    @Override
+    public void markReminded(String bookingId) {
+        // UPDATE bookings SET reminded = 1 WHERE id = ?
+    }
+}
+```
+
+**Przed (`ShowtimeReminderJob.java`):**
 
 ```java
 public final class ShowtimeReminderJob {
@@ -242,7 +294,42 @@ public final class ShowtimeReminderJob {
 }
 ```
 
-**Po:**
+**Po (`ShowtimeReminderJob.java`):**
+
+```java
+public final class ShowtimeReminderJob {
+    private final Supplier<BookingStore> stores;
+
+    public ShowtimeReminderJob() {
+        this(LegacyDatabase::new);
+    }
+
+    public ShowtimeReminderJob(Supplier<BookingStore> stores) {
+        this.stores = Objects.requireNonNull(stores, "stores");
+    }
+
+    public int run() {
+        BookingStore database = stores.get();
+        LocalDateTime now = LocalDateTime.now();
+        int sent = 0;
+        ...
+    }
+}
+```
+
+**Uruchom:** `scripts/warsztat.sh test m3/s02` - testy `step1...` zielone: z fałszywą bazą zadanie działa, gdy nic nie jest do wysłania.
+**Co powiedzieć:** przekazujemy fabrykę, a nie gotową bazę, bo stary kod otwierał połączenie przy każdym `run()`. Gdybyśmy zrobili `this(new LegacyDatabase())`, wyjątek poleciałby już w konstruktorze - zmienilibyśmy czas życia zależności i moment błędu.
+**Snapshot:** `step1/`  ·  **Różnica:** `scripts/warsztat.sh diff m3/s02 0 1`
+
+### Krok 2: Clock jako zależność
+
+**Zmiany:**
+
+1. W `ShowtimeReminderJob` dodajemy pole `Clock clock` i drugi parametr konstruktora (import `java.time.Clock`) - celowo zależność konstruktora, a nie dodatkowy parametr metody `run()`.
+2. Konstruktor bezargumentowy przekazuje `Clock.systemDefaultZone()`.
+3. W `run()` zamieniamy `LocalDateTime.now()` na `LocalDateTime.now(clock)` - zegar czytamy w tym samym miejscu co wcześniej. Reszta metody `run()` bez zmian.
+
+**Przed:**
 
 ```java
 private final Supplier<BookingStore> stores;
@@ -257,39 +344,24 @@ public ShowtimeReminderJob(Supplier<BookingStore> stores) {
 
 public int run() {
     BookingStore database = stores.get();
-```
-
-**Uruchom:** `scripts/warsztat.sh test m3/s02` - testy `step1...` zielone: z fałszywą bazą zadanie działa, gdy nic nie jest do wysłania.
-**Co powiedzieć:** przekazujemy fabrykę, a nie gotową bazę, bo stary kod otwierał połączenie przy każdym `run()`. Gdybyśmy zrobili `this(new LegacyDatabase())`, wyjątek poleciałby już w konstruktorze - zmienilibyśmy czas życia zależności i moment błędu.
-**Snapshot:** `step1/`  ·  **Różnica:** `scripts/warsztat.sh diff m3/s02 0 1`
-
-### Krok 2: Clock jako zależność
-
-**Zmiany:**
-
-1. W `ShowtimeReminderJob` dodajemy pole `Clock clock` i drugi parametr konstruktora - celowo zależność konstruktora, a nie dodatkowy parametr metody `run()`.
-2. Konstruktor bezargumentowy przekazuje `Clock.systemDefaultZone()`.
-3. W `run()` zamieniamy `LocalDateTime.now()` na `LocalDateTime.now(clock)` - zegar czytamy w tym samym miejscu co wcześniej.
-
-**Przed:**
-
-```java
-public ShowtimeReminderJob() {
-    this(LegacyDatabase::new);
-}
-...
-public int run() {
-    BookingStore database = stores.get();
     LocalDateTime now = LocalDateTime.now();
 ```
 
 **Po:**
 
 ```java
+private final Supplier<BookingStore> stores;
+private final Clock clock;
+
 public ShowtimeReminderJob() {
     this(LegacyDatabase::new, Clock.systemDefaultZone());
 }
-...
+
+public ShowtimeReminderJob(Supplier<BookingStore> stores, Clock clock) {
+    this.stores = Objects.requireNonNull(stores, "stores");
+    this.clock = Objects.requireNonNull(clock, "clock");
+}
+
 public int run() {
     BookingStore database = stores.get();
     LocalDateTime now = LocalDateTime.now(clock);
@@ -349,7 +421,17 @@ public class ShowtimeReminderJob {
 3. Ciało `sendReminder` zmieniamy na `sender.send(...)`, wstawiamy je w miejsce wywołania w `run()` i usuwamy metodę `sendReminder` (Inline Method).
 4. Przywracamy `final` na klasie. W teście podklasę zastępuje lambda.
 
-**Przed:**
+**Po (`ReminderSender.java`, nowy plik):**
+
+```java
+/** Najwęższy seam dla powiadomień: interfejs funkcyjny, w teście wystarczy lambda. */
+@FunctionalInterface
+public interface ReminderSender {
+    void send(String to, String subject, String body);
+}
+```
+
+**Przed (`ShowtimeReminderJob.java`):**
 
 ```java
 public class ShowtimeReminderJob {
@@ -359,6 +441,15 @@ public class ShowtimeReminderJob {
     public ShowtimeReminderJob() {
         this(LegacyDatabase::new, Clock.systemDefaultZone());
     }
+
+    public ShowtimeReminderJob(Supplier<BookingStore> stores, Clock clock) {
+        this.stores = Objects.requireNonNull(stores, "stores");
+        this.clock = Objects.requireNonNull(clock, "clock");
+    }
+    ...
+    sendReminder(booking.email(),
+            "Przypomnienie: " + booking.title(),
+            "Seans zaczyna sie o " + booking.start().toLocalTime());
     ...
     protected void sendReminder(String to, String subject, String body) {
         ReminderMailer.send(to, subject, body);
@@ -366,7 +457,7 @@ public class ShowtimeReminderJob {
 }
 ```
 
-**Po:**
+**Po (`ShowtimeReminderJob.java`):**
 
 ```java
 public final class ShowtimeReminderJob {
@@ -377,10 +468,18 @@ public final class ShowtimeReminderJob {
     public ShowtimeReminderJob() {
         this(LegacyDatabase::new, Clock.systemDefaultZone(), ReminderMailer::send);
     }
+
+    public ShowtimeReminderJob(Supplier<BookingStore> stores, Clock clock, ReminderSender sender) {
+        this.stores = Objects.requireNonNull(stores, "stores");
+        this.clock = Objects.requireNonNull(clock, "clock");
+        this.sender = Objects.requireNonNull(sender, "sender");
+    }
     ...
     sender.send(booking.email(),
             "Przypomnienie: " + booking.title(),
             "Seans zaczyna sie o " + booking.start().toLocalTime());
+    ...
+}
 ```
 
 **Uruchom:** test zielony - te same 3 przypadki dla `step3` (podklasa) i `step4` (lambda).
@@ -440,7 +539,17 @@ Pokaż tabelę ze slajdu 1.2: wynik, wyjątki, stan, współpracownicy, czas, gr
 2. W `TicketCheckout` dodajemy pole `Mailer mailer`, konstruktor z tym parametrem i konstruktor bezargumentowy delegujący do `this(CinemaMailer::send)` (Parameterize Constructor).
 3. Oba statyczne wywołania `CinemaMailer.send(...)` w `pay` zamieniamy na `mailer.send(...)`. Logika bez zmian.
 
-**Przed:**
+**Po (`Mailer.java`, nowy plik):**
+
+```java
+/** Seam dla efektu ubocznego "wysłany mail" - w teście lambda zapisująca do dziennika. */
+@FunctionalInterface
+public interface Mailer {
+    void send(String to, String text);
+}
+```
+
+**Przed (`TicketCheckout.java`):**
 
 ```java
 public final class TicketCheckout {
@@ -458,20 +567,32 @@ public final class TicketCheckout {
 }
 ```
 
-**Po:**
+**Po (`TicketCheckout.java`):**
 
 ```java
-private final Mailer mailer;
+public final class TicketCheckout {
+    private final Mailer mailer;
 
-public TicketCheckout() {
-    this(CinemaMailer::send);
-}
+    public TicketCheckout() {
+        this(CinemaMailer::send);
+    }
 
-public TicketCheckout(Mailer mailer) {
-    this.mailer = Objects.requireNonNull(mailer, "mailer");
+    public TicketCheckout(Mailer mailer) {
+        this.mailer = Objects.requireNonNull(mailer, "mailer");
+    }
+
+    public String pay(Booking booking, String card) {
+        ...
+        boolean charged = CardTerminal.charge(card, booking.amount());
+        if (charged) {
+            booking.markPaid();
+        } else {
+            mailer.send(booking.email(), "Platnosc odrzucona " + booking.id());
+        }
+        mailer.send(booking.email(), "Bilety " + booking.id() + " oplacone: " + booking.amount());
+        return charged ? "OK" : "DECLINED";
+    }
 }
-...
-mailer.send(booking.email(), "Platnosc odrzucona " + booking.id());
 ```
 
 **Uruchom:** `scripts/warsztat.sh test m3/s03` - zielony. `step1SeesTheRegressionThatResultOnlyTestMissed` dokumentuje, że po odrzuceniu karty idą dwa maile: "Platnosc odrzucona" i "Bilety B1 oplacone".
@@ -523,22 +644,48 @@ return "DECLINED";
 3. W `pay` zamieniamy `CardTerminal.charge(...)` na `gateway.charge(...)`.
 4. W teście oba fałszywe obiekty (mailer i bramka płatności) zapisują do **jednego** dziennika zdarzeń.
 
-**Przed:**
+**Po (`PaymentGateway.java`, nowy plik):**
 
 ```java
+import pl.training.workshop.shared.Money;
+
+/** Seam dla efektu ubocznego "obciążenie karty". */
+@FunctionalInterface
+public interface PaymentGateway {
+    boolean charge(String card, Money amount);
+}
+```
+
+**Przed (`TicketCheckout.java`):**
+
+```java
+private final Mailer mailer;
+
 public TicketCheckout() {
     this(CinemaMailer::send);
+}
+
+public TicketCheckout(Mailer mailer) {
+    this.mailer = Objects.requireNonNull(mailer, "mailer");
 }
 ...
 if (CardTerminal.charge(card, booking.amount())) {
     booking.markPaid();
 ```
 
-**Po:**
+**Po (`TicketCheckout.java`):**
 
 ```java
+private final Mailer mailer;
+private final PaymentGateway gateway;
+
 public TicketCheckout() {
     this(CinemaMailer::send, CardTerminal::charge);
+}
+
+public TicketCheckout(Mailer mailer, PaymentGateway gateway) {
+    this.mailer = Objects.requireNonNull(mailer, "mailer");
+    this.gateway = Objects.requireNonNull(gateway, "gateway");
 }
 ...
 if (gateway.charge(card, booking.amount())) {
@@ -611,15 +758,28 @@ public final class PriceService {
 **Po:**
 
 ```java
-Money result = legacy.price(query);
-try {
-    if (!candidate.price(query).equals(result)) {
-        mismatches++;
+public final class PriceService {
+    private final LegacyPriceCalculator legacy = new LegacyPriceCalculator();
+    private final CandidatePriceCalculator candidate = new CandidatePriceCalculator();
+    private int mismatches;
+
+    public Money price(TicketQuery query) {
+        Money result = legacy.price(query);
+        try {
+            if (!candidate.price(query).equals(result)) {
+                mismatches++;
+            }
+        } catch (RuntimeException candidateFailure) {
+            mismatches++;
+        }
+        return result;
     }
-} catch (RuntimeException candidateFailure) {
-    mismatches++;
+
+    /** Wiemy, ŻE coś się różni, ale nie wiemy CO - licznik to za mało do decyzji. */
+    public int mismatches() {
+        return mismatches;
+    }
 }
-return result;
 ```
 
 **Uruchom:** test zielony; `step1ShadowSurvivesCandidateFailureButOnlyCountsMismatches` - wyjątek kandydata dla formatu 4DX nie przerywa sprzedaży.
@@ -634,23 +794,93 @@ return result;
 2. W `PriceService` licznik `mismatches` i jego metoda odczytu znikają; w ich miejsce pole `VerificationReport report` - konstruktor przyjmuje raport, a bezargumentowy tworzy `new VerificationReport()`.
 3. Porównanie wydzielamy z `price` do prywatnej metody `verify(TicketQuery, Money)`, która zwraca typowane zdarzenie; `price` tylko je zapisuje przez `report.record(verify(query, result))` (Extract Method).
 
-**Przed:**
+**Po (`VerificationReport.java`, nowy plik):**
 
 ```java
-Money result = legacy.price(query);
-try {
-    if (!candidate.price(query).equals(result)) {
-        mismatches++;
+import java.util.ArrayList;
+import java.util.List;
+
+import pl.training.workshop.m3.s04_parallelrun.TicketQuery;
+import pl.training.workshop.shared.Money;
+
+public final class VerificationReport {
+    public sealed interface Verification {
     }
-} catch (RuntimeException candidateFailure) {
-    mismatches++;
+
+    public record Agreement(TicketQuery query, Money price) implements Verification {
+    }
+
+    public record Divergence(TicketQuery query, Money legacy, Money candidate) implements Verification {
+    }
+
+    public record CandidateFailure(TicketQuery query, Money legacy, String error) implements Verification {
+    }
+
+    private final List<Verification> entries = new ArrayList<>();
+
+    public void record(Verification verification) {
+        entries.add(verification);
+    }
+
+    public List<Verification> entries() {
+        return List.copyOf(entries);
+    }
+
+    /** Czytelne wiersze raportu - tylko to, co wymaga uwagi zespołu. */
+    public List<String> problems() {
+        List<String> lines = new ArrayList<>();
+        for (Verification entry : entries) {
+            switch (entry) {
+                case Agreement agreement -> { }
+                case Divergence d -> lines.add("ROZBIEZNOSC " + d.query()
+                        + ": legacy " + d.legacy() + ", kandydat " + d.candidate());
+                case CandidateFailure f -> lines.add("BLAD KANDYDATA " + f.query() + ": " + f.error());
+            }
+        }
+        return lines;
+    }
 }
-return result;
 ```
 
-**Po:**
+**Przed (`PriceService.java`):**
 
 ```java
+private final LegacyPriceCalculator legacy = new LegacyPriceCalculator();
+private final CandidatePriceCalculator candidate = new CandidatePriceCalculator();
+private int mismatches;
+
+public Money price(TicketQuery query) {
+    Money result = legacy.price(query);
+    try {
+        if (!candidate.price(query).equals(result)) {
+            mismatches++;
+        }
+    } catch (RuntimeException candidateFailure) {
+        mismatches++;
+    }
+    return result;
+}
+
+public int mismatches() {
+    return mismatches;
+}
+```
+
+**Po (`PriceService.java`):**
+
+```java
+private final LegacyPriceCalculator legacy = new LegacyPriceCalculator();
+private final CandidatePriceCalculator candidate = new CandidatePriceCalculator();
+private final VerificationReport report;
+
+public PriceService() {
+    this(new VerificationReport());
+}
+
+public PriceService(VerificationReport report) {
+    this.report = report;
+}
+
 public Money price(TicketQuery query) {
     Money result = legacy.price(query);
     report.record(verify(query, result));
@@ -684,19 +914,38 @@ private VerificationReport.Verification verify(TicketQuery query, Money legacyPr
 **Przed:**
 
 ```java
-Money base = basePrice(query.format());
-if (query.start().getHour() < 12) {
-    base = base.minus(MORNING_DISCOUNT);
+public Money price(TicketQuery query) {
+    Money base = basePrice(query.format());
+    if (query.start().getHour() < 12) {
+        base = base.minus(MORNING_DISCOUNT);
+    }
+    Money price = base.minus(base.percent(discountPercent(query.type())));
+    if (query.row() >= 10) {
+        price = price.plus(VIP_SURCHARGE);
+    }
+    if (query.format().equals("3D")) {
+        price = price.plus(GLASSES_3D);
+    }
+    return price;
 }
-Money price = base.minus(base.percent(discountPercent(query.type())));
 ```
 
 **Po:**
 
 ```java
-Money price = base.minus(base.percent(discountPercent(query.type())));
-if (query.start().getHour() < 12) {
-    price = price.minus(MORNING_DISCOUNT);
+public Money price(TicketQuery query) {
+    Money base = basePrice(query.format());
+    Money price = base.minus(base.percent(discountPercent(query.type())));
+    if (query.start().getHour() < 12) {
+        price = price.minus(MORNING_DISCOUNT);
+    }
+    if (query.row() >= 10) {
+        price = price.plus(VIP_SURCHARGE);
+    }
+    if (query.format().equals("3D")) {
+        price = price.plus(GLASSES_3D);
+    }
+    return price;
 }
 ```
 
@@ -713,7 +962,18 @@ if (query.start().getHour() < 12) {
 3. Dotychczasową ścieżkę porównania przenosimy do prywatnej metody `shadow(TicketQuery)`; metoda `verify` znika, a zapis do raportu dzieje się wprost w `shadow`.
 4. `price` wybiera ścieżkę przez `switch` po trybie: `LEGACY` woła stary kalkulator, `SHADOW` metodę `shadow`, `CANDIDATE` kandydata.
 
-**Przed:**
+**Po (`MigrationMode.java`, nowy plik):**
+
+```java
+/** Jawny tryb migracji zamiast flagi boolean. */
+public enum MigrationMode {
+    LEGACY,
+    SHADOW,
+    CANDIDATE
+}
+```
+
+**Przed (`PriceService.java`):**
 
 ```java
 public PriceService() {
@@ -725,21 +985,49 @@ public Money price(TicketQuery query) {
     report.record(verify(query, result));
     return result;
 }
+
+private VerificationReport.Verification verify(TicketQuery query, Money legacyPrice) { ... }
 ```
 
-**Po:**
+**Po (`PriceService.java`):**
 
 ```java
-public PriceService() {
-    this(MigrationMode.SHADOW, new VerificationReport());
-}
-...
-public Money price(TicketQuery query) {
-    return switch (mode) {
-        case LEGACY -> legacy.price(query);
-        case SHADOW -> shadow(query);
-        case CANDIDATE -> candidate.price(query);
-    };
+public final class PriceService {
+    private final LegacyPriceCalculator legacy = new LegacyPriceCalculator();
+    private final CandidatePriceCalculator candidate = new CandidatePriceCalculator();
+    private final MigrationMode mode;
+    private final VerificationReport report;
+
+    public PriceService() {
+        this(MigrationMode.SHADOW, new VerificationReport());
+    }
+
+    public PriceService(MigrationMode mode, VerificationReport report) {
+        this.mode = mode;
+        this.report = report;
+    }
+
+    public Money price(TicketQuery query) {
+        return switch (mode) {
+            case LEGACY -> legacy.price(query);
+            case SHADOW -> shadow(query);
+            case CANDIDATE -> candidate.price(query);
+        };
+    }
+
+    private Money shadow(TicketQuery query) {
+        Money result = legacy.price(query);
+        try {
+            Money candidatePrice = candidate.price(query);
+            report.record(result.equals(candidatePrice)
+                    ? new VerificationReport.Agreement(query, result)
+                    : new VerificationReport.Divergence(query, result, candidatePrice));
+        } catch (RuntimeException failure) {
+            report.record(new VerificationReport.CandidateFailure(query, result,
+                    failure.getClass().getSimpleName() + ": " + failure.getMessage()));
+        }
+        return result;
+    }
 }
 ```
 
@@ -791,10 +1079,56 @@ try {
 
 1. Powstaje nowy plik `Effects.java`: interfejs z trzema operacjami `Infrastructure`, których używa nowy przepływ - `sendMail`, `charge` i `save` (Extract Interface).
 2. Powstaje nowy plik `RealEffects.java`: adapter implementujący `Effects` i delegujący każdą operację do `Infrastructure`.
-3. W konstruktorze `NewBookingFlow` zmieniamy typ parametru z `Infrastructure` na `Effects` (pole `infra` staje się polem `effects`); w `book` wywołania `infra.*` stają się `effects.*`.
+3. W konstruktorze `NewBookingFlow` zmieniamy typ parametru z `Infrastructure` na `Effects` (pole `infra` staje się polem `effects`); w `book` wszystkie trzy wywołania `infra.*` stają się `effects.*`. Import `...s05_shadowlimits.Infrastructure` znika z tego pliku.
 4. W `ShadowBooking` kandydat powstaje teraz przez `new NewBookingFlow(new RealEffects(infra))` - zachowanie (także błędne) bez zmian.
 
-**Przed:**
+**Po (`Effects.java`, nowy plik):**
+
+```java
+import pl.training.workshop.shared.Money;
+
+/** Port efektów ubocznych - nowa ścieżka nie sięga już bezpośrednio do infrastruktury. */
+public interface Effects {
+    void sendMail(String to, String text);
+
+    void charge(String card, Money amount);
+
+    void save(String row);
+}
+```
+
+**Po (`RealEffects.java`, nowy plik):**
+
+```java
+import pl.training.workshop.m3.s05_shadowlimits.Infrastructure;
+import pl.training.workshop.shared.Money;
+
+/** Adapter portu na prawdziwą infrastrukturę (poczta, płatności, baza). */
+public final class RealEffects implements Effects {
+    private final Infrastructure infra;
+
+    public RealEffects(Infrastructure infra) {
+        this.infra = infra;
+    }
+
+    @Override
+    public void sendMail(String to, String text) {
+        infra.sendMail(to, text);
+    }
+
+    @Override
+    public void charge(String card, Money amount) {
+        infra.charge(card, amount);
+    }
+
+    @Override
+    public void save(String row) {
+        infra.save(row);
+    }
+}
+```
+
+**Przed (`NewBookingFlow.java`):**
 
 ```java
 private final Infrastructure infra;
@@ -804,16 +1138,17 @@ public NewBookingFlow(Infrastructure infra) {
 }
 
 public String book(BookingRequest request) {
-    ...
+    Money tickets = TICKET_2D.times(request.tickets());
+    Money total = tickets.plus(ONLINE_FEE.times(request.tickets()));
     infra.charge(request.card(), total);
-    ...
+    infra.save(request.title() + ";" + request.email() + ";" + request.tickets() + ";" + total);
+    infra.sendMail(request.email(),
+            "Bilety " + request.title() + " x" + request.tickets() + ", zaplacono " + tickets);
+    return "OK " + total;
 }
-
-// w ShadowBooking:
-this.candidate = new NewBookingFlow(infra);
 ```
 
-**Po:**
+**Po (`NewBookingFlow.java`):**
 
 ```java
 private final Effects effects;
@@ -823,13 +1158,32 @@ public NewBookingFlow(Effects effects) {
 }
 
 public String book(BookingRequest request) {
-    ...
+    Money tickets = TICKET_2D.times(request.tickets());
+    Money total = tickets.plus(ONLINE_FEE.times(request.tickets()));
     effects.charge(request.card(), total);
-    ...
+    effects.save(request.title() + ";" + request.email() + ";" + request.tickets() + ";" + total);
+    effects.sendMail(request.email(),
+            "Bilety " + request.title() + " x" + request.tickets() + ", zaplacono " + tickets);
+    return "OK " + total;
 }
+```
 
-// w ShadowBooking:
-this.candidate = new NewBookingFlow(new RealEffects(infra));
+**Przed (`ShadowBooking.java`):**
+
+```java
+public ShadowBooking(Infrastructure infra) {
+    this.legacy = new LegacyBookingFlow(infra);
+    this.candidate = new NewBookingFlow(infra);
+}
+```
+
+**Po (`ShadowBooking.java`):**
+
+```java
+public ShadowBooking(Infrastructure infra) {
+    this.legacy = new LegacyBookingFlow(infra);
+    this.candidate = new NewBookingFlow(new RealEffects(infra));
+}
 ```
 
 **Uruchom:** test zielony; `step1PreparatoryRefactoringKeepsTheBugOnPurpose` - nadal dwa maile.
@@ -843,11 +1197,53 @@ this.candidate = new NewBookingFlow(new RealEffects(infra));
 1. Powstaje nowy plik `RecordingEffects.java`: implementacja `Effects`, która zapisuje zamiary w formacie dziennika infrastruktury (`MAIL ...`, `CHARGE ...`, `SAVE ...`), niczego nie wykonuje, a nagrania udostępnia przez `recorded()`.
 2. W `ShadowBooking` pole `candidate` znika; dochodzi pole `Infrastructure infra`. Kandydata tworzymy w `book` z nagrywarką: `new NewBookingFlow(recorder)`.
 3. W `book` przed wywołaniem legacy zapamiętujemy rozmiar dziennika, a po nim wycinamy z dziennika efekty wykonane przez legacy (`legacyEffects`).
-4. Porównanie przenosimy do pomocniczej metody `compare(String, List, List)` i wołamy ją dwa razy: dla wyniku i dla efektów; różnice trafiają do `divergences`.
+4. Porównanie przenosimy do pomocniczej metody `compare(String, List, List)` i wołamy ją dwa razy: dla wyniku i dla efektów; różnice trafiają do `divergences`. Metoda `divergences()` bez zmian.
 
-**Przed:**
+**Po (`RecordingEffects.java`, nowy plik):**
 
 ```java
+import java.util.ArrayList;
+import java.util.List;
+
+import pl.training.workshop.shared.Money;
+
+/** Nagrywa zamiary kandydata w formacie dziennika infrastruktury; niczego nie wykonuje. */
+public final class RecordingEffects implements Effects {
+    private final List<String> recorded = new ArrayList<>();
+
+    @Override
+    public void sendMail(String to, String text) {
+        recorded.add("MAIL " + to + ": " + text);
+    }
+
+    @Override
+    public void charge(String card, Money amount) {
+        recorded.add("CHARGE " + card + ": " + amount);
+    }
+
+    @Override
+    public void save(String row) {
+        recorded.add("SAVE " + row);
+    }
+
+    public List<String> recorded() {
+        return List.copyOf(recorded);
+    }
+}
+```
+
+**Przed (`ShadowBooking.java`):**
+
+```java
+private final LegacyBookingFlow legacy;
+private final NewBookingFlow candidate;
+private final List<String> divergences = new ArrayList<>();
+
+public ShadowBooking(Infrastructure infra) {
+    this.legacy = new LegacyBookingFlow(infra);
+    this.candidate = new NewBookingFlow(new RealEffects(infra));
+}
+
 public String book(BookingRequest request) {
     String result = legacy.book(request);
     try {
@@ -862,21 +1258,42 @@ public String book(BookingRequest request) {
 }
 ```
 
-**Po:**
+**Po (`ShadowBooking.java`):**
 
 ```java
-int before = infra.log().size();
-String result = legacy.book(request);
-List<String> legacyEffects = infra.log().subList(before, infra.log().size());
-try {
-    RecordingEffects recorder = new RecordingEffects();
-    String shadow = new NewBookingFlow(recorder).book(request);
-    compare("wynik", List.of(result), List.of(shadow));
-    compare("efekty", legacyEffects, recorder.recorded());
-} catch (RuntimeException failure) {
-    divergences.add("kandydat: " + failure.getMessage());
+private final Infrastructure infra;
+private final LegacyBookingFlow legacy;
+private final List<String> divergences = new ArrayList<>();
+
+public ShadowBooking(Infrastructure infra) {
+    this.infra = infra;
+    this.legacy = new LegacyBookingFlow(infra);
 }
-return result;
+
+public String book(BookingRequest request) {
+    int before = infra.log().size();
+    String result = legacy.book(request);
+    List<String> legacyEffects = infra.log().subList(before, infra.log().size());
+    try {
+        RecordingEffects recorder = new RecordingEffects();
+        String shadow = new NewBookingFlow(recorder).book(request);
+        compare("wynik", List.of(result), List.of(shadow));
+        compare("efekty", legacyEffects, recorder.recorded());
+    } catch (RuntimeException failure) {
+        divergences.add("kandydat: " + failure.getMessage());
+    }
+    return result;
+}
+
+private void compare(String what, List<String> legacyValues, List<String> candidateValues) {
+    for (int i = 0; i < Math.max(legacyValues.size(), candidateValues.size()); i++) {
+        String legacyValue = i < legacyValues.size() ? legacyValues.get(i) : "-";
+        String candidateValue = i < candidateValues.size() ? candidateValues.get(i) : "-";
+        if (!legacyValue.equals(candidateValue)) {
+            divergences.add(what + " legacy: " + legacyValue + " | kandydat: " + candidateValue);
+        }
+    }
+}
 ```
 
 **Uruchom:** test zielony; `step2RecordsCandidateEffectsInsteadOfExecutingThem` - jeden mail, jedno obciążenie, a raport pokazuje rozbieżność w treści maila (kandydat pisze 50.00 zamiast 54.00).
@@ -888,36 +1305,163 @@ return result;
 **Zmiany:**
 
 1. Powstaje nowy plik `BookingPlan.java`: rekord `BookingPlan(String result, List<Effect> effects)` z zapieczętowanym interfejsem `Effect` i rekordami `Charge`, `Save`, `SendMail`; każdy efekt umie się opisać (`describe`) i wykonać na porcie (`applyTo`).
-2. Powstaje nowy plik `BookingPlanner.java`: czysta część wyliczeń wydzielona z `NewBookingFlow.book` - metoda `plan(BookingRequest)` liczy kwoty i zwraca plan jako dane; klasa nie ma dostępu do portu efektów (Separate Query from Modifier).
-3. `NewBookingFlow.book` chudnie: pobiera plan z `BookingPlanner`, wykonuje `plan.effects()` na porcie `Effects` i zwraca `plan.result()`.
-4. W `ShadowBooking` kandydatem jest teraz `BookingPlanner`: cień porównuje wynik planu oraz opisy zaplanowanych efektów z efektami legacy.
+2. Powstaje nowy plik `BookingPlanner.java`: czysta część wyliczeń wydzielona z `NewBookingFlow.book` - metoda `plan(BookingRequest)` liczy kwoty i zwraca plan jako dane; klasa nie ma dostępu do portu efektów (Separate Query from Modifier). Stałe `TICKET_2D` i `ONLINE_FEE` przenoszą się z `NewBookingFlow` do `BookingPlanner`.
+3. `NewBookingFlow.book` chudnie: pobiera plan z `BookingPlanner` (nowe pole `planner`), wykonuje `plan.effects()` na porcie `Effects` i zwraca `plan.result()`.
+4. W `ShadowBooking` kandydatem jest teraz pole `BookingPlanner candidate`: cień porównuje wynik planu oraz opisy zaplanowanych efektów z efektami legacy. Konstruktor, metody `compare` i `divergences()` bez zmian.
 5. Plik `RecordingEffects.java` znika - nagrywarka nie jest już potrzebna.
 
-**Przed:**
+**Po (`BookingPlan.java`, nowy plik):**
 
 ```java
+import java.util.List;
+
+import pl.training.workshop.shared.Money;
+
+/**
+ * Wynik czystego obliczenia - odpowiedź dla klienta i lista efektów DO wykonania.
+ * Efekty to dane: można je porównać, zalogować albo wykonać, ale plan sam niczego nie robi.
+ */
+public record BookingPlan(String result, List<Effect> effects) {
+    public sealed interface Effect {
+        String describe();
+
+        void applyTo(Effects port);
+    }
+
+    public record Charge(String card, Money amount) implements Effect {
+        public String describe() {
+            return "CHARGE " + card + ": " + amount;
+        }
+
+        public void applyTo(Effects port) {
+            port.charge(card, amount);
+        }
+    }
+
+    public record Save(String row) implements Effect {
+        public String describe() {
+            return "SAVE " + row;
+        }
+
+        public void applyTo(Effects port) {
+            port.save(row);
+        }
+    }
+
+    public record SendMail(String to, String text) implements Effect {
+        public String describe() {
+            return "MAIL " + to + ": " + text;
+        }
+
+        public void applyTo(Effects port) {
+            port.sendMail(to, text);
+        }
+    }
+}
+```
+
+**Po (`BookingPlanner.java`, nowy plik):**
+
+```java
+import java.util.List;
+
+import pl.training.workshop.m3.s05_shadowlimits.BookingRequest;
+import pl.training.workshop.shared.Money;
+
+/** Czysta część nowej ścieżki - nie ma dostępu do żadnego portu efektów. */
+public final class BookingPlanner {
+    private static final Money TICKET_2D = Money.of("25.00");
+    private static final Money ONLINE_FEE = Money.of("2.00");
+
+    public BookingPlan plan(BookingRequest request) {
+        Money tickets = TICKET_2D.times(request.tickets());
+        Money total = tickets.plus(ONLINE_FEE.times(request.tickets()));
+        return new BookingPlan("OK " + total, List.of(
+                new BookingPlan.Charge(request.card(), total),
+                new BookingPlan.Save(request.title() + ";" + request.email() + ";"
+                        + request.tickets() + ";" + total),
+                new BookingPlan.SendMail(request.email(),
+                        "Bilety " + request.title() + " x" + request.tickets() + ", zaplacono " + tickets)));
+    }
+}
+```
+
+**Przed (`NewBookingFlow.java`):**
+
+```java
+public final class NewBookingFlow {
+    private static final Money TICKET_2D = Money.of("25.00");
+    private static final Money ONLINE_FEE = Money.of("2.00");
+
+    private final Effects effects;
+
+    public NewBookingFlow(Effects effects) {
+        this.effects = effects;
+    }
+
+    public String book(BookingRequest request) {
+        Money tickets = TICKET_2D.times(request.tickets());
+        Money total = tickets.plus(ONLINE_FEE.times(request.tickets()));
+        effects.charge(request.card(), total);
+        effects.save(request.title() + ";" + request.email() + ";" + request.tickets() + ";" + total);
+        effects.sendMail(request.email(),
+                "Bilety " + request.title() + " x" + request.tickets() + ", zaplacono " + tickets);
+        return "OK " + total;
+    }
+}
+```
+
+**Po (`NewBookingFlow.java`):**
+
+```java
+public final class NewBookingFlow {
+    private final BookingPlanner planner = new BookingPlanner();
+    private final Effects effects;
+
+    public NewBookingFlow(Effects effects) {
+        this.effects = effects;
+    }
+
+    public String book(BookingRequest request) {
+        BookingPlan plan = planner.plan(request);
+        plan.effects().forEach(effect -> effect.applyTo(effects));
+        return plan.result();
+    }
+}
+```
+
+**Przed (`ShadowBooking.java`):**
+
+```java
+private final Infrastructure infra;
+private final LegacyBookingFlow legacy;
+private final List<String> divergences = new ArrayList<>();
+...
 try {
     RecordingEffects recorder = new RecordingEffects();
     String shadow = new NewBookingFlow(recorder).book(request);
     compare("wynik", List.of(result), List.of(shadow));
     compare("efekty", legacyEffects, recorder.recorded());
+} catch (RuntimeException failure) {
+    divergences.add("kandydat: " + failure.getMessage());
 }
 ```
 
-**Po:**
+**Po (`ShadowBooking.java`):**
 
 ```java
-// w ShadowBooking:
-BookingPlan plan = candidate.plan(request);
-compare("wynik", List.of(result), List.of(plan.result()));
-List<String> planned = plan.effects().stream().map(BookingPlan.Effect::describe).toList();
-compare("efekty", legacyEffects, planned);
-
-// NewBookingFlow wykonuje plan:
-public String book(BookingRequest request) {
-    BookingPlan plan = planner.plan(request);
-    plan.effects().forEach(effect -> effect.applyTo(effects));
-    return plan.result();
+private final Infrastructure infra;
+private final LegacyBookingFlow legacy;
+private final BookingPlanner candidate = new BookingPlanner();
+private final List<String> divergences = new ArrayList<>();
+...
+try {
+    BookingPlan plan = candidate.plan(request);
+    compare("wynik", List.of(result), List.of(plan.result()));
+    List<String> planned = plan.effects().stream().map(BookingPlan.Effect::describe).toList();
+    compare("efekty", legacyEffects, planned);
+} catch (RuntimeException failure) {
+    divergences.add("kandydat: " + failure.getMessage());
 }
 ```
 
