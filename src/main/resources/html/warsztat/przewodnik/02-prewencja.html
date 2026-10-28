@@ -653,7 +653,7 @@ byTitle.merge(sale.title(), revenue(sale), BigDecimal::add);   <span class="hljs
 <h3 id="w-skrocie-8" tabindex="-1"><a class="header-anchor" href="#w-skrocie-8"><span>W skrócie</span></a></h3>
 <p><strong>Co robimy:</strong> <code>ReservationController</code> parsuje żądanie, liczy cenę, zapisuje wiersz i publikuje komunikat w jednej metodzie. W czterech krokach wydzielamy przypadek użycia, porty z adapterami, pakiety <code>app</code> i <code>adapter</code> oraz composition root.</p>
 <p><strong>Zasada:</strong> Clean Architecture to zasada, że polityka (przypadki użycia) nie zależy od mechanizmów: porty należą do strony formułującej potrzebę, granicę przekraczają proste rekordy, a composition root składa graf bez reguł biznesowych. Liczy się kierunek importów, a nie nazwy czterech folderów.</p>
-<p><strong>Efekt:</strong> Przypadek użycia testujemy bez HTTP i bazy, a kolejność zapis-powiadomienie jest jawną decyzją protokołu. Koszt to siedem typów więcej, uzasadniony dwoma realnymi efektami zewnętrznymi.</p>
+<p><strong>Efekt:</strong> Przypadek użycia testujemy bez HTTP i bazy, a kolejność zapis-powiadomienie jest jawną decyzją protokołu. Koszt to osiem typów więcej, uzasadniony dwoma realnymi efektami zewnętrznymi.</p>
 <h3 id="co-widzimy-8" tabindex="-1"><a class="header-anchor" href="#co-widzimy-8"><span>Co widzimy</span></a></h3>
 <p><code>ReservationController</code> obsługuje żądanie &quot;HTTP&quot; (<code>Map&lt;String, String&gt;</code>) i robi wszystko: parsuje parametry, liczy cenę (format + VIP), zapisuje wiersz <code>Object[]</code> w <code>RowStore</code>, publikuje komunikat w <code>Outbox</code>, buduje odpowiedź. <code>RowStore</code> i <code>Outbox</code> to stabilny &quot;świat zewnętrzny&quot; sceny. Test wchodzi przez <code>CinemaApplication.reservationController(db, outbox)</code> i porównuje odpowiedź, zapisane wiersze i komunikaty.</p>
 <pre class="code" data-lang="java"><code class="hljs">String id;
@@ -714,7 +714,7 @@ step3/adapter/   ReservationController, RowStoreReservationStore, OutboxBookingN
 <strong>Co powiedzieć:</strong> composition root zna wszystkie konkrety i nie zawiera reguł biznesowych. Podmiana bazy to zmiana tylko tutaj. Kontener DI nie jest potrzebny.
 <strong>Snapshot:</strong> <code>step4/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m2/<wbr>s09 3 4</code></p>
 <h3 id="rozwiazanie-i-uzasadnienie-8" tabindex="-1"><a class="header-anchor" href="#rozwiazanie-i-uzasadnienie-8"><span>Rozwiązanie i uzasadnienie</span></a></h3>
-<p>Przypadek użycia testowany bez HTTP i bazy, adaptery wymienialne w jednym miejscu, dane na granicy jako rekordy. Koszt: siedem typów więcej. Uzasadnia go to, że dwa efekty zewnętrzne i protokół ich kolejności już istnieją (slajd 2.4, pytanie o koszt abstrakcji).</p>
+<p>Przypadek użycia testowany bez HTTP i bazy, adaptery wymienialne w jednym miejscu, dane na granicy jako rekordy. Koszt: osiem typów więcej. Uzasadnia go to, że dwa efekty zewnętrzne i protokół ich kolejności już istnieją (slajd 2.4, pytanie o koszt abstrakcji).</p>
 <h3 id="pulapki-8" tabindex="-1"><a class="header-anchor" href="#pulapki-8"><span>Pułapki</span></a></h3>
 <ul>
 <li>Kopiowanie szablonu czterech folderów bez sprawdzenia kierunku importów.</li>

@@ -768,7 +768,7 @@ Narysujcie strzałki importów i strzałki wywołań dla jednego waszego przypad
 
 **Zasada:** Clean Architecture to zasada, że polityka (przypadki użycia) nie zależy od mechanizmów: porty należą do strony formułującej potrzebę, granicę przekraczają proste obiekty danych, a composition root składa graf bez reguł biznesowych. Liczy się kierunek importów, a nie nazwy czterech folderów.
 
-**Efekt:** Przypadek użycia testujemy bez HTTP i bazy, a kolejność zapis-powiadomienie jest jawną decyzją protokołu. Koszt to siedem typów więcej, uzasadniony dwoma realnymi efektami zewnętrznymi.
+**Efekt:** Przypadek użycia testujemy bez HTTP i bazy, a kolejność zapis-powiadomienie jest jawną decyzją protokołu. Koszt to osiem typów więcej, uzasadniony dwoma realnymi efektami zewnętrznymi.
 
 **Różnica względem Javy:** kwoty są typu `Money` (a nie `Decimal`), bo trafiają do wiersza bazy i komunikatu przez `toString()` - `Money` drukuje zawsze dwa miejsca po przecinku, jak `BigDecimal` w Javie. Wiersz `Object[]` to `readonly unknown[]`, rekordy to klasy z polami `readonly`, a `CinemaApplication` to moduł z funkcją `reservationController(db, outbox)`. Łapanie `IllegalArgumentException`/`IllegalStateException` to `instanceof IllegalArgumentError`/`IllegalStateError` z ponownym rzuceniem pozostałych błędów. Porty w `S09UseCaseTest` implementują literały obiektów zamiast lambd.
 
@@ -859,7 +859,7 @@ export function reservationController(db: RowStore, outbox: Outbox): Reservation
 
 ### Rozwiązanie i uzasadnienie
 
-Przypadek użycia testowany bez HTTP i bazy, adaptery wymienialne w jednym miejscu, dane na granicy jako proste klasy danych. Koszt: siedem typów więcej. Uzasadnia go to, że dwa efekty zewnętrzne i protokół ich kolejności już istnieją (slajd 2.4, pytanie o koszt abstrakcji).
+Przypadek użycia testowany bez HTTP i bazy, adaptery wymienialne w jednym miejscu, dane na granicy jako proste klasy danych. Koszt: osiem typów więcej. Uzasadnia go to, że dwa efekty zewnętrzne i protokół ich kolejności już istnieją (slajd 2.4, pytanie o koszt abstrakcji).
 
 ### Pułapki
 

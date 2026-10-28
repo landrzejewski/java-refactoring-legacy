@@ -244,7 +244,7 @@ cmd_test() {
 
 cmd_reset() {
     local dir; dir=$(scene_dir "$1")
-    (cd "$ROOT" && git checkout -- "$dir/$START" && git clean -fdq -- "$dir/$START")
+    (cd "$ROOT" && git checkout HEAD -- "$dir/$START" && git clean -fdq -- "$dir/$START")
     save_state "$1" 0
     echo "start przywrócony: $(namespace_of "$dir")"
 }
