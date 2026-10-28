@@ -77,12 +77,12 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 .langs{margin-left:auto}.langs+.pager{margin-left:0}</style>
 </head>
 <body class="warsztat">
-<header class="topbar"><a class="home" href="../../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../../slajdy/refaktoryzacja-do-wzorcow-slajdy.html">Slajdy</a><a class="tab" href="../00-cinelegacy.html">Warsztat CineLegacy</a><a class="tab" href="../zadania/03-testowanie-a-bezpieczenstwo.html">Zadania</a><a class="tab active" href="03-testowanie-a-bezpieczenstwo.html">Przewodnik</a></div><div class="tabs langs" aria-label="Język"><a class="tab active" href="../../warsztat/przewodnik/03-testowanie-a-bezpieczenstwo.html">Java</a><a class="tab" href="../../warsztat-csharp/przewodnik/03-testowanie-a-bezpieczenstwo.html">C#</a><a class="tab" href="../../warsztat-typescript/przewodnik/03-testowanie-a-bezpieczenstwo.html">TypeScript</a></div><div class="pager"><a href="02-prewencja.html" title="Poprzedni moduł">&larr; 02</a><a href="05-refaktoryzacja-do-wzorcow.html" title="Następny moduł">05 &rarr;</a></div></header>
+<header class="topbar"><a class="home" href="../../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../../slajdy/refaktoryzacja-do-wzorcow-slajdy.html">Slajdy</a><a class="tab" href="../00-cinelegacy.html">Warsztat CineLegacy</a><a class="tab active" href="03-testowanie-a-bezpieczenstwo.html">Przewodnik</a></div><div class="tabs langs" aria-label="Język"><a class="tab active" href="../../warsztat/przewodnik/03-testowanie-a-bezpieczenstwo.html">Java</a><a class="tab" href="../../warsztat-csharp/przewodnik/03-testowanie-a-bezpieczenstwo.html">C#</a><a class="tab" href="../../warsztat-typescript/przewodnik/03-testowanie-a-bezpieczenstwo.html">TypeScript</a></div><div class="pager"><a href="02-prewencja.html" title="Poprzedni moduł">&larr; 02</a><a href="05-refaktoryzacja-do-wzorcow.html" title="Następny moduł">05 &rarr;</a></div></header>
 <div class="layout">
 <aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#jak-prowadzic-pokaz">Jak prowadzić pokaz</a></li><li class="h2"><a href="#mapa-scen">Mapa scen</a></li><li class="h2"><a href="#scena-s01-test-charakterystyki-przed-pierwsza-zmiana">Scena s01. Test charakterystyki przed pierwszą zmianą</a></li><li class="h3"><a href="#w-skrocie">W skrócie</a></li><li class="h3"><a href="#co-widzimy">Co widzimy</a></li><li class="h3"><a href="#krok-1-parameterize-constructor-wstrzykniety-clock">Krok 1: Parameterize Constructor - wstrzyknięty Clock</a></li><li class="h3"><a href="#krok-2-pierwsza-refaktoryzacja-pod-ochrona-testu">Krok 2: pierwsza refaktoryzacja pod ochroną testu</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali">Pytanie do sali</a></li><li class="h2"><a href="#scena-s02-break-dependencies-seam-dla-zadania-przypomnien">Scena s02. Break Dependencies - seam dla zadania przypomnień</a></li><li class="h3"><a href="#w-skrocie-1">W skrócie</a></li><li class="h3"><a href="#co-widzimy-1">Co widzimy</a></li><li class="h3"><a href="#krok-1-extract-interface-parameterize-constructor">Krok 1: Extract Interface + Parameterize Constructor</a></li><li class="h3"><a href="#krok-2-clock-jako-zaleznosc">Krok 2: Clock jako zależność</a></li><li class="h3"><a href="#krok-3-subclass-and-override-method-i-pierwszy-test">Krok 3: Subclass and Override Method i pierwszy test</a></li><li class="h3"><a href="#krok-4-seam-z-dziedziczenia-na-interfejs-funkcyjny">Krok 4: seam z dziedziczenia na interfejs funkcyjny</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-1">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-1">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-1">Pytanie do sali</a></li><li class="h2"><a href="#scena-s03-wektor-obserwowalnego-zachowania-platnosc-za-bilety">Scena s03. Wektor obserwowalnego zachowania - płatność za bilety</a></li><li class="h3"><a href="#w-skrocie-2">W skrócie</a></li><li class="h3"><a href="#co-widzimy-2">Co widzimy</a></li><li class="h3"><a href="#krok-1-seam-dla-maili-regresja-staje-sie-widoczna">Krok 1: seam dla maili - regresja staje się widoczna</a></li><li class="h3"><a href="#krok-2-naprawa-regresji-pod-ochrona-testu">Krok 2: naprawa regresji pod ochroną testu</a></li><li class="h3"><a href="#krok-3-seam-dla-platnosci-i-pelny-wektor">Krok 3: seam dla płatności i pełny wektor</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-2">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-2">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-2">Pytanie do sali</a></li><li class="h2"><a href="#scena-s04-rownolegla-weryfikacja-shadow-kalkulatora-cen">Scena s04. Równoległa weryfikacja (shadow) kalkulatora cen</a></li><li class="h3"><a href="#w-skrocie-3">W skrócie</a></li><li class="h3"><a href="#co-widzimy-3">Co widzimy</a></li><li class="h3"><a href="#krok-1-dodanie-cienia">Krok 1: dodanie cienia</a></li><li class="h3"><a href="#krok-2-raport-rozbieznosci">Krok 2: raport rozbieżności</a></li><li class="h3"><a href="#krok-3-poprawka-znaleziona-przez-raport">Krok 3: poprawka znaleziona przez raport</a></li><li class="h3"><a href="#krok-4-przelaczenie">Krok 4: przełączenie</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-3">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-3">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-3">Pytanie do sali</a></li><li class="h2"><a href="#scena-s05-granice-trybu-shadow-efekty-uboczne">Scena s05. Granice trybu shadow - efekty uboczne</a></li><li class="h3"><a href="#w-skrocie-4">W skrócie</a></li><li class="h3"><a href="#co-widzimy-4">Co widzimy</a></li><li class="h3"><a href="#krok-1-port-efektow-parameterize-constructor">Krok 1: port efektów (Parameterize Constructor)</a></li><li class="h3"><a href="#krok-2-przechwycenie-efektow-w-cieniu">Krok 2: przechwycenie efektów w cieniu</a></li><li class="h3"><a href="#krok-3-separate-query-from-modifier-czysty-plan">Krok 3: Separate Query from Modifier - czysty plan</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-4">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-4">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-4">Pytanie do sali</a></li><li class="h2"><a href="#proponowana-kolejnosc-pokazu">Proponowana kolejność pokazu</a></li></ul></details></nav></aside>
 <main>
 <h1>Moduł 3. Testowanie a bezpieczeństwo - warsztat CineLegacy: przewodnik prowadzącego</h1>
-<p>Pięć scen w domenie kina pokazuje na żywo, jak zbudować sieć bezpieczeństwa wokół kodu, który jej nie ma: test charakteryzujący przed pierwszą zmianą, szew (ang. seam) w klasie, której nie da się uruchomić w teście, wektor obserwowalnego zachowania, weryfikację w cieniu i jej granice przy efektach ubocznych. Każda scena ma kod wyjściowy (<code>start</code>), kompletne snapshoty po każdym kroku (<code>stepN</code>) i test, który po każdym ruchu w IDE ma być zielony. Tam, gdzie krok świadomie zmienia zachowanie (s03 krok 2, s04 krok 4), test ma osobne oczekiwania i pokazuje różnicę wprost.</p>
+<p>Pięć scen w domenie kina pokazuje na żywo, jak zbudować sieć bezpieczeństwa wokół kodu, który jej nie ma: test charakteryzujący przed pierwszą zmianą, szew (ang. seam) w klasie, której nie da się uruchomić w teście, wektor obserwowalnego zachowania, weryfikację w cieniu i jej granice przy efektach ubocznych. Każda scena ma kod wyjściowy (<code>start</code>), kompletne snapshoty po każdym kroku (<code>stepN</code>) i test, który po każdym kroku ma być zielony. Tam, gdzie krok świadomie zmienia zachowanie (s03 krok 2, s04 krok 4), test ma osobne oczekiwania i pokazuje różnicę wprost.</p>
 <p>Punktem odniesienia dla całego modułu jest wynik wzorcowy (ang. golden master) starego systemu: <code>CinemaManagerGoldenMasterTest</code> odtwarza &quot;jeden dzień kina&quot; na nietkniętym <code>legacy/<wbr>CinemaManager</code> i porównuje pełny wektor zachowania (wyniki wywołań, maile, SMS-y, obciążenia i zwroty, raport dzienny, rozliczenia) z zatwierdzonym plikiem <code>src/<wbr>test/<wbr>resources/<wbr>workshop/<wbr>cinema-manager.approved.txt</code>. To odpowiedź na pytanie &quot;jak poradzić sobie bez testów?&quot; w skali całego systemu: jeden szeroki, deterministyczny test, zanim powstanie jakikolwiek test jednostkowy. Sceny poniżej pokazują te same techniki w mniejszej skali. Pokaż golden master na początku modułu (3 min) i wracaj do niego przy s01 (charakterystyka) i s03 (wektor zachowania).</p>
 <p>Sceny ilustrują sekcję 3 slajdów (&quot;Siatka bezpieczeństwa&quot;) i służą do pokazu; uczestnicy powtarzają je samodzielnie według zakładki &quot;Zadania&quot;.</p>
 <h2 id="jak-prowadzic-pokaz" tabindex="-1"><a class="header-anchor" href="#jak-prowadzic-pokaz"><span>Jak prowadzić pokaz</span></a></h2>
@@ -100,12 +100,12 @@ scripts/warsztat.sh status                  <span class="hljs-comment"># który 
 scripts/warsztat.sh reset m3/s04            <span class="hljs-comment"># przywróć start po pokazie</span>
 </code></pre>
 <ul>
-<li>Zasada: <strong>jeden krok - jeden test - jedno zdanie komentarza.</strong> Ruch w IDE, ⌃R na teście sceny, zdanie z sekcji &quot;Co powiedzieć&quot;. Zanim ruszysz kod, powiedz, jaki dowód da test po kroku.</li>
+<li>Zasada: <strong>jeden krok - jeden test - jedno zdanie komentarza.</strong> Zmiana w kodzie, uruchomienie testu sceny, zdanie z sekcji &quot;Co powiedzieć&quot;. Zanim ruszysz kod, powiedz, jaki dowód da test po kroku.</li>
 <li><strong>Krok po kroku bez numerów:</strong> <code>scripts/<wbr>warsztat.sh next</code> wstawia do <code>start</code> gotowy następny krok i wypisuje, co się zmieniło. <code>prev</code> cofa o krok, <code>status</code> mówi, który krok jest teraz w <code>start</code>. Skrypt pamięta ostatnią scenę, więc po pierwszym <code>next m3/<wbr>sNN</code> wystarczy samo <code>next</code>. Ręczne zmiany w <code>start</code> zostają nadpisane - o to chodzi, gdy krok na żywo się rozjechał.</li>
 <li>Pracujesz zawsze w pakiecie <code>start</code>. Snapshoty <code>stepN</code> służą do <code>diff</code> albo do przeskoku (<code>next</code>, <code>jump</code>), gdy coś się rozjedzie.</li>
 <li>Zanim zaczniesz, pokaż slajd 1.2 &quot;Zachowanie obserwowalne to więcej niż wynik metody&quot; i wracaj do niego przy każdej scenie: <em>co tu obserwujemy - wynik, wyjątek, stan, efekty, kolejność?</em></li>
 <li>W s02 start <strong>nie ma testów</strong> i to jest puenta: testy pojawiają się dopiero wtedy, gdy kod ma szew. Pierwsze ruchy to refaktoryzacje automatyczne IDE o niskim ryzyku (slajd 3.6).</li>
-<li>W s01 i s03 warto najpierw <strong>zrobić naiwny ruch na żywo</strong> (np. &quot;poprawić&quot; znalezisko z charakterystyki, sprawdzić tylko wynik), pokazać, czego test nie widzi, cofnąć (⌘Z) i dopiero wtedy wykonać krok z przewodnika.</li>
+<li>W s01 i s03 warto najpierw <strong>zrobić naiwny ruch na żywo</strong> (np. &quot;poprawić&quot; znalezisko z charakterystyki, sprawdzić tylko wynik), pokazać, czego test nie widzi, cofnąć zmianę i dopiero wtedy wykonać krok z przewodnika.</li>
 <li>W s04 i s05 część testów to nie tylko równoważność (<code>SNNEquivalenceTest</code>), ale też dowody strategii (<code>SNNSolutionTest</code>): raport rozbieżności, dziennik efektów ubocznych. Testy, które <strong>dokumentują stan startowy</strong> (np. &quot;start obciąża kartę dwa razy&quot;), zmienią kolor na czerwony, gdy wykonasz kroki na pakiecie <code>start</code> - to znak, że start jest już naprawiony. Po pokazie: <code>scripts/<wbr>warsztat.sh reset</code>.</li>
 <li>Kroki, które zmieniają zachowanie (s03 krok 2, s04 krok 4), zapowiadaj na głos: &quot;to jest osobny commit, nie refaktoryzacja&quot;.</li>
 </ul>
@@ -183,24 +183,82 @@ scripts/warsztat.sh reset m3/s04            <span class="hljs-comment"># przywr�
 <li>kwoty zależą od <code>Locale</code> serwera: na <code>pl-PL</code> jest <code>74,00</code>, na <code>en-US</code> <code>74.00</code> (test <code>foundDuringCharacterizationAmountsDependOnServerLocale</code>).</li>
 </ul>
 <h3 id="krok-1-parameterize-constructor-wstrzykniety-clock" tabindex="-1"><a class="header-anchor" href="#krok-1-parameterize-constructor-wstrzykniety-clock"><span>Krok 1: Parameterize Constructor - wstrzyknięty Clock</span></a></h3>
-<p><strong>W IDE:</strong> w <code>confirm</code> zamień <code>LocalDateTime.now()</code> na <code>LocalDateTime.now(Clock.systemDefaultZone())</code>, zaznacz <code>Clock.systemDefaultZone()</code> i wykonaj Extract Field (⌥⌘F, inicjalizacja w konstruktorze, nazwa <code>clock</code>). Potem w konstruktorze na tym samym wyrażeniu Extract Parameter (⌥⌘P) z opcją delegowania przez przeciążenie (&quot;Delegate via overloading method&quot;), żeby został konstruktor bezargumentowy delegujący do <code>this(Clock.systemDefaultZone())</code>.
-<strong>Po:</strong></p>
-<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">public</span> <span class="hljs-title function_">BookingConfirmation</span><span class="hljs-params">()</span> {
-    <span class="hljs-built_in">this</span>(Clock.systemDefaultZone());
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>W klasie <code>BookingConfirmation</code> dodajemy prywatne finalne pole <code>Clock clock</code>.</li>
+<li>Dodajemy konstruktor <code>BookingConfirmation(Clock clock)</code>, który przypisuje pole, oraz konstruktor bezargumentowy delegujący do <code>this(Clock.systemDefaultZone())</code> - dotychczasowi klienci niczego nie zmieniają (Parameterize Constructor).</li>
+<li>W <code>confirm</code> zamieniamy <code>LocalDateTime.now()</code> na <code>LocalDateTime.now(clock)</code>.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">BookingConfirmation</span> {
+    <span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">confirm</span><span class="hljs-params">(Booking b)</span> {
+        ...
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;POTWIERDZENIE REZERWACJI\n&quot;</span>
+                ...
+                + <span class="hljs-string">&quot;Wygenerowano: &quot;</span> + LocalDateTime.now().withNano(<span class="hljs-number">0</span>) + <span class="hljs-string">&quot;\n&quot;</span>;
+    }
 }
+</code></pre>
+<p><strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">BookingConfirmation</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Clock clock;
 
-<span class="hljs-type">public</span> <span class="hljs-title function_">BookingConfirmation</span><span class="hljs-params">(Clock clock)</span> {
-    <span class="hljs-built_in">this</span>.clock = clock;
+    <span class="hljs-type">public</span> <span class="hljs-title function_">BookingConfirmation</span><span class="hljs-params">()</span> {
+        <span class="hljs-built_in">this</span>(Clock.systemDefaultZone());
+    }
+
+    <span class="hljs-type">public</span> <span class="hljs-title function_">BookingConfirmation</span><span class="hljs-params">(Clock clock)</span> {
+        <span class="hljs-built_in">this</span>.clock = clock;
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">confirm</span><span class="hljs-params">(Booking b)</span> {
+        ...
+                + <span class="hljs-string">&quot;Wygenerowano: &quot;</span> + LocalDateTime.now(clock).withNano(<span class="hljs-number">0</span>) + <span class="hljs-string">&quot;\n&quot;</span>;
+    }
 }
 </code></pre>
 <p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh test m3/<wbr>s01</code> - 15 testów zielonych, w tym <code>fromStep1TheWholeDocumentIsDeterministic</code> (z <code>Clock.fixed</code> porównujemy także linię z czasem, bez scrubbera).
 <strong>Co powiedzieć:</strong> to minimalna zmiana, która robi szew dla testu. Stary konstruktor zostaje, więc produkcyjni klienci nie widzą różnicy. Scrubber był rusztowaniem i od tego kroku jest potrzebny tylko dla <code>start</code>.
 <strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m3/<wbr>s01 0 1</code></p>
 <h3 id="krok-2-pierwsza-refaktoryzacja-pod-ochrona-testu" tabindex="-1"><a class="header-anchor" href="#krok-2-pierwsza-refaktoryzacja-pod-ochrona-testu"><span>Krok 2: pierwsza refaktoryzacja pod ochroną testu</span></a></h3>
-<p><strong>W IDE:</strong> zaznacz ciało pętli od <code>double p;</code> do <code>p = p - 5.00; }</code>, Extract Method (⌥⌘M), nazwa <code>ticketPrice</code>. IntelliJ wykryje dwa wejścia (<code>b</code>, <code>t</code>) i jedno wyjście. W pętli zostaje <code>sum = sum + ticketPrice(b, t);</code>.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Z ciała pętli w <code>confirm</code> wydzielamy nową prywatną metodę <code>double ticketPrice(Booking b, String t)</code> - trafia do niej cały blok od <code>double p;</code> po rabat poranny; metoda ma dwa wejścia (<code>b</code>, <code>t</code>) i jedno wyjście (<code>p</code>) (Extract Method).</li>
+<li>W pętli zostaje jedno wywołanie: <code>sum = sum + ticketPrice(b, t);</code>.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">double</span> <span class="hljs-variable">sum</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;
+<span class="hljs-keyword">for</span> (String t : b.ticketTypes()) {
+    <span class="hljs-type">double</span> p;
+    <span class="hljs-keyword">if</span> (b.format() == <span class="hljs-number">3</span>) {
+        p = <span class="hljs-number">40.00</span>;
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (b.format() == <span class="hljs-number">2</span>) {
+        p = <span class="hljs-number">32.00</span>;
+    } <span class="hljs-keyword">else</span> {
+        p = <span class="hljs-number">25.00</span>;
+    }
+    <span class="hljs-keyword">if</span> (t.equals(<span class="hljs-string">&quot;S&quot;</span>)) {
+        p = p * <span class="hljs-number">0.75</span>;
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (t.equals(<span class="hljs-string">&quot;E&quot;</span>)) {
+        p = p * <span class="hljs-number">0.70</span>;
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (t.equals(<span class="hljs-string">&quot;C&quot;</span>)) {
+        p = p * <span class="hljs-number">0.60</span>;
+    }
+    <span class="hljs-keyword">if</span> (b.start().getHour() &lt; <span class="hljs-number">12</span>) {
+        p = p - <span class="hljs-number">5.00</span>;
+    }
+    sum = sum + p;
+}
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">for</span> (String t : b.ticketTypes()) {
     sum = sum + ticketPrice(b, t);
+}
+...
+<span class="hljs-keyword">private</span> <span class="hljs-type">double</span> <span class="hljs-title function_">ticketPrice</span><span class="hljs-params">(Booking b, String t)</span> {
+    <span class="hljs-type">double</span> p;
+    ...
+    <span class="hljs-keyword">return</span> p;
 }
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony - ten sam dokument, znak w znak.
@@ -236,10 +294,32 @@ scripts/warsztat.sh reset m3/s04            <span class="hljs-comment"># przywr�
 </code></pre>
 <p>Sekwencja rozrywania zależności: nazwij zachowanie i punkt obserwacji, wprowadź najmniejszy szew bez zmiany logiki, zabezpiecz go testem z fake/spy, przenieś wybór do jawnego punktu aktywacji, usuń konstrukcję przejściową. Charakterystyki nie da się napisać przed pierwszym ruchem, więc pierwsze ruchy muszą być mechaniczne i wspierane przez IDE (slajd 3.6).</p>
 <h3 id="krok-1-extract-interface-parameterize-constructor" tabindex="-1"><a class="header-anchor" href="#krok-1-extract-interface-parameterize-constructor"><span>Krok 1: Extract Interface + Parameterize Constructor</span></a></h3>
-<p><strong>W IDE:</strong> na <code>LegacyDatabase</code> Refactor → Extract Interface, nazwa <code>BookingStore</code>, zaznacz <code>paidBookings</code> i <code>markReminded</code>. Potem w <code>ShowtimeReminderJob</code> ręcznie: pole <code>Supplier&lt;BookingStore&gt; stores</code>, konstruktor z parametrem i konstruktor bezargumentowy <code>this(LegacyDatabase::new)</code>. W <code>run()</code> zamień <code>new LegacyDatabase()</code> na <code>stores.get()</code>.
-<strong>Po:</strong></p>
-<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">public</span> <span class="hljs-title function_">ShowtimeReminderJob</span><span class="hljs-params">()</span> {
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Z klasy <code>LegacyDatabase</code> wydzielamy nowy interfejs <code>BookingStore</code> z dwiema metodami: <code>paidBookings()</code> i <code>markReminded(String bookingId)</code>; <code>LegacyDatabase</code> zaczyna go implementować (Extract Interface).</li>
+<li>W <code>ShowtimeReminderJob</code> dodajemy pole <code>Supplier&lt;BookingStore&gt; stores</code> i konstruktor z tym parametrem.</li>
+<li>Dodajemy konstruktor bezargumentowy delegujący do <code>this(LegacyDatabase::new)</code> - produkcja składa to samo co wcześniej (Parameterize Constructor).</li>
+<li>W <code>run()</code> zamieniamy <code>new LegacyDatabase()</code> na <code>stores.get()</code>; zmienna lokalna <code>database</code> ma teraz typ <code>BookingStore</code>.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ShowtimeReminderJob</span> {
+    <span class="hljs-keyword">public</span> <span class="hljs-type">int</span> <span class="hljs-title function_">run</span><span class="hljs-params">()</span> {
+        <span class="hljs-type">LegacyDatabase</span> <span class="hljs-variable">database</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">LegacyDatabase</span>();
+        <span class="hljs-type">LocalDateTime</span> <span class="hljs-variable">now</span> <span class="hljs-operator">=</span> LocalDateTime.now();
+        <span class="hljs-type">int</span> <span class="hljs-variable">sent</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;
+        ...
+    }
+}
+</code></pre>
+<p><strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Supplier&lt;BookingStore&gt; stores;
+
+<span class="hljs-type">public</span> <span class="hljs-title function_">ShowtimeReminderJob</span><span class="hljs-params">()</span> {
     <span class="hljs-built_in">this</span>(LegacyDatabase::<span class="hljs-keyword">new</span>);
+}
+
+<span class="hljs-type">public</span> <span class="hljs-title function_">ShowtimeReminderJob</span><span class="hljs-params">(Supplier&lt;BookingStore&gt; stores)</span> {
+    <span class="hljs-built_in">this</span>.stores = Objects.requireNonNull(stores, <span class="hljs-string">&quot;stores&quot;</span>);
 }
 
 <span class="hljs-keyword">public</span> <span class="hljs-type">int</span> <span class="hljs-title function_">run</span><span class="hljs-params">()</span> {
@@ -249,29 +329,101 @@ scripts/warsztat.sh reset m3/s04            <span class="hljs-comment"># przywr�
 <strong>Co powiedzieć:</strong> przekazujemy fabrykę, a nie gotową bazę, bo stary kod otwierał połączenie przy każdym <code>run()</code>. Gdybyśmy zrobili <code>this(new LegacyDatabase())</code>, wyjątek poleciałby już w konstruktorze - zmienilibyśmy czas życia zależności i moment błędu.
 <strong>Snapshot:</strong> <code>step1/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m3/<wbr>s02 0 1</code></p>
 <h3 id="krok-2-clock-jako-zaleznosc" tabindex="-1"><a class="header-anchor" href="#krok-2-clock-jako-zaleznosc"><span>Krok 2: Clock jako zależność</span></a></h3>
-<p><strong>W IDE:</strong> ręcznie (Extract Parameter ⌥⌘P dodałby parametr do <code>run()</code>, a potrzebujemy zależności konstruktora): pole <code>Clock clock</code>, drugi parametr konstruktora, w domyślnym konstruktorze <code>Clock.systemDefaultZone()</code>, w <code>run()</code> <code>LocalDateTime.now(clock)</code>.
-<strong>Po:</strong></p>
-<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">LocalDateTime</span> <span class="hljs-variable">now</span> <span class="hljs-operator">=</span> LocalDateTime.now(clock);
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>W <code>ShowtimeReminderJob</code> dodajemy pole <code>Clock clock</code> i drugi parametr konstruktora - celowo zależność konstruktora, a nie dodatkowy parametr metody <code>run()</code>.</li>
+<li>Konstruktor bezargumentowy przekazuje <code>Clock.systemDefaultZone()</code>.</li>
+<li>W <code>run()</code> zamieniamy <code>LocalDateTime.now()</code> na <code>LocalDateTime.now(clock)</code> - zegar czytamy w tym samym miejscu co wcześniej.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">public</span> <span class="hljs-title function_">ShowtimeReminderJob</span><span class="hljs-params">()</span> {
+    <span class="hljs-built_in">this</span>(LegacyDatabase::<span class="hljs-keyword">new</span>);
+}
+...
+<span class="hljs-keyword">public</span> <span class="hljs-type">int</span> <span class="hljs-title function_">run</span><span class="hljs-params">()</span> {
+    <span class="hljs-type">BookingStore</span> <span class="hljs-variable">database</span> <span class="hljs-operator">=</span> stores.get();
+    <span class="hljs-type">LocalDateTime</span> <span class="hljs-variable">now</span> <span class="hljs-operator">=</span> LocalDateTime.now();
+</code></pre>
+<p><strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">public</span> <span class="hljs-title function_">ShowtimeReminderJob</span><span class="hljs-params">()</span> {
+    <span class="hljs-built_in">this</span>(LegacyDatabase::<span class="hljs-keyword">new</span>, Clock.systemDefaultZone());
+}
+...
+<span class="hljs-keyword">public</span> <span class="hljs-type">int</span> <span class="hljs-title function_">run</span><span class="hljs-params">()</span> {
+    <span class="hljs-type">BookingStore</span> <span class="hljs-variable">database</span> <span class="hljs-operator">=</span> stores.get();
+    <span class="hljs-type">LocalDateTime</span> <span class="hljs-variable">now</span> <span class="hljs-operator">=</span> LocalDateTime.now(clock);
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony. Test <code>step2...</code> pokazuje dwie rzeczy: przypadki bez wysyłki działają przy stałym zegarze, a przypadek &quot;do wysłania&quot; wciąż kończy się wyjątkiem SMTP.
 <strong>Co powiedzieć:</strong> czas był ukrytym wejściem. Zegar czytamy w tym samym miejscu co wcześniej (po utworzeniu bazy), więc kolejność się nie zmienia. Następna przeszkoda jest widoczna w teście - statyczny mailer.
 <strong>Snapshot:</strong> <code>step2/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m3/<wbr>s02 1 2</code></p>
 <h3 id="krok-3-subclass-and-override-method-i-pierwszy-test" tabindex="-1"><a class="header-anchor" href="#krok-3-subclass-and-override-method-i-pierwszy-test"><span>Krok 3: Subclass and Override Method i pierwszy test</span></a></h3>
-<p><strong>W IDE:</strong> zaznacz wywołanie <code>ReminderMailer.send(...)</code>, ⌥⌘M, nazwa <code>sendReminder</code>, widoczność <code>protected</code>. Usuń <code>final</code> z klasy. W teście podklasa anonimowa nadpisuje <code>sendReminder</code> i zapisuje wiadomości do listy - to jest <strong>pierwszy prawdziwy test</strong> tej klasy.
-<strong>Po:</strong></p>
-<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">protected</span> <span class="hljs-type">void</span> <span class="hljs-title function_">sendReminder</span><span class="hljs-params">(String to, String subject, String body)</span> {
-    ReminderMailer.send(to, subject, body);
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Wywołanie <code>ReminderMailer.send(...)</code> z <code>run()</code> wydzielamy do nowej metody <code>protected void sendReminder(String to, String subject, String body)</code> (Extract Method).</li>
+<li>Usuwamy <code>final</code> z klasy, żeby dało się ją rozszerzyć.</li>
+<li>W teście powstaje podklasa anonimowa, która nadpisuje <code>sendReminder</code> i zapisuje wiadomości do listy - to jest <strong>pierwszy prawdziwy test</strong> tej klasy (Subclass and Override Method).</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ShowtimeReminderJob</span> {
+    ...
+    <span class="hljs-keyword">if</span> (!booking.reminded() &amp;&amp; minutes &gt; <span class="hljs-number">0</span> &amp;&amp; minutes &lt;= <span class="hljs-number">120</span>) {
+        ReminderMailer.send(booking.email(),
+                <span class="hljs-string">&quot;Przypomnienie: &quot;</span> + booking.title(),
+                <span class="hljs-string">&quot;Seans zaczyna sie o &quot;</span> + booking.start().toLocalTime());
+        database.markReminded(booking.id());
+</code></pre>
+<p><strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ShowtimeReminderJob</span> {
+    ...
+    <span class="hljs-keyword">if</span> (!booking.reminded() &amp;&amp; minutes &gt; <span class="hljs-number">0</span> &amp;&amp; minutes &lt;= <span class="hljs-number">120</span>) {
+        sendReminder(booking.email(),
+                <span class="hljs-string">&quot;Przypomnienie: &quot;</span> + booking.title(),
+                <span class="hljs-string">&quot;Seans zaczyna sie o &quot;</span> + booking.start().toLocalTime());
+        database.markReminded(booking.id());
+    ...
+    <span class="hljs-keyword">protected</span> <span class="hljs-type">void</span> <span class="hljs-title function_">sendReminder</span><span class="hljs-params">(String to, String subject, String body)</span> {
+        ReminderMailer.send(to, subject, body);
+    }
 }
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony: 3 przypadki z granicą 120/121 minut, już przypomniane i już rozpoczęte.
 <strong>Co powiedzieć:</strong> to najtańszy seam, gdy nie możemy jeszcze zmienić konstruktora - ale ma cenę: klasa przestała być <code>final</code>, a test zależy od szczegółu implementacji (nazwy metody chronionej).
 <strong>Snapshot:</strong> <code>step3/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m3/<wbr>s02 2 3</code></p>
 <h3 id="krok-4-seam-z-dziedziczenia-na-interfejs-funkcyjny" tabindex="-1"><a class="header-anchor" href="#krok-4-seam-z-dziedziczenia-na-interfejs-funkcyjny"><span>Krok 4: seam z dziedziczenia na interfejs funkcyjny</span></a></h3>
-<p><strong>W IDE:</strong> utwórz <code>@FunctionalInterface ReminderSender</code>, dodaj trzeci parametr konstruktora, w domyślnym <code>ReminderMailer::send</code>. Inline Method (⌥⌘N) na <code>sendReminder</code>, przywróć <code>final</code>. W teście podklasę zastępuje lambda.
-<strong>Po:</strong></p>
-<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">public</span> <span class="hljs-title function_">ShowtimeReminderJob</span><span class="hljs-params">()</span> {
-    <span class="hljs-built_in">this</span>(LegacyDatabase::<span class="hljs-keyword">new</span>, Clock.systemDefaultZone(), ReminderMailer::send);
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Powstaje nowy plik <code>ReminderSender.java</code>: interfejs z adnotacją <code>@FunctionalInterface</code> i jedną metodą <code>void send(String to, String subject, String body)</code>.</li>
+<li>W <code>ShowtimeReminderJob</code> dodajemy pole <code>ReminderSender sender</code> i trzeci parametr konstruktora; konstruktor bezargumentowy przekazuje <code>ReminderMailer::send</code>.</li>
+<li>Ciało <code>sendReminder</code> zmieniamy na <code>sender.send(...)</code>, wstawiamy je w miejsce wywołania w <code>run()</code> i usuwamy metodę <code>sendReminder</code> (Inline Method).</li>
+<li>Przywracamy <code>final</code> na klasie. W teście podklasę zastępuje lambda.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ShowtimeReminderJob</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Supplier&lt;BookingStore&gt; stores;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Clock clock;
+
+    <span class="hljs-type">public</span> <span class="hljs-title function_">ShowtimeReminderJob</span><span class="hljs-params">()</span> {
+        <span class="hljs-built_in">this</span>(LegacyDatabase::<span class="hljs-keyword">new</span>, Clock.systemDefaultZone());
+    }
+    ...
+    <span class="hljs-keyword">protected</span> <span class="hljs-type">void</span> <span class="hljs-title function_">sendReminder</span><span class="hljs-params">(String to, String subject, String body)</span> {
+        ReminderMailer.send(to, subject, body);
+    }
 }
+</code></pre>
+<p><strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ShowtimeReminderJob</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Supplier&lt;BookingStore&gt; stores;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Clock clock;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> ReminderSender sender;
+
+    <span class="hljs-type">public</span> <span class="hljs-title function_">ShowtimeReminderJob</span><span class="hljs-params">()</span> {
+        <span class="hljs-built_in">this</span>(LegacyDatabase::<span class="hljs-keyword">new</span>, Clock.systemDefaultZone(), ReminderMailer::send);
+    }
+    ...
+    sender.send(booking.email(),
+            <span class="hljs-string">&quot;Przypomnienie: &quot;</span> + booking.title(),
+            <span class="hljs-string">&quot;Seans zaczyna sie o &quot;</span> + booking.start().toLocalTime());
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony - te same 3 przypadki dla <code>step3</code> (podklasa) i <code>step4</code> (lambda).
 <strong>Co powiedzieć:</strong> pod ochroną testu z kroku 3 wymieniliśmy seam na najwęższy możliwy. Produkcja w domyślnym konstruktorze składa dokładnie te same implementacje co wcześniej - zmieniło się <strong>miejsce tworzenia zależności</strong>, nie reguła.
@@ -307,18 +459,60 @@ CinemaMailer.send(booking.email(), <span class="hljs-string">&quot;Bilety &quot;
 </code></pre>
 <p>Pokaż tabelę ze slajdu 1.2: wynik, wyjątki, stan, współpracownicy, czas, granice. Które z nich ten test widzi?</p>
 <h3 id="krok-1-seam-dla-maili-regresja-staje-sie-widoczna" tabindex="-1"><a class="header-anchor" href="#krok-1-seam-dla-maili-regresja-staje-sie-widoczna"><span>Krok 1: seam dla maili - regresja staje się widoczna</span></a></h3>
-<p><strong>W IDE:</strong> utwórz <code>@FunctionalInterface Mailer</code>, Parameterize Constructor, domyślny konstruktor <code>this(CinemaMailer::send)</code>, zamień statyczne wywołania na <code>mailer.send(...)</code>. Logika bez zmian.
-<strong>Po:</strong></p>
-<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">public</span> <span class="hljs-title function_">TicketCheckout</span><span class="hljs-params">()</span> {
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Powstaje nowy plik <code>Mailer.java</code>: interfejs z adnotacją <code>@FunctionalInterface</code> i metodą <code>void send(String to, String text)</code>.</li>
+<li>W <code>TicketCheckout</code> dodajemy pole <code>Mailer mailer</code>, konstruktor z tym parametrem i konstruktor bezargumentowy delegujący do <code>this(CinemaMailer::send)</code> (Parameterize Constructor).</li>
+<li>Oba statyczne wywołania <code>CinemaMailer.send(...)</code> w <code>pay</code> zamieniamy na <code>mailer.send(...)</code>. Logika bez zmian.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">TicketCheckout</span> {
+    <span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">pay</span><span class="hljs-params">(Booking booking, String card)</span> {
+        ...
+        <span class="hljs-type">boolean</span> <span class="hljs-variable">charged</span> <span class="hljs-operator">=</span> CardTerminal.charge(card, booking.amount());
+        <span class="hljs-keyword">if</span> (charged) {
+            booking.markPaid();
+        } <span class="hljs-keyword">else</span> {
+            CinemaMailer.send(booking.email(), <span class="hljs-string">&quot;Platnosc odrzucona &quot;</span> + booking.id());
+        }
+        CinemaMailer.send(booking.email(), <span class="hljs-string">&quot;Bilety &quot;</span> + booking.id() + <span class="hljs-string">&quot; oplacone: &quot;</span> + booking.amount());
+        <span class="hljs-keyword">return</span> charged ? <span class="hljs-string">&quot;OK&quot;</span> : <span class="hljs-string">&quot;DECLINED&quot;</span>;
+    }
+}
+</code></pre>
+<p><strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Mailer mailer;
+
+<span class="hljs-type">public</span> <span class="hljs-title function_">TicketCheckout</span><span class="hljs-params">()</span> {
     <span class="hljs-built_in">this</span>(CinemaMailer::send);
 }
+
+<span class="hljs-type">public</span> <span class="hljs-title function_">TicketCheckout</span><span class="hljs-params">(Mailer mailer)</span> {
+    <span class="hljs-built_in">this</span>.mailer = Objects.requireNonNull(mailer, <span class="hljs-string">&quot;mailer&quot;</span>);
+}
+...
+mailer.send(booking.email(), <span class="hljs-string">&quot;Platnosc odrzucona &quot;</span> + booking.id());
 </code></pre>
 <p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh test m3/<wbr>s03</code> - zielony. <code>step1SeesTheRegressionThatResultOnlyTestMissed</code> dokumentuje, że po odrzuceniu karty idą dwa maile: &quot;Platnosc odrzucona&quot; i &quot;Bilety B1 oplacone&quot;.
 <strong>Co powiedzieć:</strong> kod się nie zmienił, zmieniło się to, co widzimy. Test z samym wynikiem nie mógł tego wykryć.
 <strong>Snapshot:</strong> <code>step1/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m3/<wbr>s03 0 1</code></p>
 <h3 id="krok-2-naprawa-regresji-pod-ochrona-testu" tabindex="-1"><a class="header-anchor" href="#krok-2-naprawa-regresji-pod-ochrona-testu"><span>Krok 2: naprawa regresji pod ochroną testu</span></a></h3>
-<p><strong>W IDE:</strong> przenieś wysyłkę potwierdzenia do gałęzi sukcesu, zamień <code>charged ? &quot;OK&quot; : &quot;DECLINED&quot;</code> na dwa <code>return</code>.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Wysyłkę maila potwierdzającego przenosimy do gałęzi sukcesu, za <code>booking.markPaid()</code>.</li>
+<li>Zmienna <code>charged</code> znika: wywołanie <code>CardTerminal.charge(...)</code> ląduje wprost w warunku <code>if</code>, a <code>return charged ? &quot;OK&quot; : &quot;DECLINED&quot;</code> rozbijamy na <code>return &quot;OK&quot;</code> w gałęzi sukcesu i <code>return &quot;DECLINED&quot;</code> po wysyłce maila o odrzuceniu.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">boolean</span> <span class="hljs-variable">charged</span> <span class="hljs-operator">=</span> CardTerminal.charge(card, booking.amount());
+<span class="hljs-keyword">if</span> (charged) {
+    booking.markPaid();
+} <span class="hljs-keyword">else</span> {
+    mailer.send(booking.email(), <span class="hljs-string">&quot;Platnosc odrzucona &quot;</span> + booking.id());
+}
+mailer.send(booking.email(), <span class="hljs-string">&quot;Bilety &quot;</span> + booking.id() + <span class="hljs-string">&quot; oplacone: &quot;</span> + booking.amount());
+<span class="hljs-keyword">return</span> charged ? <span class="hljs-string">&quot;OK&quot;</span> : <span class="hljs-string">&quot;DECLINED&quot;</span>;
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">if</span> (CardTerminal.charge(card, booking.amount())) {
     booking.markPaid();
     mailer.send(booking.email(), <span class="hljs-string">&quot;Bilety &quot;</span> + booking.id() + <span class="hljs-string">&quot; oplacone: &quot;</span> + booking.amount());
@@ -331,11 +525,28 @@ mailer.send(booking.email(), <span class="hljs-string">&quot;Platnosc odrzucona 
 <strong>Co powiedzieć:</strong> to naprawa błędu, nie refaktoryzacja - przywracamy kontrakt sprzed &quot;porządków&quot;. Wynik metody się nie zmienia, zmienia się efekt uboczny.
 <strong>Snapshot:</strong> <code>step2/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m3/<wbr>s03 1 2</code></p>
 <h3 id="krok-3-seam-dla-platnosci-i-pelny-wektor" tabindex="-1"><a class="header-anchor" href="#krok-3-seam-dla-platnosci-i-pelny-wektor"><span>Krok 3: seam dla płatności i pełny wektor</span></a></h3>
-<p><strong>W IDE:</strong> utwórz <code>@FunctionalInterface PaymentGateway</code>, drugi parametr konstruktora, domyślnie <code>CardTerminal::charge</code>. W teście oba fałszywe obiekty zapisują do <strong>jednego</strong> dziennika zdarzeń.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Powstaje nowy plik <code>PaymentGateway.java</code>: interfejs z adnotacją <code>@FunctionalInterface</code> i metodą <code>boolean charge(String card, Money amount)</code>.</li>
+<li>W <code>TicketCheckout</code> dodajemy pole <code>PaymentGateway gateway</code> i drugi parametr konstruktora; konstruktor bezargumentowy przekazuje <code>CardTerminal::charge</code>.</li>
+<li>W <code>pay</code> zamieniamy <code>CardTerminal.charge(...)</code> na <code>gateway.charge(...)</code>.</li>
+<li>W teście oba fałszywe obiekty (mailer i bramka płatności) zapisują do <strong>jednego</strong> dziennika zdarzeń.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">public</span> <span class="hljs-title function_">TicketCheckout</span><span class="hljs-params">()</span> {
+    <span class="hljs-built_in">this</span>(CinemaMailer::send);
+}
+...
+<span class="hljs-keyword">if</span> (CardTerminal.charge(card, booking.amount())) {
+    booking.markPaid();
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">public</span> <span class="hljs-title function_">TicketCheckout</span><span class="hljs-params">()</span> {
     <span class="hljs-built_in">this</span>(CinemaMailer::send, CardTerminal::charge);
 }
+...
+<span class="hljs-keyword">if</span> (gateway.charge(card, booking.amount())) {
+    booking.markPaid();
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony: <code>step3ObservesTheFullVector</code> sprawdza wynik albo wyjątek (typ i komunikat), obciążenia i maile w jednej kolejności oraz status rezerwacji po operacji.
 <strong>Co powiedzieć:</strong> jeden dziennik dla wszystkich współpracowników pokazuje kolejność: najpierw obciążenie, potem mail. Stan po błędzie (<code>NEW</code> po odrzuceniu) i brak efektów przy wyjątku też są częścią kontraktu.
@@ -366,8 +577,22 @@ mailer.send(booking.email(), <span class="hljs-string">&quot;Platnosc odrzucona 
 }
 </code></pre>
 <h3 id="krok-1-dodanie-cienia" tabindex="-1"><a class="header-anchor" href="#krok-1-dodanie-cienia"><span>Krok 1: dodanie cienia</span></a></h3>
-<p><strong>W IDE:</strong> w <code>price</code> po wyliczeniu wyniku legacy wywołaj kandydata w <code>try/<wbr>catch</code> (Surround With ⌥⌘T) i licz niezgodności.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>W <code>PriceService</code> dodajemy pole <code>CandidatePriceCalculator candidate</code> oraz licznik <code>int mismatches</code> z metodą odczytu <code>mismatches()</code>.</li>
+<li>W <code>price</code> po wyliczeniu wyniku legacy wywołujemy kandydata w bloku <code>try/<wbr>catch (RuntimeException)</code>: inny wynik albo wyjątek zwiększa licznik, a awaria kandydata nie przerywa sprzedaży.</li>
+<li>Klient nadal dostaje wynik legacy (<code>return result</code>).</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">PriceService</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">LegacyPriceCalculator</span> <span class="hljs-variable">legacy</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">LegacyPriceCalculator</span>();
+
+    <span class="hljs-keyword">public</span> <span class="hljs-type">Money</span> <span class="hljs-title function_">price</span><span class="hljs-params">(TicketQuery query)</span> {
+        <span class="hljs-keyword">return</span> legacy.price(query);
+    }
+}
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">Money</span> <span class="hljs-variable">result</span> <span class="hljs-operator">=</span> legacy.price(query);
 <span class="hljs-keyword">try</span> {
     <span class="hljs-keyword">if</span> (!candidate.price(query).equals(result)) {
@@ -382,18 +607,59 @@ mailer.send(booking.email(), <span class="hljs-string">&quot;Platnosc odrzucona 
 <strong>Co powiedzieć:</strong> klient zawsze dostaje wynik legacy. Ale licznik mówi tylko, ŻE coś się różni - nie wiemy co.
 <strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m3/<wbr>s04 0 1</code></p>
 <h3 id="krok-2-raport-rozbieznosci" tabindex="-1"><a class="header-anchor" href="#krok-2-raport-rozbieznosci"><span>Krok 2: raport rozbieżności</span></a></h3>
-<p><strong>W IDE:</strong> nowa klasa <code>VerificationReport</code> z <code>sealed interface Verification</code> i rekordami <code>Agreement</code>, <code>Divergence</code>, <code>CandidateFailure</code>. Extract Method <code>verify</code> w <code>PriceService</code>.
-<strong>Po:</strong></p>
-<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">return</span> legacyPrice.equals(candidatePrice)
-        ? <span class="hljs-keyword">new</span> <span class="hljs-title class_">VerificationReport</span>.Agreement(query, legacyPrice)
-        : <span class="hljs-keyword">new</span> <span class="hljs-title class_">VerificationReport</span>.Divergence(query, legacyPrice, candidatePrice);
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Powstaje nowy plik <code>VerificationReport.java</code>: <code>sealed interface Verification</code> z rekordami <code>Agreement</code>, <code>Divergence</code> i <code>CandidateFailure</code>, lista zdarzeń z metodami <code>record</code> i <code>entries</code> oraz metoda <code>problems()</code> zwracająca czytelne wiersze.</li>
+<li>W <code>PriceService</code> licznik <code>mismatches</code> i jego metoda odczytu znikają; w ich miejsce pole <code>VerificationReport report</code> - konstruktor przyjmuje raport, a bezargumentowy tworzy <code>new VerificationReport()</code>.</li>
+<li>Porównanie wydzielamy z <code>price</code> do prywatnej metody <code>verify(TicketQuery, Money)</code>, która zwraca typowane zdarzenie; <code>price</code> tylko je zapisuje przez <code>report.record(verify(query, result))</code> (Extract Method).</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">Money</span> <span class="hljs-variable">result</span> <span class="hljs-operator">=</span> legacy.price(query);
+<span class="hljs-keyword">try</span> {
+    <span class="hljs-keyword">if</span> (!candidate.price(query).equals(result)) {
+        mismatches++;
+    }
+} <span class="hljs-keyword">catch</span> (RuntimeException candidateFailure) {
+    mismatches++;
+}
+<span class="hljs-keyword">return</span> result;
+</code></pre>
+<p><strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">Money</span> <span class="hljs-title function_">price</span><span class="hljs-params">(TicketQuery query)</span> {
+    <span class="hljs-type">Money</span> <span class="hljs-variable">result</span> <span class="hljs-operator">=</span> legacy.price(query);
+    report.record(verify(query, result));
+    <span class="hljs-keyword">return</span> result;
+}
+
+<span class="hljs-keyword">private</span> VerificationReport.<span class="hljs-type">Verification</span> <span class="hljs-title function_">verify</span><span class="hljs-params">(TicketQuery query, Money legacyPrice)</span> {
+    <span class="hljs-keyword">try</span> {
+        <span class="hljs-type">Money</span> <span class="hljs-variable">candidatePrice</span> <span class="hljs-operator">=</span> candidate.price(query);
+        <span class="hljs-keyword">return</span> legacyPrice.equals(candidatePrice)
+                ? <span class="hljs-keyword">new</span> <span class="hljs-title class_">VerificationReport</span>.Agreement(query, legacyPrice)
+                : <span class="hljs-keyword">new</span> <span class="hljs-title class_">VerificationReport</span>.Divergence(query, legacyPrice, candidatePrice);
+    } <span class="hljs-keyword">catch</span> (RuntimeException failure) {
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">VerificationReport</span>.CandidateFailure(query, legacyPrice,
+                failure.getClass().getSimpleName() + <span class="hljs-string">&quot;: &quot;</span> + failure.getMessage());
+    }
+}
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony; <code>step2ReportShowsWhatDivergedAndWhy</code> - raport pokazuje dwie rozbieżności (3D dziecko rano: 17.20 vs 19.20, 2D student rano: 13.75 vs 15.00) i awarię dla 4DX.
 <strong>Co powiedzieć:</strong> z raportu widać wzorzec: rozbieżności tylko rano i tylko przy zniżce procentowej. Kandydat odejmuje rabat poranny przed procentem.
 <strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m3/<wbr>s04 1 2</code></p>
 <h3 id="krok-3-poprawka-znaleziona-przez-raport" tabindex="-1"><a class="header-anchor" href="#krok-3-poprawka-znaleziona-przez-raport"><span>Krok 3: poprawka znaleziona przez raport</span></a></h3>
-<p><strong>W IDE:</strong> w <code>CandidatePriceCalculator</code> przenieś blok rabatu porannego (⇧⌘↓, Move Statement Down) za wyliczenie zniżki procentowej.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>W <code>CandidatePriceCalculator.price</code> przenosimy blok rabatu porannego (<code>if (query.start().getHour() &lt; 12) ...</code>) za wyliczenie zniżki procentowej: rabat odejmujemy od <code>price</code>, a nie od <code>base</code> - tak jak liczy legacy.</li>
+<li><code>PriceService</code> i raport bez zmian - poprawność ruchu potwierdza znikająca rozbieżność w raporcie.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">Money</span> <span class="hljs-variable">base</span> <span class="hljs-operator">=</span> basePrice(query.format());
+<span class="hljs-keyword">if</span> (query.start().getHour() &lt; <span class="hljs-number">12</span>) {
+    base = base.minus(MORNING_DISCOUNT);
+}
+<span class="hljs-type">Money</span> <span class="hljs-variable">price</span> <span class="hljs-operator">=</span> base.minus(base.percent(discountPercent(query.type())));
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">Money</span> <span class="hljs-variable">price</span> <span class="hljs-operator">=</span> base.minus(base.percent(discountPercent(query.type())));
 <span class="hljs-keyword">if</span> (query.start().getHour() &lt; <span class="hljs-number">12</span>) {
     price = price.minus(MORNING_DISCOUNT);
@@ -403,13 +669,36 @@ mailer.send(booking.email(), <span class="hljs-string">&quot;Platnosc odrzucona 
 <strong>Co powiedzieć:</strong> odrzucenie nieznanego formatu to świadoma decyzja (legacy wyceniało 4DX na 0.00!), a nie błąd. Zapisujemy ją jako zaakceptowaną różnicę.
 <strong>Snapshot:</strong> <code>step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m3/<wbr>s04 2 3</code></p>
 <h3 id="krok-4-przelaczenie" tabindex="-1"><a class="header-anchor" href="#krok-4-przelaczenie"><span>Krok 4: przełączenie</span></a></h3>
-<p><strong>W IDE:</strong> enum <code>MigrationMode { LEGACY, SHADOW, CANDIDATE }</code>, konstruktor <code>PriceService(MigrationMode, VerificationReport)</code>, <code>switch</code> w <code>price</code>.
-<strong>Po:</strong></p>
-<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">return</span> <span class="hljs-keyword">switch</span> (mode) {
-    <span class="hljs-keyword">case</span> LEGACY -&gt; legacy.price(query);
-    <span class="hljs-keyword">case</span> SHADOW -&gt; shadow(query);
-    <span class="hljs-keyword">case</span> CANDIDATE -&gt; candidate.price(query);
-};
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Powstaje nowy plik <code>MigrationMode.java</code>: enum z wartościami <code>LEGACY</code>, <code>SHADOW</code> i <code>CANDIDATE</code>.</li>
+<li>W <code>PriceService</code> dodajemy pole <code>MigrationMode mode</code>; konstruktor przyjmuje teraz <code>(MigrationMode, VerificationReport)</code>, a bezargumentowy przekazuje <code>MigrationMode.SHADOW</code>.</li>
+<li>Dotychczasową ścieżkę porównania przenosimy do prywatnej metody <code>shadow(TicketQuery)</code>; metoda <code>verify</code> znika, a zapis do raportu dzieje się wprost w <code>shadow</code>.</li>
+<li><code>price</code> wybiera ścieżkę przez <code>switch</code> po trybie: <code>LEGACY</code> woła stary kalkulator, <code>SHADOW</code> metodę <code>shadow</code>, <code>CANDIDATE</code> kandydata.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">public</span> <span class="hljs-title function_">PriceService</span><span class="hljs-params">()</span> {
+    <span class="hljs-built_in">this</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">VerificationReport</span>());
+}
+...
+<span class="hljs-keyword">public</span> <span class="hljs-type">Money</span> <span class="hljs-title function_">price</span><span class="hljs-params">(TicketQuery query)</span> {
+    <span class="hljs-type">Money</span> <span class="hljs-variable">result</span> <span class="hljs-operator">=</span> legacy.price(query);
+    report.record(verify(query, result));
+    <span class="hljs-keyword">return</span> result;
+}
+</code></pre>
+<p><strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">public</span> <span class="hljs-title function_">PriceService</span><span class="hljs-params">()</span> {
+    <span class="hljs-built_in">this</span>(MigrationMode.SHADOW, <span class="hljs-keyword">new</span> <span class="hljs-title class_">VerificationReport</span>());
+}
+...
+<span class="hljs-keyword">public</span> <span class="hljs-type">Money</span> <span class="hljs-title function_">price</span><span class="hljs-params">(TicketQuery query)</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">switch</span> (mode) {
+        <span class="hljs-keyword">case</span> LEGACY -&gt; legacy.price(query);
+        <span class="hljs-keyword">case</span> SHADOW -&gt; shadow(query);
+        <span class="hljs-keyword">case</span> CANDIDATE -&gt; candidate.price(query);
+    };
+}
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony; równoważność obejmuje wszystkie trzy tryby, <code>step4CandidateModeIsAuthoritativeAndRejectsUnknownFormat</code> pokazuje świadomą zmianę dla 4DX.
 <strong>Co powiedzieć:</strong> tryb zamiast flagi boolean, wybór w jednym miejscu. <code>LEGACY</code> to natychmiastowe wycofanie, dopóki nie usuniemy starego kodu.
@@ -439,29 +728,117 @@ mailer.send(booking.email(), <span class="hljs-string">&quot;Platnosc odrzucona 
     <span class="hljs-type">String</span> <span class="hljs-variable">shadow</span> <span class="hljs-operator">=</span> candidate.book(request); <span class="hljs-comment">// też obciąża kartę i wysyła mail</span>
 </code></pre>
 <h3 id="krok-1-port-efektow-parameterize-constructor" tabindex="-1"><a class="header-anchor" href="#krok-1-port-efektow-parameterize-constructor"><span>Krok 1: port efektów (Parameterize Constructor)</span></a></h3>
-<p><strong>W IDE:</strong> Extract Interface na operacjach <code>Infrastructure</code> używanych przez nowy przepływ → <code>Effects</code>; adapter <code>RealEffects</code>. ⌘F6 na konstruktorze <code>NewBookingFlow</code>: parametr <code>Effects</code> zamiast <code>Infrastructure</code>.
-<strong>Po:</strong></p>
-<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-built_in">this</span>.candidate = <span class="hljs-keyword">new</span> <span class="hljs-title class_">NewBookingFlow</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">RealEffects</span>(infra));
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Powstaje nowy plik <code>Effects.java</code>: interfejs z trzema operacjami <code>Infrastructure</code>, których używa nowy przepływ - <code>sendMail</code>, <code>charge</code> i <code>save</code> (Extract Interface).</li>
+<li>Powstaje nowy plik <code>RealEffects.java</code>: adapter implementujący <code>Effects</code> i delegujący każdą operację do <code>Infrastructure</code>.</li>
+<li>W konstruktorze <code>NewBookingFlow</code> zmieniamy typ parametru z <code>Infrastructure</code> na <code>Effects</code> (pole <code>infra</code> staje się polem <code>effects</code>); w <code>book</code> wywołania <code>infra.*</code> stają się <code>effects.*</code>.</li>
+<li>W <code>ShadowBooking</code> kandydat powstaje teraz przez <code>new NewBookingFlow(new RealEffects(infra))</code> - zachowanie (także błędne) bez zmian.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Infrastructure infra;
+
+<span class="hljs-type">public</span> <span class="hljs-title function_">NewBookingFlow</span><span class="hljs-params">(Infrastructure infra)</span> {
+    <span class="hljs-built_in">this</span>.infra = infra;
+}
+
+<span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">book</span><span class="hljs-params">(BookingRequest request)</span> {
+    ...
+    infra.charge(request.card(), total);
+    ...
+}
+
+<span class="hljs-comment">// w ShadowBooking:</span>
+<span class="hljs-built_in">this</span>.candidate = <span class="hljs-keyword">new</span> <span class="hljs-title class_">NewBookingFlow</span>(infra);
+</code></pre>
+<p><strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Effects effects;
+
+<span class="hljs-type">public</span> <span class="hljs-title function_">NewBookingFlow</span><span class="hljs-params">(Effects effects)</span> {
+    <span class="hljs-built_in">this</span>.effects = effects;
+}
+
+<span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">book</span><span class="hljs-params">(BookingRequest request)</span> {
+    ...
+    effects.charge(request.card(), total);
+    ...
+}
+
+<span class="hljs-comment">// w ShadowBooking:</span>
+<span class="hljs-built_in">this</span>.candidate = <span class="hljs-keyword">new</span> <span class="hljs-title class_">NewBookingFlow</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">RealEffects</span>(infra));
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony; <code>step1PreparatoryRefactoringKeepsTheBugOnPurpose</code> - nadal dwa maile.
 <strong>Co powiedzieć:</strong> refaktoryzacja przygotowawcza zachowuje zachowanie, także błędne. Mamy szew, który w następnym kroku zmieni wszystko.
 <strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m3/<wbr>s05 0 1</code></p>
 <h3 id="krok-2-przechwycenie-efektow-w-cieniu" tabindex="-1"><a class="header-anchor" href="#krok-2-przechwycenie-efektow-w-cieniu"><span>Krok 2: przechwycenie efektów w cieniu</span></a></h3>
-<p><strong>W IDE:</strong> nowa klasa <code>RecordingEffects implements Effects</code> zapisuje zamiary w formacie dziennika. <code>ShadowBooking</code> przekazuje kandydatowi nagrywarkę i porównuje nagrane efekty z efektami, które faktycznie wykonało legacy.
-<strong>Po:</strong></p>
-<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">RecordingEffects</span> <span class="hljs-variable">recorder</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">RecordingEffects</span>();
-<span class="hljs-type">String</span> <span class="hljs-variable">shadow</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">NewBookingFlow</span>(recorder).book(request);
-compare(<span class="hljs-string">&quot;wynik&quot;</span>, List.of(result), List.of(shadow));
-compare(<span class="hljs-string">&quot;efekty&quot;</span>, legacyEffects, recorder.recorded());
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Powstaje nowy plik <code>RecordingEffects.java</code>: implementacja <code>Effects</code>, która zapisuje zamiary w formacie dziennika infrastruktury (<code>MAIL ...</code>, <code>CHARGE ...</code>, <code>SAVE ...</code>), niczego nie wykonuje, a nagrania udostępnia przez <code>recorded()</code>.</li>
+<li>W <code>ShadowBooking</code> pole <code>candidate</code> znika; dochodzi pole <code>Infrastructure infra</code>. Kandydata tworzymy w <code>book</code> z nagrywarką: <code>new NewBookingFlow(recorder)</code>.</li>
+<li>W <code>book</code> przed wywołaniem legacy zapamiętujemy rozmiar dziennika, a po nim wycinamy z dziennika efekty wykonane przez legacy (<code>legacyEffects</code>).</li>
+<li>Porównanie przenosimy do pomocniczej metody <code>compare(String, List, List)</code> i wołamy ją dwa razy: dla wyniku i dla efektów; różnice trafiają do <code>divergences</code>.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">book</span><span class="hljs-params">(BookingRequest request)</span> {
+    <span class="hljs-type">String</span> <span class="hljs-variable">result</span> <span class="hljs-operator">=</span> legacy.book(request);
+    <span class="hljs-keyword">try</span> {
+        <span class="hljs-type">String</span> <span class="hljs-variable">shadow</span> <span class="hljs-operator">=</span> candidate.book(request);
+        <span class="hljs-keyword">if</span> (!shadow.equals(result)) {
+            divergences.add(<span class="hljs-string">&quot;legacy: &quot;</span> + result + <span class="hljs-string">&quot; | kandydat: &quot;</span> + shadow);
+        }
+    } <span class="hljs-keyword">catch</span> (RuntimeException failure) {
+        divergences.add(<span class="hljs-string">&quot;kandydat: &quot;</span> + failure.getMessage());
+    }
+    <span class="hljs-keyword">return</span> result;
+}
+</code></pre>
+<p><strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">int</span> <span class="hljs-variable">before</span> <span class="hljs-operator">=</span> infra.log().size();
+<span class="hljs-type">String</span> <span class="hljs-variable">result</span> <span class="hljs-operator">=</span> legacy.book(request);
+<span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-variable">legacyEffects</span> <span class="hljs-operator">=</span> infra.log().subList(before, infra.log().size());
+<span class="hljs-keyword">try</span> {
+    <span class="hljs-type">RecordingEffects</span> <span class="hljs-variable">recorder</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">RecordingEffects</span>();
+    <span class="hljs-type">String</span> <span class="hljs-variable">shadow</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">NewBookingFlow</span>(recorder).book(request);
+    compare(<span class="hljs-string">&quot;wynik&quot;</span>, List.of(result), List.of(shadow));
+    compare(<span class="hljs-string">&quot;efekty&quot;</span>, legacyEffects, recorder.recorded());
+} <span class="hljs-keyword">catch</span> (RuntimeException failure) {
+    divergences.add(<span class="hljs-string">&quot;kandydat: &quot;</span> + failure.getMessage());
+}
+<span class="hljs-keyword">return</span> result;
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony; <code>step2RecordsCandidateEffectsInsteadOfExecutingThem</code> - jeden mail, jedno obciążenie, a raport pokazuje rozbieżność w treści maila (kandydat pisze 50.00 zamiast 54.00).
 <strong>Co powiedzieć:</strong> porównanie efektów znalazło błąd, którego porównanie wyniku nie widziało.
 <strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m3/<wbr>s05 1 2</code></p>
 <h3 id="krok-3-separate-query-from-modifier-czysty-plan" tabindex="-1"><a class="header-anchor" href="#krok-3-separate-query-from-modifier-czysty-plan"><span>Krok 3: Separate Query from Modifier - czysty plan</span></a></h3>
-<p><strong>W IDE:</strong> z <code>NewBookingFlow.book</code> wydziel (⌥⌘M, potem Move F6) klasę <code>BookingPlanner</code> z metodą <code>plan</code>, która zwraca <code>BookingPlan(result, effects)</code>. <code>NewBookingFlow</code> wykonuje plan na porcie; <code>ShadowBooking</code> woła tylko <code>BookingPlanner</code>. <code>RecordingEffects</code> usuń (Safe Delete).
-<strong>Po:</strong></p>
-<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">BookingPlan</span> <span class="hljs-variable">plan</span> <span class="hljs-operator">=</span> candidate.plan(request);
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Powstaje nowy plik <code>BookingPlan.java</code>: rekord <code>BookingPlan(String result, List&lt;Effect&gt; effects)</code> z zapieczętowanym interfejsem <code>Effect</code> i rekordami <code>Charge</code>, <code>Save</code>, <code>SendMail</code>; każdy efekt umie się opisać (<code>describe</code>) i wykonać na porcie (<code>applyTo</code>).</li>
+<li>Powstaje nowy plik <code>BookingPlanner.java</code>: czysta część wyliczeń wydzielona z <code>NewBookingFlow.book</code> - metoda <code>plan(BookingRequest)</code> liczy kwoty i zwraca plan jako dane; klasa nie ma dostępu do portu efektów (Separate Query from Modifier).</li>
+<li><code>NewBookingFlow.book</code> chudnie: pobiera plan z <code>BookingPlanner</code>, wykonuje <code>plan.effects()</code> na porcie <code>Effects</code> i zwraca <code>plan.result()</code>.</li>
+<li>W <code>ShadowBooking</code> kandydatem jest teraz <code>BookingPlanner</code>: cień porównuje wynik planu oraz opisy zaplanowanych efektów z efektami legacy.</li>
+<li>Plik <code>RecordingEffects.java</code> znika - nagrywarka nie jest już potrzebna.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">try</span> {
+    <span class="hljs-type">RecordingEffects</span> <span class="hljs-variable">recorder</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">RecordingEffects</span>();
+    <span class="hljs-type">String</span> <span class="hljs-variable">shadow</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">NewBookingFlow</span>(recorder).book(request);
+    compare(<span class="hljs-string">&quot;wynik&quot;</span>, List.of(result), List.of(shadow));
+    compare(<span class="hljs-string">&quot;efekty&quot;</span>, legacyEffects, recorder.recorded());
+}
+</code></pre>
+<p><strong>Po:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-comment">// w ShadowBooking:</span>
+<span class="hljs-type">BookingPlan</span> <span class="hljs-variable">plan</span> <span class="hljs-operator">=</span> candidate.plan(request);
 compare(<span class="hljs-string">&quot;wynik&quot;</span>, List.of(result), List.of(plan.result()));
+<span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-variable">planned</span> <span class="hljs-operator">=</span> plan.effects().stream().map(BookingPlan.Effect::describe).toList();
+compare(<span class="hljs-string">&quot;efekty&quot;</span>, legacyEffects, planned);
+
+<span class="hljs-comment">// NewBookingFlow wykonuje plan:</span>
+<span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">book</span><span class="hljs-params">(BookingRequest request)</span> {
+    <span class="hljs-type">BookingPlan</span> <span class="hljs-variable">plan</span> <span class="hljs-operator">=</span> planner.plan(request);
+    plan.effects().forEach(effect -&gt; effect.applyTo(effects));
+    <span class="hljs-keyword">return</span> plan.result();
+}
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony; <code>step3ComparesAPurePlanAndNeverTouchesInfrastructure</code>.
 <strong>Co powiedzieć:</strong> typ gwarantuje bezpieczeństwo: <code>BookingPlanner</code> nie ma dostępu do portu efektów, więc w cieniu nie da się go użyć &quot;za mocno&quot;.

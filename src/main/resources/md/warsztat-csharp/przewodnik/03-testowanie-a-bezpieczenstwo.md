@@ -1,6 +1,6 @@
 # Moduł 3. Testowanie a bezpieczeństwo - warsztat CineLegacy (C#): przewodnik prowadzącego
 
-Pięć scen w domenie kina pokazuje na żywo, jak zbudować sieć bezpieczeństwa wokół kodu, który jej nie ma: test charakteryzujący przed pierwszą zmianą, szew (ang. seam) w klasie, której nie da się uruchomić w teście, wektor obserwowalnego zachowania, weryfikację w cieniu i jej granice przy efektach ubocznych. Każda scena ma kod wyjściowy (`Start`), kompletne snapshoty po każdym kroku (`StepN`) i test, który po każdym ruchu w IDE ma być zielony. Tam, gdzie krok świadomie zmienia zachowanie (s03 krok 2, s04 krok 4), test ma osobne oczekiwania i pokazuje różnicę wprost.
+Pięć scen w domenie kina pokazuje na żywo, jak zbudować sieć bezpieczeństwa wokół kodu, który jej nie ma: test charakteryzujący przed pierwszą zmianą, szew (ang. seam) w klasie, której nie da się uruchomić w teście, wektor obserwowalnego zachowania, weryfikację w cieniu i jej granice przy efektach ubocznych. Każda scena ma kod wyjściowy (`Start`), kompletne snapshoty po każdym kroku (`StepN`) i test, który po każdym kroku ma być zielony. Tam, gdzie krok świadomie zmienia zachowanie (s03 krok 2, s04 krok 4), test ma osobne oczekiwania i pokazuje różnicę wprost.
 
 Punktem odniesienia dla całego modułu jest wynik wzorcowy (ang. golden master) starego systemu: `CinemaManagerGoldenMasterTest` (`csharp/tests/Training.Workshop.Tests/Legacy`) odtwarza "jeden dzień kina" na nietkniętym `Training.Workshop.Legacy.CinemaManager` i porównuje pełny wektor zachowania (wyniki wywołań, maile, SMS-y, obciążenia i zwroty, raport dzienny, rozliczenia) z zatwierdzonym plikiem `src/test/resources/workshop/cinema-manager.approved.txt`. Plik jest wspólny dla Javy, C# i TypeScript (projekt testów C# dołącza go jako link i kopiuje do katalogu wyjściowego), bo wszystkie trzy wersje starego systemu dają identyczny wektor. To odpowiedź na pytanie "jak poradzić sobie bez testów?" w skali całego systemu: jeden szeroki, deterministyczny test, zanim powstanie jakikolwiek test jednostkowy. Sceny poniżej pokazują te same techniki w mniejszej skali. Pokaż golden master na początku modułu (3 min) i wracaj do niego przy s01 (charakterystyka) i s03 (wektor zachowania).
 
@@ -25,15 +25,15 @@ scripts/warsztat.sh status                         # który krok jest teraz w St
 scripts/warsztat.sh --lang cs reset m3/s04         # przywróć Start po pokazie
 ```
 
-- Zasada: **jeden krok - jeden test - jedno zdanie komentarza.** Ruch w Rider, uruchomienie testu sceny (ikona w gutterze przy klasie testu albo okno Unit Tests), zdanie z sekcji "Co powiedzieć". Zanim ruszysz kod, powiedz, jaki dowód da test po kroku.
+- Zasada: **jeden krok - jeden test - jedno zdanie komentarza.** Zmiana w kodzie, uruchomienie testu sceny, zdanie z sekcji "Co powiedzieć". Zanim ruszysz kod, powiedz, jaki dowód da test po kroku.
 - **Krok po kroku bez numerów:** `scripts/warsztat.sh --lang cs next m3/sNN` wstawia do `Start` gotowy następny krok i wypisuje, co się zmieniło. `prev` cofa o krok, `status` mówi, który krok jest teraz w `Start`. Skrypt pamięta język i ostatnią scenę, więc potem wystarczy samo `next`. Ręczne zmiany w `Start` zostają nadpisane - o to chodzi, gdy krok na żywo się rozjechał.
 - Pracujesz zawsze w katalogu (namespace) `Start`. Snapshoty `StepN` służą do `diff` albo do przeskoku (`next`, `jump`), gdy coś się rozjedzie.
 - Zanim zaczniesz, pokaż slajd 1.2 "Zachowanie obserwowalne to więcej niż wynik metody" i wracaj do niego przy każdej scenie: *co tu obserwujemy - wynik, wyjątek, stan, efekty, kolejność?*
 - W s02 start **nie ma prawdziwych testów** i to jest puenta: test `StartCannotEvenRunInATest` tylko dokumentuje, że kodu nie da się uruchomić. Testy pojawiają się dopiero wtedy, gdy kod ma szew. Pierwsze ruchy to refaktoryzacje automatyczne IDE o niskim ryzyku (slajd 3.6).
-- W s01 i s03 warto najpierw **zrobić naiwny ruch na żywo** (np. "poprawić" znalezisko z charakterystyki, sprawdzić tylko wynik), pokazać, czego test nie widzi, cofnąć (⌘Z) i dopiero wtedy wykonać krok z przewodnika.
+- W s01 i s03 warto najpierw **zrobić naiwny ruch na żywo** (np. "poprawić" znalezisko z charakterystyki, sprawdzić tylko wynik), pokazać, czego test nie widzi, cofnąć zmianę i dopiero wtedy wykonać krok z przewodnika.
 - W s04 i s05 część testów to nie tylko równoważność (`SNNEquivalenceTest`), ale też dowody strategii (`SNNSolutionTest`): raport rozbieżności, dziennik efektów ubocznych. Testy, które **dokumentują stan startowy** (np. "start obciąża kartę dwa razy"), zmienią kolor na czerwony, gdy wykonasz kroki na katalogu `Start` - to znak, że start jest już naprawiony. Po pokazie: `scripts/warsztat.sh --lang cs reset m3/sNN`.
 - Kroki, które zmieniają zachowanie (s03 krok 2, s04 krok 4), zapowiadaj na głos: "to jest osobny commit, nie refaktoryzacja".
-- Skróty w Rider (keymap macOS w stylu IntelliJ): ⇧F6 Rename, ⌥⌘F Introduce Field, ⌥⌘P Introduce Parameter, ⌥⌘M Extract Method, ⌥⌘N Inline, F6 Move, ⌘F6 Change Signature, ⌘⌦ Safe Delete, ⌥⌘T Surround With, ⇧⌘↓ Move Statement Down, ⌃T Refactor This (menu wszystkich refaktoryzacji dostępnych w miejscu kursora, m.in. Extract Interface). Projekt ma `TreatWarningsAsErrors` (`csharp/Directory.Build.props`), więc każde nowe ostrzeżenie kompilatora zatrzyma build.
+- Projekt ma `TreatWarningsAsErrors` (`csharp/Directory.Build.props`), więc każde nowe ostrzeżenie kompilatora zatrzyma build.
 
 ## Mapa scen
 
@@ -88,7 +88,29 @@ W trakcie wychodzą dwa znaleziska, które test zapisuje, a nie poprawia:
 
 ### Krok 1: Parameterize Constructor - wstrzyknięty TimeProvider
 
-**W IDE:** w `Confirm` zamień `DateTime.Now` na `TimeProvider.System.GetLocalNow().DateTime`, zaznacz `TimeProvider.System` i wykonaj Introduce Field (⌥⌘F, inicjalizacja w konstruktorze, nazwa `_clock`). Potem w konstruktorze na tym samym wyrażeniu Introduce Parameter (⌥⌘P), nazwa `clock`. Rider nie tworzy przy tym przeciążenia delegującego (w IntelliJ opcja "Delegate via overloading method"), więc konstruktor bezargumentowy `: this(TimeProvider.System)` dopisz ręcznie - to dwie linie.
+**Zmiany:**
+
+1. W `Confirm` zamień `DateTime.Now` na `TimeProvider.System.GetLocalNow().DateTime`.
+2. Wyrażenie `TimeProvider.System` przenieś do nowego prywatnego pola tylko do odczytu `_clock` (Introduce Field). W miejscu użycia zostaje `_clock.GetLocalNow().DateTime`.
+3. Inicjalizację pola przenieś do konstruktora i zamień ją na parametr `clock` typu `TimeProvider` (Introduce Parameter). Konstruktor `BookingConfirmation(TimeProvider clock)` przypisuje `_clock = clock;`.
+4. Dopisz konstruktor bezargumentowy delegujący do nowego: `: this(TimeProvider.System)` - to dwie linie. Dzięki temu dotychczasowi klienci klasy nie widzą różnicy.
+
+**Przed:**
+
+```csharp
+public sealed class BookingConfirmation
+{
+    public string Confirm(Booking b)
+    {
+        double sum = 0;
+        ...
+        return "POTWIERDZENIE REZERWACJI\n"
+            ...
+            + "Wygenerowano: " + DateTime.Now.ToString("yyyy-MM-dd'T'HH:mm:ss", CultureInfo.InvariantCulture) + "\n";
+    }
+}
+```
+
 **Po:**
 
 ```csharp
@@ -111,7 +133,31 @@ public BookingConfirmation(TimeProvider clock)
 
 ### Krok 2: pierwsza refaktoryzacja pod ochroną testu
 
-**W IDE:** zaznacz ciało pętli od `double p;` do `p = p - 5.00; }`, Extract Method (⌥⌘M), nazwa `TicketPrice`. Rider wykryje dwa wejścia (`b`, `t`) i jedno wyjście. W pętli zostaje `sum = sum + TicketPrice(b, t);`.
+**Zmiany:**
+
+1. W `Confirm` zaznacz ciało pętli: od deklaracji `double p;` do bloku `if (b.Start.Hour < 12) { p = p - 5.00; }`.
+2. Wydziel z niego prywatną metodę `TicketPrice` (Extract Method). Metoda ma dwa wejścia (`b`, `t`) i jedno wyjście: zwraca `double` (`return p;` na końcu).
+3. W pętli zostaje tylko `sum = sum + TicketPrice(b, t);`.
+
+**Przed:**
+
+```csharp
+foreach (var t in b.TicketTypes)
+{
+    double p;
+    if (b.Format == 3)
+    {
+        p = 40.00;
+    }
+    ...
+    if (b.Start.Hour < 12)
+    {
+        p = p - 5.00;
+    }
+    sum = sum + p;
+}
+```
+
 **Po:**
 
 ```csharp
@@ -174,7 +220,27 @@ Sekwencja rozrywania zależności: nazwij zachowanie i punkt obserwacji, wprowad
 
 ### Krok 1: Extract Interface + Parameterize Constructor
 
-**W IDE:** na `LegacyDatabase` Refactor This (⌃T) → Extract Interface, nazwa `IBookingStore`, zaznacz `PaidBookings` i `MarkReminded`. Potem w `ShowtimeReminderJob` ręcznie: pole `Func<IBookingStore> _stores`, konstruktor z parametrem i konstruktor bezargumentowy `: this(() => new LegacyDatabase())`. W `Run()` zamień `new LegacyDatabase()` na `_stores()`.
+**Zmiany:**
+
+1. Z klasy `LegacyDatabase` wydziel interfejs `IBookingStore` z metodami `PaidBookings()` i `MarkReminded(string bookingId)` (Extract Interface). Nowy plik `IBookingStore.cs`, a `LegacyDatabase` deklaruje teraz `: IBookingStore`.
+2. W `ShowtimeReminderJob` dodaj pole `private readonly Func<IBookingStore> _stores;` i konstruktor z parametrem `Func<IBookingStore> stores` (Parameterize Constructor), który przypisuje pole.
+3. Dodaj konstruktor bezargumentowy delegujący: `: this(() => new LegacyDatabase())`.
+4. W `Run()` zamień `var database = new LegacyDatabase();` na `var database = _stores();`.
+
+**Przed:**
+
+```csharp
+public sealed class ShowtimeReminderJob
+{
+    public int Run()
+    {
+        var database = new LegacyDatabase();
+        var now = DateTime.Now;
+        ...
+    }
+}
+```
+
 **Po:**
 
 ```csharp
@@ -194,7 +260,21 @@ public int Run()
 
 ### Krok 2: TimeProvider jako zależność
 
-**W IDE:** ręcznie (Introduce Parameter ⌥⌘P dodałby parametr do `Run()`, a potrzebujemy zależności konstruktora): pole `TimeProvider _clock`, drugi parametr konstruktora, w domyślnym konstruktorze `TimeProvider.System`, w `Run()` `_clock.GetLocalNow().DateTime`.
+**Zmiany:**
+
+1. Dodaj pole `private readonly TimeProvider _clock;` i drugi parametr konstruktora `TimeProvider clock`. Robimy to ręcznie: automatyczne wprowadzenie parametru dodałoby go do `Run()`, a potrzebujemy zależności konstruktora.
+2. W konstruktorze bezargumentowym przekaż `TimeProvider.System` jako drugi argument.
+3. W `Run()` zamień `var now = DateTime.Now;` na `var now = _clock.GetLocalNow().DateTime;`.
+
+**Przed:**
+
+```csharp
+public int Run()
+{
+    var database = _stores();
+    var now = DateTime.Now;
+```
+
 **Po:**
 
 ```csharp
@@ -207,7 +287,24 @@ var now = _clock.GetLocalNow().DateTime;
 
 ### Krok 3: Subclass and Override Method i pierwszy test
 
-**W IDE:** zaznacz wywołanie `ReminderMailer.Send(...)`, ⌥⌘M (Extract Method), nazwa `SendReminder`, widoczność `protected`, dopisz `virtual`. Usuń `sealed` z klasy. W teście prywatna klasa zagnieżdżona `RecordingStep3Job` nadpisuje `SendReminder` i zapisuje wiadomości do listy - to jest **pierwszy prawdziwy test** tej klasy.
+**Zmiany:**
+
+1. Wydziel wywołanie `ReminderMailer.Send(...)` z `Run()` do metody `SendReminder(string to, string subject, string body)` (Extract Method).
+2. Ustaw jej widoczność na `protected` i dopisz `virtual`.
+3. Usuń `sealed` z deklaracji klasy, żeby dało się ją dziedziczyć.
+4. W teście prywatna klasa zagnieżdżona `RecordingStep3Job` nadpisuje `SendReminder` i zapisuje wiadomości do listy - to jest **pierwszy prawdziwy test** tej klasy.
+
+**Przed:**
+
+```csharp
+public sealed class ShowtimeReminderJob
+{
+    ...
+            ReminderMailer.Send(booking.Email,
+                "Przypomnienie: " + booking.Title,
+                "Seans zaczyna sie o " + booking.Start.ToString("HH:mm", CultureInfo.InvariantCulture));
+```
+
 **Po:**
 
 ```csharp
@@ -223,7 +320,27 @@ protected virtual void SendReminder(string to, string subject, string body)
 
 ### Krok 4: seam z dziedziczenia na delegat
 
-**W IDE:** utwórz `public delegate void ReminderSender(string to, string subject, string body)`, dodaj trzeci parametr konstruktora, w domyślnym grupa metod `ReminderMailer.Send`. Inline Method (⌥⌘N) na `SendReminder`, przywróć `sealed`. W teście podklasę zastępuje lambda.
+**Zmiany:**
+
+1. Nowy plik `ReminderSender.cs` z delegatem `public delegate void ReminderSender(string to, string subject, string body);`.
+2. Dodaj pole `private readonly ReminderSender _sender;` i trzeci parametr konstruktora `ReminderSender sender`; w konstruktorze bezargumentowym przekaż grupę metod `ReminderMailer.Send`.
+3. W `SendReminder` zamień wywołanie statyczne na `_sender(to, subject, body);`, a potem wciel metodę w miejsce użycia (Inline Method): w `Run()` zostaje `_sender(...)`, metoda `SendReminder` znika.
+4. Przywróć `sealed` na deklaracji klasy.
+5. W teście podklasę `RecordingStep3Job` zastępuje lambda przekazana do konstruktora.
+
+**Przed:**
+
+```csharp
+public class ShowtimeReminderJob
+{
+    ...
+    protected virtual void SendReminder(string to, string subject, string body)
+    {
+        ReminderMailer.Send(to, subject, body);
+    }
+}
+```
+
 **Po:**
 
 ```csharp
@@ -290,7 +407,28 @@ Pokaż tabelę ze slajdu 1.2: wynik, wyjątki, stan, współpracownicy, czas, gr
 
 ### Krok 1: seam dla maili - regresja staje się widoczna
 
-**W IDE:** utwórz `public delegate void Mailer(string to, string text)`, Parameterize Constructor (pole `_mailer`, konstruktor z parametrem), domyślny konstruktor `: this(CinemaMailer.Send)`, zamień statyczne wywołania na `_mailer(...)`. Logika bez zmian.
+**Zmiany:**
+
+1. Nowy plik `Mailer.cs` z delegatem `public delegate void Mailer(string to, string text);`.
+2. W `TicketCheckout` dodaj pole `private readonly Mailer _mailer;` i konstruktor z parametrem `Mailer mailer` (Parameterize Constructor).
+3. Dodaj konstruktor bezargumentowy delegujący: `: this(CinemaMailer.Send)`.
+4. Oba statyczne wywołania `CinemaMailer.Send(...)` zamień na `_mailer(...)`. Logika bez zmian.
+
+**Przed:**
+
+```csharp
+public sealed class TicketCheckout
+{
+    public string Pay(Booking booking, string? card)
+    {
+        ...
+        else
+        {
+            CinemaMailer.Send(booking.Email, "Platnosc odrzucona " + booking.Id);
+        }
+        CinemaMailer.Send(booking.Email, "Bilety " + booking.Id + " oplacone: " + booking.Amount);
+```
+
 **Po:**
 
 ```csharp
@@ -306,7 +444,28 @@ public TicketCheckout()
 
 ### Krok 2: naprawa regresji pod ochroną testu
 
-**W IDE:** przenieś wysyłkę potwierdzenia do gałęzi sukcesu, zamień `charged ? "OK" : "DECLINED"` na dwa `return`.
+**Zmiany:**
+
+1. Przenieś wysyłkę maila potwierdzającego do gałęzi sukcesu, zaraz po `booking.MarkPaid();`.
+2. Zamień `return charged ? "OK" : "DECLINED";` na dwa osobne `return`: `"OK"` w gałęzi sukcesu, `"DECLINED"` na końcu metody.
+3. Zmienna `charged` znika: wynik `CardTerminal.Charge(...)` trafia wprost do warunku `if`, a gałąź `else` przestaje być potrzebna.
+
+**Przed:**
+
+```csharp
+var charged = CardTerminal.Charge(card, booking.Amount);
+if (charged)
+{
+    booking.MarkPaid();
+}
+else
+{
+    _mailer(booking.Email, "Platnosc odrzucona " + booking.Id);
+}
+_mailer(booking.Email, "Bilety " + booking.Id + " oplacone: " + booking.Amount);
+return charged ? "OK" : "DECLINED";
+```
+
 **Po:**
 
 ```csharp
@@ -326,7 +485,26 @@ return "DECLINED";
 
 ### Krok 3: seam dla płatności i pełny wektor
 
-**W IDE:** utwórz `public delegate bool PaymentGateway(string card, Money amount)`, drugi parametr konstruktora, domyślnie `CardTerminal.Charge`. W teście oba fałszywe obiekty zapisują do **jednego** dziennika zdarzeń.
+**Zmiany:**
+
+1. Nowy plik `PaymentGateway.cs` z delegatem `public delegate bool PaymentGateway(string card, Money amount);`.
+2. Dodaj pole `private readonly PaymentGateway _gateway;` i drugi parametr konstruktora `PaymentGateway gateway`; w konstruktorze bezargumentowym przekaż `CardTerminal.Charge`.
+3. W `Pay` zamień `CardTerminal.Charge(card, booking.Amount)` na `_gateway(card, booking.Amount)`.
+4. W teście oba fałszywe obiekty zapisują do **jednego** dziennika zdarzeń.
+
+**Przed:**
+
+```csharp
+public TicketCheckout()
+    : this(CinemaMailer.Send)
+{
+}
+...
+if (CardTerminal.Charge(card, booking.Amount))
+{
+    booking.MarkPaid();
+```
+
 **Po:**
 
 ```csharp
@@ -384,7 +562,27 @@ public Money Price(TicketQuery query)
 
 ### Krok 1: dodanie cienia
 
-**W IDE:** w `Price` po wyliczeniu wyniku legacy wywołaj kandydata w `try/catch` (Surround With ⌥⌘T) i licz niezgodności.
+**Zmiany:**
+
+1. Dodaj pole `private readonly CandidatePriceCalculator _candidate = new();` oraz licznik `private int _mismatches;` z właściwością `public int Mismatches => _mismatches;`.
+2. W `Price` zapisz wynik legacy do zmiennej `result` i na końcu go zwróć: klient zawsze dostaje wynik legacy.
+3. Po wyliczeniu wyniku wywołaj kandydata i porównaj: gdy `_candidate.Price(query)` różni się od `result`, zwiększ `_mismatches`.
+4. Całe porównanie owiń w `try/catch (Exception)`; w `catch` też zwiększ `_mismatches`. Awaria kandydata jest izolowana.
+
+**Przed:**
+
+```csharp
+public sealed class PriceService
+{
+    private readonly LegacyPriceCalculator _legacy = new();
+
+    public Money Price(TicketQuery query)
+    {
+        return _legacy.Price(query);
+    }
+}
+```
+
 **Po:**
 
 ```csharp
@@ -409,7 +607,31 @@ return result;
 
 ### Krok 2: raport rozbieżności
 
-**W IDE:** nowa klasa `VerificationReport` z interfejsem `IVerification` i rekordami `Agreement`, `Divergence`, `CandidateFailure`. Extract Method (⌥⌘M) `Verify` w `PriceService`.
+**Zmiany:**
+
+1. Nowy plik `VerificationReport.cs`: klasa z zagnieżdżonym interfejsem `IVerification`, rekordami `Agreement(Query, Price)`, `Divergence(Query, Legacy, Candidate)` i `CandidateFailure(Query, Legacy, Error)` oraz metodami `Record`, `Entries` i `Problems` (czytelne wiersze raportu).
+2. W `PriceService` usuń licznik `_mismatches` i właściwość `Mismatches`; dodaj pole `_report`, konstruktor z parametrem `VerificationReport report` i bezargumentowy `: this(new VerificationReport())`.
+3. Wydziel porównanie do prywatnej metody `Verify(query, legacyPrice)` (Extract Method): zwraca `Agreement` albo `Divergence`, a w `catch` `CandidateFailure` z nazwą typu wyjątku i komunikatem.
+4. W `Price` zostaje `_report.Record(Verify(query, result));` i `return result;`.
+
+**Przed:**
+
+```csharp
+Money result = _legacy.Price(query);
+try
+{
+    if (!_candidate.Price(query).Equals(result))
+    {
+        _mismatches++;
+    }
+}
+catch (Exception)
+{
+    _mismatches++;
+}
+return result;
+```
+
 **Po:**
 
 ```csharp
@@ -424,7 +646,22 @@ return legacyPrice.Equals(candidatePrice)
 
 ### Krok 3: poprawka znaleziona przez raport
 
-**W IDE:** w `CandidatePriceCalculator` przenieś blok rabatu porannego (⇧⌘↓, Move Statement Down) za wyliczenie zniżki procentowej.
+**Zmiany:**
+
+1. W `CandidatePriceCalculator.Price` przesuń blok rabatu porannego (`if (query.Start.Hour < 12) ...`) w dół, za wyliczenie zniżki procentowej.
+2. Rabat działa teraz na zmiennej `price`, a nie na `@base`: `price = price.Minus(MorningDiscount);`.
+
+**Przed:**
+
+```csharp
+Money @base = BasePrice(query.Format);
+if (query.Start.Hour < 12)
+{
+    @base = @base.Minus(MorningDiscount);
+}
+Money price = @base.Minus(@base.Percent(DiscountPercent(query.Type)));
+```
+
 **Po:**
 
 ```csharp
@@ -441,7 +678,24 @@ if (query.Start.Hour < 12)
 
 ### Krok 4: przełączenie
 
-**W IDE:** enum `MigrationMode { Legacy, Shadow, Candidate }`, konstruktor `PriceService(MigrationMode, VerificationReport)`, wyrażenie `switch` w `Price`.
+**Zmiany:**
+
+1. Nowy plik `MigrationMode.cs` z enumem `MigrationMode { Legacy, Shadow, Candidate }`.
+2. W `PriceService` dodaj pole `_mode` i konstruktor `PriceService(MigrationMode mode, VerificationReport report)`; bezargumentowy deleguje `: this(MigrationMode.Shadow, new VerificationReport())`.
+3. Dotychczasowe ciało `Price` przenieś do prywatnej metody `Shadow(TicketQuery query)` i wciel do niej metodę `Verify`: nagranie do raportu dzieje się wprost w `try/catch`, a `Verify` znika.
+4. `Price` zwraca wyrażenie `switch` po `_mode` z gałęzią domyślną rzucającą `InvalidOperationException`.
+
+**Przed:**
+
+```csharp
+public Money Price(TicketQuery query)
+{
+    Money result = _legacy.Price(query);
+    _report.Record(Verify(query, result));
+    return result;
+}
+```
+
 **Po:**
 
 ```csharp
@@ -499,7 +753,23 @@ try
 
 ### Krok 1: port efektów (Parameterize Constructor)
 
-**W IDE:** ⌃T → Extract Interface na operacjach `Infrastructure` używanych przez nowy przepływ → `IEffects`; adapter `RealEffects`. ⌘F6 na konstruktorze `NewBookingFlow`: parametr `IEffects` zamiast `Infrastructure`.
+**Zmiany:**
+
+1. Nowy plik `IEffects.cs`: z operacji `Infrastructure` używanych przez nowy przepływ wydziel interfejs `IEffects` z metodami `SendMail`, `Charge` i `Save` (Extract Interface).
+2. Nowy plik `RealEffects.cs`: adapter implementujący `IEffects`, który deleguje każdą metodę do `Infrastructure`.
+3. Zmień sygnaturę konstruktora `NewBookingFlow`: parametr `IEffects effects` zamiast `Infrastructure infra`. Pole `_effects` zastępuje `_infra`, a wywołania `_infra.*` w `Book` zmieniają się na `_effects.*`.
+4. W konstruktorze `ShadowBooking` kandydat dostaje `new NewBookingFlow(new RealEffects(infra))`.
+
+**Przed:**
+
+```csharp
+public ShadowBooking(Infrastructure infra)
+{
+    _legacy = new LegacyBookingFlow(infra);
+    _candidate = new NewBookingFlow(infra);
+}
+```
+
 **Po:**
 
 ```csharp
@@ -512,7 +782,29 @@ _candidate = new NewBookingFlow(new RealEffects(infra));
 
 ### Krok 2: przechwycenie efektów w cieniu
 
-**W IDE:** nowa klasa `RecordingEffects : IEffects` zapisuje zamiary w formacie dziennika. `ShadowBooking` przekazuje kandydatowi nagrywarkę i porównuje nagrane efekty z efektami, które faktycznie wykonało legacy.
+**Zmiany:**
+
+1. Nowy plik `RecordingEffects.cs`: klasa `RecordingEffects : IEffects` zapisuje zamiary w formacie dziennika infrastruktury (`MAIL ...`, `CHARGE ...`, `SAVE ...`) i udostępnia je metodą `Recorded()`. Niczego nie wysyła, nie obciąża i nie zapisuje.
+2. W `ShadowBooking` usuń pole `_candidate`; zapamiętaj infrastrukturę w polu `_infra`. W `Book` przed wywołaniem legacy zapisz długość dziennika, a po nim pobierz nowe wpisy jako `legacyEffects`.
+3. W bloku `try` utwórz nagrywarkę i przekaż ją świeżemu kandydatowi: `new NewBookingFlow(recorder).Book(request)`.
+4. Dodaj prywatną metodę `Compare(what, legacyValues, candidateValues)`, która porównuje listy pozycja po pozycji i dopisuje rozbieżności do `_divergences`. Porównaj osobno `"wynik"` i `"efekty"`.
+
+**Przed:**
+
+```csharp
+public string Book(BookingRequest request)
+{
+    string result = _legacy.Book(request);
+    try
+    {
+        string shadow = _candidate.Book(request);
+        if (!shadow.Equals(result))
+        {
+            _divergences.Add("legacy: " + result + " | kandydat: " + shadow);
+        }
+    }
+```
+
 **Po:**
 
 ```csharp
@@ -528,12 +820,30 @@ Compare("efekty", legacyEffects, recorder.Recorded());
 
 ### Krok 3: Separate Query from Modifier - czysty plan
 
-**W IDE:** z `NewBookingFlow.Book` wydziel (⌥⌘M, potem Move F6) klasę `BookingPlanner` z metodą `Plan`, która zwraca `BookingPlan(Result, Effects)`. `NewBookingFlow` wykonuje plan na porcie; `ShadowBooking` woła tylko `BookingPlanner`. `RecordingEffects` usuń (Safe Delete).
+**Zmiany:**
+
+1. Nowy plik `BookingPlan.cs`: rekord `BookingPlan(string Result, IReadOnlyList<BookingPlan.IEffect> Effects)` z zagnieżdżonym interfejsem `IEffect` (metody `Describe()` i `ApplyTo(IEffects port)`) oraz rekordami `Charge`, `Save` i `SendMail`.
+2. Nowy plik `BookingPlanner.cs`: z `NewBookingFlow.Book` wydziel czyste obliczenie do metody `Plan` (Extract Method) i przenieś ją do nowej klasy `BookingPlanner` (Move Method). `Plan` zwraca `BookingPlan` z wynikiem i listą efektów jako danymi.
+3. `NewBookingFlow.Book` woła `_planner.Plan(request)`, wykonuje każdy efekt planu na porcie (`effect.ApplyTo(_effects)`) i zwraca `plan.Result`.
+4. W `ShadowBooking` zamień pole kandydata na `BookingPlanner`; w `try` porównaj `plan.Result` z wynikiem legacy, a opisy efektów (`Describe()`) z `legacyEffects`.
+5. Plik `RecordingEffects.cs` znika: usuń klasę, nikt już jej nie używa.
+
+**Przed:**
+
+```csharp
+var recorder = new RecordingEffects();
+string shadow = new NewBookingFlow(recorder).Book(request);
+Compare("wynik", [result], [shadow]);
+Compare("efekty", legacyEffects, recorder.Recorded());
+```
+
 **Po:**
 
 ```csharp
 BookingPlan plan = _candidate.Plan(request);
 Compare("wynik", [result], [plan.Result]);
+IReadOnlyList<string> planned = plan.Effects.Select(effect => effect.Describe()).ToList();
+Compare("efekty", legacyEffects, planned);
 ```
 
 **Uruchom:** test zielony; `Step3ComparesAPurePlanAndNeverTouchesInfrastructure`.

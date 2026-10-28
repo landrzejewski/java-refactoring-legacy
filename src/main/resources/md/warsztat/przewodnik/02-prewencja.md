@@ -23,7 +23,7 @@ scripts/warsztat.sh reset m2/s09            # przywrócenie start z repozytorium
 - Zasada pokazu: **jeden krok - jeden test - jedno zdanie komentarza**. Nie łącz kroków, nawet jeśli IDE pozwala. Zanim ruszysz kod, powiedz, jaki dowód da test po kroku - to w praktyce pętla informacji zwrotnej ze slajdu 2.1.
 - **Krok po kroku bez numerów:** `scripts/warsztat.sh next` wstawia do `start` gotowy następny krok i wypisuje, co się zmieniło. `prev` cofa o krok, `status` mówi, który krok jest teraz w `start`. Skrypt pamięta ostatnią scenę, więc po pierwszym `next m2/sNN` wystarczy samo `next`. Ręczne zmiany w `start` zostają nadpisane - o to chodzi, gdy krok na żywo się rozjechał.
 - Jeśli krok na żywo się nie uda albo brakuje czasu: `next` (albo `jump` do konkretnego snapshotu) i kontynuuj od następnego kroku. Po pokazie zawsze `reset`.
-- Testy dotykają `start` wyłącznie przez API wspólne dla wszystkich kroków, więc kompilują się w każdym stanie pośrednim. Tam, gdzie refaktoryzacja zmienia konstruktory, scena ma punkt wejścia pełniący rolę composition root: `Main` (s08), `CinemaApplication` (s09), `CinemaApp` (s10). Refaktoryzacje IntelliJ (Introduce Parameter, Move Class) same aktualizują te miejsca.
+- Testy dotykają `start` wyłącznie przez API wspólne dla wszystkich kroków, więc kompilują się w każdym stanie pośrednim. Tam, gdzie refaktoryzacja zmienia konstruktory, scena ma punkt wejścia pełniący rolę composition root: `Main` (s08), `CinemaApplication` (s09), `CinemaApp` (s10). Kroki, które zmieniają konstruktor albo przenoszą klasę, aktualizują też te punkty wejścia - to część kroku.
 - Część testów to nie tylko równoważność (`SNNEquivalenceTest`), ale też dowody strategii (`SNNSolutionTest`, `S08DependencyDirectionTest`, `S09UseCaseTest`, `S10ArchitectureTest`): wynik bramki, lista naruszeń ADR, kierunek zależności. Testy, które **dokumentują stan startowy** (`startViolatesBothRules` w s02, `startFailsTheGateWithFourKindsOfWarnings` w s03, `startPassesEverythingBecauseItChecksNothing` w s04, `startDomainHasNoViolationsBeyondTheFrozenOnes` w s10), zmienią kolor na czerwony, gdy wykonasz kroki na pakiecie `start` - to znak, że start jest już naprawiony. Pułapki, które znikają po naprawie, testy dokumentują na kopii w kroku, który jeszcze je ma (np. s05 krok 1 - antyprzykład nadużycia Boy Scout).
 - Sceny s02, s03, s04 i s10 czytają pliki źródłowe sceny. Testy uruchamiaj z katalogu głównego repozytorium (tak działa `warsztat.sh` i `mvn test`).
 - Sceny s03 i s04 celowo zawierają kod z ostrzeżeniami kompilatora (`start` i `sample/dirty`) - to materiał dla bramek, nie niedoróbka.
@@ -77,7 +77,30 @@ Na żywo: zmień w konstruktorze `"morning,vip"` na `"morning,vlp"` i uruchom te
 
 ### Krok 1: Inline Class - rejestr pluginów znika
 
-**W IDE:** w `TicketPricer` zastąp pola `registry` i `activeRules` listą `List.of(new MorningRule(), new VipRule())` (ręcznie, konstruktory usuń). Safe Delete (⌘⌦) na `RuleRegistry` i na `priority()` w interfejsie (był potrzebny tylko do sortowania).
+**Zmiany:**
+
+1. W `TicketPricer` usuń pola `registry` i `activeRules` oraz oba konstruktory; w ich miejsce dodaj pole `rules` z listą `List.of(new MorningRule(), new VipRule())` i iteruj w pętli po `rules` (Inline Class).
+2. Usuń klasę `RuleRegistry` - nikt jej już nie woła.
+3. Usuń metodę `priority()` z interfejsu `PricingRule` i z obu reguł - była potrzebna tylko do sortowania w rejestrze.
+
+**Przed:**
+
+```java
+private final RuleRegistry registry;
+private final String activeRules;
+
+public TicketPricer() {
+    this(RuleRegistry.withDefaults(), "morning,vip");
+}
+
+public TicketPricer(RuleRegistry registry, String activeRules) {
+    this.registry = registry;
+    this.activeRules = activeRules;
+}
+...
+for (PricingRule rule : registry.resolve(activeRules)) {
+```
+
 **Po:**
 
 ```java
@@ -90,7 +113,21 @@ private final List<PricingRule> rules = List.of(new MorningRule(), new VipRule()
 
 ### Krok 2: Change Signature - typowane dane zamiast mapy
 
-**W IDE:** ⌘F6 na `PricingRule.appliesTo`: typ parametru `Map<String, Object>` -> `TicketQuote`; na `apply` usuń parametr kontekstu. Popraw implementacje (rzutowania znikają), usuń budowanie mapy w `TicketPricer`.
+**Zmiany:**
+
+1. W interfejsie `PricingRule` zmień typ parametru `appliesTo` z `Map<String, Object>` na `TicketQuote`, a z `apply` usuń parametr kontekstu - zostaje samo `apply(BigDecimal price)` (Change Signature).
+2. Popraw obie implementacje: rzutowania z mapy zastąp odczytami pól rekordu (`quote.start().getHour() < 12`, `quote.row() >= quote.vipFromRow()`).
+3. W `TicketPricer.price` usuń budowanie mapy kontekstu i przekazuj `quote` wprost do `appliesTo`.
+
+**Przed:**
+
+```java
+@Override
+public boolean appliesTo(Map<String, Object> context) {
+    return (int) context.get("row") >= (int) context.get("vipFromRow");
+}
+```
+
 **Po:**
 
 ```java
@@ -105,7 +142,29 @@ public boolean appliesTo(TicketQuote quote) {
 
 ### Krok 3: Inline Class dla reguł, Safe Delete interfejsu
 
-**W IDE:** ⌥⌘N na `MorningRule` i `VipRule` (Inline Class) albo ręcznie: dwa `if` w `price` z metodami `isMorning` i `isVip`. Safe Delete na `PricingRule`. Stałe przez ⌥⌘C.
+**Zmiany:**
+
+1. Wklej ciała obu reguł do `TicketPricer`: pętlę po `rules` zastąp dwoma `if` z prywatnymi metodami `isMorning(quote)` i `isVip(quote)` (Inline Class).
+2. Usuń klasy `MorningRule` i `VipRule` oraz interfejs `PricingRule` - nie mają już klientów; znika też pole `rules`.
+3. Kwoty -5.00 i +10.00 wyciągnij do stałych `MORNING_DISCOUNT` i `VIP_SURCHARGE` (Extract Constant).
+4. Usuń końcowe `setScale(2, RoundingMode.HALF_UP)` - wszystkie kwoty mają już dwa miejsca po przecinku.
+
+**Przed:**
+
+```java
+private final List<PricingRule> rules = List.of(new MorningRule(), new VipRule());
+
+public BigDecimal price(TicketQuote quote) {
+    BigDecimal price = basePrice(quote.format());
+    for (PricingRule rule : rules) {
+        if (rule.appliesTo(quote)) {
+            price = rule.apply(price);
+        }
+    }
+    return price.setScale(2, RoundingMode.HALF_UP);
+}
+```
+
 **Po:**
 
 ```java
@@ -166,7 +225,32 @@ public double total(String organizer, int tickets, double unitPrice) {
 
 ### Krok 1: spełnienie R1 - wynik zamiast efektu
 
-**W IDE:** nowy record `Quote(double total, boolean groupDiscount)` w `pricing`; ⌘F6 na `total` - bez `organizer`, zwraca `Quote`. Wywołanie `mailer` przenieś do `BookingService` (warstwa aplikacji). Usuń import `notification` z cennika.
+**Zmiany:**
+
+1. W pakiecie `pricing` dodaj rekord `Quote(double total, boolean groupDiscount)` - wynik cennika niesie informację o rabacie zamiast efektu ubocznego.
+2. Zmień sygnaturę `TicketPricing.total`: usuń parametr `organizer`, metoda zwraca `Quote` zamiast `double` (Change Signature).
+3. Usuń z `TicketPricing` pole `mailer`, konstruktor i wywołanie `mailer.groupDiscountGranted(...)` - razem z importem pakietu `notification`.
+4. W `BookingService` odbierz `Quote` i wyślij mail tam, gdy `quote.groupDiscount()` jest prawdą.
+
+**Przed:**
+
+```java
+import pl.training.workshop.m2.s02_adr.start.notification.GroupMailer;
+
+public final class TicketPricing {
+    private final GroupMailer mailer;
+    ...
+    public double total(String organizer, int tickets, double unitPrice) {
+        double sum = unitPrice * tickets;
+        if (tickets >= 10) {
+            sum = sum - sum * 0.10;
+            mailer.groupDiscountGranted(organizer, tickets);
+        }
+        return Math.round(sum * 100) / 100.0;
+    }
+}
+```
+
 **Po:**
 
 ```java
@@ -182,7 +266,25 @@ if (quote.groupDiscount()) {
 
 ### Krok 2: spełnienie R2 - Money
 
-**W IDE:** Type Migration (⇧⌘F6) `double` → `Money` w `Quote` i `TicketPricing`; nazwane stałe dla progu i procentu grupy; `BookingService` podaje `Money.of("25.00")`.
+**Zmiany:**
+
+1. W `Quote` i `TicketPricing` zamień typ kwot `double` na `Money`; arytmetyka przechodzi na `times`, `minus` i `percent`.
+2. Próg i procent rabatu grupowego zapisz jako stałe `GROUP_SIZE` i `GROUP_DISCOUNT_PERCENT`.
+3. W `BookingService` podawaj cenę jednostkową jako `Money.of("25.00")` itd. i wypisuj `quote.total()` bez `String.format`.
+
+**Przed:**
+
+```java
+public Quote total(int tickets, double unitPrice) {
+    double sum = unitPrice * tickets;
+    boolean groupDiscount = tickets >= 10;
+    if (groupDiscount) {
+        sum = sum - sum * 0.10;
+    }
+    return new Quote(Math.round(sum * 100) / 100.0, groupDiscount);
+}
+```
+
 **Po:**
 
 ```java
@@ -238,7 +340,28 @@ case 2:
 
 ### Krok 1: typy generyczne
 
-**W IDE:** na polu `seatsByRow` ⌥⏎ → Add type arguments; `computeIfAbsent` zamiast `get`/`put`; usuń rzutowania.
+**Zmiany:**
+
+1. W polu `seatsByRow` dodaj parametry typowe: `Map<Integer, List<String>>` i `new TreeMap<>()`.
+2. W `take` zastąp parę `get`/`put` z rzutowaniem jednym wywołaniem `computeIfAbsent(row, r -> new ArrayList<>()).add(seat)`.
+3. W `takenPerRow` usuń rzutowania - iteracja `seatsByRow.forEach((row, seats) -> result.put(row, seats.size()))`.
+
+**Przed:**
+
+```java
+private final Map seatsByRow = new TreeMap();
+
+public void take(String seat) {
+    Integer row = Integer.valueOf(seat.substring(1));
+    List seats = (List) seatsByRow.get(row);
+    if (seats == null) {
+        seats = new ArrayList();
+        seatsByRow.put(row, seats);
+    }
+    seats.add(seat);
+}
+```
+
 **Po:**
 
 ```java
@@ -253,7 +376,19 @@ seatsByRow.computeIfAbsent(row, r -> new ArrayList<>()).add(seat);
 
 ### Krok 2: nowe API zamiast przestarzałego
 
-**W IDE:** w `return` zamień argument `format` na istniejącą już zmienną `name` - wywołanie trafia do `PriceTable.basePrice(String)`. Ctrl+klik na metodzie potwierdza, że to nowe przeciążenie.
+**Zmiany:**
+
+1. W `OccupancyReport.describe` w instrukcji `return` zamień argument `PriceTable.basePrice(format)` na istniejącą już zmienną `name` - wywołanie trafia do nowego przeciążenia `basePrice(String)`.
+2. `PriceTable` zostaje bez zmian: przestarzałe `basePrice(int)` dalej istnieje, bo mogą je wołać klienci spoza repozytorium.
+
+**Przed:**
+
+```java
+String name = format == 3 ? "IMAX" : format == 2 ? "3D" : "2D";
+return name + " [" + features + "], cena " + PriceTable.basePrice(format)
+        + " zl, zajete: " + map.takenPerRow();
+```
+
 **Po:**
 
 ```java
@@ -262,12 +397,31 @@ return name + " [" + features + "], cena " + PriceTable.basePrice(name)
 ```
 
 **Uruchom:** test zielony; zostaje tylko `[fallthrough] OccupancyReport.java:13`.
-**Co powiedzieć:** przestarzałą metodę usuniemy (Safe Delete) dopiero, gdy nikt jej nie woła - także poza repozytorium.
+**Co powiedzieć:** przestarzałą metodę usuniemy dopiero, gdy nikt jej nie woła - także poza repozytorium.
 **Snapshot:** `step2/` · **Różnica:** `scripts/warsztat.sh diff m2/s03 1 2`
 
 ### Krok 3: switch expression
 
-**W IDE:** ⌥⏎ na `switch` → Replace with enhanced 'switch' statement, potem ręcznie zamień na wyrażenie; przelot zapisany wprost: `case 3 -> "duzy ekran, dzwiek Dolby"`.
+**Zmiany:**
+
+1. Zamień instrukcję `switch` z przelotem na wyrażenie `switch` z gałęziami strzałkowymi, przypisane do `features`; puste `features = ""` i `break` znikają.
+2. Przelot zapisz wprost: gałąź `case 3 -> "duzy ekran, dzwiek Dolby"` zawiera pełny tekst dla IMAX.
+
+**Przed:**
+
+```java
+String features = "";
+switch (format) {
+    case 3:
+        features = features + "duzy ekran, ";
+    case 2:
+        features = features + "dzwiek Dolby";
+        break;
+    default:
+        features = "standard";
+}
+```
+
 **Po:**
 
 ```java
@@ -322,7 +476,20 @@ public List<String> evaluate(GateInput input) {
 
 ### Krok 1: skan źródeł - TODO i System.out
 
-**W IDE:** metoda `scanSources`: każda linia z `TODO`/`FIXME` albo `System.out`/`System.err` to wynik z plikiem i linią.
+**Zmiany:**
+
+1. W `QualityGate` dodaj prywatną metodę `scanSources(GateInput, List<String>)`: dla każdego pliku `.java` w katalogu źródeł czyta linie, a linię z `TODO`/`FIXME` albo `System.out`/`System.err` zamienia na wynik z nazwą pliku i numerem linii.
+2. Dodaj pomocnicze metody `javaFiles(Path)` i `read(Path)` (lista plików `.java` i odczyt linii).
+3. `evaluate` zbiera wyniki do listy `findings` i zwraca ją zamiast pustego `List.of()`.
+
+**Przed:**
+
+```java
+public List<String> evaluate(GateInput input) {
+    return List.of();
+}
+```
+
 **Po:**
 
 ```java
@@ -337,7 +504,22 @@ if (line.contains("TODO") || line.contains("FIXME")) {
 
 ### Krok 2: ostrzeżenia kompilatora
 
-**W IDE:** metoda `compileSources` (javax.tools, `-Xlint:all`), każda diagnostyka poza NOTE to wynik.
+**Zmiany:**
+
+1. Dodaj metodę `compileSources(GateInput, List<String>)`: kompiluje źródła domeny przez `javax.tools` z opcjami `--release 25 -Xlint:all`, a każdą diagnostykę inną niż NOTE zamienia na wynik z plikiem, linią i kodem ostrzeżenia.
+2. Dodaj pomocnicze `tempDir()` i `delete(Path)` - kompilacja pisze do katalogu tymczasowego, sprzątanego po zakończeniu.
+3. W `evaluate` wywołaj `compileSources` przed `scanSources`.
+
+**Przed:**
+
+```java
+public List<String> evaluate(GateInput input) {
+    List<String> findings = new ArrayList<>();
+    scanSources(input, findings);
+    return findings;
+}
+```
+
 **Po:**
 
 ```java
@@ -351,7 +533,23 @@ findings.add("kompilator " + Path.of(d.getSource().toUri()).getFileName() + ":"
 
 ### Krok 3: pokrycie kluczowej klasy (przybliżenie)
 
-**W IDE:** metoda `checkCoverage`: każda publiczna metoda `PriceTable` musi być wywołana w `PriceTableTest`.
+**Zmiany:**
+
+1. Dodaj stałą `PUBLIC_METHOD` - wyrażenie regularne wyłapujące nazwy publicznych metod.
+2. Dodaj metodę `checkCoverage(GateInput, List<String>)`: dla każdej publicznej metody kluczowej klasy sprawdza, czy źródło testu zawiera wywołanie `.nazwa(`; brak wywołania to wynik "pokrycie ... bez testu".
+3. W `evaluate` dołóż `checkCoverage` po `scanSources`.
+
+**Przed:**
+
+```java
+public List<String> evaluate(GateInput input) {
+    List<String> findings = new ArrayList<>();
+    compileSources(input, findings);
+    scanSources(input, findings);
+    return findings;
+}
+```
+
 **Po:**
 
 ```java
@@ -366,14 +564,32 @@ if (!test.contains("." + method.group(1) + "(")) {
 
 ### Krok 4: testy zielone
 
-**W IDE:** metoda `runTests`: refleksja uruchamia metody z adnotacją o nazwie `Test` i zgłasza porażki.
+**Zmiany:**
+
+1. Dodaj metodę `runTests(GateInput, List<String>)`: refleksją ładuje klasę testową, wybiera metody z adnotacją o prostej nazwie `Test` (JUnit albo dowolna inna), uruchamia każdą na świeżej instancji i porażkę (`InvocationTargetException`) zamienia na wynik z nazwą testu i typem wyjątku.
+2. Gdy klasy testowej nie da się uruchomić, bramka zgłasza to jako wynik zamiast przepuszczać zmianę.
+3. W `evaluate` wywołaj `runTests` jako pierwsze sprawdzenie.
+
+**Przed:**
+
+```java
+public List<String> evaluate(GateInput input) {
+    List<String> findings = new ArrayList<>();
+    compileSources(input, findings);
+    scanSources(input, findings);
+    checkCoverage(input, findings);
+    return findings;
+}
+```
+
 **Po:**
 
 ```java
 try {
     test.invoke(constructor.newInstance());
 } catch (InvocationTargetException failure) {
-    findings.add("test " + type.getSimpleName() + "." + test.getName() + " nie przechodzi: " ...);
+    findings.add("test " + type.getSimpleName() + "." + test.getName() + " nie przechodzi: "
+            + failure.getCause().getClass().getSimpleName());
 }
 ```
 
@@ -425,7 +641,23 @@ for (int i = 0; i < t.seats().size(); i++) {
 
 ### Krok 1: nadużycie - "skoro już tu jestem"
 
-**W IDE:** pokaż antyprzykład: `scripts/warsztat.sh jump m2/s05 1`. Obok dobrych ruchów przemycono sortowanie miejsc, e-mail małymi literami i pominięcie linii "Tel" bez telefonu.
+**Zmiany:**
+
+1. Nie rób tego kroku ręcznie - wczytaj gotowy antyprzykład: `scripts/warsztat.sh jump m2/s05 1`.
+2. W antyprzykładzie obok dobrych ruchów (nazwy, `StringBuilder`, `String.join`) przemycono trzy zmiany zachowania: miejsca są sortowane, e-mail przechodzi na małe litery, a linia "Tel" znika, gdy telefonu brak; dodatkowo kwotę formatuje `Money` zamiast `String.format`.
+
+**Przed:**
+
+```java
+s = s + "Miejsca: " + x + "\n";
+s = s + "Klient: " + t.email().trim() + "\n";
+if (t.phone() != null) {
+    s = s + "Tel: " + t.phone() + "\n";
+} else {
+    s = s + "Tel: -\n";
+}
+```
+
 **Po:**
 
 ```java
@@ -439,7 +671,34 @@ text.append("Klient: ").append(ticket.email().trim().toLowerCase(Locale.ROOT)).a
 
 ### Krok 2: poprawna, mała poprawa
 
-**W IDE:** Rename (⇧F6) `t` → `ticket`; Replace loop with `String.join` (⌥⏎ na pętli albo ręcznie); `StringBuilder` zamiast konkatenacji; Extract Method (⌥⌘M) `phoneLine`.
+**Zmiany:**
+
+1. Zacznij od stanu wyjściowego (`scripts/warsztat.sh reset m2/s05`) - krok 2 wychodzi ze `start`, nie z antyprzykładu.
+2. Zmień nazwę parametru `t` na `ticket`; pomocnicze `s`, `d`, `x` znikają przy przebudowie (Rename).
+3. Ręczną pętlę sklejającą miejsca zastąp `String.join(", ", ticket.seats())`.
+4. Konkatenację w zmiennej `s` zastąp jednym łańcuchem wywołań `StringBuilder.append(...)`.
+5. Warunek na telefon wydziel do metody `phoneLine(ticket)` zwracającej "Tel: ..." albo "Tel: -" (Extract Method).
+
+**Przed:**
+
+```java
+public String print(Ticket t) {
+    String s = "";
+    s = s + "Film: " + t.title() + "\n";
+    String d = t.start().toLocalDate() + " " + t.start().toLocalTime();
+    s = s + "Seans: " + d + "\n";
+    String x = "";
+    for (int i = 0; i < t.seats().size(); i++) {
+        if (i > 0) {
+            x = x + ", ";
+        }
+        x = x + t.seats().get(i);
+    }
+    s = s + "Miejsca: " + x + "\n";
+    ...
+}
+```
+
 **Po:**
 
 ```java
@@ -493,7 +752,36 @@ if (q.type().equals("STUDENT")) {
 
 ### Krok 1: commit 1 - refaktoryzacja (Extract Method)
 
-**W IDE:** ⌥⌘M na wyborze ceny bazowej → `basePrice(String format)`; ⌥⌘M na wyborze zniżki → `discountPercent(String type)` zwracające procent; Money zamiast BigDecimal.
+**Zmiany:**
+
+1. Wybór ceny bazowej wydziel do metody `basePrice(String format)` (Extract Method).
+2. Wybór zniżki wydziel do metody `discountPercent(String type)`, która zwraca procent zamiast kwoty (Extract Method).
+3. Kwoty przejdź z `BigDecimal` na `Money`: `base.minus(base.percent(...))`, `Money.of("5.00")`, `Money.of("10.00")`; przy okazji zmień nazwę parametru `q` na `query` (Rename).
+
+**Przed:**
+
+```java
+BigDecimal p;
+if (q.format().equals("IMAX")) {
+    p = new BigDecimal("40.00");
+} else if (q.format().equals("3D")) {
+    p = new BigDecimal("32.00");
+} else {
+    p = new BigDecimal("25.00");
+}
+BigDecimal d;
+if (q.type().equals("STUDENT")) {
+    d = p.multiply(new BigDecimal("0.25"));
+} else if (q.type().equals("SENIOR")) {
+    d = p.multiply(new BigDecimal("0.30"));
+} else if (q.type().equals("CHILD")) {
+    d = p.multiply(new BigDecimal("0.40"));
+} else {
+    d = BigDecimal.ZERO;
+}
+p = p.subtract(d);
+```
+
 **Po:**
 
 ```java
@@ -507,7 +795,26 @@ Money price = base.minus(base.percent(discountPercent(query.type())));
 
 ### Krok 2: commit 2 - refaktoryzacja przygotowawcza (Change Signature)
 
-**W IDE:** ⌘F6 na `discountPercent`: parametr `TicketQuery query` zamiast `String type`, w ciele `switch (query.type())`.
+**Zmiany:**
+
+1. Zmień sygnaturę `discountPercent`: zamiast `String type` metoda przyjmuje całe `TicketQuery query`, bo następna reguła potrzebuje daty (Change Signature).
+2. W ciele metody dopasowuj `switch (query.type())`; wywołanie w `price` podaje `query` zamiast `query.type()`.
+
+**Przed:**
+
+```java
+Money price = base.minus(base.percent(discountPercent(query.type())));
+...
+private static int discountPercent(String type) {
+    return switch (type) {
+        case "STUDENT" -> 25;
+        case "SENIOR" -> 30;
+        case "CHILD" -> 40;
+        default -> 0;
+    };
+}
+```
+
 **Po:**
 
 ```java
@@ -522,7 +829,24 @@ private static int discountPercent(TicketQuery query) {
 
 ### Krok 3: commit 3 - zmiana zachowania
 
-**W IDE:** w gałęzi `default` warunek `isCheapTuesday(query) ? 20 : 0`, metoda pomocnicza, stała `CHEAP_TUESDAY_PERCENT`.
+**Zmiany:**
+
+1. Dodaj stałą `CHEAP_TUESDAY_PERCENT = 20` i metodę pomocniczą `isCheapTuesday(query)` sprawdzającą `DayOfWeek.TUESDAY`.
+2. W gałęzi `default` metody `discountPercent` zwracaj `isCheapTuesday(query) ? CHEAP_TUESDAY_PERCENT : 0`.
+
+**Przed:**
+
+```java
+private static int discountPercent(TicketQuery query) {
+    return switch (query.type()) {
+        case "STUDENT" -> 25;
+        case "SENIOR" -> 30;
+        case "CHILD" -> 40;
+        default -> 0;
+    };
+}
+```
+
 **Po:**
 
 ```java
@@ -576,7 +900,29 @@ byTitle.merge(sale.title(), revenue(sale), BigDecimal::add);   // marketing
 
 ### Krok 1: Extract Method według aktora
 
-**W IDE:** zaznacz blok pod `// księgowość`, ⌥⌘M `accountingSection` (zwraca `String`, własny `StringBuilder`); to samo dla `// marketing` jako `marketingSection`.
+**Zmiany:**
+
+1. Blok oznaczony komentarzem `// księgowość` wydziel do metody `accountingSection(List<Sale> sales)` zwracającej `String`, z własnym `StringBuilder` (Extract Method).
+2. To samo dla bloku `// marketing`: metoda `marketingSection(List<Sale> sales)`.
+3. `render` skleja wyniki obu metod; komentarze znikają - zastąpiły je nazwy metod.
+
+**Przed:**
+
+```java
+public String render(List<Sale> sales) {
+    StringBuilder out = new StringBuilder();
+    // księgowość
+    BigDecimal tickets = new BigDecimal("0.00");
+    BigDecimal bar = new BigDecimal("0.00");
+    ...
+    out.append("Razem brutto ").append(total).append('\n');
+    // marketing
+    out.append("MARKETING\n");
+    ...
+    return out.toString();
+}
+```
+
 **Po:**
 
 ```java
@@ -591,7 +937,22 @@ public String render(List<Sale> sales) {
 
 ### Krok 2: Rozdziel wspólny helper według aktora
 
-**W IDE:** skopiuj `revenue` (⌘D na metodzie), nazwij kopię `popularity` (⇧F6), w `marketingSection` użyj `popularity`. Dodaj Javadoc z właścicielem każdej metody.
+**Zmiany:**
+
+1. Skopiuj metodę `revenue` i nazwij kopię `popularity` - identyczne ciało, inny właściciel.
+2. W `marketingSection` zamień wywołanie `revenue(sale)` na `popularity(sale)`.
+3. Obu metodom dodaj Javadoc z nazwą aktora-właściciela.
+
+**Przed:**
+
+```java
+byTitle.merge(sale.title(), revenue(sale), BigDecimal::add);
+...
+private BigDecimal revenue(Sale sale) {
+    return sale.ticketRevenue().add(sale.barRevenue());
+}
+```
+
 **Po:**
 
 ```java
@@ -608,7 +969,32 @@ private BigDecimal popularity(Sale sale) { ... }
 
 ### Krok 3: Extract Class - klasa na aktora
 
-**W IDE:** Refactor > Extract > Delegate dla `accountingSection`, `revenue`, `net` -> `AccountingSection`; to samo dla `marketingSection`, `popularity` -> `MarketingSection`. Metody nazwij `render`.
+**Zmiany:**
+
+1. Utwórz klasę `AccountingSection` i przenieś do niej `accountingSection` (pod nazwą `render`) oraz `revenue` i `net` (Extract Class).
+2. Utwórz klasę `MarketingSection` i przenieś do niej `marketingSection` (pod nazwą `render`) oraz `popularity`.
+3. W `DailyReport` zostają tylko pola `accounting` i `marketing` oraz `render`, który skleja wyniki obu sekcji.
+
+**Przed:**
+
+```java
+public final class DailyReport {
+    public String render(List<Sale> sales) {
+        return accountingSection(sales) + marketingSection(sales);
+    }
+
+    private String accountingSection(List<Sale> sales) { ... }
+
+    private String marketingSection(List<Sale> sales) { ... }
+
+    private BigDecimal revenue(Sale sale) { ... }
+
+    private BigDecimal popularity(Sale sale) { ... }
+
+    private BigDecimal net(BigDecimal gross, int vatPercent) { ... }
+}
+```
+
 **Po:**
 
 ```java
@@ -669,7 +1055,22 @@ if (!reply.startsWith("250")) {
 
 ### Krok 1: Introduce Parameter - dependency injection
 
-**W IDE:** na inicjalizatorze pola `mail` ⌥⌘P (Introduce Parameter do konstruktora). IntelliJ przeniesie `new SmtpMailSender("smtp.kino.pl", 25)` do `Main`.
+**Zmiany:**
+
+1. W `ConfirmReservation` usuń inicjalizator pola `mail` - klasa dostaje `SmtpMailSender` przez nowy konstruktor (Introduce Parameter).
+2. Tworzenie `new SmtpMailSender("smtp.kino.pl", 25)` przenieś do `Main`, który składa graf obiektów.
+
+**Przed:**
+
+```java
+public final class ConfirmReservation {
+    private final SmtpMailSender mail = new SmtpMailSender("smtp.kino.pl", 25);
+...
+public static ConfirmReservation confirmReservation() {    // Main
+    return new ConfirmReservation();
+}
+```
+
 **Po:**
 
 ```java
@@ -684,7 +1085,22 @@ public ConfirmReservation(SmtpMailSender mail) {
 
 ### Krok 2: Extract Method - nazwij potrzebę polityki
 
-**W IDE:** zaznacz składanie MIME, `send` i sprawdzenie kodu, ⌥⌘M, nazwa `notifyCustomer(String email, String message)`.
+**Zmiany:**
+
+1. Składanie wiadomości MIME, wywołanie `mail.send` i sprawdzenie kodu odpowiedzi wydziel do prywatnej metody `notifyCustomer(String email, String message)` (Extract Method).
+2. `confirm` woła już tylko `notifyCustomer(reservation.email(), message)` - cała technologia siedzi w jednej metodzie.
+
+**Przed:**
+
+```java
+String mime = "To: " + reservation.email() + "\r\nSubject: Rezerwacja\r\n\r\n" + message;
+String reply = mail.send(reservation.email(), mime);
+if (!reply.startsWith("250")) {
+    throw new IllegalStateException("SMTP odrzucil: " + reply);
+}
+return "potwierdzono: " + reservation.email();
+```
+
 **Po:**
 
 ```java
@@ -698,7 +1114,29 @@ return "potwierdzono: " + reservation.email();
 
 ### Krok 3: Port po stronie polityki, adapter w infra
 
-**W IDE:** utwórz w `app` interfejs `CustomerNotifier` z metodą `notifyCustomer`. Na `notifyCustomer` Refactor > Move (F6) do nowej klasy `infra.SmtpCustomerNotifier implements CustomerNotifier` (albo Extract Delegate i przeniesienie). W `ConfirmReservation` typ pola -> `CustomerNotifier`. W `Main` złóż `new ConfirmReservation(new SmtpCustomerNotifier(new SmtpMailSender(...)))`.
+**Zmiany:**
+
+1. W pakiecie `app` utwórz interfejs `CustomerNotifier` z metodą `notifyCustomer(String email, String message)` (Extract Interface).
+2. W `infra` utwórz klasę `SmtpCustomerNotifier implements CustomerNotifier` i przenieś do niej ciało `notifyCustomer` wraz z polem `mail` (Move Method).
+3. W `ConfirmReservation` zmień typ pola i parametru konstruktora na `CustomerNotifier` - import `infra` znika z polityki.
+4. W `Main` złóż graf: `new ConfirmReservation(new SmtpCustomerNotifier(new SmtpMailSender("smtp.kino.pl", 25)))`.
+
+**Przed:**
+
+```java
+import pl.training.workshop.m2.s08_dip.step2.infra.SmtpMailSender;
+...
+private final SmtpMailSender mail;
+...
+private void notifyCustomer(String email, String message) {
+    String mime = "To: " + email + "\r\nSubject: Rezerwacja\r\n\r\n" + message;
+    String reply = mail.send(email, mime);
+    if (!reply.startsWith("250")) {
+        throw new IllegalStateException("SMTP odrzucil: " + reply);
+    }
+}
+```
+
 **Po:**
 
 ```java
@@ -758,7 +1196,33 @@ return "201 " + id + " " + total;
 
 ### Krok 1: Extract Class - przypadek użycia jako jawna orkiestracja
 
-**W IDE:** utwórz rekordy `BookSeatsCommand(email, format, rows)` i `Booking(id, total)`. Zaznacz w kontrolerze wycenę, zapis i publikację, ⌥⌘M `execute`, potem Move (F6) do nowej klasy `BookSeats`. Kontroler mapuje wyjątki: `IllegalArgumentException` -> 400, `IllegalStateException` -> 503.
+**Zmiany:**
+
+1. Utwórz rekordy `BookSeatsCommand(email, format, rows)` i `Booking(id, total)` - proste dane przekraczające granicę.
+2. Wycenę, zapis i publikację wydziel z kontrolera do metody `execute`, a metodę przenieś do nowej klasy `BookSeats` z polami `db` i `outbox` (Extract Method, Move Method).
+3. Walidację "brak miejsc" przenieś do `BookSeats.execute` jako `IllegalArgumentException`.
+4. Kontroler tylko tłumaczy: parametry na `BookSeatsCommand`, wynik na "201 ...", a wyjątki na kody: `IllegalArgumentException` -> 400, `IllegalStateException` -> 503.
+
+**Przed:**
+
+```java
+BigDecimal total = new BigDecimal("0.00");
+for (int row : rows) {
+    total = total.add(base);
+    if (row >= 10) {
+        total = total.add(new BigDecimal("10.00"));
+    }
+}
+String id;
+try {
+    id = db.insert(new Object[] {email, format, rows.size(), total});
+} catch (IllegalStateException e) {
+    return "503 " + e.getMessage();
+}
+outbox.publish("reservation-created", id + ";" + email + ";" + total);
+return "201 " + id + " " + total;
+```
+
 **Po:**
 
 ```java
@@ -780,7 +1244,23 @@ public Booking execute(BookSeatsCommand command) {
 
 ### Krok 2: Porty zdefiniowane przez potrzebę, adaptery
 
-**W IDE:** utwórz `NewReservation` (rekord), porty `ReservationStore.save(NewReservation)` i `BookingNotifier.reservationCreated(id, reservation)`. Przenieś (ręcznie lub Extract Delegate) mapowanie na `Object[]` do `RowStoreReservationStore`, publikację do `OutboxBookingNotifier`. `BookSeats` przyjmuje porty.
+**Zmiany:**
+
+1. Dodaj rekord `NewReservation(email, format, seats, total)` - dane przekraczające granicę do zapisu.
+2. Dodaj porty: interfejs `ReservationStore` z metodą `save(NewReservation)` i interfejs `BookingNotifier` z metodą `reservationCreated(id, reservation)` - nazwane potrzebą przypadku użycia.
+3. Mapowanie na `Object[]` przenieś do adaptera `RowStoreReservationStore`, a publikację komunikatu do `OutboxBookingNotifier`.
+4. `BookSeats` przyjmuje w konstruktorze porty zamiast `RowStore` i `Outbox`; adaptery składa na razie kontroler (do kroku 4).
+
+**Przed:**
+
+```java
+BigDecimal total = price(command);
+String id = db.insert(
+        new Object[] {command.email(), command.format(), command.rows().size(), total});
+outbox.publish("reservation-created", id + ";" + command.email() + ";" + total);
+return new Booking(id, total);
+```
+
 **Po:**
 
 ```java
@@ -795,7 +1275,20 @@ return new Booking(id, reservation.total());
 
 ### Krok 3: Move Class - granica widoczna w pakietach
 
-**W IDE:** F6 na `BookSeats`, `BookSeatsCommand`, `Booking`, `NewReservation`, `ReservationStore`, `BookingNotifier` -> pakiet `app`; F6 na kontrolerze i obu adapterach -> `adapter`. IntelliJ poprawi importy (także w `CinemaApplication`).
+**Zmiany:**
+
+1. Przenieś `BookSeats`, `BookSeatsCommand`, `Booking`, `NewReservation`, `ReservationStore` i `BookingNotifier` do nowego pakietu `app` (Move Class).
+2. Przenieś `ReservationController`, `RowStoreReservationStore` i `OutboxBookingNotifier` do nowego pakietu `adapter` (Move Class).
+3. Popraw importy u wszystkich klientów, także w `CinemaApplication` - adaptery importują `app`, nigdy odwrotnie.
+
+**Przed:**
+
+```text
+step2/   BookSeats, BookSeatsCommand, Booking, NewReservation, ReservationStore,
+         BookingNotifier, ReservationController, RowStoreReservationStore,
+         OutboxBookingNotifier, CinemaApplication   (wszystko w jednym pakiecie)
+```
+
 **Po:**
 
 ```text
@@ -809,7 +1302,25 @@ step3/adapter/   ReservationController, RowStoreReservationStore, OutboxBookingN
 
 ### Krok 4: Composition root
 
-**W IDE:** w konstruktorze kontrolera zaznacz `new BookSeats(...)` i ⌥⌘P (Introduce Parameter) - tworzenie grafu przeniesie się do `CinemaApplication`. Usuń nieużywane parametry `db`, `outbox` z kontrolera (⌘F6).
+**Zmiany:**
+
+1. W konstruktorze kontrolera zastąp składanie `new BookSeats(...)` parametrem `BookSeats bookSeats` - tworzenie grafu przenosi się do `CinemaApplication` (Introduce Parameter).
+2. Usuń z konstruktora kontrolera nieużywane już parametry `db` i `outbox` wraz z importami `RowStore` i `Outbox` (Change Signature).
+3. `CinemaApplication.reservationController` składa cały graf: oba adaptery wyjściowe, przypadek użycia i kontroler.
+
+**Przed:**
+
+```java
+public ReservationController(RowStore db, Outbox outbox) {
+    this.bookSeats = new BookSeats(
+            new RowStoreReservationStore(db), new OutboxBookingNotifier(outbox));
+}
+...
+public static ReservationController reservationController(RowStore db, Outbox outbox) {
+    return new ReservationController(db, outbox);                // CinemaApplication
+}
+```
+
 **Po:**
 
 ```java
@@ -871,7 +1382,33 @@ Uruchom test i pokaż wyjście konsoli: `s10 start - naruszenia granicy: [...]` 
 
 ### Krok 1: Extract Class - spójność
 
-**W IDE:** Refactor > Extract > Delegate na `toRow`, `fromRow` i polu `table`, klasa `ScreeningRowMapper` w tym samym pakiecie `domain`. Popraw `CinemaApp` (composition root), żeby tworzył obie klasy.
+**Zmiany:**
+
+1. Utwórz w pakiecie `domain` klasę `ScreeningRowMapper` i przenieś do niej pole `table` oraz metody `toRow` i `fromRow` z `ScreeningService` (Extract Class).
+2. W `ScreeningService` zostaje sama polityka cenowa: pola `basePrice` i `morningDiscount`, metody `price` i `isMorning`; konstruktor traci parametr `table`.
+3. Popraw composition root `CinemaApp`: tworzy `ScreeningService` i osobno `ScreeningRowMapper("screenings")`, a `toRow`/`fromRow` woła na maperze.
+
+**Przed:**
+
+```java
+public final class ScreeningService {
+    private final BigDecimal basePrice;
+    private final BigDecimal morningDiscount;
+    private final String table;
+    ...
+    public ScreeningRow toRow(Screening screening) {
+        return new ScreeningRow(table, screening.title(), Timestamp.valueOf(screening.start()));
+    }
+
+    public Screening fromRow(ScreeningRow row) {
+        if (!row.table().equals(table)) {
+            throw new IllegalArgumentException("obca tabela: " + row.table());
+        }
+        return new Screening(row.title(), row.start().toLocalDateTime());
+    }
+}
+```
+
 **Po:**
 
 ```java
@@ -888,7 +1425,23 @@ public final class ScreeningRowMapper {    // wciąż w domain
 
 ### Krok 2: Move Class do adaptera
 
-**W IDE:** F6 na `ScreeningRowMapper`, pakiet `adapter`. IntelliJ doda import `domain.Screening` w maperze i poprawi `CinemaApp`.
+**Zmiany:**
+
+1. Przenieś `ScreeningRowMapper` z pakietu `domain` do pakietu `adapter` (Move Class).
+2. W maperze dochodzi import `domain.Screening`; popraw też import mapera w `CinemaApp`.
+
+**Przed:**
+
+```java
+package pl.training.workshop.m2.s10_boundarycheck.step1.domain;
+
+import java.sql.Timestamp;
+
+import pl.training.workshop.m2.s10_boundarycheck.step1.adapter.ScreeningRow;
+
+public final class ScreeningRowMapper {
+```
+
 **Po:**
 
 ```java

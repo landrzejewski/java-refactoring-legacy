@@ -96,11 +96,11 @@ cd typescript && npx vitest run test/workshop/legacy
 
 ## Materiały
 
-| Moduł | Przewodnik prowadzącego | Zadania dla uczestników | Katalog |
-|---|---|---|---|
-| 2. Prewencja | [przewodnik](przewodnik/02-prewencja.html) | [zadania](zadania/02-prewencja.html) | `workshop/m2` |
-| 3. Testowanie a bezpieczeństwo | [przewodnik](przewodnik/03-testowanie-a-bezpieczenstwo.html) | [zadania](zadania/03-testowanie-a-bezpieczenstwo.html) | `workshop/m3` |
-| 5. Refaktoryzacja do wzorców | [przewodnik](przewodnik/05-refaktoryzacja-do-wzorcow.html) | [zadania](zadania/05-refaktoryzacja-do-wzorcow.html) | `workshop/m5` |
+| Moduł | Przewodnik prowadzącego | Katalog |
+|---|---|---|
+| 2. Prewencja | [przewodnik](przewodnik/02-prewencja.html) | `workshop/m2` |
+| 3. Testowanie a bezpieczeństwo | [przewodnik](przewodnik/03-testowanie-a-bezpieczenstwo.html) | `workshop/m3` |
+| 5. Refaktoryzacja do wzorców | [przewodnik](przewodnik/05-refaktoryzacja-do-wzorcow.html) | `workshop/m5` |
 
 Numery modułów warsztatu (2, 3, 5) odpowiadają pakietom i komendom `scripts/warsztat.sh`. Tematy ze slajdów bez osobnej sceny (np. definicja refaktoryzacji, wzorce w pigułce) omawia sama [prezentacja](../slajdy/refaktoryzacja-do-wzorcow-slajdy.html).
 

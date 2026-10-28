@@ -26,11 +26,11 @@ Pakiet praktyczny na kodzie systemu kina CineLegacy: krótkie sceny, po jednej n
 
 Start (wprowadzenie, reguły domeny, macierz pokrycia tematów): [Java](warsztat/00-cinelegacy.html), [C#](warsztat-csharp/00-cinelegacy.html), [TypeScript](warsztat-typescript/00-cinelegacy.html).
 
-| Moduł warsztatu | Sekcje slajdów | Przewodnik prowadzącego | Zadania dla uczestników | Pakiet / namespace / katalog |
-| --- | --- | --- | --- | --- |
-| 2. Prewencja | 2 | [Java](warsztat/przewodnik/02-prewencja.html), [C#](warsztat-csharp/przewodnik/02-prewencja.html), [TS](warsztat-typescript/przewodnik/02-prewencja.html) | [Java](warsztat/zadania/02-prewencja.html), [C#](warsztat-csharp/zadania/02-prewencja.html), [TS](warsztat-typescript/zadania/02-prewencja.html) | `pl.training.workshop.m2`, `Training.Workshop.M2`, `typescript/src/workshop/m2` |
-| 3. Testowanie a bezpieczeństwo | 1.2, 3 | [Java](warsztat/przewodnik/03-testowanie-a-bezpieczenstwo.html), [C#](warsztat-csharp/przewodnik/03-testowanie-a-bezpieczenstwo.html), [TS](warsztat-typescript/przewodnik/03-testowanie-a-bezpieczenstwo.html) | [Java](warsztat/zadania/03-testowanie-a-bezpieczenstwo.html), [C#](warsztat-csharp/zadania/03-testowanie-a-bezpieczenstwo.html), [TS](warsztat-typescript/zadania/03-testowanie-a-bezpieczenstwo.html) | `pl.training.workshop.m3`, `Training.Workshop.M3`, `typescript/src/workshop/m3` |
-| 5. Refaktoryzacja do wzorców | 3-17 | [Java](warsztat/przewodnik/05-refaktoryzacja-do-wzorcow.html), [C#](warsztat-csharp/przewodnik/05-refaktoryzacja-do-wzorcow.html), [TS](warsztat-typescript/przewodnik/05-refaktoryzacja-do-wzorcow.html) | [Java](warsztat/zadania/05-refaktoryzacja-do-wzorcow.html), [C#](warsztat-csharp/zadania/05-refaktoryzacja-do-wzorcow.html), [TS](warsztat-typescript/zadania/05-refaktoryzacja-do-wzorcow.html) | `pl.training.workshop.m5`, `Training.Workshop.M5`, `typescript/src/workshop/m5` |
+| Moduł warsztatu | Sekcje slajdów | Przewodnik prowadzącego | Pakiet / namespace / katalog |
+| --- | --- | --- | --- |
+| 2. Prewencja | 2 | [Java](warsztat/przewodnik/02-prewencja.html), [C#](warsztat-csharp/przewodnik/02-prewencja.html), [TS](warsztat-typescript/przewodnik/02-prewencja.html) | `pl.training.workshop.m2`, `Training.Workshop.M2`, `typescript/src/workshop/m2` |
+| 3. Testowanie a bezpieczeństwo | 1.2, 3 | [Java](warsztat/przewodnik/03-testowanie-a-bezpieczenstwo.html), [C#](warsztat-csharp/przewodnik/03-testowanie-a-bezpieczenstwo.html), [TS](warsztat-typescript/przewodnik/03-testowanie-a-bezpieczenstwo.html) | `pl.training.workshop.m3`, `Training.Workshop.M3`, `typescript/src/workshop/m3` |
+| 5. Refaktoryzacja do wzorców | 3-17 | [Java](warsztat/przewodnik/05-refaktoryzacja-do-wzorcow.html), [C#](warsztat-csharp/przewodnik/05-refaktoryzacja-do-wzorcow.html), [TS](warsztat-typescript/przewodnik/05-refaktoryzacja-do-wzorcow.html) | `pl.training.workshop.m5`, `Training.Workshop.M5`, `typescript/src/workshop/m5` |
 
 Sceny to menu pokazów, z którego prowadzący wybiera tematy pasujące do grupy. Proponowany rdzeń warsztatu m5 jest opisany w przewodniku prowadzącego.
 

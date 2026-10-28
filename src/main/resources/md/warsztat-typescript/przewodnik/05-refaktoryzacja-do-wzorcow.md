@@ -26,7 +26,7 @@ scripts/warsztat.sh --lang ts reset m5/s08         # przywraca start z repozytor
 - Pracujemy w katalogu `start`. Gdy coś pójdzie nie tak, `next` (albo `jump` do właściwego kroku), a po scenie `reset`.
 - Test równoważności przechodzi przez `start` i wszystkie kroki. Jeśli uczestnicy pracują równolegle, to ten sam test jest ich kryterium ukończenia.
 - Testy wołają sceny przez stabilne punkty wejścia (klient w rodzaju `PriceBoard`, `CancellationDesk`, `PaymentServices`, `Reports`, `Cinema`, `PaymentModule`, `SettlementModule` albo zachowany konstruktor), dzięki czemu `jump` do dowolnego kroku przechodzi. Testy dokumentujące pułapkę samego `start` (s11, s17, s30) po `jump` są pomijane (`context.skip(...)`, vitest pokazuje je jako "skipped") - to zamierzone.
-- Refaktoryzacje w VS Code: zaznaczenie i ⌃⇧R (Refactor...) daje Extract to method / Extract to function / Extract to constant, F2 to Rename Symbol, ⌘. (Quick Fix) m.in. Implement interface i Add missing member, a Move to a new file / Move to file przenosi deklaracje najwyższego poziomu. Change Signature, Safe Delete, Extract Interface, Extract Delegate, Inline Method, Push Members Down ani Extract Superclass nie ma - te ruchy robimy ręcznie, a listę miejsc do poprawy daje `npm run typecheck` (albo Find All References ⇧⌥F12).
+- Refaktoryzacje w VS Code: edytor potrafi wyodrębnić zaznaczony fragment do metody, funkcji albo stałej, zmienić nazwę symbolu w całym projekcie, dopisać szkielet składowych implementowanego interfejsu i przenieść deklarację najwyższego poziomu do nowego lub istniejącego pliku. Zmiany sygnatury, bezpiecznego usuwania, wyodrębnienia interfejsu, wyodrębnienia delegata, wchłonięcia metody, zepchnięcia składowych w dół ani wyodrębnienia nadklasy nie ma - te ruchy robimy ręcznie, a listę miejsc do poprawy daje `npm run typecheck` (albo wyszukanie wszystkich odwołań do symbolu).
 - Motyw przewodni: **najpierw kontrakt, potem diagram klas**. W każdej scenie zaczynamy od pytania "co jest obserwowalne?" (wyjątek, kolejność efektów, moment wyboru, format trwały, typ i moment błędu na granicy). Siatkę bezpieczeństwa z sekcji 3 slajdów ćwiczy każda scena: test równoważności przed pierwszym ruchem, test różnicowy w s10, testy struktury w s26-s32.
 
 ## Mapa scen
@@ -130,7 +130,32 @@ Klientem jest `PriceBoard.priceFor(request)` - przez niego woła test. Test rów
 
 ### Krok 1: Extract Interface + strategia przejściowa
 
-**W IDE:** utwórz plik `DiscountPolicy.ts` z interfejsem `DiscountPolicy` i metodą `discount(base: Money, ticketType: string): Money`. Zaznacz łańcuch `if`, ⌃⇧R > Extract to method in class 'TicketPricer', nazwa `legacyDiscount` (parametry `base`, `ticketType`, `program`, zwracane `Money`; metoda nie używa `this`, więc w porcie jest `private static`). W `price` utwórz strategię jako literał obiektu i wywołaj ją.
+**Zmiany:**
+
+1. Utwórz nowy plik `DiscountPolicy.ts` z interfejsem `DiscountPolicy` i jedną metodą `discount(base: Money, ticketType: string): Money`.
+2. W `TicketPricer` wyodrębnij cały łańcuch `if` z metody `price` do nowej metody `legacyDiscount` (Extract Method) z parametrami `base`, `ticketType`, `program` i wynikiem `Money`. Metoda nie używa `this`, więc oznacz ją `private static`; każda gałąź zwraca zniżkę zamiast przypisywać ją do zmiennej.
+3. W `price` utwórz strategię przejściową jako literał obiektu typu `DiscountPolicy`, delegujący do `legacyDiscount`, i policz cenę przez `policy.discount(base, ticketType)`.
+
+**Przed:**
+
+```typescript
+let discount: Money;
+if (program === 'PREMIERE') {
+  discount = Money.ZERO;
+} else if (program === 'STUDENT_WEEK' && ticketType === 'S') {
+  discount = base.percent(50);
+} else if (program === 'STANDARD' || program === 'STUDENT_WEEK') {
+  let percent: number;
+  switch (ticketType) {
+    ...
+  }
+  discount = base.percent(percent);
+} else {
+  throw new IllegalArgumentError(`unknown program: ${program}`);
+}
+return base.minus(discount);
+```
+
 **Po:**
 
 ```typescript
@@ -144,7 +169,32 @@ return base.minus(policy.discount(base, ticketType));
 
 ### Krok 2: przeniesienie gałęzi do strategii
 
-**W IDE:** dla każdej gałęzi osobno: nowa klasa `implements DiscountPolicy` (⌘. na podkreślonej nazwie klasy - Implement interface 'DiscountPolicy'), ciało skopiowane z gałęzi, test. Kolejno `StandardDiscount`, `PremiereDiscount`, `StudentWeekDiscount` (ta ostatnia deleguje nie-studentów do `StandardDiscount` przekazanego w konstruktorze). Na koniec `legacyDiscount` zastąp metodą `policyFor(program)` ze `switch`.
+**Zmiany:**
+
+1. Utwórz klasę `StandardDiscount implements DiscountPolicy`; szkielet metody `discount` może dopisać edytor, ciało skopiuj z gałęzi STANDARD (`switch` po typie biletu). Uruchom test.
+2. Tak samo utwórz `PremiereDiscount` (zwraca `Money.ZERO`, typu biletu nie sprawdza - jak w start). Test.
+3. Utwórz `StudentWeekDiscount`: student dostaje 50%, pozostałych deleguje do `StandardDiscount` przekazanego w konstruktorze. Test.
+4. Usuń `legacyDiscount`, a w jego miejsce dodaj `private static policyFor(program: string): DiscountPolicy` ze `switch` tworzącym strategię; `price` liczy `base.minus(TicketPricer.policyFor(program).discount(base, ticketType))`.
+
+**Przed:**
+
+```typescript
+private static legacyDiscount(base: Money, ticketType: string, program: string): Money {
+  if (program === 'PREMIERE') {
+    return Money.ZERO;
+  } else if (program === 'STUDENT_WEEK' && ticketType === 'S') {
+    return base.percent(50);
+  } else if (program === 'STANDARD' || program === 'STUDENT_WEEK') {
+    let percent: number;
+    switch (ticketType) {
+      ...
+    }
+    return base.percent(percent);
+  }
+  throw new IllegalArgumentError(`unknown program: ${program}`);
+}
+```
+
 **Po:**
 
 ```typescript
@@ -164,7 +214,35 @@ private static policyFor(program: string): DiscountPolicy {
 
 ### Krok 3: wybór strategii w korzeniu kompozycji
 
-**W IDE:** utwórz klasę `DiscountPrograms` z prywatnym konstruktorem i przenieś do niej `policyFor` jako `static forName(program)` (VS Code nie przenosi metod między klasami - wytnij i wklej), instancje strategii jako statyczne stałe (współdzielone); sprawdzenie `null` programu przechodzi razem z wyborem. Change Signature robimy ręcznie: `TicketPricer` dostaje strategię w konstruktorze, `price(base, ticketType)` traci parametr programu, a `npm run typecheck` wskaże klienta `PriceBoard` do poprawy.
+**Zmiany:**
+
+1. Utwórz klasę `DiscountPrograms` z prywatnym konstruktorem. Przenieś do niej `policyFor` jako `static forName(program)` (wytnij z `TicketPricer` i wklej - VS Code nie przenosi metod między klasami). Instancje strategii trzymaj w stałych `private static readonly` i zwracaj te same obiekty (strategie są bezstanowe, więc można je współdzielić). Sprawdzenie `null` programu przenieś z `price` do `forName`.
+2. Zmień ręcznie sygnatury (Change Signature): `TicketPricer` dostaje `DiscountPolicy` w konstruktorze (z `requireNonNull`), a `price(base, ticketType)` traci parametr programu i deleguje do `this.policy.discount(...)`.
+3. Uruchom `npm run typecheck` - wskaże klienta `PriceBoard`. Usuń w nim pole z gotowym `TicketPricer`; `priceFor` składa kontekst ze strategią z `DiscountPrograms.forName(request.program)`.
+
+**Przed:**
+
+```typescript
+// TicketPricer:
+return base.minus(TicketPricer.policyFor(program).discount(base, ticketType));
+
+private static policyFor(program: string): DiscountPolicy {
+  switch (program) {
+    case 'STANDARD': return new StandardDiscount();
+    case 'STUDENT_WEEK': return new StudentWeekDiscount(new StandardDiscount());
+    case 'PREMIERE': return new PremiereDiscount();
+    default: throw new IllegalArgumentError(`unknown program: ${program}`);
+  }
+}
+
+// PriceBoard:
+private readonly pricer = new TicketPricer();
+
+priceFor(request: PriceRequest): Money {
+  return this.pricer.price(request.base, request.ticketType, request.program);
+}
+```
+
 **Po:**
 
 ```typescript
@@ -221,11 +299,32 @@ durationMinutes(): number {
 }
 ```
 
-Tworzenie jest w jednym miejscu: `Screening.fromRow(row: ScreeningRow)` (mapowanie wiersza z bazy). Zawsze najpierw szukamy miejsc tworzenia i deserializacji (w VS Code: Find All References ⇧⌥F12 na konstruktorze).
+Tworzenie jest w jednym miejscu: `Screening.fromRow(row: ScreeningRow)` (mapowanie wiersza z bazy). Zawsze najpierw szukamy miejsc tworzenia i deserializacji (w VS Code: wyszukaj wszystkie odwołania do konstruktora).
 
 ### Krok 1: Extract Subclass dla jednej gałęzi
 
-**W IDE:** konstruktor bazy z `private` na `protected`, `title` jako `protected readonly`. Pod klasą `Screening` (w tym samym pliku) utwórz `MarathonScreening extends Screening` z polem `films`, nadpisz trzy metody z modyfikatorem `override` (⌘. na klasie - Add missing members pomaga tylko przy metodach abstrakcyjnych, tu wpisujemy je ręcznie) i skopiuj do nich gałęzie MARATHON. Plik `MarathonScreening.ts` tylko re-eksportuje klasę. W `fromRow` twórz podklasę dla `'MARATHON'`. W bazie gałęzie MARATHON rzucają `IllegalStateError`.
+**Zmiany:**
+
+1. W `Screening` zmień konstruktor z `private` na `protected`, a pole `title` oznacz `protected readonly` - podklasa musi je widzieć.
+2. Pod klasą `Screening`, w tym samym pliku, utwórz `MarathonScreening extends Screening` (Extract Subclass) z polem `films`; konstruktor woła `super(Kind.MARATHON, title, films)`. Nadpisz trzy metody z modyfikatorem `override`, wpisując je ręcznie (edytor dopisuje szkielet tylko dla metod abstrakcyjnych), i skopiuj do nich gałęzie MARATHON.
+3. Plik `MarathonScreening.ts` tylko re-eksportuje klasę z `Screening.ts`.
+4. W `fromRow` dla `'MARATHON'` twórz podklasę; w bazie gałęzie MARATHON rzucają `IllegalStateError('handled by MarathonScreening')`.
+
+**Przed:**
+
+```typescript
+static fromRow(row: ScreeningRow): Screening {
+  let kind: Kind;
+  switch (row.kind) {
+    case 'REGULAR': kind = Kind.REGULAR; break;
+    case 'PREMIERE': kind = Kind.PREMIERE; break;
+    case 'MARATHON': kind = Kind.MARATHON; break;
+    default: throw new IllegalArgumentError(`unknown screening kind: ${row.kind}`);
+  }
+  return new Screening(kind, row.title, row.value);
+}
+```
+
 **Po:**
 
 ```typescript
@@ -238,7 +337,24 @@ case 'MARATHON': return new MarathonScreening(row.title, row.value);
 
 ### Krok 2: pozostałe podklasy, baza abstrakcyjna
 
-**W IDE:** powtórz ruch dla REGULAR i PREMIERE. Potem klasa bazowa i jej metody jako `abstract`, usuń pole `kind` i enum `Kind` (ręcznie - `npm run typecheck` pokaże pozostałe użycia). Jedynym `switch` zostaje `fromRow`.
+**Zmiany:**
+
+1. Powtórz ruch z kroku 1 dla REGULAR i PREMIERE: klasy `RegularScreening` i `PremiereScreening` w tym samym pliku, obie z polem `runtime` i trzema metodami `override`; pliki `RegularScreening.ts` i `PremiereScreening.ts` re-eksportują klasy. `fromRow` tworzy podklasę dla każdego rodzaju.
+2. Oznacz klasę `Screening` i jej trzy metody jako `abstract`; konstruktor bazy przyjmuje już tylko `title`.
+3. Usuń pole `kind` i enum `Kind` (ręcznie - `npm run typecheck` pokaże pozostałe użycia). Jedynym `switch` zostaje `fromRow`.
+
+**Przed:**
+
+```typescript
+label(): string {
+  switch (this.kind) {
+    case Kind.REGULAR: return this.title;
+    case Kind.PREMIERE: return `Premiera: ${this.title}`;
+    case Kind.MARATHON: throw new IllegalStateError('handled by MarathonScreening');
+  }
+}
+```
+
 **Po:**
 
 ```typescript
@@ -254,7 +370,27 @@ export abstract class Screening {
 
 ### Krok 3: forma TypeScript - unia dyskryminowana
 
-**W IDE:** zamień klasę bazową na unię `type Screening = RegularScreening | PremiereScreening | MarathonScreening` i obiekt `Screening` o tej samej nazwie z funkcją `fromRow` (typ i wartość mogą dzielić nazwę, więc klienci nie zmieniają importów). Każdy rodzaj dostaje literał `readonly kind = 'MARATHON'` i nazwane dane (`runtime`, `films`), a wspólne metody opisuje interfejs `ScreeningMembers`. `value` znika. Podtypy nie dziedziczą już po bazie, więc mogą wrócić do własnych plików.
+**Zmiany:**
+
+1. W `Screening.ts` zamień klasę bazową na unię `type Screening = RegularScreening | PremiereScreening | MarathonScreening` oraz stały obiekt `Screening` z funkcją `fromRow` (typ i wartość mogą dzielić nazwę, więc klienci nie zmieniają importów).
+2. Wspólne składowe opisz interfejsem `ScreeningMembers` (pola `kind` i `title`, metody `label`, `durationMinutes`, `price`).
+3. Każdy rodzaj zamień na niezmienną klasę `implements ScreeningMembers` z literałem `readonly kind = 'MARATHON'` (odpowiednio `'REGULAR'`, `'PREMIERE'`) i nazwanymi danymi (`runtime`, `films`); pole `value` znika.
+4. Podtypy nie dziedziczą już po bazie, więc przenieś je do własnych plików - re-eksporty znikają.
+
+**Przed:**
+
+```typescript
+/** Krok 2: maraton - bez zmian względem kroku 1, poza konstruktorem bazy. */
+export class MarathonScreening extends Screening {
+  constructor(title: string, private readonly films: number) {
+    super(title);
+  }
+
+  override label(): string {
+    return `Maraton: ${this.title} (${this.films} filmy)`;
+  }
+```
+
 **Po:**
 
 ```typescript
@@ -318,7 +454,21 @@ private basePrice(formatCode: number): Money {
 
 ### Krok 1: nowy typ i konwersja na granicy
 
-**W IDE:** utwórz klasę `Format` ze stałymi instancjami `TWO_D` (1), `THREE_D` (2), `IMAX` (3), polem `code`, `values()` i `fromCode(code)` rzucającym ten sam wyjątek co start. W `describe` zamień `number` na `Format` zaraz po odczycie; typy parametrów metod prywatnych zmień ręcznie na `Format` (VS Code nie ma Change Signature - kompilator wskaże resztę). Switche przejdź na `format.name`. Do CSV zapisuj `format.code`.
+**Zmiany:**
+
+1. Utwórz klasę `Format` ze stałymi instancjami `TWO_D` (kod 1), `THREE_D` (2), `IMAX` (3): prywatny konstruktor, pola `name` (unia literałów) i `code`, metoda `values()` oraz `fromCode(code)` rzucająca ten sam wyjątek co start (`unknown format code: ...`).
+2. W `describe` zamień liczbę na `Format` zaraz po odczycie; typy parametrów metod prywatnych (`label`, `basePrice`, `needsGlasses`, `toCsv`) zmień ręcznie z `number` na `Format` - kompilator wskaże resztę miejsc.
+3. Switche w `label` i `basePrice` przejdź na `format.name` (wyczerpujące, bez `default`); `needsGlasses` porównuje `format === Format.THREE_D`. Usuń stałe `FORMAT_2D`, `FORMAT_3D`, `FORMAT_IMAX`. Do CSV zapisuj `format.code`.
+
+**Przed:**
+
+```typescript
+const formatCode = parseInteger(parts[1]!.trim());
+return `${title}|${this.label(formatCode)}|${this.basePrice(formatCode).toString()}`
+  + `|okulary:${this.needsGlasses(formatCode) ? 'tak' : 'nie'}`
+  + `|csv=${this.toCsv(title, formatCode)}`;
+```
+
 **Po:**
 
 ```typescript
@@ -331,7 +481,29 @@ const format = Format.fromCode(parseInteger(parts[1]!.trim()));
 
 ### Krok 2: Move Method do typu
 
-**W IDE:** przenieś `label`, `basePrice`, `needsGlasses` do typu jako pola stałych instancji (ręcznie - wartości z gałęzi `switch` trafiają do wywołań konstruktora). Klient pyta obiekt zamiast wykonywać `switch`.
+**Zmiany:**
+
+1. Przenieś wiedzę z metod `label`, `basePrice`, `needsGlasses` do typu `Format` jako pola `readonly label`, `basePrice`, `requiresGlasses` (Move Method, ręcznie): wartości z gałęzi `switch` trafiają do wywołań konstruktora stałych instancji, a cena jest tworzona z łańcucha w konstruktorze.
+2. Usuń z `ScreeningCsv` metody prywatne `label`, `basePrice`, `needsGlasses` i `toCsv`; `describe` pyta obiekt (`format.label`, `format.basePrice`, `format.requiresGlasses`) i skleja zapis `${title};${format.code}`.
+
+**Przed:**
+
+```typescript
+// Format:
+static readonly TWO_D = new Format('TWO_D', 1);
+static readonly THREE_D = new Format('THREE_D', 2);
+static readonly IMAX = new Format('IMAX', 3);
+
+// ScreeningCsv:
+private basePrice(format: Format): Money {
+  switch (format.name) {
+    case 'TWO_D': return Money.of('25.00');
+    case 'THREE_D': return Money.of('32.00');
+    case 'IMAX': return Money.of('40.00');
+  }
+}
+```
+
 **Po:**
 
 ```typescript
@@ -346,7 +518,21 @@ static readonly IMAX = new Format('IMAX', 3, 'IMAX', '40.00', false);
 
 ### Krok 3: mapper migracyjny na granicy trwałości
 
-**W IDE:** nowa klasa `FormatCodes` z `fromCode`/`toCode` (mapa `ReadonlyMap<Format, number>`), usuń `code` i `fromCode` z `Format`. `ScreeningCsv` rozmawia z mapperem, reszta kodu wyłącznie z `Format`.
+**Zmiany:**
+
+1. Utwórz klasę `FormatCodes` z prywatnym konstruktorem i mapą `private static readonly CODES: ReadonlyMap<Format, number>`; `fromCode(code)` szuka formatu po kodzie i rzuca ten sam wyjątek co dotąd, `toCode(format)` czyta kod z mapy.
+2. Usuń z `Format` pole `code` i metodę `fromCode` - typ domenowy nie zna już kodów trwałych.
+3. Przełącz `ScreeningCsv` na mapper: odczyt przez `FormatCodes.fromCode(...)`, zapis przez `FormatCodes.toCode(format)`. Reszta kodu rozmawia wyłącznie z `Format`.
+
+**Przed:**
+
+```typescript
+const format = Format.fromCode(parseInteger(parts[1]!.trim()));
+return `${title}|${format.label}|${format.basePrice.toString()}`
+  + `|okulary:${format.requiresGlasses ? 'tak' : 'nie'}`
+  + `|csv=${title};${format.code}`;
+```
+
 **Po:**
 
 ```typescript
@@ -400,7 +586,22 @@ tickets.push(row >= 10
 
 ### Krok 1: metody tworzące
 
-**W IDE:** w katalogu `tickets` utwórz klasę `Tickets` z prywatnym konstruktorem i statycznymi `standard(...)` i `vip(...)` zwracającymi `Ticket`. Zastąp każde `new` w `BoxOffice` wywołaniem metody tworzącej (VS Code nie ma Replace Constructor with Factory Method - robimy to ręcznie, Find All References ⇧⌥F12 na konstruktorze daje listę miejsc).
+**Zmiany:**
+
+1. W katalogu `tickets` utwórz klasę `Tickets` z prywatnym konstruktorem i metodami tworzącymi `static standard(title, base, row)` i `static vip(title, base, row)` - obie zwracają typ `Ticket`.
+2. W `BoxOffice` zastąp każde `new VipTicket(...)`/`new StandardTicket(...)` wywołaniem metody tworzącej i usuń importy klas konkretnych (ręcznie - VS Code nie ma Replace Constructor with Factory Method; listę miejsc daje wyszukanie wszystkich odwołań do konstruktora).
+
+**Przed:**
+
+```typescript
+sell(title: string, base: Money, row: number): Ticket {
+  if (row >= 10) {
+    return new VipTicket(title, base, row);
+  }
+  return new StandardTicket(title, base, row);
+}
+```
+
 **Po:**
 
 ```typescript
@@ -416,7 +617,23 @@ return Tickets.standard(title, base, row);
 
 ### Krok 2: decyzja do fabryki
 
-**W IDE:** warunek `row >= 10` przenieś do `Tickets.forSeat(title, base, row)` (Move Method ręcznie), liczbę 10 zaznacz i ⌃⇧R > Extract to readonly field, nazwa `VIP_FROM_ROW` (w porcie `private static readonly`). `sellAll` woła `sell`.
+**Zmiany:**
+
+1. W `Tickets` zastąp metody `standard` i `vip` jedną metodą `static forSeat(title, base, row)` z warunkiem `row >= 10` przeniesionym z klienta (Move Method, ręcznie).
+2. Liczbę 10 wyodrębnij do stałej `private static readonly VIP_FROM_ROW` (Extract Constant).
+3. W `BoxOffice` metoda `sell` tylko deleguje do `Tickets.forSeat(...)`, a `sellAll` woła `this.sell(...)` w pętli.
+
+**Przed:**
+
+```typescript
+sell(title: string, base: Money, row: number): Ticket {
+  if (row >= 10) {
+    return Tickets.vip(title, base, row);
+  }
+  return Tickets.standard(title, base, row);
+}
+```
+
 **Po:**
 
 ```typescript
@@ -431,7 +648,24 @@ sell(title: string, base: Money, row: number): Ticket {
 
 ### Krok 3: ograniczenie widoczności
 
-**W IDE:** przenieś `StandardTicket` i `VipTicket` do `tickets/Tickets.ts` (⌃⇧R > Move to file na deklaracji klasy), usuń słowo `export` i skasuj puste pliki. `npm run typecheck` podkreśli każde użycie spoza modułu - to inwentaryzacja, którą robi za nas kompilator.
+**Zmiany:**
+
+1. Przenieś deklaracje klas `StandardTicket` i `VipTicket` do `tickets/Tickets.ts`, nad fabrykę (przeniesienie deklaracji do istniejącego pliku).
+2. Usuń z obu klas słowo `export` - stają się prywatne dla modułu. Pliki `StandardTicket.ts` i `VipTicket.ts` znikają (po przeniesieniu są puste).
+3. Uruchom `npm run typecheck` - podkreśli każde użycie klas spoza modułu; to inwentaryzacja, którą robi za nas kompilator.
+
+**Przed:**
+
+```typescript
+// tickets/VipTicket.ts - plik znika, klasa przenosi się do Tickets.ts:
+export class VipTicket implements Ticket {
+  constructor(
+    private readonly title: string,
+    private readonly base: Money,
+    private readonly row: number,
+  ) {}
+```
+
 **Po:**
 
 ```typescript
@@ -494,7 +728,35 @@ Test to scenariusz kilku rezerwacji na jednym serwisie: zajęte miejsce nie zuż
 
 ### Krok 1: Extract Method dla tworzenia
 
-**W IDE:** w `reserve` zaznacz blok od `this.sequence++` do `new Reservation(...)`, ⌃⇧R > Extract to method in class 'ReservationService', nazwa `newReservation`. W `reserveGroup` zastąp duplikat wywołaniem `this.newReservation('ONLINE', email, seats)`. Pętlę zajętości wyciągnij tak samo do `requireFree`.
+**Zmiany:**
+
+1. W `reserve` wyodrębnij do prywatnej metody `newReservation(channel, email, seats)` (Extract Method) cały kod tworzenia: od `this.sequence++` przez walidację kanału, `fee` i `expiresAt`, po `new Reservation(...)`; oznaczanie miejsc (`seats.forEach(...)`) zostaje w `reserve`.
+2. Pętlę sprawdzającą zajętość miejsc wyodrębnij tak samo do prywatnej metody `requireFree(seats)`.
+3. W `reserveGroup` zastąp skopiowany kod wywołaniami `this.requireFree(seats)` i `this.newReservation('ONLINE', email, seats)`.
+
+**Przed:**
+
+```typescript
+reserve(channel: string, email: string, seats: readonly string[]): Reservation {
+  for (const seat of seats) {
+    if (this.takenSeats.has(seat)) {
+      throw new IllegalStateError(`seat taken: ${seat}`);
+    }
+  }
+  this.sequence++;
+  const id = `R${this.sequence}`;
+  if (channel !== 'ONLINE' && channel !== 'BOX_OFFICE') {
+    throw new IllegalArgumentError(`unknown channel: ${channel}`);
+  }
+  const fee = channel === 'ONLINE' ? Money.of('2.00').times(seats.length) : Money.ZERO;
+  const expiresAt = channel === 'ONLINE'
+    ? LocalDateTime.now(this.clock).plusMinutes(15)
+    : null;
+  seats.forEach((seat) => this.takenSeats.add(seat));
+  return new Reservation(id, channel, email, Object.freeze([...seats]), fee, expiresAt);
+}
+```
+
 **Po:**
 
 ```typescript
@@ -509,7 +771,29 @@ seats.forEach((seat) => this.takenSeats.add(seat));
 
 ### Krok 2: Extract Class - ReservationFactory
 
-**W IDE:** nowa klasa `ReservationFactory` (VS Code nie ma Extract Delegate - przenosimy ręcznie): metoda `newReservation` jako `create(channel, email, seats)` razem z polami `clock` i `sequence`. Serwis tworzy fabrykę w swoim konstruktorze - sygnatura konstruktora bez zmian.
+**Zmiany:**
+
+1. Utwórz klasę `ReservationFactory` i przenieś do niej metodę `newReservation` pod nazwą `create(channel, email, seats)` razem z polami `clock` i `sequence` (wyodrębnienie klasy robimy ręcznie - VS Code nie ma Extract Delegate).
+2. W serwisie usuń pola `clock` i `sequence`; zostaje pole `factory`. Konstruktor nadal przyjmuje `Clock` i sam tworzy fabrykę, więc jego sygnatura się nie zmienia.
+3. `reserve` i `reserveGroup` wołają `this.factory.create(...)`.
+
+**Przed:**
+
+```typescript
+private newReservation(channel: string, email: string, seats: readonly string[]): Reservation {
+  this.sequence++;
+  const id = `R${this.sequence}`;
+  if (channel !== 'ONLINE' && channel !== 'BOX_OFFICE') {
+    throw new IllegalArgumentError(`unknown channel: ${channel}`);
+  }
+  const fee = channel === 'ONLINE' ? Money.of('2.00').times(seats.length) : Money.ZERO;
+  const expiresAt = channel === 'ONLINE'
+    ? LocalDateTime.now(this.clock).plusMinutes(15)
+    : null;
+  return new Reservation(id, channel, email, Object.freeze([...seats]), fee, expiresAt);
+}
+```
+
 **Po:**
 
 ```typescript
@@ -524,7 +808,19 @@ constructor(clock: Clock) {
 
 ### Krok 3: fabryka jako zależność
 
-**W IDE:** konstruktor przyjmuje teraz `ReservationFactory | Clock`: gdy dostaje fabrykę, używa jej, gdy zegar - tworzy fabrykę jak dotąd, żeby nie ruszać klientów.
+**Zmiany:**
+
+1. Zmień parametr konstruktora serwisu na `factoryOrClock: ReservationFactory | Clock` ze sprawdzeniem `requireNonNull`.
+2. Gdy argument jest fabryką (`instanceof ReservationFactory`), zapisz go w polu; gdy zegarem - utwórz fabrykę jak dotąd. Dotychczasowi klienci z zegarem działają bez zmian, a test może wstrzyknąć własną fabrykę.
+
+**Przed:**
+
+```typescript
+constructor(clock: Clock) {
+  this.factory = new ReservationFactory(clock);
+}
+```
+
 **Po:**
 
 ```typescript
@@ -585,7 +881,28 @@ day.add(hall2);
 
 ### Krok 1: klasyczny Builder z bieżącym węzłem
 
-**W IDE:** utwórz `ScheduleBuilder` z metodami `hall(name)`, `screening(title, hour, minute)` i `build()` zwracającymi `this` (poza `build`); builder pamięta bieżącą salę. Przepisz planera na wywołania buildera. Drzewo bez zmian.
+**Zmiany:**
+
+1. Utwórz klasę `ScheduleBuilder`: konstruktor z datą tworzy `DaySchedule`, a pole `current` pamięta bieżącą salę.
+2. Dodaj metody: `hall(name)` tworzy `Hall`, dodaje go do dnia i ustawia jako bieżący; `screening(title, hour, minute)` dodaje seans do bieżącej sali, a bez sali rzuca `IllegalStateError('screening without hall')`. Obie zwracają `this`; `build()` zwraca `DaySchedule`.
+3. Przepisz `WeekendPlanner.plan` na łańcuch wywołań buildera; seanse weekendowe dodawaj warunkowo przez `builder.screening(...)`. Drzewo (`DaySchedule`, `Hall`, `Screening`) bez zmian.
+
+**Przed:**
+
+```typescript
+const day = new DaySchedule(date);
+const hall1 = new Hall('Sala 1');
+hall1.add(new Screening('Diuna', LocalTime.of(18, 0)));
+hall1.add(new Screening('Diuna', LocalTime.of(21, 0)));
+day.add(hall1);
+const hall2 = new Hall('Sala 2');
+if (weekend) {
+  hall2.add(new Screening('Kraina Lodu', LocalTime.of(10, 0)));
+}
+hall2.add(new Screening('Amator', LocalTime.of(17, 30)));
+day.add(hall2);
+```
+
 **Po:**
 
 ```typescript
@@ -602,7 +919,25 @@ const builder = new ScheduleBuilder(date)
 
 ### Krok 2: niemutowalne drzewo, builder jednorazowy
 
-**W IDE:** węzły zamień na klasy z polami `readonly` i tablicą kopiowaną w konstruktorze przez `Object.freeze([...])`, usuń `add`. Builder zbiera dane (`Map<string, Screening[]>`) i tworzy węzły w `build()`; drugi `build()` rzuca `IllegalStateError`.
+**Zmiany:**
+
+1. Zamień węzły `Hall` i `DaySchedule` na niezmienne klasy: pola `readonly`, lista dzieci przekazywana w konstruktorze i kopiowana przez `Object.freeze([...])`; metody `add` znikają.
+2. Builder zbiera dane w `Map<string, Screening[]>` (zachowuje kolejność wstawiania); `hall(name)` odrzuca powtórzoną nazwę (`duplicate hall: ...`), a węzły powstają dopiero w `build()`.
+3. Dodaj flagę `built` i prywatne `requireNotBuilt()` wołane w każdej metodzie - drugie `build()` rzuca `IllegalStateError('builder already used')`.
+
+**Przed:**
+
+```typescript
+export class Hall {
+  private readonly screenings: Screening[] = [];
+
+  constructor(private readonly name: string) {}
+
+  add(screening: Screening): void {
+    this.screenings.push(screening);
+  }
+```
+
 **Po:**
 
 ```typescript
@@ -620,7 +955,27 @@ export class Hall {
 
 ### Krok 3: zagnieżdżony builder z funkcją strzałkową
 
-**W IDE:** `hall(name, content: (hall: HallBuilder) => void)` zamiast "bieżącej sali"; `HallBuilder` z `screening(...)`, a statyczne `ScheduleBuilder.day(date)` zamiast publicznego konstruktora. Przepisz planera.
+**Zmiany:**
+
+1. Dodaj w pliku buildera klasę `HallBuilder` z metodą `screening(title, hour, minute)`, dopisującą seans do listy przekazanej w konstruktorze.
+2. Zmień `hall` na `hall(name, content: (hall: HallBuilder) => void)`: metoda tworzy listę seansów, woła funkcję z nowym `HallBuilder` i od razu buduje `Hall` - ukryty stan "bieżąca sala" znika.
+3. Zrób konstruktor `ScheduleBuilder` prywatnym; wejściem jest statyczne `ScheduleBuilder.day(date)`. Przepisz planera na zagnieżdżone wywołania z funkcją strzałkową dla każdej sali.
+
+**Przed:**
+
+```typescript
+const builder = new ScheduleBuilder(date)
+  .hall('Sala 1')
+  .screening('Diuna', 18, 0)
+  .screening('Diuna', 21, 0)
+  .hall('Sala 2');
+if (weekend) {
+  builder.screening('Kraina Lodu', 10, 0);
+}
+builder.screening('Amator', 17, 30)
+  .hall('Sala 3 VIP');
+```
+
 **Po:**
 
 ```typescript
@@ -679,7 +1034,22 @@ return `${this.title} ${this.format}`
 
 ### Krok 1: Extract Interface
 
-**W IDE:** VS Code nie ma Extract Interface dla klasy - utwórz `PricedTicket.ts` z interfejsem `PricedTicket` (`price()` i `description()`) ręcznie, dopisz `implements PricedTicket` do `Ticket`. `TicketAssembler.assemble` zwraca interfejs.
+**Zmiany:**
+
+1. Utwórz nowy plik `PricedTicket.ts` z interfejsem `PricedTicket` o metodach `price(): Money` i `description(): string` (Extract Interface robimy ręcznie).
+2. Dopisz `implements PricedTicket` do klasy `Ticket`.
+3. Zmień typ wyniku `TicketAssembler.assemble` z `Ticket` na `PricedTicket` - fabryka będzie mogła zwrócić udekorowany obiekt.
+
+**Przed:**
+
+```typescript
+export class TicketAssembler {
+  assemble(order: TicketOrder): Ticket {
+    return new Ticket(order);
+  }
+}
+```
+
 **Po:**
 
 ```typescript
@@ -694,7 +1064,30 @@ assemble(order: TicketOrder): PricedTicket {
 
 ### Krok 2: pierwszy dodatek jako dekorator
 
-**W IDE:** klasa `Insurance implements PricedTicket` z polem `readonly inner: PricedTicket`, dodająca 4.00 i " +ubezpieczenie". Usuń flagę z `Ticket` (ręcznie, `npm run typecheck` pokaże resztę), w assemblerze owiń, gdy `order.insurance`.
+**Zmiany:**
+
+1. Utwórz klasę `Insurance implements PricedTicket` z polem `readonly inner: PricedTicket`: `price()` dodaje 4.00 do ceny środka, `description()` dopisuje " +ubezpieczenie" do opisu środka.
+2. Usuń z `Ticket` pole `insurance` oraz jego gałęzie w `price()` i `description()` (ręcznie - `npm run typecheck` pokaże resztę użyć).
+3. W `TicketAssembler.assemble` owiń rdzeń dekoratorem, gdy `order.insurance`.
+
+**Przed:**
+
+```typescript
+price(): Money {
+  let price = this.base;
+  if (this.vip) {
+    price = price.plus(Money.of('10.00'));
+  }
+  if (this.glasses) {
+    price = price.plus(Money.of('3.00'));
+  }
+  if (this.insurance) {
+    price = price.plus(Money.of('4.00'));
+  }
+  return price;
+}
+```
+
 **Po:**
 
 ```typescript
@@ -710,7 +1103,30 @@ if (order.insurance) {
 
 ### Krok 3: pozostałe dodatki, czysty rdzeń
 
-**W IDE:** `VipSeat` i `Glasses3D` jako dekoratory, rdzeń jako niezmienna klasa `Ticket(title, format, base)`. Decyzja "czy okulary potrzebne" (3D i brak własnych) zostaje w assemblerze.
+**Zmiany:**
+
+1. Utwórz dekoratory `VipSeat` (+10.00, " +VIP") i `Glasses3D` (+3.00, " +okulary 3D") na wzór `Insurance`.
+2. Odchudź rdzeń: `Ticket` staje się niezmienną klasą `Ticket(title, format, base)` bez flag; `price()` zwraca `base`, `description()` tylko tytuł i format.
+3. W assemblerze owijaj w ustalonej kolejności: rdzeń, VIP, okulary, ubezpieczenie. Decyzja "czy okulary potrzebne" (format 3D i brak własnych) zostaje w assemblerze.
+
+**Przed:**
+
+```typescript
+constructor(order: TicketOrder) {
+  this.title = order.title;
+  this.format = order.format;
+  this.base = order.base;
+  this.vip = order.vip;
+  this.glasses = order.format === '3D' && !order.ownGlasses;
+}
+
+description(): string {
+  return `${this.title} ${this.format}`
+    + (this.vip ? ' +VIP' : '')
+    + (this.glasses ? ' +okulary 3D' : '');
+}
+```
+
 **Po:**
 
 ```typescript
@@ -783,7 +1199,28 @@ cancel(): void {
 
 ### Krok 1: obiekt stanu zamiast pola status
 
-**W IDE:** utwórz prywatny dla modułu interfejs `ReservationState` z polem `readonly status: Status` i stany jako stałe `private static readonly NEW`, `PAID`, `USED`, `EXPIRED`, `CANCELLED` (na razie literały `{ status: Status.NEW }`). Pole `currentStatus` (w Javie `status` - tu nazwa jest zajęta przez metodę `status()` z kontraktu `ReservationActions`) zastąp polem `state`; warunki porównują `this.state.status`. Efekty i zmianę stanu wyciągnij do `charge()`, `moveTo(...)`, `record(...)` (⌃⇧R > Extract to method in class 'Reservation').
+**Zmiany:**
+
+1. W pliku `Reservation.ts` dodaj prywatny dla modułu (bez `export`) interfejs `ReservationState` z jednym polem `readonly status: Status`.
+2. Dodaj w `Reservation` stany jako stałe `private static readonly NEW`, `PAID`, `USED`, `EXPIRED`, `CANCELLED` - na razie literały obiektów, np. `{ status: Status.NEW }`.
+3. Pole `currentStatus` (w Javie `status` - tu nazwa jest zajęta przez metodę `status()` z kontraktu `ReservationActions`) zastąp polem `state = Reservation.NEW`; warunki porównują `this.state.status`.
+4. Wyodrębnij obciążenie bramki, zmianę stanu i zapis efektu do prywatnych metod `charge()`, `moveTo(next)`, `record(effect)` (Extract Method).
+
+**Przed:**
+
+```typescript
+private currentStatus = Status.NEW;
+...
+pay(): void {
+  if (this.currentStatus !== Status.NEW) {
+    throw new IllegalStateError(`cannot pay in ${this.currentStatus}`);
+  }
+  this.payments.charge(this.id);
+  this.currentStatus = Status.PAID;
+  this.effectList.push('charged');
+}
+```
+
 **Po:**
 
 ```typescript
@@ -800,7 +1237,26 @@ this.record('charged');
 
 ### Krok 2: pay i use do stanów
 
-**W IDE:** w interfejsie stanu dodaj przejścia `pay` i `use` typu `Transition`. Napisz funkcję `state(status, allowed)`, która dla każdego przejścia wstawia domyślnie funkcję rzucającą `cannot <akcja> in <status>`, a potem nakłada dozwolone (`...allowed`). W `NEW` podaj `pay`, w `PAID` - `use`, przenosząc ciała gałęzi. Kontekst deleguje: `this.state.pay(this)`.
+**Zmiany:**
+
+1. Dodaj typ `Transition = (reservation: Reservation) => void` i rozszerz interfejs stanu o przejścia `pay` i `use` typu `Transition`.
+2. Napisz funkcję `state(status, allowed)`, która dla każdego przejścia wstawia domyślnie funkcję rzucającą `cannot <akcja> in <status>`, a potem nakłada dozwolone (`...allowed`).
+3. Twórz stany przez `state(...)`: w `NEW` podaj `pay`, w `PAID` - `use`, przenosząc ciała gałęzi z metod kontekstu (kolejność: obciążenie, zmiana stanu, efekt). Stany końcowe to `state(Status.USED)` itd. bez przejść.
+4. Metody kontekstu `pay` i `use` tylko delegują: `this.state.pay(this)`, `this.state.use(this)`.
+
+**Przed:**
+
+```typescript
+pay(): void {
+  if (this.state.status !== Status.NEW) {
+    throw new IllegalStateError(`cannot pay in ${this.state.status}`);
+  }
+  this.charge();
+  this.moveTo(Reservation.PAID);
+  this.record('charged');
+}
+```
+
 **Po:**
 
 ```typescript
@@ -819,7 +1275,29 @@ private static readonly NEW: ReservationState = state(Status.NEW, {
 
 ### Krok 3: expire i cancel do stanów
 
-**W IDE:** ten sam ruch dla `expire` i `cancel`. Warunek `if/else if` w `cancel` rozkłada się na dwa stany: NEW (zwolnienie miejsc) i PAID (zwrot i zwolnienie).
+**Zmiany:**
+
+1. Dodaj do interfejsu stanu przejścia `expire` i `cancel`, a w funkcji `state` ich domyślne warianty rzucające wyjątek.
+2. Przenieś ciała gałęzi do stanów: `expire` i `cancel` do `NEW` (zwolnienie miejsc), `cancel` do `PAID` (zwrot i zwolnienie) - warunek `if/else if` z `cancel` rozkłada się na dwa stany.
+3. Metody kontekstu `expire` i `cancel` tylko delegują do `this.state`.
+
+**Przed:**
+
+```typescript
+cancel(): void {
+  if (this.state.status === Status.NEW) {
+    this.moveTo(Reservation.CANCELLED);
+    this.record('seats released');
+  } else if (this.state.status === Status.PAID) {
+    this.moveTo(Reservation.CANCELLED);
+    this.record('refund');
+    this.record('seats released');
+  } else {
+    throw new IllegalStateError(`cannot cancel in ${this.state.status}`);
+  }
+}
+```
+
 **Po:**
 
 ```typescript
@@ -879,7 +1357,22 @@ Test używa fake'ów zapisujących do wspólnego logu i sprawdza kolejność ora
 
 ### Krok 1: zdarzenie i Extract Method
 
-**W IDE:** utwórz niezmienną klasę `ReservationPaid` (pola `readonly`). Zaznacz trzy powiadomienia, ⌃⇧R > Extract to method in class 'PaymentService', nazwa `notifyPaid`, i zmień jej parametr na `event: ReservationPaid`.
+**Zmiany:**
+
+1. Utwórz niezmienną klasę zdarzenia `ReservationPaid` z polami `readonly`: `reservationId`, `email`, `phone`, `amount`.
+2. Wyodrębnij trzy powiadomienia z `confirm` do prywatnej metody `notifyPaid` (Extract Method).
+3. Zmień parametry `notifyPaid` na jeden `event: ReservationPaid` i czytaj dane ze zdarzenia; `confirm` tworzy zdarzenie i je przekazuje.
+
+**Przed:**
+
+```typescript
+this.paidList.push(payment.reservationId);
+this.mailer.send(payment.email,
+  `Potwierdzenie platnosci ${payment.reservationId}: ${payment.amount.toString()}`);
+this.sms.send(payment.phone, `Oplacono ${payment.reservationId}`);
+this.loyalty.addPoints(payment.email, Math.trunc(payment.amount.amount.trunc().toNumber() / 10));
+```
+
 **Po:**
 
 ```typescript
@@ -894,7 +1387,24 @@ this.notifyPaid(new ReservationPaid(
 
 ### Krok 2: odbiorcy jako obserwatorzy
 
-**W IDE:** interfejs `PaymentListener` z `onPaid(event)` i trzy klasy: `MailConfirmation`, `SmsConfirmation`, `LoyaltyPoints` (każda z ciałem jednej linii z `notifyPaid`). Serwis tworzy zamrożoną tablicę odbiorców w konstruktorze w starej kolejności; `notifyPaid` to pętla **bez** `try/catch`.
+**Zmiany:**
+
+1. Utwórz interfejs `PaymentListener` z metodą `onPaid(event: ReservationPaid)`.
+2. Utwórz trzy klasy odbiorców: `MailConfirmation`, `SmsConfirmation`, `LoyaltyPoints` - każda dostaje swoją zależność w konstruktorze i ma w `onPaid` jedną linię przeniesioną z `notifyPaid`.
+3. W konstruktorze serwisu zbuduj zamrożoną tablicę odbiorców w starej kolejności (mail, SMS, punkty); sygnatura konstruktora bez zmian.
+4. `notifyPaid` to pętla po odbiorcach **bez** `try/catch`.
+
+**Przed:**
+
+```typescript
+private notifyPaid(event: ReservationPaid): void {
+  this.mailer.send(event.email,
+    `Potwierdzenie platnosci ${event.reservationId}: ${event.amount.toString()}`);
+  this.sms.send(event.phone, `Oplacono ${event.reservationId}`);
+  this.loyalty.addPoints(event.email, Math.trunc(event.amount.amount.trunc().toNumber() / 10));
+}
+```
+
 **Po:**
 
 ```typescript
@@ -909,7 +1419,28 @@ for (const listener of this.listeners) {
 
 ### Krok 3: subscribe i korzeń kompozycji
 
-**W IDE:** `subscribe(listener)` zwracające `Subscription` (idempotentne `close()`), pole z niezmienną tablicą rejestracji podmienianą przy każdym zapisie. Konstruktor serwisu staje się bezargumentowy, pętla powiadomień trafia do `confirm`, a subskrypcje przenosimy do istniejącego `PaymentServices.standard(...)`.
+**Zmiany:**
+
+1. Dodaj interfejs `Subscription` z metodą `close()` oraz prywatną dla modułu klasę `Registration` opakowującą słuchacza (osobny obiekt na każde `subscribe`).
+2. Dodaj w serwisie metodę `subscribe(listener)`: tworzy rejestrację, podmienia niezmienną tablicę rejestracji na kopię z nowym wpisem i zwraca `Subscription` z idempotentnym `close()` (usuwa rejestrację po tożsamości).
+3. Usuń konstruktor z trzema zależnościami (staje się bezargumentowy) i pole `listeners` z gotowymi odbiorcami; pętlę powiadomień przenieś do `confirm`.
+4. W korzeniu kompozycji `PaymentServices.standard(...)` utwórz serwis i zasubskrybuj trzech odbiorców w starej kolejności.
+
+**Przed:**
+
+```typescript
+constructor(mailer: Mailer, sms: SmsGateway, loyalty: LoyaltyProgram) {
+  this.listeners = Object.freeze([
+    new MailConfirmation(mailer), new SmsConfirmation(sms), new LoyaltyPoints(loyalty)]);
+}
+...
+private notifyPaid(event: ReservationPaid): void {
+  for (const listener of this.listeners) {
+    listener.onPaid(event);
+  }
+}
+```
+
 **Po:**
 
 ```typescript
@@ -967,7 +1498,14 @@ Testy: `S10EquivalenceTest` (niezależne oczekiwania policzone ręcznie, także 
 
 ### Krok 1: Composite i mapper obok starego kodu
 
-**W IDE:** utwórz unię `MenuItem = Product | Combo`, klasy `Product` i `Combo` oraz `MenuMapper.fromNested(combo: readonly unknown[])`. `BarMenu` bez zmian. Uruchom test różnicowy - porównuje stary kod z drzewem z mappera.
+**Zmiany:**
+
+1. Utwórz nowe pliki: unię `type MenuItem = Product | Combo`, liść `Product` (pole `amount`, metody `price()` i `render(depth, text)`) i niemutowalny węzeł `Combo` (nazwa, zamrożona lista elementów, cena jako suma, `render` z wcięciem na poziom).
+2. Utwórz `MenuMapper` z metodą `fromNested(combo: readonly unknown[])`, która tłumaczy stary format na drzewo i zachowuje komunikaty błędów starego kodu (`combo needs a name`, `product needs a price: ...`, `unsupported element: ...`).
+3. `BarMenu` zostaje bez zmian - obie reprezentacje żyją obok siebie. Uruchom test różnicowy: porównuje stary kod z drzewem z mappera.
+
+**Przed:** brak - nowe pliki `MenuItem.ts`, `Product.ts`, `Combo.ts`, `MenuMapper.ts`; `BarMenu.ts` bez zmian.
+
 **Po:**
 
 ```typescript
@@ -988,7 +1526,30 @@ for (const element of combo.slice(1)) {
 
 ### Krok 2: price na Composite
 
-**W IDE:** ciało `BarMenu.price` zastąp `MenuMapper.fromNested(combo).price()`. Usuń nieużywane `requireName` (VS Code wyszarza nieużywaną prywatną metodę).
+**Zmiany:**
+
+1. Zastąp ciało `BarMenu.price` jedną linią: `return MenuMapper.fromNested(combo).price();`.
+2. Usuń metodę `requireName` - po zmianie nikt jej nie woła (edytor wyszarza nieużywaną prywatną metodę). `renderTo` i `productPrice` zostają, bo stary `render` wciąż ich używa.
+
+**Przed:**
+
+```typescript
+price(combo: readonly unknown[]): Money {
+  BarMenu.requireName(combo);
+  let total = Money.ZERO;
+  for (const element of combo.slice(1)) {
+    if (typeof element === 'string') {
+      total = total.plus(BarMenu.productPrice(element));
+    } else if (Array.isArray(element)) {
+      total = total.plus(this.price(element));
+    } else {
+      throw new IllegalArgumentError(`unsupported element: ${String(element)}`);
+    }
+  }
+  return total;
+}
+```
+
 **Po:**
 
 ```typescript
@@ -1003,7 +1564,35 @@ price(combo: readonly unknown[]): Money {
 
 ### Krok 3: render na Composite
 
-**W IDE:** `render` deleguje do `Combo.render(0, text)`; starą rekurencję `renderTo` i `productPrice` usuń (ręcznie - po zmianie stają się nieużywane).
+**Zmiany:**
+
+1. Zastąp ciało `BarMenu.render` delegacją do drzewa: zbuduj `Combo` mapperem i wywołaj jego `render(0, text)`.
+2. Usuń starą rekurencję `renderTo` i metodę `productPrice` (ręcznie - po zmianie stają się nieużywane).
+
+**Przed:**
+
+```typescript
+render(combo: readonly unknown[]): string {
+  const text: string[] = [];
+  this.renderTo(combo, 0, text);
+  return text.join('');
+}
+
+private renderTo(combo: readonly unknown[], depth: number, text: string[]): void {
+  text.push(`${'  '.repeat(depth)}${String(combo[0])} ${this.price(combo).toString()}\n`);
+  for (const element of combo.slice(1)) {
+    if (typeof element === 'string') {
+      text.push(`${'  '.repeat(depth + 1)}${element.substring(0, element.indexOf('='))}`
+        + ` ${BarMenu.productPrice(element).toString()}\n`);
+    } else if (Array.isArray(element)) {
+      this.renderTo(element, depth + 1, text);
+    } else {
+      throw new IllegalArgumentError(`unsupported element: ${String(element)}`);
+    }
+  }
+}
+```
+
 **Po:**
 
 ```typescript
@@ -1058,7 +1647,35 @@ add(_child: MenuComponent): void {
 
 ### Krok 1: Safe Composite - Push Members Down
 
-**W IDE:** VS Code nie ma Push Members Down - wytnij `add` i `children` z `MenuComponent` i wklej do `Combo` (z listą dzieci jako prywatnym polem). `npm run typecheck` pokaże błędy w `ComboCatalog` - zmień typ zmiennych z `MenuComponent` na `Combo` tam, gdzie dodajemy dzieci. `describe()` w `Combo` rozszerza opis o dzieci.
+**Zmiany:**
+
+1. Usuń `add` i `children` z `MenuComponent`; w `Combo` przestają być `override` (zepchnięcie składowych w dół robimy ręcznie - VS Code nie ma Push Members Down). `Product` nie dziedziczy już żadnego `add`.
+2. `describe()` w bazie zostaje bez części o dzieciach; `Combo` nadpisuje `describe()` i rozszerza opis o dzieci.
+3. Uruchom `npm run typecheck` - pokaże błędy w `ComboCatalog`; zmień typ zmiennych z `MenuComponent` na `Combo` tam, gdzie dodajemy dzieci.
+
+**Przed:**
+
+```typescript
+export abstract class MenuComponent {
+  abstract name(): string;
+
+  abstract price(): Money;
+
+  add(_child: MenuComponent): void {
+    throw new UnsupportedOperationError(`cannot add to ${this.name()}`);
+  }
+
+  children(): readonly MenuComponent[] {
+    return Object.freeze([]);
+  }
+  ...
+}
+
+// ComboCatalog:
+const combo: MenuComponent = new Combo('Zestaw Rodzinny');
+combo.add(new Product('Popcorn XL', '24.00'));
+```
+
 **Po:**
 
 ```typescript
@@ -1072,7 +1689,24 @@ combo.add(new Product('Popcorn XL', '24.00'));
 
 ### Krok 2: niemutowalny Composite jako unia
 
-**W IDE:** unia `type MenuComponent = Product | Combo`, niezmienne klasy `Product` i `Combo(name, children)` z `Combo.of(...)` i polem `kind`. Katalog zapisany deklaratywnie.
+**Zmiany:**
+
+1. Zamień klasę abstrakcyjną `MenuComponent` na unię `type MenuComponent = Product | Combo`.
+2. Przepisz `Product` i `Combo` na niezmienne klasy bez wspólnej bazy: pole `kind` (`'product'`/`'combo'`), `name` i `price` jako pola tylko do odczytu (w `Combo` `price` to getter sumujący dzieci), dzieci podane w konstruktorze i zamrożone; dodaj wygodne `Combo.of(name, ...children)`. Metoda `add` nie istnieje nigdzie.
+3. Zapisz katalog deklaratywnie - zagnieżdżone wywołania `Combo.of(...)` zamiast zmiennych i `add`.
+
+**Przed:**
+
+```typescript
+private duo(): MenuComponent {
+  const combo: Combo = new Combo('Zestaw Duo');
+  combo.add(new Product('Popcorn L', '18.00'));
+  combo.add(new Product('Cola', '9.00'));
+  combo.add(new Product('Cola', '9.00'));
+  return combo;
+}
+```
+
 **Po:**
 
 ```typescript
@@ -1132,7 +1766,35 @@ Test obejmuje granicę dokładnie 24h, 23h59m, bilet po starcie, listę i pustą
 
 ### Krok 1: Extract Method na wspólnej regule
 
-**W IDE:** w `refund` zaznacz wyliczenie kwoty, ⌃⇧R > Extract to method in class 'RefundService', nazwa `ticketShare(ticket, now)` (w porcie `private static`). W `refundAll` zastąp ciało pętli wywołaniem `ticketShare`.
+**Zmiany:**
+
+1. W `refund` wyodrębnij wyliczenie kwoty zwrotu jednego biletu do metody `ticketShare(ticket, now)` (Extract Method); nie używa `this`, więc jest `private static`, a `if/else` zamienia się na wczesne `return`.
+2. W `refundAll` zastąp ciało pętli wywołaniem `ticketShare` - duplikacja reguły znika.
+
+**Przed:**
+
+```typescript
+refund(ticket: TicketData, now: LocalDateTime): Money {
+  let amount: Money;
+  if (!now.isBefore(ticket.showStart)) {
+    amount = Money.ZERO;
+  } else if (Duration.between(now, ticket.showStart).toHours() >= 24) {
+    amount = ticket.price;
+  } else {
+    amount = ticket.price.percent(50);
+  }
+  return amount.minus(RefundService.FEE).max(Money.ZERO);
+}
+
+// refundAll:
+for (const ticket of tickets) {
+  if (now.isBefore(ticket.showStart)) {
+    const hours = Duration.between(now, ticket.showStart).toHours();
+    total = total.plus(hours >= 24 ? ticket.price : ticket.price.percent(50));
+  }
+}
+```
+
 **Po:**
 
 ```typescript
@@ -1145,7 +1807,29 @@ total = total.plus(RefundService.ticketShare(ticket, now));
 
 ### Krok 2: Composite i jeden kontrakt
 
-**W IDE:** unia `Refundable = SingleTicket | TicketGroup`, obie klasy z `refundableAmount(now)`: liść `SingleTicket` (reguła z `ticketShare`), węzeł `TicketGroup` (suma). Nowa metoda `refund(refundable, now)`; stare metody jako delegacje z `@deprecated` (stara `refund` zmienia nazwę na `refundTicket` - F2 Rename Symbol poprawi wywołania). `CancellationDesk` przechodzi na nowy kontrakt (na razie wciąż wybiera `SingleTicket` albo `TicketGroup`).
+**Zmiany:**
+
+1. Utwórz unię `type Refundable = SingleTicket | TicketGroup` i obie klasy z metodą `refundableAmount(now)`: liść `SingleTicket` dostaje regułę przeniesioną z `ticketShare`, węzeł `TicketGroup` sumuje elementy (pusta grupa daje 0.00) i ma pomocnicze `TicketGroup.of(tickets)`.
+2. Zmień nazwę starej metody `refund(ticket, now)` na `refundTicket` (zmiana nazwy symbolu poprawi wywołania) - TypeScript nie ma przeciążeń, więc nowa `refund(refundable, now)` nie może z nią współistnieć pod jedną nazwą.
+3. Dodaj nową metodę `refund(refundable, now)` z potrąceniem w jednym miejscu; `refundTicket` i `refundAll` zostają jako cienkie delegacje ze znacznikiem `@deprecated` w TSDoc.
+4. Przeprowadź `CancellationDesk` na nowy kontrakt - na razie wciąż wybiera `SingleTicket` albo `TicketGroup`.
+
+**Przed:**
+
+```typescript
+refund(ticket: TicketData, now: LocalDateTime): Money {
+  return RefundService.ticketShare(ticket, now).minus(RefundService.FEE).max(Money.ZERO);
+}
+
+refundAll(tickets: readonly TicketData[], now: LocalDateTime): Money {
+  let total = Money.ZERO;
+  for (const ticket of tickets) {
+    total = total.plus(RefundService.ticketShare(ticket, now));
+  }
+  return total.minus(RefundService.FEE).max(Money.ZERO);
+}
+```
+
 **Po:**
 
 ```typescript
@@ -1160,7 +1844,23 @@ refund(refundable: Refundable, now: LocalDateTime): Money {
 
 ### Krok 3: usunięcie starych metod
 
-**W IDE:** po migracji klientów usuń `refundTicket` i `refundAll` (Find All References ⇧⌥F12 potwierdza, że nikt ich nie woła). W `CancellationDesk` usuń `if` - klient zawsze buduje `TicketGroup.of(tickets)`, także z jednego biletu.
+**Zmiany:**
+
+1. W `CancellationDesk` usuń rozróżnienie jeden/wiele - klient zawsze buduje `TicketGroup.of(tickets)`, także z jednego biletu.
+2. Usuń z `RefundService` przestarzałe `refundTicket` i `refundAll` (wyszukanie wszystkich odwołań potwierdza, że nikt ich już nie woła).
+
+**Przed:**
+
+```typescript
+refund(tickets: readonly TicketData[], now: LocalDateTime): Money {
+  const [first] = tickets;
+  const refundable: Refundable = tickets.length === 1 && first !== undefined
+    ? new SingleTicket(first)
+    : TicketGroup.of(tickets);
+  return this.service.refund(refundable, now);
+}
+```
+
 **Po:**
 
 ```typescript
@@ -1211,7 +1911,31 @@ return this.childList.length === 0 ? 0 : total + 15 * (this.childList.length - 1
 
 ### Krok 1: Extract Superclass
 
-**W IDE:** VS Code nie ma Extract Superclass - utwórz ręcznie `abstract class CompositeProgramItem implements ProgramItem` i przenieś do niej z `Marathon` pole `childList`, `add` i `children()`, a `minutes()` i `describe()` zadeklaruj jako `abstract`. Potem `ShortsBlock extends CompositeProgramItem` i usuń jego kopie; podklasy sięgają do dzieci przez `this.children()`.
+**Zmiany:**
+
+1. Utwórz nowy plik z `abstract class CompositeProgramItem implements ProgramItem` (Extract Superclass robimy ręcznie - VS Code go nie ma) i przenieś do niej z `Marathon` pole `childList`, metodę `add` i `children()`; `minutes()` i `describe()` zadeklaruj jako `abstract`.
+2. Zmień `Marathon` na `extends CompositeProgramItem`: zostają `minutes()` i `describe()` z `override`, a do dzieci sięgają przez `this.children()`.
+3. Tak samo `ShortsBlock extends CompositeProgramItem` - usuń jego kopie pola, `add` i `children()`.
+
+**Przed:**
+
+```typescript
+export class Marathon implements ProgramItem {
+  private readonly childList: ProgramItem[] = [];
+
+  constructor(private readonly name: string) {}
+
+  add(child: ProgramItem): void {
+    this.childList.push(requireNonNull(child, 'child'));
+  }
+
+  children(): readonly ProgramItem[] {
+    return Object.freeze([...this.childList]);
+  }
+  ...
+}
+```
+
 **Po:**
 
 ```typescript
@@ -1229,7 +1953,30 @@ export abstract class CompositeProgramItem implements ProgramItem {
 
 ### Krok 2: Pull Up sumy i opisu
 
-**W IDE:** przenieś do bazy (ręcznie) `childrenMinutes()` jako `protected` i `describe()` jako szablon z hookiem `protected abstract label()`; nazwa kontenera trafia do chronionego konstruktora bazy. Podklasy zostają z regułą czasu i etykietą.
+**Zmiany:**
+
+1. Przenieś do bazy (ręcznie) sumę czasu dzieci jako `protected childrenMinutes()` - obie pętle liczyły to samo.
+2. Przenieś `describe()` do bazy jako szablon z hookiem `protected abstract label()`; pole `name` i chroniony konstruktor z nazwą też idą do bazy.
+3. W podklasach zostają tylko `minutes()` (reguła przerw) i `label()` (etykieta "Maraton"/"Blok"); konstruktory przekazują nazwę przez `super(name)`.
+
+**Przed:**
+
+```typescript
+override minutes(): number {
+  const children = this.children();
+  let total = 0;
+  for (const child of children) {
+    total += child.minutes();
+  }
+  return children.length === 0 ? 0 : total + 15 * (children.length - 1);
+}
+
+override describe(): string {
+  return `Maraton ${this.name} (${this.minutes()} min) `
+    + `[${this.children().map((child) => child.describe()).join(', ')}]`;
+}
+```
+
 **Po:**
 
 ```typescript
@@ -1283,7 +2030,35 @@ const request = `<charge ref='${reservationId}' amount='${grosze}'/>`;
 
 ### Krok 1: Extract Method z jednolitą sygnaturą
 
-**W IDE:** każdą gałąź ⌃⇧R > Extract to method in class 'CheckoutService': `payWithXml(reservationId, amount)` i `payWithRest(reservationId, amount)`, obie zwracają `PaymentResult`.
+**Zmiany:**
+
+1. Wyodrębnij gałąź XML z `pay` do prywatnej metody `payWithXml(reservationId, amount): PaymentResult` (Extract Method).
+2. Tak samo gałąź REST do `payWithRest(reservationId, amount): PaymentResult` - obie metody mają identyczną sygnaturę i wynik.
+
+**Przed:**
+
+```typescript
+pay(provider: string, reservationId: string, amount: Money): PaymentResult {
+  if (provider === 'XML') {
+    const grosze = amount.amount.times(100).toNumber();
+    const request = `<charge ref='${reservationId}' amount='${grosze}'/>`;
+    const response = this.xml.submit(request);
+    if (response.includes("status='OK'")) {
+      return PaymentResult.accepted(CheckoutService.attribute(response, 'id'));
+    }
+    return PaymentResult.declined(CheckoutService.attribute(response, 'code'));
+  } else if (provider === 'REST') {
+    try {
+      return PaymentResult.accepted(
+        this.rest.charge(new ChargeRequest(amount.amount, 'PLN', reservationId)).transactionId);
+    } catch (exception) {
+      ...
+    }
+  }
+  throw new IllegalArgumentError(`unknown provider: ${provider}`);
+}
+```
+
 **Po:**
 
 ```typescript
@@ -1300,7 +2075,26 @@ if (provider === 'XML') {
 
 ### Krok 2: interfejs i dwa adaptery
 
-**W IDE:** interfejs `PaymentGateway` z `pay(reservationId, amount)`. Metody `payWithXml` i `payWithRest` przenieś ręcznie (VS Code nie przenosi metod między klasami) jako `pay` do `XmlPayAdapter` (razem z pomocniczym `attribute`) i `RestPayAdapter`. Konstruktor serwisu bez zmian - tworzy adaptery.
+**Zmiany:**
+
+1. Utwórz interfejs `PaymentGateway` z metodą `pay(reservationId, amount): PaymentResult`.
+2. Utwórz `XmlPayAdapter implements PaymentGateway`: przenieś do niego ciało `payWithXml` jako `pay` razem z pomocniczym `attribute` (przenosimy ręcznie - VS Code nie przenosi metod między klasami); bramkę dostaje w konstruktorze.
+3. Tak samo `RestPayAdapter` z ciałem `payWithRest`.
+4. W serwisie zmień typ pól `xml` i `rest` na `PaymentGateway`; konstruktor bez zmian - tworzy adaptery, a `pay` deleguje do nich.
+
+**Przed:**
+
+```typescript
+private payWithXml(reservationId: string, amount: Money): PaymentResult {
+  const grosze = amount.amount.times(100).toNumber();
+  const response = this.xml.submit(`<charge ref='${reservationId}' amount='${grosze}'/>`);
+  if (response.includes("status='OK'")) {
+    return PaymentResult.accepted(CheckoutService.attribute(response, 'id'));
+  }
+  return PaymentResult.declined(CheckoutService.attribute(response, 'code'));
+}
+```
+
 **Po:**
 
 ```typescript
@@ -1316,7 +2110,25 @@ constructor(xml: XmlPayGateway, rest: RestPayClient) {
 
 ### Krok 3: serwis zależy tylko od interfejsu
 
-**W IDE:** nowa sygnatura konstruktora `(gateways: ReadonlyMap<string, PaymentGateway>)` (kopia `new Map(gateways)`); stara sygnatura `(xml, rest)` zostaje jako przeciążenie i buduje mapę ze standardowym zestawem adapterów. `if` zastąp wyszukaniem w mapie; nieznany dostawca - ten sam wyjątek.
+**Zmiany:**
+
+1. Zastąp pola `xml` i `rest` jedną mapą `private readonly gateways: ReadonlyMap<string, PaymentGateway>`.
+2. Dodaj sygnaturę przeciążenia konstruktora `(gateways: ReadonlyMap<string, PaymentGateway>)` (zapisywana jako kopia `new Map(gateways)`); stara sygnatura `(xml, rest)` zostaje jako drugie przeciążenie i buduje mapę ze standardowym zestawem adapterów (implementacja rozróżnia argument przez `instanceof XmlPayGateway`).
+3. W `pay` zastąp `if/else if` wyszukaniem w mapie; nieznany dostawca rzuca ten sam wyjątek co dotąd.
+
+**Przed:**
+
+```typescript
+pay(provider: string, reservationId: string, amount: Money): PaymentResult {
+  if (provider === 'XML') {
+    return this.xml.pay(reservationId, amount);
+  } else if (provider === 'REST') {
+    return this.rest.pay(reservationId, amount);
+  }
+  throw new IllegalArgumentError(`unknown provider: ${provider}`);
+}
+```
+
 **Po:**
 
 ```typescript
@@ -1379,7 +2191,34 @@ Test to sesja poleceń: sprzedaż, zwrot, raport oraz błędne polecenia, które
 
 ### Krok 1: Extract Method dla gałęzi
 
-**W IDE:** ciało każdej gałęzi ⌃⇧R > Extract to method in class 'CashierConsole': `sell(args)`, `refund(args)`, `report(args)` - ta sama sygnatura, także gdy `args` nie jest używane (`_args`).
+**Zmiany:**
+
+1. Wyodrębnij ciało gałęzi SELL do prywatnej metody `sell(args: string): string` (Extract Method).
+2. Tak samo REFUND do `refund(args)` i REPORT do `report(args)` - ta sama sygnatura u wszystkich, także gdy `args` nie jest używane (parametr `_args` w `report`).
+
+**Przed:**
+
+```typescript
+if (command === 'SELL') {
+  const [count = '', ...titleParts] = args.split(' ');
+  if (titleParts.length === 0 || !/^\d+$/.test(count)) {
+    return 'Blad: SELL <liczba> <tytul>';
+  }
+  const title = titleParts.join(' ');
+  const quantity = Number.parseInt(count, 10);
+  const price = CashierConsole.PRICES.get(title);
+  if (price === undefined) {
+    return `Blad: nieznany film ${title}`;
+  }
+  const total = price.times(quantity);
+  this.cash = this.cash.plus(total);
+  this.tickets += quantity;
+  return `Sprzedano ${quantity} x ${title} = ${total.toString()}`;
+} else if (command === 'REFUND') {
+  ...
+}
+```
+
 **Po:**
 
 ```typescript
@@ -1394,7 +2233,34 @@ if (command === 'SELL') {
 
 ### Krok 2: komendy jako obiekty, stan w Till
 
-**W IDE:** nowa klasa `Till` (pola `cash`, `tickets` i cennik - ręczne Extract Class). Interfejs `ConsoleCommand` z `execute(args, till)`, klasy `SellCommand`, `RefundCommand`, `ReportCommand` z ciałami metod. Dyspozytor `if` jeszcze zostaje.
+**Zmiany:**
+
+1. Utwórz klasę `Till` i przenieś do niej stan kasy: cennik `PRICES`, pola gotówki i liczby biletów oraz metody `priceOf`, `sold`, `refunded`, `cash`, `tickets` (Extract Class, ręcznie).
+2. Utwórz interfejs `ConsoleCommand` z metodą `execute(args: string, till: Till): string`.
+3. Utwórz klasy `SellCommand`, `RefundCommand`, `ReportCommand` i przenieś do ich `execute` ciała metod `sell`, `refund`, `report`; na stanie operują przez `till`.
+4. W konsoli zostają pole `till`, po jednym polu na komendę i dyspozytor `if` - teraz deleguje do `execute`. Zmieniamy jedną rzecz naraz.
+
+**Przed:**
+
+```typescript
+private sell(args: string): string {
+  const [count = '', ...titleParts] = args.split(' ');
+  if (titleParts.length === 0 || !/^\d+$/.test(count)) {
+    return 'Blad: SELL <liczba> <tytul>';
+  }
+  const title = titleParts.join(' ');
+  const quantity = Number.parseInt(count, 10);
+  const price = CashierConsole.PRICES.get(title);
+  if (price === undefined) {
+    return `Blad: nieznany film ${title}`;
+  }
+  const total = price.times(quantity);
+  this.cash = this.cash.plus(total);
+  this.tickets += quantity;
+  return `Sprzedano ${quantity} x ${title} = ${total.toString()}`;
+}
+```
+
 **Po:**
 
 ```typescript
@@ -1409,7 +2275,25 @@ if (command === 'SELL') {
 
 ### Krok 3: rejestr zamiast warunku
 
-**W IDE:** `ReadonlyMap<string, ConsoleCommand>` jako parametr konstruktora z wartością domyślną (standardowy zestaw), `handle` wyszukuje komendę po znormalizowanym kluczu.
+**Zmiany:**
+
+1. Zastąp trzy pola komend jedną mapą `private readonly commands: ReadonlyMap<string, ConsoleCommand>`.
+2. Dodaj konstruktor z parametrem `commands` o wartości domyślnej (mapa ze standardowym zestawem SELL/REFUND/REPORT); zapisuj kopię `new Map(commands)`.
+3. W `handle` usuń łańcuch `if` - wyszukaj komendę po znormalizowanym kluczu `name.toUpperCase()`; brak wpisu daje dotychczasowe `Nieznana komenda: ...`.
+
+**Przed:**
+
+```typescript
+if (command === 'SELL') {
+  return this.sell.execute(args, this.till);
+} else if (command === 'REFUND') {
+  return this.refund.execute(args, this.till);
+} else if (command === 'REPORT') {
+  return this.report.execute(args, this.till);
+}
+return `Nieznana komenda: ${name}`;
+```
+
 **Po:**
 
 ```typescript
@@ -1459,7 +2343,30 @@ Jak dodalibyście `UNDO` dla ostatniej sprzedaży? Czego wymaga to od komend?
 
 ### Krok 1: Extract Method na różnicach
 
-**W IDE:** w obu klasach ⌃⇧R > Extract to method in class dla nagłówka, wiersza i stopki: `header()`, `row(sale)`, `footer(tickets, total)`. Przepisz `render` HTML na ten sam kształt co CSV (nazwy zmiennych, sortowanie).
+**Zmiany:**
+
+1. W `CsvSalesReport` wyodrębnij nagłówek, wiersz i stopkę do prywatnych metod `header()`, `row(sale)`, `footer(tickets, total)` (Extract Method).
+2. Zrób to samo w `HtmlSalesReport` - te same nazwy i sygnatury.
+3. Przepisz `render` HTML na ten sam kształt co CSV: kopia tablicy i `sort` zamiast `toSorted`, zmienne `text`, `tickets`, `total` zamiast tablicy fragmentów i `sum`/`count` - aż oba `render` będą identyczne znak w znak.
+
+**Przed:**
+
+```typescript
+// HtmlSalesReport:
+const html: string[] = [];
+html.push('<table>\n<tr><th>Godzina</th><th>Film</th><th>Bilety</th><th>Kwota</th></tr>\n');
+let sum = Money.ZERO;
+let count = 0;
+for (const sale of sales.toSorted((a, b) => a.time.compareTo(b.time))) {
+  const title = sale.title.replaceAll('&', '&amp;').replaceAll('<', '&lt;');
+  html.push('<tr><td>', sale.time.toString(), '</td><td>', title,
+    '</td><td>', String(sale.tickets), '</td><td>', sale.amount.toString(),
+    '</td></tr>\n');
+  sum = sum.plus(sale.amount);
+  count += sale.tickets;
+}
+```
+
 **Po:**
 
 ```typescript
@@ -1479,7 +2386,37 @@ return text + this.footer(tickets, total);
 
 ### Krok 2: Extract Superclass + Pull Up render
 
-**W IDE:** VS Code nie ma Extract Superclass - utwórz ręcznie `abstract class SalesReport`, przenieś do niej `render` z CSV, a `header`, `row`, `footer` zadeklaruj jako `protected abstract`. Obie klasy `extends SalesReport`, w podklasach metody formatujące z `protected override`, kopie `render` usuń. Na koniec dodaj w konstruktorze bazy strażnika zamiast `final`.
+**Zmiany:**
+
+1. Utwórz ręcznie `abstract class SalesReport` (Extract Superclass - VS Code go nie ma): przenieś do niej `render` z CSV, a `header`, `row` i `footer` zadeklaruj jako `protected abstract` (Pull Up Method).
+2. Zmień obie klasy na `extends SalesReport`: metody formatujące dostają `protected override`, kopie `render` usuń.
+3. Dodaj w konstruktorze bazy strażnika zamiast `final`: jeśli podklasa nadpisała `render`, konstruktor rzuca `IllegalStateError('render() is final')`.
+
+**Przed:**
+
+```typescript
+export class CsvSalesReport {
+  render(sales: readonly Sale[]): string {
+    const sorted = [...sales];
+    sorted.sort((a, b) => a.time.compareTo(b.time));
+    let text = this.header();
+    let tickets = 0;
+    let total = Money.ZERO;
+    for (const sale of sorted) {
+      text += this.row(sale);
+      tickets += sale.tickets;
+      total = total.plus(sale.amount);
+    }
+    return text + this.footer(tickets, total);
+  }
+
+  private header(): string {
+    return 'godzina;film;bilety;kwota\n';
+  }
+  ...
+}
+```
+
 **Po:**
 
 ```typescript
@@ -1538,7 +2475,32 @@ const price = new PriceList().basePrice(format);
 
 ### Krok 1: klasyczny Singleton
 
-**W IDE:** prywatny konstruktor, `private static readonly INSTANCE = new PriceList()`, `static getInstance()`. Licznik z pomiaru usuń. Klient woła `PriceList.getInstance()`.
+**Zmiany:**
+
+1. W `PriceList` zrób konstruktor prywatny i dodaj `private static readonly INSTANCE = new PriceList()` oraz `static getInstance()` zwracające tę instancję.
+2. Usuń licznik z pomiaru: pole `createdCount` i metodę `created()`.
+3. W `TicketDesk.quote` zamień `new PriceList()` na `PriceList.getInstance()`.
+
+**Przed:**
+
+```typescript
+export class PriceList {
+  private static readonly TARIFF = '2D=25.00;3D=32.00;IMAX=40.00';
+  private static createdCount = 0;
+  ...
+  constructor() {
+    for (const entry of PriceList.TARIFF.split(';')) {
+      const [format = '', amount = ''] = entry.split('=');
+      this.prices.set(format, Money.of(amount));
+    }
+    PriceList.createdCount++;
+  }
+
+  static created(): number {
+    return PriceList.createdCount;
+  }
+```
+
 **Po:**
 
 ```typescript
@@ -1551,7 +2513,30 @@ const price = PriceList.getInstance().basePrice(format);
 
 ### Krok 2: Singleton jako zamrożona stała modułu
 
-**W IDE:** zamień klasę na stałą modułu `export const PriceList = Object.freeze({ basePrice(format) { ... } })`; taryfa parsowana raz, w funkcji `parse()` wywołanej przy ewaluacji modułu, do `ReadonlyMap`.
+**Zmiany:**
+
+1. Przenieś taryfę i parsowanie poza klasę: stała modułu `TARIFF` i funkcja `parse()` zwracająca `ReadonlyMap<string, Money>`, wywołana raz przy ewaluacji modułu (`const prices = parse()`).
+2. Zamień klasę na zamrożoną stałą modułu: `export const PriceList = Object.freeze({ basePrice(format) { ... } })`.
+3. W `TicketDesk.quote` zamień `PriceList.getInstance().basePrice(format)` na `PriceList.basePrice(format)`.
+
+**Przed:**
+
+```typescript
+export class PriceList {
+  private static readonly TARIFF = '2D=25.00;3D=32.00;IMAX=40.00';
+  private static readonly INSTANCE = new PriceList();
+
+  private readonly prices = new Map<string, Money>();
+
+  private constructor() {
+    ...
+  }
+
+  static getInstance(): PriceList {
+    return PriceList.INSTANCE;
+  }
+```
+
 **Po:**
 
 ```typescript
@@ -1564,7 +2549,23 @@ const price = PriceList.basePrice(format);
 
 ### Krok 3: wstrzyknięcie zamiast globalnego dostępu
 
-**W IDE:** wydziel interfejs `Tariff` z `basePrice(format)` (ręcznie - VS Code nie ma Extract Interface), oznacz stałą typem `PriceList: Tariff`; `TicketDesk` dostaje konstruktor `(tariff: Tariff = PriceList)`.
+**Zmiany:**
+
+1. Utwórz nowy plik `Tariff.ts` z interfejsem `Tariff` i jedyną metodą `basePrice(format: string): Money` (Extract Interface).
+2. Oznacz stałą typem interfejsu: `export const PriceList: Tariff = Object.freeze({ ... })`.
+3. W `TicketDesk` dodaj pole `private readonly tariff: Tariff` i konstruktor `(tariff: Tariff = PriceList)`; `quote` woła `this.tariff.basePrice(format)`.
+
+**Przed:**
+
+```typescript
+export class TicketDesk {
+  quote(format: string, online: boolean): Money {
+    const price = PriceList.basePrice(format);
+    return online ? price.plus(Money.of('2.00')) : price;
+  }
+}
+```
+
 **Po:**
 
 ```typescript
@@ -1623,7 +2624,24 @@ Test sprawdza treść, kolejność i separator, w tym duplikaty miejsc zgłaszan
 
 ### Krok 1: tablica zamiast sklejania
 
-**W IDE:** metody pomocnicze zwracają `readonly string[]` bez separatora, `validate` robi `push(...)` i `join('; ')`.
+**Zmiany:**
+
+1. Zmień zwracany typ `checkEmail` i `checkSeats` na `readonly string[]`: każdy fragment zwracaj jako element tablicy, bez `'; '` na końcu.
+2. W `validate` zamień `let warnings = ''` na `const warnings: string[] = []`, a sklejanie `+=` na `warnings.push(...)`.
+3. Wynik składaj przez `warnings.length === 0 ? 'OK' : warnings.join('; ')` - obcinanie dwóch ostatnich znaków znika.
+
+**Przed:**
+
+```typescript
+let warnings = '';
+warnings += this.checkEmail(draft.email);
+warnings += this.checkSeats(draft.seats);
+if (!draft.now.isBefore(draft.showStart)) {
+  warnings += 'seans juz sie rozpoczal; ';
+}
+return warnings === '' ? 'OK' : warnings.substring(0, warnings.length - 2);
+```
+
 **Po:**
 
 ```typescript
@@ -1637,7 +2655,24 @@ warnings.push(...this.checkSeats(draft.seats));
 
 ### Krok 2: Collecting Parameter
 
-**W IDE:** zmiana sygnatury ręcznie (VS Code nie ma Change Signature): dodaj parametr `warnings: string[]`, zwracany typ `void`, zamień `return [x]` na `warnings.push(x)`. Warunek czasu seansu wyciągnij do `checkShowTime(draft, warnings)` (⌃⇧R > Extract to method in class).
+**Zmiany:**
+
+1. Zmień sygnatury `checkEmail` i `checkSeats`: dodaj parametr `warnings: string[]`, zwracany typ `void`.
+2. W ich ciałach zamień każde `return [x]` na `warnings.push(x)` (w `checkSeats` po `brak miejsc` zostaje samo `return`).
+3. Warunek czasu seansu wyciągnij z `validate` do nowej metody `checkShowTime(draft, warnings)` (Extract Method).
+4. W `validate` wołaj metody z akumulatorem: `this.checkEmail(draft.email, warnings)` itd. - `push(...)` znika.
+
+**Przed:**
+
+```typescript
+const warnings: string[] = [];
+warnings.push(...this.checkEmail(draft.email));
+warnings.push(...this.checkSeats(draft.seats));
+if (!draft.now.isBefore(draft.showStart)) {
+  warnings.push('seans juz sie rozpoczal');
+}
+```
+
 **Po:**
 
 ```typescript
@@ -1652,7 +2687,22 @@ this.checkShowTime(draft, warnings);
 
 ### Krok 3: wąski typ parametru
 
-**W IDE:** klasa `Warnings` z `add` i `summary()`; zmień typ parametrów z `string[]` na `Warnings` i `push` na `add` (VS Code nie ma Type Migration - `npm run typecheck` wskaże każde miejsce).
+**Zmiany:**
+
+1. Utwórz nowy plik `Warnings.ts`: klasa `Warnings` z prywatną tablicą `items`, metodą `add(warning)` i `summary()` zwracającym `'OK'` albo `items.join('; ')`.
+2. Zmień typ parametru `warnings` w `checkEmail`, `checkSeats` i `checkShowTime` ze `string[]` na `Warnings`, a każde `push` na `add` (`npm run typecheck` wskaże każde miejsce).
+3. W `validate` twórz `new Warnings()` i zwracaj `warnings.summary()`.
+
+**Przed:**
+
+```typescript
+const warnings: string[] = [];
+this.checkEmail(draft.email, warnings);
+this.checkSeats(draft.seats, warnings);
+this.checkShowTime(draft, warnings);
+return warnings.length === 0 ? 'OK' : warnings.join('; ');
+```
+
 **Po:**
 
 ```typescript
@@ -1712,7 +2762,28 @@ throw new IllegalArgumentError(`unknown item: ${String(item)}`);
 
 ### Krok 1: accept + pierwszy Visitor
 
-**W IDE:** interfejs `OrderItemVisitor<R>` z `visitTicket/visitSnack/visitVoucher`, metoda `accept<R>(visitor)` w `OrderItem` i klasach pozycji (⌘. na klasie - Implement interface 'OrderItem'). Operację "linia paragonu" przenieś do `ReceiptLineVisitor`.
+**Zmiany:**
+
+1. Utwórz nowy plik `OrderItemVisitor.ts`: interfejs `OrderItemVisitor<R>` z metodami `visitTicket`, `visitSnack`, `visitVoucher`.
+2. Do interfejsu `OrderItem` dodaj metodę `accept<R>(visitor: OrderItemVisitor<R>): R`, a w każdej klasie pozycji zaimplementuj ją wywołaniem swojej metody: `visitor.visitTicket(this)` itd.
+3. Utwórz nowy plik `ReceiptLineVisitor.ts`: klasa `implements OrderItemVisitor<string>`, do której przenosisz trzy gałęzie metody `line`.
+4. W `ReceiptPrinter` dodaj pole `private readonly lines = new ReceiptLineVisitor()`, w pętli zamień `this.line(item)` na `item.accept(this.lines)` i usuń metodę `line`.
+
+**Przed:**
+
+```typescript
+private line(item: OrderItem): string {
+  if (item instanceof TicketItem) {
+    return `Bilet ${item.title} ${item.format} ${item.price.toString()}`;
+  } else if (item instanceof SnackItem) {
+    return `${item.name} ${item.price.toString()}`;
+  } else if (item instanceof VoucherItem) {
+    return `Voucher ${item.code} -${item.value.toString()}`;
+  }
+  throw new IllegalArgumentError(`unknown item: ${String(item)}`);
+}
+```
+
 **Po:**
 
 ```typescript
@@ -1725,7 +2796,26 @@ text += `${item.accept(this.lines)}\n`;
 
 ### Krok 2: pozostałe operacje jako Visitory
 
-**W IDE:** `AmountVisitor` i `VatVisitor`, usuń łańcuchy `instanceof`.
+**Zmiany:**
+
+1. Utwórz `AmountVisitor.ts` (`implements OrderItemVisitor<Money>`) z gałęziami metody `amount` i `VatVisitor.ts` z gałęziami metody `vat` (pomocnicze `vatOf` przenieś do `VatVisitor`).
+2. W `ReceiptPrinter` dodaj pola `amounts` i `vats`, w pętli wołaj `item.accept(...)` i usuń metody `amount`, `vat` oraz `vatOf` - łańcuchy `instanceof` znikają razem z importami klas pozycji.
+
+**Przed:**
+
+```typescript
+private vat(item: OrderItem): Money {
+  if (item instanceof TicketItem) {
+    return ReceiptPrinter.vatOf(item.price, 8);
+  } else if (item instanceof SnackItem) {
+    return ReceiptPrinter.vatOf(item.price, 23);
+  } else if (item instanceof VoucherItem) {
+    return Money.ZERO;
+  }
+  throw new IllegalArgumentError(`unknown item: ${String(item)}`);
+}
+```
+
 **Po:**
 
 ```typescript
@@ -1739,7 +2829,28 @@ vat = vat.plus(item.accept(this.vats));
 
 ### Krok 3: alternatywa TypeScript - unia dyskryminowana + switch
 
-**W IDE:** `type OrderItem = TicketItem | SnackItem | VoucherItem`, każda klasa z literałem `readonly kind = 'ticket'` itd.; usuń `accept` i Visitory, operacje jako `switch (item.kind)` zakończone `default: return assertNever(item)` (z destrukturyzacją w linii paragonu).
+**Zmiany:**
+
+1. Zamień interfejs `OrderItem` na zamkniętą unię: `export type OrderItem = TicketItem | SnackItem | VoucherItem`.
+2. W każdej klasie pozycji dodaj dyskryminator `readonly kind = 'ticket'` (odpowiednio `'snack'`, `'voucher'`) i usuń `accept`.
+3. Usuń pliki `OrderItemVisitor.ts`, `ReceiptLineVisitor.ts`, `AmountVisitor.ts`, `VatVisitor.ts`.
+4. W `ReceiptPrinter` zapisz operacje jako statyczne metody ze `switch (item.kind)` zakończonym `default: return assertNever(item)`; w linii paragonu użyj destrukturyzacji w gałęzi (`const { title, format, price } = item`).
+
+**Przed:**
+
+```typescript
+export class ReceiptPrinter {
+  private readonly lines = new ReceiptLineVisitor();
+  private readonly amounts = new AmountVisitor();
+  private readonly vats = new VatVisitor();
+  ...
+  for (const item of items) {
+    text += `${item.accept(this.lines)}\n`;
+    total = total.plus(item.accept(this.amounts));
+    vat = vat.plus(item.accept(this.vats));
+  }
+```
+
 **Po:**
 
 ```typescript
@@ -1807,7 +2918,29 @@ Ta scena ma **dwie ścieżki**: krok 1 jest wspólny, krok 2 to ścieżka A (Str
 
 ### Krok 1: rozplecenie osi (wspólny)
 
-**W IDE:** zauważ, że tabela to dwie niezależne reguły. ⌃⇧R > Extract to method in class: `basePrice(format)` ze `switch` po formacie i `adjustForDay(day, base)` ze `switch` po dniu (w porcie obie `private static`). `price` = złożenie.
+**Zmiany:**
+
+1. Zauważ, że tabela to dwie niezależne reguły: cena bazowa formatu i korekta dnia.
+2. Wydziel `private static basePrice(format)` ze `switch` po formacie (`'25.00'`, `'32.00'`, `'40.00'`, nieznany format rzuca ten sam wyjątek) (Extract Method).
+3. Wydziel `private static adjustForDay(day, base)` ze `switch` po dniu: wtorek `base.minus(base.percent(30))`, sobota i niedziela `base.plus(Money.of('2.00'))`, reszta `base`.
+4. `price` to złożenie obu metod; zmienna `weekend` znika.
+
+**Przed:**
+
+```typescript
+price(day: DayOfWeek, format: string): Money {
+  const weekend = day === 'SATURDAY' || day === 'SUNDAY';
+  if (format === '2D') {
+    return Money.of(day === 'TUESDAY' ? '17.50' : weekend ? '27.00' : '25.00');
+  } else if (format === '3D') {
+    return Money.of(day === 'TUESDAY' ? '22.40' : weekend ? '34.00' : '32.00');
+  } else if (format === 'IMAX') {
+    return Money.of(day === 'TUESDAY' ? '28.00' : weekend ? '42.00' : '40.00');
+  }
+  throw new IllegalArgumentError(`unknown format: ${format}`);
+}
+```
+
 **Po:**
 
 ```typescript
@@ -1822,7 +2955,26 @@ price(day: DayOfWeek, format: string): Money {
 
 ### Krok 2: ścieżka A - zmienia się reguła dnia (Strategy)
 
-**W IDE:** typ `DayPolicy = (base: Money) => Money`, stałe `CHEAP_TUESDAY`, `WEEKEND`, `REGULAR` i kalendarz `DayPolicies.standard(day)`. `ShowPricing` dostaje kalendarz w konstruktorze (parametr domyślny - kalendarz standardowy). Format zostaje prostym `switch`.
+**Zmiany:**
+
+1. Utwórz nowy plik `DayPolicy.ts`: typ funkcyjny `export type DayPolicy = (base: Money) => Money`.
+2. Utwórz nowy plik `DayPolicies.ts` ze stałymi `CHEAP_TUESDAY`, `WEEKEND`, `REGULAR` (ciała gałęzi `adjustForDay`) i kalendarzem `static standard(day): DayPolicy` ze `switch` po dniu.
+3. W `ShowPricing` usuń `adjustForDay`; dodaj pole `calendar: (day: DayOfWeek) => DayPolicy` i konstruktor z parametrem domyślnym - kalendarzem standardowym.
+4. `price` woła `this.calendar(day)(ShowPricing.basePrice(format))`. Format zostaje prostym `switch`.
+
+**Przed:**
+
+```typescript
+private static adjustForDay(day: DayOfWeek, base: Money): Money {
+  switch (day) {
+    case 'TUESDAY': return base.minus(base.percent(30));
+    case 'SATURDAY':
+    case 'SUNDAY': return base.plus(Money.of('2.00'));
+    default: return base;
+  }
+}
+```
+
 **Po:**
 
 ```typescript
@@ -1835,7 +2987,30 @@ return this.calendar(day)(ShowPricing.basePrice(format));
 
 ### Krok 3: ścieżka B - zmienia się zestaw formatów (typ z zachowaniem)
 
-**W IDE:** pokaż alternatywę od kroku 1: klasa `Format` ze stałymi instancjami, ceną bazową i metodą `priceOn(day)`, `Format.of(code)` z tym samym wyjątkiem. `ShowPricing` deleguje. Reguła dnia zostaje zwykłym `switch` w typie.
+**Zmiany:**
+
+1. Pokaż alternatywę budowaną od kroku 1, nie od kroku 2.
+2. Utwórz nowy plik `Format.ts`: klasa z prywatnym konstruktorem, stałymi instancjami `TWO_D`, `THREE_D`, `IMAX` (kod i cena bazowa), `values()` oraz `Format.of(code)` rzucającym ten sam wyjątek co dotąd.
+3. Przenieś regułę dnia do metody `priceOn(day)` w `Format` - zostaje zwykłym `switch` w typie.
+4. `ShowPricing.price` tylko deleguje: `Format.of(format).priceOn(day)`; metody `basePrice` i `adjustForDay` znikają.
+
+**Przed:**
+
+```typescript
+price(day: DayOfWeek, format: string): Money {
+  return ShowPricing.adjustForDay(day, ShowPricing.basePrice(format));
+}
+
+private static basePrice(format: string): Money {
+  switch (format) {
+    case '2D': return Money.of('25.00');
+    case '3D': return Money.of('32.00');
+    case 'IMAX': return Money.of('40.00');
+    default: throw new IllegalArgumentError(`unknown format: ${format}`);
+  }
+}
+```
+
 **Po:**
 
 ```typescript
@@ -1899,7 +3074,34 @@ case 'FESTIVAL': {
 
 ### Krok 1: Replace Conditional with Strategy (i Adapter dla obcego klienta)
 
-**W IDE:** utwórz interfejs `SettlementModel` z metodą `payout(deal, week, ticketRevenue)`. Każdą gałąź `switch` wydziel (⌃⇧R > Extract to method in class) i przenieś ręcznie do klasy: `PercentageModel` i `FestivalFeeAdapter` (opakowuje `FestivalTariffClient`, konwertuje grosze). `DistributorSettlement` wybiera model z mapy.
+**Zmiany:**
+
+1. Utwórz nowy plik `SettlementModel.ts`: interfejs z metodą `payout(deal, week, ticketRevenue): Decimal`.
+2. Gałąź `'PERCENT'` przenieś do nowej klasy `PercentageModel implements SettlementModel` (stała `MINIMUM_GUARANTEE` jako `private static readonly`).
+3. Gałąź `'FESTIVAL'` przenieś do nowej klasy `FestivalFeeAdapter implements SettlementModel`: opakowuje `FestivalTariffClient` z konstruktora i konwertuje grosze (`new Decimal(cents).dividedBy(100)`).
+4. W `DistributorSettlement` zastąp `switch` mapą `models` i wyszukaniem modelu; nieznany model rzuca ten sam wyjątek.
+
+**Przed:**
+
+```typescript
+payout(deal: Deal, week: number, ticketRevenue: Decimal): Decimal {
+  switch (deal.model) {
+    case 'PERCENT': {
+      const percent = week === 1 ? 50 : week === 2 ? 40 : 35;
+      const share = ticketRevenue.times(percent)
+        .dividedBy(100).toDecimalPlaces(2, Decimal.ROUND_HALF_UP);
+      return Decimal.max(share, new Decimal('500.00'));
+    }
+    case 'FESTIVAL': {
+      const cents = this.festival.weeklyFeeInCents(deal.title, week);
+      return new Decimal(cents).dividedBy(100);
+    }
+    default:
+      throw new IllegalArgumentError(`nieznany model: ${deal.model}`);
+  }
+}
+```
+
 **Po:**
 
 ```typescript
@@ -1915,7 +3117,21 @@ private readonly models: ReadonlyMap<string, SettlementModel> = new Map<string, 
 
 ### Krok 2: Wariant znika - usunięcie adaptera
 
-**W IDE:** umowy festiwalowe wygasły. Usuń wpis `'FESTIVAL'` z mapy, potem plik `FestivalFeeAdapter.ts` (⇧⌥F12 potwierdza brak użyć) i niepotrzebny import `FestivalTariffClient`.
+**Zmiany:**
+
+1. Umowy festiwalowe wygasły: usuń wpis `'FESTIVAL'` z mapy `models`.
+2. Usuń plik `FestivalFeeAdapter.ts` - wcześniej upewnij się, że nikt go już nie używa (wyszukaj odwołania w kodzie).
+3. Usuń niepotrzebny już import `FestivalTariffClient` z `DistributorSettlement`.
+
+**Przed:**
+
+```typescript
+private readonly models: ReadonlyMap<string, SettlementModel> = new Map<string, SettlementModel>([
+  ['PERCENT', new PercentageModel()],
+  ['FESTIVAL', new FestivalFeeAdapter(new FestivalTariffClient())],
+]);
+```
+
 **Po:**
 
 ```typescript
@@ -1930,7 +3146,25 @@ private readonly models: ReadonlyMap<string, SettlementModel> = new Map<string, 
 
 ### Krok 3: Usunięcie wzorca
 
-**W IDE:** ręcznie (VS Code nie ma Inline Method): wklej ciało `PercentageModel.payout` w miejsce wywołania w `DistributorSettlement.payout`, wybór z mapy zastąp warunkiem `deal.model !== 'PERCENT'`, usuń mapę oraz pliki `PercentageModel.ts` i `SettlementModel.ts`. Stałą `MINIMUM_GUARANTEE` przenieś do `DistributorSettlement` jako `private static readonly`.
+**Zmiany:**
+
+1. Wklej ciało `PercentageModel.payout` w miejsce wywołania w `DistributorSettlement.payout` (Inline Method).
+2. Wybór z mapy zastąp warunkiem `deal.model !== 'PERCENT'` rzucającym ten sam wyjątek; mapę `models` usuń.
+3. Stałą `MINIMUM_GUARANTEE` przenieś do `DistributorSettlement` jako `private static readonly`.
+4. Usuń pliki `PercentageModel.ts` i `SettlementModel.ts`.
+
+**Przed:**
+
+```typescript
+payout(deal: Deal, week: number, ticketRevenue: Decimal): Decimal {
+  const model = this.models.get(deal.model);
+  if (model === undefined) {
+    throw new IllegalArgumentError(`nieznany model: ${deal.model}`);
+  }
+  return model.payout(deal, week, ticketRevenue);
+}
+```
+
 **Po:**
 
 ```typescript
@@ -1994,7 +3228,33 @@ freeSeats(id: string): number {
 
 ### Krok 1: pośrednik staje się czystym forwarderem
 
-**W IDE:** przenieś `try/catch` do prywatnej metody `freeSeats` w `SeatBadge` (jedyny klient, który polega na tłumaczeniu). W fasadzie zostaje zwykłe delegowanie.
+**Zmiany:**
+
+1. W `SeatBadge` dodaj prywatną metodę `freeSeats(id)` i przenieś do niej `try/catch` z fasady - to jedyny klient, który polega na tłumaczeniu "brak seansu" na 0; `badge` woła `this.freeSeats(id)`.
+2. W `CinemaFacade.freeSeats` zostaje zwykłe delegowanie `return this.catalog.freeSeats(id)`; import `NoSuchElementError` przenosi się do `SeatBadge`.
+
+**Przed:**
+
+```typescript
+// CinemaFacade
+freeSeats(id: string): number {
+  try {
+    return this.catalog.freeSeats(id);
+  } catch (error) {
+    if (error instanceof NoSuchElementError) {
+      return 0;
+    }
+    throw error;
+  }
+}
+
+// SeatBadge
+badge(id: string): string {
+  const free = this.cinema.freeSeats(id);
+  ...
+}
+```
+
 **Po:**
 
 ```typescript
@@ -2017,7 +3277,23 @@ private freeSeats(id: string): number {
 
 ### Krok 2: pierwszy klient rozmawia z katalogiem
 
-**W IDE:** w `SeatBadge` ręcznie zmień typ parametru konstruktora z `CinemaFacade` na `ScreeningCatalog`, a pole F2 (Rename Symbol) na `catalog`. Metody `title`, `format` i `freeSeats` katalog ma o tych samych sygnaturach, więc reszta kodu się kompiluje.
+**Zmiany:**
+
+1. W `SeatBadge` zmień typ pola i parametru konstruktora z `CinemaFacade` na `ScreeningCatalog`.
+2. Zmień nazwę pola `cinema` na `catalog` we wszystkich użyciach (Rename).
+3. Metody `title`, `format` i `freeSeats` katalog ma o tych samych sygnaturach, więc reszta kodu się kompiluje bez zmian.
+
+**Przed:**
+
+```typescript
+export class SeatBadge {
+  private readonly cinema: CinemaFacade;
+
+  constructor(cinema: CinemaFacade) {
+    this.cinema = requireNonNull(cinema, 'cinema');
+  }
+```
+
 **Po:**
 
 ```typescript
@@ -2032,7 +3308,21 @@ constructor(catalog: ScreeningCatalog) {
 
 ### Krok 3: ostatni klient i usunięcie fasady
 
-**W IDE:** ten sam ruch w `DailyBoard` (`cinema.screenings()` na `catalog.all()`), potem Find All References (⇧⌥F12) na `CinemaFacade` - brak użyć - i usunięcie pliku.
+**Zmiany:**
+
+1. Ten sam ruch w `DailyBoard`: typ konstruktora na `ScreeningCatalog`, pole `cinema` na `catalog`, a wywołanie `cinema.screenings()` zamień na `catalog.all()`.
+2. Wyszukaj odwołania do `CinemaFacade` - brak użyć - i usuń plik `CinemaFacade.ts`.
+
+**Przed:**
+
+```typescript
+render(): string {
+  return this.cinema.screenings()
+    .map((screening) => `${screening.id} ${screening.title} ${screening.format}`)
+    .join('\n');
+}
+```
+
 **Po:**
 
 ```typescript
@@ -2090,7 +3380,25 @@ return refund.toFixed(2);
 
 ### Krok 1: czysta refaktoryzacja
 
-**W IDE:** zaznacz łańcuch `if/else` wyboru udziału, ⌃⇧R > Extract to method in class, nazwa `share`, zwraca `number` (0, 1.0, 0.5) - ręcznie zamień przypisania na `return` i oznacz metodę `private static`. W `refund` jedno wyrażenie `ticketsPaid * share(minutes) - 3.00`.
+**Zmiany:**
+
+1. Wydziel łańcuch `if/else` wyboru udziału do metody `private static share(minutesBeforeStart): number` (Extract Method): zamień przypisania do `refund` na `return 0`, `return 1.0`, `return 0.5`.
+2. W `refund` zostaje jedno wyrażenie: `let refund = ticketsPaid * RefundCalculator.share(minutesBeforeStart) - 3.00;` - reszta metody bez zmian.
+
+**Przed:**
+
+```typescript
+let refund: number;
+if (minutesBeforeStart <= 0) {
+  refund = 0;
+} else if (minutesBeforeStart >= 24 * 60) {
+  refund = ticketsPaid;
+} else {
+  refund = ticketsPaid * 0.5;
+}
+refund = refund - 3.00;
+```
+
 **Po:**
 
 ```typescript
@@ -2103,7 +3411,23 @@ let refund = ticketsPaid * RefundCalculator.share(minutesBeforeStart) - 3.00;
 
 ### Krok 2: "przy okazji" number na Decimal
 
-**W IDE:** pokaż naiwny ruch: `share` zwraca `Decimal`, liczymy `new Decimal(ticketsPaid).times(...).minus(FEE)`, a "przy okazji" skracamy obcięcie do zera do guard clause.
+**Zmiany:**
+
+1. Pokaż naiwny ruch: `share` zwraca `Decimal` (`new Decimal(0)`, `new Decimal(1)`, `new Decimal('0.5')`), dodaj stałą `FEE = new Decimal('3.00')`.
+2. W `refund` licz `new Decimal(ticketsPaid).times(...).minus(RefundCalculator.FEE)` i formatuj `toFixed(2, Decimal.ROUND_HALF_UP)`.
+3. "Przy okazji" skróć obcięcie do zera do guard clause `if (refund.lessThanOrEqualTo(0)) return '0';`.
+
+**Przed:**
+
+```typescript
+let refund = ticketsPaid * RefundCalculator.share(minutesBeforeStart) - 3.00;
+if (refund < 0) {
+  refund = 0;
+}
+refund = Math.round(refund * 100) / 100.0;
+return refund.toFixed(2);
+```
+
 **Po:**
 
 ```typescript
@@ -2122,7 +3446,23 @@ return refund.toFixed(2, Decimal.ROUND_HALF_UP);
 
 ### Krok 3: świadoma decyzja
 
-**W IDE:** zastąp guard clause obcięciem `Decimal.max(..., 0)` przed formatowaniem - jedna ścieżka wyniku i format "0.00" wraca. Różnicę groszową zatwierdzamy jako zmianę kontraktu: komentarz TSDoc z decyzją, nowe oczekiwanie w teście, osobny commit.
+**Zmiany:**
+
+1. Zastąp guard clause obcięciem `Decimal.max(..., 0)` przed formatowaniem - jedna ścieżka wyniku i format "0.00" wraca.
+2. Różnicę groszową zatwierdź jako zmianę kontraktu: komentarz TSDoc z decyzją, nowe oczekiwanie w teście, osobny commit.
+
+**Przed:**
+
+```typescript
+const refund = new Decimal(ticketsPaid)
+  .times(RefundCalculator.share(minutesBeforeStart))
+  .minus(RefundCalculator.FEE);
+if (refund.lessThanOrEqualTo(0)) {
+  return '0';
+}
+return refund.toFixed(2, Decimal.ROUND_HALF_UP);
+```
+
 **Po:**
 
 ```typescript
@@ -2164,7 +3504,7 @@ Kto zatwierdza zmianę kontraktu o 1 grosz: programista, księgowość czy klien
 
 **Co robimy:** W `SalesReport` nazwy `calc2`, `s`, `m`, `x` nic nie mówią, ale nazwa metody żyje w konfiguracji, a nazwy pól klasy `Line` trafiają przez `Object.keys` do nagłówka CSV. Zmieniamy nazwy od najbezpieczniejszych lokalnych do tych, które są kontraktem zewnętrznym.
 
-**Zasada:** Rename nadaje nazwę opisującą rolę w kontekście, a nie typ ani implementację. Dla zmiennych lokalnych IDE robi to bezpiecznie, ale nazwa użyta w konfiguracji, wywołaniu po nazwie (`obj[name]`), JSON czy ORM jest częścią API i wymaga strategii migracji. IDE nie widzi takich użyć, więc nie mylić operacji F2 z bezpieczną zmianą kontraktu.
+**Zasada:** Rename nadaje nazwę opisującą rolę w kontekście, a nie typ ani implementację. Dla zmiennych lokalnych IDE robi to bezpiecznie, ale nazwa użyta w konfiguracji, wywołaniu po nazwie (`obj[name]`), JSON czy ORM jest częścią API i wymaga strategii migracji. IDE nie widzi takich użyć, więc nie mylić automatycznej zmiany nazwy z bezpieczną zmianą kontraktu.
 
 **Efekt:** Kod czyta się po nazwach ról, a oba kontrakty zostają nietknięte: stara nazwa `calc2` jako przestarzały delegat, nagłówek CSV jako jawna stała. Koszt to delegat, którego nie wolno usunąć, dopóki ktoś nie zmieni konfiguracji na serwerach.
 
@@ -2192,7 +3532,32 @@ function header(): string {
 
 ### Krok 1: Rename zmiennych lokalnych i parametrów
 
-**W IDE:** kursor na `s`, F2, `sales`. Tak samo `flag` -> `onlineOnly`, `m` -> `linesByTitle`, `x` -> `sale`, `l` -> `previous` / `line`, `b` -> `csv`, `v` -> `values`, `c` -> `component`.
+**Zmiany:**
+
+1. Zmień nazwy parametrów `calc2` (Rename): `s` -> `sales`, `flag` -> `onlineOnly`.
+2. Zmień nazwy zmiennych lokalnych: `m` -> `linesByTitle`, `x` -> `sale`, `l` -> `previous` (w pętli agregującej) i `line` (w pętli wypisującej), `b` -> `csv`.
+3. W funkcji pomocniczej `row`: `l` -> `line`, `v` -> `values`, `c` -> `component`.
+
+**Przed:**
+
+```typescript
+calc2(s: readonly Sale[], flag: boolean): string {
+  const m = new Map<string, Line>();
+  for (const x of s) {
+    if (flag && !x.online) {
+      continue;
+    }
+    const l = m.get(x.title);
+    ...
+  }
+  let b = header() + '\n';
+  for (const l of sortedByKey(m)) {
+    b += row(l) + '\n';
+  }
+  return b;
+}
+```
+
 **Po:**
 
 ```typescript
@@ -2208,7 +3573,22 @@ calc2(sales: readonly Sale[], onlineOnly: boolean): string {
 
 ### Krok 2: Rename metody z delegatem dla starej nazwy
 
-**W IDE:** najpierw na żywo naiwnie: F2 na `calc2`, nazwa `revenueCsv`. VS Code poprawi wszystkie wywołania w kodzie, ale nie tekst `report.method=calc2`. Uruchom test: `everyStepRunsTheConfiguredJob` jest czerwony (`IllegalStateError: Zadanie raportu nie działa: brak metody calc2`). IDE nie wie, że tekst w konfiguracji to nazwa metody. Cofnij (⌘Z). Teraz poprawnie: skopiuj metodę, zmień nazwę kopii na `revenueCsv`, a ciało `calc2` zamień na delegowanie i oznacz w JSDoc `@deprecated`.
+**Zmiany:**
+
+1. Najpierw na żywo naiwnie: zmień nazwę `calc2` na `revenueCsv` (Rename). Wszystkie wywołania w kodzie się poprawią, ale nie tekst `report.method=calc2` w konfiguracji.
+2. Uruchom test: `everyStepRunsTheConfiguredJob` jest czerwony (`IllegalStateError: Zadanie raportu nie działa: brak metody calc2`) - narzędzie nie wie, że tekst w konfiguracji to nazwa metody. Cofnij zmianę.
+3. Teraz poprawnie: skopiuj metodę, nazwij kopię `revenueCsv`, a ciało `calc2` zamień na delegowanie `return this.revenueCsv(sales, onlineOnly)` i oznacz w JSDoc `@deprecated`.
+
+**Przed:**
+
+```typescript
+/** Wywoływana także po nazwie przez ReportJob - nazwa metody jest w konfiguracji. */
+calc2(sales: readonly Sale[], onlineOnly: boolean): string {
+  const linesByTitle = new Map<string, Line>();
+  ...
+}
+```
+
 **Po:**
 
 ```typescript
@@ -2226,12 +3606,37 @@ revenueCsv(sales: readonly Sale[], onlineOnly: boolean): string {
 ```
 
 **Uruchom:** test zielony, zadanie z konfiguracji działa. `S24RenameLimitsTest.configurationStillNamesTheOldMethod` sprawdza, że na prototypie są obie metody.
-**Co powiedzieć:** konfiguracja leży na serwerach, poza naszym repozytorium, więc nie zmienimy jej w tym samym commicie. Stara nazwa zostaje jako przestarzały delegat, dopóki ktoś nie zmieni konfiguracji wszędzie. To jest strategia migracji ze slajdu. VS Code przekreśli wywołania `calc2` w kodzie, więc nowi klienci od razu widzą, której nazwy używać.
+**Co powiedzieć:** konfiguracja leży na serwerach, poza naszym repozytorium, więc nie zmienimy jej w tym samym commicie. Stara nazwa zostaje jako przestarzały delegat, dopóki ktoś nie zmieni konfiguracji wszędzie. To jest strategia migracji ze slajdu. Wywołania `calc2` w kodzie są odtąd oznaczone jako przestarzałe, więc nowi klienci od razu widzą, której nazwy używać.
 **Snapshot:** `step2/` · **Różnica:** `scripts/warsztat.sh --lang ts diff m5/s24 1 2`
 
 ### Krok 3: Rename pól wiersza po odcięciu kontraktu CSV
 
-**W IDE:** najpierw naiwnie: F2 na `t` w `Line`, `title`. Test pokaże nagłówek `title;n;d` zamiast `t;n;d`: plik dla dystrybutora właśnie się zmienił. Cofnij. Teraz poprawnie: najpierw zamień `header()` i `row()` oparte na `Object.keys`/`Object.values` na jawną stałą `CSV_HEADER = 't;n;d'` i jawne składanie wiersza (test zielony), dopiero potem F2 na `t`, `n`, `d` -> `title`, `tickets`, `revenue`.
+**Zmiany:**
+
+1. Najpierw naiwnie: zmień nazwę pola `t` w `Line` na `title`. Test pokaże nagłówek `title;n;d` zamiast `t;n;d` - plik dla dystrybutora właśnie się zmienił. Cofnij zmianę.
+2. Teraz poprawnie: najpierw odetnij kontrakt - zamień `header()` oparte na `Object.keys` na jawną stałą `export const CSV_HEADER = 't;n;d'`, a `row()` oparte na `Object.values` na jawne składanie wiersza (test zielony).
+3. Dopiero potem zmień nazwy pól `t`, `n`, `d` na `title`, `tickets`, `revenue` (Rename) - razem z użyciami w `revenueCsv` i `row`.
+
+**Przed:**
+
+```typescript
+export class Line {
+  constructor(readonly t: string, readonly n: number, readonly d: Money) {}
+}
+
+function header(): string {
+  return Object.keys(new Line('', 0, Money.ZERO)).join(';');
+}
+
+function row(line: Line): string {
+  const values: string[] = [];
+  for (const component of Object.values(line)) {
+    values.push(String(component));
+  }
+  return values.join(';');
+}
+```
+
 **Po:**
 
 ```typescript
@@ -2257,9 +3662,9 @@ function row(line: Line): string {
 
 ### Pułapki
 
-- Poleganie na tym, że Rename w VS Code "znajdzie wszystko". Rename Symbol działa na typach i nie zmienia tekstu w stringach, a globalne szukaj-zamień (⇧⌘H) nie widzi plików poza projektem ani nazw składanych dynamicznie (`'calc' + version`).
+- Poleganie na tym, że automatyczny Rename "znajdzie wszystko". Działa na typach i nie zmienia tekstu w stringach, a globalne szukaj-zamień nie widzi plików poza projektem ani nazw składanych dynamicznie (`'calc' + version`).
 - Inne miejsca, w których nazwa jest kontraktem: `JSON.stringify` / `JSON.parse` (klucze obiektu), kolumny ORM, szablony, nazwy pól w odpowiedziach REST, dostęp `obj[name]`, logi parsowane przez monitoring.
-- Usunięcie delegatu `calc2` "bo nikt go nie woła". Go to References (⇧F12) go nie znajdzie, bo woła go tylko konfiguracja przez `report[name]`.
+- Usunięcie delegatu `calc2` "bo nikt go nie woła". Wyszukiwanie odwołań w kodzie go nie znajdzie, bo woła go tylko konfiguracja przez `report[name]`.
 
 ### Pytanie do sali
 
@@ -2279,7 +3684,7 @@ Jak w waszym systemie sprawdzić, czy nazwa klasy albo metody nie jest użyta w 
 
 **Efekt:** Metoda publiczna czyta się jak spis treści, a obliczenia są oddzielone od renderowania, bez zmiany sygnatury ani formatu. Kosztem są dwa przejścia po liście rzędów, pomijalne wobec czytelności.
 
-**Różnica względem Javy:** IntelliJ odmawia wydzielenia fragmentu z dwiema wartościami wyjściowymi. VS Code nie odmawia: wydzielona metoda zwraca wtedy obiekt `{ subtotal, vipSeats }`, a w miejscu wywołania pojawia się destrukturyzacja. Kod się kompiluje i test jest zielony, ale to dokładnie "holder" z pułapek - dwie odpowiedzialności w jednej metodzie. Kwoty to `Decimal`, w wydruku `toFixed(2)`.
+**Różnica względem Javy:** IDE w Javie odmawia wydzielenia fragmentu z dwiema wartościami wyjściowymi. Narzędzia TypeScriptu nie odmawiają: wydzielona metoda zwraca wtedy obiekt `{ subtotal, vipSeats }`, a w miejscu wywołania pojawia się destrukturyzacja. Kod się kompiluje i test jest zielony, ale to dokładnie "holder" z pułapek - dwie odpowiedzialności w jednej metodzie. Kwoty to `Decimal`, w wydruku `toFixed(2)`.
 
 ### Co widzimy
 
@@ -2301,7 +3706,28 @@ subtotal = subtotal.toDecimalPlaces(2, Decimal.ROUND_HALF_UP);
 
 ### Krok 1: Extract Method dla bloku z jednym wyjściem
 
-**W IDE:** zaznacz blok pod `// cena bazowa formatu` (od `let base: Decimal;` do końca `if` z porankiem), ⌃⇧R, "Extract to method in class 'TicketSummary'", nazwa `basePrice`. VS Code sam wykryje jedno wejście (`order`) i jedno wyjście (`base`). Usuń zbędny komentarz.
+**Zmiany:**
+
+1. Wydziel blok pod `// cena bazowa formatu` (od `let base: Decimal;` do końca `if` z porankiem) do prywatnej metody `basePrice(order): Decimal` (Extract Method). Blok ma jedno wejście (`order`) i jedno wyjście (`base`), więc to najprostszy przypadek.
+2. W `describe` zostaje `const base = this.basePrice(order);`. Usuń zbędny komentarz.
+
+**Przed:**
+
+```typescript
+// cena bazowa formatu
+let base: Decimal;
+if (order.format === 'IMAX') {
+  base = new Decimal('40.00');
+} else if (order.format === '3D') {
+  base = new Decimal('32.00');
+} else {
+  base = new Decimal('25.00');
+}
+if (order.start.hour < 12) {
+  base = base.minus(new Decimal('5.00'));
+}
+```
+
 **Po:**
 
 ```typescript
@@ -2314,7 +3740,28 @@ const base = this.basePrice(order);
 
 ### Krok 2: Split Loop, potem dwa razy Extract Method
 
-**W IDE:** zaznacz pętlę razem z deklaracjami `subtotal` i `vipSeats` i otwórz ⌃⇧R. Pokaż podgląd "Extract to method": VS Code zaproponuje metodę zwracającą `{ subtotal, vipSeats }`. To jest moment dydaktyczny - IDE nie widzi, że to dwie odpowiedzialności. Zamknij bez zmian (Esc). Ręcznie skopiuj pętlę (Split Loop) i z pierwszej kopii usuń `vipSeats`, a z drugiej `subtotal`. Uruchom test. Następnie na każdej pętli ⌃⇧R, "Extract to method", nazwy `subtotal` i `vipSeats`.
+**Zmiany:**
+
+1. Pokaż najpierw propozycję automatycznej ekstrakcji pętli razem z deklaracjami `subtotal` i `vipSeats`: wyszłaby metoda zwracająca obiekt `{ subtotal, vipSeats }`. To moment dydaktyczny - narzędzie nie widzi, że to dwie odpowiedzialności. Zrezygnuj z tej propozycji.
+2. Skopiuj pętlę (Split Loop): z pierwszej kopii usuń zliczanie `vipSeats`, z drugiej sumowanie `subtotal` (i zmienną `price`). Uruchom test.
+3. Wydziel pierwszą pętlę do `private subtotal(order, base): Decimal` (razem z zaokrągleniem), drugą do `private vipSeats(order): number` (Extract Method).
+
+**Przed:**
+
+```typescript
+let subtotal = new Decimal(0);
+let vipSeats = 0;
+for (const row of order.rows) {
+  let price = base;
+  if (row >= 10) {
+    price = price.plus(new Decimal('10.00'));
+    vipSeats++;
+  }
+  subtotal = subtotal.plus(price);
+}
+subtotal = subtotal.toDecimalPlaces(2, Decimal.ROUND_HALF_UP);
+```
+
 **Po:**
 
 ```typescript
@@ -2328,7 +3775,27 @@ const vipSeats = this.vipSeats(order);
 
 ### Krok 3: Extract Method dla renderowania
 
-**W IDE:** zaznacz blok `// dokument` i wykonaj ⌃⇧R, "Extract to method", nazwa `render`. Parametry: `order`, `subtotal`, `vipSeats`. Potem kursor na `base`, ⌃⇧R, "Inline variable".
+**Zmiany:**
+
+1. Wydziel blok pod `// dokument` do prywatnej metody `render(order, subtotal, vipSeats): string` (Extract Method).
+2. Wstaw zmienną `base` w jej jedyne użycie: `this.subtotal(order, this.basePrice(order))` (Inline Variable).
+
+**Przed:**
+
+```typescript
+describe(order: Order): string {
+  const base = this.basePrice(order);
+  const subtotal = this.subtotal(order, base);
+  const vipSeats = this.vipSeats(order);
+
+  // dokument
+  let text = '';
+  text += 'BILETY: ' + order.title + '\n';
+  ...
+  return text;
+}
+```
+
 **Po:**
 
 ```typescript
@@ -2350,9 +3817,9 @@ describe(order: Order): string {
 ### Pułapki
 
 - Ekstrakcja bloku, który modyfikuje zmienną lokalną używaną dalej, bez zwrócenia jej wartości. IDE tego pilnuje, ręczne kopiowanie nie.
-- Zwracanie tablicy (`[subtotal, vipSeats]`) albo anonimowego obiektu tylko po to, żeby wyciągnąć dwa wyniki. VS Code zrobi to sam, jeśli mu pozwolimy.
-- Ekstrakcja fragmentu z `this` do funkcji w zasięgu modułu ("Extract to function in module scope") zamiast do metody klasy. VS Code zaproponuje oba warianty, a wybór zmienia miejsce i dostęp do pól.
-- Nazwa metody opisująca "jak" (`loopRows`) zamiast "co" (`vipSeats`), albo domyślne `newMethod` z VS Code.
+- Zwracanie tablicy (`[subtotal, vipSeats]`) albo anonimowego obiektu tylko po to, żeby wyciągnąć dwa wyniki. Automatyczna ekstrakcja zrobi to sama, jeśli jej pozwolimy.
+- Ekstrakcja fragmentu z `this` do funkcji w zasięgu modułu zamiast do metody klasy. Narzędzie zaproponuje oba warianty, a wybór zmienia miejsce i dostęp do pól.
+- Nazwa metody opisująca "jak" (`loopRows`) zamiast "co" (`vipSeats`), albo pozostawiona domyślna nazwa z ekstrakcji (`newMethod`).
 
 ### Pytanie do sali
 
@@ -2412,7 +3879,32 @@ switch (status) {
 
 ### Krok 1: Strategy dla ceny biletu
 
-**W IDE:** utwórz `TicketPricing.ts` z interfejsem `TicketPricing` (metoda `price(formatBase: Money): Money`). Utwórz `TicketPricings.ts` z mapą kod typu - strategia (literały obiektów, wspólna funkcja `discounted(percent)`) i `forType(code)`, które dla nieznanego kodu rzuca `unknown ticket type: X` jak start. W pętli `book` zastąp wywołanie `priceOf` (wewnętrzny `switch`) wywołaniem strategii, a `priceOf` usuń (Find All References ⇧⌥F12 potwierdzi brak użyć).
+**Zmiany:**
+
+1. Utwórz nowy plik `TicketPricing.ts`: interfejs `TicketPricing` z jedną metodą `price(formatBase: Money): Money`.
+2. Utwórz nowy plik `TicketPricings.ts`: mapa kod typu - strategia (literały obiektów, wspólna funkcja `discounted(percent)`) i `static forType(code)`, które dla nieznanego kodu rzuca `unknown ticket type: X` jak start.
+3. W pętli `book` zastąp wywołanie `priceOf` (wewnętrzny `switch`) wywołaniem strategii: `TicketPricings.forType(type).price(base)`.
+4. Usuń `priceOf` - wcześniej upewnij się, że nie ma innych użyć (wyszukaj odwołania).
+
+**Przed:**
+
+```typescript
+private static priceOf(type: string, base: Money): Money {
+  switch (type) {
+    case 'N':
+      return base;
+    case 'S':
+      return base.minus(base.percent(25));
+    case 'E':
+      return base.minus(base.percent(30));
+    case 'C':
+      return base.minus(base.percent(40));
+    default:
+      throw new IllegalArgumentError(`unknown ticket type: ${type}`);
+  }
+}
+```
+
 **Po:**
 
 ```typescript
@@ -2427,7 +3919,37 @@ for (const type of args.slice(3)) {
 
 ### Krok 2: Command dla operacji kasjera
 
-**W IDE:** VS Code nie ma Extract Delegate, więc ręcznie: pola `statuses`, `amounts`, `till` przenieś do nowej klasy-odbiorcy `BookingLedger` (plik `BookingLedger.ts`) z metodami `open`, `remove`, `status`, `pay`, `use`, `cancel`, `restore`, `deposit`, `withdraw`, `summary`. Utwórz interfejs `DeskCommand` (`execute(ledger)`, `undo(ledger)`, `journalEntry()`) z funkcją pomocniczą `idFrom(args, operation)` i po jednej klasie na operację: `BookCommand`, `PayCommand`, `UseCommand`, `CancelCommand`, każda ze statyczną fabryką `from(args)` (⌘. → Implement interface podpowie szkielet). Pulpit dostaje rejestr `ReadonlyMap<string, CommandFactory>` (`CommandFactory = (args) => DeskCommand`) i historię `DeskCommand[]` zamiast obiektów `Entry`; `undo()` woła `last.undo(this.ledger)`.
+**Zmiany:**
+
+1. Utwórz nowy plik `BookingLedger.ts` (klasa-odbiorca) i przenieś do niego pola `statuses`, `amounts`, `till` z metodami `open`, `remove`, `status`, `pay`, `use`, `cancel`, `restore`, `deposit`, `withdraw`, `summary` (Extract Delegate, ręcznie).
+2. Utwórz nowy plik `DeskCommand.ts`: interfejs `DeskCommand` z `execute(ledger)`, `undo(ledger)`, `journalEntry()` oraz eksportowaną funkcją pomocniczą `idFrom(args, operation)`.
+3. Utwórz po jednej klasie na operację: `BookCommand`, `PayCommand`, `UseCommand`, `CancelCommand` - każda `implements DeskCommand`, ze statyczną fabryką `from(args)`.
+4. Pulpit dostaje rejestr `ReadonlyMap<string, CommandFactory>` (`CommandFactory = (args) => DeskCommand`) i historię `DeskCommand[]` zamiast obiektów `Entry`; klasa `Entry` oraz metody `book`, `change` i `restore` znikają.
+5. `undo()` zdejmuje ostatnie polecenie z historii i woła `last.undo(this.ledger)`; `report()` składa dziennik z `journalEntry()`.
+
+**Przed:**
+
+```typescript
+private undo(): string {
+  const last = this.journal.pop();
+  if (last === undefined) {
+    throw new IllegalStateError('nothing to undo');
+  }
+  switch (last.operation) {
+    case 'BOOK':
+      this.statuses.delete(last.id);
+      this.amounts.delete(last.id);
+      break;
+    case 'PAY':
+      this.till = this.till.minus(last.moved);
+      this.restore(last);
+      break;
+    ...
+  }
+  return `Cofnieto: ${last.operation} ${last.id}`;
+}
+```
+
 **Po:**
 
 ```typescript
@@ -2443,7 +3965,30 @@ return result;
 
 ### Krok 3: State dla cyklu życia rezerwacji
 
-**W IDE:** utwórz klasę `Booking` (kwota i pole `private state`) z nieeksportowanym interfejsem `BookingState` i funkcją `state(status, allowed)`, która dla nienadpisanych przejść rzuca `cannot <akcja> in <STATUS>`. Warunki z `BookingLedger.pay/use/cancel` przenieś do obiektów stanów: NEW podaje `pay` i `cancel`, PAID podaje `use` i `cancel`, USED i CANCELLED nie podają niczego. `BookingLedger` trzyma `Map<string, Booking>` i tylko przesuwa pieniądze w kasie.
+**Zmiany:**
+
+1. Utwórz nowy plik `Booking.ts`: klasa `Booking` (kwota i pole `private state`) z nieeksportowanym interfejsem `BookingState` i funkcją `state(status, allowed)`, która dla nienadpisanych przejść rzuca `cannot <akcja> in <STATUS>`.
+2. Warunki z `BookingLedger.pay/use/cancel` przenieś do obiektów stanów: NEW podaje `pay` i `cancel`, PAID podaje `use` i `cancel`, USED i CANCELLED nie podają niczego. Mapa `BY_STATUS` obsługuje `restore` (powrót do zapamiętanego stanu z pominięciem reguł przejść).
+3. `BookingLedger` trzyma `Map<string, Booking>` zamiast dwóch map i tylko przesuwa pieniądze w kasie: `pay` dolicza to, co zwróci `booking.pay()`, `cancel` odejmuje zwróconą kwotę.
+
+**Przed:**
+
+```typescript
+cancel(id: string): Money {
+  const status = this.status(id);
+  if (status === Status.NEW) {
+    this.statuses.set(id, Status.CANCELLED);
+    return Money.ZERO;
+  } else if (status === Status.PAID) {
+    const amount = this.amountOf(id);
+    this.till = this.till.minus(amount);
+    this.statuses.set(id, Status.CANCELLED);
+    return amount;
+  }
+  throw BookingLedger.invalid('cancel', status);
+}
+```
+
 **Po:**
 
 ```typescript
@@ -2519,7 +4064,33 @@ render(day: LocalDate, sales: readonly ScreeningSale[]): string {
 
 ### Krok 1: oś formatu jako strategia
 
-**W IDE:** utwórz interfejs `ReportFormat` z `header`, `row`, `footer` oraz klasy `CsvFormat` i `TextFormat` z ciałami skopiowanymi z `DailyCsvReport` i `DailyTextReport` (najpierw porównaj je z kopiami w `Weekly*`: w eksploratorze Select for Compare, potem Compare with Selected). Do `ScreeningReport` dodaj pole `format` i konstruktor `protected constructor(format: ReportFormat)`, w `render` wołaj `this.format.header(...)`, `this.format.row(...)`, `this.format.footer(...)`. Usuń trzy haki formatu z bazy i podklas (Safe Delete w VS Code nie ma, brak użyć potwierdzi `npm run typecheck`), podklasy wołają `super(new CsvFormat())` albo `super(new TextFormat())`.
+**Zmiany:**
+
+1. Utwórz nowy plik `ReportFormat.ts`: interfejs z metodami `header`, `row`, `footer`.
+2. Utwórz klasy `CsvFormat` i `TextFormat` z ciałami skopiowanymi z `DailyCsvReport` i `DailyTextReport` - najpierw porównaj je z kopiami w `Weekly*`, czy implementacje się nie rozjechały.
+3. Do `ScreeningReport` dodaj pole `format` i konstruktor `protected constructor(format: ReportFormat)`; w `render` wołaj `this.format.header(...)`, `this.format.row(...)`, `this.format.footer(...)`.
+4. Usuń trzy haki formatu z bazy i podklas (brak użyć potwierdzi `npm run typecheck`); podklasy wołają `super(new CsvFormat())` albo `super(new TextFormat())`.
+
+**Przed:**
+
+```typescript
+export class DailyCsvReport extends ScreeningReport {
+  ...
+  protected override header(label: string): string {
+    return `# raport ${label}\nfilm;bilety;przychod\n`;
+  }
+
+  protected override row(title: string, tickets: number, revenue: Money): string {
+    const cell = title.includes(';') ? `"${title}"` : title;
+    return `${cell};${tickets};${revenue.toString()}\n`;
+  }
+
+  protected override footer(tickets: number, revenue: Money): string {
+    return `SUMA;${tickets};${revenue.toString()}\n`;
+  }
+}
+```
+
 **Po:**
 
 ```typescript
@@ -2534,7 +4105,31 @@ constructor() {
 
 ### Krok 2: oś okresu jako strategia
 
-**W IDE:** ten sam ruch dla `includes` i `label`: interfejs `ReportPeriod`, klasy `DailyPeriod` i `WeeklyPeriod` (powtórzone wyliczanie poniedziałku wydziel ⌃⇧R → Extract to method do `monday(day)`), konstruktor bazy `protected constructor(period: ReportPeriod, format: ReportFormat)`.
+**Zmiany:**
+
+1. Ten sam ruch dla osi okresu: nowy plik `ReportPeriod.ts` (interfejs z `includes` i `label`) oraz klasy `DailyPeriod` i `WeeklyPeriod`.
+2. W `WeeklyPeriod` wydziel powtórzone wyliczanie poniedziałku do prywatnej statycznej metody `monday(day)` (Extract Method).
+3. Konstruktor bazy to teraz `protected constructor(period: ReportPeriod, format: ReportFormat)`; w `render` hak okresu to `this.period.includes(...)`, a etykieta to `this.period.label(day)`. Haki `includes` i `label` znikają z bazy i podklas.
+4. Podklasy przekazują obie strategie, np. `super(new WeeklyPeriod(), new TextFormat())`, i nie mają już żadnych własnych metod.
+
+**Przed:**
+
+```typescript
+export class DailyCsvReport extends ScreeningReport {
+  constructor() {
+    super(new CsvFormat());
+  }
+
+  protected override includes(day: LocalDate, saleDay: LocalDate): boolean {
+    return saleDay.equals(day);
+  }
+
+  protected override label(day: LocalDate): string {
+    return `dzien ${day.toString()}`;
+  }
+}
+```
+
 **Po:**
 
 ```typescript
@@ -2551,7 +4146,34 @@ export class WeeklyTextReport extends ScreeningReport {
 
 ### Krok 3: zwinięcie podklas w jedną finalną klasę
 
-**W IDE:** w `ScreeningReport` usuń `abstract`, konstruktor zrób publiczny, a zamiast sprawdzania nadpisanego `render` odrzucaj każdą podklasę (`new.target !== ScreeningReport`). `Reports.of` składa `new ScreeningReport(period, format)` z dwóch map `PERIODS` i `FORMATS`, sprawdzając najpierw okres, potem format. Usuń pliki czterech podklas (przed usunięciem Find All References ⇧⌥F12, po usunięciu `npm run typecheck`).
+**Zmiany:**
+
+1. W `ScreeningReport` usuń `abstract`, konstruktor zrób publiczny, a sprawdzanie nadpisanego `render` zastąp odrzucaniem każdej podklasy: `if (new.target !== ScreeningReport) throw new IllegalStateError('ScreeningReport is final')`.
+2. W `Reports` dodaj dwie mapy `PERIODS` i `FORMATS`; `of` sprawdza najpierw okres, potem format (te same komunikaty błędów) i składa `new ScreeningReport(chosenPeriod, chosenFormat)`.
+3. Usuń pliki czterech podklas - przed usunięciem wyszukaj odwołania do każdej, po usunięciu uruchom `npm run typecheck`.
+
+**Przed:**
+
+```typescript
+static of(period: string, format: string): ScreeningReport {
+  switch (period) {
+    case 'DAILY':
+      switch (format) {
+        case 'CSV':
+          return new DailyCsvReport();
+        case 'TEXT':
+          return new DailyTextReport();
+        default:
+          throw Reports.unknownFormat(format);
+      }
+    case 'WEEKLY':
+      ...
+    default:
+      throw new IllegalArgumentError(`unknown period: ${period}`);
+  }
+}
+```
+
 **Po:**
 
 ```typescript
@@ -2620,7 +4242,21 @@ Zmiana kolejności, nowy poziom albo inna ścieżka dla festiwalu oznacza edycj�
 
 ### Krok 1: Extract Interface i pierwsze ogniwo
 
-**W IDE:** utwórz interfejs `RefundHandler` z metodą `handle(request: RefundRequest): RefundDecision | undefined` - `undefined` znaczy "pytaj dalej". Pierwszą gałąź wydziel (⌃⇧R → Extract to method) i przenieś ręcznie do klasy `AfterScreeningHandler` w osobnym pliku. W `decide` zostaje reszta `if/else`.
+**Zmiany:**
+
+1. Utwórz nowy plik `RefundHandler.ts`: interfejs z metodą `handle(request: RefundRequest): RefundDecision | undefined` - `undefined` znaczy "pytaj dalej".
+2. Pierwszą gałąź (`seans juz sie rozpoczal`) wydziel i przenieś do klasy `AfterScreeningHandler implements RefundHandler` w osobnym pliku (Extract Method, potem przeniesienie do klasy).
+3. W `RefundApprover` dodaj pole `afterScreening = new AfterScreeningHandler()`; `decide` najpierw pyta ogniwo, a gdy dostanie `undefined`, przechodzi do reszty `if/else`. Walidacja kwoty zostaje przed ogniwem.
+
+**Przed:**
+
+```typescript
+if (!request.requestedAt.isBefore(request.screeningStart)) {
+  return RefundDecision.rejected('seans juz sie rozpoczal');
+} else if (Duration.between(request.requestedAt, request.screeningStart).toHours() >= 24) {
+  return RefundDecision.approvedBy('AUTO');
+```
+
 **Po:**
 
 ```typescript
@@ -2637,7 +4273,28 @@ if (decision !== undefined) {
 
 ### Krok 2: wszystkie gałęzie jako ogniwa w tablicy
 
-**W IDE:** ten sam ruch dla `AutoRefundHandler`, `CashierHandler` i `ManagerHandler`; limity trafiają ręcznie do konstruktorów (VS Code nie ma Introduce Parameter). `decide` przegląda tablicę `handlers` po kolei i zwraca pierwszą decyzję, a po tablicy - odmowę "brak uprawnionego zatwierdzajacego".
+**Zmiany:**
+
+1. Ten sam ruch dla pozostałych gałęzi: klasy `AutoRefundHandler`, `CashierHandler` i `ManagerHandler`.
+2. Limity przekaż do konstruktorów ogniw (Introduce Parameter, ręcznie): `new CashierHandler(RefundApprover.CASHIER_LIMIT)`, `new ManagerHandler(RefundApprover.MANAGER_LIMIT)`.
+3. W `RefundApprover` zastąp pole `afterScreening` tablicą `handlers` w kolejności reguł; `decide` przegląda ją po kolei i zwraca pierwszą decyzję, a po tablicy - odmowę "brak uprawnionego zatwierdzajacego".
+
+**Przed:**
+
+```typescript
+const decision = this.afterScreening.handle(request);
+if (decision !== undefined) {
+  return decision;
+} else if (Duration.between(request.requestedAt, request.screeningStart).toHours() >= 24) {
+  return RefundDecision.approvedBy('AUTO');
+} else if (!request.amount.isGreaterThan(RefundApprover.CASHIER_LIMIT)) {
+  return RefundDecision.approvedBy('CASHIER');
+} else if (!request.amount.isGreaterThan(RefundApprover.MANAGER_LIMIT)) {
+  return RefundDecision.approvedBy('MANAGER');
+}
+return RefundDecision.rejected('brak uprawnionego zatwierdzajacego');
+```
+
 **Po:**
 
 ```typescript
@@ -2656,7 +4313,32 @@ return RefundDecision.rejected('brak uprawnionego zatwierdzajacego');
 
 ### Krok 3: jawny łańcuch z następnikiem
 
-**W IDE:** ręcznie (VS Code nie ma Change Signature): `RefundHandler.handle` zwraca `RefundDecision` zamiast `RefundDecision | undefined`, a `npm run typecheck` wskaże wszystkie ogniwa do poprawy. Każde ogniwo dostaje `next` w konstruktorze i woła `this.next.handle(request)`, gdy nie obsłuży żądania. Odmowę z końca tablicy przenieś do `NoApproverHandler`. `RefundApprover` dostaje konstruktor z parametrem domyślnym: bez argumentu składa standardową ścieżkę, z argumentem przyjmuje dowolną głowę łańcucha.
+**Zmiany:**
+
+1. Zmień sygnaturę `RefundHandler.handle`: zwraca `RefundDecision` zamiast `RefundDecision | undefined`; `npm run typecheck` wskaże wszystkie ogniwa do poprawy.
+2. Każde ogniwo dostaje `next: RefundHandler` w konstruktorze (pole `readonly`) i woła `this.next.handle(request)`, gdy nie obsłuży żądania.
+3. Odmowę z końca tablicy przenieś do nowego ogniwa końcowego `NoApproverHandler`.
+4. `RefundApprover` zastępuje tablicę polem `chain` i konstruktorem z parametrem domyślnym `chain: RefundHandler = RefundApprover.standardChain()`: bez argumentu składa standardową ścieżkę, z argumentem przyjmuje dowolną głowę łańcucha.
+
+**Przed:**
+
+```typescript
+private readonly handlers: readonly RefundHandler[] = [
+  new AfterScreeningHandler(),
+  new AutoRefundHandler(),
+  new CashierHandler(RefundApprover.CASHIER_LIMIT),
+  new ManagerHandler(RefundApprover.MANAGER_LIMIT),
+];
+...
+for (const handler of this.handlers) {
+  const decision = handler.handle(request);
+  if (decision !== undefined) {
+    return decision;
+  }
+}
+return RefundDecision.rejected('brak uprawnionego zatwierdzajacego');
+```
+
 **Po:**
 
 ```typescript
@@ -2729,7 +4411,28 @@ Punkt wejścia testu to korzeń kompozycji `PaymentModule.paymentService(termina
 
 ### Krok 1: Introduce Boundary Object
 
-**W IDE:** utwórz klasę `PaymentConfirmation` (pola `readonly outcome: Outcome`, `code: string`, `authorized: Money`) z wyliczeniem `Outcome { APPROVED, DECLINED, ERROR }` i walidacją w konstruktorze: kod niepusty, kwota nieujemna, tylko APPROVED może autoryzować pieniądze. W `pay` rozbierz odpowiedź raz, zaraz po wywołaniu terminala (⌃⇧R → Extract to method, metoda statyczna `parse(raw)`); mapa przechowuje `PaymentConfirmation`, a `receipt` i `totalAuthorized` czytają pola obiektu.
+**Zmiany:**
+
+1. Utwórz nowy plik `PaymentConfirmation.ts`: klasa z polami `readonly outcome: Outcome`, `code: string`, `authorized: Money`, wyliczenie `Outcome { APPROVED, DECLINED, ERROR }` i walidacja w konstruktorze - kod niepusty, kwota nieujemna, tylko APPROVED może autoryzować pieniądze.
+2. W `pay` rozbierz odpowiedź raz, zaraz po wywołaniu terminala: wydziel statyczną metodę `parse(raw)` (Extract Method), która sprawdza liczbę pól, znany status i kwotę w groszach (wyrażeniem regularnym) i buduje `PaymentConfirmation`.
+3. Zamień mapę `responses` (surowy tekst) na `confirmations` z `PaymentConfirmation`; `receipt` i `totalAuthorized` czytają pola obiektu zamiast parsować.
+
+**Przed:**
+
+```typescript
+const raw = this.terminal.authorize(bookingId, grosze);
+this.responses.set(bookingId, raw);
+const parts = raw.split(';');
+if (parts[0] !== 'OK') {
+  return `${parts[0]} ${parts[1]}`;
+}
+const authorized = Number.parseInt(parts[2] ?? '', 10);
+if (authorized < grosze) {
+  return `PARTIAL ${parts[1]} brakuje ${new Decimal(grosze - authorized).dividedBy(100).toFixed(2)}`;
+}
+return `PAID ${parts[1]}`;
+```
+
 **Po:**
 
 ```typescript
@@ -2749,7 +4452,31 @@ if (confirmation.isPartialFor(amount)) {
 
 ### Krok 2: mapper na granicy
 
-**W IDE:** przenieś ręcznie `parse` do nowej klasy `TerminalResponseMapper` jako `toConfirmation(raw)` (VS Code nie przenosi metod między klasami); przeliczenie złotych na grosze też tam (`toGrosze(amount)`). Serwis tworzy mapper i woła go po obu stronach wywołania terminala.
+**Zmiany:**
+
+1. Utwórz nowy plik `TerminalResponseMapper.ts` i przenieś do niego `parse` jako metodę `toConfirmation(raw)` (przenosimy ręcznie).
+2. Przenieś tam też przeliczenie złotych na grosze jako `toGrosze(amount)`.
+3. Serwis dostaje pole `private readonly mapper = new TerminalResponseMapper()` i woła je po obu stronach wywołania terminala.
+
+**Przed:**
+
+```typescript
+pay(bookingId: string, amount: Money): string {
+  const grosze = amount.amount.times(100).toNumber();
+  const confirmation = PaymentService.parse(this.terminal.authorize(bookingId, grosze));
+  this.confirmations.set(bookingId, confirmation);
+  ...
+}
+
+private static parse(raw: string): PaymentConfirmation {
+  const parts = raw.split(';');
+  if (parts.length !== 3) {
+    throw new IllegalArgumentError(`malformed terminal response: ${raw}`);
+  }
+  ...
+}
+```
+
 **Po:**
 
 ```typescript
@@ -2763,7 +4490,28 @@ const confirmation = this.mapper.toConfirmation(raw);
 
 ### Krok 3: port domeny i adapter
 
-**W IDE:** utwórz interfejs `PaymentTerminal` z `authorize(bookingId: string, amount: Money): PaymentConfirmation` i klasę `LegacyTerminalAdapter implements PaymentTerminal`, która łączy klienta z mapperem. Ręcznie zmień typ parametru konstruktora `PaymentService` z `LegacyTerminalClient` na `PaymentTerminal` (`npm run typecheck` wskaże miejsca wywołań). W korzeniu kompozycji owiń klienta adapterem.
+**Zmiany:**
+
+1. Utwórz nowy plik `PaymentTerminal.ts`: interfejs z `authorize(bookingId: string, amount: Money): PaymentConfirmation`.
+2. Utwórz klasę `LegacyTerminalAdapter implements PaymentTerminal`, która łączy `LegacyTerminalClient` z mapperem - poza nią nikt nie widzi groszy ani tekstu odpowiedzi.
+3. Zmień typ pola i parametru konstruktora `PaymentService` z `LegacyTerminalClient` na `PaymentTerminal`; `pay` woła `this.terminal.authorize(bookingId, amount)`, a pole `mapper` znika z serwisu (`npm run typecheck` wskaże miejsca wywołań).
+4. W korzeniu kompozycji (`PaymentModule`) owiń klienta adapterem.
+
+**Przed:**
+
+```typescript
+export class PaymentService {
+  private readonly terminal: LegacyTerminalClient;
+  private readonly mapper = new TerminalResponseMapper();
+  ...
+  pay(bookingId: string, amount: Money): string {
+    const raw = this.terminal.authorize(bookingId, this.mapper.toGrosze(amount));
+    const confirmation = this.mapper.toConfirmation(raw);
+    ...
+  }
+}
+```
+
 **Po:**
 
 ```typescript
@@ -2832,7 +4580,35 @@ if (!this.payments.charge(order.card, total)) {
 
 ### Krok 1: Extract Facade ze sklepu
 
-**W IDE:** w `OnlineShop.buy` zaznacz całą orkiestrację, ⌃⇧R → Extract to method `book`, a opłatę zamień ręcznie na parametr: `book(order, feePerSeat)`. Metodę przenieś ręcznie (wytnij i wklej) do nowej klasy `BookingFacade` z czterema podsystemami w konstruktorze. Sklep dostaje fasadę, a `Cinema` ją tworzy.
+**Zmiany:**
+
+1. Wydziel całą orkiestrację z `OnlineShop.buy` do metody `book` (Extract Method), a opłatę rezerwacyjną zamień na parametr: `book(order, feePerSeat)` (Introduce Parameter).
+2. Przenieś metodę (wytnij i wklej) do nowej klasy `BookingFacade` w nowym pliku, z czterema podsystemami w konstruktorze (Move Method).
+3. Sklep dostaje w konstruktorze fasadę zamiast czterech podsystemów; `buy` deleguje `this.booking.book(order, OnlineShop.BOOKING_FEE)`.
+4. `Cinema` tworzy fasadę i podaje ją sklepowi; kasa bez zmian.
+
+**Przed:**
+
+```typescript
+buy(order: TicketOrder): string {
+  const total = this.prices.price(order.ticketType).plus(OnlineShop.BOOKING_FEE).times(order.seats.length);
+  try {
+    this.seats.reserve(order.screening, order.seats);
+  } catch (exception) {
+    if (exception instanceof IllegalStateError) {
+      return `ERROR ${exception.message}`;
+    }
+    throw exception;
+  }
+  if (!this.payments.charge(order.card, total)) {
+    this.seats.release(order.screening, order.seats);
+    return 'ERROR payment declined';
+  }
+  this.mailer.send(order.email, `Bilety ${order.screening} ${order.seats.join(',')} = ${total.toString()}`);
+  return `OK ${total.toString()}`;
+}
+```
+
 **Po:**
 
 ```typescript
@@ -2847,7 +4623,33 @@ buy(order: TicketOrder): string {
 
 ### Krok 2: kasa na fasadzie - świadoma zmiana zachowania
 
-**W IDE:** ręcznie (VS Code nie ma Change Signature) zamień cztery parametry konstruktora `BoxOffice` na jeden `booking: BookingFacade`. `sell` woła `this.booking.book(order, Money.ZERO)`, skopiowaną orkiestrację usuń. Popraw `Cinema` (wskaże ją `npm run typecheck`).
+**Zmiany:**
+
+1. Zamień cztery parametry konstruktora `BoxOffice` na jeden `booking: BookingFacade` (zmiana sygnatury, ręcznie).
+2. `sell` woła `this.booking.book(order, Money.ZERO)`; skopiowaną orkiestrację usuń razem z jej błędem.
+3. Popraw tworzenie `BoxOffice` w `Cinema` (wskaże je `npm run typecheck`).
+
+**Przed:**
+
+```typescript
+sell(order: TicketOrder): string {
+  const total = this.prices.price(order.ticketType).times(order.seats.length);
+  try {
+    this.seats.reserve(order.screening, order.seats);
+  } catch (exception) {
+    if (exception instanceof IllegalStateError) {
+      return `ERROR ${exception.message}`;
+    }
+    throw exception;
+  }
+  if (!this.payments.charge(order.card, total)) {
+    return 'ERROR payment declined';
+  }
+  this.mailer.send(order.email, `Bilety ${order.screening} ${order.seats.join(',')} = ${total.toString()}`);
+  return `OK ${total.toString()}`;
+}
+```
+
 **Po:**
 
 ```typescript
@@ -2862,7 +4664,22 @@ sell(order: TicketOrder): string {
 
 ### Krok 3: ukryte podsystemy i niezmiennik w finally
 
-**W IDE:** przenieś klasy `SeatRegistry`, `PriceList`, `PaymentClient` i `TicketMailer` do `BookingFacade.ts` bez `export` i usuń ich pliki. Konstruktor fasady zrób `private`, dodaj `static create()`, które składa podsystemy, a `Cinema` niech woła `BookingFacade.create()` i deleguje `state()` do fasady. W `book` otocz `charge` blokiem `try/finally`, który zwalnia miejsca, gdy płatność się nie udała.
+**Zmiany:**
+
+1. Przenieś klasy `SeatRegistry`, `PriceList`, `PaymentClient` i `TicketMailer` do `BookingFacade.ts` jako klasy bez `export` i usuń ich pliki.
+2. Konstruktor fasady zrób `private`; dodaj `static create()`, które składa podsystemy.
+3. `Cinema` woła `BookingFacade.create()` i deleguje `state()` do fasady - sam nie widzi już podsystemów.
+4. W `book` otocz `charge` blokiem `try/finally`, który zwalnia miejsca, gdy płatność się nie udała (odmowa albo wyjątek bramki).
+
+**Przed:**
+
+```typescript
+if (!this.payments.charge(order.card, total)) {
+  this.seats.release(order.screening, order.seats);
+  return 'ERROR payment declined';
+}
+```
+
 **Po:**
 
 ```typescript
@@ -2931,7 +4748,27 @@ Reguła "wolno grać, gdy licencja jest aktywna i obejmuje dzień" jest zapisana
 
 ### Krok 1: model domeny i tłumaczenie w jednym miejscu
 
-**W IDE:** utwórz klasę `FilmLicense` (pola `readonly filmCode`, `title`, `active`, `validFrom`, `validTo`, `sharePercent`, `minimumGuarantee`) z niezmiennikami w konstruktorze i metodami `covers(day)`, `allowsScreeningOn(day)`, `dueFor(revenue)`. W serwisie zaznacz dekodowanie pól rekordu, ⌃⇧R → Extract to method, metoda statyczna `toLicense(record)`, a reguły licz na licencji.
+**Zmiany:**
+
+1. Utwórz nowy plik `FilmLicense.ts`: klasa z polami `readonly filmCode`, `title`, `active`, `validFrom`, `validTo`, `sharePercent`, `minimumGuarantee`, niezmiennikami w konstruktorze i metodami `covers(day)`, `allowsScreeningOn(day)`, `dueFor(revenue)`.
+2. W serwisie wydziel dekodowanie pól rekordu do statycznej metody `toLicense(record)` (Extract Method), wołanej zaraz po pobraniu rekordu.
+3. Reguły w `canScreen` i `settle` licz na licencji: `license.active`, `license.covers(day)`, `license.dueFor(revenue)` - kody, procenty i grosze znikają z reguł.
+
+**Przed:**
+
+```typescript
+if (record.statusCode !== 'A') {
+  return `LICENCJA ZAWIESZONA ${filmCode}`;
+}
+if (!this.canScreen(filmCode, day)) {
+  return `LICENCJA NIEWAZNA ${filmCode} w dniu ${day.toString()}`;
+}
+const percent = Number.parseInt(record.share.replaceAll('%', '').trim(), 10);
+const minimum = new Money(new Decimal(record.minGuaranteeCents).dividedBy(100));
+const due = revenue.percent(percent).max(minimum);
+const title = record.titleUpper.charAt(0) + record.titleUpper.substring(1).toLowerCase();
+```
+
 **Po:**
 
 ```typescript
@@ -2950,7 +4787,28 @@ if (!license.covers(day)) {
 
 ### Krok 2: tłumacz jako osobna klasa
 
-**W IDE:** przenieś ręcznie `toLicense` do nowej klasy `DistributorTranslator` (plik `DistributorTranslator.ts`). Wydziel `title(...)` i `date(...)` (⌃⇧R → Extract to method), kod statusu jako stałą `ACTIVE` (⌃⇧R → Extract to constant), a w `date` zamień błąd parsera daty na `IllegalArgumentError` z komunikatem granicy.
+**Zmiany:**
+
+1. Utwórz nowy plik `DistributorTranslator.ts` i przenieś do niego `toLicense` (razem z funkcją `parseBasicIsoDate`); serwis dostaje pole `translator` i woła `this.translator.toLicense(record)`.
+2. W tłumaczu wydziel pomocnicze `title(...)` i `date(...)` (Extract Method) oraz kod statusu jako stałą `ACTIVE` (Extract Constant).
+3. W `date` złap błąd parsera daty i zamień go na `IllegalArgumentError` z komunikatem granicy i zachowaną przyczyną (`cause`).
+
+**Przed:**
+
+```typescript
+private static toLicense(record: DistributorRecord): FilmLicense {
+  const title = record.titleUpper.charAt(0) + record.titleUpper.substring(1).toLowerCase();
+  return new FilmLicense(
+    record.filmCode,
+    title,
+    record.statusCode === 'A',
+    parseBasicIsoDate(record.validFrom),
+    parseBasicIsoDate(record.validTo),
+    Number.parseInt(record.share.replaceAll('%', '').trim(), 10),
+    new Money(new Decimal(record.minGuaranteeCents).dividedBy(100)));
+}
+```
+
 **Po:**
 
 ```typescript
@@ -2969,7 +4827,26 @@ private static date(legacy: string): LocalDate {
 
 ### Krok 3: port domenowy i warstwa antykorupcyjna
 
-**W IDE:** utwórz interfejs `FilmLicenses` z `find(filmCode: string): FilmLicense | undefined` i klasę `DistributorAcl implements FilmLicenses`, która łączy klienta dystrybutora z tłumaczem. Ręcznie zmień typ parametru konstruktora serwisu z `DistributorFeed` na `FilmLicenses` (`npm run typecheck` wskaże miejsca wywołań). Tłumacza przenieś do `DistributorAcl.ts` jako klasę bez `export` i usuń jego plik, a `SettlementModule` owija klienta w ACL.
+**Zmiany:**
+
+1. Utwórz nowy plik `FilmLicenses.ts`: interfejs z `find(filmCode: string): FilmLicense | undefined`.
+2. Utwórz klasę `DistributorAcl implements FilmLicenses`, która łączy klienta dystrybutora z tłumaczem i zamienia `null` z obcego systemu na `undefined`.
+3. Zmień typ pola i parametru konstruktora serwisu z `DistributorFeed` na `FilmLicenses`; serwis woła `this.licenses.find(filmCode)` (`npm run typecheck` wskaże miejsca wywołań).
+4. Tłumacza przenieś do `DistributorAcl.ts` jako klasę bez `export` i usuń plik `DistributorTranslator.ts`; `SettlementModule` owija klienta w ACL: `new SettlementService(new DistributorAcl(feed))`.
+
+**Przed:**
+
+```typescript
+export class SettlementService {
+  private readonly feed: DistributorFeed;
+  private readonly translator = new DistributorTranslator();
+  ...
+  canScreen(filmCode: string, day: LocalDate): boolean {
+    const record = this.feed.fetch(filmCode);
+    return record !== null && this.translator.toLicense(record).allowsScreeningOn(day);
+  }
+```
+
 **Po:**
 
 ```typescript
@@ -3034,7 +4911,30 @@ Ta sama para "przelicz sumę, odśwież przycisk" jest w `Basket.remove`, `Baske
 
 ### Krok 1: interfejs mediatora i pierwsze zdarzenie
 
-**W IDE:** utwórz interfejs `SelectionMediator` z metodą `seatToggled(seat: string, selected: boolean): void`. `SeatSelectionScreen implements SelectionMediator` (jak "dialog" w GoF). Reakcję z `SeatMap.click` wydziel (⌃⇧R → Extract to method) i przenieś ręcznie do `seatToggled` w ekranie. `SeatMap` dostaje mediatora w konstruktorze, jej `connect(...)` znika.
+**Zmiany:**
+
+1. Utwórz nowy plik `SelectionMediator.ts`: interfejs z metodą `seatToggled(seat: string, selected: boolean): void`.
+2. `SeatSelectionScreen implements SelectionMediator` (jak "dialog" w GoF): reakcję z `SeatMap.click` (aktualizacja koszyka, przeliczenie sumy, odświeżenie przycisku) wydziel i przenieś do metody `seatToggled` w ekranie (Extract Method + Move Method).
+3. `SeatMap` dostaje mediatora w konstruktorze (`new SeatMap(this)` w ekranie), a jej `connect(...)` i pola `basket`, `summary`, `payButton` znikają; `click` zgłasza tylko zdarzenie.
+
+**Przed:**
+
+```typescript
+click(seat: string): void {
+  if (!this.hall.has(seat) || this.sold.has(seat)) {
+    return;
+  }
+  if (this.selected.delete(seat)) {
+    this.basket.drop(seat);
+  } else {
+    this.selected.add(seat);
+    this.basket.add(seat);
+  }
+  this.summary.recalculate(this.basket.seats());
+  this.payButton.refresh(this.basket.seats().length, this.summary.total());
+}
+```
+
 **Po:**
 
 ```typescript
@@ -3051,7 +4951,26 @@ this.mediator.seatToggled(seat, nowSelected);
 
 ### Krok 2: wszystkie zdarzenia i jedno refresh()
 
-**W IDE:** dodaj do interfejsu `seatRemoved`, `basketCleared`, `voucherApplied` i `seatsPaid(seats: readonly string[])`. `Basket`, `PriceSummary` i `PayButton` dostają mediatora w konstruktorze i zgłaszają zdarzenia zamiast odświeżać sąsiadów; przycisk zachowuje jeszcze `connect(basket, summary)`. Powtórzoną parę odświeżeń wydziel w ekranie do `refresh()` (⌃⇧R → Extract to method), a pozostałe kopie zastąp wywołaniem ręcznie - VS Code nie proponuje zastąpienia duplikatów.
+**Zmiany:**
+
+1. Dodaj do interfejsu zdarzenia `seatRemoved`, `basketCleared`, `voucherApplied` i `seatsPaid(seats: readonly string[])`, a ich obsługę w ekranie.
+2. `Basket`, `PriceSummary` i `PayButton` dostają mediatora w konstruktorze i zgłaszają zdarzenia zamiast odświeżać sąsiadów; przycisk zachowuje jeszcze `connect(basket, summary)` - jedyne połączenie wprost.
+3. Powtórzoną parę "przelicz sumę, odśwież przycisk" wydziel w ekranie do prywatnej metody `refresh()` (Extract Method), a pozostałe kopie zastąp jej wywołaniem - każdą ręcznie, duplikaty trzeba znaleźć samemu.
+
+**Przed:**
+
+```typescript
+seatToggled(seat: string, selected: boolean): void {
+  if (selected) {
+    this.basket.add(seat);
+  } else {
+    this.basket.drop(seat);
+  }
+  this.priceSummary.recalculate(this.basket.seats());
+  this.payButton.refresh(this.basket.seats().length, this.priceSummary.total());
+}
+```
+
 **Po:**
 
 ```typescript
@@ -3067,7 +4986,26 @@ private refresh(): void {
 
 ### Krok 3: komponenty znają tylko mediatora
 
-**W IDE:** ręcznie (VS Code nie ma Change Signature) zamień `seatsPaid(seats: readonly string[]): void` na `payRequested(): string`. Zbieranie miejsc i kwoty oraz składanie komunikatu z `PayButton.press` przenieś do mediatora. Usuń `connect` z przycisku i pusty już konstruktor ekranu.
+**Zmiany:**
+
+1. Zamień w interfejsie `seatsPaid(seats: readonly string[]): void` na `payRequested(): string` (zmiana sygnatury, ręcznie).
+2. Zbieranie miejsc i kwoty oraz składanie komunikatu `Zaplacono ...` przenieś z `PayButton.press` do `payRequested` w mediatorze; `press` tylko sprawdza, czy jest aktywny, i deleguje.
+3. Usuń `connect` z przycisku razem z polami `basket` i `summary` oraz pusty już konstruktor ekranu.
+
+**Przed:**
+
+```typescript
+press(): string {
+  if (!this.enabled) {
+    return `Nieaktywny: ${this.label}`;
+  }
+  const paid = this.basket.seats();
+  const amount = this.summary.total();
+  this.mediator.seatsPaid(paid);
+  return `Zaplacono ${amount.toString()} za ${paid.join(',')}`;
+}
+```
+
 **Po:**
 
 ```typescript

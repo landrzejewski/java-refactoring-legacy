@@ -30,11 +30,11 @@ scripts/warsztat.sh --lang ts reset m3/s04         # przywróć start po pokazie
 - Pracujesz zawsze w katalogu `start`. Snapshoty `stepN` służą do `diff` albo do przeskoku (`next`, `jump`), gdy coś się rozjedzie.
 - Zanim zaczniesz, pokaż slajd 1.2 "Zachowanie obserwowalne to więcej niż wynik metody" i wracaj do niego przy każdej scenie: *co tu obserwujemy - wynik, wyjątek, stan, efekty, kolejność?*
 - W s02 start **nie ma prawdziwych testów** i to jest puenta: test dla `start` (`startCannotEvenRunInATest`) tylko dokumentuje, że klasy nie da się uruchomić, a testy zachowania pojawiają się dopiero wtedy, gdy kod ma szew. Pierwsze ruchy to mechaniczne ruchy o niskim ryzyku (slajd 3.6).
-- W s01 i s03 warto najpierw **zrobić naiwny ruch na żywo** (np. "poprawić" znalezisko z charakterystyki, sprawdzić tylko wynik), pokazać, czego test nie widzi, cofnąć (⌘Z) i dopiero wtedy wykonać krok z przewodnika.
+- W s01 i s03 warto najpierw **zrobić naiwny ruch na żywo** (np. "poprawić" znalezisko z charakterystyki, sprawdzić tylko wynik), pokazać, czego test nie widzi, cofnąć zmianę i dopiero wtedy wykonać krok z przewodnika.
 - W s04 i s05 część testów to nie tylko równoważność (`SNNEquivalenceTest`), ale też dowody strategii (`SNNSolutionTest`): raport rozbieżności, dziennik efektów ubocznych. Testy, które **dokumentują stan startowy** (np. "start obciąża kartę dwa razy"), zmienią kolor na czerwony, gdy wykonasz kroki na katalogu `start` - to znak, że start jest już naprawiony. Po pokazie: `scripts/warsztat.sh --lang ts reset m3/sNN`.
 - Kroki, które zmieniają zachowanie (s03 krok 2, s04 krok 4), zapowiadaj na głos: "to jest osobny commit, nie refaktoryzacja".
 - **Test to nie kompilacja.** Vitest uruchamia kod bez sprawdzania typów, więc tam, gdzie krok zmienia sygnaturę konstruktora albo usuwa plik (s02, s03, s05), uruchom też `npm run typecheck` w katalogu `typescript` albo patrz na podkreślenia w VS Code.
-- Refaktoryzacje w VS Code: zaznaczenie i ⌃⇧R (Refactor...) daje Extract to method in class / Extract to function / Extract to constant / Extract to readonly field i Inline variable, F2 to Rename Symbol, ⌘. (Quick Fix) m.in. Implement interface i Add missing member, a Move to a new file / Move to file przenosi deklaracje najwyższego poziomu. Extract Interface (z klasy), Change Signature, Introduce Parameter, Inline Method ani Safe Delete nie ma - te ruchy robimy ręcznie, a listę miejsc do poprawy daje `npm run typecheck` (albo Find All References ⇧⌥F12).
+- Refaktoryzacje w VS Code: edytor sam wydzieli zaznaczony fragment do metody w klasie, funkcji albo stałej, wpisze zmienną z powrotem w miejsca użycia, zmieni nazwę symbolu w całym projekcie, podpowie brakujące importy i szkielet implementacji interfejsu oraz przeniesie deklaracje najwyższego poziomu do innego pliku. Nie wydzieli interfejsu z klasy, nie zmieni sygnatury metody, nie doda parametru do istniejącego konstruktora, nie wpisze metody w miejsca wywołań ani nie usunie pliku ze sprawdzeniem użyć - te ruchy robimy ręcznie, a listę miejsc do poprawy daje `npm run typecheck` albo lista wszystkich odwołań do symbolu.
 
 ## Mapa scen
 
@@ -103,10 +103,30 @@ W trakcie wychodzą dwa znaleziska, które test zapisuje, a nie poprawia:
 
 ### Krok 1: Parameterize Constructor - wstrzyknięty Clock
 
-**W IDE:** VS Code nie ma Extract Parameter ani Introduce Field dla konstruktora, więc ruch robimy ręcznie w dwóch małych krokach. Najpierw dodaj konstruktor z parametrem domyślnym: `constructor(private readonly clock: Clock = systemClock) {}` (import `Clock` i `systemClock` z `shared/time.js` podpowie Quick Fix ⌘.). Uruchom test - nic się nie zmieniło, bo nikt jeszcze nie czyta pola. Potem w `confirm` zamień `LocalDateTime.now()` na `LocalDateTime.now(this.clock)`.
+**Zmiany:**
+
+1. W `BookingConfirmation` dodaj konstruktor z parametrem domyślnym: `constructor(private readonly clock: Clock = systemClock) {}` (Parameterize Constructor). Dopisz do importu z `../../../shared/time.js` typ `Clock` i `systemClock`.
+2. Uruchom test - nic się nie zmieniło, bo nikt jeszcze nie czyta nowego pola.
+3. W `confirm` zamień `LocalDateTime.now()` na `LocalDateTime.now(this.clock)`.
+
+**Przed:**
+
+```typescript
+import { LocalDateTime } from '../../../shared/time.js';
+...
+export class BookingConfirmation {
+  confirm(b: Booking): string {
+    ...
+      + 'Wygenerowano: ' + LocalDateTime.now().toString() + '\n';
+  }
+}
+```
+
 **Po:**
 
 ```typescript
+import { type Clock, LocalDateTime, systemClock } from '../../../shared/time.js';
+...
 export class BookingConfirmation {
   constructor(private readonly clock: Clock = systemClock) {}
   ...
@@ -119,7 +139,37 @@ export class BookingConfirmation {
 
 ### Krok 2: pierwsza refaktoryzacja pod ochroną testu
 
-**W IDE:** zaznacz ciało pętli od `let p: number;` do końca `if` z porankiem (`p = p - 5.00; }`), ⌃⇧R, "Extract to method in class 'BookingConfirmation'", nazwa `ticketPrice`. VS Code wykryje dwa wejścia (`b`, `t`) i jedno wyjście (`p`), więc w pętli zostanie zmienna z wynikiem metody. Kursor na tej zmiennej, ⌃⇧R, "Inline variable". W pętli zostaje `sum = sum + this.ticketPrice(b, t);`.
+**Zmiany:**
+
+1. Zaznacz ciało pętli od `let p: number;` do końca `if` z porankiem (`p = p - 5.00; }`) i wydziel je do nowej metody prywatnej `ticketPrice` w klasie `BookingConfirmation` (Extract Method). Metoda ma dwa wejścia (`b`, `t`) i jedno wyjście (`p`), więc w pętli zostaje zmienna z wynikiem metody.
+2. Wpisz tę zmienną z powrotem w miejsce użycia i usuń jej deklarację (Inline Variable). W pętli zostaje `sum = sum + this.ticketPrice(b, t);`.
+
+**Przed:**
+
+```typescript
+for (const t of b.ticketTypes) {
+  let p: number;
+  if (b.format === 3) {
+    p = 40.00;
+  } else if (b.format === 2) {
+    p = 32.00;
+  } else {
+    p = 25.00;
+  }
+  if (t === 'S') {
+    p = p * 0.75;
+  } else if (t === 'E') {
+    p = p * 0.70;
+  } else if (t === 'C') {
+    p = p * 0.60;
+  }
+  if (b.start.hour < 12) {
+    p = p - 5.00;
+  }
+  sum = sum + p;
+}
+```
+
 **Po:**
 
 ```typescript
@@ -181,7 +231,22 @@ Sekwencja rozrywania zależności: nazwij zachowanie i punkt obserwacji, wprowad
 
 ### Krok 1: Extract Interface + Parameterize Constructor
 
-**W IDE:** VS Code nie wydziela interfejsu z klasy, więc ręcznie: plik `BookingStore.ts` z interfejsem `BookingStore` z dwiema metodami (`paidBookings`, `markReminded`), a na `LegacyDatabase` dopisz `implements BookingStore`. Potem w `ShowtimeReminderJob`: pole `stores: () => BookingStore` i parametr konstruktora z wartością domyślną `() => new LegacyDatabase()`. W `run()` zamień `new LegacyDatabase()` na `this.stores()`.
+**Zmiany:**
+
+1. Utwórz nowy plik `BookingStore.ts` z interfejsem `BookingStore` o dwóch metodach: `paidBookings(): readonly PaidBooking[]` i `markReminded(bookingId: string): void` (Extract Interface - ręcznie, bo VS Code nie wydziela interfejsu z klasy).
+2. W deklaracji klasy `LegacyDatabase` dopisz `implements BookingStore`.
+3. W `ShowtimeReminderJob` dodaj pole `private readonly stores: () => BookingStore;` i konstruktor z parametrem o wartości domyślnej `() => new LegacyDatabase()`, przypisywanym przez `requireNonNull(stores, 'stores')` (Parameterize Constructor).
+4. W `run()` zamień `new LegacyDatabase()` na `this.stores()`.
+
+**Przed:**
+
+```typescript
+export class ShowtimeReminderJob {
+  run(): number {
+    const database = new LegacyDatabase();
+    const now = LocalDateTime.now();
+```
+
 **Po:**
 
 ```typescript
@@ -199,11 +264,34 @@ run(): number {
 
 ### Krok 2: Clock jako zależność
 
-**W IDE:** ręcznie (VS Code nie ma Introduce Parameter; ⌃⇧R dodałby co najwyżej parametr do wydzielanej funkcji, a potrzebujemy zależności konstruktora): pole `clock: Clock`, drugi parametr konstruktora z wartością domyślną `systemClock`, w `run()` `LocalDateTime.now(this.clock)`.
+**Zmiany:**
+
+1. W `ShowtimeReminderJob` dodaj pole `private readonly clock: Clock;` i drugi parametr konstruktora `clock: Clock = systemClock`, przypisywany przez `requireNonNull(clock, 'clock')` (Parameterize Constructor - ręcznie, bo VS Code nie dodaje parametru do istniejącego konstruktora).
+2. W `run()` zamień `LocalDateTime.now()` na `LocalDateTime.now(this.clock)`.
+
+**Przed:**
+
+```typescript
+constructor(stores: () => BookingStore = () => new LegacyDatabase()) {
+  this.stores = requireNonNull(stores, 'stores');
+}
+
+run(): number {
+  const database = this.stores();
+  const now = LocalDateTime.now();
+```
+
 **Po:**
 
 ```typescript
-const now = LocalDateTime.now(this.clock);
+constructor(stores: () => BookingStore = () => new LegacyDatabase(), clock: Clock = systemClock) {
+  this.stores = requireNonNull(stores, 'stores');
+  this.clock = requireNonNull(clock, 'clock');
+}
+
+run(): number {
+  const database = this.stores();
+  const now = LocalDateTime.now(this.clock);
 ```
 
 **Uruchom:** test zielony. Test `step2ControlsTimeButStillHitsStaticMailer` pokazuje dwie rzeczy: przypadki bez wysyłki działają przy stałym zegarze, a przypadek "do wysłania" wciąż kończy się wyjątkiem SMTP.
@@ -212,7 +300,22 @@ const now = LocalDateTime.now(this.clock);
 
 ### Krok 3: Subclass and Override Method i pierwszy test
 
-**W IDE:** zaznacz wywołanie `ReminderMailer.send(...)`, ⌃⇧R > Extract to method in class 'ShowtimeReminderJob', nazwa `sendReminder`. VS Code tworzy metodę `private` - zmień ją ręcznie na `protected`. W teście anonimowa podklasa (`new (class extends step3.ShowtimeReminderJob { ... })(...)`) nadpisuje `sendReminder` i zapisuje wiadomości do tablicy - to jest **pierwszy prawdziwy test** tej klasy.
+**Zmiany:**
+
+1. Zaznacz w `run()` wywołanie `ReminderMailer.send(...)` i wydziel je do nowej metody `sendReminder` w klasie `ShowtimeReminderJob` (Extract Method). Wydzielona metoda powstaje jako `private`.
+2. Zmień ręcznie widoczność metody `sendReminder` z `private` na `protected`.
+3. W teście anonimowa podklasa (`new (class extends step3.ShowtimeReminderJob { ... })(...)`) nadpisuje `sendReminder` i zapisuje wiadomości do tablicy - to jest **pierwszy prawdziwy test** tej klasy (Subclass and Override Method).
+
+**Przed:**
+
+```typescript
+if (!booking.reminded && minutes > 0 && minutes <= 120) {
+  ReminderMailer.send(booking.email,
+    `Przypomnienie: ${booking.title}`,
+    `Seans zaczyna sie o ${booking.start.toLocalTime().toString()}`);
+  database.markReminded(booking.id);
+```
+
 **Po:**
 
 ```typescript
@@ -227,7 +330,25 @@ protected sendReminder(to: string, subject: string, body: string): void {
 
 ### Krok 4: seam z dziedziczenia na typ funkcyjny
 
-**W IDE:** utwórz `ReminderSender.ts` z `export type ReminderSender = (to: string, subject: string, body: string) => void;`, dodaj trzeci parametr konstruktora z wartością domyślną wołającą `ReminderMailer.send`. Inline Method nie ma w VS Code, więc ręcznie: w `run()` zamień `this.sendReminder(...)` na `this.sender(...)` i usuń metodę `protected`. W teście podklasę zastępuje lambda.
+**Zmiany:**
+
+1. Utwórz nowy plik `ReminderSender.ts` z aliasem typu funkcyjnego: `export type ReminderSender = (to: string, subject: string, body: string) => void;`.
+2. W `ShowtimeReminderJob` dodaj pole `private readonly sender: ReminderSender;` i trzeci parametr konstruktora z wartością domyślną `(to, subject, body) => ReminderMailer.send(to, subject, body)`, przypisywany przez `requireNonNull(sender, 'sender')`.
+3. W `run()` zamień `this.sendReminder(...)` na `this.sender(...)` i usuń metodę `protected sendReminder` (Inline Method - ręcznie, bo VS Code tego nie automatyzuje).
+4. W teście podklasę z kroku 3 zastępuje funkcja strzałkowa przekazana jako `sender`.
+
+**Przed:**
+
+```typescript
+this.sendReminder(booking.email,
+  `Przypomnienie: ${booking.title}`,
+  `Seans zaczyna sie o ${booking.start.toLocalTime().toString()}`);
+...
+protected sendReminder(to: string, subject: string, body: string): void {
+  ReminderMailer.send(to, subject, body);
+}
+```
+
 **Po:**
 
 ```typescript
@@ -292,7 +413,24 @@ Pokaż tabelę ze slajdu 1.2: wynik, wyjątki, stan, współpracownicy, czas, gr
 
 ### Krok 1: seam dla maili - regresja staje się widoczna
 
-**W IDE:** utwórz `Mailer.ts` z `export type Mailer = (to: string, text: string) => void;`, dodaj parametr konstruktora z wartością domyślną `(to, text) => CinemaMailer.send(to, text)` i zamień statyczne wywołania na `this.mailer(...)`. Logika bez zmian.
+**Zmiany:**
+
+1. Utwórz nowy plik `Mailer.ts` z aliasem typu funkcyjnego: `export type Mailer = (to: string, text: string) => void;`.
+2. W `TicketCheckout` dodaj pole `private readonly mailer: Mailer;` i konstruktor z parametrem o wartości domyślnej `(to, text) => CinemaMailer.send(to, text)`, przypisywanym przez `requireNonNull(mailer, 'mailer')` (Parameterize Constructor).
+3. W `pay` zamień oba statyczne wywołania `CinemaMailer.send(...)` na `this.mailer(...)`. Logika bez zmian.
+
+**Przed:**
+
+```typescript
+export class TicketCheckout {
+  pay(booking: Booking, card: string | null): string {
+    ...
+    } else {
+      CinemaMailer.send(booking.email, `Platnosc odrzucona ${booking.id}`);
+    }
+    CinemaMailer.send(booking.email, `Bilety ${booking.id} oplacone: ${booking.amount.toString()}`);
+```
+
 **Po:**
 
 ```typescript
@@ -307,7 +445,24 @@ constructor(mailer: Mailer = (to, text) => CinemaMailer.send(to, text)) {
 
 ### Krok 2: naprawa regresji pod ochroną testu
 
-**W IDE:** przenieś wysyłkę potwierdzenia do gałęzi sukcesu, zamień `charged ? 'OK' : 'DECLINED'` na dwa `return`.
+**Zmiany:**
+
+1. Przenieś wysyłkę maila potwierdzającego do gałęzi sukcesu, zaraz za `booking.markPaid()`.
+2. Zamień końcowe `return charged ? 'OK' : 'DECLINED';` na dwa osobne `return`: `'OK'` w gałęzi sukcesu, `'DECLINED'` po mailu o odrzuceniu. Zmienna `charged` znika, a wynik `CardTerminal.charge(...)` trafia wprost do `if`.
+
+**Przed:**
+
+```typescript
+const charged = CardTerminal.charge(cardNumber, booking.amount);
+if (charged) {
+  booking.markPaid();
+} else {
+  this.mailer(booking.email, `Platnosc odrzucona ${booking.id}`);
+}
+this.mailer(booking.email, `Bilety ${booking.id} oplacone: ${booking.amount.toString()}`);
+return charged ? 'OK' : 'DECLINED';
+```
+
 **Po:**
 
 ```typescript
@@ -326,7 +481,23 @@ return 'DECLINED';
 
 ### Krok 3: seam dla płatności i pełny wektor
 
-**W IDE:** utwórz `PaymentGateway.ts` z `export type PaymentGateway = (card: string, amount: Money) => boolean;`, drugi parametr konstruktora z wartością domyślną `(card, amount) => CardTerminal.charge(card, amount)`. W teście oba fałszywe obiekty zapisują do **jednej** tablicy zdarzeń.
+**Zmiany:**
+
+1. Utwórz nowy plik `PaymentGateway.ts` z aliasem typu funkcyjnego: `export type PaymentGateway = (card: string, amount: Money) => boolean;`.
+2. W `TicketCheckout` dodaj pole `private readonly gateway: PaymentGateway;` i drugi parametr konstruktora z wartością domyślną `(card, amount) => CardTerminal.charge(card, amount)`, przypisywany przez `requireNonNull(gateway, 'gateway')`.
+3. W `pay` zamień `CardTerminal.charge(cardNumber, booking.amount)` na `this.gateway(cardNumber, booking.amount)`.
+4. W teście oba fałszywe obiekty zapisują do **jednej** tablicy zdarzeń.
+
+**Przed:**
+
+```typescript
+constructor(mailer: Mailer = (to, text) => CinemaMailer.send(to, text)) {
+  this.mailer = requireNonNull(mailer, 'mailer');
+}
+...
+if (CardTerminal.charge(cardNumber, booking.amount)) {
+```
+
 **Po:**
 
 ```typescript
@@ -384,7 +555,24 @@ price(query: TicketQuery): Money {
 
 ### Krok 1: dodanie cienia
 
-**W IDE:** w `price` po wyliczeniu wyniku legacy wywołaj kandydata w `try/catch` (zaznaczenie i Surround With: snippet `try` z Quick Fix albo ręcznie) i licz niezgodności.
+**Zmiany:**
+
+1. W `PriceService` dodaj pole `private readonly candidate = new CandidatePriceCalculator();` i licznik `private mismatchCount = 0;`.
+2. W `price` zapisz wynik legacy do zmiennej `result`, a po nim wywołaj kandydata w bloku `try/catch`: gdy wynik kandydata różni się od `result` albo kandydat rzuci błąd, zwiększ `mismatchCount`. Zwracaj zawsze `result`.
+3. Dodaj metodę `mismatches()` zwracającą licznik.
+
+**Przed:**
+
+```typescript
+export class PriceService {
+  private readonly legacy = new LegacyPriceCalculator();
+
+  price(query: TicketQuery): Money {
+    return this.legacy.price(query);
+  }
+}
+```
+
 **Po:**
 
 ```typescript
@@ -405,7 +593,27 @@ return result;
 
 ### Krok 2: raport rozbieżności
 
-**W IDE:** nowy moduł `VerificationReport.ts` z klasami `Agreement`, `Divergence`, `CandidateFailure` (pole `kind`) i unią `Verification`. ⌃⇧R → Extract to method `verify` w `PriceService`.
+**Zmiany:**
+
+1. Utwórz nowy plik `VerificationReport.ts` z klasami `Agreement`, `Divergence`, `CandidateFailure` (każda z polem `kind`), unią `export type Verification = Agreement | Divergence | CandidateFailure;` i klasą `VerificationReport` z metodami `record`, `entries` i `problems()` (w `problems` rozróżnienie wpisów po `kind` w `switch` z `assertNever`).
+2. W `PriceService` usuń licznik `mismatchCount` i metodę `mismatches()`; dodaj konstruktor `constructor(private readonly report: VerificationReport = new VerificationReport()) {}`.
+3. Wydziel porównanie z `price` do prywatnej metody `verify(query, legacyPrice)` (Extract Method), która zwraca `Agreement` albo `Divergence`, a w `catch` buduje `CandidateFailure` z opisem `error.name + ': ' + error.message`.
+4. W `price` po wyliczeniu wyniku legacy wywołaj `this.report.record(this.verify(query, result));` i zwróć wynik legacy.
+
+**Przed:**
+
+```typescript
+const result = this.legacy.price(query);
+try {
+  if (!this.candidate.price(query).equals(result)) {
+    this.mismatchCount++;
+  }
+} catch {
+  this.mismatchCount++;
+}
+return result;
+```
+
 **Po:**
 
 ```typescript
@@ -420,10 +628,25 @@ return legacyPrice.equals(candidatePrice)
 
 ### Krok 3: poprawka znaleziona przez raport
 
-**W IDE:** w `CandidatePriceCalculator` przenieś blok rabatu porannego (⌥↓, Move Line Down) za wyliczenie zniżki procentowej.
+**Zmiany:**
+
+1. W `CandidatePriceCalculator.price` przenieś blok rabatu porannego (`if (query.start.hour < 12) { ... }`) za wyliczenie zniżki procentowej.
+2. Rabat poranny odejmuj teraz od `price`, a nie od `base`. Zmienna `base` nie jest już modyfikowana, więc zamień `let base` na `const base`.
+
+**Przed:**
+
+```typescript
+let base = CandidatePriceCalculator.basePrice(query.format);
+if (query.start.hour < 12) {
+  base = base.minus(CandidatePriceCalculator.MORNING_DISCOUNT);
+}
+let price = base.minus(base.percent(CandidatePriceCalculator.discountPercent(query.type)));
+```
+
 **Po:**
 
 ```typescript
+const base = CandidatePriceCalculator.basePrice(query.format);
 let price = base.minus(base.percent(CandidatePriceCalculator.discountPercent(query.type)));
 if (query.start.hour < 12) {
   price = price.minus(CandidatePriceCalculator.MORNING_DISCOUNT);
@@ -436,7 +659,23 @@ if (query.start.hour < 12) {
 
 ### Krok 4: przełączenie
 
-**W IDE:** wyliczenie `MigrationMode { LEGACY, SHADOW, CANDIDATE }`, konstruktor `PriceService(mode = MigrationMode.SHADOW, report = new VerificationReport())`, `switch` w `price`.
+**Zmiany:**
+
+1. Utwórz nowy plik `MigrationMode.ts` z wyliczeniem `MigrationMode` o wartościach `LEGACY`, `SHADOW`, `CANDIDATE`.
+2. W `PriceService` dodaj pierwszy parametr konstruktora `private readonly mode: MigrationMode = MigrationMode.SHADOW` (przed `report`).
+3. Przenieś dotychczasową treść `price` i `verify` do prywatnej metody `shadow(query)`: liczy wynik legacy, w `try/catch` porównuje go z kandydatem, zapisuje do raportu `Agreement`, `Divergence` albo `CandidateFailure` i zwraca wynik legacy.
+4. W `price` zostaje `switch (this.mode)` z trzema gałęziami (`LEGACY`, `SHADOW`, `CANDIDATE`) i `default: return assertNever(this.mode);`.
+
+**Przed:**
+
+```typescript
+price(query: TicketQuery): Money {
+  const result = this.legacy.price(query);
+  this.report.record(this.verify(query, result));
+  return result;
+}
+```
+
 **Po:**
 
 ```typescript
@@ -494,10 +733,38 @@ try {
 
 ### Krok 1: port efektów (Parameterize Constructor)
 
-**W IDE:** interfejs `Effects` z operacjami `Infrastructure` używanymi przez nowy przepływ piszemy ręcznie (VS Code nie ma Extract Interface), adapter `RealEffects implements Effects` (⌘. → Implement interface). Typ parametru konstruktora `NewBookingFlow` zmieniamy ręcznie z `Infrastructure` na `Effects`; miejsca wywołań wskaże `npm run typecheck`.
+**Zmiany:**
+
+1. Utwórz nowy plik `Effects.ts` z interfejsem `Effects` zawierającym trzy operacje `Infrastructure` używane przez nowy przepływ: `sendMail`, `charge`, `save` (Extract Interface - ręcznie, bo VS Code nie wydziela interfejsu z klasy).
+2. Utwórz nowy plik `RealEffects.ts` z adapterem `RealEffects implements Effects`, który każdą operację deleguje do przekazanej w konstruktorze `Infrastructure`.
+3. W `NewBookingFlow` zmień ręcznie typ parametru konstruktora z `Infrastructure` na `Effects` (pole `effects`) i zamień wywołania `this.infra.*` na `this.effects.*`; miejsca wywołań do poprawy wskaże `npm run typecheck`.
+4. W konstruktorze `ShadowBooking` przekazuj kandydatowi adapter: `new NewBookingFlow(new RealEffects(infra))` (Parameterize Constructor).
+
+**Przed:**
+
+```typescript
+// NewBookingFlow.ts
+constructor(private readonly infra: Infrastructure) {}
+
+book(request: BookingRequest): string {
+  ...
+  this.infra.charge(request.card, total);
+
+// ShadowBooking.ts
+this.candidate = new NewBookingFlow(infra);
+```
+
 **Po:**
 
 ```typescript
+// NewBookingFlow.ts
+constructor(private readonly effects: Effects) {}
+
+book(request: BookingRequest): string {
+  ...
+  this.effects.charge(request.card, total);
+
+// ShadowBooking.ts
 this.candidate = new NewBookingFlow(new RealEffects(infra));
 ```
 
@@ -507,7 +774,29 @@ this.candidate = new NewBookingFlow(new RealEffects(infra));
 
 ### Krok 2: przechwycenie efektów w cieniu
 
-**W IDE:** nowa klasa `RecordingEffects implements Effects` zapisuje zamiary w formacie dziennika. `ShadowBooking` przekazuje kandydatowi nagrywarkę i porównuje nagrane efekty z efektami, które faktycznie wykonało legacy.
+**Zmiany:**
+
+1. Utwórz nowy plik `RecordingEffects.ts` z klasą `RecordingEffects implements Effects`: zapisuje zamiary w formacie dziennika infrastruktury (`MAIL ...`, `CHARGE ...`, `SAVE ...`), niczego nie wykonuje i udostępnia wpisy metodą `recorded()`.
+2. W `ShadowBooking` usuń pole `candidate` i jego tworzenie w konstruktorze; zapamiętaj `infra` jako pole. W `book` przed wywołaniem legacy zapisz długość dziennika (`before`), a po nim wytnij efekty legacy: `this.infra.log().slice(before)`.
+3. W bloku `try` utwórz nagrywarkę, przekaż ją kandydatowi (`new NewBookingFlow(recorder).book(request)`) i porównaj osobno wynik i efekty prywatną metodą `compare`, która dopisuje różnice do listy rozbieżności.
+
+**Przed:**
+
+```typescript
+constructor(infra: Infrastructure) {
+  this.legacy = new LegacyBookingFlow(infra);
+  this.candidate = new NewBookingFlow(new RealEffects(infra));
+}
+
+book(request: BookingRequest): string {
+  const result = this.legacy.book(request);
+  try {
+    const shadow = this.candidate.book(request);
+    if (shadow !== result) {
+      this.divergenceList.push('legacy: ' + result + ' | kandydat: ' + shadow);
+    }
+```
+
 **Po:**
 
 ```typescript
@@ -523,7 +812,30 @@ this.compare('efekty', legacyEffects, recorder.recorded());
 
 ### Krok 3: Separate Query from Modifier - czysty plan
 
-**W IDE:** z `NewBookingFlow.book` wydziel (⌃⇧R → Extract to method, potem ręcznie do nowego pliku) klasę `BookingPlanner` z metodą `plan`, która zwraca `new BookingPlan(result, effects)`. `NewBookingFlow` wykonuje plan na porcie; `ShadowBooking` woła tylko `BookingPlanner`. Plik `RecordingEffects.ts` usuń (Find All References potwierdzi brak użyć).
+**Zmiany:**
+
+1. Utwórz nowy plik `BookingPlan.ts` z klasami `Charge`, `Save`, `SendMail` (pole `kind`, metody `describe()` i `applyTo(port)`), unią `export type Effect = Charge | Save | SendMail;` i klasą `BookingPlan` (pole `result` i zamrożona lista `effects`).
+2. Utwórz nowy plik `BookingPlanner.ts` i przenieś do niego z `NewBookingFlow.book` czyste obliczenie jako metodę `plan(request)`, która zwraca `new BookingPlan('OK ' + total.toString(), [new Charge(...), new Save(...), new SendMail(...)])` (Separate Query from Modifier). Klasa nie dostaje żadnego portu efektów.
+3. W `NewBookingFlow.book` zostaje: policz plan (`this.planner.plan(request)`), wykonaj efekty na porcie (`plan.effects.forEach((effect) => effect.applyTo(this.effects))`) i zwróć `plan.result`.
+4. W `ShadowBooking` zamień kandydata na pole `private readonly candidate = new BookingPlanner();`; w `book` porównuj `plan.result` z wynikiem legacy, a opisy efektów (`plan.effects.map((effect) => effect.describe())`) z efektami legacy.
+5. Usuń plik `RecordingEffects.ts` - po tym kroku nikt go nie używa, co potwierdza `npm run typecheck` i brak odwołań do klasy.
+
+**Przed:**
+
+```typescript
+// ShadowBooking.ts (step2)
+const recorder = new RecordingEffects();
+const shadow = new NewBookingFlow(recorder).book(request);
+this.compare('wynik', [result], [shadow]);
+this.compare('efekty', legacyEffects, recorder.recorded());
+
+// RecordingEffects.ts (plik usuwany w tym kroku)
+export class RecordingEffects implements Effects {
+  private readonly recordedList: string[] = [];
+  ...
+}
+```
+
 **Po:**
 
 ```typescript

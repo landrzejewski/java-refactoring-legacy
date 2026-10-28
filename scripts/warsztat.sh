@@ -228,6 +228,17 @@ cmd_test() {
         java)
             local pkg; pkg=$(namespace_of "$dir")
             (cd "$ROOT" && mvn -q test -Dtest="${pkg}.**" -Dsurefire.failIfNoSpecifiedTests=false)
+            # mvn -q nie pokazuje raportu, więc nazwy zaliczonych testów czytamy z plików surefire
+            local report cls
+            for report in "$ROOT"/target/surefire-reports/TEST-"$pkg".*.xml; do
+                [ -f "$report" ] || continue
+                cls=$(basename "$report" .xml); cls=${cls##*.}
+                echo "$cls"
+                sed -n \
+                    -e 's/.*<testcase name="\([^"]*\)"[^>]*\/>.*/  ok \1/p' \
+                    -e 's/.*<testcase name="\([^"]*\)"[^>]*[^/]>.*/  pominięty (pułapka start) \1/p' \
+                    "$report"
+            done
             echo "OK: $pkg" ;;
         cs)
             local ns="Training.Workshop.Tests.${dir#"$MAIN"/}"
@@ -301,5 +312,9 @@ case "${1:-}" in
     next | prev) cmd_move "$1" "${2:-}" ;;
     status) cmd_status "${2:-}" ;;
     diff) cmd_diff "${2:?scena}" "${3:?krok A}" "${4:?krok B}" "${5:-}" ;;
-    *) sed -n '2,18p' "$0" | sed 's/^# \{0,1\}//' ;;
+    "") sed -n '2,17p' "$0" | sed 's/^# \{0,1\}//' ;;
+    *)
+        echo "warsztat: nieznana komenda '$1'" >&2
+        sed -n '2,17p' "$0" | sed 's/^# \{0,1\}//' >&2
+        exit 1 ;;
 esac

@@ -4,7 +4,7 @@ Dziesięć małych scen w domenie kina CineLegacy pokazuje tematy z części II 
 
 Sceny ilustrują sekcję 2 slajdów ("Zanim wprowadzisz wzorzec"): każdy temat ma własną, kilkuminutową scenę. Sceny są pokazami prowadzącego do wyboru - nie trzeba pokazywać wszystkich. Numery scen odpowiadają katalogom w kodzie i w tej kolejności sceny są opisane poniżej. Kolejność pokazu, zgodną z kolejnością slajdów, podaje sekcja „Proponowana kolejność pokazu” na końcu.
 
-Port TypeScript: kod scen leży w `typescript/src/workshop/m2/sNN_.../{start,step1,...}`, testy vitest w `typescript/test/workshop/m2/sNN_.../`, a pokaz prowadzimy w VS Code. Kwoty to `Decimal` z biblioteki decimal.js (odpowiednik `BigDecimal`) albo `Money` z `typescript/src/workshop/shared/Money.ts`. `Decimal` nie pamięta skali, więc tam, gdzie Java drukuje kwotę przez `toString()`, port drukuje `toFixed(2)`. Rekordy Javy to klasy z polami `readonly` w konstruktorze, a statyczne metody klas-punktów wejścia to funkcje modułu. Największe adaptacje dotyczą scen narzędziowych: bramka kompilatora (s03) i bramka jakości (s04) korzystają z API kompilatora TypeScript (pakiet `typescript-api`), a bramka jakości także z zestawów przypadków testowych ładowanych jako moduły. Tam, gdzie scena odbiega od Javy, akapit **Różnica względem Javy** mówi, co i dlaczego wygląda inaczej.
+Port TypeScript: kod scen leży w `typescript/src/workshop/m2/sNN_.../{start,step1,...}`, testy vitest w `typescript/test/workshop/m2/sNN_.../`. Kwoty to `Decimal` z biblioteki decimal.js (odpowiednik `BigDecimal`) albo `Money` z `typescript/src/workshop/shared/Money.ts`. `Decimal` nie pamięta skali, więc tam, gdzie Java drukuje kwotę przez `toString()`, port drukuje `toFixed(2)`. Rekordy Javy to klasy z polami `readonly` w konstruktorze, a statyczne metody klas-punktów wejścia to funkcje modułu. Największe adaptacje dotyczą scen narzędziowych: bramka kompilatora (s03) i bramka jakości (s04) korzystają z API kompilatora TypeScript (pakiet `typescript-api`), a bramka jakości także z zestawów przypadków testowych ładowanych jako moduły. Tam, gdzie scena odbiega od Javy, akapit **Różnica względem Javy** mówi, co i dlaczego wygląda inaczej.
 
 ## Jak prowadzić pokaz
 
@@ -25,13 +25,13 @@ scripts/warsztat.sh --lang ts reset m2/s09         # przywrócenie start z repoz
 - Zasada pokazu: **jeden krok - jeden test - jedno zdanie komentarza**. Nie łącz kroków, nawet jeśli IDE pozwala. Zanim ruszysz kod, powiedz, jaki dowód da test po kroku - to w praktyce pętla informacji zwrotnej ze slajdu 2.1.
 - **Krok po kroku bez numerów:** `scripts/warsztat.sh next` wstawia do `start` gotowy następny krok i wypisuje, co się zmieniło. `prev` cofa o krok, `status` mówi, który krok jest teraz w `start`. Skrypt pamięta język i ostatnią scenę, więc po pierwszym `--lang ts next m2/sNN` wystarczy samo `next`. Ręczne zmiany w `start` zostają nadpisane - o to chodzi, gdy krok na żywo się rozjechał.
 - Jeśli krok na żywo się nie uda albo brakuje czasu: `next` (albo `jump` do konkretnego snapshotu) i kontynuuj od następnego kroku. Po pokazie zawsze `reset`.
-- Testy dotykają `start` wyłącznie przez API wspólne dla wszystkich kroków, więc kompilują się w każdym stanie pośrednim. Tam, gdzie refaktoryzacja zmienia konstruktory, scena ma punkt wejścia pełniący rolę composition root: funkcja `confirmReservation()` w `Main.ts` (s08), `reservationController()` w `CinemaApplication.ts` (s09), `describe()` w `CinemaApp.ts` (s10). VS Code nie ma refaktoryzacji Introduce Parameter ani Change Signature - te miejsca poprawiasz ręcznie, a kompilator (czerwone podkreślenia, `npm run typecheck`) wskaże każde wywołanie do zmiany.
+- Testy dotykają `start` wyłącznie przez API wspólne dla wszystkich kroków, więc kompilują się w każdym stanie pośrednim. Tam, gdzie refaktoryzacja zmienia konstruktory, scena ma punkt wejścia pełniący rolę composition root: funkcja `confirmReservation()` w `Main.ts` (s08), `reservationController()` w `CinemaApplication.ts` (s09), `describe()` w `CinemaApp.ts` (s10). Zmiany konstruktorów i sygnatur robimy ręcznie, a kompilator (`npm run typecheck`) wskaże każde wywołanie do zmiany.
 - Część testów to nie tylko równoważność (`SNNEquivalenceTest.test.ts`), ale też dowody strategii (`SNNSolutionTest`, `S08DependencyDirectionTest`, `S09UseCaseTest`, `S10ArchitectureTest`): wynik bramki, lista naruszeń ADR, kierunek zależności. Testy, które **dokumentują stan startowy** (`startViolatesBothRules` w s02, `startFailsTheGateWithFourKindsOfWarnings` w s03, `startPassesEverythingBecauseItChecksNothing` w s04, `startDomainHasNoViolationsBeyondTheFrozenOnes` w s10), zmienią kolor na czerwony, gdy wykonasz kroki na katalogu `start` - to znak, że start jest już naprawiony. Pułapki, które znikają po naprawie, testy dokumentują na kopii w kroku, który jeszcze je ma (np. s05 krok 1 - antyprzykład nadużycia Boy Scout).
 - Sceny s02, s03, s04, s08 i s10 czytają pliki źródłowe sceny. Ścieżki są liczone względem modułu (`import.meta.url`, pomocnik testów `workshopDir(...)` z `typescript/test/workshop/support/paths.ts`), więc testy działają niezależnie od katalogu, z którego je uruchamiasz.
 - Sceny s03 i s04 celowo zawierają kod, którego nie przepuszcza ostrzejsza bramka (`start` w s03 i `sample/dirty` w s04) - to materiał dla bramek, nie niedoróbka. W s03 przelot w `switch` jest w buildzie projektu wyciszony `// @ts-expect-error`, a próbki s04 są wyłączone z typechecku projektu (`exclude` w `typescript/tsconfig.json`).
-- **Test to nie kompilacja.** Vitest uruchamia kod bez sprawdzania typów. Tam, gdzie krok opiera się na kontroli kompilatora (literówka w nazwie reguły w s01, usunięty plik, zmieniona sygnatura), uruchom też `npm run typecheck` w katalogu `typescript` albo patrz na podkreślenia w VS Code.
-- Refaktoryzacje VS Code: menu Refactor... (⌃⇧R) daje m.in. Extract to method in class, Extract to function, Extract to constant, Inline variable, Move to a new file / Move to file. Rename Symbol to F2, Quick Fix ⌘., Go to Definition F12, Find All References ⇧⌥F12. Change Signature, Safe Delete, Extract Interface, Extract Class ani Type Migration nie ma - te ruchy robimy ręcznie: przed usunięciem symbolu sprawdź Find All References, a po zmianie - kompilator.
-- Testy uruchamiasz skryptem (`scripts/warsztat.sh --lang ts test m2/sNN`) albo z rozszerzenia Vitest w VS Code (ikona przy `describe`/`it`).
+- **Test to nie kompilacja.** Vitest uruchamia kod bez sprawdzania typów. Tam, gdzie krok opiera się na kontroli kompilatora (literówka w nazwie reguły w s01, usunięty plik, zmieniona sygnatura), uruchom też `npm run typecheck` w katalogu `typescript`.
+- Refaktoryzacje z katalogu (Extract Method, Extract Constant, Inline, Move, Rename, Change Signature, Safe Delete, Extract Interface, Extract Class) wykonujemy jako zwykłe, małe edycje kodu. Przed usunięciem symbolu znajdź wszystkie jego użycia, a po zmianie sygnatury uruchom kompilator - wskaże każde miejsce do poprawy.
+- Testy uruchamiasz skryptem (`scripts/warsztat.sh --lang ts test m2/sNN`).
 
 ## Mapa scen
 
@@ -86,7 +86,31 @@ Na żywo: zmień w konstruktorze wartość domyślną `'morning,vip'` na `'morni
 
 ### Krok 1: Inline Class - rejestr pluginów znika
 
-**W IDE:** w `TicketPricer` zastąp parametry konstruktora `registry` i `activeRules` polem z listą `Object.freeze([new MorningRule(), new VipRule()])` (ręcznie, konstruktor usuń). Usuń `RuleRegistry.ts` i metodę `priority()` z interfejsu i obu reguł (była potrzebna tylko do sortowania) - przed usunięciem sprawdź ⇧⌥F12.
+**Zmiany:**
+
+1. W `TicketPricer` usuń konstruktor z parametrami `registry` i `activeRules`; w ich miejsce dodaj pole `rules` z niezmienną listą `Object.freeze([new MorningRule(), new VipRule()])` (Inline Class dla rejestru).
+2. W `price` pętla iteruje po `this.rules` zamiast po `this.registry.resolve(this.activeRules)`.
+3. Usuń plik `RuleRegistry.ts` - rejestr pluginów i konfiguracja napisem znikają.
+4. Usuń metodę `priority()` z interfejsu `PricingRule` oraz z `MorningRule` i `VipRule` - była potrzebna tylko do sortowania w rejestrze; przed usunięciem upewnij się, że nie ma innych użyć (Safe Delete).
+
+**Przed:**
+
+```typescript
+export class TicketPricer {
+  constructor(
+    private readonly registry: RuleRegistry = RuleRegistry.withDefaults(),
+    private readonly activeRules: string = 'morning,vip',
+  ) {}
+
+  price(quote: TicketQuote): Decimal {
+    ...
+    for (const rule of this.registry.resolve(this.activeRules)) {
+      if (rule.appliesTo(context)) {
+        price = rule.apply(context, price);
+      }
+    }
+```
+
 **Po:**
 
 ```typescript
@@ -99,7 +123,20 @@ private readonly rules: readonly PricingRule[] = Object.freeze([new MorningRule(
 
 ### Krok 2: Change Signature - typowane dane zamiast mapy
 
-**W IDE:** ręcznie (VS Code nie ma Change Signature): w `PricingRule.appliesTo` zmień typ parametru z `ReadonlyMap<string, unknown>` na `TicketQuote`, z `apply` usuń parametr kontekstu. Kompilator wskaże obie implementacje i wywołania - popraw je (rzutowania znikają) i usuń budowanie mapy w `TicketPricer`.
+**Zmiany:**
+
+1. W interfejsie `PricingRule` zmień sygnaturę `appliesTo`: parametr `context: ReadonlyMap<string, unknown>` zastąp `quote: TicketQuote`; z `apply` usuń parametr kontekstu - zostaje `apply(price: Decimal)` (Change Signature, ręcznie).
+2. Popraw obie implementacje, które wskaże kompilator: w `MorningRule` warunek to `quote.start.hour < 12`, w `VipRule` - `quote.row >= quote.vipFromRow`; rzutowania `as LocalTime` i `as number` znikają.
+3. W `TicketPricer.price` usuń budowanie mapy `context` i przekazuj regułom `quote` oraz `price`.
+
+**Przed:**
+
+```typescript
+appliesTo(context: ReadonlyMap<string, unknown>): boolean {
+  return (context.get('row') as number) >= (context.get('vipFromRow') as number);
+}
+```
+
 **Po:**
 
 ```typescript
@@ -114,7 +151,26 @@ appliesTo(quote: TicketQuote): boolean {
 
 ### Krok 3: Inline Class dla reguł, usunięcie interfejsu
 
-**W IDE:** ręcznie: dwa `if` w `price` z metodami `isMorning` i `isVip` (ciała z `appliesTo` obu reguł, ⌃⇧R > Extract to method in class). Usuń `MorningRule.ts`, `VipRule.ts` i `PricingRule.ts`. Stałe przez ⌃⇧R > Extract to constant (pola `private static readonly`).
+**Zmiany:**
+
+1. Do `TicketPricer` dodaj prywatne metody `isMorning(quote)` i `isVip(quote)` z ciałami `appliesTo` obu reguł (Inline Class dla `MorningRule` i `VipRule`); w `price` pętlę po regułach zastąp dwoma `if`, a `return` zwraca `price` bez końcowego `toDecimalPlaces`.
+2. Kwoty zniżki i dopłaty wydziel do pól `private static readonly MORNING_DISCOUNT = new Decimal('5.00')` i `VIP_SURCHARGE = new Decimal('10.00')` (Extract Constant).
+3. Usuń pliki `MorningRule.ts`, `VipRule.ts` i `PricingRule.ts`; pole `rules` w `TicketPricer` znika razem z nimi.
+
+**Przed:**
+
+```typescript
+price(quote: TicketQuote): Decimal {
+  let price = this.basePrice(quote.format);
+  for (const rule of this.rules) {
+    if (rule.appliesTo(quote)) {
+      price = rule.apply(price);
+    }
+  }
+  return price.toDecimalPlaces(2, Decimal.ROUND_HALF_UP);
+}
+```
+
 **Po:**
 
 ```typescript
@@ -177,7 +233,32 @@ total(organizer: string, tickets: number, unitPrice: number): number {
 
 ### Krok 1: spełnienie R1 - wynik zamiast efektu
 
-**W IDE:** nowa klasa `Quote` (`readonly total: number`, `readonly groupDiscount: boolean`) w `pricing`; ręcznie zmieniamy sygnaturę `total` - bez `organizer`, zwraca `Quote` (Change Signature w VS Code nie ma, wywołania wskaże `npm run typecheck`). Wywołanie `mailer` przenieś do `BookingService` (warstwa aplikacji). Usuń import `notification` z cennika.
+**Zmiany:**
+
+1. Nowy plik `pricing/Quote.ts`: klasa `Quote` z polami `readonly total: number` i `readonly groupDiscount: boolean`.
+2. W `TicketPricing` zmień sygnaturę `total(organizer, tickets, unitPrice): number` na `total(tickets, unitPrice): Quote` - parametr `organizer` znika, a informacja o rabacie wraca w polu `groupDiscount` (Change Signature, ręcznie; wywołania wskaże `npm run typecheck`).
+3. Usuń z `TicketPricing` konstruktor z polem `mailer` i import `GroupMailer` - cennik przestaje zależeć od katalogu `notification`.
+4. W `BookingService.book` twórz `TicketPricing` bez argumentu, a wywołanie `mailer.groupDiscountGranted(organizer, tickets)` wykonuj po wycenie, gdy `quote.groupDiscount` jest prawdziwe.
+
+**Przed:**
+
+```typescript
+import type { GroupMailer } from '../notification/GroupMailer.js';
+...
+export class TicketPricing {
+  constructor(private readonly mailer: GroupMailer) {}
+
+  total(organizer: string, tickets: number, unitPrice: number): number {
+    let sum = unitPrice * tickets;
+    if (tickets >= 10) {
+      sum = sum - sum * 0.10;
+      this.mailer.groupDiscountGranted(organizer, tickets);
+    }
+    return Math.round(sum * 100) / 100.0;
+  }
+}
+```
+
 **Po:**
 
 ```typescript
@@ -193,7 +274,25 @@ if (quote.groupDiscount) {
 
 ### Krok 2: spełnienie R2 - Money
 
-**W IDE:** VS Code nie ma Type Migration: zmieniamy ręcznie typ `number` → `Money` w `Quote.total` i parametrze `unitPrice` w `TicketPricing`, a `npm run typecheck` prowadzi przez kolejne miejsca. Nazwane stałe dla progu i procentu grupy; `BookingService` podaje cenę jednostkową jako `Money.of('25.00')` (metoda `unitPrice(format)`).
+**Zmiany:**
+
+1. Zmień typ pola `Quote.total` i parametru `unitPrice` w `TicketPricing.total` z `number` na `Money` (Type Migration, ręcznie); przez kolejne miejsca prowadzi `npm run typecheck`.
+2. Obliczenia przechodzą na `Money`: `unitPrice.times(tickets)` i `sum.minus(sum.percent(...))`; próg i procent rabatu wydziel do stałych `GROUP_SIZE = 10` i `GROUP_DISCOUNT_PERCENT = 10`.
+3. W `BookingService` metoda `unitPrice(format)` zwraca `Money` (`Money.of('40.00')`, `Money.of('32.00')`, `Money.of('25.00')`), a odpowiedź formatuje `quote.total.toString()` zamiast `toFixed(2)`.
+
+**Przed:**
+
+```typescript
+total(tickets: number, unitPrice: number): Quote {
+  let sum = unitPrice * tickets;
+  const groupDiscount = tickets >= 10;
+  if (groupDiscount) {
+    sum = sum - sum * 0.10;
+  }
+  return new Quote(Math.round(sum * 100) / 100.0, groupDiscount);
+}
+```
+
 **Po:**
 
 ```typescript
@@ -253,7 +352,28 @@ switch (format) {
 
 ### Krok 1: argumenty typu zamiast surowego Map
 
-**W IDE:** na polu `seatsByRow` dopisz ręcznie argumenty typu `new Map<number, string[]>()` (VS Code nie ma szybkiej poprawki Add type arguments); `get(row) ?? []` zamiast sprawdzania `undefined`; usuń asercje `as` - kompilator zna już typy.
+**Zmiany:**
+
+1. W `SeatMap` dopisz argumenty typu na polu: `new Map<number, string[]>()` zamiast surowego `new Map()`.
+2. W `take` zastąp sprawdzanie `undefined` wyrażeniem `this.seatsByRow.get(row) ?? []` i usuń asercję `as string[] | undefined`.
+3. W `takenPerRow` zbuduj wynik z posortowanych wpisów mapy bez asercji `as number` i `as string[]` - kompilator zna już typy.
+
+**Przed:**
+
+```typescript
+private readonly seatsByRow = new Map();
+
+take(seat: string): void {
+  const row = Number.parseInt(seat.substring(1), 10);
+  let seats = this.seatsByRow.get(row) as string[] | undefined;
+  if (seats === undefined) {
+    seats = [];
+    this.seatsByRow.set(row, seats);
+  }
+  seats.push(seat);
+}
+```
+
 **Po:**
 
 ```typescript
@@ -270,7 +390,19 @@ seats.push(seat);
 
 ### Krok 2: nowe API zamiast przestarzałego
 
-**W IDE:** VS Code przekreśla wywołanie przestarzałego przeciążenia (`basePrice` z tagiem `@deprecated`). W `return` zamień argument `format` na istniejącą już zmienną `name` - wywołanie trafia do przeciążenia `basePrice(format: string)`. Najechanie kursorem na metodę (albo F12) potwierdza, że to nowe przeciążenie i przekreślenie znika.
+**Zmiany:**
+
+1. W `OccupancyReport.describe` zamień w `return` argument wywołania `PriceTable.basePrice(format)` na istniejącą już zmienną `name` - wywołanie trafia do przeciążenia `basePrice(format: string)`, a przestarzałe przeciążenie z tagiem `@deprecated` przestaje być używane.
+2. Samo przestarzałe przeciążenie `basePrice(format: number)` zostaje w `PriceTable` - usuniemy je dopiero, gdy nikt go nie woła.
+
+**Przed:**
+
+```typescript
+const name = format === 3 ? 'IMAX' : format === 2 ? '3D' : '2D';
+return name + ' [' + features + '], cena ' + PriceTable.basePrice(format)
+  + ' zl, zajete: ' + OccupancyReport.show(map.takenPerRow());
+```
+
 **Po:**
 
 ```typescript
@@ -284,7 +416,28 @@ return name + ' [' + features + '], cena ' + PriceTable.basePrice(name)
 
 ### Krok 3: funkcja z return w każdym case zamiast przelotu
 
-**W IDE:** TypeScript nie ma wyrażenia `switch`, więc zaznacz `switch` i ⌃⇧R → Extract to method `features(format)`, potem ręcznie zamień przypisania na `return` w każdym `case`; przelot zapisany wprost: `case 3: return 'duzy ekran, dzwiek Dolby'`. Dyrektywa `@ts-expect-error` znika razem z przelotem.
+**Zmiany:**
+
+1. Wydziel cały `switch` z `describe` do prywatnej statycznej metody `features(format: number): string` (Extract Method); TypeScript nie ma wyrażenia `switch`, więc to zwykła metoda.
+2. W każdym `case` zamień przypisania do `features` na `return`; przelot zapisany wprost: `case 3: return 'duzy ekran, dzwiek Dolby'`, `case 2: return 'dzwiek Dolby'`, `default: return 'standard'`.
+3. Usuń dyrektywę `// @ts-expect-error` - znika razem z przelotem; w `describe` zostaje `const features = OccupancyReport.features(format);`.
+
+**Przed:**
+
+```typescript
+let features = '';
+switch (format) {
+  // @ts-expect-error TS7029 - celowy przelot: IMAX ma też dźwięk Dolby
+  case 3:
+    features = features + 'duzy ekran, ';
+  case 2:
+    features = features + 'dzwiek Dolby';
+    break;
+  default:
+    features = 'standard';
+}
+```
+
 **Po:**
 
 ```typescript
@@ -343,7 +496,20 @@ evaluate(_input: GateInput): string[] {
 
 ### Krok 1: skan źródeł - TODO i console
 
-**W IDE:** metoda `scanSources`: każda linia z `TODO`/`FIXME` albo `console.` to wynik z plikiem i linią.
+**Zmiany:**
+
+1. W `QualityGate` dodaj prywatną statyczną metodę `scanSources(input, findings)`: dla każdego pliku `.ts` z katalogu `input.sources` i każdej linii z `TODO`/`FIXME` dopisuje wynik `'TODO <plik>:<linia>'`, a dla linii z `console.` - `'console <plik>:<linia>'`.
+2. Dodaj pomocnicze metody `sourceFiles(dir)` (posortowana lista plików `.ts` katalogu) i `read(file)` (linie pliku).
+3. `evaluate` przestaje zwracać pustą listę - zbiera wyniki `scanSources` do listy `findings`.
+
+**Przed:**
+
+```typescript
+evaluate(_input: GateInput): string[] {
+  return [];
+}
+```
+
 **Po:**
 
 ```typescript
@@ -358,7 +524,22 @@ if (line.includes('TODO') || line.includes('FIXME')) {
 
 ### Krok 2: diagnostyki kompilatora
 
-**W IDE:** metoda `compileSources` (`ts.createProgram` z `typescript-api`, `strict`, `noUnusedLocals`, `noUnusedParameters`, `noImplicitReturns`), każda diagnostyka składniowa i semantyczna to wynik.
+**Zmiany:**
+
+1. Dodaj stałą `COMPILER_OPTIONS` (opcje projektu plus `strict`, `noUnusedLocals`, `noUnusedParameters`, `noImplicitReturns`, `noEmit`) i metodę `compileSources(input, findings)`, która buduje program `ts.createProgram` z pakietu `typescript-api` na plikach domeny.
+2. Każdą diagnostykę składniową i semantyczną zamień na wynik `'kompilator <plik>:<linia> TS<kod>'`.
+3. W `evaluate` wywołaj `compileSources` przed `scanSources`.
+
+**Przed:**
+
+```typescript
+evaluate(input: GateInput): string[] {
+  const findings: string[] = [];
+  QualityGate.scanSources(input, findings);
+  return findings;
+}
+```
+
 **Po:**
 
 ```typescript
@@ -372,7 +553,23 @@ findings.push('kompilator ' + path.basename(sourceFile.fileName) + ':' + line + 
 
 ### Krok 3: pokrycie kluczowej klasy (przybliżenie)
 
-**W IDE:** metoda `checkCoverage`: każda publiczna metoda `PriceTable` (bez `private`/`protected`, wyszukana wyrażeniem regularnym na poziomie wcięcia składowej) musi być wywołana w `PriceTableTest.ts`.
+**Zmiany:**
+
+1. Dodaj stałą `PUBLIC_METHOD` - wyrażenie regularne wyszukujące na poziomie wcięcia składowej metody bez `private`/`protected` (konstruktor pominięty) - i metodę `checkCoverage(input, findings)`, która czyta plik `input.keyClass + '.ts'` oraz plik testu `input.testSource`.
+2. Każda publiczna metoda, której wywołania (`.` + nazwa + `(`) nie ma w tekście testu, daje wynik `'pokrycie <klasa>.<metoda> bez testu'`.
+3. W `evaluate` dołóż `checkCoverage` po `scanSources`.
+
+**Przed:**
+
+```typescript
+evaluate(input: GateInput): string[] {
+  const findings: string[] = [];
+  QualityGate.compileSources(input, findings);
+  QualityGate.scanSources(input, findings);
+  return findings;
+}
+```
+
 **Po:**
 
 ```typescript
@@ -387,7 +584,23 @@ if (!test.includes('.' + method[1]! + '(')) {
 
 ### Krok 4: testy zielone
 
-**W IDE:** metoda `runTests`: bramka wywołuje każdy przypadek zestawu `input.testSuite` (bez zależności od vitest) i zgłasza porażki.
+**Zmiany:**
+
+1. Dodaj metodę `runTests(input, findings)`: dla każdego przypadku z `input.testSuite.tests` (nazwy posortowane) wywołuje funkcję przypadku, a złapany wyjątek zamienia na wynik `'test <zestaw>.<nazwa> nie przechodzi: <nazwa błędu>'` - bez zależności od vitest.
+2. W `evaluate` wywołaj `runTests` jako pierwsze z czterech sprawdzeń.
+
+**Przed:**
+
+```typescript
+evaluate(input: GateInput): string[] {
+  const findings: string[] = [];
+  QualityGate.compileSources(input, findings);
+  QualityGate.scanSources(input, findings);
+  QualityGate.checkCoverage(input, findings);
+  return findings;
+}
+```
+
 **Po:**
 
 ```typescript
@@ -430,7 +643,7 @@ Które z tych czterech sprawdzeń uruchomilibyście lokalnie przed commitem, a k
 
 **Efekt:** Metoda ma czytelne nazwy, `join`, tablicę linii i `phoneLine`, a test równoważności potwierdza identyczny wydruk. Sortowanie miejsc czy małe litery w e-mailu mogą być dobrymi pomysłami, ale trafiają do osobnego commita jako świadoma zmiana zachowania.
 
-**Różnica względem Javy:** javowy `StringBuilder` zamiast konkatenacji ma w TypeScripcie idiomatyczny odpowiednik: tablicę linii złączoną `join` (w kroku 2 literał tablicy z szablonami tekstowymi). Rename to F2 (Rename Symbol w VS Code). Antyprzykład w kroku 1 jest taki sam jak w Javie: sortowanie miejsc, `toLowerCase()` e-maila i pominięta linia "Tel".
+**Różnica względem Javy:** javowy `StringBuilder` zamiast konkatenacji ma w TypeScripcie idiomatyczny odpowiednik: tablicę linii złączoną `join` (w kroku 2 literał tablicy z szablonami tekstowymi). Antyprzykład w kroku 1 jest taki sam jak w Javie: sortowanie miejsc, `toLowerCase()` e-maila i pominięta linia "Tel".
 
 ### Co widzimy
 
@@ -448,7 +661,31 @@ for (let i = 0; i < t.seats.length; i++) {
 
 ### Krok 1: nadużycie - "skoro już tu jestem"
 
-**W IDE:** pokaż antyprzykład: `scripts/warsztat.sh --lang ts jump m2/s05 1`. Obok dobrych ruchów przemycono sortowanie miejsc, e-mail małymi literami i pominięcie linii "Tel" bez telefonu.
+**Zmiany:**
+
+1. Antyprzykładu nie piszemy na żywo - wstaw gotowy snapshot: `scripts/warsztat.sh --lang ts jump m2/s05 1`.
+2. W `print` obok dobrych ruchów (nazwa `ticket`, tablica linii, `join`) przemycono trzy zmiany zachowania: miejsca są sortowane (`[...ticket.seats].sort()`), e-mail przechodzi na małe litery (`toLowerCase()`), a linia "Tel" znika, gdy klient nie podał telefonu.
+3. Dodatkowo kwota jest drukowana przez `Money` zamiast `toFixed(2)`.
+
+**Przed:**
+
+```typescript
+let x = '';
+for (let i = 0; i < t.seats.length; i++) {
+  if (i > 0) {
+    x = x + ', ';
+  }
+  x = x + t.seats[i]!;
+}
+s = s + 'Miejsca: ' + x + '\n';
+s = s + 'Klient: ' + t.email.trim() + '\n';
+if (t.phone != null) {
+  s = s + 'Tel: ' + t.phone + '\n';
+} else {
+  s = s + 'Tel: -\n';
+}
+```
+
 **Po:**
 
 ```typescript
@@ -463,7 +700,30 @@ lines.push(`Klient: ${ticket.email.trim().toLowerCase()}`);
 
 ### Krok 2: poprawna, mała poprawa
 
-**W IDE:** Rename Symbol (F2) `t` → `ticket`; pętlę sklejającą miejsca zamień ręcznie na `ticket.seats.join(', ')`; tablica linii złączona `join` zamiast konkatenacji; ⌃⇧R → Extract to method `phoneLine`.
+**Zmiany:**
+
+1. Pracujemy znów na `start` (krok 1 został cofnięty). Zmień nazwę parametru `t` na `ticket` (Rename); zmienne `s`, `d` i `x` znikają razem z konkatenacją.
+2. Pętlę sklejającą miejsca zastąp wyrażeniem `ticket.seats.join(', ')`.
+3. Zbuduj wydruk z literału tablicy linii złączonego `.map((line) => line + '\n').join('')` zamiast doklejania do zmiennej.
+4. Wydziel linię telefonu do prywatnej statycznej metody `phoneLine(ticket)` (Extract Method) - zachowanie `Tel: -` bez telefonu zostaje bez zmian.
+
+**Przed:**
+
+```typescript
+print(t: Ticket): string {
+  let s = '';
+  s = s + 'Film: ' + t.title + '\n';
+  const d = t.start.toLocalDate().toString() + ' ' + t.start.toLocalTime().toString();
+  s = s + 'Seans: ' + d + '\n';
+  let x = '';
+  for (let i = 0; i < t.seats.length; i++) {
+    ...
+  }
+  s = s + 'Miejsca: ' + x + '\n';
+  ...
+}
+```
+
 **Po:**
 
 ```typescript
@@ -519,7 +779,31 @@ if (q.type === 'STUDENT') {
 
 ### Krok 1: commit 1 - refaktoryzacja (Extract Method)
 
-**W IDE:** ⌃⇧R → Extract to method na wyborze ceny bazowej → `basePrice(format: string)`; to samo na wyborze zniżki → `discountPercent(type: string)` zwracające procent; Money zamiast Decimal.
+**Zmiany:**
+
+1. Wydziel wybór ceny bazowej do prywatnej statycznej metody `basePrice(format: string): Money` z `switch` i `return` w każdym `case` (Extract Method).
+2. Wydziel wybór zniżki do `discountPercent(type: string): number` zwracającej procent (Extract Method).
+3. Przejdź z `Decimal` na `Money`: `Money.of('40.00')` itd., zniżka to `base.minus(base.percent(...))`, a rabat poranny i dopłata VIP to `Money.of('5.00')` i `Money.of('10.00')`. Parametr `q` zmienia nazwę na `query` (Rename).
+
+**Przed:**
+
+```typescript
+price(q: TicketQuery): Money {
+  let p: Decimal;
+  if (q.format === 'IMAX') {
+    p = new Decimal('40.00');
+  } else if (q.format === '3D') {
+    p = new Decimal('32.00');
+  } else {
+    p = new Decimal('25.00');
+  }
+  let d: Decimal;
+  if (q.type === 'STUDENT') {
+    d = p.times(new Decimal('0.25'));
+  } else if (q.type === 'SENIOR') {
+    ...
+```
+
 **Po:**
 
 ```typescript
@@ -533,7 +817,24 @@ let price = base.minus(base.percent(PriceList.discountPercent(query.type)));
 
 ### Krok 2: commit 2 - refaktoryzacja przygotowawcza (Change Signature)
 
-**W IDE:** VS Code nie ma Change Signature, więc ręcznie: parametr `query: TicketQuery` zamiast `type: string`, w ciele `switch (query.type)`, w wywołaniu `discountPercent(query)`; `npm run typecheck` pokaże pominięte wywołania.
+**Zmiany:**
+
+1. Zmień sygnaturę `discountPercent`: zamiast `type: string` metoda przyjmuje całe `query: TicketQuery` (Change Signature, ręcznie), bo następna reguła potrzebuje daty.
+2. W ciele metody `switch (query.type)`, w `price` wywołanie `discountPercent(query)`; pominięte wywołania pokaże `npm run typecheck`.
+
+**Przed:**
+
+```typescript
+private static discountPercent(type: string): number {
+  switch (type) {
+    case 'STUDENT': return 25;
+    case 'SENIOR': return 30;
+    case 'CHILD': return 40;
+    default: return 0;
+  }
+}
+```
+
 **Po:**
 
 ```typescript
@@ -548,7 +849,24 @@ private static discountPercent(query: TicketQuery): number {
 
 ### Krok 3: commit 3 - zmiana zachowania
 
-**W IDE:** w gałęzi `default` warunek `isCheapTuesday(query) ? 20 : 0`, metoda pomocnicza, stała `CHEAP_TUESDAY_PERCENT`.
+**Zmiany:**
+
+1. Dodaj stałą `private static readonly CHEAP_TUESDAY_PERCENT = 20` i prywatną statyczną metodę `isCheapTuesday(query)` sprawdzającą `query.start.dayOfWeek === 'TUESDAY'`.
+2. W gałęzi `default` metody `discountPercent` zwróć `PriceList.isCheapTuesday(query) ? PriceList.CHEAP_TUESDAY_PERCENT : 0` zamiast `0`.
+
+**Przed:**
+
+```typescript
+private static discountPercent(query: TicketQuery): number {
+  switch (query.type) {
+    case 'STUDENT': return 25;
+    case 'SENIOR': return 30;
+    case 'CHILD': return 40;
+    default: return 0;
+  }
+}
+```
+
 **Po:**
 
 ```typescript
@@ -604,7 +922,30 @@ byTitle.set(sale.title, (byTitle.get(sale.title) ?? new Decimal(0)).plus(this.re
 
 ### Krok 1: Extract Method według aktora
 
-**W IDE:** zaznacz blok pod `// księgowość`, ⌃⇧R > Extract to method in class, nazwa `accountingSection` (niech zwraca `string` i ma własną zmienną `out`); to samo dla `// marketing` jako `marketingSection`.
+**Zmiany:**
+
+1. Wydziel blok pod komentarzem `// księgowość` do prywatnej metody `accountingSection(sales): string` z własną zmienną `out` (Extract Method).
+2. To samo dla bloku pod `// marketing` - metoda `marketingSection(sales): string`.
+3. `render` zwraca sklejenie wyników obu metod; komentarze `// księgowość` i `// marketing` znikają - zastępują je nazwy metod.
+
+**Przed:**
+
+```typescript
+render(sales: readonly Sale[]): string {
+  let out = '';
+  // księgowość
+  let tickets = new Decimal('0.00');
+  let bar = new Decimal('0.00');
+  ...
+  out += `Razem brutto ${total.toFixed(2)}\n`;
+  // marketing
+  out += 'MARKETING\n';
+  ...
+  out += `Sprzedanych biletow: ${sold}\n`;
+  return out;
+}
+```
+
 **Po:**
 
 ```typescript
@@ -619,7 +960,22 @@ render(sales: readonly Sale[]): string {
 
 ### Krok 2: Rozdziel wspólny helper według aktora
 
-**W IDE:** skopiuj `revenue` (⇧⌥↓ duplikuje zaznaczone linie), nazwij kopię `popularity`, w `marketingSection` użyj `popularity`. Dodaj komentarz dokumentacyjny (`/** ... */`) z właścicielem każdej metody.
+**Zmiany:**
+
+1. Skopiuj metodę `revenue` i nazwij kopię `popularity`; ciało na razie identyczne (`sale.ticketRevenue.plus(sale.barRevenue)`).
+2. W `marketingSection` zamień wywołanie `this.revenue(sale)` na `this.popularity(sale)`; w `accountingSection` zostaje `revenue`.
+3. Nad każdą z metod dodaj komentarz dokumentacyjny (`/** ... */`) z właścicielem: księgowość dla `revenue`, marketing dla `popularity`.
+
+**Przed:**
+
+```typescript
+byTitle.set(sale.title, (byTitle.get(sale.title) ?? new Decimal(0)).plus(this.revenue(sale)));
+...
+private revenue(sale: Sale): Decimal {
+  return sale.ticketRevenue.plus(sale.barRevenue);
+}
+```
+
 **Po:**
 
 ```typescript
@@ -636,7 +992,34 @@ private popularity(sale: Sale): Decimal { ... }
 
 ### Krok 3: Extract Class - klasa na aktora
 
-**W IDE:** VS Code nie ma Extract Class (Extract Delegate), więc ręcznie: utwórz `AccountingSection.ts` i przenieś do niej `accountingSection` (jako `render`), `revenue` i `net`; utwórz `MarketingSection.ts` z `marketingSection` (jako `render`) i `popularity`. W `DailyReport` zostaw dwa pola i delegowanie. Zaznaczone metody możesz też przenieść przez Move to a new file, ale trafią do pliku jako funkcje - i tak trzeba je potem opakować w klasę.
+**Zmiany:**
+
+1. Nowy plik `AccountingSection.ts`: klasa `AccountingSection` z metodami `render` (dawna `accountingSection`), `revenue` i `net`, przeniesionymi z `DailyReport` (Extract Class, ręcznie).
+2. Nowy plik `MarketingSection.ts`: klasa `MarketingSection` z metodami `render` (dawna `marketingSection`) i `popularity`.
+3. W `DailyReport` zostają dwa pola (`accounting = new AccountingSection()`, `marketing = new MarketingSection()`) i delegujące `render`; metody sekcji, `revenue`, `popularity` i `net` znikają z `DailyReport`.
+
+**Przed:**
+
+```typescript
+export class DailyReport {
+  render(sales: readonly Sale[]): string {
+    return this.accountingSection(sales) + this.marketingSection(sales);
+  }
+
+  private accountingSection(sales: readonly Sale[]): string { ... }
+
+  private marketingSection(sales: readonly Sale[]): string { ... }
+
+  /** Księgowość: przychód brutto seansu. */
+  private revenue(sale: Sale): Decimal { ... }
+
+  /** Marketing: miara popularności filmu (dziś: bilety + bar). */
+  private popularity(sale: Sale): Decimal { ... }
+
+  private net(gross: Decimal, vatPercent: number): Decimal { ... }
+}
+```
+
 **Po:**
 
 ```typescript
@@ -699,7 +1082,21 @@ if (!reply.startsWith('250')) {
 
 ### Krok 1: Introduce Parameter - dependency injection
 
-**W IDE:** VS Code nie ma Introduce Parameter, więc ręcznie: zamień pole `mail` na właściwość parametru konstruktora `constructor(private readonly mail: SmtpMailSender) {}`, a `new SmtpMailSender('smtp.kino.pl', 25)` przenieś do `Main.ts` (kompilator wskaże to wywołanie). Import w `ConfirmReservation` staje się `import type`.
+**Zmiany:**
+
+1. W `ConfirmReservation` zamień pole `private readonly mail = new SmtpMailSender('smtp.kino.pl', 25)` na właściwość parametru konstruktora: `constructor(private readonly mail: SmtpMailSender) {}` (Introduce Parameter, ręcznie).
+2. Tworzenie `new SmtpMailSender('smtp.kino.pl', 25)` przenieś do `Main.ts` - funkcja `confirmReservation()` składa teraz `new ConfirmReservation(new SmtpMailSender('smtp.kino.pl', 25))`; wywołanie do poprawy wskaże kompilator.
+3. Import `SmtpMailSender` w `ConfirmReservation` staje się `import type`.
+
+**Przed:**
+
+```typescript
+import { SmtpMailSender } from '../infra/SmtpMailSender.js';
+...
+export class ConfirmReservation {
+  private readonly mail = new SmtpMailSender('smtp.kino.pl', 25);
+```
+
 **Po:**
 
 ```typescript
@@ -713,7 +1110,22 @@ export class ConfirmReservation {
 
 ### Krok 2: Extract Method - nazwij potrzebę polityki
 
-**W IDE:** zaznacz składanie MIME, `send` i sprawdzenie kodu, ⌃⇧R > Extract to method in class, nazwa `notifyCustomer`; parametry nazwij `email` i `message` (F2).
+**Zmiany:**
+
+1. Wydziel składanie MIME, wywołanie `send` i sprawdzenie kodu odpowiedzi do prywatnej metody `notifyCustomer` (Extract Method).
+2. Parametry metody nazwij `email` i `message` (Rename); `confirm` kończy się wywołaniem `this.notifyCustomer(reservation.email, message)` i zwróceniem potwierdzenia.
+
+**Przed:**
+
+```typescript
+const mime = `To: ${reservation.email}\r\nSubject: Rezerwacja\r\n\r\n${message}`;
+const reply = this.mail.send(reservation.email, mime);
+if (!reply.startsWith('250')) {
+  throw new IllegalStateError(`SMTP odrzucil: ${reply}`);
+}
+return `potwierdzono: ${reservation.email}`;
+```
+
 **Po:**
 
 ```typescript
@@ -727,7 +1139,29 @@ return `potwierdzono: ${reservation.email}`;
 
 ### Krok 3: Port po stronie polityki, adapter w infra
 
-**W IDE:** utwórz w `app` interfejs `CustomerNotifier` z metodą `notifyCustomer(email, message)`. Utwórz `infra/SmtpCustomerNotifier.ts` z klasą `SmtpCustomerNotifier implements CustomerNotifier` i przenieś do niej metodę `notifyCustomer` (wytnij i wklej; VS Code nie przenosi metod między klasami). W `ConfirmReservation` parametr konstruktora -> `notifier: CustomerNotifier`. W `Main.ts` złóż `new ConfirmReservation(new SmtpCustomerNotifier(new SmtpMailSender(...)))`.
+**Zmiany:**
+
+1. Nowy plik `app/CustomerNotifier.ts`: interfejs `CustomerNotifier` z metodą `notifyCustomer(email: string, message: string): void` (Extract Interface z potrzeby polityki, ręcznie).
+2. Nowy plik `infra/SmtpCustomerNotifier.ts`: klasa `SmtpCustomerNotifier implements CustomerNotifier` z klientem `SmtpMailSender` w konstruktorze; przenieś do niej metodę `notifyCustomer` z `ConfirmReservation` (Move Method, ręcznie) razem z tłumaczeniem kodu SMTP na `IllegalStateError`.
+3. W `ConfirmReservation` parametr konstruktora zmienia typ na `notifier: CustomerNotifier`, a `confirm` woła `this.notifier.notifyCustomer(...)`; import z `infra` znika z polityki.
+4. W `Main.ts` złóż graf: `new ConfirmReservation(new SmtpCustomerNotifier(new SmtpMailSender('smtp.kino.pl', 25)))`.
+
+**Przed:**
+
+```typescript
+export class ConfirmReservation {
+  constructor(private readonly mail: SmtpMailSender) {}
+  ...
+  private notifyCustomer(email: string, message: string): void {
+    const mime = `To: ${email}\r\nSubject: Rezerwacja\r\n\r\n${message}`;
+    const reply = this.mail.send(email, mime);
+    if (!reply.startsWith('250')) {
+      throw new IllegalStateError(`SMTP odrzucil: ${reply}`);
+    }
+  }
+}
+```
+
 **Po:**
 
 ```typescript
@@ -792,7 +1226,33 @@ return `201 ${id} ${total.toString()}`;
 
 ### Krok 1: Extract Class - przypadek użycia jako jawna orkiestracja
 
-**W IDE:** utwórz klasy danych `BookSeatsCommand(email, format, rows)` i `Booking(id, total)` (pola `readonly`, odpowiedniki rekordów). Zaznacz w kontrolerze wycenę, zapis i publikację, ⌃⇧R > Extract to method in class, nazwa `execute`, potem przenieś metodę ręcznie do nowej klasy `BookSeats` w pliku `BookSeats.ts` (wycenę wydziel w niej jako `price`). Kontroler mapuje błędy: `IllegalArgumentError` -> 400, `IllegalStateError` -> 503.
+**Zmiany:**
+
+1. Nowy plik `BookSeatsCommand.ts`: klasa danych z polami `readonly email`, `readonly format` i `readonly rows` (konstruktor zamraża kopię listy); nowy plik `Booking.ts`: klasa danych z polami `readonly id` i `readonly total: Money` - odpowiedniki rekordów.
+2. Nowy plik `BookSeats.ts`: klasa `BookSeats` z `db` i `outbox` w konstruktorze oraz metodą `execute(command): Booking` - przenieś do niej z kontrolera wycenę, zapis i publikację (Extract Class, ręcznie); wycenę wydziel w niej jako prywatną metodę `price(command)`, a walidacja "brak miejsc" rzuca `IllegalArgumentError`.
+3. `ReservationController` tylko tłumaczy: parsuje parametry, tworzy `BookSeatsCommand`, woła `execute` i mapuje wyjątki (`IllegalArgumentError` na `400`, `IllegalStateError` na `503`); pole `bookSeats` tworzy na razie w konstruktorze.
+
+**Przed:**
+
+```typescript
+handle(params: ReadonlyMap<string, string>): string {
+  const email = params.get('email');
+  ...
+  let base: Money;
+  switch (format) {
+    case 'IMAX': base = Money.of('40.00'); break;
+    ...
+  let id: string;
+  try {
+    id = this.db.insert([email, format, rows.length, total]);
+  } catch (error) {
+    ...
+  }
+  this.outbox.publish('reservation-created', `${id};${email};${total.toString()}`);
+  return `201 ${id} ${total.toString()}`;
+}
+```
+
 **Po:**
 
 ```typescript
@@ -813,7 +1273,28 @@ execute(command: BookSeatsCommand): Booking {
 
 ### Krok 2: Porty zdefiniowane przez potrzebę, adaptery
 
-**W IDE:** utwórz `NewReservation` (klasa danych), porty `ReservationStore.save(reservation)` i `BookingNotifier.reservationCreated(id, reservation)`. Przenieś ręcznie mapowanie na `unknown[]` do `RowStoreReservationStore`, publikację do `OutboxBookingNotifier`. `BookSeats` przyjmuje porty w konstruktorze.
+**Zmiany:**
+
+1. Nowy plik `NewReservation.ts`: klasa danych (`email`, `format`, `seats`, `total`) przekraczająca granicę do portu zapisu.
+2. Nowe pliki portów: `ReservationStore.ts` z metodą `save(reservation: NewReservation): string` i `BookingNotifier.ts` z metodą `reservationCreated(id, reservation)`.
+3. Nowy plik `RowStoreReservationStore.ts`: adapter mapujący `NewReservation` na kolumny `db.insert([...])`; nowy plik `OutboxBookingNotifier.ts`: adapter znający temat `reservation-created` i format komunikatu.
+4. `BookSeats` przyjmuje w konstruktorze porty `store` i `notifier` zamiast `db` i `outbox`; `execute` tworzy `NewReservation`, woła `store.save`, a potem `notifier.reservationCreated`.
+5. Kontroler składa na razie graf w konstruktorze: `new BookSeats(new RowStoreReservationStore(db), new OutboxBookingNotifier(outbox))`.
+
+**Przed:**
+
+```typescript
+execute(command: BookSeatsCommand): Booking {
+  if (command.rows.length === 0) {
+    throw new IllegalArgumentError('brak miejsc');
+  }
+  const total = this.price(command);
+  const id = this.db.insert([command.email, command.format, command.rows.length, total]);
+  this.outbox.publish('reservation-created', `${id};${command.email};${total.toString()}`);
+  return new Booking(id, total);
+}
+```
+
 **Po:**
 
 ```typescript
@@ -828,7 +1309,21 @@ return new Booking(id, reservation.total);
 
 ### Krok 3: Move - granica widoczna w katalogach
 
-**W IDE:** w eksploratorze VS Code przeciągnij `BookSeats.ts`, `BookSeatsCommand.ts`, `Booking.ts`, `NewReservation.ts`, `ReservationStore.ts`, `BookingNotifier.ts` do nowego katalogu `app`, a kontroler i oba adaptery do `adapter`. Na pytanie "Update imports?" odpowiedz "Yes" - VS Code poprawi ścieżki importów (także w `CinemaApplication.ts`).
+**Zmiany:**
+
+1. Utwórz katalog `app` i przenieś do niego pliki `BookSeats.ts`, `BookSeatsCommand.ts`, `Booking.ts`, `NewReservation.ts`, `ReservationStore.ts` i `BookingNotifier.ts` (Move).
+2. Utwórz katalog `adapter` i przenieś do niego `ReservationController.ts`, `RowStoreReservationStore.ts` i `OutboxBookingNotifier.ts`.
+3. Popraw ścieżki importów w przenoszonych plikach (adaptery importują porty z `../app/...`, świat zewnętrzny z `../../...`) oraz w `CinemaApplication.ts` (kontroler z `./adapter/ReservationController.js`).
+
+**Przed:**
+
+```typescript
+import { BookSeats } from './BookSeats.js';
+import { BookSeatsCommand } from './BookSeatsCommand.js';
+import { OutboxBookingNotifier } from './OutboxBookingNotifier.js';
+import { RowStoreReservationStore } from './RowStoreReservationStore.js';
+```
+
 **Po:**
 
 ```text
@@ -842,7 +1337,23 @@ step3/adapter/   ReservationController, RowStoreReservationStore, OutboxBookingN
 
 ### Krok 4: Composition root
 
-**W IDE:** ręcznie (bez Introduce Parameter): w kontrolerze zamień tworzenie `new BookSeats(...)` w konstruktorze na parametr `private readonly bookSeats: BookSeats`, a składanie grafu przenieś do funkcji `reservationController` w `CinemaApplication.ts` (kompilator wskaże to wywołanie). Parametry `db` i `outbox` znikają z konstruktora kontrolera.
+**Zmiany:**
+
+1. W `ReservationController` zamień tworzenie `new BookSeats(...)` w konstruktorze na właściwość parametru `constructor(private readonly bookSeats: BookSeats) {}` (Introduce Parameter, ręcznie); parametry `db` i `outbox` znikają z konstruktora kontrolera.
+2. Składanie grafu przenieś do funkcji `reservationController(db, outbox)` w `CinemaApplication.ts`: tworzy oba adaptery, `BookSeats` i przekazuje go kontrolerowi; wywołanie do poprawy wskaże kompilator.
+
+**Przed:**
+
+```typescript
+export class ReservationController {
+  private readonly bookSeats: BookSeats;
+
+  constructor(db: RowStore, outbox: Outbox) {
+    this.bookSeats = new BookSeats(
+      new RowStoreReservationStore(db), new OutboxBookingNotifier(outbox));
+  }
+```
+
 **Po:**
 
 ```typescript
@@ -908,7 +1419,35 @@ Uruchom test z logami (`scripts/warsztat.sh --lang ts test m2/s10` - skrypt uruc
 
 ### Krok 1: Extract Class - spójność
 
-**W IDE:** ręcznie (VS Code nie ma Extract Class): utwórz `domain/ScreeningRowMapper.ts` i przenieś do niego `toRow`, `fromRow` oraz parametr `table`; importy `Timestamp`, `ScreeningRow` i `IllegalArgumentError` idą razem z kodem (Quick Fix ⌘. > Add all missing imports). Popraw `CinemaApp.ts` (composition root), żeby tworzył obie klasy.
+**Zmiany:**
+
+1. Nowy plik `domain/ScreeningRowMapper.ts`: klasa `ScreeningRowMapper` z parametrem konstruktora `table` oraz metodami `toRow` i `fromRow` przeniesionymi z `ScreeningService` (Extract Class, ręcznie); importy `Timestamp`, `ScreeningRow` i `IllegalArgumentError` idą razem z kodem.
+2. W `ScreeningService` zostają pola `basePrice` i `morningDiscount` oraz metody `price` i `isMorning`; parametr `table`, metody `toRow`/`fromRow` i importy technologii znikają.
+3. Popraw composition root `CinemaApp.ts`: tworzy `new ScreeningService(new Decimal('25.00'), new Decimal('5.00'))` i `new ScreeningRowMapper('screenings')`, a wiersz i odczyt idą przez maper.
+
+**Przed:**
+
+```typescript
+export class ScreeningService {
+  constructor(
+    private readonly basePrice: Decimal,
+    private readonly morningDiscount: Decimal,
+    private readonly table: string,
+  ) {}
+  ...
+  toRow(screening: Screening): ScreeningRow {
+    return new ScreeningRow(this.table, screening.title, Timestamp.valueOf(screening.start));
+  }
+
+  fromRow(row: ScreeningRow): Screening {
+    if (row.table !== this.table) {
+      throw new IllegalArgumentError(`obca tabela: ${row.table}`);
+    }
+    return new Screening(row.title, row.start.toLocalDateTime());
+  }
+}
+```
+
 **Po:**
 
 ```typescript
@@ -927,7 +1466,20 @@ export class ScreeningRowMapper {    // wciąż w domain
 
 ### Krok 2: Move do adaptera
 
-**W IDE:** w eksploratorze przeciągnij `ScreeningRowMapper.ts` z `domain` do `adapter` i zgódź się na "Update imports". VS Code poprawi ścieżki w maperze (`../domain/Screening.js`, `./ScreeningRow.js`) i w `CinemaApp.ts`.
+**Zmiany:**
+
+1. Przenieś plik `ScreeningRowMapper.ts` z katalogu `domain` do `adapter` (Move Class).
+2. Popraw ścieżki importów w maperze (`Screening` z `../domain/Screening.js`, `ScreeningRow` z `./ScreeningRow.js`) i w `CinemaApp.ts` (maper z `./adapter/ScreeningRowMapper.js`).
+
+**Przed:**
+
+```typescript
+import { IllegalArgumentError } from '../../../../../shared/errors.js';
+import { Timestamp } from '../../sql/Timestamp.js';
+import { ScreeningRow } from '../adapter/ScreeningRow.js';
+import { Screening } from './Screening.js';
+```
+
 **Po:**
 
 ```typescript

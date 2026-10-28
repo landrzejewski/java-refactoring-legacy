@@ -22,14 +22,14 @@ scripts/warsztat.sh status                         # który krok jest teraz w St
 scripts/warsztat.sh --lang cs reset m2/s09         # przywrócenie Start z repozytorium
 ```
 
-- Zasada pokazu: **jeden krok - jeden test - jedno zdanie komentarza**. Nie łącz kroków, nawet jeśli IDE pozwala. Zanim ruszysz kod, powiedz, jaki dowód da test po kroku - to w praktyce pętla informacji zwrotnej ze slajdu 2.1.
+- Zasada pokazu: **jeden krok - jeden test - jedno zdanie komentarza**. Nie łącz kroków, nawet jeśli dałoby się je wykonać razem. Zanim ruszysz kod, powiedz, jaki dowód da test po kroku - to w praktyce pętla informacji zwrotnej ze slajdu 2.1.
 - **Krok po kroku bez numerów:** `scripts/warsztat.sh next` wstawia do `Start` gotowy następny krok i wypisuje, co się zmieniło. `prev` cofa o krok, `status` mówi, który krok jest teraz w `Start`. Skrypt pamięta język i ostatnią scenę, więc po pierwszym `--lang cs next m2/sNN` wystarczy samo `next`. Ręczne zmiany w `Start` zostają nadpisane - o to chodzi, gdy krok na żywo się rozjechał.
 - Jeśli krok na żywo się nie uda albo brakuje czasu: `next` (albo `jump` do konkretnego snapshotu) i kontynuuj od następnego kroku. Po pokazie zawsze `reset`.
-- Testy dotykają `Start` wyłącznie przez API wspólne dla wszystkich kroków, więc kompilują się w każdym stanie pośrednim. Tam, gdzie refaktoryzacja zmienia konstruktory, scena ma punkt wejścia pełniący rolę composition root: statyczna klasa `Main` (s08), `CinemaApplication` (s09), `CinemaApp` (s10). Refaktoryzacje Rider (Introduce Parameter, Move to Folder/Namespace) same aktualizują te miejsca.
+- Testy dotykają `Start` wyłącznie przez API wspólne dla wszystkich kroków, więc kompilują się w każdym stanie pośrednim. Tam, gdzie refaktoryzacja zmienia konstruktory, scena ma punkt wejścia pełniący rolę composition root: statyczna klasa `Main` (s08), `CinemaApplication` (s09), `CinemaApp` (s10). Gdy krok zmienia konstruktor albo przenosi klasę, aktualizujemy te miejsca w ramach tego samego kroku - listy zmian przy krokach mówią o tym wprost.
 - Część testów to nie tylko równoważność (`SNNEquivalenceTest`), ale też dowody strategii (`SNNSolutionTest`, `S08DependencyDirectionTest`, `S09UseCaseTest`, `S10ArchitectureTest`): wynik bramki, lista naruszeń ADR, kierunek zależności. Testy, które **dokumentują stan startowy** (`StartViolatesBothRules` w s02, `StartFailsTheGateWithFourKindsOfWarnings` w s03, `StartPassesEverythingBecauseItChecksNothing` w s04, `StartDomainHasNoViolationsBeyondTheFrozenOnes` w s10), zmienią kolor na czerwony, gdy wykonasz kroki na katalogu `Start` - to znak, że start jest już naprawiony. Pułapki, które znikają po naprawie, testy dokumentują na kopii w kroku, który jeszcze je ma (np. s05 krok 1 - antyprzykład nadużycia Boy Scout).
-- Sceny s02, s03, s04 i s10 czytają pliki źródłowe sceny. Ścieżki wyznacza pomocnik testów `SourceFiles` (szuka `RefactoringLegacy.slnx` w górę od katalogu wyjściowego testów), więc testy działają niezależnie od katalogu, z którego je uruchamiasz - z `warsztat.sh`, z `dotnet test` i z Rider.
+- Sceny s02, s03, s04 i s10 czytają pliki źródłowe sceny. Ścieżki wyznacza pomocnik testów `SourceFiles` (szuka `RefactoringLegacy.slnx` w górę od katalogu wyjściowego testów), więc testy działają niezależnie od katalogu, z którego je uruchamiasz - z `warsztat.sh` i z `dotnet test`.
 - Sceny s03 i s04 celowo zawierają kod z ostrzeżeniami kompilatora (`Start`/`Step1..2` w s03 i `Sample/Dirty` w s04) - to materiał dla bramek, nie niedoróbka. Build projektu ma `TreatWarningsAsErrors` (`csharp/Directory.Build.props`), więc w s03 plik `M2/S03CompilerGate/.editorconfig` wyłącza te cztery identyfikatory ostrzeżeń tylko dla wariantów sceny, a próbki s04 są wyłączone z kompilacji projektu (`<Compile Remove>` w obu plikach `.csproj`) - bramki kompilują je same, w pamięci.
-- IDE: JetBrains Rider z keymapą macOS (skróty jak w IntelliJ): ⇧F6 Rename, ⌥⌘M Extract Method, ⌥⌘V Introduce Variable, ⌥⌘C Introduce Constant, ⌥⌘P Introduce Parameter, ⌥⌘N Inline, ⌘F6 Change Signature, F6 Move, ⌘⌦ Safe Delete, ⌥⌘T Surround With, ⌃T Refactor This (menu wszystkich refaktoryzacji dostępnych w miejscu kursora), ⌥⏎ akcje kontekstowe. Test sceny uruchamiasz skryptem albo z ikony w marginesie (gutter) klasy testowej lub z okna Unit Tests. Refaktoryzacji, których Rider nie ma (Inline Class, Type Migration), dokonujemy ręcznie - przy każdej takiej scenie jest opis, a listę miejsc do poprawy daje build.
+- Sposób pracy: każdy krok to zmiana wykonana bezpośrednio w kodzie - zmiana nazwy, wydzielenie metody lub klasy, zmiana sygnatury, przeniesienie pliku do innego katalogu wraz z aktualizacją przestrzeni nazw i dyrektyw `using`. Nazwy refaktoryzacji z katalogu (Rename, Extract Method, Change Signature, Move Class itd.) pojawiają się w nagłówkach i opisach kroków. Sekcja **Zmiany** przy każdym kroku wylicza dokładnie, co zrobić; przy zmianach łamiących na chwilę kompilację (np. zmiana sygnatury) listę miejsc do poprawy daje build. Test sceny uruchamiasz skryptem `warsztat.sh` albo przez `dotnet test`.
 
 ## Mapa scen
 
@@ -90,7 +90,31 @@ Na żywo: zmień w konstruktorze `"morning,vip"` na `"morning,vlp"` i uruchom te
 
 ### Krok 1: Inline Class - rejestr pluginów znika
 
-**W IDE:** w `TicketPricer` zastąp pola `_registry` i `_activeRules` listą `[new MorningRule(), new VipRule()]` (ręcznie - Rider nie ma Inline Class; oba konstruktory usuń). Safe Delete (⌘⌦) na `RuleRegistry` i na właściwości `Priority` w interfejsie (była potrzebna tylko do sortowania).
+**Zmiany:**
+
+1. W `TicketPricer` usuwamy pola `_registry` i `_activeRules` oraz oba konstruktory. W ich miejsce wchodzi pole `_rules` typu `IReadOnlyList<IPricingRule>` z listą `[new MorningRule(), new VipRule()]` (Inline Class).
+2. Pętla w `Price` iteruje po `_rules` zamiast po `_registry.Resolve(_activeRules)`.
+3. Plik `RuleRegistry.cs` znika - klasa nie ma już żadnego klienta.
+4. Z interfejsu `IPricingRule` oraz z `MorningRule` i `VipRule` usuwamy właściwość `Priority` - była potrzebna tylko do sortowania w rejestrze.
+
+**Przed:**
+
+```csharp
+private readonly RuleRegistry _registry;
+private readonly string _activeRules;
+
+public TicketPricer()
+    : this(RuleRegistry.WithDefaults(), "morning,vip")
+{
+}
+
+public TicketPricer(RuleRegistry registry, string activeRules)
+{
+    _registry = registry;
+    _activeRules = activeRules;
+}
+```
+
 **Po:**
 
 ```csharp
@@ -103,7 +127,21 @@ private readonly IReadOnlyList<IPricingRule> _rules = [new MorningRule(), new Vi
 
 ### Krok 2: Change Signature - typowane dane zamiast słownika
 
-**W IDE:** ⌘F6 na `IPricingRule.AppliesTo`: typ parametru `IDictionary<string, object>` -> `TicketQuote`; na `Apply` usuń parametr kontekstu. Popraw implementacje (rzutowania znikają), usuń budowanie słownika w `TicketPricer`.
+**Zmiany:**
+
+1. W `IPricingRule` metoda `AppliesTo` zmienia typ parametru z `IDictionary<string, object>` na `TicketQuote`, a `Apply` traci parametr kontekstu - zostaje samo `decimal price` (Change Signature).
+2. `MorningRule` i `VipRule` dostosowują sygnatury i czytają pola rekordu (`quote.Start.Hour`, `quote.Row`, `quote.VipFromRow`) - rzutowania `(TimeOnly)` i `(int)` znikają.
+3. W `TicketPricer.Price` usuwamy budowanie słownika `context`; pętla woła `rule.AppliesTo(quote)` i `rule.Apply(price)`.
+
+**Przed:**
+
+```csharp
+public bool AppliesTo(IDictionary<string, object> context)
+{
+    return (int)context["row"] >= (int)context["vipFromRow"];
+}
+```
+
 **Po:**
 
 ```csharp
@@ -119,7 +157,30 @@ public bool AppliesTo(TicketQuote quote)
 
 ### Krok 3: Inline Class dla reguł, Safe Delete interfejsu
 
-**W IDE:** ręcznie (Rider nie ma Inline Class): dwa `if` w `Price` z metodami `IsMorning` i `IsVip` - ciała wklej z `AppliesTo` i `Apply` obu reguł. Safe Delete na `MorningRule`, `VipRule` i `IPricingRule`. Stałe przez ⌥⌘C.
+**Zmiany:**
+
+1. W `TicketPricer` powstają prywatne metody `IsMorning(TicketQuote)` i `IsVip(TicketQuote)` z warunkami przeniesionymi z `AppliesTo` obu reguł (Inline Class).
+2. Pętla po `_rules` w `Price` zamienia się w dwa `if`: rabat poranny odejmuje, dopłata VIP dodaje; pole `_rules` znika. Zaokrąglenie `Math.Round` nie jest już potrzebne - metoda zwraca `price` wprost.
+3. Kwoty `5.00m` i `10.00m` stają się stałymi `MorningDiscount` i `VipSurcharge` (Introduce Constant).
+4. Pliki `MorningRule.cs`, `VipRule.cs` i `IPricingRule.cs` znikają - nie mają już klientów.
+
+**Przed:**
+
+```csharp
+public decimal Price(TicketQuote quote)
+{
+    var price = BasePrice(quote.Format);
+    foreach (var rule in _rules)
+    {
+        if (rule.AppliesTo(quote))
+        {
+            price = rule.Apply(price);
+        }
+    }
+    return Math.Round(price, 2, MidpointRounding.AwayFromZero);
+}
+```
+
 **Po:**
 
 ```csharp
@@ -186,7 +247,28 @@ public double Total(string organizer, int tickets, double unitPrice)
 
 ### Krok 1: spełnienie R1 - wynik zamiast efektu
 
-**W IDE:** nowy rekord `Quote(double Total, bool GroupDiscount)` w `Pricing`; ⌘F6 na `Total` - bez `organizer`, zwraca `Quote`. Wywołanie `_mailer` przenieś do `BookingService` (warstwa aplikacji). Usuń dyrektywę `using ...Notification` z cennika.
+**Zmiany:**
+
+1. Nowy plik `Pricing/Quote.cs`: rekord `Quote(double Total, bool GroupDiscount)` - wynik cennika niesie informację o rabacie zamiast efektu ubocznego.
+2. `TicketPricing.Total` zmienia sygnaturę (Change Signature): traci parametr `organizer`, zwraca `Quote` zamiast `double`; warunek rabatu ląduje w zmiennej `groupDiscount`.
+3. Z `TicketPricing` znikają pole `_mailer`, konstruktor i wywołanie `GroupDiscountGranted`; znika też dyrektywa `using ...Notification`.
+4. `BookingService` tworzy `TicketPricing` bez argumentów i sam wysyła mail, gdy `quote.GroupDiscount` jest prawdziwe.
+
+**Przed:**
+
+```csharp
+public double Total(string organizer, int tickets, double unitPrice)
+{
+    double sum = unitPrice * tickets;
+    if (tickets >= 10)
+    {
+        sum = sum - sum * 0.10;
+        _mailer.GroupDiscountGranted(organizer, tickets);
+    }
+    return Math.Floor(sum * 100 + 0.5) / 100.0;
+}
+```
+
 **Po:**
 
 ```csharp
@@ -203,7 +285,28 @@ if (quote.GroupDiscount)
 
 ### Krok 2: spełnienie R2 - Money
 
-**W IDE:** ręcznie zmień typ `double` → `Money` w `Quote` i `TicketPricing` (Rider nie ma Type Migration - build wskaże resztę miejsc); nazwane stałe dla progu i procentu grupy; `BookingService` wybiera cenę jednostkową jako `Money` (`Money.Of("25.00")` itd.).
+**Zmiany:**
+
+1. W `Quote` i `TicketPricing` typ kwot zmienia się z `double` na `Money` - build wskazuje pozostałe miejsca do poprawy.
+2. Obliczenia przechodzą na metody `Money`: `unitPrice.Times(tickets)` i `sum.Minus(sum.Percent(...))`; ręczne zaokrąglanie `Math.Floor(sum * 100 + 0.5) / 100.0` znika.
+3. Próg `10` i procent `10` stają się stałymi `GroupSize` i `GroupDiscountPercent` (Introduce Constant).
+4. `BookingService` wybiera cenę jednostkową jako `Money` (`Money.Of("25.00")` itd.) i skleja odpowiedź wprost z `quote.Total` - `Money` sam drukuje dwie cyfry po kropce.
+
+**Przed:**
+
+```csharp
+public Quote Total(int tickets, double unitPrice)
+{
+    double sum = unitPrice * tickets;
+    bool groupDiscount = tickets >= 10;
+    if (groupDiscount)
+    {
+        sum = sum - sum * 0.10;
+    }
+    return new Quote(Math.Floor(sum * 100 + 0.5) / 100.0, groupDiscount);
+}
+```
+
 **Po:**
 
 ```csharp
@@ -268,7 +371,31 @@ Build całego projektu ma `TreatWarningsAsErrors`, więc plik `M2/S03CompilerGat
 
 ### Krok 1: typy generyczne
 
-**W IDE:** ręcznie zmień pole `_seatsByRow` na `SortedDictionary<int, List<string>>`, `TryGetValue` zamiast indeksu z rzutowaniem, usuń rzutowania i `using System.Collections`.
+**Zmiany:**
+
+1. W `SeatMap` pole `_seatsByRow` zmienia typ z `Hashtable` na `SortedDictionary<int, List<string>>`.
+2. W `Take` zmienna `row` staje się `int`, a listę miejsc pobieramy przez `TryGetValue` zamiast indeksu z rzutowaniem; `new ArrayList()` zamienia się w `[]`.
+3. `TakenPerRow` iteruje po parach słownika - rzutowania `(int)` i `(ArrayList)` znikają.
+4. Dyrektywa `using System.Collections` znika.
+
+**Przed:**
+
+```csharp
+private readonly Hashtable _seatsByRow = new();
+
+public void Take(string seat)
+{
+    object row = int.Parse(seat.Substring(1), CultureInfo.InvariantCulture);
+    ArrayList seats = (ArrayList)_seatsByRow[row];
+    if (seats == null)
+    {
+        seats = new ArrayList();
+        _seatsByRow[row] = seats;
+    }
+    seats.Add(seat);
+}
+```
+
 **Po:**
 
 ```csharp
@@ -288,7 +415,19 @@ seats.Add(seat);
 
 ### Krok 2: nowe API zamiast przestarzałego
 
-**W IDE:** w `return` zamień argument `format` na istniejącą już zmienną `name` - wywołanie trafia do `PriceTable.BasePrice(string)`. ⌘klik (Go to Declaration) na metodzie potwierdza, że to nowe przeciążenie.
+**Zmiany:**
+
+1. W `OccupancyReport.Describe` w instrukcji `return` argument wywołania zmienia się z `format` na istniejącą już zmienną `name` - wywołanie trafia do nowego przeciążenia `PriceTable.BasePrice(string)` zamiast przestarzałego `BasePrice(int)`.
+2. `PriceTable` zostaje bez zmian - przestarzała metoda czeka, aż przestanie mieć klientów.
+
+**Przed:**
+
+```csharp
+string name = format == 3 ? "IMAX" : format == 2 ? "3D" : "2D";
+return name + " [" + features + "], cena " + PriceTable.BasePrice(format)
+    + " zl, zajete: " + Show(map.TakenPerRow());
+```
+
 **Po:**
 
 ```csharp
@@ -297,12 +436,35 @@ return name + " [" + features + "], cena " + PriceTable.BasePrice(name)
 ```
 
 **Uruchom:** test zielony; zostaje tylko `[CS0162] OccupancyReport.cs:17` (`WarningsPointToFileAndLine`).
-**Co powiedzieć:** przestarzałą metodę usuniemy (Safe Delete) dopiero, gdy nikt jej nie woła - także poza repozytorium.
+**Co powiedzieć:** przestarzałą metodę usuniemy dopiero, gdy nikt jej nie woła - także poza repozytorium.
 **Snapshot:** `Step2/` · **Różnica:** `scripts/warsztat.sh --lang cs diff m2/s03 1 2`
 
 ### Krok 3: switch expression
 
-**W IDE:** zamień instrukcję `switch` na wyrażenie `switch` (⌥⏎ na `switch` może zaproponować konwersję; `goto case` zwykle ją blokuje, wtedy ręcznie); przelot zapisany wprost: `3 => "duzy ekran, dzwiek Dolby"`.
+**Zmiany:**
+
+1. W `Describe` instrukcja `switch` z `goto case` i martwym `break` zamienia się w wyrażenie `switch` przypisane do `features`.
+2. Przelot zapisujemy wprost: ramię `3 => "duzy ekran, dzwiek Dolby"` zawiera pełny opis IMAX; ramiona `2` i `_` zostają jak były.
+
+**Przed:**
+
+```csharp
+string features = "";
+switch (format)
+{
+    case 3:
+        features = features + "duzy ekran, ";
+        goto case 2;
+        break;
+    case 2:
+        features = features + "dzwiek Dolby";
+        break;
+    default:
+        features = "standard";
+        break;
+}
+```
+
 **Po:**
 
 ```csharp
@@ -361,7 +523,21 @@ public IReadOnlyList<string> Evaluate(GateInput input)
 
 ### Krok 1: skan źródeł - TODO i Console
 
-**W IDE:** metoda `ScanSources`: każda linia z `TODO`/`FIXME` albo `Console.Write`/`Console.Error` to wynik z plikiem i linią.
+**Zmiany:**
+
+1. W `QualityGate` powstaje prywatna metoda `ScanSources(GateInput, List<string>)`: czyta każdy plik `.cs` z katalogu źródeł i dla linii z `TODO`/`FIXME` albo `Console.Write`/`Console.Error` dodaje wynik z nazwą pliku i numerem linii.
+2. Pomocnicza metoda `CSharpFiles(string)` zwraca posortowaną listę plików `.cs` katalogu.
+3. `Evaluate` zamiast zwracać pustą listę tworzy listę `findings`, woła `ScanSources` i zwraca wyniki.
+
+**Przed:**
+
+```csharp
+public IReadOnlyList<string> Evaluate(GateInput input)
+{
+    return [];
+}
+```
+
 **Po:**
 
 ```csharp
@@ -377,7 +553,24 @@ if (line.Contains("TODO") || line.Contains("FIXME"))
 
 ### Krok 2: ostrzeżenia kompilatora
 
-**W IDE:** metoda `CompileSources` (Roslyn w pamięci: nullable włączone, `warningLevel: 9999`, te same globalne `using` co w projekcie), każde ostrzeżenie i błąd w źródłach to wynik.
+**Zmiany:**
+
+1. Powstają metody `CompileSources(GateInput, List<string>)` i `Compile(...)`: Roslyn kompiluje w pamięci pliki źródeł z włączonym nullable i `warningLevel: 9999`, z tymi samymi globalnymi `using` co `ImplicitUsings` w projekcie.
+2. Każde ostrzeżenie i błąd w źródłach daje wynik w formacie `kompilator Plik.cs:linia IDENTYFIKATOR`.
+3. Dochodzą pola pomocnicze: stała `ImplicitUsings`, `ParseOptions` i leniwie ładowane referencje platformy (`LoadPlatformReferences`).
+4. `Evaluate` woła `CompileSources` przed `ScanSources`.
+
+**Przed:**
+
+```csharp
+public IReadOnlyList<string> Evaluate(GateInput input)
+{
+    var findings = new List<string>();
+    ScanSources(input, findings);
+    return findings;
+}
+```
+
 **Po:**
 
 ```csharp
@@ -391,7 +584,24 @@ findings.Add("kompilator " + Path.GetFileName(d.Location.SourceTree!.FilePath) +
 
 ### Krok 3: pokrycie kluczowej klasy (przybliżenie)
 
-**W IDE:** metoda `CheckCoverage`: każda publiczna metoda `PriceTable` musi być wywołana w `PriceTableTest`.
+**Zmiany:**
+
+1. Powstaje metoda `CheckCoverage(GateInput, List<string>)`: wyrażenie regularne `PublicMethod` wyszukuje publiczne metody kluczowej klasy, a bramka sprawdza, czy tekst testu zawiera wywołanie `.Nazwa(`.
+2. Metoda bez wywołania w teście daje wynik `pokrycie Klasa.Metoda bez testu`.
+3. `Evaluate` woła `CheckCoverage` po `ScanSources`.
+
+**Przed:**
+
+```csharp
+public IReadOnlyList<string> Evaluate(GateInput input)
+{
+    var findings = new List<string>();
+    CompileSources(input, findings);
+    ScanSources(input, findings);
+    return findings;
+}
+```
+
 **Po:**
 
 ```csharp
@@ -407,7 +617,26 @@ if (!test.Contains("." + method.Groups[1].Value + "("))
 
 ### Krok 4: testy zielone
 
-**W IDE:** metoda `RunTests`: Roslyn kompiluje domenę razem z plikiem testu, zestaw trafia do zwalnianego `AssemblyLoadContext`, a refleksja uruchamia metody z atrybutem o nazwie `Fact` albo `Test` i zgłasza porażki.
+**Zmiany:**
+
+1. Powstaje metoda `RunTests(GateInput, List<string>)`: Roslyn kompiluje domenę razem z plikiem testu, zestaw trafia do zwalnianego `AssemblyLoadContext`, a refleksja uruchamia metody z atrybutem o nazwie `Fact` albo `Test`.
+2. Każda porażka (`TargetInvocationException`) daje wynik `test Klasa.Metoda nie przechodzi: TypWyjatku`; nieudana kompilacja zestawu testowego też jest wynikiem.
+3. Pomocnicza metoda `TestReferences()` dokłada do referencji platformy zestawy załadowane w bieżącym procesie.
+4. `Evaluate` woła `RunTests` jako pierwszy punkt listy.
+
+**Przed:**
+
+```csharp
+public IReadOnlyList<string> Evaluate(GateInput input)
+{
+    var findings = new List<string>();
+    CompileSources(input, findings);
+    ScanSources(input, findings);
+    CheckCoverage(input, findings);
+    return findings;
+}
+```
+
 **Po:**
 
 ```csharp
@@ -474,7 +703,28 @@ for (int i = 0; i < t.Seats.Count; i++)
 
 ### Krok 1: nadużycie - "skoro już tu jestem"
 
-**W IDE:** pokaż antyprzykład: `scripts/warsztat.sh --lang cs jump m2/s05 1`. Obok dobrych ruchów przemycono sortowanie miejsc, e-mail małymi literami i pominięcie linii "Tel" bez telefonu.
+**Zmiany:**
+
+1. Tego kroku nie wykonujemy ręcznie - antyprzykład wstawiamy poleceniem `scripts/warsztat.sh --lang cs jump m2/s05 1`.
+2. Obok dobrych ruchów (nazwa `ticket`, `StringBuilder`, `string.Join`) snapshot przemyca trzy zmiany zachowania: miejsca posortowane porządkiem ordinalnym, e-mail pisany małymi literami i brak linii `Tel: -`, gdy klient nie podał telefonu.
+3. Kwota przechodzi przez `new Money((decimal)ticket.Total)` zamiast dotychczasowego jawnego formatowania z dwoma miejscami po przecinku.
+
+**Przed:**
+
+```csharp
+string x = "";
+for (int i = 0; i < t.Seats.Count; i++)
+{
+    if (i > 0)
+    {
+        x = x + ", ";
+    }
+    x = x + t.Seats[i];
+}
+s = s + "Miejsca: " + x + "\n";
+s = s + "Klient: " + t.Email.Trim() + "\n";
+```
+
 **Po:**
 
 ```csharp
@@ -488,7 +738,29 @@ text.Append("Klient: ").Append(ticket.Email.Trim().ToLowerInvariant()).Append('\
 
 ### Krok 2: poprawna, mała poprawa
 
-**W IDE:** Rename (⇧F6) `t` → `ticket`; pętlę zamień ręcznie na `string.Join`; `StringBuilder` zamiast konkatenacji; Extract Method (⌥⌘M) `PhoneLine`.
+**Zmiany:**
+
+1. Parametr `t` dostaje nazwę `ticket`, a pomocnicze zmienne `s`, `d`, `x` znikają (Rename).
+2. Ręczna pętla sklejająca listę miejsc zamienia się w `string.Join(", ", ticket.Seats)`.
+3. Konkatenacja napisów zamienia się w jeden łańcuch wywołań `StringBuilder`.
+4. Linia telefonu trafia do prywatnej metody `PhoneLine(Ticket)` zwracającej `"Tel: " + (ticket.Phone ?? "-")` (Extract Method).
+5. Treść wydruku, kolejność linii i formaty zostają dokładnie takie same.
+
+**Przed:** (ze `Start` - antyprzykład z kroku 1 cofnęliśmy)
+
+```csharp
+s = s + "Miejsca: " + x + "\n";
+s = s + "Klient: " + t.Email.Trim() + "\n";
+if (t.Phone != null)
+{
+    s = s + "Tel: " + t.Phone + "\n";
+}
+else
+{
+    s = s + "Tel: -\n";
+}
+```
+
 **Po:**
 
 ```csharp
@@ -508,7 +780,7 @@ Boy Scout Rule to heurystyka: mała, lokalna, weryfikowalna poprawa w kodzie bie
 ### Pułapki
 
 - Zmiana zachowania pod etykietą refaktoryzacji.
-- Masowe formatowanie całego pliku (np. Reformat and Cleanup Code na całym projekcie) razem z poprawką - recenzent nie znajdzie zmiany merytorycznej.
+- Masowe, automatyczne przeformatowanie całego pliku albo projektu razem z poprawką - recenzent nie znajdzie zmiany merytorycznej.
 - "Sprzątanie" cudzego modułu bez uzgodnienia.
 
 ### Pytanie do sali
@@ -544,7 +816,35 @@ else if ...
 
 ### Krok 1: commit 1 - refaktoryzacja (Extract Method)
 
-**W IDE:** ⌥⌘M na wyborze ceny bazowej → `BasePrice(string format)`; ⌥⌘M na wyborze zniżki → `DiscountPercent(string type)` zwracające procent; Money zamiast `decimal`.
+**Zmiany:**
+
+1. Wybór ceny bazowej trafia do metody `BasePrice(string format)` zapisanej jako wyrażenie `switch` (Extract Method).
+2. Wybór zniżki trafia do metody `DiscountPercent(string type)`, która zwraca procent zamiast kwoty (Extract Method).
+3. Kwoty przechodzą z `decimal` na `Money` (`Money.Of("40.00")`, `price.Minus(...)`, `price.Plus(...)`); zmienna `q` zmienia nazwę na `query`, a `p` i `d` zastępują nazwane `@base` i `price`.
+
+**Przed:**
+
+```csharp
+decimal d;
+if (q.Type.Equals("STUDENT"))
+{
+    d = p * 0.25m;
+}
+else if (q.Type.Equals("SENIOR"))
+{
+    d = p * 0.30m;
+}
+else if (q.Type.Equals("CHILD"))
+{
+    d = p * 0.40m;
+}
+else
+{
+    d = 0m;
+}
+p = p - d;
+```
+
 **Po:**
 
 ```csharp
@@ -558,7 +858,23 @@ Money price = @base.Minus(@base.Percent(DiscountPercent(query.Type)));
 
 ### Krok 2: commit 2 - refaktoryzacja przygotowawcza (Change Signature)
 
-**W IDE:** ⌘F6 na `DiscountPercent`: parametr `TicketQuery query` zamiast `string type`, w ciele `query.Type switch`.
+**Zmiany:**
+
+1. `DiscountPercent` zmienia sygnaturę (Change Signature): zamiast `string type` przyjmuje cały `TicketQuery query`, a wyrażenie `switch` przełącza się na `query.Type`.
+2. Wywołanie w `Price` przekazuje `query` zamiast `query.Type`.
+
+**Przed:**
+
+```csharp
+private static int DiscountPercent(string type) => type switch
+{
+    "STUDENT" => 25,
+    "SENIOR" => 30,
+    "CHILD" => 40,
+    _ => 0,
+};
+```
+
 **Po:**
 
 ```csharp
@@ -574,7 +890,23 @@ private static int DiscountPercent(TicketQuery query) => query.Type switch
 
 ### Krok 3: commit 3 - zmiana zachowania
 
-**W IDE:** w ramieniu `_` warunek `IsCheapTuesday(query) ? CheapTuesdayPercent : 0`, metoda pomocnicza, stała `CheapTuesdayPercent`.
+**Zmiany:**
+
+1. W ramieniu `_` wyrażenia `switch` zero zastępujemy warunkiem `IsCheapTuesday(query) ? CheapTuesdayPercent : 0`.
+2. Powstaje prywatna metoda `IsCheapTuesday(TicketQuery)` sprawdzająca `query.Start.DayOfWeek == DayOfWeek.Tuesday` oraz stała `CheapTuesdayPercent = 20`.
+
+**Przed:**
+
+```csharp
+private static int DiscountPercent(TicketQuery query) => query.Type switch
+{
+    "STUDENT" => 25,
+    "SENIOR" => 30,
+    "CHILD" => 40,
+    _ => 0,
+};
+```
+
 **Po:**
 
 ```csharp
@@ -631,7 +963,35 @@ byTitle[sale.Title] = byTitle.GetValueOrDefault(sale.Title) + Revenue(sale); // 
 
 ### Krok 1: Extract Method według aktora
 
-**W IDE:** zaznacz blok pod `// księgowość`, ⌥⌘M `AccountingSection` (zwraca `string`, własny `StringBuilder`); to samo dla `// marketing` jako `MarketingSection`.
+**Zmiany:**
+
+1. Blok pod komentarzem `// księgowość` trafia do prywatnej metody `AccountingSection(IReadOnlyList<Sale>)` z własnym `StringBuilder`, zwracającej `string` (Extract Method).
+2. Blok pod `// marketing` tak samo trafia do metody `MarketingSection(...)`.
+3. `Render` skleja wyniki obu metod, a komentarze znikają - aktorów nazywają teraz metody.
+
+**Przed:**
+
+```csharp
+public string Render(IReadOnlyList<Sale> sales)
+{
+    var @out = new StringBuilder();
+    // księgowość
+    var tickets = 0.00m;
+    var bar = 0.00m;
+    foreach (var sale in sales)
+    {
+        tickets += sale.TicketRevenue;
+        bar += sale.BarRevenue;
+    }
+    ...
+    // marketing
+    @out.Append("MARKETING\n");
+    var byTitle = new SortedDictionary<string, decimal>(StringComparer.Ordinal);
+    ...
+    return @out.ToString();
+}
+```
+
 **Po:**
 
 ```csharp
@@ -647,15 +1007,37 @@ public string Render(IReadOnlyList<Sale> sales)
 
 ### Krok 2: Rozdziel wspólny helper według aktora
 
-**W IDE:** zaznacz metodę `Revenue` i zduplikuj ją (⌘D), nazwij kopię `Popularity` (⇧F6), w `MarketingSection` użyj `Popularity`. Dodaj komentarz XML (`/// <summary>`) z właścicielem każdej metody.
+**Zmiany:**
+
+1. Kopiujemy metodę `Revenue`, a kopia dostaje nazwę `Popularity` - formuła na dziś identyczna.
+2. `MarketingSection` liczy popularność przez `Popularity(sale)`; `AccountingSection` dalej używa `Revenue`.
+3. Obie metody dostają komentarz dokumentacyjny `/// <summary>` z aktorem-właścicielem.
+
+**Przed:**
+
+```csharp
+byTitle[sale.Title] = byTitle.GetValueOrDefault(sale.Title) + Revenue(sale);
+...
+private static decimal Revenue(Sale sale)
+{
+    return sale.TicketRevenue + sale.BarRevenue;
+}
+```
+
 **Po:**
 
 ```csharp
 /// <summary>Księgowość: przychód brutto seansu.</summary>
-private static decimal Revenue(Sale sale) { ... }
+private static decimal Revenue(Sale sale)
+{
+    return sale.TicketRevenue + sale.BarRevenue;
+}
 
 /// <summary>Marketing: miara popularności filmu (dziś: bilety + bar).</summary>
-private static decimal Popularity(Sale sale) { ... }
+private static decimal Popularity(Sale sale)
+{
+    return sale.TicketRevenue + sale.BarRevenue;
+}
 ```
 
 **Uruchom:** test zielony.
@@ -664,7 +1046,35 @@ private static decimal Popularity(Sale sale) { ... }
 
 ### Krok 3: Extract Class - klasa na aktora
 
-**W IDE:** ⌃T > Extract Class dla `AccountingSection`, `Revenue`, `Net` -> klasa `AccountingSection`; to samo dla `MarketingSection`, `Popularity` -> `MarketingSection`. Metody nazwij `Render`, klasy oznacz `internal`.
+**Zmiany:**
+
+1. Nowy plik `AccountingSection.cs`: klasa `internal sealed AccountingSection` przejmuje metodę sekcji księgowości (pod nazwą `Render`) oraz helpery `Revenue` i `Net` (Extract Class).
+2. Nowy plik `MarketingSection.cs`: klasa `internal sealed MarketingSection` przejmuje sekcję marketingu (też jako `Render`) i helper `Popularity`.
+3. `DailyReport` zostaje z polami `_accounting` i `_marketing` i tylko skleja wyniki obu `Render`; przeniesione metody znikają z `DailyReport`.
+
+**Przed:**
+
+```csharp
+public sealed class DailyReport
+{
+    public string Render(IReadOnlyList<Sale> sales)
+    {
+        return AccountingSection(sales) + MarketingSection(sales);
+    }
+
+    private static string AccountingSection(IReadOnlyList<Sale> sales)
+    {
+        ...
+    }
+
+    private static string MarketingSection(IReadOnlyList<Sale> sales)
+    {
+        ...
+    }
+    ...
+}
+```
+
 **Po:**
 
 ```csharp
@@ -730,7 +1140,23 @@ if (!reply.StartsWith("250", StringComparison.Ordinal))
 
 ### Krok 1: Introduce Parameter - dependency injection
 
-**W IDE:** inicjalizator pola przenieś do konstruktora (⌥⏎ na polu, akcja przeniesienia inicjalizacji do konstruktora, albo ręcznie dopisz konstruktor), zaznacz w nim `new SmtpMailSender("smtp.kino.pl", 25)` i ⌥⌘P (Introduce Parameter). Rider przeniesie tworzenie obiektu do wywołania w `Main`.
+**Zmiany:**
+
+1. W `ConfirmReservation` znika inicjalizator pola `_mail`; powstaje konstruktor `ConfirmReservation(SmtpMailSender mail)`, który przypisuje parametr do pola (Introduce Parameter).
+2. Tworzenie `new SmtpMailSender("smtp.kino.pl", 25)` przenosi się do composition root: `Main.ConfirmReservation()` woła teraz `new ConfirmReservation(new SmtpMailSender("smtp.kino.pl", 25))`, a `Main` dostaje `using ...Infra`.
+
+**Przed:**
+
+```csharp
+public sealed class ConfirmReservation
+{
+    private readonly SmtpMailSender _mail = new("smtp.kino.pl", 25);
+
+    public string Confirm(Reservation reservation)
+    {
+        ...
+```
+
 **Po:**
 
 ```csharp
@@ -746,7 +1172,23 @@ public ConfirmReservation(SmtpMailSender mail)
 
 ### Krok 2: Extract Method - nazwij potrzebę polityki
 
-**W IDE:** zaznacz składanie MIME, `Send` i sprawdzenie kodu, ⌥⌘M, nazwa `NotifyCustomer(string email, string message)`.
+**Zmiany:**
+
+1. Składanie wiadomości MIME, wywołanie `Send` i sprawdzenie kodu odpowiedzi trafiają do prywatnej metody `NotifyCustomer(string email, string message)` (Extract Method).
+2. `Confirm` woła `NotifyCustomer(reservation.Email, message)` i zwraca odpowiedź.
+
+**Przed:**
+
+```csharp
+var mime = "To: " + reservation.Email + "\r\nSubject: Rezerwacja\r\n\r\n" + message;
+var reply = _mail.Send(reservation.Email, mime);
+if (!reply.StartsWith("250", StringComparison.Ordinal))
+{
+    throw new InvalidOperationException("SMTP odrzucil: " + reply);
+}
+return "potwierdzono: " + reservation.Email;
+```
+
 **Po:**
 
 ```csharp
@@ -760,7 +1202,34 @@ return "potwierdzono: " + reservation.Email;
 
 ### Krok 3: Port po stronie polityki, adapter w Infra
 
-**W IDE:** ⌃T > Extract Class na `NotifyCustomer` i polu `_mail` -> klasa `SmtpCustomerNotifier`, potem F6 (Move to Folder) do `Infra`. Na nowej klasie ⌃T > Extract Interface `ICustomerNotifier` z metodą `NotifyCustomer` i przenieś interfejs (F6) do `App`. W `ConfirmReservation` typ pola i parametru -> `ICustomerNotifier`. W `Main` złóż `new ConfirmReservation(new SmtpCustomerNotifier(new SmtpMailSender(...)))`.
+**Zmiany:**
+
+1. Nowy plik `Infra/SmtpCustomerNotifier.cs`: klasa przejmuje z polityki pole `_mail` i metodę `NotifyCustomer` (Extract Class) - cały MIME i interpretacja kodów SMTP mieszkają teraz w adapterze.
+2. Nowy plik `App/ICustomerNotifier.cs`: interfejs z jedyną metodą `void NotifyCustomer(string email, string message)` (Extract Interface); `SmtpCustomerNotifier` go implementuje.
+3. W `ConfirmReservation` typ pola i parametru konstruktora zmienia się na `ICustomerNotifier`, a dyrektywa `using ...Infra` znika z polityki.
+4. `Main` składa graf: `new ConfirmReservation(new SmtpCustomerNotifier(new SmtpMailSender("smtp.kino.pl", 25)))`.
+
+**Przed:**
+
+```csharp
+private readonly SmtpMailSender _mail;
+
+public ConfirmReservation(SmtpMailSender mail)
+{
+    _mail = mail;
+}
+...
+private void NotifyCustomer(string email, string message)
+{
+    var mime = "To: " + email + "\r\nSubject: Rezerwacja\r\n\r\n" + message;
+    var reply = _mail.Send(email, mime);
+    if (!reply.StartsWith("250", StringComparison.Ordinal))
+    {
+        throw new InvalidOperationException("SMTP odrzucil: " + reply);
+    }
+}
+```
+
 **Po:**
 
 ```csharp
@@ -828,7 +1297,41 @@ return "201 " + id + " " + total.ToString(CultureInfo.InvariantCulture);
 
 ### Krok 1: Extract Class - przypadek użycia jako jawna orkiestracja
 
-**W IDE:** utwórz rekordy `BookSeatsCommand(Email, Format, Rows)` i `Booking(Id, Total)`. Zaznacz w kontrolerze wycenę, zapis i publikację, ⌥⌘M `Execute`, potem ⌃T > Extract Class (albo Move Instance Method, F6) do nowej klasy `BookSeats`. Kontroler mapuje wyjątki: `ArgumentException` -> 400, `InvalidOperationException` -> 503.
+**Zmiany:**
+
+1. Nowe pliki `BookSeatsCommand.cs` i `Booking.cs`: rekordy wejścia (`Email`, `Format`, `Rows`) i wyniku (`Id`, `Total`) przypadku użycia.
+2. Nowy plik `BookSeats.cs`: klasa przejmuje z kontrolera wycenę (prywatna metoda `Price`), zapis i publikację (Extract Method + Extract Class); publiczna metoda `Execute(BookSeatsCommand)` zwraca `Booking`, a przy braku miejsc rzuca `ArgumentException`.
+3. `ReservationController` trzyma pole `_bookSeats` (tworzy je w konstruktorze z `db` i `outbox`), tłumaczy parametry na `BookSeatsCommand` i mapuje wyjątki: `ArgumentException` -> 400, `InvalidOperationException` -> 503.
+
+**Przed:**
+
+```csharp
+var @base = format switch
+{
+    "IMAX" => 40.00m,
+    "3D" => 32.00m,
+    _ => 25.00m,
+};
+var total = 0.00m;
+foreach (var row in rows)
+{
+    total += @base;
+    if (row >= 10)
+    {
+        total += 10.00m;
+    }
+}
+string id;
+try
+{
+    id = _db.Insert([email, format, rows.Count, total]);
+}
+catch (InvalidOperationException e)
+{
+    return "503 " + e.Message;
+}
+```
+
 **Po:**
 
 ```csharp
@@ -853,7 +1356,25 @@ public Booking Execute(BookSeatsCommand command)
 
 ### Krok 2: Porty zdefiniowane przez potrzebę, adaptery
 
-**W IDE:** utwórz `NewReservation` (rekord), porty `IReservationStore.Save(NewReservation)` i `IBookingNotifier.ReservationCreated(id, reservation)`. Przenieś (ręcznie lub ⌃T > Extract Class) mapowanie na `object[]` do `RowStoreReservationStore`, publikację do `OutboxBookingNotifier`. `BookSeats` przyjmuje porty.
+**Zmiany:**
+
+1. Nowy plik `NewReservation.cs`: rekord danych przekraczających granicę do portu zapisu.
+2. Nowe pliki `IReservationStore.cs` i `IBookingNotifier.cs`: porty `string Save(NewReservation)` i `void ReservationCreated(string id, NewReservation reservation)`.
+3. Nowe pliki `RowStoreReservationStore.cs` i `OutboxBookingNotifier.cs`: adaptery przejmują mapowanie na `object[]` oraz temat i format komunikatu (Extract Class).
+4. `BookSeats` zamiast `RowStore` i `Outbox` dostaje w konstruktorze porty; `Execute` buduje `NewReservation`, woła `_store.Save`, potem `_notifier.ReservationCreated`.
+5. Kontroler w konstruktorze składa `new BookSeats(new RowStoreReservationStore(db), new OutboxBookingNotifier(outbox))`.
+
+**Przed:**
+
+```csharp
+var total = Price(command);
+var id = _db.Insert(
+    [command.Email, command.Format, command.Rows.Count, total]);
+_outbox.Publish("reservation-created",
+    id + ";" + command.Email + ";" + total.ToString(CultureInfo.InvariantCulture));
+return new Booking(id, total);
+```
+
 **Po:**
 
 ```csharp
@@ -868,7 +1389,21 @@ return new Booking(id, reservation.Total);
 
 ### Krok 3: Move to Namespace - granica widoczna w przestrzeniach nazw
 
-**W IDE:** F6 (Move to Folder, z aktualizacją przestrzeni nazw) na `BookSeats`, `BookSeatsCommand`, `Booking`, `NewReservation`, `IReservationStore`, `IBookingNotifier` -> folder `App`; F6 na kontrolerze i obu adapterach -> `Adapter`. Rider poprawi dyrektywy `using` (także w `CinemaApplication`).
+**Zmiany:**
+
+1. `BookSeats`, `BookSeatsCommand`, `Booking`, `NewReservation`, `IReservationStore` i `IBookingNotifier` przenoszą się do katalogu `App`, a ich przestrzeń nazw dostaje przyrostek `.App` (Move Class).
+2. `ReservationController`, `RowStoreReservationStore` i `OutboxBookingNotifier` przenoszą się do katalogu `Adapter` z przestrzenią `.Adapter`.
+3. Adaptery dostają dyrektywę `using ...App`, a `CinemaApplication` - `using ...Adapter`; w `App` nie ma żadnego `using ...Adapter`.
+
+**Przed:** wszystkie typy kroku 2 leżą płasko w jednym katalogu i jednej przestrzeni nazw, np. w `RowStoreReservationStore.cs`:
+
+```csharp
+namespace Training.Workshop.M2.S09CleanArchitecture.Step2;
+
+/// <summary>Krok 2: adapter wyjściowy - mapuje rekord na kolumny tabeli.</summary>
+public sealed class RowStoreReservationStore : IReservationStore
+```
+
 **Po:**
 
 ```text
@@ -882,7 +1417,21 @@ Step3/Adapter/   ReservationController, RowStoreReservationStore, OutboxBookingN
 
 ### Krok 4: Composition root
 
-**W IDE:** w konstruktorze kontrolera zaznacz `new BookSeats(...)` i ⌥⌘P (Introduce Parameter) - tworzenie grafu przeniesie się do `CinemaApplication`. Usuń nieużywane parametry `db`, `outbox` z kontrolera (⌘F6).
+**Zmiany:**
+
+1. Konstruktor `ReservationController` zamiast `RowStore db, Outbox outbox` przyjmuje gotowy `BookSeats` i tylko przypisuje pole (Introduce Parameter); nieużywane już parametry `db` i `outbox` znikają z kontrolera (Change Signature), a razem z nimi składanie grafu.
+2. `CinemaApplication.ReservationController(db, outbox)` przejmuje budowę całego grafu: oba adaptery, `BookSeats` i kontroler - staje się prawdziwym composition root.
+
+**Przed:**
+
+```csharp
+public ReservationController(RowStore db, Outbox outbox)
+{
+    _bookSeats = new BookSeats(
+        new RowStoreReservationStore(db), new OutboxBookingNotifier(outbox));
+}
+```
+
 **Po:**
 
 ```csharp
@@ -945,19 +1494,51 @@ public sealed class ScreeningService
     private readonly string _table;
 ```
 
-Uruchom `scripts/warsztat.sh --lang cs test m2/s10` (skrypt wypisuje wyjście testów, które xUnit zbiera przez `ITestOutputHelper`) albo test z Rider (okno Unit Tests) i pokaż wyjście `S10ArchitectureTest`: `s10 start - naruszenia granicy: [ScreeningService.cs: System.Data.SqlTypes, ScreeningService.cs: Training.Workshop.M2.S10BoundaryCheck.Start.Adapter]` i `s10 start - LCOM4 ScreeningService: Result { Lcom4 = 2, Groups = [FromRow, ToRow; IsMorning, Price] }`. Test startu działa jak "zamrożone naruszenia" (FreezingArchRule w ArchUnit, podobny mechanizm ma ArchUnitNET): znane są tolerowane, każde nowe jest czerwone.
+Uruchom `scripts/warsztat.sh --lang cs test m2/s10` (skrypt wypisuje wyjście testów, które xUnit zbiera przez `ITestOutputHelper`) i pokaż wyjście `S10ArchitectureTest`: `s10 start - naruszenia granicy: [ScreeningService.cs: System.Data.SqlTypes, ScreeningService.cs: Training.Workshop.M2.S10BoundaryCheck.Start.Adapter]` i `s10 start - LCOM4 ScreeningService: Result { Lcom4 = 2, Groups = [FromRow, ToRow; IsMorning, Price] }`. Test startu działa jak "zamrożone naruszenia" (FreezingArchRule w ArchUnit, podobny mechanizm ma ArchUnitNET): znane są tolerowane, każde nowe jest czerwone.
 
 ### Krok 1: Extract Class - spójność
 
-**W IDE:** ⌃T > Extract Class na `ToRow`, `FromRow` i polu `_table`, klasa `ScreeningRowMapper` w tym samym folderze `Domain`. Popraw `CinemaApp` (composition root), żeby tworzył obie klasy.
+**Zmiany:**
+
+1. Nowy plik `Domain/ScreeningRowMapper.cs`: klasa przejmuje z `ScreeningService` pole `_table` oraz metody `ToRow` i `FromRow` (Extract Class); razem z nimi przechodzą dyrektywy `using System.Data.SqlTypes` i `using ...Adapter`. Klasa zostaje w folderze `Domain`.
+2. `ScreeningService` zostaje z polami `_basePrice` i `_morningDiscount` oraz metodami `Price` i `IsMorning`; konstruktor traci parametr `table`, a obie technologiczne dyrektywy `using` znikają z tego pliku.
+3. `CinemaApp.Describe` (composition root) tworzy obie klasy: `new ScreeningService(25.00m, 5.00m)` i `new ScreeningRowMapper("screenings")`, i woła `mapper.ToRow`/`mapper.FromRow`.
+
+**Przed:**
+
+```csharp
+public ScreeningRow ToRow(Screening screening)
+{
+    return new ScreeningRow(_table, screening.Title, new SqlDateTime(screening.Start));
+}
+
+public Screening FromRow(ScreeningRow row)
+{
+    if (row.Table != _table)
+    {
+        throw new ArgumentException("obca tabela: " + row.Table);
+    }
+    return new Screening(row.Title, row.Start.Value);
+}
+```
+
 **Po:**
 
 ```csharp
-public sealed class ScreeningRowMapper    // wciąż w Domain
+using System.Data.SqlTypes;
+using Training.Workshop.M2.S10BoundaryCheck.Step1.Adapter;
+
+namespace Training.Workshop.M2.S10BoundaryCheck.Step1.Domain;
+
+public sealed class ScreeningRowMapper
 {
     private readonly string _table;
-    public ScreeningRow ToRow(Screening screening) { ... }
-    public Screening FromRow(ScreeningRow row) { ... }
+    ...
+    public ScreeningRow ToRow(Screening screening)
+    {
+        return new ScreeningRow(_table, screening.Title, new SqlDateTime(screening.Start));
+    }
+    ...
 }
 ```
 
@@ -967,7 +1548,25 @@ public sealed class ScreeningRowMapper    // wciąż w Domain
 
 ### Krok 2: Move to Namespace - maper do adaptera
 
-**W IDE:** F6 na `ScreeningRowMapper`, folder `Adapter` (z aktualizacją przestrzeni nazw). Rider doda `using ...Domain;` w maperze i poprawi `CinemaApp`.
+**Zmiany:**
+
+1. Plik `ScreeningRowMapper.cs` przenosi się z folderu `Domain` do `Adapter`, a jego przestrzeń nazw zmienia końcówkę `.Domain` na `.Adapter` (Move Class).
+2. W maperze dochodzi `using ...Domain` (dla typu `Screening`), a w `CinemaApp` dochodzi `using ...Adapter`.
+3. W `Domain` nie zostaje żaden plik używający technologii - `BoundaryRule` nie ma już czego zgłaszać.
+
+**Przed:**
+
+```csharp
+using System.Data.SqlTypes;
+using Training.Workshop.M2.S10BoundaryCheck.Step1.Adapter;
+
+namespace Training.Workshop.M2.S10BoundaryCheck.Step1.Domain;
+
+public sealed class ScreeningRowMapper
+{
+    private readonly string _table;
+```
+
 **Po:**
 
 ```csharp

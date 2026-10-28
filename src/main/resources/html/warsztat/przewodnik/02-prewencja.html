@@ -77,7 +77,7 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 .langs{margin-left:auto}.langs+.pager{margin-left:0}</style>
 </head>
 <body class="warsztat">
-<header class="topbar"><a class="home" href="../../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../../slajdy/refaktoryzacja-do-wzorcow-slajdy.html">Slajdy</a><a class="tab" href="../00-cinelegacy.html">Warsztat CineLegacy</a><a class="tab" href="../zadania/02-prewencja.html">Zadania</a><a class="tab active" href="02-prewencja.html">Przewodnik</a></div><div class="tabs langs" aria-label="Język"><a class="tab active" href="../../warsztat/przewodnik/02-prewencja.html">Java</a><a class="tab" href="../../warsztat-csharp/przewodnik/02-prewencja.html">C#</a><a class="tab" href="../../warsztat-typescript/przewodnik/02-prewencja.html">TypeScript</a></div><div class="pager"><a href="03-testowanie-a-bezpieczenstwo.html" title="Następny moduł">03 &rarr;</a></div></header>
+<header class="topbar"><a class="home" href="../../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../../slajdy/refaktoryzacja-do-wzorcow-slajdy.html">Slajdy</a><a class="tab" href="../00-cinelegacy.html">Warsztat CineLegacy</a><a class="tab active" href="02-prewencja.html">Przewodnik</a></div><div class="tabs langs" aria-label="Język"><a class="tab active" href="../../warsztat/przewodnik/02-prewencja.html">Java</a><a class="tab" href="../../warsztat-csharp/przewodnik/02-prewencja.html">C#</a><a class="tab" href="../../warsztat-typescript/przewodnik/02-prewencja.html">TypeScript</a></div><div class="pager"><a href="03-testowanie-a-bezpieczenstwo.html" title="Następny moduł">03 &rarr;</a></div></header>
 <div class="layout">
 <aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#jak-prowadzic-pokaz">Jak prowadzić pokaz</a></li><li class="h2"><a href="#mapa-scen">Mapa scen</a></li><li class="h2"><a href="#scena-s01-yagni-silnik-regul-dla-dwoch-regul">Scena s01. YAGNI - silnik reguł dla dwóch reguł</a></li><li class="h3"><a href="#w-skrocie">W skrócie</a></li><li class="h3"><a href="#co-widzimy">Co widzimy</a></li><li class="h3"><a href="#krok-1-inline-class-rejestr-pluginow-znika">Krok 1: Inline Class - rejestr pluginów znika</a></li><li class="h3"><a href="#krok-2-change-signature-typowane-dane-zamiast-mapy">Krok 2: Change Signature - typowane dane zamiast mapy</a></li><li class="h3"><a href="#krok-3-inline-class-dla-regul-safe-delete-interfejsu">Krok 3: Inline Class dla reguł, Safe Delete interfejsu</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali">Pytanie do sali</a></li><li class="h2"><a href="#scena-s02-adr-i-wykonywalny-model-decyzji">Scena s02. ADR i wykonywalny model decyzji</a></li><li class="h3"><a href="#w-skrocie-1">W skrócie</a></li><li class="h3"><a href="#co-widzimy-1">Co widzimy</a></li><li class="h3"><a href="#krok-1-spelnienie-r1-wynik-zamiast-efektu">Krok 1: spełnienie R1 - wynik zamiast efektu</a></li><li class="h3"><a href="#krok-2-spelnienie-r2-money">Krok 2: spełnienie R2 - Money</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-1">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-1">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-1">Pytanie do sali</a></li><li class="h2"><a href="#scena-s03-bramka-kompilatora-xlintall-werror">Scena s03. Bramka kompilatora -Xlint:all -Werror</a></li><li class="h3"><a href="#w-skrocie-2">W skrócie</a></li><li class="h3"><a href="#co-widzimy-2">Co widzimy</a></li><li class="h3"><a href="#krok-1-typy-generyczne">Krok 1: typy generyczne</a></li><li class="h3"><a href="#krok-2-nowe-api-zamiast-przestarzalego">Krok 2: nowe API zamiast przestarzałego</a></li><li class="h3"><a href="#krok-3-switch-expression">Krok 3: switch expression</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-2">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-2">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-2">Pytanie do sali</a></li><li class="h2"><a href="#scena-s04-minimalna-bramka-jakosci-jako-kod">Scena s04. Minimalna bramka jakości jako kod</a></li><li class="h3"><a href="#w-skrocie-3">W skrócie</a></li><li class="h3"><a href="#co-widzimy-3">Co widzimy</a></li><li class="h3"><a href="#krok-1-skan-zrodel-todo-i-systemout">Krok 1: skan źródeł - TODO i System.out</a></li><li class="h3"><a href="#krok-2-ostrzezenia-kompilatora">Krok 2: ostrzeżenia kompilatora</a></li><li class="h3"><a href="#krok-3-pokrycie-kluczowej-klasy-przyblizenie">Krok 3: pokrycie kluczowej klasy (przybliżenie)</a></li><li class="h3"><a href="#krok-4-testy-zielone">Krok 4: testy zielone</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-3">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-3">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-3">Pytanie do sali</a></li><li class="h2"><a href="#scena-s05-boy-scout-rule-mala-poprawa-i-jej-naduzycie">Scena s05. Boy Scout Rule - mała poprawa i jej nadużycie</a></li><li class="h3"><a href="#w-skrocie-4">W skrócie</a></li><li class="h3"><a href="#co-widzimy-4">Co widzimy</a></li><li class="h3"><a href="#krok-1-naduzycie-skoro-juz-tu-jestem">Krok 1: nadużycie - &quot;skoro już tu jestem&quot;</a></li><li class="h3"><a href="#krok-2-poprawna-mala-poprawa">Krok 2: poprawna, mała poprawa</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-4">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-4">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-4">Pytanie do sali</a></li><li class="h2"><a href="#scena-s06-seria-malych-zmian-gotowych-do-przegladu">Scena s06. Seria małych zmian gotowych do przeglądu</a></li><li class="h3"><a href="#w-skrocie-5">W skrócie</a></li><li class="h3"><a href="#co-widzimy-5">Co widzimy</a></li><li class="h3"><a href="#krok-1-commit-1-refaktoryzacja-extract-method">Krok 1: commit 1 - refaktoryzacja (Extract Method)</a></li><li class="h3"><a href="#krok-2-commit-2-refaktoryzacja-przygotowawcza-change-signature">Krok 2: commit 2 - refaktoryzacja przygotowawcza (Change Signature)</a></li><li class="h3"><a href="#krok-3-commit-3-zmiana-zachowania">Krok 3: commit 3 - zmiana zachowania</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-5">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-5">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-5">Pytanie do sali</a></li><li class="h2"><a href="#scena-s07-srp-raport-dla-dwoch-aktorow">Scena s07. SRP - raport dla dwóch aktorów</a></li><li class="h3"><a href="#w-skrocie-6">W skrócie</a></li><li class="h3"><a href="#co-widzimy-6">Co widzimy</a></li><li class="h3"><a href="#krok-1-extract-method-wedlug-aktora">Krok 1: Extract Method według aktora</a></li><li class="h3"><a href="#krok-2-rozdziel-wspolny-helper-wedlug-aktora">Krok 2: Rozdziel wspólny helper według aktora</a></li><li class="h3"><a href="#krok-3-extract-class-klasa-na-aktora">Krok 3: Extract Class - klasa na aktora</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-6">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-6">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-6">Pytanie do sali</a></li><li class="h2"><a href="#scena-s08-dip-kierunek-zaleznosci-kontra-przeplyw-sterowania">Scena s08. DIP - kierunek zależności kontra przepływ sterowania</a></li><li class="h3"><a href="#w-skrocie-7">W skrócie</a></li><li class="h3"><a href="#co-widzimy-7">Co widzimy</a></li><li class="h3"><a href="#krok-1-introduce-parameter-dependency-injection">Krok 1: Introduce Parameter - dependency injection</a></li><li class="h3"><a href="#krok-2-extract-method-nazwij-potrzebe-polityki">Krok 2: Extract Method - nazwij potrzebę polityki</a></li><li class="h3"><a href="#krok-3-port-po-stronie-polityki-adapter-w-infra">Krok 3: Port po stronie polityki, adapter w infra</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-7">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-7">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-7">Pytanie do sali</a></li><li class="h2"><a href="#scena-s09-clean-architecture-use-case-dane-na-granicy-composition-root">Scena s09. Clean Architecture - use case, dane na granicy, composition root</a></li><li class="h3"><a href="#w-skrocie-8">W skrócie</a></li><li class="h3"><a href="#co-widzimy-8">Co widzimy</a></li><li class="h3"><a href="#krok-1-extract-class-przypadek-uzycia-jako-jawna-orkiestracja">Krok 1: Extract Class - przypadek użycia jako jawna orkiestracja</a></li><li class="h3"><a href="#krok-2-porty-zdefiniowane-przez-potrzebe-adaptery">Krok 2: Porty zdefiniowane przez potrzebę, adaptery</a></li><li class="h3"><a href="#krok-3-move-class-granica-widoczna-w-pakietach">Krok 3: Move Class - granica widoczna w pakietach</a></li><li class="h3"><a href="#krok-4-composition-root">Krok 4: Composition root</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-8">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-8">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-8">Pytanie do sali</a></li><li class="h2"><a href="#scena-s10-automatyczna-ochrona-granicy-i-diagnostyka-spojnosci">Scena s10. Automatyczna ochrona granicy i diagnostyka spójności</a></li><li class="h3"><a href="#w-skrocie-9">W skrócie</a></li><li class="h3"><a href="#co-widzimy-9">Co widzimy</a></li><li class="h3"><a href="#krok-1-extract-class-spojnosc">Krok 1: Extract Class - spójność</a></li><li class="h3"><a href="#krok-2-move-class-do-adaptera">Krok 2: Move Class do adaptera</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-9">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-9">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-9">Pytanie do sali</a></li><li class="h2"><a href="#proponowana-kolejnosc-pokazu">Proponowana kolejność pokazu</a></li></ul></details></nav></aside>
 <main>
@@ -101,7 +101,7 @@ scripts/warsztat.sh reset m2/s09            <span class="hljs-comment"># przywr�
 <li>Zasada pokazu: <strong>jeden krok - jeden test - jedno zdanie komentarza</strong>. Nie łącz kroków, nawet jeśli IDE pozwala. Zanim ruszysz kod, powiedz, jaki dowód da test po kroku - to w praktyce pętla informacji zwrotnej ze slajdu 2.1.</li>
 <li><strong>Krok po kroku bez numerów:</strong> <code>scripts/<wbr>warsztat.sh next</code> wstawia do <code>start</code> gotowy następny krok i wypisuje, co się zmieniło. <code>prev</code> cofa o krok, <code>status</code> mówi, który krok jest teraz w <code>start</code>. Skrypt pamięta ostatnią scenę, więc po pierwszym <code>next m2/<wbr>sNN</code> wystarczy samo <code>next</code>. Ręczne zmiany w <code>start</code> zostają nadpisane - o to chodzi, gdy krok na żywo się rozjechał.</li>
 <li>Jeśli krok na żywo się nie uda albo brakuje czasu: <code>next</code> (albo <code>jump</code> do konkretnego snapshotu) i kontynuuj od następnego kroku. Po pokazie zawsze <code>reset</code>.</li>
-<li>Testy dotykają <code>start</code> wyłącznie przez API wspólne dla wszystkich kroków, więc kompilują się w każdym stanie pośrednim. Tam, gdzie refaktoryzacja zmienia konstruktory, scena ma punkt wejścia pełniący rolę composition root: <code>Main</code> (s08), <code>CinemaApplication</code> (s09), <code>CinemaApp</code> (s10). Refaktoryzacje IntelliJ (Introduce Parameter, Move Class) same aktualizują te miejsca.</li>
+<li>Testy dotykają <code>start</code> wyłącznie przez API wspólne dla wszystkich kroków, więc kompilują się w każdym stanie pośrednim. Tam, gdzie refaktoryzacja zmienia konstruktory, scena ma punkt wejścia pełniący rolę composition root: <code>Main</code> (s08), <code>CinemaApplication</code> (s09), <code>CinemaApp</code> (s10). Kroki, które zmieniają konstruktor albo przenoszą klasę, aktualizują też te punkty wejścia - to część kroku.</li>
 <li>Część testów to nie tylko równoważność (<code>SNNEquivalenceTest</code>), ale też dowody strategii (<code>SNNSolutionTest</code>, <code>S08DependencyDirectionTest</code>, <code>S09UseCaseTest</code>, <code>S10ArchitectureTest</code>): wynik bramki, lista naruszeń ADR, kierunek zależności. Testy, które <strong>dokumentują stan startowy</strong> (<code>startViolatesBothRules</code> w s02, <code>startFailsTheGateWithFourKindsOfWarnings</code> w s03, <code>startPassesEverythingBecauseItChecksNothing</code> w s04, <code>startDomainHasNoViolationsBeyondTheFrozenOnes</code> w s10), zmienią kolor na czerwony, gdy wykonasz kroki na pakiecie <code>start</code> - to znak, że start jest już naprawiony. Pułapki, które znikają po naprawie, testy dokumentują na kopii w kroku, który jeszcze je ma (np. s05 krok 1 - antyprzykład nadużycia Boy Scout).</li>
 <li>Sceny s02, s03, s04 i s10 czytają pliki źródłowe sceny. Testy uruchamiaj z katalogu głównego repozytorium (tak działa <code>warsztat.sh</code> i <code>mvn test</code>).</li>
 <li>Sceny s03 i s04 celowo zawierają kod z ostrzeżeniami kompilatora (<code>start</code> i <code>sample/<wbr>dirty</code>) - to materiał dla bramek, nie niedoróbka.</li>
@@ -212,16 +212,47 @@ context.put(<span class="hljs-string">&quot;row&quot;</span>, quote.row());
 </code></pre>
 <p>Na żywo: zmień w konstruktorze <code>&quot;morning,vip&quot;</code> na <code>&quot;morning,vlp&quot;</code> i uruchom test - błąd konfiguracji wychodzi dopiero w runtime (<code>IllegalArgumentException: brak reguly: vlp</code>). Cofnij zmianę.</p>
 <h3 id="krok-1-inline-class-rejestr-pluginow-znika" tabindex="-1"><a class="header-anchor" href="#krok-1-inline-class-rejestr-pluginow-znika"><span>Krok 1: Inline Class - rejestr pluginów znika</span></a></h3>
-<p><strong>W IDE:</strong> w <code>TicketPricer</code> zastąp pola <code>registry</code> i <code>activeRules</code> listą <code>List.of(new MorningRule(), new VipRule())</code> (ręcznie, konstruktory usuń). Safe Delete (⌘⌦) na <code>RuleRegistry</code> i na <code>priority()</code> w interfejsie (był potrzebny tylko do sortowania).
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>W <code>TicketPricer</code> usuń pola <code>registry</code> i <code>activeRules</code> oraz oba konstruktory; w ich miejsce dodaj pole <code>rules</code> z listą <code>List.of(new MorningRule(), new VipRule())</code> i iteruj w pętli po <code>rules</code> (Inline Class).</li>
+<li>Usuń klasę <code>RuleRegistry</code> - nikt jej już nie woła.</li>
+<li>Usuń metodę <code>priority()</code> z interfejsu <code>PricingRule</code> i z obu reguł - była potrzebna tylko do sortowania w rejestrze.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> RuleRegistry registry;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String activeRules;
+
+<span class="hljs-type">public</span> <span class="hljs-title function_">TicketPricer</span><span class="hljs-params">()</span> {
+    <span class="hljs-built_in">this</span>(RuleRegistry.withDefaults(), <span class="hljs-string">&quot;morning,vip&quot;</span>);
+}
+
+<span class="hljs-type">public</span> <span class="hljs-title function_">TicketPricer</span><span class="hljs-params">(RuleRegistry registry, String activeRules)</span> {
+    <span class="hljs-built_in">this</span>.registry = registry;
+    <span class="hljs-built_in">this</span>.activeRules = activeRules;
+}
+...
+<span class="hljs-keyword">for</span> (PricingRule rule : registry.resolve(activeRules)) {
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">List</span>&lt;PricingRule&gt; <span class="hljs-variable">rules</span> <span class="hljs-operator">=</span> List.of(<span class="hljs-keyword">new</span> <span class="hljs-title class_">MorningRule</span>(), <span class="hljs-keyword">new</span> <span class="hljs-title class_">VipRule</span>());
 </code></pre>
 <p><strong>Uruchom:</strong> <code>scripts/<wbr>warsztat.sh test m2/<wbr>s01</code> - 16 testów zielonych.
 <strong>Co powiedzieć:</strong> konfiguracja napisem nie miała żadnego klienta. Teraz literówka w nazwie reguły nie skompiluje się.
 <strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m2/<wbr>s01 0 1</code></p>
 <h3 id="krok-2-change-signature-typowane-dane-zamiast-mapy" tabindex="-1"><a class="header-anchor" href="#krok-2-change-signature-typowane-dane-zamiast-mapy"><span>Krok 2: Change Signature - typowane dane zamiast mapy</span></a></h3>
-<p><strong>W IDE:</strong> ⌘F6 na <code>PricingRule.appliesTo</code>: typ parametru <code>Map&lt;String, Object&gt;</code> -&gt; <code>TicketQuote</code>; na <code>apply</code> usuń parametr kontekstu. Popraw implementacje (rzutowania znikają), usuń budowanie mapy w <code>TicketPricer</code>.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>W interfejsie <code>PricingRule</code> zmień typ parametru <code>appliesTo</code> z <code>Map&lt;String, Object&gt;</code> na <code>TicketQuote</code>, a z <code>apply</code> usuń parametr kontekstu - zostaje samo <code>apply(BigDecimal price)</code> (Change Signature).</li>
+<li>Popraw obie implementacje: rzutowania z mapy zastąp odczytami pól rekordu (<code>quote.start().getHour() &lt; 12</code>, <code>quote.row() &gt;= quote.vipFromRow()</code>).</li>
+<li>W <code>TicketPricer.price</code> usuń budowanie mapy kontekstu i przekazuj <code>quote</code> wprost do <code>appliesTo</code>.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-meta">@Override</span>
+<span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">appliesTo</span><span class="hljs-params">(Map&lt;String, Object&gt; context)</span> {
+    <span class="hljs-keyword">return</span> (<span class="hljs-type">int</span>) context.get(<span class="hljs-string">&quot;row&quot;</span>) &gt;= (<span class="hljs-type">int</span>) context.get(<span class="hljs-string">&quot;vipFromRow&quot;</span>);
+}
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">appliesTo</span><span class="hljs-params">(TicketQuote quote)</span> {
     <span class="hljs-keyword">return</span> quote.row() &gt;= quote.vipFromRow();
 }
@@ -230,8 +261,27 @@ context.put(<span class="hljs-string">&quot;row&quot;</span>, quote.row());
 <strong>Co powiedzieć:</strong> generyczny kontekst to typowa spekulacja &quot;reguła może potrzebować czegokolwiek&quot;. Kompilator znów pilnuje nazw pól.
 <strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m2/<wbr>s01 1 2</code></p>
 <h3 id="krok-3-inline-class-dla-regul-safe-delete-interfejsu" tabindex="-1"><a class="header-anchor" href="#krok-3-inline-class-dla-regul-safe-delete-interfejsu"><span>Krok 3: Inline Class dla reguł, Safe Delete interfejsu</span></a></h3>
-<p><strong>W IDE:</strong> ⌥⌘N na <code>MorningRule</code> i <code>VipRule</code> (Inline Class) albo ręcznie: dwa <code>if</code> w <code>price</code> z metodami <code>isMorning</code> i <code>isVip</code>. Safe Delete na <code>PricingRule</code>. Stałe przez ⌥⌘C.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Wklej ciała obu reguł do <code>TicketPricer</code>: pętlę po <code>rules</code> zastąp dwoma <code>if</code> z prywatnymi metodami <code>isMorning(quote)</code> i <code>isVip(quote)</code> (Inline Class).</li>
+<li>Usuń klasy <code>MorningRule</code> i <code>VipRule</code> oraz interfejs <code>PricingRule</code> - nie mają już klientów; znika też pole <code>rules</code>.</li>
+<li>Kwoty -5.00 i +10.00 wyciągnij do stałych <code>MORNING_DISCOUNT</code> i <code>VIP_SURCHARGE</code> (Extract Constant).</li>
+<li>Usuń końcowe <code>setScale(2, RoundingMode.HALF_UP)</code> - wszystkie kwoty mają już dwa miejsca po przecinku.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">List</span>&lt;PricingRule&gt; <span class="hljs-variable">rules</span> <span class="hljs-operator">=</span> List.of(<span class="hljs-keyword">new</span> <span class="hljs-title class_">MorningRule</span>(), <span class="hljs-keyword">new</span> <span class="hljs-title class_">VipRule</span>());
+
+<span class="hljs-keyword">public</span> <span class="hljs-type">BigDecimal</span> <span class="hljs-title function_">price</span><span class="hljs-params">(TicketQuote quote)</span> {
+    <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">price</span> <span class="hljs-operator">=</span> basePrice(quote.format());
+    <span class="hljs-keyword">for</span> (PricingRule rule : rules) {
+        <span class="hljs-keyword">if</span> (rule.appliesTo(quote)) {
+            price = rule.apply(price);
+        }
+    }
+    <span class="hljs-keyword">return</span> price.setScale(<span class="hljs-number">2</span>, RoundingMode.HALF_UP);
+}
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">BigDecimal</span> <span class="hljs-title function_">price</span><span class="hljs-params">(TicketQuote quote)</span> {
     <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">price</span> <span class="hljs-operator">=</span> basePrice(quote.format());
     <span class="hljs-keyword">if</span> (isMorning(quote)) {
@@ -272,8 +322,30 @@ context.put(<span class="hljs-string">&quot;row&quot;</span>, quote.row());
     mailer.groupDiscountGranted(organizer, tickets);
 </code></pre>
 <h3 id="krok-1-spelnienie-r1-wynik-zamiast-efektu" tabindex="-1"><a class="header-anchor" href="#krok-1-spelnienie-r1-wynik-zamiast-efektu"><span>Krok 1: spełnienie R1 - wynik zamiast efektu</span></a></h3>
-<p><strong>W IDE:</strong> nowy record <code>Quote(double total, boolean groupDiscount)</code> w <code>pricing</code>; ⌘F6 na <code>total</code> - bez <code>organizer</code>, zwraca <code>Quote</code>. Wywołanie <code>mailer</code> przenieś do <code>BookingService</code> (warstwa aplikacji). Usuń import <code>notification</code> z cennika.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>W pakiecie <code>pricing</code> dodaj rekord <code>Quote(double total, boolean groupDiscount)</code> - wynik cennika niesie informację o rabacie zamiast efektu ubocznego.</li>
+<li>Zmień sygnaturę <code>TicketPricing.total</code>: usuń parametr <code>organizer</code>, metoda zwraca <code>Quote</code> zamiast <code>double</code> (Change Signature).</li>
+<li>Usuń z <code>TicketPricing</code> pole <code>mailer</code>, konstruktor i wywołanie <code>mailer.groupDiscountGranted(...)</code> - razem z importem pakietu <code>notification</code>.</li>
+<li>W <code>BookingService</code> odbierz <code>Quote</code> i wyślij mail tam, gdy <code>quote.groupDiscount()</code> jest prawdą.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">import</span> pl.training.workshop.m2.s02_adr.start.notification.GroupMailer;
+
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">TicketPricing</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> GroupMailer mailer;
+    ...
+    <span class="hljs-keyword">public</span> <span class="hljs-type">double</span> <span class="hljs-title function_">total</span><span class="hljs-params">(String organizer, <span class="hljs-type">int</span> tickets, <span class="hljs-type">double</span> unitPrice)</span> {
+        <span class="hljs-type">double</span> <span class="hljs-variable">sum</span> <span class="hljs-operator">=</span> unitPrice * tickets;
+        <span class="hljs-keyword">if</span> (tickets &gt;= <span class="hljs-number">10</span>) {
+            sum = sum - sum * <span class="hljs-number">0.10</span>;
+            mailer.groupDiscountGranted(organizer, tickets);
+        }
+        <span class="hljs-keyword">return</span> Math.round(sum * <span class="hljs-number">100</span>) / <span class="hljs-number">100.0</span>;
+    }
+}
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">Quote</span> <span class="hljs-variable">quote</span> <span class="hljs-operator">=</span> pricing.total(tickets, unitPrice);
 <span class="hljs-keyword">if</span> (quote.groupDiscount()) {
     mailer.groupDiscountGranted(organizer, tickets);
@@ -283,8 +355,23 @@ context.put(<span class="hljs-string">&quot;row&quot;</span>, quote.row());
 <strong>Co powiedzieć:</strong> naruszenie w teście prowadzi wprost do identyfikatora decyzji i jej uzasadnienia.
 <strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m2/<wbr>s02 0 1</code></p>
 <h3 id="krok-2-spelnienie-r2-money" tabindex="-1"><a class="header-anchor" href="#krok-2-spelnienie-r2-money"><span>Krok 2: spełnienie R2 - Money</span></a></h3>
-<p><strong>W IDE:</strong> Type Migration (⇧⌘F6) <code>double</code> → <code>Money</code> w <code>Quote</code> i <code>TicketPricing</code>; nazwane stałe dla progu i procentu grupy; <code>BookingService</code> podaje <code>Money.of(&quot;25.00&quot;)</code>.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>W <code>Quote</code> i <code>TicketPricing</code> zamień typ kwot <code>double</code> na <code>Money</code>; arytmetyka przechodzi na <code>times</code>, <code>minus</code> i <code>percent</code>.</li>
+<li>Próg i procent rabatu grupowego zapisz jako stałe <code>GROUP_SIZE</code> i <code>GROUP_DISCOUNT_PERCENT</code>.</li>
+<li>W <code>BookingService</code> podawaj cenę jednostkową jako <code>Money.of(&quot;25.00&quot;)</code> itd. i wypisuj <code>quote.total()</code> bez <code>String.format</code>.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">Quote</span> <span class="hljs-title function_">total</span><span class="hljs-params">(<span class="hljs-type">int</span> tickets, <span class="hljs-type">double</span> unitPrice)</span> {
+    <span class="hljs-type">double</span> <span class="hljs-variable">sum</span> <span class="hljs-operator">=</span> unitPrice * tickets;
+    <span class="hljs-type">boolean</span> <span class="hljs-variable">groupDiscount</span> <span class="hljs-operator">=</span> tickets &gt;= <span class="hljs-number">10</span>;
+    <span class="hljs-keyword">if</span> (groupDiscount) {
+        sum = sum - sum * <span class="hljs-number">0.10</span>;
+    }
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Quote</span>(Math.round(sum * <span class="hljs-number">100</span>) / <span class="hljs-number">100.0</span>, groupDiscount);
+}
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">Quote</span> <span class="hljs-title function_">total</span><span class="hljs-params">(<span class="hljs-type">int</span> tickets, Money unitPrice)</span> {
     <span class="hljs-type">Money</span> <span class="hljs-variable">sum</span> <span class="hljs-operator">=</span> unitPrice.times(tickets);
 </code></pre>
@@ -320,8 +407,26 @@ context.put(<span class="hljs-string">&quot;row&quot;</span>, quote.row());
     <span class="hljs-keyword">break</span>;
 </code></pre>
 <h3 id="krok-1-typy-generyczne" tabindex="-1"><a class="header-anchor" href="#krok-1-typy-generyczne"><span>Krok 1: typy generyczne</span></a></h3>
-<p><strong>W IDE:</strong> na polu <code>seatsByRow</code> ⌥⏎ → Add type arguments; <code>computeIfAbsent</code> zamiast <code>get</code>/<code>put</code>; usuń rzutowania.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>W polu <code>seatsByRow</code> dodaj parametry typowe: <code>Map&lt;Integer, List&lt;String&gt;&gt;</code> i <code>new TreeMap&lt;&gt;()</code>.</li>
+<li>W <code>take</code> zastąp parę <code>get</code>/<code>put</code> z rzutowaniem jednym wywołaniem <code>computeIfAbsent(row, r -&gt; new ArrayList&lt;&gt;()).add(seat)</code>.</li>
+<li>W <code>takenPerRow</code> usuń rzutowania - iteracja <code>seatsByRow.forEach((row, seats) -&gt; result.put(row, seats.size()))</code>.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">Map</span> <span class="hljs-variable">seatsByRow</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">TreeMap</span>();
+
+<span class="hljs-keyword">public</span> <span class="hljs-type">void</span> <span class="hljs-title function_">take</span><span class="hljs-params">(String seat)</span> {
+    <span class="hljs-type">Integer</span> <span class="hljs-variable">row</span> <span class="hljs-operator">=</span> Integer.valueOf(seat.substring(<span class="hljs-number">1</span>));
+    <span class="hljs-type">List</span> <span class="hljs-variable">seats</span> <span class="hljs-operator">=</span> (List) seatsByRow.get(row);
+    <span class="hljs-keyword">if</span> (seats == <span class="hljs-literal">null</span>) {
+        seats = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>();
+        seatsByRow.put(row, seats);
+    }
+    seats.add(seat);
+}
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">Map</span>&lt;Integer, List&lt;String&gt;&gt; <span class="hljs-variable">seatsByRow</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">TreeMap</span>&lt;&gt;();
 ...
 seatsByRow.computeIfAbsent(row, r -&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;()).add(seat);
@@ -330,17 +435,42 @@ seatsByRow.computeIfAbsent(row, r -&gt; <span class="hljs-keyword">new</span> <s
 <strong>Co powiedzieć:</strong> jedna kategoria ostrzeżeń na krok - łatwy przegląd, łatwe wycofanie.
 <strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m2/<wbr>s03 0 1</code></p>
 <h3 id="krok-2-nowe-api-zamiast-przestarzalego" tabindex="-1"><a class="header-anchor" href="#krok-2-nowe-api-zamiast-przestarzalego"><span>Krok 2: nowe API zamiast przestarzałego</span></a></h3>
-<p><strong>W IDE:</strong> w <code>return</code> zamień argument <code>format</code> na istniejącą już zmienną <code>name</code> - wywołanie trafia do <code>PriceTable.basePrice(String)</code>. Ctrl+klik na metodzie potwierdza, że to nowe przeciążenie.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>W <code>OccupancyReport.describe</code> w instrukcji <code>return</code> zamień argument <code>PriceTable.basePrice(format)</code> na istniejącą już zmienną <code>name</code> - wywołanie trafia do nowego przeciążenia <code>basePrice(String)</code>.</li>
+<li><code>PriceTable</code> zostaje bez zmian: przestarzałe <code>basePrice(int)</code> dalej istnieje, bo mogą je wołać klienci spoza repozytorium.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">String</span> <span class="hljs-variable">name</span> <span class="hljs-operator">=</span> format == <span class="hljs-number">3</span> ? <span class="hljs-string">&quot;IMAX&quot;</span> : format == <span class="hljs-number">2</span> ? <span class="hljs-string">&quot;3D&quot;</span> : <span class="hljs-string">&quot;2D&quot;</span>;
+<span class="hljs-keyword">return</span> name + <span class="hljs-string">&quot; [&quot;</span> + features + <span class="hljs-string">&quot;], cena &quot;</span> + PriceTable.basePrice(format)
+        + <span class="hljs-string">&quot; zl, zajete: &quot;</span> + map.takenPerRow();
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">return</span> name + <span class="hljs-string">&quot; [&quot;</span> + features + <span class="hljs-string">&quot;], cena &quot;</span> + PriceTable.basePrice(name)
         + <span class="hljs-string">&quot; zl, zajete: &quot;</span> + map.takenPerRow();
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony; zostaje tylko <code>[fallthrough] OccupancyReport.java:13</code>.
-<strong>Co powiedzieć:</strong> przestarzałą metodę usuniemy (Safe Delete) dopiero, gdy nikt jej nie woła - także poza repozytorium.
+<strong>Co powiedzieć:</strong> przestarzałą metodę usuniemy dopiero, gdy nikt jej nie woła - także poza repozytorium.
 <strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m2/<wbr>s03 1 2</code></p>
 <h3 id="krok-3-switch-expression" tabindex="-1"><a class="header-anchor" href="#krok-3-switch-expression"><span>Krok 3: switch expression</span></a></h3>
-<p><strong>W IDE:</strong> ⌥⏎ na <code>switch</code> → Replace with enhanced 'switch' statement, potem ręcznie zamień na wyrażenie; przelot zapisany wprost: <code>case 3 -&gt; &quot;duzy ekran, dzwiek Dolby&quot;</code>.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Zamień instrukcję <code>switch</code> z przelotem na wyrażenie <code>switch</code> z gałęziami strzałkowymi, przypisane do <code>features</code>; puste <code>features = &quot;&quot;</code> i <code>break</code> znikają.</li>
+<li>Przelot zapisz wprost: gałąź <code>case 3 -&gt; &quot;duzy ekran, dzwiek Dolby&quot;</code> zawiera pełny tekst dla IMAX.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">String</span> <span class="hljs-variable">features</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;&quot;</span>;
+<span class="hljs-keyword">switch</span> (format) {
+    <span class="hljs-keyword">case</span> <span class="hljs-number">3</span>:
+        features = features + <span class="hljs-string">&quot;duzy ekran, &quot;</span>;
+    <span class="hljs-keyword">case</span> <span class="hljs-number">2</span>:
+        features = features + <span class="hljs-string">&quot;dzwiek Dolby&quot;</span>;
+        <span class="hljs-keyword">break</span>;
+    <span class="hljs-keyword">default</span>:
+        features = <span class="hljs-string">&quot;standard&quot;</span>;
+}
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">String</span> <span class="hljs-variable">features</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">switch</span> (format) {
     <span class="hljs-keyword">case</span> <span class="hljs-number">3</span> -&gt; <span class="hljs-string">&quot;duzy ekran, dzwiek Dolby&quot;</span>;
     <span class="hljs-keyword">case</span> <span class="hljs-number">2</span> -&gt; <span class="hljs-string">&quot;dzwiek Dolby&quot;</span>;
@@ -375,8 +505,18 @@ seatsByRow.computeIfAbsent(row, r -&gt; <span class="hljs-keyword">new</span> <s
 }
 </code></pre>
 <h3 id="krok-1-skan-zrodel-todo-i-systemout" tabindex="-1"><a class="header-anchor" href="#krok-1-skan-zrodel-todo-i-systemout"><span>Krok 1: skan źródeł - TODO i System.out</span></a></h3>
-<p><strong>W IDE:</strong> metoda <code>scanSources</code>: każda linia z <code>TODO</code>/<code>FIXME</code> albo <code>System.out</code>/<code>System.err</code> to wynik z plikiem i linią.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>W <code>QualityGate</code> dodaj prywatną metodę <code>scanSources(GateInput, List&lt;String&gt;)</code>: dla każdego pliku <code>.java</code> w katalogu źródeł czyta linie, a linię z <code>TODO</code>/<code>FIXME</code> albo <code>System.out</code>/<code>System.err</code> zamienia na wynik z nazwą pliku i numerem linii.</li>
+<li>Dodaj pomocnicze metody <code>javaFiles(Path)</code> i <code>read(Path)</code> (lista plików <code>.java</code> i odczyt linii).</li>
+<li><code>evaluate</code> zbiera wyniki do listy <code>findings</code> i zwraca ją zamiast pustego <code>List.of()</code>.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-title function_">evaluate</span><span class="hljs-params">(GateInput input)</span> {
+    <span class="hljs-keyword">return</span> List.of();
+}
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">if</span> (line.contains(<span class="hljs-string">&quot;TODO&quot;</span>) || line.contains(<span class="hljs-string">&quot;FIXME&quot;</span>)) {
     findings.add(<span class="hljs-string">&quot;TODO &quot;</span> + where);
 }
@@ -385,8 +525,20 @@ seatsByRow.computeIfAbsent(row, r -&gt; <span class="hljs-keyword">new</span> <s
 <strong>Co powiedzieć:</strong> tanie, deterministyczne, z pozycją - od tego zaczynamy.
 <strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m2/<wbr>s04 0 1</code></p>
 <h3 id="krok-2-ostrzezenia-kompilatora" tabindex="-1"><a class="header-anchor" href="#krok-2-ostrzezenia-kompilatora"><span>Krok 2: ostrzeżenia kompilatora</span></a></h3>
-<p><strong>W IDE:</strong> metoda <code>compileSources</code> (javax.tools, <code>-Xlint:all</code>), każda diagnostyka poza NOTE to wynik.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Dodaj metodę <code>compileSources(GateInput, List&lt;String&gt;)</code>: kompiluje źródła domeny przez <code>javax.tools</code> z opcjami <code>--release 25 -Xlint:all</code>, a każdą diagnostykę inną niż NOTE zamienia na wynik z plikiem, linią i kodem ostrzeżenia.</li>
+<li>Dodaj pomocnicze <code>tempDir()</code> i <code>delete(Path)</code> - kompilacja pisze do katalogu tymczasowego, sprzątanego po zakończeniu.</li>
+<li>W <code>evaluate</code> wywołaj <code>compileSources</code> przed <code>scanSources</code>.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-title function_">evaluate</span><span class="hljs-params">(GateInput input)</span> {
+    <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-variable">findings</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();
+    scanSources(input, findings);
+    <span class="hljs-keyword">return</span> findings;
+}
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs">findings.add(<span class="hljs-string">&quot;kompilator &quot;</span> + Path.of(d.getSource().toUri()).getFileName() + <span class="hljs-string">&quot;:&quot;</span>
         + d.getLineNumber() + <span class="hljs-string">&quot; &quot;</span> + d.getCode());
 </code></pre>
@@ -394,8 +546,21 @@ seatsByRow.computeIfAbsent(row, r -&gt; <span class="hljs-keyword">new</span> <s
 <strong>Co powiedzieć:</strong> to ta sama idea co w s03, tu jako jeden z kilku sygnałów bramki.
 <strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m2/<wbr>s04 1 2</code></p>
 <h3 id="krok-3-pokrycie-kluczowej-klasy-przyblizenie" tabindex="-1"><a class="header-anchor" href="#krok-3-pokrycie-kluczowej-klasy-przyblizenie"><span>Krok 3: pokrycie kluczowej klasy (przybliżenie)</span></a></h3>
-<p><strong>W IDE:</strong> metoda <code>checkCoverage</code>: każda publiczna metoda <code>PriceTable</code> musi być wywołana w <code>PriceTableTest</code>.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Dodaj stałą <code>PUBLIC_METHOD</code> - wyrażenie regularne wyłapujące nazwy publicznych metod.</li>
+<li>Dodaj metodę <code>checkCoverage(GateInput, List&lt;String&gt;)</code>: dla każdej publicznej metody kluczowej klasy sprawdza, czy źródło testu zawiera wywołanie <code>.nazwa(</code>; brak wywołania to wynik &quot;pokrycie ... bez testu&quot;.</li>
+<li>W <code>evaluate</code> dołóż <code>checkCoverage</code> po <code>scanSources</code>.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-title function_">evaluate</span><span class="hljs-params">(GateInput input)</span> {
+    <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-variable">findings</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();
+    compileSources(input, findings);
+    scanSources(input, findings);
+    <span class="hljs-keyword">return</span> findings;
+}
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">if</span> (!test.contains(<span class="hljs-string">&quot;.&quot;</span> + method.group(<span class="hljs-number">1</span>) + <span class="hljs-string">&quot;(&quot;</span>)) {
     findings.add(<span class="hljs-string">&quot;pokrycie &quot;</span> + input.keyClass() + <span class="hljs-string">&quot;.&quot;</span> + method.group(<span class="hljs-number">1</span>) + <span class="hljs-string">&quot; bez testu&quot;</span>);
 }
@@ -404,12 +569,27 @@ seatsByRow.computeIfAbsent(row, r -&gt; <span class="hljs-keyword">new</span> <s
 <strong>Co powiedzieć:</strong> to nie zastępuje JaCoCo (<code>mvn verify</code> - plugin jest w pom.xml), ale łapie metodę, której żaden test nawet nie woła.
 <strong>Snapshot:</strong> <code>step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m2/<wbr>s04 2 3</code></p>
 <h3 id="krok-4-testy-zielone" tabindex="-1"><a class="header-anchor" href="#krok-4-testy-zielone"><span>Krok 4: testy zielone</span></a></h3>
-<p><strong>W IDE:</strong> metoda <code>runTests</code>: refleksja uruchamia metody z adnotacją o nazwie <code>Test</code> i zgłasza porażki.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Dodaj metodę <code>runTests(GateInput, List&lt;String&gt;)</code>: refleksją ładuje klasę testową, wybiera metody z adnotacją o prostej nazwie <code>Test</code> (JUnit albo dowolna inna), uruchamia każdą na świeżej instancji i porażkę (<code>InvocationTargetException</code>) zamienia na wynik z nazwą testu i typem wyjątku.</li>
+<li>Gdy klasy testowej nie da się uruchomić, bramka zgłasza to jako wynik zamiast przepuszczać zmianę.</li>
+<li>W <code>evaluate</code> wywołaj <code>runTests</code> jako pierwsze sprawdzenie.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-title function_">evaluate</span><span class="hljs-params">(GateInput input)</span> {
+    <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-variable">findings</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();
+    compileSources(input, findings);
+    scanSources(input, findings);
+    checkCoverage(input, findings);
+    <span class="hljs-keyword">return</span> findings;
+}
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">try</span> {
     test.invoke(constructor.newInstance());
 } <span class="hljs-keyword">catch</span> (InvocationTargetException failure) {
-    findings.add(<span class="hljs-string">&quot;test &quot;</span> + type.getSimpleName() + <span class="hljs-string">&quot;.&quot;</span> + test.getName() + <span class="hljs-string">&quot; nie przechodzi: &quot;</span> ...);
+    findings.add(<span class="hljs-string">&quot;test &quot;</span> + type.getSimpleName() + <span class="hljs-string">&quot;.&quot;</span> + test.getName() + <span class="hljs-string">&quot; nie przechodzi: &quot;</span>
+            + failure.getCause().getClass().getSimpleName());
 }
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony; <code>step4AddsGreenTestsAndCatchesAFailingOne</code> - fikstura <code>sample/<wbr>broken</code> (celowo nie JUnit, żeby nie psuć buildu) daje wynik <code>test PriceTableTest.vipSurchargeStartsAtRowNine nie przechodzi: AssertionError</code>.
@@ -444,8 +624,21 @@ seatsByRow.computeIfAbsent(row, r -&gt; <span class="hljs-keyword">new</span> <s
 }
 </code></pre>
 <h3 id="krok-1-naduzycie-skoro-juz-tu-jestem" tabindex="-1"><a class="header-anchor" href="#krok-1-naduzycie-skoro-juz-tu-jestem"><span>Krok 1: nadużycie - &quot;skoro już tu jestem&quot;</span></a></h3>
-<p><strong>W IDE:</strong> pokaż antyprzykład: <code>scripts/<wbr>warsztat.sh jump m2/<wbr>s05 1</code>. Obok dobrych ruchów przemycono sortowanie miejsc, e-mail małymi literami i pominięcie linii &quot;Tel&quot; bez telefonu.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Nie rób tego kroku ręcznie - wczytaj gotowy antyprzykład: <code>scripts/<wbr>warsztat.sh jump m2/<wbr>s05 1</code>.</li>
+<li>W antyprzykładzie obok dobrych ruchów (nazwy, <code>StringBuilder</code>, <code>String.join</code>) przemycono trzy zmiany zachowania: miejsca są sortowane, e-mail przechodzi na małe litery, a linia &quot;Tel&quot; znika, gdy telefonu brak; dodatkowo kwotę formatuje <code>Money</code> zamiast <code>String.format</code>.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs">s = s + <span class="hljs-string">&quot;Miejsca: &quot;</span> + x + <span class="hljs-string">&quot;\n&quot;</span>;
+s = s + <span class="hljs-string">&quot;Klient: &quot;</span> + t.email().trim() + <span class="hljs-string">&quot;\n&quot;</span>;
+<span class="hljs-keyword">if</span> (t.phone() != <span class="hljs-literal">null</span>) {
+    s = s + <span class="hljs-string">&quot;Tel: &quot;</span> + t.phone() + <span class="hljs-string">&quot;\n&quot;</span>;
+} <span class="hljs-keyword">else</span> {
+    s = s + <span class="hljs-string">&quot;Tel: -\n&quot;</span>;
+}
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-variable">sortedSeats</span> <span class="hljs-operator">=</span> ticket.seats().stream().sorted().toList();
 text.append(<span class="hljs-string">&quot;Klient: &quot;</span>).append(ticket.email().trim().toLowerCase(Locale.ROOT)).append(<span class="hljs-string">&#x27;\n&#x27;</span>);
 </code></pre>
@@ -453,8 +646,32 @@ text.append(<span class="hljs-string">&quot;Klient: &quot;</span>).append(ticket
 <strong>Co powiedzieć:</strong> każda z tych zmian może być dobrym pomysłem, ale to decyzje biznesowe, nie sprzątanie. Cofamy: <code>scripts/<wbr>warsztat.sh reset m2/<wbr>s05</code>.
 <strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m2/<wbr>s05 0 1</code></p>
 <h3 id="krok-2-poprawna-mala-poprawa" tabindex="-1"><a class="header-anchor" href="#krok-2-poprawna-mala-poprawa"><span>Krok 2: poprawna, mała poprawa</span></a></h3>
-<p><strong>W IDE:</strong> Rename (⇧F6) <code>t</code> → <code>ticket</code>; Replace loop with <code>String.join</code> (⌥⏎ na pętli albo ręcznie); <code>StringBuilder</code> zamiast konkatenacji; Extract Method (⌥⌘M) <code>phoneLine</code>.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Zacznij od stanu wyjściowego (<code>scripts/<wbr>warsztat.sh reset m2/<wbr>s05</code>) - krok 2 wychodzi ze <code>start</code>, nie z antyprzykładu.</li>
+<li>Zmień nazwę parametru <code>t</code> na <code>ticket</code>; pomocnicze <code>s</code>, <code>d</code>, <code>x</code> znikają przy przebudowie (Rename).</li>
+<li>Ręczną pętlę sklejającą miejsca zastąp <code>String.join(&quot;, &quot;, ticket.seats())</code>.</li>
+<li>Konkatenację w zmiennej <code>s</code> zastąp jednym łańcuchem wywołań <code>StringBuilder.append(...)</code>.</li>
+<li>Warunek na telefon wydziel do metody <code>phoneLine(ticket)</code> zwracającej &quot;Tel: ...&quot; albo &quot;Tel: -&quot; (Extract Method).</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">print</span><span class="hljs-params">(Ticket t)</span> {
+    <span class="hljs-type">String</span> <span class="hljs-variable">s</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;&quot;</span>;
+    s = s + <span class="hljs-string">&quot;Film: &quot;</span> + t.title() + <span class="hljs-string">&quot;\n&quot;</span>;
+    <span class="hljs-type">String</span> <span class="hljs-variable">d</span> <span class="hljs-operator">=</span> t.start().toLocalDate() + <span class="hljs-string">&quot; &quot;</span> + t.start().toLocalTime();
+    s = s + <span class="hljs-string">&quot;Seans: &quot;</span> + d + <span class="hljs-string">&quot;\n&quot;</span>;
+    <span class="hljs-type">String</span> <span class="hljs-variable">x</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;&quot;</span>;
+    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; t.seats().size(); i++) {
+        <span class="hljs-keyword">if</span> (i &gt; <span class="hljs-number">0</span>) {
+            x = x + <span class="hljs-string">&quot;, &quot;</span>;
+        }
+        x = x + t.seats().get(i);
+    }
+    s = s + <span class="hljs-string">&quot;Miejsca: &quot;</span> + x + <span class="hljs-string">&quot;\n&quot;</span>;
+    ...
+}
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs">.append(<span class="hljs-string">&quot;Miejsca: &quot;</span>).append(String.join(<span class="hljs-string">&quot;, &quot;</span>, ticket.seats())).append(<span class="hljs-string">&#x27;\n&#x27;</span>)
 .append(<span class="hljs-string">&quot;Klient: &quot;</span>).append(ticket.email().trim()).append(<span class="hljs-string">&#x27;\n&#x27;</span>)
 .append(phoneLine(ticket)).append(<span class="hljs-string">&#x27;\n&#x27;</span>)
@@ -488,8 +705,34 @@ text.append(<span class="hljs-string">&quot;Klient: &quot;</span>).append(ticket
 } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ...
 </code></pre>
 <h3 id="krok-1-commit-1-refaktoryzacja-extract-method" tabindex="-1"><a class="header-anchor" href="#krok-1-commit-1-refaktoryzacja-extract-method"><span>Krok 1: commit 1 - refaktoryzacja (Extract Method)</span></a></h3>
-<p><strong>W IDE:</strong> ⌥⌘M na wyborze ceny bazowej → <code>basePrice(String format)</code>; ⌥⌘M na wyborze zniżki → <code>discountPercent(String type)</code> zwracające procent; Money zamiast BigDecimal.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Wybór ceny bazowej wydziel do metody <code>basePrice(String format)</code> (Extract Method).</li>
+<li>Wybór zniżki wydziel do metody <code>discountPercent(String type)</code>, która zwraca procent zamiast kwoty (Extract Method).</li>
+<li>Kwoty przejdź z <code>BigDecimal</code> na <code>Money</code>: <code>base.minus(base.percent(...))</code>, <code>Money.of(&quot;5.00&quot;)</code>, <code>Money.of(&quot;10.00&quot;)</code>; przy okazji zmień nazwę parametru <code>q</code> na <code>query</code> (Rename).</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs">BigDecimal p;
+<span class="hljs-keyword">if</span> (q.format().equals(<span class="hljs-string">&quot;IMAX&quot;</span>)) {
+    p = <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;40.00&quot;</span>);
+} <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (q.format().equals(<span class="hljs-string">&quot;3D&quot;</span>)) {
+    p = <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;32.00&quot;</span>);
+} <span class="hljs-keyword">else</span> {
+    p = <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;25.00&quot;</span>);
+}
+BigDecimal d;
+<span class="hljs-keyword">if</span> (q.type().equals(<span class="hljs-string">&quot;STUDENT&quot;</span>)) {
+    d = p.multiply(<span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;0.25&quot;</span>));
+} <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (q.type().equals(<span class="hljs-string">&quot;SENIOR&quot;</span>)) {
+    d = p.multiply(<span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;0.30&quot;</span>));
+} <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (q.type().equals(<span class="hljs-string">&quot;CHILD&quot;</span>)) {
+    d = p.multiply(<span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;0.40&quot;</span>));
+} <span class="hljs-keyword">else</span> {
+    d = BigDecimal.ZERO;
+}
+p = p.subtract(d);
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">Money</span> <span class="hljs-variable">base</span> <span class="hljs-operator">=</span> basePrice(query.format());
 <span class="hljs-type">Money</span> <span class="hljs-variable">price</span> <span class="hljs-operator">=</span> base.minus(base.percent(discountPercent(query.type())));
 </code></pre>
@@ -497,8 +740,24 @@ text.append(<span class="hljs-string">&quot;Klient: &quot;</span>).append(ticket
 <strong>Co powiedzieć:</strong> opis commita: &quot;refaktoryzacja, bez zmiany zachowania, dowód: S06EquivalenceTest&quot;. Recenzent sprawdza tylko mechanikę.
 <strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m2/<wbr>s06 0 1</code></p>
 <h3 id="krok-2-commit-2-refaktoryzacja-przygotowawcza-change-signature" tabindex="-1"><a class="header-anchor" href="#krok-2-commit-2-refaktoryzacja-przygotowawcza-change-signature"><span>Krok 2: commit 2 - refaktoryzacja przygotowawcza (Change Signature)</span></a></h3>
-<p><strong>W IDE:</strong> ⌘F6 na <code>discountPercent</code>: parametr <code>TicketQuery query</code> zamiast <code>String type</code>, w ciele <code>switch (query.type())</code>.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Zmień sygnaturę <code>discountPercent</code>: zamiast <code>String type</code> metoda przyjmuje całe <code>TicketQuery query</code>, bo następna reguła potrzebuje daty (Change Signature).</li>
+<li>W ciele metody dopasowuj <code>switch (query.type())</code>; wywołanie w <code>price</code> podaje <code>query</code> zamiast <code>query.type()</code>.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">Money</span> <span class="hljs-variable">price</span> <span class="hljs-operator">=</span> base.minus(base.percent(discountPercent(query.type())));
+...
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">discountPercent</span><span class="hljs-params">(String type)</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">switch</span> (type) {
+        <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;STUDENT&quot;</span> -&gt; <span class="hljs-number">25</span>;
+        <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;SENIOR&quot;</span> -&gt; <span class="hljs-number">30</span>;
+        <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;CHILD&quot;</span> -&gt; <span class="hljs-number">40</span>;
+        <span class="hljs-keyword">default</span> -&gt; <span class="hljs-number">0</span>;
+    };
+}
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">discountPercent</span><span class="hljs-params">(TicketQuery query)</span> {
     <span class="hljs-keyword">return</span> <span class="hljs-keyword">switch</span> (query.type()) { ... };
 }
@@ -507,8 +766,22 @@ text.append(<span class="hljs-string">&quot;Klient: &quot;</span>).append(ticket
 <strong>Co powiedzieć:</strong> &quot;make the change easy, then make the easy change&quot;. Ten commit nadal nie zmienia zachowania.
 <strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m2/<wbr>s06 1 2</code></p>
 <h3 id="krok-3-commit-3-zmiana-zachowania" tabindex="-1"><a class="header-anchor" href="#krok-3-commit-3-zmiana-zachowania"><span>Krok 3: commit 3 - zmiana zachowania</span></a></h3>
-<p><strong>W IDE:</strong> w gałęzi <code>default</code> warunek <code>isCheapTuesday(query) ? 20 : 0</code>, metoda pomocnicza, stała <code>CHEAP_TUESDAY_PERCENT</code>.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Dodaj stałą <code>CHEAP_TUESDAY_PERCENT = 20</code> i metodę pomocniczą <code>isCheapTuesday(query)</code> sprawdzającą <code>DayOfWeek.TUESDAY</code>.</li>
+<li>W gałęzi <code>default</code> metody <code>discountPercent</code> zwracaj <code>isCheapTuesday(query) ? CHEAP_TUESDAY_PERCENT : 0</code>.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">discountPercent</span><span class="hljs-params">(TicketQuery query)</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">switch</span> (query.type()) {
+        <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;STUDENT&quot;</span> -&gt; <span class="hljs-number">25</span>;
+        <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;SENIOR&quot;</span> -&gt; <span class="hljs-number">30</span>;
+        <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;CHILD&quot;</span> -&gt; <span class="hljs-number">40</span>;
+        <span class="hljs-keyword">default</span> -&gt; <span class="hljs-number">0</span>;
+    };
+}
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">default</span> -&gt; isCheapTuesday(query) ? CHEAP_TUESDAY_PERCENT : <span class="hljs-number">0</span>;
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony; <code>S06SolutionTest.cheapTuesdayGivesNormalTicketTwentyPercentOff</code> (2D wtorek 20.00) i <code>behaviourChangeIsLimitedToNormalTicketsOnTuesday</code> - na siatce 336 przypadków zmieniło się dokładnie 12, wszystkie NORMAL we wtorek.
@@ -542,8 +815,27 @@ total = total.add(revenue(sale));                              <span class="hljs
 byTitle.merge(sale.title(), revenue(sale), BigDecimal::add);   <span class="hljs-comment">// marketing</span>
 </code></pre>
 <h3 id="krok-1-extract-method-wedlug-aktora" tabindex="-1"><a class="header-anchor" href="#krok-1-extract-method-wedlug-aktora"><span>Krok 1: Extract Method według aktora</span></a></h3>
-<p><strong>W IDE:</strong> zaznacz blok pod <code>/<wbr>/<wbr> księgowość</code>, ⌥⌘M <code>accountingSection</code> (zwraca <code>String</code>, własny <code>StringBuilder</code>); to samo dla <code>/<wbr>/<wbr> marketing</code> jako <code>marketingSection</code>.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Blok oznaczony komentarzem <code>/<wbr>/<wbr> księgowość</code> wydziel do metody <code>accountingSection(List&lt;Sale&gt; sales)</code> zwracającej <code>String</code>, z własnym <code>StringBuilder</code> (Extract Method).</li>
+<li>To samo dla bloku <code>/<wbr>/<wbr> marketing</code>: metoda <code>marketingSection(List&lt;Sale&gt; sales)</code>.</li>
+<li><code>render</code> skleja wyniki obu metod; komentarze znikają - zastąpiły je nazwy metod.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">render</span><span class="hljs-params">(List&lt;Sale&gt; sales)</span> {
+    <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">out</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>();
+    <span class="hljs-comment">// księgowość</span>
+    <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">tickets</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;0.00&quot;</span>);
+    <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">bar</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;0.00&quot;</span>);
+    ...
+    out.append(<span class="hljs-string">&quot;Razem brutto &quot;</span>).append(total).append(<span class="hljs-string">&#x27;\n&#x27;</span>);
+    <span class="hljs-comment">// marketing</span>
+    out.append(<span class="hljs-string">&quot;MARKETING\n&quot;</span>);
+    ...
+    <span class="hljs-keyword">return</span> out.toString();
+}
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">render</span><span class="hljs-params">(List&lt;Sale&gt; sales)</span> {
     <span class="hljs-keyword">return</span> accountingSection(sales) + marketingSection(sales);
 }
@@ -552,8 +844,20 @@ byTitle.merge(sale.title(), revenue(sale), BigDecimal::add);   <span class="hljs
 <strong>Co powiedzieć:</strong> komentarze nazywały aktorów - teraz nazywają je metody. Helper <code>revenue</code> nadal wiąże oba światy.
 <strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m2/<wbr>s07 0 1</code></p>
 <h3 id="krok-2-rozdziel-wspolny-helper-wedlug-aktora" tabindex="-1"><a class="header-anchor" href="#krok-2-rozdziel-wspolny-helper-wedlug-aktora"><span>Krok 2: Rozdziel wspólny helper według aktora</span></a></h3>
-<p><strong>W IDE:</strong> skopiuj <code>revenue</code> (⌘D na metodzie), nazwij kopię <code>popularity</code> (⇧F6), w <code>marketingSection</code> użyj <code>popularity</code>. Dodaj Javadoc z właścicielem każdej metody.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Skopiuj metodę <code>revenue</code> i nazwij kopię <code>popularity</code> - identyczne ciało, inny właściciel.</li>
+<li>W <code>marketingSection</code> zamień wywołanie <code>revenue(sale)</code> na <code>popularity(sale)</code>.</li>
+<li>Obu metodom dodaj Javadoc z nazwą aktora-właściciela.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs">byTitle.merge(sale.title(), revenue(sale), BigDecimal::add);
+...
+<span class="hljs-keyword">private</span> <span class="hljs-type">BigDecimal</span> <span class="hljs-title function_">revenue</span><span class="hljs-params">(Sale sale)</span> {
+    <span class="hljs-keyword">return</span> sale.ticketRevenue().add(sale.barRevenue());
+}
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-comment">/** Księgowość: przychód brutto seansu. */</span>
 <span class="hljs-keyword">private</span> <span class="hljs-type">BigDecimal</span> <span class="hljs-title function_">revenue</span><span class="hljs-params">(Sale sale)</span> { ... }
 
@@ -564,8 +868,30 @@ byTitle.merge(sale.title(), revenue(sale), BigDecimal::add);   <span class="hljs
 <strong>Co powiedzieć:</strong> świadomie powtarzamy kod, nie wiedzę - dziś formuły są równe przypadkiem. To lekcja z DRY (slajd 2.6: dwie identyczne dziś formuły to nie duplikacja wiedzy) w kontekście SRP.
 <strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m2/<wbr>s07 1 2</code></p>
 <h3 id="krok-3-extract-class-klasa-na-aktora" tabindex="-1"><a class="header-anchor" href="#krok-3-extract-class-klasa-na-aktora"><span>Krok 3: Extract Class - klasa na aktora</span></a></h3>
-<p><strong>W IDE:</strong> Refactor &gt; Extract &gt; Delegate dla <code>accountingSection</code>, <code>revenue</code>, <code>net</code> -&gt; <code>AccountingSection</code>; to samo dla <code>marketingSection</code>, <code>popularity</code> -&gt; <code>MarketingSection</code>. Metody nazwij <code>render</code>.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Utwórz klasę <code>AccountingSection</code> i przenieś do niej <code>accountingSection</code> (pod nazwą <code>render</code>) oraz <code>revenue</code> i <code>net</code> (Extract Class).</li>
+<li>Utwórz klasę <code>MarketingSection</code> i przenieś do niej <code>marketingSection</code> (pod nazwą <code>render</code>) oraz <code>popularity</code>.</li>
+<li>W <code>DailyReport</code> zostają tylko pola <code>accounting</code> i <code>marketing</code> oraz <code>render</code>, który skleja wyniki obu sekcji.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">DailyReport</span> {
+    <span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">render</span><span class="hljs-params">(List&lt;Sale&gt; sales)</span> {
+        <span class="hljs-keyword">return</span> accountingSection(sales) + marketingSection(sales);
+    }
+
+    <span class="hljs-keyword">private</span> <span class="hljs-type">String</span> <span class="hljs-title function_">accountingSection</span><span class="hljs-params">(List&lt;Sale&gt; sales)</span> { ... }
+
+    <span class="hljs-keyword">private</span> <span class="hljs-type">String</span> <span class="hljs-title function_">marketingSection</span><span class="hljs-params">(List&lt;Sale&gt; sales)</span> { ... }
+
+    <span class="hljs-keyword">private</span> <span class="hljs-type">BigDecimal</span> <span class="hljs-title function_">revenue</span><span class="hljs-params">(Sale sale)</span> { ... }
+
+    <span class="hljs-keyword">private</span> <span class="hljs-type">BigDecimal</span> <span class="hljs-title function_">popularity</span><span class="hljs-params">(Sale sale)</span> { ... }
+
+    <span class="hljs-keyword">private</span> <span class="hljs-type">BigDecimal</span> <span class="hljs-title function_">net</span><span class="hljs-params">(BigDecimal gross, <span class="hljs-type">int</span> vatPercent)</span> { ... }
+}
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">DailyReport</span> {
     <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">AccountingSection</span> <span class="hljs-variable">accounting</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">AccountingSection</span>();
     <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">MarketingSection</span> <span class="hljs-variable">marketing</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">MarketingSection</span>();
@@ -606,8 +932,20 @@ byTitle.merge(sale.title(), revenue(sale), BigDecimal::add);   <span class="hljs
 }
 </code></pre>
 <h3 id="krok-1-introduce-parameter-dependency-injection" tabindex="-1"><a class="header-anchor" href="#krok-1-introduce-parameter-dependency-injection"><span>Krok 1: Introduce Parameter - dependency injection</span></a></h3>
-<p><strong>W IDE:</strong> na inicjalizatorze pola <code>mail</code> ⌥⌘P (Introduce Parameter do konstruktora). IntelliJ przeniesie <code>new SmtpMailSender(&quot;smtp.kino.pl&quot;, 25)</code> do <code>Main</code>.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>W <code>ConfirmReservation</code> usuń inicjalizator pola <code>mail</code> - klasa dostaje <code>SmtpMailSender</code> przez nowy konstruktor (Introduce Parameter).</li>
+<li>Tworzenie <code>new SmtpMailSender(&quot;smtp.kino.pl&quot;, 25)</code> przenieś do <code>Main</code>, który składa graf obiektów.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ConfirmReservation</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">SmtpMailSender</span> <span class="hljs-variable">mail</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">SmtpMailSender</span>(<span class="hljs-string">&quot;smtp.kino.pl&quot;</span>, <span class="hljs-number">25</span>);
+...
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">ConfirmReservation</span> <span class="hljs-title function_">confirmReservation</span><span class="hljs-params">()</span> {    <span class="hljs-comment">// Main</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ConfirmReservation</span>();
+}
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">public</span> <span class="hljs-title function_">ConfirmReservation</span><span class="hljs-params">(SmtpMailSender mail)</span> {
     <span class="hljs-built_in">this</span>.mail = mail;
 }
@@ -616,8 +954,20 @@ byTitle.merge(sale.title(), revenue(sale), BigDecimal::add);   <span class="hljs
 <strong>Co powiedzieć:</strong> to jest DI, ale jeszcze nie DIP - <code>import ...infra.SmtpMailSender</code> nadal stoi w polityce. Test <code>step1AndStep2PolicyDependsOnInfrastructure</code> to potwierdza.
 <strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m2/<wbr>s08 0 1</code></p>
 <h3 id="krok-2-extract-method-nazwij-potrzebe-polityki" tabindex="-1"><a class="header-anchor" href="#krok-2-extract-method-nazwij-potrzebe-polityki"><span>Krok 2: Extract Method - nazwij potrzebę polityki</span></a></h3>
-<p><strong>W IDE:</strong> zaznacz składanie MIME, <code>send</code> i sprawdzenie kodu, ⌥⌘M, nazwa <code>notifyCustomer(String email, String message)</code>.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Składanie wiadomości MIME, wywołanie <code>mail.send</code> i sprawdzenie kodu odpowiedzi wydziel do prywatnej metody <code>notifyCustomer(String email, String message)</code> (Extract Method).</li>
+<li><code>confirm</code> woła już tylko <code>notifyCustomer(reservation.email(), message)</code> - cała technologia siedzi w jednej metodzie.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">String</span> <span class="hljs-variable">mime</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;To: &quot;</span> + reservation.email() + <span class="hljs-string">&quot;\r\nSubject: Rezerwacja\r\n\r\n&quot;</span> + message;
+<span class="hljs-type">String</span> <span class="hljs-variable">reply</span> <span class="hljs-operator">=</span> mail.send(reservation.email(), mime);
+<span class="hljs-keyword">if</span> (!reply.startsWith(<span class="hljs-string">&quot;250&quot;</span>)) {
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(<span class="hljs-string">&quot;SMTP odrzucil: &quot;</span> + reply);
+}
+<span class="hljs-keyword">return</span> <span class="hljs-string">&quot;potwierdzono: &quot;</span> + reservation.email();
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs">notifyCustomer(reservation.email(), message);
 <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;potwierdzono: &quot;</span> + reservation.email();
 </code></pre>
@@ -625,8 +975,27 @@ byTitle.merge(sale.title(), revenue(sale), BigDecimal::add);   <span class="hljs
 <strong>Co powiedzieć:</strong> tak wygląda port, zanim stanie się interfejsem: potrzeba nazwana w języku problemu (&quot;powiadom klienta&quot;), a cała technologia w jednym miejscu. Nie robimy Extract Interface z <code>SmtpMailSender</code> - dostalibyśmy port <code>send(to, mime)</code>, czyli kształt technologii, nie potrzeby.
 <strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m2/<wbr>s08 1 2</code></p>
 <h3 id="krok-3-port-po-stronie-polityki-adapter-w-infra" tabindex="-1"><a class="header-anchor" href="#krok-3-port-po-stronie-polityki-adapter-w-infra"><span>Krok 3: Port po stronie polityki, adapter w infra</span></a></h3>
-<p><strong>W IDE:</strong> utwórz w <code>app</code> interfejs <code>CustomerNotifier</code> z metodą <code>notifyCustomer</code>. Na <code>notifyCustomer</code> Refactor &gt; Move (F6) do nowej klasy <code>infra.SmtpCustomerNotifier implements CustomerNotifier</code> (albo Extract Delegate i przeniesienie). W <code>ConfirmReservation</code> typ pola -&gt; <code>CustomerNotifier</code>. W <code>Main</code> złóż <code>new ConfirmReservation(new SmtpCustomerNotifier(new SmtpMailSender(...)))</code>.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>W pakiecie <code>app</code> utwórz interfejs <code>CustomerNotifier</code> z metodą <code>notifyCustomer(String email, String message)</code> (Extract Interface).</li>
+<li>W <code>infra</code> utwórz klasę <code>SmtpCustomerNotifier implements CustomerNotifier</code> i przenieś do niej ciało <code>notifyCustomer</code> wraz z polem <code>mail</code> (Move Method).</li>
+<li>W <code>ConfirmReservation</code> zmień typ pola i parametru konstruktora na <code>CustomerNotifier</code> - import <code>infra</code> znika z polityki.</li>
+<li>W <code>Main</code> złóż graf: <code>new ConfirmReservation(new SmtpCustomerNotifier(new SmtpMailSender(&quot;smtp.kino.pl&quot;, 25)))</code>.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">import</span> pl.training.workshop.m2.s08_dip.step2.infra.SmtpMailSender;
+...
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> SmtpMailSender mail;
+...
+<span class="hljs-keyword">private</span> <span class="hljs-type">void</span> <span class="hljs-title function_">notifyCustomer</span><span class="hljs-params">(String email, String message)</span> {
+    <span class="hljs-type">String</span> <span class="hljs-variable">mime</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;To: &quot;</span> + email + <span class="hljs-string">&quot;\r\nSubject: Rezerwacja\r\n\r\n&quot;</span> + message;
+    <span class="hljs-type">String</span> <span class="hljs-variable">reply</span> <span class="hljs-operator">=</span> mail.send(email, mime);
+    <span class="hljs-keyword">if</span> (!reply.startsWith(<span class="hljs-string">&quot;250&quot;</span>)) {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(<span class="hljs-string">&quot;SMTP odrzucil: &quot;</span> + reply);
+    }
+}
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">CustomerNotifier</span> {           <span class="hljs-comment">// app</span>
     <span class="hljs-type">void</span> <span class="hljs-title function_">notifyCustomer</span><span class="hljs-params">(String email, String message)</span>;
 }
@@ -666,8 +1035,31 @@ outbox.publish(<span class="hljs-string">&quot;reservation-created&quot;</span>,
 <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;201 &quot;</span> + id + <span class="hljs-string">&quot; &quot;</span> + total;
 </code></pre>
 <h3 id="krok-1-extract-class-przypadek-uzycia-jako-jawna-orkiestracja" tabindex="-1"><a class="header-anchor" href="#krok-1-extract-class-przypadek-uzycia-jako-jawna-orkiestracja"><span>Krok 1: Extract Class - przypadek użycia jako jawna orkiestracja</span></a></h3>
-<p><strong>W IDE:</strong> utwórz rekordy <code>BookSeatsCommand(email, format, rows)</code> i <code>Booking(id, total)</code>. Zaznacz w kontrolerze wycenę, zapis i publikację, ⌥⌘M <code>execute</code>, potem Move (F6) do nowej klasy <code>BookSeats</code>. Kontroler mapuje wyjątki: <code>IllegalArgumentException</code> -&gt; 400, <code>IllegalStateException</code> -&gt; 503.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Utwórz rekordy <code>BookSeatsCommand(email, format, rows)</code> i <code>Booking(id, total)</code> - proste dane przekraczające granicę.</li>
+<li>Wycenę, zapis i publikację wydziel z kontrolera do metody <code>execute</code>, a metodę przenieś do nowej klasy <code>BookSeats</code> z polami <code>db</code> i <code>outbox</code> (Extract Method, Move Method).</li>
+<li>Walidację &quot;brak miejsc&quot; przenieś do <code>BookSeats.execute</code> jako <code>IllegalArgumentException</code>.</li>
+<li>Kontroler tylko tłumaczy: parametry na <code>BookSeatsCommand</code>, wynik na &quot;201 ...&quot;, a wyjątki na kody: <code>IllegalArgumentException</code> -&gt; 400, <code>IllegalStateException</code> -&gt; 503.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">BigDecimal</span> <span class="hljs-variable">total</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;0.00&quot;</span>);
+<span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> row : rows) {
+    total = total.add(base);
+    <span class="hljs-keyword">if</span> (row &gt;= <span class="hljs-number">10</span>) {
+        total = total.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(<span class="hljs-string">&quot;10.00&quot;</span>));
+    }
+}
+String id;
+<span class="hljs-keyword">try</span> {
+    id = db.insert(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Object</span>[] {email, format, rows.size(), total});
+} <span class="hljs-keyword">catch</span> (IllegalStateException e) {
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;503 &quot;</span> + e.getMessage();
+}
+outbox.publish(<span class="hljs-string">&quot;reservation-created&quot;</span>, id + <span class="hljs-string">&quot;;&quot;</span> + email + <span class="hljs-string">&quot;;&quot;</span> + total);
+<span class="hljs-keyword">return</span> <span class="hljs-string">&quot;201 &quot;</span> + id + <span class="hljs-string">&quot; &quot;</span> + total;
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-type">Booking</span> <span class="hljs-title function_">execute</span><span class="hljs-params">(BookSeatsCommand command)</span> {
     <span class="hljs-keyword">if</span> (command.rows().isEmpty()) {
         <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;brak miejsc&quot;</span>);
@@ -683,8 +1075,21 @@ outbox.publish(<span class="hljs-string">&quot;reservation-created&quot;</span>,
 <strong>Co powiedzieć:</strong> przypadek użycia czyta się jak scenariusz: wyceń, zapisz, powiadom. Granicę przekraczają proste rekordy, nie <code>Map</code> z HTTP. Wciąż zna jednak kolumny tabeli i temat komunikatu.
 <strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m2/<wbr>s09 0 1</code></p>
 <h3 id="krok-2-porty-zdefiniowane-przez-potrzebe-adaptery" tabindex="-1"><a class="header-anchor" href="#krok-2-porty-zdefiniowane-przez-potrzebe-adaptery"><span>Krok 2: Porty zdefiniowane przez potrzebę, adaptery</span></a></h3>
-<p><strong>W IDE:</strong> utwórz <code>NewReservation</code> (rekord), porty <code>ReservationStore.save(NewReservation)</code> i <code>BookingNotifier.reservationCreated(id, reservation)</code>. Przenieś (ręcznie lub Extract Delegate) mapowanie na <code>Object[]</code> do <code>RowStoreReservationStore</code>, publikację do <code>OutboxBookingNotifier</code>. <code>BookSeats</code> przyjmuje porty.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Dodaj rekord <code>NewReservation(email, format, seats, total)</code> - dane przekraczające granicę do zapisu.</li>
+<li>Dodaj porty: interfejs <code>ReservationStore</code> z metodą <code>save(NewReservation)</code> i interfejs <code>BookingNotifier</code> z metodą <code>reservationCreated(id, reservation)</code> - nazwane potrzebą przypadku użycia.</li>
+<li>Mapowanie na <code>Object[]</code> przenieś do adaptera <code>RowStoreReservationStore</code>, a publikację komunikatu do <code>OutboxBookingNotifier</code>.</li>
+<li><code>BookSeats</code> przyjmuje w konstruktorze porty zamiast <code>RowStore</code> i <code>Outbox</code>; adaptery składa na razie kontroler (do kroku 4).</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">BigDecimal</span> <span class="hljs-variable">total</span> <span class="hljs-operator">=</span> price(command);
+<span class="hljs-type">String</span> <span class="hljs-variable">id</span> <span class="hljs-operator">=</span> db.insert(
+        <span class="hljs-keyword">new</span> <span class="hljs-title class_">Object</span>[] {command.email(), command.format(), command.rows().size(), total});
+outbox.publish(<span class="hljs-string">&quot;reservation-created&quot;</span>, id + <span class="hljs-string">&quot;;&quot;</span> + command.email() + <span class="hljs-string">&quot;;&quot;</span> + total);
+<span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Booking</span>(id, total);
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">String</span> <span class="hljs-variable">id</span> <span class="hljs-operator">=</span> store.save(reservation);
 notifier.reservationCreated(id, reservation);
 <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Booking</span>(id, reservation.total());
@@ -693,8 +1098,18 @@ notifier.reservationCreated(id, reservation);
 <strong>Co powiedzieć:</strong> kolejność zapis -&gt; powiadomienie to decyzja protokołu: błąd zapisu oznacza brak powiadomienia. Kolejność nie daje atomowości - w systemie rozproszonym potrzebny byłby outbox transakcyjny.
 <strong>Snapshot:</strong> <code>step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m2/<wbr>s09 1 2</code></p>
 <h3 id="krok-3-move-class-granica-widoczna-w-pakietach" tabindex="-1"><a class="header-anchor" href="#krok-3-move-class-granica-widoczna-w-pakietach"><span>Krok 3: Move Class - granica widoczna w pakietach</span></a></h3>
-<p><strong>W IDE:</strong> F6 na <code>BookSeats</code>, <code>BookSeatsCommand</code>, <code>Booking</code>, <code>NewReservation</code>, <code>ReservationStore</code>, <code>BookingNotifier</code> -&gt; pakiet <code>app</code>; F6 na kontrolerze i obu adapterach -&gt; <code>adapter</code>. IntelliJ poprawi importy (także w <code>CinemaApplication</code>).
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Przenieś <code>BookSeats</code>, <code>BookSeatsCommand</code>, <code>Booking</code>, <code>NewReservation</code>, <code>ReservationStore</code> i <code>BookingNotifier</code> do nowego pakietu <code>app</code> (Move Class).</li>
+<li>Przenieś <code>ReservationController</code>, <code>RowStoreReservationStore</code> i <code>OutboxBookingNotifier</code> do nowego pakietu <code>adapter</code> (Move Class).</li>
+<li>Popraw importy u wszystkich klientów, także w <code>CinemaApplication</code> - adaptery importują <code>app</code>, nigdy odwrotnie.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="text"><code class="hljs">step2/   BookSeats, BookSeatsCommand, Booking, NewReservation, ReservationStore,
+         BookingNotifier, ReservationController, RowStoreReservationStore,
+         OutboxBookingNotifier, CinemaApplication   (wszystko w jednym pakiecie)
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="text"><code class="hljs">step3/app/       BookSeats, BookSeatsCommand, Booking, NewReservation, ReservationStore, BookingNotifier
 step3/adapter/   ReservationController, RowStoreReservationStore, OutboxBookingNotifier
 </code></pre>
@@ -702,8 +1117,23 @@ step3/adapter/   ReservationController, RowStoreReservationStore, OutboxBookingN
 <strong>Co powiedzieć:</strong> <code>app</code> nie importuje niczego z <code>adapter</code>; adaptery importują <code>app</code>. Nazwy pakietów są drugorzędne - liczy się kierunek importów.
 <strong>Snapshot:</strong> <code>step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m2/<wbr>s09 2 3</code></p>
 <h3 id="krok-4-composition-root" tabindex="-1"><a class="header-anchor" href="#krok-4-composition-root"><span>Krok 4: Composition root</span></a></h3>
-<p><strong>W IDE:</strong> w konstruktorze kontrolera zaznacz <code>new BookSeats(...)</code> i ⌥⌘P (Introduce Parameter) - tworzenie grafu przeniesie się do <code>CinemaApplication</code>. Usuń nieużywane parametry <code>db</code>, <code>outbox</code> z kontrolera (⌘F6).
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>W konstruktorze kontrolera zastąp składanie <code>new BookSeats(...)</code> parametrem <code>BookSeats bookSeats</code> - tworzenie grafu przenosi się do <code>CinemaApplication</code> (Introduce Parameter).</li>
+<li>Usuń z konstruktora kontrolera nieużywane już parametry <code>db</code> i <code>outbox</code> wraz z importami <code>RowStore</code> i <code>Outbox</code> (Change Signature).</li>
+<li><code>CinemaApplication.reservationController</code> składa cały graf: oba adaptery wyjściowe, przypadek użycia i kontroler.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-type">public</span> <span class="hljs-title function_">ReservationController</span><span class="hljs-params">(RowStore db, Outbox outbox)</span> {
+    <span class="hljs-built_in">this</span>.bookSeats = <span class="hljs-keyword">new</span> <span class="hljs-title class_">BookSeats</span>(
+            <span class="hljs-keyword">new</span> <span class="hljs-title class_">RowStoreReservationStore</span>(db), <span class="hljs-keyword">new</span> <span class="hljs-title class_">OutboxBookingNotifier</span>(outbox));
+}
+...
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">ReservationController</span> <span class="hljs-title function_">reservationController</span><span class="hljs-params">(RowStore db, Outbox outbox)</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ReservationController</span>(db, outbox);                <span class="hljs-comment">// CinemaApplication</span>
+}
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">ReservationController</span> <span class="hljs-title function_">reservationController</span><span class="hljs-params">(RowStore db, Outbox outbox)</span> {
     <span class="hljs-type">BookSeats</span> <span class="hljs-variable">bookSeats</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BookSeats</span>(
             <span class="hljs-keyword">new</span> <span class="hljs-title class_">RowStoreReservationStore</span>(db), <span class="hljs-keyword">new</span> <span class="hljs-title class_">OutboxBookingNotifier</span>(outbox));
@@ -744,8 +1174,31 @@ step3/adapter/   ReservationController, RowStoreReservationStore, OutboxBookingN
 </code></pre>
 <p>Uruchom test i pokaż wyjście konsoli: <code>s10 start - naruszenia granicy: [...]</code> i <code>s10 start - LCOM4 ScreeningService: Result[lcom4=2, groups=[fromRow, toRow, isMorning, price]]</code>. Test startu działa jak &quot;zamrożone naruszenia&quot; (FreezingArchRule w ArchUnit): znane są tolerowane, każde nowe jest czerwone.</p>
 <h3 id="krok-1-extract-class-spojnosc" tabindex="-1"><a class="header-anchor" href="#krok-1-extract-class-spojnosc"><span>Krok 1: Extract Class - spójność</span></a></h3>
-<p><strong>W IDE:</strong> Refactor &gt; Extract &gt; Delegate na <code>toRow</code>, <code>fromRow</code> i polu <code>table</code>, klasa <code>ScreeningRowMapper</code> w tym samym pakiecie <code>domain</code>. Popraw <code>CinemaApp</code> (composition root), żeby tworzył obie klasy.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Utwórz w pakiecie <code>domain</code> klasę <code>ScreeningRowMapper</code> i przenieś do niej pole <code>table</code> oraz metody <code>toRow</code> i <code>fromRow</code> z <code>ScreeningService</code> (Extract Class).</li>
+<li>W <code>ScreeningService</code> zostaje sama polityka cenowa: pola <code>basePrice</code> i <code>morningDiscount</code>, metody <code>price</code> i <code>isMorning</code>; konstruktor traci parametr <code>table</code>.</li>
+<li>Popraw composition root <code>CinemaApp</code>: tworzy <code>ScreeningService</code> i osobno <code>ScreeningRowMapper(&quot;screenings&quot;)</code>, a <code>toRow</code>/<code>fromRow</code> woła na maperze.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ScreeningService</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> BigDecimal basePrice;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> BigDecimal morningDiscount;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String table;
+    ...
+    <span class="hljs-keyword">public</span> <span class="hljs-type">ScreeningRow</span> <span class="hljs-title function_">toRow</span><span class="hljs-params">(Screening screening)</span> {
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ScreeningRow</span>(table, screening.title(), Timestamp.valueOf(screening.start()));
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-type">Screening</span> <span class="hljs-title function_">fromRow</span><span class="hljs-params">(ScreeningRow row)</span> {
+        <span class="hljs-keyword">if</span> (!row.table().equals(table)) {
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;obca tabela: &quot;</span> + row.table());
+        }
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Screening</span>(row.title(), row.start().toLocalDateTime());
+    }
+}
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ScreeningRowMapper</span> {    <span class="hljs-comment">// wciąż w domain</span>
     <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String table;
     <span class="hljs-keyword">public</span> <span class="hljs-type">ScreeningRow</span> <span class="hljs-title function_">toRow</span><span class="hljs-params">(Screening screening)</span> { ... }
@@ -756,8 +1209,21 @@ step3/adapter/   ReservationController, RowStoreReservationStore, OutboxBookingN
 <strong>Co powiedzieć:</strong> spójność i kierunek zależności to dwa różne wymiary. Wydzielenie klasy nie naprawia granicy.
 <strong>Snapshot:</strong> <code>step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh diff m2/<wbr>s10 0 1</code></p>
 <h3 id="krok-2-move-class-do-adaptera" tabindex="-1"><a class="header-anchor" href="#krok-2-move-class-do-adaptera"><span>Krok 2: Move Class do adaptera</span></a></h3>
-<p><strong>W IDE:</strong> F6 na <code>ScreeningRowMapper</code>, pakiet <code>adapter</code>. IntelliJ doda import <code>domain.Screening</code> w maperze i poprawi <code>CinemaApp</code>.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Przenieś <code>ScreeningRowMapper</code> z pakietu <code>domain</code> do pakietu <code>adapter</code> (Move Class).</li>
+<li>W maperze dochodzi import <code>domain.Screening</code>; popraw też import mapera w <code>CinemaApp</code>.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">package</span> pl.training.workshop.m2.s10_boundarycheck.step1.domain;
+
+<span class="hljs-keyword">import</span> java.sql.Timestamp;
+
+<span class="hljs-keyword">import</span> pl.training.workshop.m2.s10_boundarycheck.step1.adapter.ScreeningRow;
+
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ScreeningRowMapper</span> {
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="java"><code class="hljs"><span class="hljs-keyword">package</span> pl.training.workshop.m2.s10_boundarycheck.step2.adapter;
 
 <span class="hljs-keyword">import</span> java.sql.Timestamp;

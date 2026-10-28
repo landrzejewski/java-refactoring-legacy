@@ -1,6 +1,6 @@
 # Moduł 3. Testowanie a bezpieczeństwo - warsztat CineLegacy: przewodnik prowadzącego
 
-Pięć scen w domenie kina pokazuje na żywo, jak zbudować sieć bezpieczeństwa wokół kodu, który jej nie ma: test charakteryzujący przed pierwszą zmianą, szew (ang. seam) w klasie, której nie da się uruchomić w teście, wektor obserwowalnego zachowania, weryfikację w cieniu i jej granice przy efektach ubocznych. Każda scena ma kod wyjściowy (`start`), kompletne snapshoty po każdym kroku (`stepN`) i test, który po każdym ruchu w IDE ma być zielony. Tam, gdzie krok świadomie zmienia zachowanie (s03 krok 2, s04 krok 4), test ma osobne oczekiwania i pokazuje różnicę wprost.
+Pięć scen w domenie kina pokazuje na żywo, jak zbudować sieć bezpieczeństwa wokół kodu, który jej nie ma: test charakteryzujący przed pierwszą zmianą, szew (ang. seam) w klasie, której nie da się uruchomić w teście, wektor obserwowalnego zachowania, weryfikację w cieniu i jej granice przy efektach ubocznych. Każda scena ma kod wyjściowy (`start`), kompletne snapshoty po każdym kroku (`stepN`) i test, który po każdym kroku ma być zielony. Tam, gdzie krok świadomie zmienia zachowanie (s03 krok 2, s04 krok 4), test ma osobne oczekiwania i pokazuje różnicę wprost.
 
 Punktem odniesienia dla całego modułu jest wynik wzorcowy (ang. golden master) starego systemu: `CinemaManagerGoldenMasterTest` odtwarza "jeden dzień kina" na nietkniętym `legacy/CinemaManager` i porównuje pełny wektor zachowania (wyniki wywołań, maile, SMS-y, obciążenia i zwroty, raport dzienny, rozliczenia) z zatwierdzonym plikiem `src/test/resources/workshop/cinema-manager.approved.txt`. To odpowiedź na pytanie "jak poradzić sobie bez testów?" w skali całego systemu: jeden szeroki, deterministyczny test, zanim powstanie jakikolwiek test jednostkowy. Sceny poniżej pokazują te same techniki w mniejszej skali. Pokaż golden master na początku modułu (3 min) i wracaj do niego przy s01 (charakterystyka) i s03 (wektor zachowania).
 
@@ -23,12 +23,12 @@ scripts/warsztat.sh status                  # który krok jest teraz w start
 scripts/warsztat.sh reset m3/s04            # przywróć start po pokazie
 ```
 
-- Zasada: **jeden krok - jeden test - jedno zdanie komentarza.** Ruch w IDE, ⌃R na teście sceny, zdanie z sekcji "Co powiedzieć". Zanim ruszysz kod, powiedz, jaki dowód da test po kroku.
+- Zasada: **jeden krok - jeden test - jedno zdanie komentarza.** Zmiana w kodzie, uruchomienie testu sceny, zdanie z sekcji "Co powiedzieć". Zanim ruszysz kod, powiedz, jaki dowód da test po kroku.
 - **Krok po kroku bez numerów:** `scripts/warsztat.sh next` wstawia do `start` gotowy następny krok i wypisuje, co się zmieniło. `prev` cofa o krok, `status` mówi, który krok jest teraz w `start`. Skrypt pamięta ostatnią scenę, więc po pierwszym `next m3/sNN` wystarczy samo `next`. Ręczne zmiany w `start` zostają nadpisane - o to chodzi, gdy krok na żywo się rozjechał.
 - Pracujesz zawsze w pakiecie `start`. Snapshoty `stepN` służą do `diff` albo do przeskoku (`next`, `jump`), gdy coś się rozjedzie.
 - Zanim zaczniesz, pokaż slajd 1.2 "Zachowanie obserwowalne to więcej niż wynik metody" i wracaj do niego przy każdej scenie: *co tu obserwujemy - wynik, wyjątek, stan, efekty, kolejność?*
 - W s02 start **nie ma testów** i to jest puenta: testy pojawiają się dopiero wtedy, gdy kod ma szew. Pierwsze ruchy to refaktoryzacje automatyczne IDE o niskim ryzyku (slajd 3.6).
-- W s01 i s03 warto najpierw **zrobić naiwny ruch na żywo** (np. "poprawić" znalezisko z charakterystyki, sprawdzić tylko wynik), pokazać, czego test nie widzi, cofnąć (⌘Z) i dopiero wtedy wykonać krok z przewodnika.
+- W s01 i s03 warto najpierw **zrobić naiwny ruch na żywo** (np. "poprawić" znalezisko z charakterystyki, sprawdzić tylko wynik), pokazać, czego test nie widzi, cofnąć zmianę i dopiero wtedy wykonać krok z przewodnika.
 - W s04 i s05 część testów to nie tylko równoważność (`SNNEquivalenceTest`), ale też dowody strategii (`SNNSolutionTest`): raport rozbieżności, dziennik efektów ubocznych. Testy, które **dokumentują stan startowy** (np. "start obciąża kartę dwa razy"), zmienią kolor na czerwony, gdy wykonasz kroki na pakiecie `start` - to znak, że start jest już naprawiony. Po pokazie: `scripts/warsztat.sh reset`.
 - Kroki, które zmieniają zachowanie (s03 krok 2, s04 krok 4), zapowiadaj na głos: "to jest osobny commit, nie refaktoryzacja".
 
@@ -80,16 +80,43 @@ W trakcie wychodzą dwa znaleziska, które test zapisuje, a nie poprawia:
 
 ### Krok 1: Parameterize Constructor - wstrzyknięty Clock
 
-**W IDE:** w `confirm` zamień `LocalDateTime.now()` na `LocalDateTime.now(Clock.systemDefaultZone())`, zaznacz `Clock.systemDefaultZone()` i wykonaj Extract Field (⌥⌘F, inicjalizacja w konstruktorze, nazwa `clock`). Potem w konstruktorze na tym samym wyrażeniu Extract Parameter (⌥⌘P) z opcją delegowania przez przeciążenie ("Delegate via overloading method"), żeby został konstruktor bezargumentowy delegujący do `this(Clock.systemDefaultZone())`.
+**Zmiany:**
+
+1. W klasie `BookingConfirmation` dodajemy prywatne finalne pole `Clock clock`.
+2. Dodajemy konstruktor `BookingConfirmation(Clock clock)`, który przypisuje pole, oraz konstruktor bezargumentowy delegujący do `this(Clock.systemDefaultZone())` - dotychczasowi klienci niczego nie zmieniają (Parameterize Constructor).
+3. W `confirm` zamieniamy `LocalDateTime.now()` na `LocalDateTime.now(clock)`.
+
+**Przed:**
+
+```java
+public final class BookingConfirmation {
+    public String confirm(Booking b) {
+        ...
+        return "POTWIERDZENIE REZERWACJI\n"
+                ...
+                + "Wygenerowano: " + LocalDateTime.now().withNano(0) + "\n";
+    }
+}
+```
+
 **Po:**
 
 ```java
-public BookingConfirmation() {
-    this(Clock.systemDefaultZone());
-}
+public final class BookingConfirmation {
+    private final Clock clock;
 
-public BookingConfirmation(Clock clock) {
-    this.clock = clock;
+    public BookingConfirmation() {
+        this(Clock.systemDefaultZone());
+    }
+
+    public BookingConfirmation(Clock clock) {
+        this.clock = clock;
+    }
+
+    public String confirm(Booking b) {
+        ...
+                + "Wygenerowano: " + LocalDateTime.now(clock).withNano(0) + "\n";
+    }
 }
 ```
 
@@ -99,12 +126,49 @@ public BookingConfirmation(Clock clock) {
 
 ### Krok 2: pierwsza refaktoryzacja pod ochroną testu
 
-**W IDE:** zaznacz ciało pętli od `double p;` do `p = p - 5.00; }`, Extract Method (⌥⌘M), nazwa `ticketPrice`. IntelliJ wykryje dwa wejścia (`b`, `t`) i jedno wyjście. W pętli zostaje `sum = sum + ticketPrice(b, t);`.
+**Zmiany:**
+
+1. Z ciała pętli w `confirm` wydzielamy nową prywatną metodę `double ticketPrice(Booking b, String t)` - trafia do niej cały blok od `double p;` po rabat poranny; metoda ma dwa wejścia (`b`, `t`) i jedno wyjście (`p`) (Extract Method).
+2. W pętli zostaje jedno wywołanie: `sum = sum + ticketPrice(b, t);`.
+
+**Przed:**
+
+```java
+double sum = 0;
+for (String t : b.ticketTypes()) {
+    double p;
+    if (b.format() == 3) {
+        p = 40.00;
+    } else if (b.format() == 2) {
+        p = 32.00;
+    } else {
+        p = 25.00;
+    }
+    if (t.equals("S")) {
+        p = p * 0.75;
+    } else if (t.equals("E")) {
+        p = p * 0.70;
+    } else if (t.equals("C")) {
+        p = p * 0.60;
+    }
+    if (b.start().getHour() < 12) {
+        p = p - 5.00;
+    }
+    sum = sum + p;
+}
+```
+
 **Po:**
 
 ```java
 for (String t : b.ticketTypes()) {
     sum = sum + ticketPrice(b, t);
+}
+...
+private double ticketPrice(Booking b, String t) {
+    double p;
+    ...
+    return p;
 }
 ```
 
@@ -158,12 +222,37 @@ Sekwencja rozrywania zależności: nazwij zachowanie i punkt obserwacji, wprowad
 
 ### Krok 1: Extract Interface + Parameterize Constructor
 
-**W IDE:** na `LegacyDatabase` Refactor → Extract Interface, nazwa `BookingStore`, zaznacz `paidBookings` i `markReminded`. Potem w `ShowtimeReminderJob` ręcznie: pole `Supplier<BookingStore> stores`, konstruktor z parametrem i konstruktor bezargumentowy `this(LegacyDatabase::new)`. W `run()` zamień `new LegacyDatabase()` na `stores.get()`.
+**Zmiany:**
+
+1. Z klasy `LegacyDatabase` wydzielamy nowy interfejs `BookingStore` z dwiema metodami: `paidBookings()` i `markReminded(String bookingId)`; `LegacyDatabase` zaczyna go implementować (Extract Interface).
+2. W `ShowtimeReminderJob` dodajemy pole `Supplier<BookingStore> stores` i konstruktor z tym parametrem.
+3. Dodajemy konstruktor bezargumentowy delegujący do `this(LegacyDatabase::new)` - produkcja składa to samo co wcześniej (Parameterize Constructor).
+4. W `run()` zamieniamy `new LegacyDatabase()` na `stores.get()`; zmienna lokalna `database` ma teraz typ `BookingStore`.
+
+**Przed:**
+
+```java
+public final class ShowtimeReminderJob {
+    public int run() {
+        LegacyDatabase database = new LegacyDatabase();
+        LocalDateTime now = LocalDateTime.now();
+        int sent = 0;
+        ...
+    }
+}
+```
+
 **Po:**
 
 ```java
+private final Supplier<BookingStore> stores;
+
 public ShowtimeReminderJob() {
     this(LegacyDatabase::new);
+}
+
+public ShowtimeReminderJob(Supplier<BookingStore> stores) {
+    this.stores = Objects.requireNonNull(stores, "stores");
 }
 
 public int run() {
@@ -176,11 +265,34 @@ public int run() {
 
 ### Krok 2: Clock jako zależność
 
-**W IDE:** ręcznie (Extract Parameter ⌥⌘P dodałby parametr do `run()`, a potrzebujemy zależności konstruktora): pole `Clock clock`, drugi parametr konstruktora, w domyślnym konstruktorze `Clock.systemDefaultZone()`, w `run()` `LocalDateTime.now(clock)`.
+**Zmiany:**
+
+1. W `ShowtimeReminderJob` dodajemy pole `Clock clock` i drugi parametr konstruktora - celowo zależność konstruktora, a nie dodatkowy parametr metody `run()`.
+2. Konstruktor bezargumentowy przekazuje `Clock.systemDefaultZone()`.
+3. W `run()` zamieniamy `LocalDateTime.now()` na `LocalDateTime.now(clock)` - zegar czytamy w tym samym miejscu co wcześniej.
+
+**Przed:**
+
+```java
+public ShowtimeReminderJob() {
+    this(LegacyDatabase::new);
+}
+...
+public int run() {
+    BookingStore database = stores.get();
+    LocalDateTime now = LocalDateTime.now();
+```
+
 **Po:**
 
 ```java
-LocalDateTime now = LocalDateTime.now(clock);
+public ShowtimeReminderJob() {
+    this(LegacyDatabase::new, Clock.systemDefaultZone());
+}
+...
+public int run() {
+    BookingStore database = stores.get();
+    LocalDateTime now = LocalDateTime.now(clock);
 ```
 
 **Uruchom:** test zielony. Test `step2...` pokazuje dwie rzeczy: przypadki bez wysyłki działają przy stałym zegarze, a przypadek "do wysłania" wciąż kończy się wyjątkiem SMTP.
@@ -189,12 +301,38 @@ LocalDateTime now = LocalDateTime.now(clock);
 
 ### Krok 3: Subclass and Override Method i pierwszy test
 
-**W IDE:** zaznacz wywołanie `ReminderMailer.send(...)`, ⌥⌘M, nazwa `sendReminder`, widoczność `protected`. Usuń `final` z klasy. W teście podklasa anonimowa nadpisuje `sendReminder` i zapisuje wiadomości do listy - to jest **pierwszy prawdziwy test** tej klasy.
+**Zmiany:**
+
+1. Wywołanie `ReminderMailer.send(...)` z `run()` wydzielamy do nowej metody `protected void sendReminder(String to, String subject, String body)` (Extract Method).
+2. Usuwamy `final` z klasy, żeby dało się ją rozszerzyć.
+3. W teście powstaje podklasa anonimowa, która nadpisuje `sendReminder` i zapisuje wiadomości do listy - to jest **pierwszy prawdziwy test** tej klasy (Subclass and Override Method).
+
+**Przed:**
+
+```java
+public final class ShowtimeReminderJob {
+    ...
+    if (!booking.reminded() && minutes > 0 && minutes <= 120) {
+        ReminderMailer.send(booking.email(),
+                "Przypomnienie: " + booking.title(),
+                "Seans zaczyna sie o " + booking.start().toLocalTime());
+        database.markReminded(booking.id());
+```
+
 **Po:**
 
 ```java
-protected void sendReminder(String to, String subject, String body) {
-    ReminderMailer.send(to, subject, body);
+public class ShowtimeReminderJob {
+    ...
+    if (!booking.reminded() && minutes > 0 && minutes <= 120) {
+        sendReminder(booking.email(),
+                "Przypomnienie: " + booking.title(),
+                "Seans zaczyna sie o " + booking.start().toLocalTime());
+        database.markReminded(booking.id());
+    ...
+    protected void sendReminder(String to, String subject, String body) {
+        ReminderMailer.send(to, subject, body);
+    }
 }
 ```
 
@@ -204,13 +342,45 @@ protected void sendReminder(String to, String subject, String body) {
 
 ### Krok 4: seam z dziedziczenia na interfejs funkcyjny
 
-**W IDE:** utwórz `@FunctionalInterface ReminderSender`, dodaj trzeci parametr konstruktora, w domyślnym `ReminderMailer::send`. Inline Method (⌥⌘N) na `sendReminder`, przywróć `final`. W teście podklasę zastępuje lambda.
+**Zmiany:**
+
+1. Powstaje nowy plik `ReminderSender.java`: interfejs z adnotacją `@FunctionalInterface` i jedną metodą `void send(String to, String subject, String body)`.
+2. W `ShowtimeReminderJob` dodajemy pole `ReminderSender sender` i trzeci parametr konstruktora; konstruktor bezargumentowy przekazuje `ReminderMailer::send`.
+3. Ciało `sendReminder` zmieniamy na `sender.send(...)`, wstawiamy je w miejsce wywołania w `run()` i usuwamy metodę `sendReminder` (Inline Method).
+4. Przywracamy `final` na klasie. W teście podklasę zastępuje lambda.
+
+**Przed:**
+
+```java
+public class ShowtimeReminderJob {
+    private final Supplier<BookingStore> stores;
+    private final Clock clock;
+
+    public ShowtimeReminderJob() {
+        this(LegacyDatabase::new, Clock.systemDefaultZone());
+    }
+    ...
+    protected void sendReminder(String to, String subject, String body) {
+        ReminderMailer.send(to, subject, body);
+    }
+}
+```
+
 **Po:**
 
 ```java
-public ShowtimeReminderJob() {
-    this(LegacyDatabase::new, Clock.systemDefaultZone(), ReminderMailer::send);
-}
+public final class ShowtimeReminderJob {
+    private final Supplier<BookingStore> stores;
+    private final Clock clock;
+    private final ReminderSender sender;
+
+    public ShowtimeReminderJob() {
+        this(LegacyDatabase::new, Clock.systemDefaultZone(), ReminderMailer::send);
+    }
+    ...
+    sender.send(booking.email(),
+            "Przypomnienie: " + booking.title(),
+            "Seans zaczyna sie o " + booking.start().toLocalTime());
 ```
 
 **Uruchom:** test zielony - te same 3 przypadki dla `step3` (podklasa) i `step4` (lambda).
@@ -264,13 +434,44 @@ Pokaż tabelę ze slajdu 1.2: wynik, wyjątki, stan, współpracownicy, czas, gr
 
 ### Krok 1: seam dla maili - regresja staje się widoczna
 
-**W IDE:** utwórz `@FunctionalInterface Mailer`, Parameterize Constructor, domyślny konstruktor `this(CinemaMailer::send)`, zamień statyczne wywołania na `mailer.send(...)`. Logika bez zmian.
+**Zmiany:**
+
+1. Powstaje nowy plik `Mailer.java`: interfejs z adnotacją `@FunctionalInterface` i metodą `void send(String to, String text)`.
+2. W `TicketCheckout` dodajemy pole `Mailer mailer`, konstruktor z tym parametrem i konstruktor bezargumentowy delegujący do `this(CinemaMailer::send)` (Parameterize Constructor).
+3. Oba statyczne wywołania `CinemaMailer.send(...)` w `pay` zamieniamy na `mailer.send(...)`. Logika bez zmian.
+
+**Przed:**
+
+```java
+public final class TicketCheckout {
+    public String pay(Booking booking, String card) {
+        ...
+        boolean charged = CardTerminal.charge(card, booking.amount());
+        if (charged) {
+            booking.markPaid();
+        } else {
+            CinemaMailer.send(booking.email(), "Platnosc odrzucona " + booking.id());
+        }
+        CinemaMailer.send(booking.email(), "Bilety " + booking.id() + " oplacone: " + booking.amount());
+        return charged ? "OK" : "DECLINED";
+    }
+}
+```
+
 **Po:**
 
 ```java
+private final Mailer mailer;
+
 public TicketCheckout() {
     this(CinemaMailer::send);
 }
+
+public TicketCheckout(Mailer mailer) {
+    this.mailer = Objects.requireNonNull(mailer, "mailer");
+}
+...
+mailer.send(booking.email(), "Platnosc odrzucona " + booking.id());
 ```
 
 **Uruchom:** `scripts/warsztat.sh test m3/s03` - zielony. `step1SeesTheRegressionThatResultOnlyTestMissed` dokumentuje, że po odrzuceniu karty idą dwa maile: "Platnosc odrzucona" i "Bilety B1 oplacone".
@@ -279,7 +480,24 @@ public TicketCheckout() {
 
 ### Krok 2: naprawa regresji pod ochroną testu
 
-**W IDE:** przenieś wysyłkę potwierdzenia do gałęzi sukcesu, zamień `charged ? "OK" : "DECLINED"` na dwa `return`.
+**Zmiany:**
+
+1. Wysyłkę maila potwierdzającego przenosimy do gałęzi sukcesu, za `booking.markPaid()`.
+2. Zmienna `charged` znika: wywołanie `CardTerminal.charge(...)` ląduje wprost w warunku `if`, a `return charged ? "OK" : "DECLINED"` rozbijamy na `return "OK"` w gałęzi sukcesu i `return "DECLINED"` po wysyłce maila o odrzuceniu.
+
+**Przed:**
+
+```java
+boolean charged = CardTerminal.charge(card, booking.amount());
+if (charged) {
+    booking.markPaid();
+} else {
+    mailer.send(booking.email(), "Platnosc odrzucona " + booking.id());
+}
+mailer.send(booking.email(), "Bilety " + booking.id() + " oplacone: " + booking.amount());
+return charged ? "OK" : "DECLINED";
+```
+
 **Po:**
 
 ```java
@@ -298,13 +516,33 @@ return "DECLINED";
 
 ### Krok 3: seam dla płatności i pełny wektor
 
-**W IDE:** utwórz `@FunctionalInterface PaymentGateway`, drugi parametr konstruktora, domyślnie `CardTerminal::charge`. W teście oba fałszywe obiekty zapisują do **jednego** dziennika zdarzeń.
+**Zmiany:**
+
+1. Powstaje nowy plik `PaymentGateway.java`: interfejs z adnotacją `@FunctionalInterface` i metodą `boolean charge(String card, Money amount)`.
+2. W `TicketCheckout` dodajemy pole `PaymentGateway gateway` i drugi parametr konstruktora; konstruktor bezargumentowy przekazuje `CardTerminal::charge`.
+3. W `pay` zamieniamy `CardTerminal.charge(...)` na `gateway.charge(...)`.
+4. W teście oba fałszywe obiekty (mailer i bramka płatności) zapisują do **jednego** dziennika zdarzeń.
+
+**Przed:**
+
+```java
+public TicketCheckout() {
+    this(CinemaMailer::send);
+}
+...
+if (CardTerminal.charge(card, booking.amount())) {
+    booking.markPaid();
+```
+
 **Po:**
 
 ```java
 public TicketCheckout() {
     this(CinemaMailer::send, CardTerminal::charge);
 }
+...
+if (gateway.charge(card, booking.amount())) {
+    booking.markPaid();
 ```
 
 **Uruchom:** test zielony: `step3ObservesTheFullVector` sprawdza wynik albo wyjątek (typ i komunikat), obciążenia i maile w jednej kolejności oraz status rezerwacji po operacji.
@@ -352,7 +590,24 @@ public Money price(TicketQuery query) {
 
 ### Krok 1: dodanie cienia
 
-**W IDE:** w `price` po wyliczeniu wyniku legacy wywołaj kandydata w `try/catch` (Surround With ⌥⌘T) i licz niezgodności.
+**Zmiany:**
+
+1. W `PriceService` dodajemy pole `CandidatePriceCalculator candidate` oraz licznik `int mismatches` z metodą odczytu `mismatches()`.
+2. W `price` po wyliczeniu wyniku legacy wywołujemy kandydata w bloku `try/catch (RuntimeException)`: inny wynik albo wyjątek zwiększa licznik, a awaria kandydata nie przerywa sprzedaży.
+3. Klient nadal dostaje wynik legacy (`return result`).
+
+**Przed:**
+
+```java
+public final class PriceService {
+    private final LegacyPriceCalculator legacy = new LegacyPriceCalculator();
+
+    public Money price(TicketQuery query) {
+        return legacy.price(query);
+    }
+}
+```
+
 **Po:**
 
 ```java
@@ -373,13 +628,46 @@ return result;
 
 ### Krok 2: raport rozbieżności
 
-**W IDE:** nowa klasa `VerificationReport` z `sealed interface Verification` i rekordami `Agreement`, `Divergence`, `CandidateFailure`. Extract Method `verify` w `PriceService`.
+**Zmiany:**
+
+1. Powstaje nowy plik `VerificationReport.java`: `sealed interface Verification` z rekordami `Agreement`, `Divergence` i `CandidateFailure`, lista zdarzeń z metodami `record` i `entries` oraz metoda `problems()` zwracająca czytelne wiersze.
+2. W `PriceService` licznik `mismatches` i jego metoda odczytu znikają; w ich miejsce pole `VerificationReport report` - konstruktor przyjmuje raport, a bezargumentowy tworzy `new VerificationReport()`.
+3. Porównanie wydzielamy z `price` do prywatnej metody `verify(TicketQuery, Money)`, która zwraca typowane zdarzenie; `price` tylko je zapisuje przez `report.record(verify(query, result))` (Extract Method).
+
+**Przed:**
+
+```java
+Money result = legacy.price(query);
+try {
+    if (!candidate.price(query).equals(result)) {
+        mismatches++;
+    }
+} catch (RuntimeException candidateFailure) {
+    mismatches++;
+}
+return result;
+```
+
 **Po:**
 
 ```java
-return legacyPrice.equals(candidatePrice)
-        ? new VerificationReport.Agreement(query, legacyPrice)
-        : new VerificationReport.Divergence(query, legacyPrice, candidatePrice);
+public Money price(TicketQuery query) {
+    Money result = legacy.price(query);
+    report.record(verify(query, result));
+    return result;
+}
+
+private VerificationReport.Verification verify(TicketQuery query, Money legacyPrice) {
+    try {
+        Money candidatePrice = candidate.price(query);
+        return legacyPrice.equals(candidatePrice)
+                ? new VerificationReport.Agreement(query, legacyPrice)
+                : new VerificationReport.Divergence(query, legacyPrice, candidatePrice);
+    } catch (RuntimeException failure) {
+        return new VerificationReport.CandidateFailure(query, legacyPrice,
+                failure.getClass().getSimpleName() + ": " + failure.getMessage());
+    }
+}
 ```
 
 **Uruchom:** test zielony; `step2ReportShowsWhatDivergedAndWhy` - raport pokazuje dwie rozbieżności (3D dziecko rano: 17.20 vs 19.20, 2D student rano: 13.75 vs 15.00) i awarię dla 4DX.
@@ -388,7 +676,21 @@ return legacyPrice.equals(candidatePrice)
 
 ### Krok 3: poprawka znaleziona przez raport
 
-**W IDE:** w `CandidatePriceCalculator` przenieś blok rabatu porannego (⇧⌘↓, Move Statement Down) za wyliczenie zniżki procentowej.
+**Zmiany:**
+
+1. W `CandidatePriceCalculator.price` przenosimy blok rabatu porannego (`if (query.start().getHour() < 12) ...`) za wyliczenie zniżki procentowej: rabat odejmujemy od `price`, a nie od `base` - tak jak liczy legacy.
+2. `PriceService` i raport bez zmian - poprawność ruchu potwierdza znikająca rozbieżność w raporcie.
+
+**Przed:**
+
+```java
+Money base = basePrice(query.format());
+if (query.start().getHour() < 12) {
+    base = base.minus(MORNING_DISCOUNT);
+}
+Money price = base.minus(base.percent(discountPercent(query.type())));
+```
+
 **Po:**
 
 ```java
@@ -404,15 +706,41 @@ if (query.start().getHour() < 12) {
 
 ### Krok 4: przełączenie
 
-**W IDE:** enum `MigrationMode { LEGACY, SHADOW, CANDIDATE }`, konstruktor `PriceService(MigrationMode, VerificationReport)`, `switch` w `price`.
+**Zmiany:**
+
+1. Powstaje nowy plik `MigrationMode.java`: enum z wartościami `LEGACY`, `SHADOW` i `CANDIDATE`.
+2. W `PriceService` dodajemy pole `MigrationMode mode`; konstruktor przyjmuje teraz `(MigrationMode, VerificationReport)`, a bezargumentowy przekazuje `MigrationMode.SHADOW`.
+3. Dotychczasową ścieżkę porównania przenosimy do prywatnej metody `shadow(TicketQuery)`; metoda `verify` znika, a zapis do raportu dzieje się wprost w `shadow`.
+4. `price` wybiera ścieżkę przez `switch` po trybie: `LEGACY` woła stary kalkulator, `SHADOW` metodę `shadow`, `CANDIDATE` kandydata.
+
+**Przed:**
+
+```java
+public PriceService() {
+    this(new VerificationReport());
+}
+...
+public Money price(TicketQuery query) {
+    Money result = legacy.price(query);
+    report.record(verify(query, result));
+    return result;
+}
+```
+
 **Po:**
 
 ```java
-return switch (mode) {
-    case LEGACY -> legacy.price(query);
-    case SHADOW -> shadow(query);
-    case CANDIDATE -> candidate.price(query);
-};
+public PriceService() {
+    this(MigrationMode.SHADOW, new VerificationReport());
+}
+...
+public Money price(TicketQuery query) {
+    return switch (mode) {
+        case LEGACY -> legacy.price(query);
+        case SHADOW -> shadow(query);
+        case CANDIDATE -> candidate.price(query);
+    };
+}
 ```
 
 **Uruchom:** test zielony; równoważność obejmuje wszystkie trzy tryby, `step4CandidateModeIsAuthoritativeAndRejectsUnknownFormat` pokazuje świadomą zmianę dla 4DX.
@@ -459,10 +787,48 @@ try {
 
 ### Krok 1: port efektów (Parameterize Constructor)
 
-**W IDE:** Extract Interface na operacjach `Infrastructure` używanych przez nowy przepływ → `Effects`; adapter `RealEffects`. ⌘F6 na konstruktorze `NewBookingFlow`: parametr `Effects` zamiast `Infrastructure`.
+**Zmiany:**
+
+1. Powstaje nowy plik `Effects.java`: interfejs z trzema operacjami `Infrastructure`, których używa nowy przepływ - `sendMail`, `charge` i `save` (Extract Interface).
+2. Powstaje nowy plik `RealEffects.java`: adapter implementujący `Effects` i delegujący każdą operację do `Infrastructure`.
+3. W konstruktorze `NewBookingFlow` zmieniamy typ parametru z `Infrastructure` na `Effects` (pole `infra` staje się polem `effects`); w `book` wywołania `infra.*` stają się `effects.*`.
+4. W `ShadowBooking` kandydat powstaje teraz przez `new NewBookingFlow(new RealEffects(infra))` - zachowanie (także błędne) bez zmian.
+
+**Przed:**
+
+```java
+private final Infrastructure infra;
+
+public NewBookingFlow(Infrastructure infra) {
+    this.infra = infra;
+}
+
+public String book(BookingRequest request) {
+    ...
+    infra.charge(request.card(), total);
+    ...
+}
+
+// w ShadowBooking:
+this.candidate = new NewBookingFlow(infra);
+```
+
 **Po:**
 
 ```java
+private final Effects effects;
+
+public NewBookingFlow(Effects effects) {
+    this.effects = effects;
+}
+
+public String book(BookingRequest request) {
+    ...
+    effects.charge(request.card(), total);
+    ...
+}
+
+// w ShadowBooking:
 this.candidate = new NewBookingFlow(new RealEffects(infra));
 ```
 
@@ -472,14 +838,45 @@ this.candidate = new NewBookingFlow(new RealEffects(infra));
 
 ### Krok 2: przechwycenie efektów w cieniu
 
-**W IDE:** nowa klasa `RecordingEffects implements Effects` zapisuje zamiary w formacie dziennika. `ShadowBooking` przekazuje kandydatowi nagrywarkę i porównuje nagrane efekty z efektami, które faktycznie wykonało legacy.
+**Zmiany:**
+
+1. Powstaje nowy plik `RecordingEffects.java`: implementacja `Effects`, która zapisuje zamiary w formacie dziennika infrastruktury (`MAIL ...`, `CHARGE ...`, `SAVE ...`), niczego nie wykonuje, a nagrania udostępnia przez `recorded()`.
+2. W `ShadowBooking` pole `candidate` znika; dochodzi pole `Infrastructure infra`. Kandydata tworzymy w `book` z nagrywarką: `new NewBookingFlow(recorder)`.
+3. W `book` przed wywołaniem legacy zapamiętujemy rozmiar dziennika, a po nim wycinamy z dziennika efekty wykonane przez legacy (`legacyEffects`).
+4. Porównanie przenosimy do pomocniczej metody `compare(String, List, List)` i wołamy ją dwa razy: dla wyniku i dla efektów; różnice trafiają do `divergences`.
+
+**Przed:**
+
+```java
+public String book(BookingRequest request) {
+    String result = legacy.book(request);
+    try {
+        String shadow = candidate.book(request);
+        if (!shadow.equals(result)) {
+            divergences.add("legacy: " + result + " | kandydat: " + shadow);
+        }
+    } catch (RuntimeException failure) {
+        divergences.add("kandydat: " + failure.getMessage());
+    }
+    return result;
+}
+```
+
 **Po:**
 
 ```java
-RecordingEffects recorder = new RecordingEffects();
-String shadow = new NewBookingFlow(recorder).book(request);
-compare("wynik", List.of(result), List.of(shadow));
-compare("efekty", legacyEffects, recorder.recorded());
+int before = infra.log().size();
+String result = legacy.book(request);
+List<String> legacyEffects = infra.log().subList(before, infra.log().size());
+try {
+    RecordingEffects recorder = new RecordingEffects();
+    String shadow = new NewBookingFlow(recorder).book(request);
+    compare("wynik", List.of(result), List.of(shadow));
+    compare("efekty", legacyEffects, recorder.recorded());
+} catch (RuntimeException failure) {
+    divergences.add("kandydat: " + failure.getMessage());
+}
+return result;
 ```
 
 **Uruchom:** test zielony; `step2RecordsCandidateEffectsInsteadOfExecutingThem` - jeden mail, jedno obciążenie, a raport pokazuje rozbieżność w treści maila (kandydat pisze 50.00 zamiast 54.00).
@@ -488,12 +885,40 @@ compare("efekty", legacyEffects, recorder.recorded());
 
 ### Krok 3: Separate Query from Modifier - czysty plan
 
-**W IDE:** z `NewBookingFlow.book` wydziel (⌥⌘M, potem Move F6) klasę `BookingPlanner` z metodą `plan`, która zwraca `BookingPlan(result, effects)`. `NewBookingFlow` wykonuje plan na porcie; `ShadowBooking` woła tylko `BookingPlanner`. `RecordingEffects` usuń (Safe Delete).
+**Zmiany:**
+
+1. Powstaje nowy plik `BookingPlan.java`: rekord `BookingPlan(String result, List<Effect> effects)` z zapieczętowanym interfejsem `Effect` i rekordami `Charge`, `Save`, `SendMail`; każdy efekt umie się opisać (`describe`) i wykonać na porcie (`applyTo`).
+2. Powstaje nowy plik `BookingPlanner.java`: czysta część wyliczeń wydzielona z `NewBookingFlow.book` - metoda `plan(BookingRequest)` liczy kwoty i zwraca plan jako dane; klasa nie ma dostępu do portu efektów (Separate Query from Modifier).
+3. `NewBookingFlow.book` chudnie: pobiera plan z `BookingPlanner`, wykonuje `plan.effects()` na porcie `Effects` i zwraca `plan.result()`.
+4. W `ShadowBooking` kandydatem jest teraz `BookingPlanner`: cień porównuje wynik planu oraz opisy zaplanowanych efektów z efektami legacy.
+5. Plik `RecordingEffects.java` znika - nagrywarka nie jest już potrzebna.
+
+**Przed:**
+
+```java
+try {
+    RecordingEffects recorder = new RecordingEffects();
+    String shadow = new NewBookingFlow(recorder).book(request);
+    compare("wynik", List.of(result), List.of(shadow));
+    compare("efekty", legacyEffects, recorder.recorded());
+}
+```
+
 **Po:**
 
 ```java
+// w ShadowBooking:
 BookingPlan plan = candidate.plan(request);
 compare("wynik", List.of(result), List.of(plan.result()));
+List<String> planned = plan.effects().stream().map(BookingPlan.Effect::describe).toList();
+compare("efekty", legacyEffects, planned);
+
+// NewBookingFlow wykonuje plan:
+public String book(BookingRequest request) {
+    BookingPlan plan = planner.plan(request);
+    plan.effects().forEach(effect -> effect.applyTo(effects));
+    return plan.result();
+}
 ```
 
 **Uruchom:** test zielony; `step3ComparesAPurePlanAndNeverTouchesInfrastructure`.

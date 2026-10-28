@@ -105,7 +105,7 @@ function workshopTopbar(kind, module, variant) {
     return `<header class="topbar"><a class="home" href="${up}/index.html">Materiały prowadzącego</a>`
         + `<div class="tabs"><a class="tab" href="${up}/slajdy/${DECK}.html">Slajdy</a>`
         + `<a class="tab${kind === 'intro' ? ' active' : ''}" href="${intro}">Warsztat CineLegacy</a>`
-        + link('zadania', 'Zadania') + link('przewodnik', 'Przewodnik') + '</div>'
+        + link('przewodnik', 'Przewodnik') + '</div>'
         + langs + (module ? pager(WORKSHOP_MODULES, module) : '') + '</header>';
 }
 
@@ -172,7 +172,7 @@ for (const variant of VARIANTS) {
         bodyClass: 'warsztat',
         topbar: workshopTopbar('intro', undefined, variant),
     });
-    for (const kind of ['przewodnik', 'zadania']) {
+    for (const kind of ['przewodnik']) {
         for (const module of WORKSHOP_MODULES) {
             const source = path.join(MD, kind, `${module}.md`);
             if (missing(source)) continue;

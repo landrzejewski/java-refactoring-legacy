@@ -77,12 +77,12 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 .langs{margin-left:auto}.langs+.pager{margin-left:0}</style>
 </head>
 <body class="warsztat">
-<header class="topbar"><a class="home" href="../../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../../slajdy/refaktoryzacja-do-wzorcow-slajdy.html">Slajdy</a><a class="tab" href="../00-cinelegacy.html">Warsztat CineLegacy</a><a class="tab" href="../zadania/03-testowanie-a-bezpieczenstwo.html">Zadania</a><a class="tab active" href="03-testowanie-a-bezpieczenstwo.html">Przewodnik</a></div><div class="tabs langs" aria-label="Język"><a class="tab" href="../../warsztat/przewodnik/03-testowanie-a-bezpieczenstwo.html">Java</a><a class="tab active" href="../../warsztat-csharp/przewodnik/03-testowanie-a-bezpieczenstwo.html">C#</a><a class="tab" href="../../warsztat-typescript/przewodnik/03-testowanie-a-bezpieczenstwo.html">TypeScript</a></div><div class="pager"><a href="02-prewencja.html" title="Poprzedni moduł">&larr; 02</a><a href="05-refaktoryzacja-do-wzorcow.html" title="Następny moduł">05 &rarr;</a></div></header>
+<header class="topbar"><a class="home" href="../../index.html">Materiały prowadzącego</a><div class="tabs"><a class="tab" href="../../slajdy/refaktoryzacja-do-wzorcow-slajdy.html">Slajdy</a><a class="tab" href="../00-cinelegacy.html">Warsztat CineLegacy</a><a class="tab active" href="03-testowanie-a-bezpieczenstwo.html">Przewodnik</a></div><div class="tabs langs" aria-label="Język"><a class="tab" href="../../warsztat/przewodnik/03-testowanie-a-bezpieczenstwo.html">Java</a><a class="tab active" href="../../warsztat-csharp/przewodnik/03-testowanie-a-bezpieczenstwo.html">C#</a><a class="tab" href="../../warsztat-typescript/przewodnik/03-testowanie-a-bezpieczenstwo.html">TypeScript</a></div><div class="pager"><a href="02-prewencja.html" title="Poprzedni moduł">&larr; 02</a><a href="05-refaktoryzacja-do-wzorcow.html" title="Następny moduł">05 &rarr;</a></div></header>
 <div class="layout">
 <aside><nav class="toc" aria-label="Spis treści"><details open><summary class="toc-title">Na tej stronie</summary><ul><li class="h2"><a href="#jak-prowadzic-pokaz">Jak prowadzić pokaz</a></li><li class="h2"><a href="#mapa-scen">Mapa scen</a></li><li class="h2"><a href="#scena-s01-test-charakterystyki-przed-pierwsza-zmiana">Scena s01. Test charakterystyki przed pierwszą zmianą</a></li><li class="h3"><a href="#w-skrocie">W skrócie</a></li><li class="h3"><a href="#co-widzimy">Co widzimy</a></li><li class="h3"><a href="#krok-1-parameterize-constructor-wstrzykniety-timeprovider">Krok 1: Parameterize Constructor - wstrzyknięty TimeProvider</a></li><li class="h3"><a href="#krok-2-pierwsza-refaktoryzacja-pod-ochrona-testu">Krok 2: pierwsza refaktoryzacja pod ochroną testu</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali">Pytanie do sali</a></li><li class="h2"><a href="#scena-s02-break-dependencies-seam-dla-zadania-przypomnien">Scena s02. Break Dependencies - seam dla zadania przypomnień</a></li><li class="h3"><a href="#w-skrocie-1">W skrócie</a></li><li class="h3"><a href="#co-widzimy-1">Co widzimy</a></li><li class="h3"><a href="#krok-1-extract-interface-parameterize-constructor">Krok 1: Extract Interface + Parameterize Constructor</a></li><li class="h3"><a href="#krok-2-timeprovider-jako-zaleznosc">Krok 2: TimeProvider jako zależność</a></li><li class="h3"><a href="#krok-3-subclass-and-override-method-i-pierwszy-test">Krok 3: Subclass and Override Method i pierwszy test</a></li><li class="h3"><a href="#krok-4-seam-z-dziedziczenia-na-delegat">Krok 4: seam z dziedziczenia na delegat</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-1">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-1">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-1">Pytanie do sali</a></li><li class="h2"><a href="#scena-s03-wektor-obserwowalnego-zachowania-platnosc-za-bilety">Scena s03. Wektor obserwowalnego zachowania - płatność za bilety</a></li><li class="h3"><a href="#w-skrocie-2">W skrócie</a></li><li class="h3"><a href="#co-widzimy-2">Co widzimy</a></li><li class="h3"><a href="#krok-1-seam-dla-maili-regresja-staje-sie-widoczna">Krok 1: seam dla maili - regresja staje się widoczna</a></li><li class="h3"><a href="#krok-2-naprawa-regresji-pod-ochrona-testu">Krok 2: naprawa regresji pod ochroną testu</a></li><li class="h3"><a href="#krok-3-seam-dla-platnosci-i-pelny-wektor">Krok 3: seam dla płatności i pełny wektor</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-2">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-2">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-2">Pytanie do sali</a></li><li class="h2"><a href="#scena-s04-rownolegla-weryfikacja-shadow-kalkulatora-cen">Scena s04. Równoległa weryfikacja (shadow) kalkulatora cen</a></li><li class="h3"><a href="#w-skrocie-3">W skrócie</a></li><li class="h3"><a href="#co-widzimy-3">Co widzimy</a></li><li class="h3"><a href="#krok-1-dodanie-cienia">Krok 1: dodanie cienia</a></li><li class="h3"><a href="#krok-2-raport-rozbieznosci">Krok 2: raport rozbieżności</a></li><li class="h3"><a href="#krok-3-poprawka-znaleziona-przez-raport">Krok 3: poprawka znaleziona przez raport</a></li><li class="h3"><a href="#krok-4-przelaczenie">Krok 4: przełączenie</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-3">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-3">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-3">Pytanie do sali</a></li><li class="h2"><a href="#scena-s05-granice-trybu-shadow-efekty-uboczne">Scena s05. Granice trybu shadow - efekty uboczne</a></li><li class="h3"><a href="#w-skrocie-4">W skrócie</a></li><li class="h3"><a href="#co-widzimy-4">Co widzimy</a></li><li class="h3"><a href="#krok-1-port-efektow-parameterize-constructor">Krok 1: port efektów (Parameterize Constructor)</a></li><li class="h3"><a href="#krok-2-przechwycenie-efektow-w-cieniu">Krok 2: przechwycenie efektów w cieniu</a></li><li class="h3"><a href="#krok-3-separate-query-from-modifier-czysty-plan">Krok 3: Separate Query from Modifier - czysty plan</a></li><li class="h3"><a href="#rozwiazanie-i-uzasadnienie-4">Rozwiązanie i uzasadnienie</a></li><li class="h3"><a href="#pulapki-4">Pułapki</a></li><li class="h3"><a href="#pytanie-do-sali-4">Pytanie do sali</a></li><li class="h2"><a href="#proponowana-kolejnosc-pokazu">Proponowana kolejność pokazu</a></li></ul></details></nav></aside>
 <main>
 <h1>Moduł 3. Testowanie a bezpieczeństwo - warsztat CineLegacy (C#): przewodnik prowadzącego</h1>
-<p>Pięć scen w domenie kina pokazuje na żywo, jak zbudować sieć bezpieczeństwa wokół kodu, który jej nie ma: test charakteryzujący przed pierwszą zmianą, szew (ang. seam) w klasie, której nie da się uruchomić w teście, wektor obserwowalnego zachowania, weryfikację w cieniu i jej granice przy efektach ubocznych. Każda scena ma kod wyjściowy (<code>Start</code>), kompletne snapshoty po każdym kroku (<code>StepN</code>) i test, który po każdym ruchu w IDE ma być zielony. Tam, gdzie krok świadomie zmienia zachowanie (s03 krok 2, s04 krok 4), test ma osobne oczekiwania i pokazuje różnicę wprost.</p>
+<p>Pięć scen w domenie kina pokazuje na żywo, jak zbudować sieć bezpieczeństwa wokół kodu, który jej nie ma: test charakteryzujący przed pierwszą zmianą, szew (ang. seam) w klasie, której nie da się uruchomić w teście, wektor obserwowalnego zachowania, weryfikację w cieniu i jej granice przy efektach ubocznych. Każda scena ma kod wyjściowy (<code>Start</code>), kompletne snapshoty po każdym kroku (<code>StepN</code>) i test, który po każdym kroku ma być zielony. Tam, gdzie krok świadomie zmienia zachowanie (s03 krok 2, s04 krok 4), test ma osobne oczekiwania i pokazuje różnicę wprost.</p>
 <p>Punktem odniesienia dla całego modułu jest wynik wzorcowy (ang. golden master) starego systemu: <code>CinemaManagerGoldenMasterTest</code> (<code>csharp/<wbr>tests/<wbr>Training.Workshop.Tests/<wbr>Legacy</code>) odtwarza &quot;jeden dzień kina&quot; na nietkniętym <code>Training.Workshop.Legacy.CinemaManager</code> i porównuje pełny wektor zachowania (wyniki wywołań, maile, SMS-y, obciążenia i zwroty, raport dzienny, rozliczenia) z zatwierdzonym plikiem <code>src/<wbr>test/<wbr>resources/<wbr>workshop/<wbr>cinema-manager.approved.txt</code>. Plik jest wspólny dla Javy, C# i TypeScript (projekt testów C# dołącza go jako link i kopiuje do katalogu wyjściowego), bo wszystkie trzy wersje starego systemu dają identyczny wektor. To odpowiedź na pytanie &quot;jak poradzić sobie bez testów?&quot; w skali całego systemu: jeden szeroki, deterministyczny test, zanim powstanie jakikolwiek test jednostkowy. Sceny poniżej pokazują te same techniki w mniejszej skali. Pokaż golden master na początku modułu (3 min) i wracaj do niego przy s01 (charakterystyka) i s03 (wektor zachowania).</p>
 <p>Sceny ilustrują sekcję 3 slajdów (&quot;Siatka bezpieczeństwa&quot;) i służą do pokazu; uczestnicy powtarzają je samodzielnie według zakładki &quot;Zadania&quot;.</p>
 <p>Kod portu C# leży w <code>csharp/<wbr>src/<wbr>Training.Workshop/<wbr>M3/<wbr>SNN.../<wbr>{Start,Step1,...}</code>, testy (xUnit) w <code>csharp/<wbr>tests/<wbr>Training.Workshop.Tests/<wbr>M3/<wbr>SNN.../<wbr></code>. Port trzyma się przebiegu scen z Javy, a mechanizmy języka są tłumaczone na odpowiedniki .NET: interfejsy funkcyjne (<code>ReminderSender</code>, <code>Mailer</code>, <code>PaymentGateway</code>) to delegaty, <code>Supplier&lt;X&gt;</code> to <code>Func&lt;X&gt;</code>, <code>Clock</code> to <code>TimeProvider</code> (w testach <code>FakeTimeProvider</code> z <code>Microsoft.Extensions.Time.Testing</code>), domyślne <code>Locale</code> to <code>CultureInfo.CurrentCulture</code>, <code>sealed interface</code> z rekordami to interfejs z rekordami, a <code>final</code> to <code>sealed</code>. Kwoty to <code>decimal</code> albo wspólny typ <code>Money</code> (<code>decimal</code>, skala 2, zaokrąglenie <code>AwayFromZero</code>). Tam, gdzie scena odbiega od Javy, akapit <strong>Różnica względem Javy</strong> mówi, co i dlaczego wygląda inaczej.</p>
@@ -101,15 +101,15 @@ scripts/warsztat.sh status                         <span class="hljs-comment"># 
 scripts/warsztat.sh --lang cs reset m3/s04         <span class="hljs-comment"># przywróć Start po pokazie</span>
 </code></pre>
 <ul>
-<li>Zasada: <strong>jeden krok - jeden test - jedno zdanie komentarza.</strong> Ruch w Rider, uruchomienie testu sceny (ikona w gutterze przy klasie testu albo okno Unit Tests), zdanie z sekcji &quot;Co powiedzieć&quot;. Zanim ruszysz kod, powiedz, jaki dowód da test po kroku.</li>
+<li>Zasada: <strong>jeden krok - jeden test - jedno zdanie komentarza.</strong> Zmiana w kodzie, uruchomienie testu sceny, zdanie z sekcji &quot;Co powiedzieć&quot;. Zanim ruszysz kod, powiedz, jaki dowód da test po kroku.</li>
 <li><strong>Krok po kroku bez numerów:</strong> <code>scripts/<wbr>warsztat.sh --lang cs next m3/<wbr>sNN</code> wstawia do <code>Start</code> gotowy następny krok i wypisuje, co się zmieniło. <code>prev</code> cofa o krok, <code>status</code> mówi, który krok jest teraz w <code>Start</code>. Skrypt pamięta język i ostatnią scenę, więc potem wystarczy samo <code>next</code>. Ręczne zmiany w <code>Start</code> zostają nadpisane - o to chodzi, gdy krok na żywo się rozjechał.</li>
 <li>Pracujesz zawsze w katalogu (namespace) <code>Start</code>. Snapshoty <code>StepN</code> służą do <code>diff</code> albo do przeskoku (<code>next</code>, <code>jump</code>), gdy coś się rozjedzie.</li>
 <li>Zanim zaczniesz, pokaż slajd 1.2 &quot;Zachowanie obserwowalne to więcej niż wynik metody&quot; i wracaj do niego przy każdej scenie: <em>co tu obserwujemy - wynik, wyjątek, stan, efekty, kolejność?</em></li>
 <li>W s02 start <strong>nie ma prawdziwych testów</strong> i to jest puenta: test <code>StartCannotEvenRunInATest</code> tylko dokumentuje, że kodu nie da się uruchomić. Testy pojawiają się dopiero wtedy, gdy kod ma szew. Pierwsze ruchy to refaktoryzacje automatyczne IDE o niskim ryzyku (slajd 3.6).</li>
-<li>W s01 i s03 warto najpierw <strong>zrobić naiwny ruch na żywo</strong> (np. &quot;poprawić&quot; znalezisko z charakterystyki, sprawdzić tylko wynik), pokazać, czego test nie widzi, cofnąć (⌘Z) i dopiero wtedy wykonać krok z przewodnika.</li>
+<li>W s01 i s03 warto najpierw <strong>zrobić naiwny ruch na żywo</strong> (np. &quot;poprawić&quot; znalezisko z charakterystyki, sprawdzić tylko wynik), pokazać, czego test nie widzi, cofnąć zmianę i dopiero wtedy wykonać krok z przewodnika.</li>
 <li>W s04 i s05 część testów to nie tylko równoważność (<code>SNNEquivalenceTest</code>), ale też dowody strategii (<code>SNNSolutionTest</code>): raport rozbieżności, dziennik efektów ubocznych. Testy, które <strong>dokumentują stan startowy</strong> (np. &quot;start obciąża kartę dwa razy&quot;), zmienią kolor na czerwony, gdy wykonasz kroki na katalogu <code>Start</code> - to znak, że start jest już naprawiony. Po pokazie: <code>scripts/<wbr>warsztat.sh --lang cs reset m3/<wbr>sNN</code>.</li>
 <li>Kroki, które zmieniają zachowanie (s03 krok 2, s04 krok 4), zapowiadaj na głos: &quot;to jest osobny commit, nie refaktoryzacja&quot;.</li>
-<li>Skróty w Rider (keymap macOS w stylu IntelliJ): ⇧F6 Rename, ⌥⌘F Introduce Field, ⌥⌘P Introduce Parameter, ⌥⌘M Extract Method, ⌥⌘N Inline, F6 Move, ⌘F6 Change Signature, ⌘⌦ Safe Delete, ⌥⌘T Surround With, ⇧⌘↓ Move Statement Down, ⌃T Refactor This (menu wszystkich refaktoryzacji dostępnych w miejscu kursora, m.in. Extract Interface). Projekt ma <code>TreatWarningsAsErrors</code> (<code>csharp/<wbr>Directory.Build.props</code>), więc każde nowe ostrzeżenie kompilatora zatrzyma build.</li>
+<li>Projekt ma <code>TreatWarningsAsErrors</code> (<code>csharp/<wbr>Directory.Build.props</code>), więc każde nowe ostrzeżenie kompilatora zatrzyma build.</li>
 </ul>
 <h2 id="mapa-scen" tabindex="-1"><a class="header-anchor" href="#mapa-scen"><span>Mapa scen</span></a></h2>
 <div class="table-wrap"><table>
@@ -188,8 +188,27 @@ scripts/warsztat.sh --lang cs reset m3/s04         <span class="hljs-comment"># 
 <li>kwoty zależą od kultury serwera: na <code>pl-PL</code> jest <code>74,00</code>, na <code>en-US</code> <code>74.00</code> (test <code>FoundDuringCharacterizationAmountsDependOnServerLocale</code>).</li>
 </ul>
 <h3 id="krok-1-parameterize-constructor-wstrzykniety-timeprovider" tabindex="-1"><a class="header-anchor" href="#krok-1-parameterize-constructor-wstrzykniety-timeprovider"><span>Krok 1: Parameterize Constructor - wstrzyknięty TimeProvider</span></a></h3>
-<p><strong>W IDE:</strong> w <code>Confirm</code> zamień <code>DateTime.Now</code> na <code>TimeProvider.System.GetLocalNow().DateTime</code>, zaznacz <code>TimeProvider.System</code> i wykonaj Introduce Field (⌥⌘F, inicjalizacja w konstruktorze, nazwa <code>_clock</code>). Potem w konstruktorze na tym samym wyrażeniu Introduce Parameter (⌥⌘P), nazwa <code>clock</code>. Rider nie tworzy przy tym przeciążenia delegującego (w IntelliJ opcja &quot;Delegate via overloading method&quot;), więc konstruktor bezargumentowy <code>: this(TimeProvider.System)</code> dopisz ręcznie - to dwie linie.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>W <code>Confirm</code> zamień <code>DateTime.Now</code> na <code>TimeProvider.System.GetLocalNow().DateTime</code>.</li>
+<li>Wyrażenie <code>TimeProvider.System</code> przenieś do nowego prywatnego pola tylko do odczytu <code>_clock</code> (Introduce Field). W miejscu użycia zostaje <code>_clock.GetLocalNow().DateTime</code>.</li>
+<li>Inicjalizację pola przenieś do konstruktora i zamień ją na parametr <code>clock</code> typu <code>TimeProvider</code> (Introduce Parameter). Konstruktor <code>BookingConfirmation(TimeProvider clock)</code> przypisuje <code>_clock = clock;</code>.</li>
+<li>Dopisz konstruktor bezargumentowy delegujący do nowego: <code>: this(TimeProvider.System)</code> - to dwie linie. Dzięki temu dotychczasowi klienci klasy nie widzą różnicy.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">BookingConfirmation</span>
+{
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Confirm</span>(<span class="hljs-params">Booking b</span>)</span>
+    {
+        <span class="hljs-built_in">double</span> sum = <span class="hljs-number">0</span>;
+        ...
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;POTWIERDZENIE REZERWACJI\n&quot;</span>
+            ...
+            + <span class="hljs-string">&quot;Wygenerowano: &quot;</span> + DateTime.Now.ToString(<span class="hljs-string">&quot;yyyy-MM-dd&#x27;T&#x27;HH:mm:ss&quot;</span>, CultureInfo.InvariantCulture) + <span class="hljs-string">&quot;\n&quot;</span>;
+    }
+}
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> TimeProvider _clock;
 
 <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">BookingConfirmation</span>()
@@ -206,8 +225,29 @@ scripts/warsztat.sh --lang cs reset m3/s04         <span class="hljs-comment"># 
 <strong>Co powiedzieć:</strong> to minimalna zmiana, która robi szew dla testu. Stary konstruktor zostaje, więc produkcyjni klienci nie widzą różnicy. Scrubber był rusztowaniem i od tego kroku jest potrzebny tylko dla <code>Start</code>.
 <strong>Snapshot:</strong> <code>Step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m3/<wbr>s01 0 1</code></p>
 <h3 id="krok-2-pierwsza-refaktoryzacja-pod-ochrona-testu" tabindex="-1"><a class="header-anchor" href="#krok-2-pierwsza-refaktoryzacja-pod-ochrona-testu"><span>Krok 2: pierwsza refaktoryzacja pod ochroną testu</span></a></h3>
-<p><strong>W IDE:</strong> zaznacz ciało pętli od <code>double p;</code> do <code>p = p - 5.00; }</code>, Extract Method (⌥⌘M), nazwa <code>TicketPrice</code>. Rider wykryje dwa wejścia (<code>b</code>, <code>t</code>) i jedno wyjście. W pętli zostaje <code>sum = sum + TicketPrice(b, t);</code>.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>W <code>Confirm</code> zaznacz ciało pętli: od deklaracji <code>double p;</code> do bloku <code>if (b.Start.Hour &lt; 12) { p = p - 5.00; }</code>.</li>
+<li>Wydziel z niego prywatną metodę <code>TicketPrice</code> (Extract Method). Metoda ma dwa wejścia (<code>b</code>, <code>t</code>) i jedno wyjście: zwraca <code>double</code> (<code>return p;</code> na końcu).</li>
+<li>W pętli zostaje tylko <code>sum = sum + TicketPrice(b, t);</code>.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">foreach</span> (<span class="hljs-keyword">var</span> t <span class="hljs-keyword">in</span> b.TicketTypes)
+{
+    <span class="hljs-built_in">double</span> p;
+    <span class="hljs-keyword">if</span> (b.Format == <span class="hljs-number">3</span>)
+    {
+        p = <span class="hljs-number">40.00</span>;
+    }
+    ...
+    <span class="hljs-keyword">if</span> (b.Start.Hour &lt; <span class="hljs-number">12</span>)
+    {
+        p = p - <span class="hljs-number">5.00</span>;
+    }
+    sum = sum + p;
+}
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">foreach</span> (<span class="hljs-keyword">var</span> t <span class="hljs-keyword">in</span> b.TicketTypes)
 {
     sum = sum + TicketPrice(b, t);
@@ -248,8 +288,25 @@ scripts/warsztat.sh --lang cs reset m3/s04         <span class="hljs-comment"># 
 </code></pre>
 <p>Sekwencja rozrywania zależności: nazwij zachowanie i punkt obserwacji, wprowadź najmniejszy szew bez zmiany logiki, zabezpiecz go testem z fake/spy, przenieś wybór do jawnego punktu aktywacji, usuń konstrukcję przejściową. Charakterystyki nie da się napisać przed pierwszym ruchem, więc pierwsze ruchy muszą być mechaniczne i wspierane przez IDE (slajd 3.6).</p>
 <h3 id="krok-1-extract-interface-parameterize-constructor" tabindex="-1"><a class="header-anchor" href="#krok-1-extract-interface-parameterize-constructor"><span>Krok 1: Extract Interface + Parameterize Constructor</span></a></h3>
-<p><strong>W IDE:</strong> na <code>LegacyDatabase</code> Refactor This (⌃T) → Extract Interface, nazwa <code>IBookingStore</code>, zaznacz <code>PaidBookings</code> i <code>MarkReminded</code>. Potem w <code>ShowtimeReminderJob</code> ręcznie: pole <code>Func&lt;IBookingStore&gt; _stores</code>, konstruktor z parametrem i konstruktor bezargumentowy <code>: this(() =&gt; new LegacyDatabase())</code>. W <code>Run()</code> zamień <code>new LegacyDatabase()</code> na <code>_stores()</code>.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Z klasy <code>LegacyDatabase</code> wydziel interfejs <code>IBookingStore</code> z metodami <code>PaidBookings()</code> i <code>MarkReminded(string bookingId)</code> (Extract Interface). Nowy plik <code>IBookingStore.cs</code>, a <code>LegacyDatabase</code> deklaruje teraz <code>: IBookingStore</code>.</li>
+<li>W <code>ShowtimeReminderJob</code> dodaj pole <code>private readonly Func&lt;IBookingStore&gt; _stores;</code> i konstruktor z parametrem <code>Func&lt;IBookingStore&gt; stores</code> (Parameterize Constructor), który przypisuje pole.</li>
+<li>Dodaj konstruktor bezargumentowy delegujący: <code>: this(() =&gt; new LegacyDatabase())</code>.</li>
+<li>W <code>Run()</code> zamień <code>var database = new LegacyDatabase();</code> na <code>var database = _stores();</code>.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">ShowtimeReminderJob</span>
+{
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">int</span> <span class="hljs-title">Run</span>()</span>
+    {
+        <span class="hljs-keyword">var</span> database = <span class="hljs-keyword">new</span> LegacyDatabase();
+        <span class="hljs-keyword">var</span> now = DateTime.Now;
+        ...
+    }
+}
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ShowtimeReminderJob</span>()
     : <span class="hljs-title">this</span>(<span class="hljs-params">(</span>)</span> =&gt; <span class="hljs-keyword">new</span> LegacyDatabase())
 {
@@ -263,16 +320,41 @@ scripts/warsztat.sh --lang cs reset m3/s04         <span class="hljs-comment"># 
 <strong>Co powiedzieć:</strong> przekazujemy fabrykę, a nie gotową bazę, bo stary kod otwierał połączenie przy każdym <code>Run()</code>. Gdybyśmy zrobili <code>: this(new LegacyDatabase())</code>, wyjątek poleciałby już w konstruktorze - zmienilibyśmy czas życia zależności i moment błędu.
 <strong>Snapshot:</strong> <code>Step1/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m3/<wbr>s02 0 1</code></p>
 <h3 id="krok-2-timeprovider-jako-zaleznosc" tabindex="-1"><a class="header-anchor" href="#krok-2-timeprovider-jako-zaleznosc"><span>Krok 2: TimeProvider jako zależność</span></a></h3>
-<p><strong>W IDE:</strong> ręcznie (Introduce Parameter ⌥⌘P dodałby parametr do <code>Run()</code>, a potrzebujemy zależności konstruktora): pole <code>TimeProvider _clock</code>, drugi parametr konstruktora, w domyślnym konstruktorze <code>TimeProvider.System</code>, w <code>Run()</code> <code>_clock.GetLocalNow().DateTime</code>.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Dodaj pole <code>private readonly TimeProvider _clock;</code> i drugi parametr konstruktora <code>TimeProvider clock</code>. Robimy to ręcznie: automatyczne wprowadzenie parametru dodałoby go do <code>Run()</code>, a potrzebujemy zależności konstruktora.</li>
+<li>W konstruktorze bezargumentowym przekaż <code>TimeProvider.System</code> jako drugi argument.</li>
+<li>W <code>Run()</code> zamień <code>var now = DateTime.Now;</code> na <code>var now = _clock.GetLocalNow().DateTime;</code>.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">int</span> <span class="hljs-title">Run</span>()</span>
+{
+    <span class="hljs-keyword">var</span> database = _stores();
+    <span class="hljs-keyword">var</span> now = DateTime.Now;
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">var</span> now = _clock.GetLocalNow().DateTime;
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony. Test <code>Step2ControlsTimeButStillHitsStaticMailer</code> pokazuje dwie rzeczy: przypadki bez wysyłki działają przy stałym zegarze, a przypadek &quot;do wysłania&quot; wciąż kończy się wyjątkiem SMTP.
 <strong>Co powiedzieć:</strong> czas był ukrytym wejściem. Zegar czytamy w tym samym miejscu co wcześniej (po utworzeniu bazy), więc kolejność się nie zmienia. Następna przeszkoda jest widoczna w teście - statyczny mailer.
 <strong>Snapshot:</strong> <code>Step2/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m3/<wbr>s02 1 2</code></p>
 <h3 id="krok-3-subclass-and-override-method-i-pierwszy-test" tabindex="-1"><a class="header-anchor" href="#krok-3-subclass-and-override-method-i-pierwszy-test"><span>Krok 3: Subclass and Override Method i pierwszy test</span></a></h3>
-<p><strong>W IDE:</strong> zaznacz wywołanie <code>ReminderMailer.Send(...)</code>, ⌥⌘M (Extract Method), nazwa <code>SendReminder</code>, widoczność <code>protected</code>, dopisz <code>virtual</code>. Usuń <code>sealed</code> z klasy. W teście prywatna klasa zagnieżdżona <code>RecordingStep3Job</code> nadpisuje <code>SendReminder</code> i zapisuje wiadomości do listy - to jest <strong>pierwszy prawdziwy test</strong> tej klasy.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Wydziel wywołanie <code>ReminderMailer.Send(...)</code> z <code>Run()</code> do metody <code>SendReminder(string to, string subject, string body)</code> (Extract Method).</li>
+<li>Ustaw jej widoczność na <code>protected</code> i dopisz <code>virtual</code>.</li>
+<li>Usuń <code>sealed</code> z deklaracji klasy, żeby dało się ją dziedziczyć.</li>
+<li>W teście prywatna klasa zagnieżdżona <code>RecordingStep3Job</code> nadpisuje <code>SendReminder</code> i zapisuje wiadomości do listy - to jest <strong>pierwszy prawdziwy test</strong> tej klasy.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">ShowtimeReminderJob</span>
+{
+    ...
+            ReminderMailer.Send(booking.Email,
+                <span class="hljs-string">&quot;Przypomnienie: &quot;</span> + booking.Title,
+                <span class="hljs-string">&quot;Seans zaczyna sie o &quot;</span> + booking.Start.ToString(<span class="hljs-string">&quot;HH:mm&quot;</span>, CultureInfo.InvariantCulture));
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">virtual</span> <span class="hljs-keyword">void</span> <span class="hljs-title">SendReminder</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> to, <span class="hljs-built_in">string</span> subject, <span class="hljs-built_in">string</span> body</span>)</span>
 {
     ReminderMailer.Send(to, subject, body);
@@ -282,8 +364,25 @@ scripts/warsztat.sh --lang cs reset m3/s04         <span class="hljs-comment"># 
 <strong>Co powiedzieć:</strong> to najtańszy seam, gdy nie możemy jeszcze zmienić konstruktora - ale ma cenę: klasa przestała być <code>sealed</code>, metoda stała się <code>virtual</code>, a test zależy od szczegółu implementacji (nazwy metody chronionej).
 <strong>Snapshot:</strong> <code>Step3/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m3/<wbr>s02 2 3</code></p>
 <h3 id="krok-4-seam-z-dziedziczenia-na-delegat" tabindex="-1"><a class="header-anchor" href="#krok-4-seam-z-dziedziczenia-na-delegat"><span>Krok 4: seam z dziedziczenia na delegat</span></a></h3>
-<p><strong>W IDE:</strong> utwórz <code>public delegate void ReminderSender(string to, string subject, string body)</code>, dodaj trzeci parametr konstruktora, w domyślnym grupa metod <code>ReminderMailer.Send</code>. Inline Method (⌥⌘N) na <code>SendReminder</code>, przywróć <code>sealed</code>. W teście podklasę zastępuje lambda.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Nowy plik <code>ReminderSender.cs</code> z delegatem <code>public delegate void ReminderSender(string to, string subject, string body);</code>.</li>
+<li>Dodaj pole <code>private readonly ReminderSender _sender;</code> i trzeci parametr konstruktora <code>ReminderSender sender</code>; w konstruktorze bezargumentowym przekaż grupę metod <code>ReminderMailer.Send</code>.</li>
+<li>W <code>SendReminder</code> zamień wywołanie statyczne na <code>_sender(to, subject, body);</code>, a potem wciel metodę w miejsce użycia (Inline Method): w <code>Run()</code> zostaje <code>_sender(...)</code>, metoda <code>SendReminder</code> znika.</li>
+<li>Przywróć <code>sealed</code> na deklaracji klasy.</li>
+<li>W teście podklasę <code>RecordingStep3Job</code> zastępuje lambda przekazana do konstruktora.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">ShowtimeReminderJob</span>
+{
+    ...
+    <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">virtual</span> <span class="hljs-keyword">void</span> <span class="hljs-title">SendReminder</span>(<span class="hljs-params"><span class="hljs-built_in">string</span> to, <span class="hljs-built_in">string</span> subject, <span class="hljs-built_in">string</span> body</span>)</span>
+    {
+        ReminderMailer.Send(to, subject, body);
+    }
+}
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ShowtimeReminderJob</span>()
     : <span class="hljs-title">this</span>(<span class="hljs-params">(</span>)</span> =&gt; <span class="hljs-keyword">new</span> LegacyDatabase(), TimeProvider.System, ReminderMailer.Send)
 {
@@ -328,8 +427,26 @@ CinemaMailer.Send(booking.Email, <span class="hljs-string">&quot;Bilety &quot;</
 </code></pre>
 <p>Pokaż tabelę ze slajdu 1.2: wynik, wyjątki, stan, współpracownicy, czas, granice. Które z nich ten test widzi?</p>
 <h3 id="krok-1-seam-dla-maili-regresja-staje-sie-widoczna" tabindex="-1"><a class="header-anchor" href="#krok-1-seam-dla-maili-regresja-staje-sie-widoczna"><span>Krok 1: seam dla maili - regresja staje się widoczna</span></a></h3>
-<p><strong>W IDE:</strong> utwórz <code>public delegate void Mailer(string to, string text)</code>, Parameterize Constructor (pole <code>_mailer</code>, konstruktor z parametrem), domyślny konstruktor <code>: this(CinemaMailer.Send)</code>, zamień statyczne wywołania na <code>_mailer(...)</code>. Logika bez zmian.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Nowy plik <code>Mailer.cs</code> z delegatem <code>public delegate void Mailer(string to, string text);</code>.</li>
+<li>W <code>TicketCheckout</code> dodaj pole <code>private readonly Mailer _mailer;</code> i konstruktor z parametrem <code>Mailer mailer</code> (Parameterize Constructor).</li>
+<li>Dodaj konstruktor bezargumentowy delegujący: <code>: this(CinemaMailer.Send)</code>.</li>
+<li>Oba statyczne wywołania <code>CinemaMailer.Send(...)</code> zamień na <code>_mailer(...)</code>. Logika bez zmian.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">TicketCheckout</span>
+{
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Pay</span>(<span class="hljs-params">Booking booking, <span class="hljs-built_in">string</span>? card</span>)</span>
+    {
+        ...
+        <span class="hljs-keyword">else</span>
+        {
+            CinemaMailer.Send(booking.Email, <span class="hljs-string">&quot;Platnosc odrzucona &quot;</span> + booking.Id);
+        }
+        CinemaMailer.Send(booking.Email, <span class="hljs-string">&quot;Bilety &quot;</span> + booking.Id + <span class="hljs-string">&quot; oplacone: &quot;</span> + booking.Amount);
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">TicketCheckout</span>()
     : <span class="hljs-title">this</span>(<span class="hljs-params">CinemaMailer.Send</span>)</span>
 {
@@ -339,8 +456,26 @@ CinemaMailer.Send(booking.Email, <span class="hljs-string">&quot;Bilety &quot;</
 <strong>Co powiedzieć:</strong> kod się nie zmienił, zmieniło się to, co widzimy. Test z samym wynikiem nie mógł tego wykryć.
 <strong>Snapshot:</strong> <code>Step1/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m3/<wbr>s03 0 1</code></p>
 <h3 id="krok-2-naprawa-regresji-pod-ochrona-testu" tabindex="-1"><a class="header-anchor" href="#krok-2-naprawa-regresji-pod-ochrona-testu"><span>Krok 2: naprawa regresji pod ochroną testu</span></a></h3>
-<p><strong>W IDE:</strong> przenieś wysyłkę potwierdzenia do gałęzi sukcesu, zamień <code>charged ? &quot;OK&quot; : &quot;DECLINED&quot;</code> na dwa <code>return</code>.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Przenieś wysyłkę maila potwierdzającego do gałęzi sukcesu, zaraz po <code>booking.MarkPaid();</code>.</li>
+<li>Zamień <code>return charged ? &quot;OK&quot; : &quot;DECLINED&quot;;</code> na dwa osobne <code>return</code>: <code>&quot;OK&quot;</code> w gałęzi sukcesu, <code>&quot;DECLINED&quot;</code> na końcu metody.</li>
+<li>Zmienna <code>charged</code> znika: wynik <code>CardTerminal.Charge(...)</code> trafia wprost do warunku <code>if</code>, a gałąź <code>else</code> przestaje być potrzebna.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">var</span> charged = CardTerminal.Charge(card, booking.Amount);
+<span class="hljs-keyword">if</span> (charged)
+{
+    booking.MarkPaid();
+}
+<span class="hljs-keyword">else</span>
+{
+    _mailer(booking.Email, <span class="hljs-string">&quot;Platnosc odrzucona &quot;</span> + booking.Id);
+}
+_mailer(booking.Email, <span class="hljs-string">&quot;Bilety &quot;</span> + booking.Id + <span class="hljs-string">&quot; oplacone: &quot;</span> + booking.Amount);
+<span class="hljs-keyword">return</span> charged ? <span class="hljs-string">&quot;OK&quot;</span> : <span class="hljs-string">&quot;DECLINED&quot;</span>;
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">if</span> (CardTerminal.Charge(card, booking.Amount))
 {
     booking.MarkPaid();
@@ -354,8 +489,24 @@ _mailer(booking.Email, <span class="hljs-string">&quot;Platnosc odrzucona &quot;
 <strong>Co powiedzieć:</strong> to naprawa błędu, nie refaktoryzacja - przywracamy kontrakt sprzed &quot;porządków&quot;. Wynik metody się nie zmienia, zmienia się efekt uboczny.
 <strong>Snapshot:</strong> <code>Step2/<wbr></code>  ·  <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m3/<wbr>s03 1 2</code></p>
 <h3 id="krok-3-seam-dla-platnosci-i-pelny-wektor" tabindex="-1"><a class="header-anchor" href="#krok-3-seam-dla-platnosci-i-pelny-wektor"><span>Krok 3: seam dla płatności i pełny wektor</span></a></h3>
-<p><strong>W IDE:</strong> utwórz <code>public delegate bool PaymentGateway(string card, Money amount)</code>, drugi parametr konstruktora, domyślnie <code>CardTerminal.Charge</code>. W teście oba fałszywe obiekty zapisują do <strong>jednego</strong> dziennika zdarzeń.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Nowy plik <code>PaymentGateway.cs</code> z delegatem <code>public delegate bool PaymentGateway(string card, Money amount);</code>.</li>
+<li>Dodaj pole <code>private readonly PaymentGateway _gateway;</code> i drugi parametr konstruktora <code>PaymentGateway gateway</code>; w konstruktorze bezargumentowym przekaż <code>CardTerminal.Charge</code>.</li>
+<li>W <code>Pay</code> zamień <code>CardTerminal.Charge(card, booking.Amount)</code> na <code>_gateway(card, booking.Amount)</code>.</li>
+<li>W teście oba fałszywe obiekty zapisują do <strong>jednego</strong> dziennika zdarzeń.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">TicketCheckout</span>()
+    : <span class="hljs-title">this</span>(<span class="hljs-params">CinemaMailer.Send</span>)</span>
+{
+}
+...
+<span class="hljs-keyword">if</span> (CardTerminal.Charge(card, booking.Amount))
+{
+    booking.MarkPaid();
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">TicketCheckout</span>()
     : <span class="hljs-title">this</span>(<span class="hljs-params">CinemaMailer.Send, CardTerminal.Charge</span>)</span>
 {
@@ -392,8 +543,25 @@ _mailer(booking.Email, <span class="hljs-string">&quot;Platnosc odrzucona &quot;
 }
 </code></pre>
 <h3 id="krok-1-dodanie-cienia" tabindex="-1"><a class="header-anchor" href="#krok-1-dodanie-cienia"><span>Krok 1: dodanie cienia</span></a></h3>
-<p><strong>W IDE:</strong> w <code>Price</code> po wyliczeniu wyniku legacy wywołaj kandydata w <code>try/<wbr>catch</code> (Surround With ⌥⌘T) i licz niezgodności.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Dodaj pole <code>private readonly CandidatePriceCalculator _candidate = new();</code> oraz licznik <code>private int _mismatches;</code> z właściwością <code>public int Mismatches =&gt; _mismatches;</code>.</li>
+<li>W <code>Price</code> zapisz wynik legacy do zmiennej <code>result</code> i na końcu go zwróć: klient zawsze dostaje wynik legacy.</li>
+<li>Po wyliczeniu wyniku wywołaj kandydata i porównaj: gdy <code>_candidate.Price(query)</code> różni się od <code>result</code>, zwiększ <code>_mismatches</code>.</li>
+<li>Całe porównanie owiń w <code>try/<wbr>catch (Exception)</code>; w <code>catch</code> też zwiększ <code>_mismatches</code>. Awaria kandydata jest izolowana.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">class</span> <span class="hljs-title">PriceService</span>
+{
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> LegacyPriceCalculator _legacy = <span class="hljs-keyword">new</span>();
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> Money <span class="hljs-title">Price</span>(<span class="hljs-params">TicketQuery query</span>)</span>
+    {
+        <span class="hljs-keyword">return</span> _legacy.Price(query);
+    }
+}
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs">Money result = _legacy.Price(query);
 <span class="hljs-keyword">try</span>
 {
@@ -412,8 +580,29 @@ _mailer(booking.Email, <span class="hljs-string">&quot;Platnosc odrzucona &quot;
 <strong>Co powiedzieć:</strong> klient zawsze dostaje wynik legacy. Ale licznik mówi tylko, ŻE coś się różni - nie wiemy co.
 <strong>Snapshot:</strong> <code>Step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m3/<wbr>s04 0 1</code></p>
 <h3 id="krok-2-raport-rozbieznosci" tabindex="-1"><a class="header-anchor" href="#krok-2-raport-rozbieznosci"><span>Krok 2: raport rozbieżności</span></a></h3>
-<p><strong>W IDE:</strong> nowa klasa <code>VerificationReport</code> z interfejsem <code>IVerification</code> i rekordami <code>Agreement</code>, <code>Divergence</code>, <code>CandidateFailure</code>. Extract Method (⌥⌘M) <code>Verify</code> w <code>PriceService</code>.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Nowy plik <code>VerificationReport.cs</code>: klasa z zagnieżdżonym interfejsem <code>IVerification</code>, rekordami <code>Agreement(Query, Price)</code>, <code>Divergence(Query, Legacy, Candidate)</code> i <code>CandidateFailure(Query, Legacy, Error)</code> oraz metodami <code>Record</code>, <code>Entries</code> i <code>Problems</code> (czytelne wiersze raportu).</li>
+<li>W <code>PriceService</code> usuń licznik <code>_mismatches</code> i właściwość <code>Mismatches</code>; dodaj pole <code>_report</code>, konstruktor z parametrem <code>VerificationReport report</code> i bezargumentowy <code>: this(new VerificationReport())</code>.</li>
+<li>Wydziel porównanie do prywatnej metody <code>Verify(query, legacyPrice)</code> (Extract Method): zwraca <code>Agreement</code> albo <code>Divergence</code>, a w <code>catch</code> <code>CandidateFailure</code> z nazwą typu wyjątku i komunikatem.</li>
+<li>W <code>Price</code> zostaje <code>_report.Record(Verify(query, result));</code> i <code>return result;</code>.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs">Money result = _legacy.Price(query);
+<span class="hljs-keyword">try</span>
+{
+    <span class="hljs-keyword">if</span> (!_candidate.Price(query).Equals(result))
+    {
+        _mismatches++;
+    }
+}
+<span class="hljs-keyword">catch</span> (Exception)
+{
+    _mismatches++;
+}
+<span class="hljs-keyword">return</span> result;
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">return</span> legacyPrice.Equals(candidatePrice)
     ? <span class="hljs-keyword">new</span> VerificationReport.Agreement(query, legacyPrice)
     : <span class="hljs-keyword">new</span> VerificationReport.Divergence(query, legacyPrice, candidatePrice);
@@ -422,8 +611,20 @@ _mailer(booking.Email, <span class="hljs-string">&quot;Platnosc odrzucona &quot;
 <strong>Co powiedzieć:</strong> z raportu widać wzorzec: rozbieżności tylko rano i tylko przy zniżce procentowej. Kandydat odejmuje rabat poranny przed procentem.
 <strong>Snapshot:</strong> <code>Step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m3/<wbr>s04 1 2</code></p>
 <h3 id="krok-3-poprawka-znaleziona-przez-raport" tabindex="-1"><a class="header-anchor" href="#krok-3-poprawka-znaleziona-przez-raport"><span>Krok 3: poprawka znaleziona przez raport</span></a></h3>
-<p><strong>W IDE:</strong> w <code>CandidatePriceCalculator</code> przenieś blok rabatu porannego (⇧⌘↓, Move Statement Down) za wyliczenie zniżki procentowej.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>W <code>CandidatePriceCalculator.Price</code> przesuń blok rabatu porannego (<code>if (query.Start.Hour &lt; 12) ...</code>) w dół, za wyliczenie zniżki procentowej.</li>
+<li>Rabat działa teraz na zmiennej <code>price</code>, a nie na <code>@base</code>: <code>price = price.Minus(MorningDiscount);</code>.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs">Money @base = BasePrice(query.Format);
+<span class="hljs-keyword">if</span> (query.Start.Hour &lt; <span class="hljs-number">12</span>)
+{
+    @base = @base.Minus(MorningDiscount);
+}
+Money price = @base.Minus(@base.Percent(DiscountPercent(query.Type)));
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs">Money price = @base.Minus(@base.Percent(DiscountPercent(query.Type)));
 <span class="hljs-keyword">if</span> (query.Start.Hour &lt; <span class="hljs-number">12</span>)
 {
@@ -434,8 +635,22 @@ _mailer(booking.Email, <span class="hljs-string">&quot;Platnosc odrzucona &quot;
 <strong>Co powiedzieć:</strong> odrzucenie nieznanego formatu to świadoma decyzja (legacy wyceniało 4DX na 0.00!), a nie błąd. Zapisujemy ją jako zaakceptowaną różnicę.
 <strong>Snapshot:</strong> <code>Step3/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m3/<wbr>s04 2 3</code></p>
 <h3 id="krok-4-przelaczenie" tabindex="-1"><a class="header-anchor" href="#krok-4-przelaczenie"><span>Krok 4: przełączenie</span></a></h3>
-<p><strong>W IDE:</strong> enum <code>MigrationMode { Legacy, Shadow, Candidate }</code>, konstruktor <code>PriceService(MigrationMode, VerificationReport)</code>, wyrażenie <code>switch</code> w <code>Price</code>.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Nowy plik <code>MigrationMode.cs</code> z enumem <code>MigrationMode { Legacy, Shadow, Candidate }</code>.</li>
+<li>W <code>PriceService</code> dodaj pole <code>_mode</code> i konstruktor <code>PriceService(MigrationMode mode, VerificationReport report)</code>; bezargumentowy deleguje <code>: this(MigrationMode.Shadow, new VerificationReport())</code>.</li>
+<li>Dotychczasowe ciało <code>Price</code> przenieś do prywatnej metody <code>Shadow(TicketQuery query)</code> i wciel do niej metodę <code>Verify</code>: nagranie do raportu dzieje się wprost w <code>try/<wbr>catch</code>, a <code>Verify</code> znika.</li>
+<li><code>Price</code> zwraca wyrażenie <code>switch</code> po <code>_mode</code> z gałęzią domyślną rzucającą <code>InvalidOperationException</code>.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> Money <span class="hljs-title">Price</span>(<span class="hljs-params">TicketQuery query</span>)</span>
+{
+    Money result = _legacy.Price(query);
+    _report.Record(Verify(query, result));
+    <span class="hljs-keyword">return</span> result;
+}
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">return</span> _mode <span class="hljs-keyword">switch</span>
 {
     MigrationMode.Legacy =&gt; _legacy.Price(query),
@@ -473,16 +688,48 @@ _mailer(booking.Email, <span class="hljs-string">&quot;Platnosc odrzucona &quot;
     <span class="hljs-built_in">string</span> shadow = _candidate.Book(request); <span class="hljs-comment">// też obciąża kartę i wysyła mail</span>
 </code></pre>
 <h3 id="krok-1-port-efektow-parameterize-constructor" tabindex="-1"><a class="header-anchor" href="#krok-1-port-efektow-parameterize-constructor"><span>Krok 1: port efektów (Parameterize Constructor)</span></a></h3>
-<p><strong>W IDE:</strong> ⌃T → Extract Interface na operacjach <code>Infrastructure</code> używanych przez nowy przepływ → <code>IEffects</code>; adapter <code>RealEffects</code>. ⌘F6 na konstruktorze <code>NewBookingFlow</code>: parametr <code>IEffects</code> zamiast <code>Infrastructure</code>.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Nowy plik <code>IEffects.cs</code>: z operacji <code>Infrastructure</code> używanych przez nowy przepływ wydziel interfejs <code>IEffects</code> z metodami <code>SendMail</code>, <code>Charge</code> i <code>Save</code> (Extract Interface).</li>
+<li>Nowy plik <code>RealEffects.cs</code>: adapter implementujący <code>IEffects</code>, który deleguje każdą metodę do <code>Infrastructure</code>.</li>
+<li>Zmień sygnaturę konstruktora <code>NewBookingFlow</code>: parametr <code>IEffects effects</code> zamiast <code>Infrastructure infra</code>. Pole <code>_effects</code> zastępuje <code>_infra</code>, a wywołania <code>_infra.*</code> w <code>Book</code> zmieniają się na <code>_effects.*</code>.</li>
+<li>W konstruktorze <code>ShadowBooking</code> kandydat dostaje <code>new NewBookingFlow(new RealEffects(infra))</code>.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ShadowBooking</span>(<span class="hljs-params">Infrastructure infra</span>)</span>
+{
+    _legacy = <span class="hljs-keyword">new</span> LegacyBookingFlow(infra);
+    _candidate = <span class="hljs-keyword">new</span> NewBookingFlow(infra);
+}
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs">_candidate = <span class="hljs-keyword">new</span> NewBookingFlow(<span class="hljs-keyword">new</span> RealEffects(infra));
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony; <code>Step1PreparatoryRefactoringKeepsTheBugOnPurpose</code> - nadal dwa maile.
 <strong>Co powiedzieć:</strong> refaktoryzacja przygotowawcza zachowuje zachowanie, także błędne. Mamy szew, który w następnym kroku zmieni wszystko.
 <strong>Snapshot:</strong> <code>Step1/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m3/<wbr>s05 0 1</code></p>
 <h3 id="krok-2-przechwycenie-efektow-w-cieniu" tabindex="-1"><a class="header-anchor" href="#krok-2-przechwycenie-efektow-w-cieniu"><span>Krok 2: przechwycenie efektów w cieniu</span></a></h3>
-<p><strong>W IDE:</strong> nowa klasa <code>RecordingEffects : IEffects</code> zapisuje zamiary w formacie dziennika. <code>ShadowBooking</code> przekazuje kandydatowi nagrywarkę i porównuje nagrane efekty z efektami, które faktycznie wykonało legacy.
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Nowy plik <code>RecordingEffects.cs</code>: klasa <code>RecordingEffects : IEffects</code> zapisuje zamiary w formacie dziennika infrastruktury (<code>MAIL ...</code>, <code>CHARGE ...</code>, <code>SAVE ...</code>) i udostępnia je metodą <code>Recorded()</code>. Niczego nie wysyła, nie obciąża i nie zapisuje.</li>
+<li>W <code>ShadowBooking</code> usuń pole <code>_candidate</code>; zapamiętaj infrastrukturę w polu <code>_infra</code>. W <code>Book</code> przed wywołaniem legacy zapisz długość dziennika, a po nim pobierz nowe wpisy jako <code>legacyEffects</code>.</li>
+<li>W bloku <code>try</code> utwórz nagrywarkę i przekaż ją świeżemu kandydatowi: <code>new NewBookingFlow(recorder).Book(request)</code>.</li>
+<li>Dodaj prywatną metodę <code>Compare(what, legacyValues, candidateValues)</code>, która porównuje listy pozycja po pozycji i dopisuje rozbieżności do <code>_divergences</code>. Porównaj osobno <code>&quot;wynik&quot;</code> i <code>&quot;efekty&quot;</code>.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-built_in">string</span> <span class="hljs-title">Book</span>(<span class="hljs-params">BookingRequest request</span>)</span>
+{
+    <span class="hljs-built_in">string</span> result = _legacy.Book(request);
+    <span class="hljs-keyword">try</span>
+    {
+        <span class="hljs-built_in">string</span> shadow = _candidate.Book(request);
+        <span class="hljs-keyword">if</span> (!shadow.Equals(result))
+        {
+            _divergences.Add(<span class="hljs-string">&quot;legacy: &quot;</span> + result + <span class="hljs-string">&quot; | kandydat: &quot;</span> + shadow);
+        }
+    }
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">var</span> recorder = <span class="hljs-keyword">new</span> RecordingEffects();
 <span class="hljs-built_in">string</span> shadow = <span class="hljs-keyword">new</span> NewBookingFlow(recorder).Book(request);
 Compare(<span class="hljs-string">&quot;wynik&quot;</span>, [result], [shadow]);
@@ -492,10 +739,25 @@ Compare(<span class="hljs-string">&quot;efekty&quot;</span>, legacyEffects, reco
 <strong>Co powiedzieć:</strong> porównanie efektów znalazło błąd, którego porównanie wyniku nie widziało.
 <strong>Snapshot:</strong> <code>Step2/<wbr></code> · <strong>Różnica:</strong> <code>scripts/<wbr>warsztat.sh --lang cs diff m3/<wbr>s05 1 2</code></p>
 <h3 id="krok-3-separate-query-from-modifier-czysty-plan" tabindex="-1"><a class="header-anchor" href="#krok-3-separate-query-from-modifier-czysty-plan"><span>Krok 3: Separate Query from Modifier - czysty plan</span></a></h3>
-<p><strong>W IDE:</strong> z <code>NewBookingFlow.Book</code> wydziel (⌥⌘M, potem Move F6) klasę <code>BookingPlanner</code> z metodą <code>Plan</code>, która zwraca <code>BookingPlan(Result, Effects)</code>. <code>NewBookingFlow</code> wykonuje plan na porcie; <code>ShadowBooking</code> woła tylko <code>BookingPlanner</code>. <code>RecordingEffects</code> usuń (Safe Delete).
-<strong>Po:</strong></p>
+<p><strong>Zmiany:</strong></p>
+<ol>
+<li>Nowy plik <code>BookingPlan.cs</code>: rekord <code>BookingPlan(string Result, IReadOnlyList&lt;BookingPlan.IEffect&gt; Effects)</code> z zagnieżdżonym interfejsem <code>IEffect</code> (metody <code>Describe()</code> i <code>ApplyTo(IEffects port)</code>) oraz rekordami <code>Charge</code>, <code>Save</code> i <code>SendMail</code>.</li>
+<li>Nowy plik <code>BookingPlanner.cs</code>: z <code>NewBookingFlow.Book</code> wydziel czyste obliczenie do metody <code>Plan</code> (Extract Method) i przenieś ją do nowej klasy <code>BookingPlanner</code> (Move Method). <code>Plan</code> zwraca <code>BookingPlan</code> z wynikiem i listą efektów jako danymi.</li>
+<li><code>NewBookingFlow.Book</code> woła <code>_planner.Plan(request)</code>, wykonuje każdy efekt planu na porcie (<code>effect.ApplyTo(_effects)</code>) i zwraca <code>plan.Result</code>.</li>
+<li>W <code>ShadowBooking</code> zamień pole kandydata na <code>BookingPlanner</code>; w <code>try</code> porównaj <code>plan.Result</code> z wynikiem legacy, a opisy efektów (<code>Describe()</code>) z <code>legacyEffects</code>.</li>
+<li>Plik <code>RecordingEffects.cs</code> znika: usuń klasę, nikt już jej nie używa.</li>
+</ol>
+<p><strong>Przed:</strong></p>
+<pre class="code" data-lang="csharp"><code class="hljs"><span class="hljs-keyword">var</span> recorder = <span class="hljs-keyword">new</span> RecordingEffects();
+<span class="hljs-built_in">string</span> shadow = <span class="hljs-keyword">new</span> NewBookingFlow(recorder).Book(request);
+Compare(<span class="hljs-string">&quot;wynik&quot;</span>, [result], [shadow]);
+Compare(<span class="hljs-string">&quot;efekty&quot;</span>, legacyEffects, recorder.Recorded());
+</code></pre>
+<p><strong>Po:</strong></p>
 <pre class="code" data-lang="csharp"><code class="hljs">BookingPlan plan = _candidate.Plan(request);
 Compare(<span class="hljs-string">&quot;wynik&quot;</span>, [result], [plan.Result]);
+IReadOnlyList&lt;<span class="hljs-built_in">string</span>&gt; planned = plan.Effects.Select(effect =&gt; effect.Describe()).ToList();
+Compare(<span class="hljs-string">&quot;efekty&quot;</span>, legacyEffects, planned);
 </code></pre>
 <p><strong>Uruchom:</strong> test zielony; <code>Step3ComparesAPurePlanAndNeverTouchesInfrastructure</code>.
 <strong>Co powiedzieć:</strong> typ gwarantuje bezpieczeństwo: <code>BookingPlanner</code> nie ma dostępu do portu efektów, więc w cieniu nie da się go użyć &quot;za mocno&quot;.

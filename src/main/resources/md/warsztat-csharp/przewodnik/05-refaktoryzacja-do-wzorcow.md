@@ -2,7 +2,7 @@
 
 Trzydzieści dwie małe sceny w domenie kina CineLegacy. Każda pokazuje jedną refaktoryzację do wzorca (albo usunięcie wzorca) ze slajdów: od pytania "czy zawsze warto?" i usuwania zbędnych wzorców, przez ryzyka zmiany kontraktu i refaktoryzacje automatyczne w IDE, po wybór między podobnymi wzorcami (Polecenie, Strategia, Stan; Strategia i Metoda szablonowa; Łańcuch zobowiązań i Dekorator), granice systemu (Adapter, obiekt graniczny, Fasada, warstwa antykorupcyjna) oraz Budowniczego, Obserwatora, Mediatora i Odwiedzającego. Polskie nazwy wzorców i refaktoryzacji są takie jak na slajdach; tytuły scen zostają w wersji angielskiej, bo tak nazywają się refaktoryzacje w katalogu Kerievsky’ego i w IDE. Każda scena ma kod wyjściowy `Start` z zapachem lub pułapką i gotowe snapshoty `StepN` po każdym ruchu, więc w dowolnym momencie można przeskoczyć do kolejnego kroku. Test równoważności pilnuje, że wzorzec wprowadzamy bez zmiany obserwowalnego zachowania, a tam, gdzie zachowanie celowo się zmienia (moment wyboru strategii, nowy niezmiennik buildera, wygaszony wariant, naprawiony błąd skopiowanej orkiestracji, zaostrzona walidacja na granicy), osobny test to dokumentuje.
 
-Port C# żyje w `csharp/src/Training.Workshop/M5/SNN.../{Start,Step1,...}` (testy xUnit w `csharp/tests/Training.Workshop.Tests/M5/SNN.../`), pracujemy w JetBrains Rider (keymap macOS zgodny z IntelliJ: ⇧F6 Rename, ⌥⌘M Extract Method, ⌥⌘V Introduce Variable, ⌥⌘C Introduce Constant, ⌥⌘P Introduce Parameter, ⌥⌘N Inline, F6 Move, ⌘F6 Change Signature, ⌘⌦ Safe Delete, ⌥⌘T Surround With, ⌥F7 Find Usages, ⌥⏎ akcje kontekstowe, ⌃T Refactor This). Projekt ma `TreatWarningsAsErrors` (`csharp/Directory.Build.props`), więc każde ostrzeżenie kompilatora (np. niewyczerpujący `switch`, wywołanie metody `[Obsolete]`, pole nieustawione w konstruktorze przy włączonym nullable) zatrzymuje build - kilka scen korzysta z tego świadomie.
+Port C# żyje w `csharp/src/Training.Workshop/M5/SNN.../{Start,Step1,...}` (testy xUnit w `csharp/tests/Training.Workshop.Tests/M5/SNN.../`). Każdy krok opisujemy jako konkretne zmiany w kodzie; nazwy refaktoryzacji z katalogu Kerievsky'ego i Fowlera podajemy w nawiasach. Projekt ma `TreatWarningsAsErrors` (`csharp/Directory.Build.props`), więc każde ostrzeżenie kompilatora (np. niewyczerpujący `switch`, wywołanie metody `[Obsolete]`, pole nieustawione w konstruktorze przy włączonym nullable) zatrzymuje build - kilka scen korzysta z tego świadomie.
 
 ## Jak prowadzić pokaz
 
@@ -20,7 +20,7 @@ scripts/warsztat.sh status                         # który krok jest teraz w St
 scripts/warsztat.sh --lang cs reset m5/s08         # przywraca Start z repozytorium
 ```
 
-- Zasada: **jeden krok - jeden test - jedno zdanie komentarza**. Po każdym ruchu w IDE uruchamiamy test sceny (z gutter przy klasie testu, z okna Unit Tests albo skryptem); zielony pasek jest dowodem, że wzorzec nie zmienił kontraktu.
+- Zasada: **jeden krok - jeden test - jedno zdanie komentarza**. Po każdym ruchu uruchamiamy test sceny (najprościej skryptem `scripts/warsztat.sh --lang cs test m5/sNN`); zielony pasek jest dowodem, że wzorzec nie zmienił kontraktu.
 - **Krok po kroku bez numerów:** `scripts/warsztat.sh --lang cs next m5/sNN` wstawia do `Start` gotowy następny krok i wypisuje, co się zmieniło. `prev` cofa o krok, `status` mówi, który krok jest teraz w `Start`. Skrypt pamięta język i ostatnią scenę, więc potem wystarczy samo `next`. Ręczne zmiany w `Start` zostają nadpisane - o to chodzi, gdy krok na żywo się rozjechał.
 - Pracujemy na namespace `Start` sceny (np. `Training.Workshop.M5.S08State.Start`). Gdy coś pójdzie nie tak, `next` (albo `jump` do właściwego kroku), a po scenie `reset`.
 - Test równoważności przechodzi przez `Start` i wszystkie kroki (xUnit `[Theory]` z wariantami `start`, `step1`...). Jeśli uczestnicy pracują równolegle, to ten sam test jest ich kryterium ukończenia.
@@ -132,7 +132,37 @@ Klientem jest `PriceBoard.PriceFor(request)` - przez niego woła test. Test rów
 
 ### Krok 1: Extract Interface + strategia przejściowa
 
-**W IDE:** utwórz interfejs `IDiscountPolicy` z metodą `Money Discount(Money basePrice, string ticketType)`. Zaznacz łańcuch `if`, ⌥⌘M, nazwa `LegacyDiscount` (parametry `basePrice`, `ticketType`, `program`, zwracane `Money`). Dopisz prywatną klasę zagnieżdżoną `LegacyPolicy(string program) : IDiscountPolicy`, która deleguje do `LegacyDiscount`, i wywołaj ją w `Price`.
+**Zmiany:**
+
+1. Utwórz nowy plik `IDiscountPolicy.cs` z interfejsem `IDiscountPolicy` i jedną metodą `Money Discount(Money basePrice, string ticketType)`.
+2. W `TicketPricer` wydziel cały łańcuch `if` z metody `Price` do nowej prywatnej metody statycznej `LegacyDiscount(Money basePrice, string ticketType, string program)` zwracającej `Money` (wyodrębnienie metody). Przypisania do `discount` zamień na `return`, a końcowe `basePrice.Minus(discount)` zostaw w `Price`.
+3. Dopisz prywatną klasę zagnieżdżoną `LegacyPolicy(string program) : IDiscountPolicy` (primary constructor), której `Discount` deleguje do `LegacyDiscount`.
+4. W `Price`, po walidacji, utwórz `IDiscountPolicy policy = new LegacyPolicy(program)` i zwróć `basePrice.Minus(policy.Discount(basePrice, ticketType))`.
+
+**Przed:**
+
+```csharp
+Money discount;
+if (program == "PREMIERE")
+{
+    discount = Money.Zero;
+}
+else if (program == "STUDENT_WEEK" && ticketType == "S")
+{
+    discount = basePrice.Percent(50);
+}
+else if (program == "STANDARD" || program == "STUDENT_WEEK")
+{
+    ...
+    discount = basePrice.Percent(percent);
+}
+else
+{
+    throw new ArgumentException("unknown program: " + program);
+}
+return basePrice.Minus(discount);
+```
+
 **Po:**
 
 ```csharp
@@ -151,7 +181,33 @@ private sealed class LegacyPolicy(string program) : IDiscountPolicy
 
 ### Krok 2: przeniesienie gałęzi do strategii
 
-**W IDE:** dla każdej gałęzi osobno: nowa klasa implementująca `IDiscountPolicy` (⌥⏎ na nazwie interfejsu w deklaracji klasy - Implement missing members), ciało skopiowane z gałęzi, test. Kolejno `StandardDiscount`, `PremiereDiscount`, `StudentWeekDiscount` (ta ostatnia deleguje nie-studentów do `StandardDiscount`). Na koniec `LegacyDiscount` zastąp metodą `PolicyFor(program)` ze switch expression.
+**Zmiany:**
+
+1. Dla każdej gałęzi osobno: utwórz nową klasę implementującą `IDiscountPolicy`, przenieś do jej metody `Discount` ciało gałęzi i uruchom test. Kolejno: `StandardDiscount` (switch po `ticketType`), `PremiereDiscount` (zawsze `Money.Zero`), `StudentWeekDiscount` (student 50%, nie-studentów deleguje do przekazanego w konstruktorze `StandardDiscount`).
+2. W `TicketPricer` zastąp `LegacyDiscount` prywatną metodą statyczną `PolicyFor(string program)` zwracającą strategię ze switch expression; nieznany program nadal rzuca `ArgumentException`.
+3. Usuń klasę `LegacyPolicy`, a w `Price` wywołaj `PolicyFor(program).Discount(basePrice, ticketType)`.
+
+**Przed:**
+
+```csharp
+IDiscountPolicy policy = new LegacyPolicy(program);
+return basePrice.Minus(policy.Discount(basePrice, ticketType));
+...
+private static Money LegacyDiscount(Money basePrice, string ticketType, string program)
+{
+    if (program == "PREMIERE")
+    {
+        return Money.Zero;
+    }
+    ...
+}
+
+private sealed class LegacyPolicy(string program) : IDiscountPolicy
+{
+    public Money Discount(Money basePrice, string ticketType) => LegacyDiscount(basePrice, ticketType, program);
+}
+```
+
 **Po:**
 
 ```csharp
@@ -170,7 +226,30 @@ return program switch
 
 ### Krok 3: wybór strategii w korzeniu kompozycji
 
-**W IDE:** przenieś `PolicyFor` (Move F6) do nowej statycznej klasy `DiscountPrograms` jako `ForName`, instancje strategii jako pola `static readonly` (współdzielone). Change Signature (⌘F6) na `TicketPricer`: strategia w konstruktorze, `Price(basePrice, ticketType)` bez programu. Popraw klienta `PriceBoard`.
+**Zmiany:**
+
+1. Utwórz statyczną klasę `DiscountPrograms` i przenieś do niej `PolicyFor` pod nazwą `ForName(string? program)` (przeniesienie metody). Instancje strategii trzymaj jako pola `static readonly` (bezstanowe, więc współdzielone). Walidacja `program == null` przenosi się tutaj.
+2. Zmień sygnatury `TicketPricer` (zmiana sygnatury): konstruktor przyjmuje `IDiscountPolicy` (z `ArgumentNullException.ThrowIfNull`), a `Price(basePrice, ticketType)` traci parametr `program`. Walidacja ujemnej ceny zostaje w `Price`.
+3. Popraw klienta `PriceBoard`: zamiast pola z gotowym `TicketPricer` składa kontekst przy każdym żądaniu - `new TicketPricer(DiscountPrograms.ForName(request.Program))`.
+
+**Przed:**
+
+```csharp
+public Money PriceFor(PriceRequest request)
+{
+    return _pricer.Price(request.Base, request.TicketType, request.Program);
+}
+...
+private static IDiscountPolicy PolicyFor(string program)
+{
+    return program switch
+    {
+        "STANDARD" => new StandardDiscount(),
+        ...
+    };
+}
+```
+
 **Po:**
 
 ```csharp
@@ -230,11 +309,33 @@ public int DurationMinutes()
 }
 ```
 
-Tworzenie jest w jednym miejscu: `Screening.FromRow(ScreeningRow)` (mapowanie wiersza z bazy). Zawsze najpierw szukamy miejsc tworzenia i deserializacji (Find Usages ⌥F7 na konstruktorze).
+Tworzenie jest w jednym miejscu: `Screening.FromRow(ScreeningRow)` (mapowanie wiersza z bazy). Zawsze najpierw szukamy miejsc tworzenia i deserializacji (wszystkich użyć konstruktora).
 
 ### Krok 1: Extract Subclass dla jednej gałęzi
 
-**W IDE:** usuń `sealed` z `Screening`, konstruktor zmień na `private protected`, trzy metody oznacz `virtual`. Utwórz `MarathonScreening : Screening` z polem `_films`, nadpisz trzy metody (⌘N Generate > Overriding Members) i skopiuj do nich gałęzie `Kind.Marathon`. W `FromRow` twórz podklasę dla "MARATHON". W bazie gałęzie `Kind.Marathon` rzucają `InvalidOperationException`.
+**Zmiany:**
+
+1. W `Screening` usuń `sealed`, konstruktor zmień z `private` na `private protected` (podklasy tylko w tym assembly), a `Label`, `DurationMinutes` i `Price` oznacz `virtual`. Dodaj `protected string Title => _title;`, żeby podklasa widziała tytuł.
+2. Utwórz nowy plik `MarathonScreening.cs`: `public sealed class MarathonScreening : Screening` z konstruktorem `internal` i polem `_films`. Nadpisz (`override`) trzy metody i skopiuj do nich ciała gałęzi `Kind.Marathon`.
+3. W `FromRow` gałąź "MARATHON" tworzy `new MarathonScreening(row.Title, row.Value)`; pozostałe gałęzie tworzą bazę wprost (`new Screening(Kind.Regular, ...)`).
+4. W bazie martwe już gałęzie `Kind.Marathon` zamień na `throw new InvalidOperationException("handled by MarathonScreening")`.
+
+**Przed:**
+
+```csharp
+public static Screening FromRow(ScreeningRow row)
+{
+    var kind = row.Kind switch
+    {
+        "REGULAR" => Kind.Regular,
+        "PREMIERE" => Kind.Premiere,
+        "MARATHON" => Kind.Marathon,
+        _ => throw new ArgumentException("unknown screening kind: " + row.Kind),
+    };
+    return new Screening(kind, row.Title, row.Value);
+}
+```
+
 **Po:**
 
 ```csharp
@@ -247,7 +348,27 @@ Tworzenie jest w jednym miejscu: `Screening.FromRow(ScreeningRow)` (mapowanie wi
 
 ### Krok 2: pozostałe podklasy, baza abstrakcyjna
 
-**W IDE:** powtórz ruch dla Regular i Premiere. Potem metody bazy jako `abstract`, usuń pole `_kind` i enum `Kind` (Safe Delete ⌘⌦). Jedynym `switch` zostaje `FromRow`.
+**Zmiany:**
+
+1. Powtórz ruch z kroku 1 dla pozostałych rodzajów: nowe pliki `RegularScreening.cs` i `PremiereScreening.cs` z ciałami swoich gałęzi; `FromRow` tworzy już tylko podklasy.
+2. Oznacz klasę `Screening` jako `abstract`, a `Label`, `DurationMinutes` i `Price` jako `abstract` (bez ciał).
+3. Usuń pole `_kind`, pole `_value` i enum `Kind` (bezpieczne usunięcie - najpierw upewnij się, że nie mają użyć). Konstruktor bazy zostaje z samym `title`. Jedynym `switch` zostaje `FromRow`.
+
+**Przed:**
+
+```csharp
+public virtual int DurationMinutes()
+{
+    return _kind switch
+    {
+        Kind.Regular => 20 + _value,
+        Kind.Premiere => 30 + _value,
+        Kind.Marathon => throw new InvalidOperationException("handled by MarathonScreening"),
+        _ => throw new ArgumentOutOfRangeException(nameof(_kind)),
+    };
+}
+```
+
 **Po:**
 
 ```csharp
@@ -263,7 +384,33 @@ public abstract class Screening
 
 ### Krok 3: forma C# - abstrakcyjny rekord i zapieczętowane rekordy
 
-**W IDE:** zamień klasę bazową na `abstract record Screening` z konstruktorem `private protected`, statycznym `FromRow` i abstrakcyjną właściwością `Title`, a podklasy na `sealed record` (ręcznie - rekord pozycyjny w miejscu klasy z polami). `_value` znika - każdy rekord ma nazwane dane (`Runtime`, `Films`).
+**Zmiany:**
+
+1. Zamień klasę bazową na `abstract record Screening` z bezparametrowym konstruktorem `private protected`, statycznym `FromRow` i abstrakcyjną właściwością `Title` (pole `_title` znika).
+2. Zamień każdą podklasę na pozycyjny `sealed record` w miejscu klasy z polami: `RegularScreening(string Title, int Runtime)`, `PremiereScreening(string Title, int Runtime)`, `MarathonScreening(string Title, int Films)`. Każdy rekord nadpisuje `Title` i trzy metody.
+3. Dane mają teraz jednoznaczne nazwy (`Runtime`, `Films`) - dwuznaczne `_value` znika z kodu.
+
+**Przed:**
+
+```csharp
+public sealed class MarathonScreening : Screening
+{
+    private readonly int _films;
+
+    internal MarathonScreening(string title, int films)
+        : base(title)
+    {
+        _films = films;
+    }
+
+    public override string Label()
+    {
+        return "Maraton: " + Title + " (" + _films + " filmy)";
+    }
+    ...
+}
+```
+
 **Po:**
 
 ```csharp
@@ -325,7 +472,34 @@ private static Money BasePrice(int formatCode)
 
 ### Krok 1: nowy typ i konwersja na granicy
 
-**W IDE:** utwórz `enum Format { TwoD, ThreeD, Imax }` i obok statyczną klasę `FormatExtensions` z blokiem `extension(Format format)`: właściwość `Code` (jawne przypisanie 1, 2, 3) i statyczne `FromCode(int)` rzucające ten sam wyjątek co Start. W `Describe` zamień `int` na `Format` zaraz po odczycie; Change Signature (⌘F6) metod prywatnych na `Format`. Do CSV zapisuj `format.Code`.
+**Zmiany:**
+
+1. Utwórz nowy plik `Format.cs`: `enum Format { TwoD, ThreeD, Imax }` i obok statyczna klasa `FormatExtensions` z blokiem `extension(Format format)`. W bloku: właściwość `Code` (switch z jawnym przypisaniem 1, 2, 3) i statyczna metoda `FromCode(int)`, która szuka stałej o danym `Code`, a dla nieznanego kodu rzuca ten sam `ArgumentException` co Start.
+2. W `Describe` zamień `int` na `Format` zaraz po odczycie: `var format = Format.FromCode(int.Parse(...))`.
+3. Zmień sygnatury metod prywatnych `Label`, `BasePrice`, `NeedsGlasses`, `ToCsv` z `int` na `Format` (zmiana sygnatury); switche przechodzą na stałe enuma.
+4. Usuń stałe `Format2D`, `Format3D`, `FormatImax`. Do CSV zapisuj `format.Code`.
+
+**Przed:**
+
+```csharp
+public const int Format2D = 1;
+public const int Format3D = 2;
+public const int FormatImax = 3;
+...
+var formatCode = int.Parse(parts[1].Trim(), CultureInfo.InvariantCulture);
+...
+private static string Label(int formatCode)
+{
+    return formatCode switch
+    {
+        Format2D => "2D",
+        Format3D => "3D",
+        FormatImax => "IMAX",
+        _ => throw new ArgumentException("unknown format code: " + formatCode),
+    };
+}
+```
+
 **Po:**
 
 ```csharp
@@ -338,7 +512,31 @@ var format = Format.FromCode(int.Parse(parts[1].Trim(), CultureInfo.InvariantCul
 
 ### Krok 2: Move Method do typu
 
-**W IDE:** przenieś `Label`, `BasePrice`, `NeedsGlasses` do bloku rozszerzeń jako właściwości `Label`, `BasePrice`, `RequiresGlasses` (ręcznie - wytnij `switch` z `ScreeningCsv` i wklej jako ciało właściwości). Klient pyta obiekt zamiast wykonywać `switch`.
+**Zmiany:**
+
+1. Przenieś `Label`, `BasePrice` i `NeedsGlasses` z `ScreeningCsv` do bloku rozszerzeń jako właściwości `Label`, `BasePrice`, `RequiresGlasses` (przeniesienie metody): wytnij każdy `switch` i wklej jako ciało właściwości w `extension(Format format)`.
+2. Kwoty wyciągnij do pól `static readonly` w `FormatExtensions` (`TwoDPrice`, `ThreeDPrice`, `ImaxPrice`).
+3. W `Describe` zastąp wywołania metod odczytem właściwości (`format.Label`, `format.BasePrice`, `format.RequiresGlasses`), a `ToCsv` wpisz wprost w wynik: `title + ";" + format.Code`. Prywatne metody znikają z `ScreeningCsv`.
+
+**Przed:**
+
+```csharp
+return title + "|" + Label(format) + "|" + BasePrice(format)
+    + "|okulary:" + (NeedsGlasses(format) ? "tak" : "nie")
+    + "|csv=" + ToCsv(title, format);
+...
+private static string Label(Format format)
+{
+    return format switch
+    {
+        Format.TwoD => "2D",
+        Format.ThreeD => "3D",
+        Format.Imax => "IMAX",
+        _ => throw new ArgumentOutOfRangeException(nameof(format)),
+    };
+}
+```
+
 **Po:**
 
 ```csharp
@@ -359,7 +557,32 @@ extension(Format format)
 
 ### Krok 3: mapper migracyjny na granicy trwałości
 
-**W IDE:** utwórz statyczną klasę `FormatCodes` z `FromCode`/`ToCode` (słownik `Dictionary<Format, int>` jako `IReadOnlyDictionary`), usuń `Code` i `FromCode` z rozszerzeń. `ScreeningCsv` rozmawia z mapperem, reszta kodu wyłącznie z `Format`.
+**Zmiany:**
+
+1. Utwórz nowy plik `FormatCodes.cs`: statyczna klasa ze słownikiem `Dictionary<Format, int>` (trzymanym jako `IReadOnlyDictionary`) i metodami `FromCode(int)` (szuka wpisu po wartości; nieznany kod rzuca ten sam `ArgumentException`) oraz `ToCode(Format)`.
+2. Usuń `Code` i `FromCode` z bloku rozszerzeń - typ domenowy traci wiedzę o kodach trwałych.
+3. W `ScreeningCsv.Describe` czytaj format przez `FormatCodes.FromCode(...)`, a do CSV zapisuj `FormatCodes.ToCode(format)`. Reszta kodu rozmawia wyłącznie z `Format`.
+
+**Przed:**
+
+```csharp
+extension(Format format)
+{
+    public int Code => format switch
+    {
+        Format.TwoD => 1,
+        Format.ThreeD => 2,
+        Format.Imax => 3,
+        _ => throw new ArgumentOutOfRangeException(nameof(format)),
+    };
+    ...
+    public static Format FromCode(int code) { ... }
+}
+...
+var format = Format.FromCode(int.Parse(parts[1].Trim(), CultureInfo.InvariantCulture));
+... + "|csv=" + title + ";" + format.Code;
+```
+
 **Po:**
 
 ```csharp
@@ -413,7 +636,24 @@ tickets.Add(row >= 10
 
 ### Krok 1: metody tworzące
 
-**W IDE:** w namespace `Ticketing` utwórz statyczną klasę `Tickets` ze statycznymi `Standard(...)` i `Vip(...)` zwracającymi `ITicket`. Zastąp każde `new` w `BoxOffice` wywołaniem metody tworzącej - Find Usages (⌥F7) na konstruktorach pokaże wszystkie miejsca, a zamianę robimy ręcznie (to dwa miejsca).
+**Zmiany:**
+
+1. W namespace `Ticketing` utwórz nowy plik `Tickets.cs`: statyczna klasa `Tickets` z metodami tworzącymi `Standard(title, basePrice, row)` i `Vip(title, basePrice, row)`, obie zwracają `ITicket` i wołają `new` na klasie konkretnej.
+2. Znajdź wszystkie użycia konstruktorów `StandardTicket` i `VipTicket` - to dwa miejsca w `BoxOffice` (`Sell` i pętla w `SellAll`) - i zastąp każde `new` wywołaniem metody tworzącej.
+
+**Przed:**
+
+```csharp
+public ITicket Sell(string title, Money basePrice, int row)
+{
+    if (row >= 10)
+    {
+        return new VipTicket(title, basePrice, row);
+    }
+    return new StandardTicket(title, basePrice, row);
+}
+```
+
 **Po:**
 
 ```csharp
@@ -426,7 +666,25 @@ return Tickets.Vip(title, basePrice, row);
 
 ### Krok 2: decyzja do fabryki
 
-**W IDE:** przenieś warunek `row >= 10` do `Tickets.ForSeat(title, basePrice, row)`, stałą nazwij `VipFromRow` (Introduce Field jako `const` albo ręcznie). `SellAll` woła `Sell`.
+**Zmiany:**
+
+1. W `Tickets` dodaj metodę `ForSeat(title, basePrice, row)` i przenieś do niej warunek `row >= 10` z `BoxOffice` (przeniesienie metody). Próg wyciągnij do stałej `private const int VipFromRow = 10` (wprowadzenie stałej).
+2. Usuń z fabryki metody `Standard` i `Vip` - `ForSeat` zostaje jedynym wejściem.
+3. W `BoxOffice.Sell` zostaw delegację do `Tickets.ForSeat(...)`, a pętla w `SellAll` woła `Sell`.
+
+**Przed:**
+
+```csharp
+public ITicket Sell(string title, Money basePrice, int row)
+{
+    if (row >= 10)
+    {
+        return Tickets.Vip(title, basePrice, row);
+    }
+    return Tickets.Standard(title, basePrice, row);
+}
+```
+
 **Po:**
 
 ```csharp
@@ -442,7 +700,36 @@ public ITicket Sell(string title, Money basePrice, int row)
 
 ### Krok 3: ograniczenie widoczności
 
-**W IDE:** oznacz `Tickets` jako `public static partial class`, a w plikach `StandardTicket.cs` i `VipTicket.cs` owiń bilety tą samą klasą częściową i zamień je na `private sealed record`. Rider podkreśli każde użycie spoza fabryki - to inwentaryzacja, którą robi za nas kompilator.
+**Zmiany:**
+
+1. Oznacz `Tickets` jako `public static partial class`.
+2. W plikach `StandardTicket.cs` i `VipTicket.cs` owiń każdy bilet tą samą klasą częściową `Tickets` i zamień klasę na `private sealed record` pozycyjny (np. `VipTicket(string Title, Money Base, int Row)`); pola i konstruktor zastępują parametry rekordu.
+3. Skompiluj: każde użycie biletów spoza fabryki podkreśli teraz kompilator - to inwentaryzacja klientów, których trzeba by zmigrować (tu nie ma już żadnego).
+
+**Przed:**
+
+```csharp
+public sealed class VipTicket : ITicket
+{
+    private readonly string _title;
+    private readonly Money _base;
+    private readonly int _row;
+
+    public VipTicket(string title, Money basePrice, int row)
+    {
+        _title = title;
+        _base = basePrice;
+        _row = row;
+    }
+
+    public Money Price()
+    {
+        return _base.Plus(Money.Of("10.00"));
+    }
+    ...
+}
+```
+
 **Po:**
 
 ```csharp
@@ -503,7 +790,29 @@ Test to scenariusz kilku rezerwacji na jednym serwisie: zajęte miejsce nie zuż
 
 ### Krok 1: Extract Method dla tworzenia
 
-**W IDE:** w `Reserve` zaznacz blok od `_sequence++` do `new Reservation(...)`, ⌥⌘M, nazwa `NewReservation`. W `ReserveGroup` zastąp duplikat wywołaniem `NewReservation("ONLINE", email, seats)`. Pętlę zajętości wyciągnij do `RequireFree`.
+**Zmiany:**
+
+1. W `Reserve` wydziel blok od `_sequence++` do `new Reservation(...)` do prywatnej metody `NewReservation(channel, email, seats)` (wyodrębnienie metody). Linia `_takenSeats.UnionWith(seats)` zostaje w `Reserve`, po wywołaniu.
+2. W `ReserveGroup` zastąp skopiowany blok wywołaniem `NewReservation("ONLINE", email, seats)`.
+3. Pętlę sprawdzającą zajętość miejsc wydziel do prywatnej metody `RequireFree(seats)` i wywołaj ją w obu metodach publicznych.
+
+**Przed:**
+
+```csharp
+_sequence++;
+var id = "R" + _sequence;
+if (channel != "ONLINE" && channel != "BOX_OFFICE")
+{
+    throw new ArgumentException("unknown channel: " + channel);
+}
+var fee = channel == "ONLINE" ? Money.Of("2.00").Times(seats.Count) : Money.Zero;
+DateTime? expiresAt = channel == "ONLINE"
+    ? _clock.GetLocalNow().DateTime.AddMinutes(15)
+    : null;
+_takenSeats.UnionWith(seats);
+return new Reservation(id, channel, email, seats.ToList(), fee, expiresAt);
+```
+
 **Po:**
 
 ```csharp
@@ -518,7 +827,28 @@ _takenSeats.UnionWith(seats);
 
 ### Krok 2: Extract Class - ReservationFactory
 
-**W IDE:** Refactor This (⌃T) > Extract Class dla `NewReservation` razem z polami `_clock` i `_sequence` (albo Move F6 do nowej klasy); w fabryce metoda nazywa się `Create`. Serwis tworzy fabrykę w swoim konstruktorze - sygnatura konstruktora bez zmian.
+**Zmiany:**
+
+1. Utwórz nowy plik `ReservationFactory.cs` i przenieś do niego `NewReservation` razem z polami `_clock` i `_sequence` (wyodrębnienie klasy). W fabryce metoda nazywa się `Create`, a konstruktor przyjmuje `TimeProvider`.
+2. W serwisie zamień pola `_clock` i `_sequence` na pole `_factory`; konstruktor `ReservationService(TimeProvider clock)` tworzy `new ReservationFactory(clock)` - jego sygnatura się nie zmienia.
+3. `Reserve` i `ReserveGroup` wołają teraz `_factory.Create(...)` zamiast `NewReservation(...)`.
+
+**Przed:**
+
+```csharp
+private Reservation NewReservation(string channel, string email, IReadOnlyList<string> seats)
+{
+    _sequence++;
+    var id = "R" + _sequence;
+    if (channel != "ONLINE" && channel != "BOX_OFFICE")
+    {
+        throw new ArgumentException("unknown channel: " + channel);
+    }
+    ...
+    return new Reservation(id, channel, email, seats.ToList(), fee, expiresAt);
+}
+```
+
 **Po:**
 
 ```csharp
@@ -534,7 +864,20 @@ public ReservationService(TimeProvider clock)
 
 ### Krok 3: fabryka jako zależność
 
-**W IDE:** dodaj konstruktor `ReservationService(ReservationFactory factory)`; dotychczasowy `ReservationService(TimeProvider)` zamień na delegację `: this(new ReservationFactory(clock))`, żeby nie ruszać klientów.
+**Zmiany:**
+
+1. Dodaj konstruktor `ReservationService(ReservationFactory factory)` z `ArgumentNullException.ThrowIfNull(factory)`; to on ustawia pole `_factory`.
+2. Dotychczasowy konstruktor `ReservationService(TimeProvider clock)` zamień na delegację `: this(new ReservationFactory(clock))` - klienci nie muszą się zmieniać.
+
+**Przed:**
+
+```csharp
+public ReservationService(TimeProvider clock)
+{
+    _factory = new ReservationFactory(clock);
+}
+```
+
 **Po:**
 
 ```csharp
@@ -596,7 +939,28 @@ day.Add(hall2);
 
 ### Krok 1: klasyczny Builder z bieżącym węzłem
 
-**W IDE:** utwórz `ScheduleBuilder` z metodami `Hall(name)`, `Screening(title, hour, minute)` i `Build()`; builder pamięta bieżącą salę. Przepisz planera na wywołania buildera. Drzewo bez zmian.
+**Zmiany:**
+
+1. Utwórz nowy plik `ScheduleBuilder.cs`: konstruktor `ScheduleBuilder(DateOnly date)` tworzy `DaySchedule`; metoda `Hall(name)` tworzy salę, dodaje ją do dnia, zapamiętuje jako bieżącą i zwraca `this`; `Screening(title, hour, minute)` dodaje seans do bieżącej sali, a bez sali rzuca `InvalidOperationException("screening without hall")`; `Build()` zwraca dzień.
+2. Przepisz `WeekendPlanner.Plan` na łańcuch wywołań buildera; seanse weekendowe dodawaj warunkowo przez `builder.Screening(...)`. Węzły drzewa zostają bez zmian.
+
+**Przed:**
+
+```csharp
+var day = new DaySchedule(date);
+var hall1 = new Hall("Sala 1");
+hall1.Add(new Screening("Diuna", new TimeOnly(18, 0)));
+hall1.Add(new Screening("Diuna", new TimeOnly(21, 0)));
+day.Add(hall1);
+var hall2 = new Hall("Sala 2");
+if (weekend)
+{
+    hall2.Add(new Screening("Kraina Lodu", new TimeOnly(10, 0)));
+}
+hall2.Add(new Screening("Amator", new TimeOnly(17, 30)));
+day.Add(hall2);
+```
+
 **Po:**
 
 ```csharp
@@ -613,7 +977,28 @@ var builder = new ScheduleBuilder(date)
 
 ### Krok 2: niemutowalne drzewo, builder jednorazowy
 
-**W IDE:** węzły zamień na rekordy z kopią listy w inicjatorze właściwości (usuń `Add`). Builder zbiera dane w `OrderedDictionary` i tworzy rekordy w `Build()`; drugie `Build()` rzuca `InvalidOperationException`.
+**Zmiany:**
+
+1. Zamień węzły `DaySchedule` i `Hall` na rekordy z kopią listy w inicjatorze właściwości (`Screenings.ToList().AsReadOnly()`); metody `Add` znikają.
+2. Builder zbiera dane w `OrderedDictionary<string, List<Screening>>` z polem `_current` wskazującym listę bieżącej sali; rekordy drzewa powstają dopiero w `Build()`.
+3. Dodaj niezmienniki: duplikat nazwy sali rzuca `InvalidOperationException("duplicate hall: ...")`, a pole `_built` i metoda `RequireNotBuilt()` sprawiają, że każde wywołanie po `Build()` (w tym drugie `Build()`) rzuca `InvalidOperationException("builder already used")`.
+
+**Przed:**
+
+```csharp
+public ScheduleBuilder Hall(string name)
+{
+    _current = new Hall(name);
+    _day.Add(_current);
+    return this;
+}
+...
+public DaySchedule Build()
+{
+    return _day;
+}
+```
+
 **Po:**
 
 ```csharp
@@ -628,7 +1013,29 @@ public sealed record Hall(string Name, IReadOnlyList<Screening> Screenings)
 
 ### Krok 3: zagnieżdżony builder z lambdą
 
-**W IDE:** `Hall(name, Action<HallBuilder>)` zamiast "bieżącej sali"; zagnieżdżona klasa `HallBuilder` z `Screening(...)`, statyczne wejście `ScheduleBuilder.Day(date)`. Przepisz planera.
+**Zmiany:**
+
+1. Zamień `Hall(name)` na `Hall(string name, Action<HallBuilder> content)`: metoda tworzy `HallBuilder`, synchronicznie wywołuje lambdę i od razu dodaje gotową salę - pole "bieżąca sala" znika.
+2. Dodaj zagnieżdżoną klasę `HallBuilder` z metodą `Screening(title, hour, minute)`; jej konstruktor jest `internal`.
+3. Konstruktor `ScheduleBuilder` zmień na prywatny; wejściem jest statyczna metoda `ScheduleBuilder.Day(date)`.
+4. Przepisz planera na zagnieżdżone lambdy (sale warunkowe dostają lambdę z blokiem `if`).
+
+**Przed:**
+
+```csharp
+public ScheduleBuilder Hall(string name)
+{
+    RequireNotBuilt();
+    if (_halls.ContainsKey(name))
+    {
+        throw new InvalidOperationException("duplicate hall: " + name);
+    }
+    _current = [];
+    _halls.Add(name, _current);
+    return this;
+}
+```
+
 **Po:**
 
 ```csharp
@@ -687,7 +1094,20 @@ return _title + " " + _format
 
 ### Krok 1: Extract Interface
 
-**W IDE:** Refactor This (⌃T) > Extract Interface na `Ticket` - `IPricedTicket` z `Price()` i `Description()`. `TicketAssembler.Assemble` zwraca interfejs.
+**Zmiany:**
+
+1. Utwórz nowy plik `IPricedTicket.cs` i wydziel z `Ticket` interfejs `IPricedTicket` z metodami `Money Price()` i `string Description()` (wyodrębnienie interfejsu). `Ticket` implementuje interfejs, flagi na razie zostają.
+2. Zmień typ zwracany `TicketAssembler.Assemble` z `Ticket` na `IPricedTicket`.
+
+**Przed:**
+
+```csharp
+public Ticket Assemble(TicketOrder order)
+{
+    return new Ticket(order);
+}
+```
+
 **Po:**
 
 ```csharp
@@ -703,7 +1123,28 @@ public IPricedTicket Assemble(TicketOrder order)
 
 ### Krok 2: pierwszy dodatek jako dekorator
 
-**W IDE:** rekord `Insurance(IPricedTicket Inner) : IPricedTicket` dodający 4.00 i " +ubezpieczenie". Usuń flagę z `Ticket` (Safe Delete ⌘⌦), w assemblerze owiń, gdy `order.Insurance`.
+**Zmiany:**
+
+1. Utwórz nowy plik `Insurance.cs`: `sealed record Insurance(IPricedTicket Inner) : IPricedTicket`; `Price()` zwraca `Inner.Price().Plus(Money.Of("4.00"))`, a `Description()` dokleja `" +ubezpieczenie"` do `Inner.Description()`.
+2. Usuń z `Ticket` pole `_insurance`, jego przypisanie w konstruktorze i obie gałęzie `if (_insurance)` / człon opisu.
+3. W `TicketAssembler.Assemble` owiń rdzeń dekoratorem, gdy `order.Insurance`.
+
+**Przed:**
+
+```csharp
+private readonly bool _insurance;
+...
+if (_insurance)
+{
+    price = price.Plus(Money.Of("4.00"));
+}
+...
+return _title + " " + _format
+    + (_vip ? " +VIP" : "")
+    + (_glasses ? " +okulary 3D" : "")
+    + (_insurance ? " +ubezpieczenie" : "");
+```
+
 **Po:**
 
 ```csharp
@@ -720,13 +1161,48 @@ if (order.Insurance)
 
 ### Krok 3: pozostałe dodatki, czysty rdzeń
 
-**W IDE:** `VipSeat` i `Glasses3D` jako dekoratory, rdzeń jako rekord `Ticket(Title, Format, Base)`. Decyzja "czy okulary potrzebne" (3D i brak własnych) zostaje w assemblerze.
+**Zmiany:**
+
+1. Utwórz nowe pliki `VipSeat.cs` i `Glasses3D.cs`: dekoratory na wzór `Insurance` - VIP dodaje 10.00 i `" +VIP"`, okulary 3.00 i `" +okulary 3D"`.
+2. Rdzeń zamień na `sealed record Ticket(string Title, string Format, Money Base) : IPricedTicket`: `Price()` zwraca `Base`, `Description()` to `Title + " " + Format`. Flagi `_vip` i `_glasses` znikają.
+3. W `TicketAssembler.Assemble` złóż łańcuch w kolejności: rdzeń, VIP, okulary, ubezpieczenie. Decyzja "czy okulary potrzebne" (`order.Format == "3D" && !order.OwnGlasses`) zostaje w assemblerze.
+
+**Przed:**
+
+```csharp
+public sealed class Ticket : IPricedTicket
+{
+    private readonly string _title;
+    private readonly string _format;
+    private readonly Money _base;
+    private readonly bool _vip;
+    private readonly bool _glasses;
+    ...
+    public string Description()
+    {
+        return _title + " " + _format
+            + (_vip ? " +VIP" : "")
+            + (_glasses ? " +okulary 3D" : "");
+    }
+}
+```
+
 **Po:**
 
 ```csharp
-if (order.Vip) { ticket = new VipSeat(ticket); }
-if (order.Format == "3D" && !order.OwnGlasses) { ticket = new Glasses3D(ticket); }
-if (order.Insurance) { ticket = new Insurance(ticket); }
+IPricedTicket ticket = new Ticket(order.Title, order.Format, order.Base);
+if (order.Vip)
+{
+    ticket = new VipSeat(ticket);
+}
+if (order.Format == "3D" && !order.OwnGlasses)
+{
+    ticket = new Glasses3D(ticket);
+}
+if (order.Insurance)
+{
+    ticket = new Insurance(ticket);
+}
 ```
 
 **Uruchom:** test zielony; `S07SolutionTest` dokumentuje granice przezroczystości.
@@ -792,7 +1268,29 @@ public void Cancel()
 
 ### Krok 1: obiekt stanu zamiast pola status
 
-**W IDE:** utwórz prywatny interfejs zagnieżdżony `IReservationState` z właściwością `Status` i stany jako prywatne klasy z instancjami `static readonly` (`NewState.Instance`, `PaidState.Instance`, `ClosedState.Used/Expired/Cancelled`). Pole `_status` zastąp polem `_state`; warunki porównują `_state.Status`. Efekty i zmianę stanu wyciągnij do `Charge()`, `MoveTo(...)`, `Record(...)` (⌥⌘M).
+**Zmiany:**
+
+1. Wewnątrz `Reservation` utwórz prywatny interfejs zagnieżdżony `IReservationState` z właściwością `Status` oraz stany jako prywatne klasy `sealed` z instancjami `static readonly`: `NewState.Instance`, `PaidState.Instance` i jedna klasa `ClosedState(Status)` z instancjami `Used`, `Expired`, `Cancelled`.
+2. Pole `private Status _status` zastąp polem `private IReservationState _state = NewState.Instance`; warunki w metodach porównują teraz `_state.Status`, a właściwość `Status` zwraca `_state.Status`.
+3. Wydziel prywatne metody pomocnicze (wyodrębnienie metody): `Charge()` (obciążenie bramki), `MoveTo(next)` (przypisanie `_state`) i `Record(effect)` (dopisanie efektu); metody publiczne wołają je zamiast przypisań.
+
+**Przed:**
+
+```csharp
+private Status _status = Status.New;
+...
+public void Pay()
+{
+    if (_status != Status.New)
+    {
+        throw new InvalidOperationException("cannot pay in " + _status);
+    }
+    _payments.Charge(_id);
+    _status = Status.Paid;
+    _effects.Add("charged");
+}
+```
+
 **Po:**
 
 ```csharp
@@ -809,7 +1307,27 @@ Record("charged");
 
 ### Krok 2: Pay i Use do stanów
 
-**W IDE:** w interfejsie stanu dodaj domyślne implementacje `void Pay(Reservation reservation) => throw Invalid("pay");` (i `Use`) oraz prywatną metodę interfejsu `Invalid(action)`. W `NewState` zaimplementuj `Pay`, w `PaidState` - `Use`, przenosząc ciała gałęzi. Kontekst deleguje: `_state.Pay(this)`.
+**Zmiany:**
+
+1. W interfejsie stanu dodaj metody z domyślnymi implementacjami: `void Pay(Reservation reservation) => throw Invalid("pay");` i analogicznie `Use`, oraz prywatną metodę interfejsu `Invalid(action)` budującą `InvalidOperationException("cannot " + action + " in " + Status)`.
+2. W `NewState` zaimplementuj `Pay` (ciało gałęzi: `reservation.Charge()`, `reservation.MoveTo(PaidState.Instance)`, `reservation.Record("charged")`), a w `PaidState` - `Use` (przejście do `ClosedState.Used` i efekt "gate opened").
+3. W kontekście metody `Pay` i `Use` zamień na delegacje `_state.Pay(this)` i `_state.Use(this)`; ich warunki znikają.
+
+**Przed:**
+
+```csharp
+public void Pay()
+{
+    if (_state.Status != Status.New)
+    {
+        throw new InvalidOperationException("cannot pay in " + _state.Status);
+    }
+    Charge();
+    MoveTo(PaidState.Instance);
+    Record("charged");
+}
+```
+
 **Po:**
 
 ```csharp
@@ -827,7 +1345,35 @@ public void Pay(Reservation reservation)
 
 ### Krok 3: Expire i Cancel do stanów
 
-**W IDE:** ten sam ruch dla `Expire` i `Cancel`. Warunek `if/else if` w `Cancel` rozkłada się na dwa stany: New (zwolnienie miejsc) i Paid (zwrot i zwolnienie).
+**Zmiany:**
+
+1. Powtórz ruch z kroku 2 dla `Expire` i `Cancel`: dodaj w interfejsie domyślne implementacje rzucające `Invalid("expire")` i `Invalid("cancel")`.
+2. Warunek `if/else if` z `Cancel` rozłóż na dwa stany: `NewState.Cancel` (zwolnienie miejsc) i `PaidState.Cancel` (zwrot i zwolnienie miejsc). `Expire` trafia do `NewState`.
+3. W kontekście `Expire` i `Cancel` zamień na delegacje `_state.Expire(this)` i `_state.Cancel(this)`.
+
+**Przed:**
+
+```csharp
+public void Cancel()
+{
+    if (_state.Status == Status.New)
+    {
+        MoveTo(ClosedState.Cancelled);
+        Record("seats released");
+    }
+    else if (_state.Status == Status.Paid)
+    {
+        MoveTo(ClosedState.Cancelled);
+        Record("refund");
+        Record("seats released");
+    }
+    else
+    {
+        throw new InvalidOperationException("cannot cancel in " + _state.Status);
+    }
+}
+```
+
 **Po:**
 
 ```csharp
@@ -887,7 +1433,21 @@ Test używa fake'ów zapisujących do wspólnego logu i sprawdza kolejność ora
 
 ### Krok 1: zdarzenie i Extract Method
 
-**W IDE:** utwórz rekord `ReservationPaid`. Zaznacz trzy powiadomienia, ⌥⌘M `NotifyPaid(paidEvent)`.
+**Zmiany:**
+
+1. Utwórz nowy plik `ReservationPaid.cs`: rekord zdarzenia z danymi `ReservationId`, `Email`, `Phone`, `Amount`.
+2. Wydziel trzy powiadomienia z `Confirm` do prywatnej metody `NotifyPaid(ReservationPaid paidEvent)` (wyodrębnienie metody); `Confirm` tworzy zdarzenie i przekazuje je dalej.
+
+**Przed:**
+
+```csharp
+_paid.Add(payment.ReservationId);
+_mailer.Send(payment.Email,
+    "Potwierdzenie platnosci " + payment.ReservationId + ": " + payment.Amount);
+_sms.Send(payment.Phone, "Oplacono " + payment.ReservationId);
+_loyalty.AddPoints(payment.Email, (int)payment.Amount.Amount / 10);
+```
+
 **Po:**
 
 ```csharp
@@ -902,7 +1462,25 @@ NotifyPaid(new ReservationPaid(
 
 ### Krok 2: odbiorcy jako obserwatorzy
 
-**W IDE:** interfejs `IPaymentListener.OnPaid(paidEvent)` i trzy rekordy: `MailConfirmation`, `SmsConfirmation`, `LoyaltyPoints` (każdy z ciałem jednej linii z `NotifyPaid`). Serwis tworzy listę (wyrażenie kolekcji) w konstruktorze w starej kolejności; `NotifyPaid` to pętla **bez** `try/catch`.
+**Zmiany:**
+
+1. Utwórz nowy plik `IPaymentListener.cs`: interfejs z metodą `OnPaid(ReservationPaid paidEvent)`.
+2. Utwórz trzy rekordy-obserwatorów: `MailConfirmation(IMailer)`, `SmsConfirmation(ISmsGateway)`, `LoyaltyPoints(ILoyaltyProgram)` - każdy przejmuje jedną linię z `NotifyPaid`.
+3. W serwisie zamień trzy pola portów na `IReadOnlyList<IPaymentListener> _listeners`; konstruktor (ta sama sygnatura) buduje listę wyrażeniem kolekcji w starej kolejności: mail, SMS, punkty.
+4. `NotifyPaid` zamień na pętlę po `_listeners` - celowo **bez** `try/catch` (fail-fast jak w Start).
+
+**Przed:**
+
+```csharp
+private void NotifyPaid(ReservationPaid paidEvent)
+{
+    _mailer.Send(paidEvent.Email,
+        "Potwierdzenie platnosci " + paidEvent.ReservationId + ": " + paidEvent.Amount);
+    _sms.Send(paidEvent.Phone, "Oplacono " + paidEvent.ReservationId);
+    _loyalty.AddPoints(paidEvent.Email, (int)paidEvent.Amount.Amount / 10);
+}
+```
+
 **Po:**
 
 ```csharp
@@ -918,7 +1496,25 @@ foreach (var listener in _listeners)
 
 ### Krok 3: Subscribe i korzeń kompozycji
 
-**W IDE:** `Subscribe(listener)` zwracające `ISubscription` (idempotentne `Dispose()`), pole `ImmutableList<Registration>` rejestracji. Konstruktor serwisu staje się bezargumentowy, a subskrypcje przenosimy do istniejącego `PaymentServices.Standard(...)`.
+**Zmiany:**
+
+1. Utwórz nowy plik `ISubscription.cs`: interfejs `ISubscription : IDisposable`.
+2. W serwisie dodaj metodę `Subscribe(IPaymentListener listener)` zwracającą `ISubscription` oraz pole `ImmutableList<Registration> _listeners` aktualizowane przez `ImmutableInterlocked.Update`. `Registration` to prywatna klasa (celowo nie rekord), a prywatna klasa `Unsubscribe` ma idempotentne `Dispose()` (`Interlocked.CompareExchange`).
+3. Usuń konstruktor z portami - serwis ma teraz konstruktor bezargumentowy. `Confirm` iteruje po migawce `_listeners` i woła `registration.Listener.OnPaid(paidEvent)`.
+4. Subskrypcje trzech odbiorców przenieś do istniejącego korzenia kompozycji `PaymentServices.Standard(...)`.
+
+**Przed:**
+
+```csharp
+public PaymentService(IMailer mailer, ISmsGateway sms, ILoyaltyProgram loyalty)
+{
+    _listeners =
+    [
+        new MailConfirmation(mailer), new SmsConfirmation(sms), new LoyaltyPoints(loyalty),
+    ];
+}
+```
+
 **Po:**
 
 ```csharp
@@ -976,7 +1572,14 @@ Testy: `S10EquivalenceTest` (niezależne oczekiwania policzone ręcznie, także 
 
 ### Krok 1: Composite i mapper obok starego kodu
 
-**W IDE:** utwórz interfejs `IMenuItem` z rekordami `Product` i `Combo` oraz statyczną klasę `MenuMapper.FromNested(IReadOnlyList<object>)`. `BarMenu` bez zmian. Uruchom test różnicowy - porównuje stary kod z drzewem z mappera.
+**Zmiany:**
+
+1. Utwórz nowe pliki Composite: `IMenuItem.cs` (interfejs z `Name`, `Price`, `Render(depth, text)`), `Product.cs` (`sealed record Product(string Name, Money Price)` - liść) i `Combo.cs` (`sealed record Combo(string Name, IReadOnlyList<IMenuItem> Items)` z kopią listy; `Price` sumuje elementy, `Render` wypisuje węzeł i dzieci).
+2. Utwórz nowy plik `MenuMapper.cs`: statyczna metoda `FromNested(IReadOnlyList<object>)` tłumaczy rekurencyjnie stary format na drzewo i zachowuje komunikaty błędów Start ("combo needs a name", "product needs a price: ...", "unsupported element: ...").
+3. `BarMenu` zostaje bez zmian - obie reprezentacje żyją obok siebie.
+
+**Przed:** brak - nowe pliki `IMenuItem.cs`, `Product.cs`, `Combo.cs`, `MenuMapper.cs` (`BarMenu.cs` bez zmian).
+
 **Po:**
 
 ```csharp
@@ -994,7 +1597,37 @@ items.Add(element switch
 
 ### Krok 2: Price na Composite
 
-**W IDE:** ciało `BarMenu.Price` zastąp `MenuMapper.FromNested(combo).Price`. Usuń nieużywane `RequireName` (Safe Delete ⌘⌦).
+**Zmiany:**
+
+1. Ciało `BarMenu.Price` zastąp jedną linią: `return MenuMapper.FromNested(combo).Price;`.
+2. Usuń nieużywaną już metodę `RequireName` (bezpieczne usunięcie). Stary `Render` zostaje i dalej działa, bo woła nowe `Price`.
+
+**Przed:**
+
+```csharp
+public Money Price(IReadOnlyList<object> combo)
+{
+    RequireName(combo);
+    var total = Money.Zero;
+    foreach (var element in combo.Skip(1))
+    {
+        if (element is string product)
+        {
+            total = total.Plus(ProductPrice(product));
+        }
+        else if (element is IReadOnlyList<object> nested)
+        {
+            total = total.Plus(Price(nested));
+        }
+        else
+        {
+            throw new ArgumentException("unsupported element: " + element);
+        }
+    }
+    return total;
+}
+```
+
 **Po:**
 
 ```csharp
@@ -1010,7 +1643,34 @@ public Money Price(IReadOnlyList<object> combo)
 
 ### Krok 3: Render na Composite
 
-**W IDE:** `Render` deleguje do `Combo.Render(0, text)`; stara rekurencja z `is` do usunięcia (Safe Delete).
+**Zmiany:**
+
+1. W publicznym `Render` zbuduj drzewo mapperem i deleguj: `MenuMapper.FromNested(combo).Render(0, text)`.
+2. Usuń starą prywatną rekurencję `Render(combo, depth, text)` z testami `is` oraz nieużywane już `ProductPrice` i `Indent` (bezpieczne usunięcie).
+
+**Przed:**
+
+```csharp
+private void Render(IReadOnlyList<object> combo, int depth, StringBuilder text)
+{
+    text.Append(Indent(depth)).Append(combo[0])
+        .Append(' ').Append(Price(combo)).Append('\n');
+    foreach (var element in combo.Skip(1))
+    {
+        if (element is string product)
+        {
+            text.Append(Indent(depth + 1)).Append(product, 0, product.IndexOf('='))
+                .Append(' ').Append(ProductPrice(product)).Append('\n');
+        }
+        else if (element is IReadOnlyList<object> nested)
+        {
+            Render(nested, depth + 1, text);
+        }
+        ...
+    }
+}
+```
+
 **Po:**
 
 ```csharp
@@ -1066,7 +1726,30 @@ public virtual void Add(MenuComponent child)
 
 ### Krok 1: Safe Composite - Push Members Down
 
-**W IDE:** Refactor This (⌃T) > Push Members Down na `Add` i `Children` z `MenuComponent` do `Combo`. Rider pokaże konflikty w `ComboCatalog` - zmień typ zmiennych z `MenuComponent` na `Combo` tam, gdzie dodajemy dzieci. `Describe()` staje się `virtual`, a `Combo` nadpisuje go i rozszerza opis o dzieci.
+**Zmiany:**
+
+1. Przenieś `Add` i `Children` z `MenuComponent` w dół do `Combo` (przesunięcie składowych do podklasy): w bazie je usuń, w `Combo` zostają jako zwykłe składowe bez `override`.
+2. Kompilacja wskaże konflikty w `ComboCatalog` - zmień typ zmiennych z `MenuComponent` na `Combo` (tu: `var`) wszędzie tam, gdzie dodajemy dzieci.
+3. `Describe()` w bazie staje się `virtual` i zwraca sam `Name + " " + Price`; `Combo` nadpisuje go i rozszerza opis o dzieci.
+
+**Przed:**
+
+```csharp
+public abstract class MenuComponent
+{
+    ...
+    public virtual void Add(MenuComponent child)
+    {
+        throw new NotSupportedException("cannot add to " + Name);
+    }
+
+    public virtual IReadOnlyList<MenuComponent> Children => [];
+}
+...
+MenuComponent combo = new Combo("Zestaw Rodzinny");
+combo.Add(new Product("Popcorn XL", "24.00"));
+```
+
 **Po:**
 
 ```csharp
@@ -1080,7 +1763,25 @@ combo.Add(new Product("Popcorn XL", "24.00"));
 
 ### Krok 2: niemutowalny Composite w C# - abstrakcyjny rekord
 
-**W IDE:** `abstract record MenuComponent` z konstruktorem `private protected`, rekordy `Product` i `Combo(name, children)` z `Combo.Of(name, params MenuComponent[])`. Katalog zapisany deklaratywnie.
+**Zmiany:**
+
+1. Zamień bazę na `abstract record MenuComponent` z konstruktorem `private protected` i abstrakcyjnymi `Name`, `Price`, `Describe()`.
+2. Zamień `Product` i `Combo` na `sealed record`. `Combo` dostaje dzieci w konstruktorze (`Combo(string name, IEnumerable<MenuComponent> children)`, kopia `ToList().AsReadOnly()`) i statyczne wejście `Combo.Of(string name, params MenuComponent[] children)`; metoda `Add` znika.
+3. Przepisz `ComboCatalog` deklaratywnie - zagnieżdżone wywołania `Combo.Of(...)` zamiast sekwencji `Add`.
+
+**Przed:**
+
+```csharp
+private static MenuComponent Duo()
+{
+    var combo = new Combo("Zestaw Duo");
+    combo.Add(new Product("Popcorn L", "18.00"));
+    combo.Add(new Product("Cola", "9.00"));
+    combo.Add(new Product("Cola", "9.00"));
+    return combo;
+}
+```
+
 **Po:**
 
 ```csharp
@@ -1142,7 +1843,29 @@ Test obejmuje granicę dokładnie 24h, 23h59m, bilet po starcie, listę i pustą
 
 ### Krok 1: Extract Method na wspólnej regule
 
-**W IDE:** w `Refund` zaznacz wyliczenie kwoty, ⌥⌘M `TicketShare(ticket, now)`. W `RefundAll` zastąp ciało pętli wywołaniem `TicketShare`.
+**Zmiany:**
+
+1. W `Refund` wydziel wyliczenie kwoty za bilet do prywatnej statycznej metody `TicketShare(ticket, now)` (wyodrębnienie metody); gałęzie `if/else` zamieniają się we wczesne `return`.
+2. W `RefundAll` zastąp ciało pętli (łącznie z inaczej zapisaną regułą i rzutowaniem na `long`) wywołaniem `total = total.Plus(TicketShare(ticket, now));`.
+
+**Przed:**
+
+```csharp
+public Money RefundAll(IReadOnlyList<TicketData> tickets, DateTime now)
+{
+    var total = Money.Zero;
+    foreach (var ticket in tickets)
+    {
+        if (now < ticket.ShowStart)
+        {
+            var hours = (long)(ticket.ShowStart - now).TotalHours;
+            total = total.Plus(hours >= 24 ? ticket.Price : ticket.Price.Percent(50));
+        }
+    }
+    return total.Minus(Fee).Max(Money.Zero);
+}
+```
+
 **Po:**
 
 ```csharp
@@ -1155,7 +1878,32 @@ total = total.Plus(TicketShare(ticket, now));
 
 ### Krok 2: Composite i jeden kontrakt
 
-**W IDE:** interfejs `IRefundable` z `RefundableAmount(now)`, liść `SingleTicket` (reguła z `TicketShare`), węzeł `TicketGroup` (suma, `TicketGroup.Of(tickets)`). Nowa metoda `Refund(IRefundable, now)`; stare metody jako delegacje z `[Obsolete]`. `CancellationDesk` przechodzi na nowy kontrakt (na razie wciąż wybiera `SingleTicket` albo `TicketGroup`).
+**Zmiany:**
+
+1. Utwórz nowe pliki: `IRefundable.cs` (interfejs z metodą `RefundableAmount(now)`), `SingleTicket.cs` (liść z regułą przeniesioną z `TicketShare`) i `TicketGroup.cs` (węzeł sumujący elementy, ze statycznym `TicketGroup.Of(tickets)`).
+2. W serwisie dodaj nową metodę `Refund(IRefundable refundable, DateTime now)` z potrąceniem `Fee`; `TicketShare` znika.
+3. Stare metody `Refund(TicketData, ...)` i `RefundAll(...)` zostają jako jednolinijkowe delegacje do nowego kontraktu i dostają atrybut `[Obsolete]` z podpowiedzią.
+4. Przeprowadź `CancellationDesk` na nowy kontrakt: na razie wciąż wybiera `SingleTicket` albo `TicketGroup.Of(tickets)` warunkiem po liczbie biletów.
+
+**Przed:**
+
+```csharp
+public Money Refund(TicketData ticket, DateTime now)
+{
+    return TicketShare(ticket, now).Minus(Fee).Max(Money.Zero);
+}
+
+public Money RefundAll(IReadOnlyList<TicketData> tickets, DateTime now)
+{
+    var total = Money.Zero;
+    foreach (var ticket in tickets)
+    {
+        total = total.Plus(TicketShare(ticket, now));
+    }
+    return total.Minus(Fee).Max(Money.Zero);
+}
+```
+
 **Po:**
 
 ```csharp
@@ -1171,7 +1919,26 @@ public Money Refund(IRefundable refundable, DateTime now)
 
 ### Krok 3: usunięcie starych metod
 
-**W IDE:** po migracji klientów Safe Delete (⌘⌦) na `Refund(TicketData, ...)` i `RefundAll`. W `CancellationDesk` usuń `if` - klient zawsze buduje `TicketGroup.Of(tickets)`, także z jednego biletu.
+**Zmiany:**
+
+1. Po migracji klientów usuń z serwisu przestarzałe metody `Refund(TicketData, ...)` i `RefundAll(...)` (bezpieczne usunięcie - nie mają już użyć).
+2. W `CancellationDesk` usuń `if` po liczbie biletów - klient zawsze buduje `TicketGroup.Of(tickets)`, także z jednego biletu.
+
+**Przed:**
+
+```csharp
+[Obsolete("użyj Refund(IRefundable, DateTime) z SingleTicket")]
+public Money Refund(TicketData ticket, DateTime now)
+{
+    return Refund(new SingleTicket(ticket), now);
+}
+...
+IRefundable refundable = tickets.Count == 1
+    ? new SingleTicket(tickets[0])
+    : TicketGroup.Of(tickets);
+return _service.Refund(refundable, now);
+```
+
 **Po:**
 
 ```csharp
@@ -1222,7 +1989,31 @@ return _children.Count == 0 ? 0 : total + 15 * (_children.Count - 1);
 
 ### Krok 1: Extract Superclass
 
-**W IDE:** na `Marathon` Refactor This (⌃T) > Extract Superclass: `CompositeProgramItem`, zaznacz pole `_children`, `Add`, `Children`. Potem `ShortsBlock : CompositeProgramItem` i usuń jego kopie (Pull Members Up już nie trzeba - są w bazie).
+**Zmiany:**
+
+1. Utwórz nowy plik `CompositeProgramItem.cs` i wydziel z `Marathon` nadklasę (wyodrębnienie nadklasy): przenieś do niej pole `_children`, metodę `Add` (z `ArgumentNullException.ThrowIfNull`) i właściwość `Children` (kopia listy); `Minutes` i `Describe()` zostają w bazie jako abstrakcyjne.
+2. `Marathon : CompositeProgramItem` korzysta z `Children` bazy; `Minutes` i `Describe()` dostają `override`.
+3. Zmień `ShortsBlock` na `ShortsBlock : CompositeProgramItem` i usuń jego kopie pola `_children`, `Add` i `Children` - są już w bazie.
+
+**Przed:**
+
+```csharp
+public sealed class Marathon : IProgramItem
+{
+    private readonly string _name;
+    private readonly List<IProgramItem> _children = [];
+    ...
+    public void Add(IProgramItem child)
+    {
+        ArgumentNullException.ThrowIfNull(child);
+        _children.Add(child);
+    }
+
+    public IReadOnlyList<IProgramItem> Children => _children.ToList().AsReadOnly();
+    ...
+}
+```
+
 **Po:**
 
 ```csharp
@@ -1238,7 +2029,36 @@ public abstract class CompositeProgramItem : IProgramItem
 
 ### Krok 2: Pull Up sumy i opisu
 
-**W IDE:** Pull Members Up dla `ChildrenMinutes()` (`protected`, niewirtualna) i `Describe()` jako szablon z hookiem `protected abstract string Label()`. Nazwa kontenera trafia do konstruktora bazy. Podklasy zostają z regułą czasu i etykietą.
+**Zmiany:**
+
+1. Podciągnij sumowanie czasu dzieci do bazy (przeniesienie metody do nadklasy) jako `protected int ChildrenMinutes()` - metoda niewirtualna, podklasy jej nie nadpisują.
+2. `Describe()` w bazie zamień na niewirtualny szablon `Label() + " " + _name + " (" + Minutes + " min) [...]"` z hookiem `protected abstract string Label()`; podklasy zwracają w nim "Maraton" i "Blok".
+3. Nazwę kontenera przenieś do konstruktora bazy (`protected CompositeProgramItem(string name)`). W podklasach zostają tylko reguła czasu (`Minutes`) i etykieta (`Label()`).
+
+**Przed:**
+
+```csharp
+public override int Minutes
+{
+    get
+    {
+        var children = Children;
+        var total = 0;
+        foreach (var child in children)
+        {
+            total += child.Minutes;
+        }
+        return children.Count == 0 ? 0 : total + 15 * (children.Count - 1);
+    }
+}
+
+public override string Describe()
+{
+    return "Maraton " + _name + " (" + Minutes + " min) "
+        + "[" + string.Join(", ", Children.Select(child => child.Describe())) + "]";
+}
+```
+
 **Po:**
 
 ```csharp
@@ -1296,7 +2116,41 @@ var request = "<charge ref='" + reservationId + "' amount='" + grosze + "'/>";
 
 ### Krok 1: Extract Method z jednolitą sygnaturą
 
-**W IDE:** każdą gałąź ⌥⌘M: `PayWithXml(reservationId, amount)` i `PayWithRest(reservationId, amount)`, obie zwracają `PaymentResult`.
+**Zmiany:**
+
+1. Wydziel ciało gałęzi XML do prywatnej metody `PayWithXml(reservationId, amount)` (wyodrębnienie metody); budowę żądania można przy tym złożyć w jedno wywołanie `_xml.Submit(...)`.
+2. Wydziel ciało gałęzi REST do `PayWithRest(reservationId, amount)`.
+3. Obie metody mają identyczną sygnaturę i zwracają `PaymentResult`; pomocnicze `Attribute` zostaje na razie w serwisie.
+
+**Przed:**
+
+```csharp
+if (provider == "XML")
+{
+    var grosze = decimal.ToInt64(amount.Amount * 100);
+    var request = "<charge ref='" + reservationId + "' amount='" + grosze + "'/>";
+    var response = _xml.Submit(request);
+    if (response.Contains("status='OK'", StringComparison.Ordinal))
+    {
+        return PaymentResult.Accepted(Attribute(response, "id"));
+    }
+    return PaymentResult.Declined(Attribute(response, "code"));
+}
+else if (provider == "REST")
+{
+    try
+    {
+        return PaymentResult.Accepted(
+            _rest.Charge(new RestPayClient.ChargeRequest(amount.Amount, "PLN", reservationId))
+                .TransactionId);
+    }
+    catch (RestPayClient.RestPayException exception)
+    {
+        return PaymentResult.Declined(exception.Code);
+    }
+}
+```
+
 **Po:**
 
 ```csharp
@@ -1316,7 +2170,27 @@ else if (provider == "REST")
 
 ### Krok 2: interfejs i dwa adaptery
 
-**W IDE:** interfejs `IPaymentGateway.Pay(reservationId, amount)`. Move (F6) `PayWithXml` do `XmlPayAdapter` i `PayWithRest` do `RestPayAdapter` (razem z pomocniczym `Attribute`). Konstruktor serwisu bez zmian - tworzy adaptery.
+**Zmiany:**
+
+1. Utwórz nowy plik `IPaymentGateway.cs`: interfejs z metodą `PaymentResult Pay(string reservationId, Money amount)`.
+2. Przenieś `PayWithXml` do nowej klasy `XmlPayAdapter : IPaymentGateway` (razem z pomocniczym `Attribute`), a `PayWithRest` do `RestPayAdapter : IPaymentGateway` (przeniesienie metody); każdy adapter dostaje swoją bramkę w konstruktorze.
+3. W serwisie zamień typy pól na `IPaymentGateway`; konstruktor bez zmiany sygnatury tworzy adaptery, a gałęzie `if` wołają `_xml.Pay(...)` i `_rest.Pay(...)`.
+
+**Przed:**
+
+```csharp
+private PaymentResult PayWithXml(string reservationId, Money amount)
+{
+    var grosze = decimal.ToInt64(amount.Amount * 100);
+    var response = _xml.Submit("<charge ref='" + reservationId + "' amount='" + grosze + "'/>");
+    if (response.Contains("status='OK'", StringComparison.Ordinal))
+    {
+        return PaymentResult.Accepted(Attribute(response, "id"));
+    }
+    return PaymentResult.Declined(Attribute(response, "code"));
+}
+```
+
 **Po:**
 
 ```csharp
@@ -1333,7 +2207,35 @@ public CheckoutService(XmlPayGateway xml, RestPayClient rest)
 
 ### Krok 3: serwis zależy tylko od interfejsu
 
-**W IDE:** nowy konstruktor `CheckoutService(IReadOnlyDictionary<string, IPaymentGateway> gateways)` (kopia do nowego `Dictionary`); stary konstruktor deleguje do niego (`: this(...)`) ze standardowym zestawem adapterów. `if` zastąp wyszukaniem w słowniku; nieznany dostawca - ten sam wyjątek.
+**Zmiany:**
+
+1. Dodaj konstruktor `CheckoutService(IReadOnlyDictionary<string, IPaymentGateway> gateways)`, który robi kopię do nowego `Dictionary`; dwa pola adapterów zastąp jednym polem słownika.
+2. Stary konstruktor `CheckoutService(XmlPayGateway, RestPayClient)` zamień na delegację `: this(...)` ze standardowym zestawem adapterów pod kluczami "XML" i "REST".
+3. W `Pay` zastąp `if/else if` wyszukaniem w słowniku (`TryGetValue`); nieznany dostawca rzuca ten sam `ArgumentException` co wcześniej.
+
+**Przed:**
+
+```csharp
+public CheckoutService(XmlPayGateway xml, RestPayClient rest)
+{
+    _xml = new XmlPayAdapter(xml);
+    _rest = new RestPayAdapter(rest);
+}
+
+public PaymentResult Pay(string provider, string reservationId, Money amount)
+{
+    if (provider == "XML")
+    {
+        return _xml.Pay(reservationId, amount);
+    }
+    else if (provider == "REST")
+    {
+        return _rest.Pay(reservationId, amount);
+    }
+    throw new ArgumentException("unknown provider: " + provider);
+}
+```
+
 **Po:**
 
 ```csharp
@@ -1400,7 +2302,35 @@ Test to sesja poleceń: sprzedaż, zwrot, raport oraz błędne polecenia, które
 
 ### Krok 1: Extract Method dla gałęzi
 
-**W IDE:** ciało każdej gałęzi ⌥⌘M: `Sell(args)`, `Refund(args)`, `Report(args)` - ta sama sygnatura, także gdy `args` nie jest używane.
+**Zmiany:**
+
+1. Wydziel ciało każdej gałęzi do prywatnej metody (wyodrębnienie metody): `Sell(args)`, `Refund(args)`, `Report(args)`.
+2. Ujednolić sygnatury: wszystkie trzy przyjmują `string args` i zwracają `string`, także `Report`, które z `args` nie korzysta.
+
+**Przed:**
+
+```csharp
+if (command == "SELL")
+{
+    var sell = args.Split(' ', 2);
+    if (sell.Length < 2 || !Regex.IsMatch(sell[0], "^[0-9]+$"))
+    {
+        return "Blad: SELL <liczba> <tytul>";
+    }
+    var quantity = int.Parse(sell[0], CultureInfo.InvariantCulture);
+    ...
+    return "Sprzedano " + quantity + " x " + sell[1] + " = " + total;
+}
+else if (command == "REFUND")
+{
+    ...
+}
+else if (command == "REPORT")
+{
+    return "Kasa: " + _cash + ", biletow: " + _tickets;
+}
+```
+
 **Po:**
 
 ```csharp
@@ -1416,7 +2346,33 @@ if (command == "SELL")
 
 ### Krok 2: komendy jako obiekty, stan w Till
 
-**W IDE:** Extract Class `Till` (pola `_cash`, `_tickets` i cennik). Interfejs `IConsoleCommand.Execute(args, till)`, klasy `SellCommand`, `RefundCommand`, `ReportCommand` z ciałami metod. Dyspozytor `if` jeszcze zostaje.
+**Zmiany:**
+
+1. Utwórz nowy plik `Till.cs` i przenieś do niego stan konsoli (wyodrębnienie klasy): pola `_cash` i `_tickets` jako właściwości `Cash` i `Tickets` (`internal`, prywatny setter), cennik `Prices` oraz metody `PriceOf(title)`, `Sold(quantity, total)`, `Refunded(price)`.
+2. Utwórz nowy plik `IConsoleCommand.cs`: interfejs z metodą `string Execute(string args, Till till)`.
+3. Przenieś ciała metod `Sell`, `Refund`, `Report` do nowych klas `SellCommand`, `RefundCommand`, `ReportCommand` implementujących interfejs; mutacje stanu idą przez metody `Till`.
+4. W konsoli zostają pole `_till`, trzy pola komend i dyspozytor `if` - zmieniamy jedną rzecz naraz.
+
+**Przed:**
+
+```csharp
+private Money _cash = Money.Zero;
+private int _tickets;
+...
+if (command == "SELL")
+{
+    return Sell(args);
+}
+else if (command == "REFUND")
+{
+    return Refund(args);
+}
+else if (command == "REPORT")
+{
+    return Report(args);
+}
+```
+
 **Po:**
 
 ```csharp
@@ -1432,7 +2388,29 @@ if (command == "SELL")
 
 ### Krok 3: rejestr zamiast warunku
 
-**W IDE:** `IReadOnlyDictionary<string, IConsoleCommand>` w konstruktorze (domyślnym, delegującym przez `: this(...)`, i wstrzykiwanym), `Handle` wyszukuje komendę po znormalizowanym kluczu.
+**Zmiany:**
+
+1. Zamień trzy pola komend na pole `IReadOnlyDictionary<string, IConsoleCommand> _commands`.
+2. Dodaj konstruktor wstrzykiwany `CashierConsole(IReadOnlyDictionary<string, IConsoleCommand> commands)` (kopia do nowego `Dictionary`); konstruktor bezargumentowy deleguje do niego przez `: this(...)` ze słownikiem "SELL"/"REFUND"/"REPORT".
+3. W `Handle` zastąp łańcuch `if` wyszukaniem komendy po znormalizowanym kluczu (`parts[0].ToUpperInvariant()`, `TryGetValue`); brak klucza zwraca ten sam komunikat "Nieznana komenda".
+
+**Przed:**
+
+```csharp
+private readonly IConsoleCommand _sell = new SellCommand();
+private readonly IConsoleCommand _refund = new RefundCommand();
+private readonly IConsoleCommand _report = new ReportCommand();
+...
+if (command == "SELL")
+{
+    return _sell.Execute(args, _till);
+}
+else if (command == "REFUND")
+{
+    return _refund.Execute(args, _till);
+}
+```
+
 **Po:**
 
 ```csharp
@@ -1482,7 +2460,31 @@ Jak dodalibyście `UNDO` dla ostatniej sprzedaży? Czego wymaga to od komend?
 
 ### Krok 1: Extract Method na różnicach
 
-**W IDE:** w obu klasach ⌥⌘M dla nagłówka, wiersza i stopki: `Header()`, `Row(Sale)`, `Footer(int tickets, Money total)`. Przepisz `Render` HTML na ten sam kształt co CSV (nazwy zmiennych, sortowanie).
+**Zmiany:**
+
+1. W obu klasach wydziel różniące się fragmenty do prywatnych statycznych metod o tych samych nazwach i sygnaturach (wyodrębnienie metody): `Header()`, `Row(Sale sale)`, `Footer(int tickets, Money total)`.
+2. Przepisz `Render` raportu HTML na dokładnie ten sam kształt co w CSV: te same nazwy zmiennych (`sorted`, `text`, `tickets`, `total`), sortowanie `OrderBy(...).ToList()` i ta sama pętla.
+3. Sprawdź, że `Render` obu klas jest identyczny znak w znak.
+
+**Przed:**
+
+```csharp
+var html = new StringBuilder();
+html.Append("<table>\n<tr><th>Godzina</th><th>Film</th><th>Bilety</th><th>Kwota</th></tr>\n");
+var sum = Money.Zero;
+var count = 0;
+foreach (var sale in sales.OrderBy(sale => sale.Time))
+{
+    var title = sale.Title.Replace("&", "&amp;").Replace("<", "&lt;");
+    html.Append("<tr><td>").Append(sale.Time.ToString("HH:mm", CultureInfo.InvariantCulture))
+        .Append("</td><td>").Append(title)
+        .Append("</td><td>").Append(sale.Tickets).Append("</td><td>").Append(sale.Amount)
+        .Append("</td></tr>\n");
+    sum = sum.Plus(sale.Amount);
+    count += sale.Tickets;
+}
+```
+
 **Po:**
 
 ```csharp
@@ -1501,7 +2503,37 @@ return text.Append(Footer(tickets, total)).ToString();
 
 ### Krok 2: Extract Superclass + Pull Up Render
 
-**W IDE:** Refactor This (⌃T) > Extract Superclass `SalesReport` z CSV, zaznacz `Render` i trzy metody jako abstrakcyjne (`protected abstract`). W HTML `: SalesReport`, usuń kopię `Render`, a `Header/Row/Footer` oznacz `protected override`. `Render` zostaw bez `virtual`.
+**Zmiany:**
+
+1. Utwórz nowy plik `SalesReport.cs` i wydziel z raportu CSV nadklasę `abstract class SalesReport` (wyodrębnienie nadklasy): przenieś do niej `Render`, a `Header`, `Row`, `Footer` zadeklaruj jako `protected abstract`.
+2. W `CsvSalesReport : SalesReport` i `HtmlSalesReport : SalesReport` usuń kopie `Render`, a `Header/Row/Footer` zamień z prywatnych statycznych na `protected override`.
+3. `Render` w bazie zostaw bez `virtual` - podklasy nie mogą go nadpisać (odpowiednik `final` z Javy).
+
+**Przed:**
+
+```csharp
+public sealed class HtmlSalesReport
+{
+    public string Render(IReadOnlyList<Sale> sales)
+    {
+        var sorted = sales.OrderBy(sale => sale.Time).ToList();
+        var text = new StringBuilder(Header());
+        var tickets = 0;
+        var total = Money.Zero;
+        foreach (var sale in sorted)
+        {
+            text.Append(Row(sale));
+            tickets += sale.Tickets;
+            total = total.Plus(sale.Amount);
+        }
+        return text.Append(Footer(tickets, total)).ToString();
+    }
+
+    private static string Header() { ... }
+    ...
+}
+```
+
 **Po:**
 
 ```csharp
@@ -1555,7 +2587,22 @@ var price = new PriceList().BasePrice(format);
 
 ### Krok 1: klasyczny Singleton
 
-**W IDE:** prywatny konstruktor, `private static readonly PriceList Instance = new();`, `GetInstance()`. Licznik z pomiaru usuń. Klient woła `PriceList.GetInstance()`.
+**Zmiany:**
+
+1. W `PriceList` zmień konstruktor na prywatny i dodaj pole `private static readonly PriceList Instance = new();` oraz metodę `public static PriceList GetInstance()`, która je zwraca.
+2. Usuń licznik z pomiaru: pole `_created`, `Interlocked.Increment` w konstruktorze i metodę `Created()`.
+3. W `TicketDesk.Quote` zamień `new PriceList()` na `PriceList.GetInstance()`.
+
+**Przed:**
+
+```csharp
+public Money Quote(string format, bool online)
+{
+    var price = new PriceList().BasePrice(format);
+    return online ? price.Plus(Money.Of("2.00")) : price;
+}
+```
+
 **Po:**
 
 ```csharp
@@ -1568,7 +2615,34 @@ var price = PriceList.GetInstance().BasePrice(format);
 
 ### Krok 2: Singleton jako statyczna właściwość tylko do odczytu
 
-**W IDE:** zamień pole i `GetInstance()` na `public static PriceList Instance { get; } = new();`, słownik cen zbuduj raz i zamroź (`ToFrozenDictionary()`).
+**Zmiany:**
+
+1. W `PriceList` usuń pole `Instance` i metodę `GetInstance()`; w ich miejsce dodaj statyczną właściwość `public static PriceList Instance { get; } = new();`.
+2. Słownik cen zbuduj w konstruktorze do lokalnego `Dictionary` i zamroź raz: pole zmienia typ na `FrozenDictionary<string, Money>`, przypisanie przez `parsed.ToFrozenDictionary()` (dojdzie `using System.Collections.Frozen;`).
+3. W `TicketDesk.Quote` zamień `PriceList.GetInstance()` na `PriceList.Instance`.
+
+**Przed:**
+
+```csharp
+private static readonly PriceList Instance = new();
+
+private readonly Dictionary<string, Money> _prices = [];
+
+private PriceList()
+{
+    foreach (var entry in Tariff.Split(';'))
+    {
+        var pair = entry.Split('=');
+        _prices[pair[0]] = Money.Of(pair[1]);
+    }
+}
+
+public static PriceList GetInstance()
+{
+    return Instance;
+}
+```
+
 **Po:**
 
 ```csharp
@@ -1581,7 +2655,25 @@ var price = PriceList.Instance.BasePrice(format);
 
 ### Krok 3: wstrzyknięcie zamiast globalnego dostępu
 
-**W IDE:** Refactor This (⌃T) > Extract Interface `ITariff` z `PriceList`; `TicketDesk(ITariff)` plus konstruktor bezargumentowy `: this(PriceList.Instance)`.
+**Zmiany:**
+
+1. Utwórz nowy plik `ITariff.cs`: interfejs z metodą `Money BasePrice(string format)` (wyodrębnienie interfejsu z `PriceList`); `PriceList` deklaruje `: ITariff`.
+2. W `TicketDesk` dodaj pole `ITariff _tariff` i konstruktor `TicketDesk(ITariff tariff)` ze strażnikiem `ArgumentNullException.ThrowIfNull`; `Quote` woła `_tariff.BasePrice(format)`.
+3. Dodaj konstruktor bezargumentowy delegujący `: this(PriceList.Instance)` - dotychczasowi klienci działają bez zmian.
+
+**Przed:**
+
+```csharp
+public sealed class TicketDesk
+{
+    public Money Quote(string format, bool online)
+    {
+        var price = PriceList.Instance.BasePrice(format);
+        return online ? price.Plus(Money.Of("2.00")) : price;
+    }
+}
+```
+
 **Po:**
 
 ```csharp
@@ -1640,7 +2732,25 @@ Test sprawdza treść, kolejność i separator, w tym duplikaty miejsc zgłaszan
 
 ### Krok 1: lista zamiast sklejania
 
-**W IDE:** metody pomocnicze zwracają `IReadOnlyList<string>` bez separatora, `Validate` robi `AddRange` i `string.Join("; ", ...)`.
+**Zmiany:**
+
+1. Zmień typ zwracany `CheckEmail` i `CheckSeats` na `IReadOnlyList<string>`: fragmenty bez separatora, puste przypadki zwracają `[]`, a `CheckSeats` zbiera wyniki do lokalnej `List<string>`.
+2. W `Validate` zamień `string warnings` na `List<string>`, a sklejanie `+=` na `AddRange(...)`; warunek czasu seansu dopisuje przez `warnings.Add(...)` (już bez `"; "`).
+3. Wynik złóż raz, na końcu: `warnings.Count == 0 ? "OK" : string.Join("; ", warnings)`.
+
+**Przed:**
+
+```csharp
+var warnings = "";
+warnings += CheckEmail(draft.Email);
+warnings += CheckSeats(draft.Seats);
+if (draft.Now >= draft.ShowStart)
+{
+    warnings += "seans juz sie rozpoczal; ";
+}
+return warnings.Length == 0 ? "OK" : warnings[..^2];
+```
+
 **Po:**
 
 ```csharp
@@ -1654,7 +2764,24 @@ warnings.AddRange(CheckSeats(draft.Seats));
 
 ### Krok 2: Collecting Parameter
 
-**W IDE:** Change Signature (⌘F6) - dodaj parametr `List<string> warnings`, zmień zwracany typ na `void`, zamień `return [x]` na `warnings.Add(x)`. Warunek czasu seansu wyciągnij do `CheckShowTime(draft, warnings)` (⌥⌘M).
+**Zmiany:**
+
+1. Zmień sygnatury metod pomocniczych (zmiana sygnatury): dodaj parametr `List<string> warnings`, typ zwracany na `void`, a każde `return [...]` zamień na `warnings.Add(...)` (w `CheckEmail` drugi warunek jako `else if`, w `CheckSeats` po "brak miejsc" wczesny `return`).
+2. Warunek czasu seansu wydziel do metody `CheckShowTime(draft, warnings)` (wyodrębnienie metody).
+3. W `Validate` zostają: utworzenie listy, trzy wywołania `Check...` i `string.Join` na końcu.
+
+**Przed:**
+
+```csharp
+var warnings = new List<string>();
+warnings.AddRange(CheckEmail(draft.Email));
+warnings.AddRange(CheckSeats(draft.Seats));
+if (draft.Now >= draft.ShowStart)
+{
+    warnings.Add("seans juz sie rozpoczal");
+}
+```
+
 **Po:**
 
 ```csharp
@@ -1669,7 +2796,25 @@ CheckShowTime(draft, warnings);
 
 ### Krok 3: wąski typ parametru
 
-**W IDE:** klasa `Warnings` z `Add` i `Summary()`; zmień typ parametru `List<string>` na `Warnings` w każdej metodzie `Check...` (Change Signature ⌘F6 albo ręcznie - Rider nie ma odpowiednika Type Migration z IntelliJ, ale po zmianie typu w `Validate` kompilator wskaże resztę).
+**Zmiany:**
+
+1. Utwórz nowy plik `Warnings.cs`: klasa z prywatną listą `_items`, metodą `Add(string)` i metodą `Summary()` zwracającą `"OK"` albo `string.Join("; ", _items)`.
+2. W `Validate` zamień `new List<string>()` na `new Warnings()`; kompilator wskaże wszystkie metody `Check...`, w których typ parametru trzeba zmienić z `List<string>` na `Warnings`.
+3. Na końcu `Validate` zwróć `warnings.Summary()` - format wyniku przenosi się do `Warnings`.
+
+**Przed:**
+
+```csharp
+public string Validate(ReservationDraft draft)
+{
+    var warnings = new List<string>();
+    CheckEmail(draft.Email, warnings);
+    CheckSeats(draft.Seats, warnings);
+    CheckShowTime(draft, warnings);
+    return warnings.Count == 0 ? "OK" : string.Join("; ", warnings);
+}
+```
+
 **Po:**
 
 ```csharp
@@ -1734,7 +2879,33 @@ throw new ArgumentException("unknown item: " + item);
 
 ### Krok 1: Accept + pierwszy Visitor
 
-**W IDE:** interfejs `IOrderItemVisitor<out TResult>` z `VisitTicket/VisitSnack/VisitVoucher`, metoda `Accept<TResult>` w `IOrderItem` i rekordach. Operację "linia paragonu" przenieś do `ReceiptLineVisitor`.
+**Zmiany:**
+
+1. Utwórz nowy plik `IOrderItemVisitor.cs`: kowariantny interfejs `IOrderItemVisitor<out TResult>` z metodami `VisitTicket`, `VisitSnack`, `VisitVoucher`.
+2. W `IOrderItem` dodaj metodę `TResult Accept<TResult>(IOrderItemVisitor<TResult> visitor)`; każdy rekord pozycji implementuje ją jednym wywołaniem swojej metody, np. `visitor.VisitTicket(this)`.
+3. Operację "linia paragonu" przenieś z `ReceiptPrinter.Line` do nowej klasy `ReceiptLineVisitor : IOrderItemVisitor<string>` - po jednej gałęzi `is` na metodę `Visit...`. W `Print` zamień `Line(item)` na `item.Accept(_lines)` (pole `_lines`), metodę `Line` usuń. Kwota i VAT zostają na `is`.
+
+**Przed:**
+
+```csharp
+private static string Line(IOrderItem item)
+{
+    if (item is TicketItem ticket)
+    {
+        return "Bilet " + ticket.Title + " " + ticket.Format + " " + ticket.Price;
+    }
+    else if (item is SnackItem snack)
+    {
+        return snack.Name + " " + snack.Price;
+    }
+    else if (item is VoucherItem voucher)
+    {
+        return "Voucher " + voucher.Code + " -" + voucher.Value;
+    }
+    throw new ArgumentException("unknown item: " + item);
+}
+```
+
 **Po:**
 
 ```csharp
@@ -1747,7 +2918,33 @@ text.Append(item.Accept(_lines)).Append('\n');
 
 ### Krok 2: pozostałe operacje jako Visitory
 
-**W IDE:** `AmountVisitor` i `VatVisitor`, usuń łańcuchy `is`.
+**Zmiany:**
+
+1. Tak samo przenieś `Amount` do nowej klasy `AmountVisitor : IOrderItemVisitor<Money>`, a `Vat` (razem z pomocniczym `VatOf`) do `VatVisitor : IOrderItemVisitor<Money>`.
+2. W `ReceiptPrinter` dodaj pola `_amounts` i `_vats`; w pętli `Print` zamień wywołania na `item.Accept(_amounts)` i `item.Accept(_vats)`.
+3. Usuń z `ReceiptPrinter` metody `Amount`, `Vat` i `VatOf` - znikają ostatnie łańcuchy `is`.
+
+**Przed:**
+
+```csharp
+private static Money Amount(IOrderItem item)
+{
+    if (item is TicketItem ticket)
+    {
+        return ticket.Price;
+    }
+    else if (item is SnackItem snack)
+    {
+        return snack.Price;
+    }
+    else if (item is VoucherItem voucher)
+    {
+        return Money.Zero.Minus(voucher.Value);
+    }
+    throw new ArgumentException("unknown item: " + item);
+}
+```
+
 **Po:**
 
 ```csharp
@@ -1761,7 +2958,27 @@ vat = vat.Plus(item.Accept(_vats));
 
 ### Krok 3: alternatywa C# - switch expression po typach
 
-**W IDE:** usuń `Accept` i Visitory, `IOrderItem` zostaje pustym interfejsem, operacje jako switch expression po typach z ramieniem `_ => throw new UnreachableException(...)` (z wzorcami pozycyjnymi w linii paragonu).
+**Zmiany:**
+
+1. Usuń pliki `IOrderItemVisitor.cs`, `ReceiptLineVisitor.cs`, `AmountVisitor.cs` i `VatVisitor.cs`; z `IOrderItem` i rekordów pozycji usuń `Accept` - interfejs znów jest pustym znacznikiem.
+2. W `ReceiptPrinter` zapisz operacje jako metody `Line`, `Amount` i `Vat` ze switch expression po typach; w `Line` użyj wzorców pozycyjnych, np. `TicketItem(var title, var format, var price) => ...`. Pomocnicze `VatOf` wraca do `ReceiptPrinter`.
+3. Każdy switch kończy ramię `_ => throw new UnreachableException("unknown item: " + item)` (dojdzie `using System.Diagnostics;`).
+
+**Przed:**
+
+```csharp
+private readonly ReceiptLineVisitor _lines = new();
+private readonly AmountVisitor _amounts = new();
+private readonly VatVisitor _vats = new();
+...
+foreach (var item in items)
+{
+    text.Append(item.Accept(_lines)).Append('\n');
+    total = total.Plus(item.Accept(_amounts));
+    vat = vat.Plus(item.Accept(_vats));
+}
+```
+
 **Po:**
 
 ```csharp
@@ -1833,7 +3050,31 @@ Ta scena ma **dwie ścieżki**: krok 1 jest wspólny, krok 2 to ścieżka A (Str
 
 ### Krok 1: rozplecenie osi (wspólny)
 
-**W IDE:** zauważ, że tabela to dwie niezależne reguły. ⌥⌘M `BasePrice(format)` ze switch expression po formacie i `AdjustForDay(day, basePrice)` ze switch expression po dniu. `Price` = złożenie.
+**Zmiany:**
+
+1. Zauważ, że tabela to dwie niezależne reguły. Wydziel z `Price` metodę `BasePrice(format)` (wyodrębnienie metody) jako switch expression po formacie: trzy ceny bazowe i ten sam wyjątek dla nieznanego formatu.
+2. Wydziel metodę `AdjustForDay(day, basePrice)` jako switch expression po dniu: wtorek to `basePrice.Minus(basePrice.Percent(30))`, sobota lub niedziela `basePrice.Plus(Money.Of("2.00"))`, reszta bez korekty.
+3. `Price` staje się złożeniem obu metod; lokalna zmienna `weekend` znika.
+
+**Przed:**
+
+```csharp
+var weekend = day == DayOfWeek.Saturday || day == DayOfWeek.Sunday;
+if (format == "2D")
+{
+    return Money.Of(day == DayOfWeek.Tuesday ? "17.50" : weekend ? "27.00" : "25.00");
+}
+else if (format == "3D")
+{
+    return Money.Of(day == DayOfWeek.Tuesday ? "22.40" : weekend ? "34.00" : "32.00");
+}
+else if (format == "IMAX")
+{
+    return Money.Of(day == DayOfWeek.Tuesday ? "28.00" : weekend ? "42.00" : "40.00");
+}
+throw new ArgumentException("unknown format: " + format);
+```
+
 **Po:**
 
 ```csharp
@@ -1849,7 +3090,28 @@ public Money Price(DayOfWeek day, string format)
 
 ### Krok 2: ścieżka A - zmienia się reguła dnia (Strategy)
 
-**W IDE:** delegat `DayPolicy(Money basePrice)`, statyczna klasa `DayPolicies` ze stałymi `CheapTuesday`, `Weekend`, `Regular` i kalendarzem `DayPolicies.Standard(day)`. `ShowPricing` dostaje kalendarz `Func<DayOfWeek, DayPolicy>` w konstruktorze (domyślnie standardowy). Format zostaje prostym `switch`.
+**Zmiany:**
+
+1. Utwórz nowy plik `DayPolicy.cs`: delegat `public delegate Money DayPolicy(Money basePrice)` - Strategy w formie delegata.
+2. Utwórz nowy plik `DayPolicies.cs`: statyczna klasa ze stałymi `CheapTuesday`, `Weekend`, `Regular` (lambdy z logiką przeniesioną z `AdjustForDay`) i kalendarzem `Standard(DayOfWeek)`, który dla dnia zwraca politykę.
+3. W `ShowPricing` dodaj pole `Func<DayOfWeek, DayPolicy> _calendar` i konstruktor przyjmujący kalendarz (bezargumentowy deleguje `: this(DayPolicies.Standard)`); `Price` woła `_calendar(day)(BasePrice(format))`, metoda `AdjustForDay` znika. Format zostaje prostym `switch`.
+
+**Przed:**
+
+```csharp
+public Money Price(DayOfWeek day, string format)
+{
+    return AdjustForDay(day, BasePrice(format));
+}
+...
+private static Money AdjustForDay(DayOfWeek day, Money basePrice) => day switch
+{
+    DayOfWeek.Tuesday => basePrice.Minus(basePrice.Percent(30)),
+    DayOfWeek.Saturday or DayOfWeek.Sunday => basePrice.Plus(Money.Of("2.00")),
+    _ => basePrice,
+};
+```
+
 **Po:**
 
 ```csharp
@@ -1862,7 +3124,31 @@ return _calendar(day)(BasePrice(format));
 
 ### Krok 3: ścieżka B - zmienia się zestaw formatów (typ z zachowaniem)
 
-**W IDE:** pokaż alternatywę od kroku 1: `sealed class Format` z instancjami statycznymi, ceną bazową i metodą `PriceOn(day)`, `Format.Of(code)` z tym samym wyjątkiem. `ShowPricing` deleguje. Reguła dnia zostaje zwykłym `switch` w typie.
+**Zmiany:**
+
+1. Alternatywa budowana od kroku 1, nie od kroku 2. Utwórz nowy plik `Format.cs`: `sealed class Format` z prywatnym konstruktorem, instancjami statycznymi `TwoD`, `ThreeD`, `Imax` (kod i cena bazowa z `BasePrice`) oraz listą `Values`.
+2. W `Format` dodaj `Of(code)` przeszukujące `Values` i rzucające ten sam `ArgumentException` dla nieznanego kodu oraz metodę `PriceOn(day)` ze switch expression z regułą dnia (logika z `AdjustForDay`).
+3. `ShowPricing.Price` deleguje do `Format.Of(format).PriceOn(day)`; metody `BasePrice` i `AdjustForDay` znikają z `ShowPricing`.
+
+**Przed:**
+
+```csharp
+private static Money BasePrice(string format) => format switch
+{
+    "2D" => Money.Of("25.00"),
+    "3D" => Money.Of("32.00"),
+    "IMAX" => Money.Of("40.00"),
+    _ => throw new ArgumentException("unknown format: " + format),
+};
+
+private static Money AdjustForDay(DayOfWeek day, Money basePrice) => day switch
+{
+    DayOfWeek.Tuesday => basePrice.Minus(basePrice.Percent(30)),
+    DayOfWeek.Saturday or DayOfWeek.Sunday => basePrice.Plus(Money.Of("2.00")),
+    _ => basePrice,
+};
+```
+
 **Po:**
 
 ```csharp
@@ -1928,7 +3214,33 @@ case "FESTIVAL":
 
 ### Krok 1: Replace Conditional with Strategy (i Adapter dla obcego klienta)
 
-**W IDE:** utwórz interfejs `ISettlementModel.Payout(deal, week, ticketRevenue)`. Każdą gałąź `switch` przenieś (⌥⌘M, potem ⌃T > Extract Class) do klasy: `PercentageModel` i `FestivalFeeAdapter` (opakowuje `FestivalTariffClient`, konwertuje grosze). `DistributorSettlement` wybiera model ze słownika.
+**Zmiany:**
+
+1. Utwórz nowy plik `ISettlementModel.cs`: interfejs z metodą `decimal Payout(Deal deal, int week, decimal ticketRevenue)`.
+2. Gałąź `PERCENT` przenieś do nowej klasy `PercentageModel : ISettlementModel` (wyodrębnienie klasy); gwarancja ląduje w niej jako stała `MinimumGuarantee = 500.00m`. Gałąź `FESTIVAL` przenieś do `FestivalFeeAdapter : ISettlementModel`, który dostaje `FestivalTariffClient` w konstruktorze i konwertuje grosze (`/ 100m`).
+3. W `DistributorSettlement` zamień `switch` na słownik `IReadOnlyDictionary<string, ISettlementModel>` z wpisami "PERCENT" i "FESTIVAL"; `Payout` wybiera model przez `TryGetValue`, a nieznany model rzuca ten sam `ArgumentException`. Pole `_festival` znika.
+
+**Przed:**
+
+```csharp
+switch (deal.Model)
+{
+    case "PERCENT":
+    {
+        var percent = week == 1 ? 50 : week == 2 ? 40 : 35;
+        var share = Math.Round(ticketRevenue * percent / 100, 2, MidpointRounding.AwayFromZero);
+        return Math.Max(share, 500.00m);
+    }
+    case "FESTIVAL":
+    {
+        var cents = _festival.WeeklyFeeInCents(deal.Title, week);
+        return cents / 100m;
+    }
+    default:
+        throw new ArgumentException("nieznany model: " + deal.Model);
+}
+```
+
 **Po:**
 
 ```csharp
@@ -1945,7 +3257,21 @@ private readonly IReadOnlyDictionary<string, ISettlementModel> _models = new Dic
 
 ### Krok 2: Wariant znika - Safe Delete adaptera
 
-**W IDE:** umowy festiwalowe wygasły. Usuń wpis `"FESTIVAL"` ze słownika, Safe Delete (⌘⌦) na `FestivalFeeAdapter`.
+**Zmiany:**
+
+1. Umowy festiwalowe wygasły: usuń wpis `"FESTIVAL"` ze słownika w `DistributorSettlement`.
+2. Usuń plik `FestivalFeeAdapter.cs` (bezpieczne usunięcie - po punkcie 1 nikt już go nie używa).
+
+**Przed:**
+
+```csharp
+private readonly IReadOnlyDictionary<string, ISettlementModel> _models = new Dictionary<string, ISettlementModel>
+{
+    ["PERCENT"] = new PercentageModel(),
+    ["FESTIVAL"] = new FestivalFeeAdapter(new FestivalTariffClient()),
+};
+```
+
 **Po:**
 
 ```csharp
@@ -1961,7 +3287,25 @@ private readonly IReadOnlyDictionary<string, ISettlementModel> _models = new Dic
 
 ### Krok 3: Usunięcie wzorca
 
-**W IDE:** ⌥⌘N (Inline Method) na `PercentageModel.Payout` w miejscu wywołania (albo ręcznie wklej ciało), usuń słownik, Safe Delete na `PercentageModel` i `ISettlementModel`. Przenieś stałą `MinimumGuarantee` do `DistributorSettlement` (F6 na stałej albo ręcznie).
+**Zmiany:**
+
+1. Wstaw ciało `PercentageModel.Payout` do `DistributorSettlement.Payout` (włączenie metody w miejsce wywołania); zamiast `TryGetValue` warunek `deal.Model != "PERCENT"` rzuca ten sam wyjątek.
+2. Przenieś stałą `MinimumGuarantee` do `DistributorSettlement`.
+3. Usuń słownik `_models` oraz pliki `PercentageModel.cs` i `ISettlementModel.cs` - oba typy znikają.
+
+**Przed:**
+
+```csharp
+public decimal Payout(Deal deal, int week, decimal ticketRevenue)
+{
+    if (!_models.TryGetValue(deal.Model, out var model))
+    {
+        throw new ArgumentException("nieznany model: " + deal.Model);
+    }
+    return model.Payout(deal, week, ticketRevenue);
+}
+```
+
 **Po:**
 
 ```csharp
@@ -2028,7 +3372,28 @@ public int FreeSeats(string id)
 
 ### Krok 1: pośrednik staje się czystym forwarderem
 
-**W IDE:** przenieś `try/catch` do prywatnej metody `FreeSeats` w `SeatBadge` (jedyny klient, który polega na tłumaczeniu). W fasadzie zostaje zwykłe delegowanie.
+**Zmiany:**
+
+1. W `SeatBadge` dodaj prywatną metodę `FreeSeats(id)` z `try/catch` przeniesionym z fasady (`KeyNotFoundException` tłumaczony na 0); `Badge` woła teraz tę metodę. To jedyny klient, który polega na tłumaczeniu.
+2. W `CinemaFacade.FreeSeats` usuń `try/catch` - zostaje zwykłe delegowanie `return _catalog.FreeSeats(id);`.
+
+**Przed:**
+
+```csharp
+// CinemaFacade
+public int FreeSeats(string id)
+{
+    try
+    {
+        return _catalog.FreeSeats(id);
+    }
+    catch (KeyNotFoundException)
+    {
+        return 0;
+    }
+}
+```
+
 **Po:**
 
 ```csharp
@@ -2052,7 +3417,23 @@ private int FreeSeats(string id)
 
 ### Krok 2: pierwszy klient rozmawia z katalogiem
 
-**W IDE:** w `SeatBadge` Change Signature (⌘F6) konstruktora: `CinemaFacade` na `ScreeningCatalog`, pole przez ⇧F6 na `_catalog`.
+**Zmiany:**
+
+1. W konstruktorze `SeatBadge` zmień typ parametru z `CinemaFacade` na `ScreeningCatalog` (zmiana sygnatury), a pole przemianuj z `_cinema` na `_catalog`.
+2. W `Badge` i prywatnym `FreeSeats` wywołania idą teraz na `_catalog` - metody katalogu mają te same nazwy i sygnatury.
+
+**Przed:**
+
+```csharp
+private readonly CinemaFacade _cinema;
+
+public SeatBadge(CinemaFacade cinema)
+{
+    ArgumentNullException.ThrowIfNull(cinema);
+    _cinema = cinema;
+}
+```
+
 **Po:**
 
 ```csharp
@@ -2069,7 +3450,23 @@ public SeatBadge(ScreeningCatalog catalog)
 
 ### Krok 3: ostatni klient i Safe Delete fasady
 
-**W IDE:** ten sam ruch w `DailyBoard` (`_cinema.Screenings()` na `_catalog.All()`), potem Safe Delete (⌘⌦) na `CinemaFacade`.
+**Zmiany:**
+
+1. Ten sam ruch w `DailyBoard`: konstruktor przyjmuje `ScreeningCatalog`, pole `_cinema` staje się `_catalog`, a wywołanie `_cinema.Screenings()` zamień na `_catalog.All()`.
+2. Usuń plik `CinemaFacade.cs` (bezpieczne usunięcie - fasada nie ma już klientów).
+
+**Przed:**
+
+```csharp
+private readonly CinemaFacade _cinema;
+...
+public string Render()
+{
+    return string.Join("\n", _cinema.Screenings()
+        .Select(screening => screening.Id + " " + screening.Title + " " + screening.Format));
+}
+```
+
 **Po:**
 
 ```csharp
@@ -2087,7 +3484,7 @@ return string.Join("\n", _catalog.All()
 
 ### Pułapki
 
-- Inline wszystkich metod fasady naraz (⌥⌘N na każdej metodzie, bez automatycznego Remove Middleman w Rider) bez sprawdzenia, że któraś tłumaczy błędy.
+- Wstawienie wszystkich metod fasady w miejsca wywołań naraz, bez sprawdzenia, że któraś tłumaczy błędy.
 - Usunięcie fasady, która jest granicą modułu (klienci z innych przestrzeni nazw albo assembly zaczną zależeć od szczegółów).
 - Utrwalenie dziwnego zachowania ("nieznany = wyprzedany") bez notatki - to kandydat na osobną decyzję.
 
@@ -2127,7 +3524,30 @@ return refund.ToString("F2", CultureInfo.InvariantCulture);
 
 ### Krok 1: czysta refaktoryzacja
 
-**W IDE:** zaznacz łańcuch `if/else` wyboru udziału, ⌥⌘M, nazwa `Share`, zwraca `double` (0, 1.0, 0.5). W `Refund` jedno wyrażenie `ticketsPaid * Share(minutes) - 3.00`.
+**Zmiany:**
+
+1. Z łańcucha `if/else` wyboru udziału wydziel metodę `Share(minutesBeforeStart)` (wyodrębnienie metody) zwracającą `double`: 0, 1.0 albo 0.5.
+2. W `Refund` zapisz potrącenie jednym wyrażeniem `ticketsPaid * Share(minutesBeforeStart) - 3.00`; próg zera, zaokrąglenie i format zostają bez zmian.
+
+**Przed:**
+
+```csharp
+double refund;
+if (minutesBeforeStart <= 0)
+{
+    refund = 0;
+}
+else if (minutesBeforeStart >= 24 * 60)
+{
+    refund = ticketsPaid;
+}
+else
+{
+    refund = ticketsPaid * 0.5;
+}
+refund = refund - 3.00;
+```
+
 **Po:**
 
 ```csharp
@@ -2140,7 +3560,24 @@ double refund = ticketsPaid * Share(minutesBeforeStart) - 3.00;
 
 ### Krok 2: "przy okazji" double na decimal
 
-**W IDE:** pokaż naiwny ruch: `Share` zwraca `decimal`, liczymy `Math.Max(Math.Round((decimal)ticketsPaid * Share(...) - Fee, 2, MidpointRounding.AwayFromZero), 0m)`, zwracamy `ToString(CultureInfo.InvariantCulture)` bez formatu.
+**Zmiany:**
+
+1. Pokaż naiwny ruch: zmień typ zwracany `Share` na `decimal` (`0m`, `1m`, `0.5m`) i dodaj stałą `Fee = 3.00m`.
+2. W `Refund` policz wszystko jednym wyrażeniem: `Math.Max(Math.Round((decimal)ticketsPaid * Share(minutesBeforeStart) - Fee, 2, MidpointRounding.AwayFromZero), 0m)`.
+3. Zwróć `refund.ToString(CultureInfo.InvariantCulture)` - bez jawnego formatu.
+
+**Przed:**
+
+```csharp
+double refund = ticketsPaid * Share(minutesBeforeStart) - 3.00;
+if (refund < 0)
+{
+    refund = 0;
+}
+refund = Math.Floor(refund * 100 + 0.5) / 100.0;
+return refund.ToString("F2", CultureInfo.InvariantCulture);
+```
+
 **Po:**
 
 ```csharp
@@ -2156,7 +3593,21 @@ return refund.ToString(CultureInfo.InvariantCulture);
 
 ### Krok 3: świadoma decyzja
 
-**W IDE:** przestaw `Math.Max` do środka, przed `Math.Round(..., 2, AwayFromZero)`, i wróć do formatu `"F2"` - "0.00" wraca. Różnicę groszową zatwierdzamy jako zmianę kontraktu: komentarz XML z decyzją, nowe oczekiwanie w teście, osobny commit.
+**Zmiany:**
+
+1. Przestaw kolejność operacji: `Math.Max(..., 0m)` do środka, a `Math.Round(..., 2, MidpointRounding.AwayFromZero)` na zewnątrz - zaokrąglamy po obcięciu do zera.
+2. Przywróć jawny format wyniku: `refund.ToString("F2", CultureInfo.InvariantCulture)` - "0.00" wraca.
+3. Różnicę groszową zatwierdź jako zmianę kontraktu: komentarz XML z decyzją, nowe oczekiwanie w teście, osobny commit.
+
+**Przed:**
+
+```csharp
+var refund = Math.Max(
+    Math.Round((decimal)ticketsPaid * Share(minutesBeforeStart) - Fee, 2, MidpointRounding.AwayFromZero),
+    0m);
+return refund.ToString(CultureInfo.InvariantCulture);
+```
+
 **Po:**
 
 ```csharp
@@ -2196,7 +3647,7 @@ Kto zatwierdza zmianę kontraktu o 1 grosz: programista, księgowość czy klien
 
 **Co robimy:** W `SalesReport` nazwy `Calc2`, `s`, `m`, `t` nic nie mówią, ale nazwa metody żyje w konfiguracji, a nazwy właściwości rekordu trafiają refleksją do nagłówka CSV. Zmieniamy nazwy od najbezpieczniejszych lokalnych do tych, które są kontraktem zewnętrznym.
 
-**Zasada:** Rename nadaje nazwę opisującą rolę w kontekście, a nie typ ani implementację. Dla zmiennych lokalnych IDE robi to bezpiecznie, ale nazwa użyta w konfiguracji, refleksji, JSON czy ORM jest częścią API i wymaga strategii migracji. IDE nie widzi takich użyć, więc nie mylić operacji ⇧F6 z bezpieczną zmianą kontraktu.
+**Zasada:** Rename nadaje nazwę opisującą rolę w kontekście, a nie typ ani implementację. Dla zmiennych lokalnych IDE robi to bezpiecznie, ale nazwa użyta w konfiguracji, refleksji, JSON czy ORM jest częścią API i wymaga strategii migracji. IDE nie widzi takich użyć, więc nie mylić automatycznej zmiany nazwy z bezpieczną zmianą kontraktu.
 
 **Efekt:** Kod czyta się po nazwach ról, a oba kontrakty zostają nietknięte: stara nazwa `Calc2` jako przestarzały delegat, nagłówek CSV jako jawna stała. Koszt to delegat, którego nie wolno usunąć, dopóki ktoś nie zmieni konfiguracji na serwerach.
 
@@ -2222,7 +3673,33 @@ return string.Join(";", typeof(Line).GetProperties().Select(p => p.Name));
 
 ### Krok 1: Rename zmiennych lokalnych i parametrów
 
-**W IDE:** kursor na `s`, ⇧F6, `sales`. Tak samo `flag` -> `onlineOnly`, `m` -> `linesByTitle`, `x` -> `sale`, `l` -> `previous` / `line`, `b` -> `csv`, `v` -> `values`, `c` i `p` -> `property`.
+**Zmiany:**
+
+1. Zmień nazwy parametrów `Calc2` (zmiana nazwy): `s` na `sales`, `flag` na `onlineOnly`.
+2. Zmień nazwy zmiennych lokalnych: `m` na `linesByTitle`, `x` na `sale`, `l` na `previous` albo `line` (zależnie od roli), `b` na `csv`, a w `Header` i `Row`: `v` na `values`, `c` i `p` na `property`.
+
+**Przed:**
+
+```csharp
+public string Calc2(IReadOnlyList<Sale> s, bool flag)
+{
+    var m = new SortedDictionary<string, Line>(StringComparer.Ordinal);
+    foreach (var x in s)
+    {
+        if (flag && !x.Online)
+        {
+            continue;
+        }
+        if (!m.TryGetValue(x.Title, out var l))
+        {
+            m[x.Title] = new Line(x.Title, x.Tickets, x.Amount);
+        }
+        ...
+    }
+    ...
+}
+```
+
 **Po:**
 
 ```csharp
@@ -2240,7 +3717,23 @@ public string Calc2(IReadOnlyList<Sale> sales, bool onlineOnly)
 
 ### Krok 2: Rename metody z delegatem dla starej nazwy
 
-**W IDE:** najpierw na żywo naiwnie: ⇧F6 na `Calc2`, nazwa `RevenueCsv`, bez zmiany wystąpień w tekście (text occurrences). Uruchom test: `EveryStepRunsTheConfiguredJob` jest czerwony (`InvalidOperationException: Zadanie raportu nie działa: ...`, w środku `MissingMethodException` dla `Calc2`). IDE nie wie, że tekst w konfiguracji to nazwa metody. Cofnij (⌘Z). Teraz poprawnie: skopiuj metodę, zmień nazwę kopii na `RevenueCsv`, a ciało `Calc2` zamień na delegowanie i oznacz `[Obsolete]`.
+**Zmiany:**
+
+1. Najpierw na żywo naiwnie: zmień nazwę metody `Calc2` na `RevenueCsv` wszędzie w kodzie, bez ruszania tekstów. Uruchom test: `EveryStepRunsTheConfiguredJob` jest czerwony (`InvalidOperationException: Zadanie raportu nie działa: ...`, w środku `MissingMethodException` dla `Calc2`) - automat nie wie, że tekst w konfiguracji to nazwa metody. Cofnij zmianę.
+2. Teraz poprawnie: skopiuj metodę i nazwij kopię `RevenueCsv`.
+3. Ciało `Calc2` zamień na delegowanie `return RevenueCsv(sales, onlineOnly);`, dodaj atrybut `[Obsolete(...)]` i komentarz XML z warunkiem usunięcia.
+
+**Przed:**
+
+```csharp
+/// <summary>Wywoływana także refleksyjnie przez ReportJob - nazwa metody jest w konfiguracji.</summary>
+public string Calc2(IReadOnlyList<Sale> sales, bool onlineOnly)
+{
+    var linesByTitle = new SortedDictionary<string, Line>(StringComparer.Ordinal);
+    ...
+}
+```
+
 **Po:**
 
 ```csharp
@@ -2264,7 +3757,33 @@ public string RevenueCsv(IReadOnlyList<Sale> sales, bool onlineOnly)
 
 ### Krok 3: Rename właściwości rekordu po odcięciu kontraktu CSV
 
-**W IDE:** najpierw naiwnie: ⇧F6 na `t` w `Line`, `Title` (Rider zmienia parametr rekordu i wygenerowaną z niego właściwość). Test pokaże nagłówek `Title;n;d` zamiast `t;n;d`: plik dla dystrybutora właśnie się zmienił. Cofnij. Teraz poprawnie: najpierw zamień refleksyjne `Header()` i `Row()` na jawny `CsvHeader = "t;n;d"` i jawne składanie wiersza (test zielony), dopiero potem ⇧F6 na `t`, `n`, `d` -> `Title`, `Tickets`, `Revenue`.
+**Zmiany:**
+
+1. Najpierw naiwnie: zmień nazwę właściwości `t` rekordu `Line` na `Title` (zmiana parametru rekordu zmienia też wygenerowaną z niego właściwość). Test pokaże nagłówek `Title;n;d` zamiast `t;n;d`: plik dla dystrybutora właśnie się zmienił. Cofnij zmianę.
+2. Teraz poprawnie: usuń refleksyjne `Header()` i wprowadź jawną stałą `CsvHeader = "t;n;d"` używaną w `RevenueCsv`, a `Row` zamień na jawne składanie wiersza z kwotą formatowaną przez `ToString(CultureInfo.InvariantCulture)`; test zielony.
+3. Dopiero potem zmień nazwy właściwości rekordu: `t`, `n`, `d` na `Title`, `Tickets`, `Revenue` (zmiana obejmie też użycia `previous.n` i `previous.d` w `RevenueCsv`).
+
+**Przed:**
+
+```csharp
+public sealed record Line(string t, int n, decimal d);
+...
+private static string Header()
+{
+    return string.Join(";", typeof(Line).GetProperties().Select(property => property.Name));
+}
+
+private static string Row(Line line)
+{
+    var values = new List<string>();
+    foreach (var property in typeof(Line).GetProperties())
+    {
+        values.Add(Convert.ToString(property.GetValue(line), CultureInfo.InvariantCulture) ?? "null");
+    }
+    return string.Join(";", values);
+}
+```
+
 **Po:**
 
 ```csharp
@@ -2289,9 +3808,9 @@ private static string Row(Line line)
 
 ### Pułapki
 
-- Poleganie na zmianie wystąpień w tekście (text occurrences) przy Rename w Rider. Czasem pomaga, ale nie widzi plików poza projektem (konfiguracja na serwerze, `appsettings.*.json` w innym repozytorium) ani nazw składanych dynamicznie (`"Calc" + version`).
+- Poleganie na automatycznej zmianie wystąpień nazwy także w tekstach. Czasem pomaga, ale nie obejmuje plików poza projektem (konfiguracja na serwerze, `appsettings.*.json` w innym repozytorium) ani nazw składanych dynamicznie (`"Calc" + version`).
 - Inne miejsca, w których nazwa jest kontraktem: JSON (`System.Text.Json`, Newtonsoft), kolumny i tabele EF Core bez jawnego mapowania, wiązanie konfiguracji (`IConfiguration.Bind`, `IOptions<T>` wiążą po nazwach właściwości), widoki Razor, nazwy w DI rejestrowane po nazwie, logi parsowane przez monitoring. `nameof(...)` jest bezpieczne, bo Rename je zmienia, ale wtedy zmienia też tekst, który ktoś może czytać.
-- Usunięcie delegatu `Calc2` "bo nikt go nie woła". Find Usages go nie znajdzie, bo wołają go tylko refleksja i konfiguracja.
+- Usunięcie delegatu `Calc2` "bo nikt go nie woła". Wyszukiwanie użyć w kodzie go nie znajdzie, bo wołają go tylko refleksja i konfiguracja.
 
 ### Pytanie do sali
 
@@ -2311,7 +3830,7 @@ Jak w waszym systemie sprawdzić, czy nazwa klasy albo metody nie jest użyta w 
 
 **Efekt:** Metoda publiczna czyta się jak spis treści, a obliczenia są oddzielone od renderowania, bez zmiany sygnatury ani formatu. Kosztem są dwa przejścia po liście rzędów, pomijalne wobec czytelności.
 
-**Różnica względem Javy:** `base` to w C# słowo kluczowe, więc zmienna ceny bazowej nazywa się `@base`. Suma startuje od `0.00m` (a nie od `0m`), żeby puste zamówienie drukowało `0.00` tak jak `BigDecimal.setScale(2)` w Javie - `decimal` pamięta skalę literału. Inaczej niż IntelliJ, Rider nie odmawia ekstrakcji fragmentu z dwoma wyjściami: proponuje parametr `out` (albo krotkę), co omawiamy w kroku 2.
+**Różnica względem Javy:** `base` to w C# słowo kluczowe, więc zmienna ceny bazowej nazywa się `@base`. Suma startuje od `0.00m` (a nie od `0m`), żeby puste zamówienie drukowało `0.00` tak jak `BigDecimal.setScale(2)` w Javie - `decimal` pamięta skalę literału. Automatyczna ekstrakcja metody w C# nie odmawia pracy na fragmencie z dwoma wyjściami: proponuje parametr `out` (albo krotkę), co omawiamy w kroku 2.
 
 ### Co widzimy
 
@@ -2335,7 +3854,34 @@ subtotal = Math.Round(subtotal, 2, MidpointRounding.AwayFromZero);
 
 ### Krok 1: Extract Method dla bloku z jednym wyjściem
 
-**W IDE:** zaznacz blok pod `// cena bazowa formatu` (od `decimal @base;` do końca `if` z porankiem), ⌥⌘M, nazwa `BasePrice`. Rider sam wykryje jedno wejście (`order`) i jedno wyjście (`@base`), które zostanie wartością zwracaną. Usuń zbędny komentarz.
+**Zmiany:**
+
+1. Blok pod komentarzem `// cena bazowa formatu` (od deklaracji `decimal @base;` do końca `if` z porankiem) wydziel do metody `BasePrice(order)` (wyodrębnienie metody): jedno wejście (`order`), jedno wyjście (`@base` jako wartość zwracana).
+2. W `Describe` zostaje `decimal @base = BasePrice(order);`; zbędny komentarz usuń.
+
+**Przed:**
+
+```csharp
+// cena bazowa formatu
+decimal @base;
+if (order.Format == "IMAX")
+{
+    @base = 40.00m;
+}
+else if (order.Format == "3D")
+{
+    @base = 32.00m;
+}
+else
+{
+    @base = 25.00m;
+}
+if (order.Start.Hour < 12)
+{
+    @base = @base - 5.00m;
+}
+```
+
 **Po:**
 
 ```csharp
@@ -2348,7 +3894,30 @@ decimal @base = BasePrice(order);
 
 ### Krok 2: Split Loop, potem dwa razy Extract Method
 
-**W IDE:** spróbuj ⌥⌘M na pętli (razem z `Math.Round`). Rider pokaże, że fragment ma dwie wartości wyjściowe, i zaproponuje jedną jako wynik, a drugą jako parametr `out` (albo krotkę). To jest moment dydaktyczny: zamknij dialog. Ręcznie skopiuj pętlę (Split Loop) i z pierwszej kopii usuń `vipSeats`, a z drugiej `subtotal` i `price`. Uruchom test. Następnie na każdej pętli ⌥⌘M, nazwy `Subtotal` i `VipSeats`.
+**Zmiany:**
+
+1. Spróbuj wydzielić całą pętlę (razem z `Math.Round`) w jedną metodę: fragment ma dwie wartości wyjściowe (`subtotal` i `vipSeats`), więc automat zaproponuje jedną jako wynik, a drugą jako parametr `out` albo krotkę. To jest moment dydaktyczny - nie korzystamy z tej propozycji.
+2. Zamiast tego skopiuj pętlę (Split Loop): z pierwszej kopii usuń `vipSeats`, z drugiej `subtotal` i `price`. Uruchom test.
+3. Każdą pętlę wydziel do metody (wyodrębnienie metody): `Subtotal(order, @base)` z `Math.Round` na końcu oraz `VipSeats(order)`.
+
+**Przed:**
+
+```csharp
+decimal subtotal = 0.00m;
+int vipSeats = 0;
+foreach (var row in order.Rows)
+{
+    decimal price = @base;
+    if (row >= 10)
+    {
+        price = price + 10.00m;
+        vipSeats++;
+    }
+    subtotal = subtotal + price;
+}
+subtotal = Math.Round(subtotal, 2, MidpointRounding.AwayFromZero);
+```
+
 **Po:**
 
 ```csharp
@@ -2363,7 +3932,25 @@ int vipSeats = VipSeats(order);
 
 ### Krok 3: Extract Method dla renderowania
 
-**W IDE:** zaznacz blok `// dokument` i wykonaj ⌥⌘M, nazwa `Render`. Parametry: `order`, `subtotal`, `vipSeats`. Potem Inline Variable (⌥⌘N) dla `@base`.
+**Zmiany:**
+
+1. Blok pod komentarzem `// dokument` wydziel do metody `Render(order, subtotal, vipSeats)` (wyodrębnienie metody).
+2. Wstaw zmienną `@base` w miejsce jej jedynego użycia (włączenie zmiennej): `Subtotal(order, BasePrice(order))`.
+
+**Przed:**
+
+```csharp
+decimal @base = BasePrice(order);
+decimal subtotal = Subtotal(order, @base);
+int vipSeats = VipSeats(order);
+
+// dokument
+var text = new StringBuilder();
+text.Append("BILETY: ").Append(order.Title).Append('\n');
+...
+return text.ToString();
+```
+
 **Po:**
 
 ```csharp
@@ -2386,7 +3973,7 @@ public string Describe(Order order)
 ### Pułapki
 
 - Ekstrakcja bloku, który modyfikuje zmienną lokalną używaną dalej, bez zwrócenia jej wartości. IDE tego pilnuje, ręczne kopiowanie nie.
-- Zwracanie tablicy `object[]`, mutowalnego "holdera" albo dorzucanie parametrów `out`/`ref` tylko po to, żeby wyciągnąć dwa wyniki. Rider zaproponuje `out` sam z siebie - to nie znaczy, że to dobry projekt.
+- Zwracanie tablicy `object[]`, mutowalnego "holdera" albo dorzucanie parametrów `out`/`ref` tylko po to, żeby wyciągnąć dwa wyniki. Automatyczna ekstrakcja zaproponuje `out` sama z siebie - to nie znaczy, że to dobry projekt.
 - Nazwa metody opisująca "jak" (`LoopRows`) zamiast "co" (`VipSeats`).
 
 ### Pytanie do sali
@@ -2453,7 +4040,29 @@ switch (status)
 
 ### Krok 1: Strategy dla ceny biletu
 
-**W IDE:** utwórz delegat `public delegate Money TicketPricing(Money formatBase)`. Utwórz statyczną klasę `TicketPricings` ze słownikiem kod typu - strategia (lambdy, wspólna metoda `Discounted(percent)`) i `ForType(code)`, które dla nieznanego kodu rzuca `unknown ticket type: X` jak `Start`. W pętli `Book` zastąp wewnętrzny `switch` wywołaniem strategii.
+**Zmiany:**
+
+1. Utwórz nowy plik `TicketPricing.cs`: delegat `public delegate Money TicketPricing(Money formatBase)`.
+2. Utwórz nowy plik `TicketPricings.cs`: statyczna klasa ze słownikiem kod typu - strategia (lambdy, wspólna metoda pomocnicza `Discounted(percent)`) i metodą `ForType(code)`, która dla nieznanego kodu rzuca `unknown ticket type: X` jak `Start`.
+3. W pętli `Book` zastąp wewnętrzny `switch` po typie biletu wywołaniem strategii.
+
+**Przed:**
+
+```csharp
+var total = Money.Zero;
+for (var i = 3; i < args.Length; i++)
+{
+    total = total.Plus(args[i] switch
+    {
+        "N" => basePrice,
+        "S" => basePrice.Minus(basePrice.Percent(25)),
+        "E" => basePrice.Minus(basePrice.Percent(30)),
+        "C" => basePrice.Minus(basePrice.Percent(40)),
+        _ => throw new ArgumentException("unknown ticket type: " + args[i]),
+    });
+}
+```
+
 **Po:**
 
 ```csharp
@@ -2469,7 +4078,37 @@ for (var i = 3; i < args.Length; i++)
 
 ### Krok 2: Command dla operacji kasjera
 
-**W IDE:** ⌃T > Extract Class dla pól `_statuses`, `_amounts`, `_till` - powstaje odbiorca `BookingLedger` z metodami `Open`, `Remove`, `StatusOf`, `Pay`, `Use`, `Cancel`, `Restore`, `Deposit`, `Withdraw`, `Summary`. Utwórz interfejs `IDeskCommand` (`Execute(ledger)`, `Undo(ledger)`, `JournalEntry()`) i po jednej klasie na operację: `BookCommand`, `PayCommand`, `UseCommand`, `CancelCommand`, każda z fabryką `From(args)`. Pulpit dostaje rejestr `IReadOnlyDictionary<string, Func<string[], IDeskCommand>>` i historię `List<IDeskCommand>` zamiast rekordów `Entry`; `Undo()` woła `last.Undo(_ledger)`.
+**Zmiany:**
+
+1. Wydziel z pulpitu pola `_statuses`, `_amounts`, `_till` do nowej klasy odbiorcy `BookingLedger` (wyodrębnienie klasy) z metodami `Open`, `Remove`, `StatusOf`, `Pay`, `Use`, `Cancel`, `Restore`, `Deposit`, `Withdraw`, `Summary`; warunki po statusie przechodzą do `Pay`, `Use` i `Cancel`.
+2. Utwórz interfejs `IDeskCommand` (`Execute(ledger)`, `Undo(ledger)`, `JournalEntry()`) i po jednej klasie na operację: `BookCommand`, `PayCommand`, `UseCommand`, `CancelCommand`; każda ma fabrykę `From(args)` i pamięta tylko to, czego potrzebuje do cofnięcia.
+3. Pulpit dostaje rejestr `IReadOnlyDictionary<string, Func<string[], IDeskCommand>>` i historię `List<IDeskCommand>` zamiast rekordów `Entry`; `Undo()` woła `last.Undo(_ledger)`, a `Report()` składa dziennik z `JournalEntry()`. UNDO i REPORT zostają w `switch` pulpitu.
+
+**Przed:**
+
+```csharp
+var last = _journal[^1];
+_journal.RemoveAt(_journal.Count - 1);
+switch (last.Operation)
+{
+    case "BOOK":
+        _statuses.Remove(last.Id);
+        _amounts.Remove(last.Id);
+        break;
+    case "PAY":
+        _till = _till.Minus(last.Moved);
+        _statuses[last.Id] = last.Previous!.Value;
+        break;
+    case "CANCEL":
+        _till = _till.Plus(last.Moved);
+        _statuses[last.Id] = last.Previous!.Value;
+        break;
+    default:
+        _statuses[last.Id] = last.Previous!.Value;
+        break;
+}
+```
+
 **Po:**
 
 ```csharp
@@ -2485,7 +4124,33 @@ return result;
 
 ### Krok 3: State dla cyklu życia rezerwacji
 
-**W IDE:** utwórz klasę `Booking` (kwota i pole `private State _state`) z prywatną klasą zagnieżdżoną `State`. Warunki z `BookingLedger.Pay/Use/Cancel` przenieś do podklas stanu: `NewState` nadpisuje `Pay` i `Cancel`, `PaidState` nadpisuje `Use` i `Cancel`, `FinalState` (Used, Cancelled) nie nadpisuje niczego. Metody bazowe `State` rzucają `cannot <akcja> in <STATUS>`. `BookingLedger` trzyma `OrderedDictionary<string, Booking>` i tylko przesuwa pieniądze w kasie.
+**Zmiany:**
+
+1. Utwórz nowy plik `Booking.cs`: klasa z kwotą `_amount`, polem `private State _state` i metodami `Pay`, `Use`, `Cancel` oraz `Restore(status)` delegującymi do stanu; `Restore` celowo omija reguły przejść (kompensacja dla UNDO).
+2. Wewnątrz `Booking` dodaj prywatną klasę abstrakcyjną `State`: obiekty `New`, `Paid`, `Used`, `Cancelled`, fabryka `State.Of(Status)`, metody bazowe rzucają `cannot <akcja> in <STATUS>`. Warunki z `BookingLedger.Pay/Use/Cancel` przenieś do podklas stanu: `NewState` nadpisuje `Pay` i `Cancel`, `PaidState` nadpisuje `Use` i `Cancel`, `FinalState` (Used, Cancelled) nie nadpisuje niczego.
+3. `BookingLedger` trzyma teraz jeden `OrderedDictionary<string, Booking>` zamiast dwóch słowników i tylko przesuwa pieniądze w kasie; przejścia statusów wykonuje `Booking`.
+
+**Przed:**
+
+```csharp
+internal Money Cancel(string id)
+{
+    var status = StatusOf(id);
+    if (status == Status.New)
+    {
+        _statuses[id] = Status.Cancelled;
+        return Money.Zero;
+    }
+    else if (status == Status.Paid)
+    {
+        _till = _till.Minus(_amounts[id]);
+        _statuses[id] = Status.Cancelled;
+        return _amounts[id];
+    }
+    throw Invalid("cancel", status);
+}
+```
+
 **Po:**
 
 ```csharp
@@ -2565,7 +4230,27 @@ public string Render(DateOnly day, IReadOnlyList<ScreeningSale> sales)
 
 ### Krok 1: oś formatu jako strategia
 
-**W IDE:** utwórz interfejs `IReportFormat` z `Header`, `Row`, `Footer` oraz klasy `CsvFormat` i `TextFormat` z ciałami skopiowanymi z `DailyCsvReport` i `DailyTextReport` (najpierw porównaj je z kopiami w `Weekly*`: zaznacz oba pliki w Solution Explorer i ⌘D). Do `ScreeningReport` dodaj pole `_format` i konstruktor `protected ScreeningReport(IReportFormat format)`, w `Render` wołaj `_format.Header(...)`, `_format.Row(...)`, `_format.Footer(...)`. Usuń trzy haki formatu z bazy i podklas (Safe Delete ⌘⌦), podklasy wołają `: base(new CsvFormat())` albo `: base(new TextFormat())`.
+**Zmiany:**
+
+1. Utwórz interfejs `IReportFormat` z metodami `Header`, `Row`, `Footer` oraz klasy `CsvFormat` i `TextFormat` z ciałami skopiowanymi z `DailyCsvReport` i `DailyTextReport` (najpierw porównaj je z kopiami w `Weekly*`, czy się nie rozjechały).
+2. Do `ScreeningReport` dodaj pole `_format` i konstruktor `protected ScreeningReport(IReportFormat format)`; w `Render` zamień wywołania haków na `_format.Header(...)`, `_format.Row(...)`, `_format.Footer(...)`.
+3. Usuń trzy haki formatu z bazy i z podklas; każda podklasa woła `: base(new CsvFormat())` albo `: base(new TextFormat())`.
+
+**Przed:**
+
+```csharp
+var text = new StringBuilder(Header(Label(day)));
+...
+/// <summary>Hak formatu.</summary>
+protected abstract string Header(string label);
+
+/// <summary>Hak formatu.</summary>
+protected abstract string Row(string title, int tickets, Money revenue);
+
+/// <summary>Hak formatu.</summary>
+protected abstract string Footer(int tickets, Money revenue);
+```
+
 **Po:**
 
 ```csharp
@@ -2581,7 +4266,34 @@ public DailyCsvReport()
 
 ### Krok 2: oś okresu jako strategia
 
-**W IDE:** ten sam ruch dla `Includes` i `Label`: interfejs `IReportPeriod`, klasy `DailyPeriod` i `WeeklyPeriod` (powtórzone wyliczanie poniedziałku wydziel ⌥⌘M do `Monday(day)`), konstruktor bazy `ScreeningReport(IReportPeriod period, IReportFormat format)`.
+**Zmiany:**
+
+1. Ten sam ruch dla haków okresu `Includes` i `Label`: interfejs `IReportPeriod` oraz klasy `DailyPeriod` i `WeeklyPeriod`; powtórzone wyliczanie poniedziałku wydziel w `WeeklyPeriod` do prywatnej metody `Monday(day)` (wyodrębnienie metody).
+2. Konstruktor bazy przyjmuje obie strategie: `ScreeningReport(IReportPeriod period, IReportFormat format)`; w `Render` wołaj `_period.Includes(...)` i `_period.Label(...)`.
+3. Z podklas znikają ostatnie haki - każda to już tylko konfiguracja konstruktora.
+
+**Przed:**
+
+```csharp
+public sealed class DailyCsvReport : ScreeningReport
+{
+    public DailyCsvReport()
+        : base(new CsvFormat())
+    {
+    }
+
+    protected override bool Includes(DateOnly day, DateOnly saleDay)
+    {
+        return saleDay == day;
+    }
+
+    protected override string Label(DateOnly day)
+    {
+        return "dzien " + day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+    }
+}
+```
+
 **Po:**
 
 ```csharp
@@ -2597,7 +4309,33 @@ public WeeklyTextReport()
 
 ### Krok 3: zwinięcie podklas w jedną klasę sealed
 
-**W IDE:** w `ScreeningReport` usuń `abstract`, oznacz klasę `sealed`, konstruktor zrób publiczny. `Reports.Of` składa `new ScreeningReport(period, format)` z dwóch słowników `Periods` i `Formats`, sprawdzając najpierw okres, potem format. Safe Delete (⌘⌦) czterech podklas.
+**Zmiany:**
+
+1. W `ScreeningReport` usuń `abstract`, oznacz klasę `sealed` i zrób konstruktor publiczny.
+2. W `Reports` dodaj dwa słowniki `Periods` i `Formats`; `Of` sprawdza najpierw okres, potem format (te same komunikaty błędów) i zwraca `new ScreeningReport(chosenPeriod, chosenFormat)`.
+3. Usuń cztery pliki podklas `Daily*Report` i `Weekly*Report` (bezpieczne usunięcie - wcześniej upewnij się, że nikt nie używa ich typów).
+
+**Przed:**
+
+```csharp
+return period switch
+{
+    "DAILY" => format switch
+    {
+        "CSV" => new DailyCsvReport(),
+        "TEXT" => new DailyTextReport(),
+        _ => throw UnknownFormat(format),
+    },
+    "WEEKLY" => format switch
+    {
+        "CSV" => new WeeklyCsvReport(),
+        "TEXT" => new WeeklyTextReport(),
+        _ => throw UnknownFormat(format),
+    },
+    _ => throw new ArgumentException("unknown period: " + period),
+};
+```
+
 **Po:**
 
 ```csharp
@@ -2623,7 +4361,7 @@ return new ScreeningReport(chosenPeriod, chosenFormat);
 ### Pułapki
 
 - Zwinięcie podklas przed wyjęciem obu osi - zostaje klasa z warunkiem `if (weekly)` zamiast strategii.
-- Znika typ podklasy: kod z `is WeeklyCsvReport`, rejestracja w kontenerze DI po typie albo zapisana nazwa klasy przestają działać - poszukaj takich użyć (⌥F7 Find Usages) przed Safe Delete.
+- Znika typ podklasy: kod z `is WeeklyCsvReport`, rejestracja w kontenerze DI po typie albo zapisana nazwa klasy przestają działać - poszukaj takich użyć, zanim usuniesz podklasy.
 - Osie, które tylko wyglądają na niezależne: gdyby format tekstowy inaczej opisywał tydzień niż dzień, format zależałby od okresu i podział 2 + 2 byłby fałszywy.
 - Kopie implementacji w podklasach mogły się już rozjechać (np. escapowanie tylko w jednym CSV) - porównaj je, zanim zostawisz jedną.
 
@@ -2673,7 +4411,25 @@ Zmiana kolejności, nowy poziom albo inna ścieżka dla festiwalu oznacza edycj�
 
 ### Krok 1: Extract Interface i pierwsze ogniwo
 
-**W IDE:** utwórz interfejs `IRefundHandler` z metodą `RefundDecision? Handle(RefundRequest request)` - `null` znaczy "pytaj dalej". Pierwszą gałąź wydziel (⌥⌘M) i przenieś (F6) do klasy `AfterScreeningHandler`. W `Decide` zostaje reszta `if/else`.
+**Zmiany:**
+
+1. Utwórz nowy plik `IRefundHandler.cs`: interfejs z metodą `RefundDecision? Handle(RefundRequest request)` - `null` znaczy "pytaj dalej".
+2. Pierwszą gałąź przenieś do nowej klasy `AfterScreeningHandler : IRefundHandler` (wyodrębnienie klasy): po rozpoczęciu seansu zwraca odmowę, w przeciwnym razie `null`.
+3. W `RefundApprover` dodaj pole `_afterScreening = new AfterScreeningHandler()`; w `Decide` pierwsze `if` zastąp wywołaniem `Handle` i sprawdzeniem `decision != null`. Reszta łańcucha `if/else` bez zmian.
+
+**Przed:**
+
+```csharp
+if (!(request.RequestedAt < request.ScreeningStart))
+{
+    return RefundDecision.Rejected("seans juz sie rozpoczal");
+}
+else if ((request.ScreeningStart - request.RequestedAt).TotalHours >= 24)
+{
+    return RefundDecision.ApprovedBy("AUTO");
+}
+```
+
 **Po:**
 
 ```csharp
@@ -2694,7 +4450,35 @@ else if ((request.ScreeningStart - request.RequestedAt).TotalHours >= 24)
 
 ### Krok 2: wszystkie gałęzie jako ogniwa w liście
 
-**W IDE:** ten sam ruch dla `AutoRefundHandler`, `CashierHandler` i `ManagerHandler`; limity trafiają do konstruktorów (Introduce Parameter ⌥⌘P). `Decide` przegląda listę ogniw po kolei i zwraca pierwszą decyzję, a po liście - odmowę "brak uprawnionego zatwierdzajacego".
+**Zmiany:**
+
+1. Ten sam ruch dla pozostałych gałęzi: `AutoRefundHandler`, `CashierHandler` i `ManagerHandler`; limity kasjera i kierownika stają się parametrami konstruktorów (pole `readonly _limit`).
+2. W `RefundApprover` zamień pole pojedynczego ogniwa na listę `IReadOnlyList<IRefundHandler> _handlers` w kolejności reguł.
+3. `Decide` przegląda listę po kolei i zwraca pierwszą decyzję różną od `null`, a po liście - odmowę "brak uprawnionego zatwierdzajacego".
+
+**Przed:**
+
+```csharp
+var decision = _afterScreening.Handle(request);
+if (decision != null)
+{
+    return decision;
+}
+else if ((request.ScreeningStart - request.RequestedAt).TotalHours >= 24)
+{
+    return RefundDecision.ApprovedBy("AUTO");
+}
+else if (!request.Amount.IsGreaterThan(CashierLimit))
+{
+    return RefundDecision.ApprovedBy("CASHIER");
+}
+else if (!request.Amount.IsGreaterThan(ManagerLimit))
+{
+    return RefundDecision.ApprovedBy("MANAGER");
+}
+return RefundDecision.Rejected("brak uprawnionego zatwierdzajacego");
+```
+
 **Po:**
 
 ```csharp
@@ -2715,7 +4499,34 @@ return RefundDecision.Rejected("brak uprawnionego zatwierdzajacego");
 
 ### Krok 3: jawny łańcuch z następnikiem
 
-**W IDE:** Change Signature (⌘F6) na `IRefundHandler.Handle`: zwraca `RefundDecision` zamiast `RefundDecision?`. Każde ogniwo dostaje `next` w konstruktorze (pole `readonly _next`) i woła `_next.Handle(request)`, gdy nie obsłuży żądania. Odmowę z końca listy przenieś do `NoApproverHandler`. `RefundApprover` dostaje dwa konstruktory: domyślny składa standardową ścieżkę, drugi przyjmuje dowolną głowę łańcucha.
+**Zmiany:**
+
+1. Zmień sygnaturę `IRefundHandler.Handle` (zmiana sygnatury): zwraca `RefundDecision` zamiast `RefundDecision?` - kompilator pilnuje, że ogniwo zawsze zwraca decyzję.
+2. Każde ogniwo dostaje następnika w konstruktorze (pole `readonly _next`) i woła `_next.Handle(request)`, gdy samo nie obsłuży żądania. Odmowę z końca listy przenieś do nowego ogniwa `NoApproverHandler`.
+3. W `RefundApprover` zastąp listę polem `_chain` i daj dwa konstruktory: domyślny składa standardową ścieżkę, drugi przyjmuje dowolną głowę łańcucha; `Decide` po walidacji kwoty woła `_chain.Handle(request)`.
+
+**Przed:**
+
+```csharp
+private readonly IReadOnlyList<IRefundHandler> _handlers =
+[
+    new AfterScreeningHandler(),
+    new AutoRefundHandler(),
+    new CashierHandler(CashierLimit),
+    new ManagerHandler(ManagerLimit),
+];
+...
+foreach (var handler in _handlers)
+{
+    var decision = handler.Handle(request);
+    if (decision != null)
+    {
+        return decision;
+    }
+}
+return RefundDecision.Rejected("brak uprawnionego zatwierdzajacego");
+```
+
 **Po:**
 
 ```csharp
@@ -2789,7 +4600,32 @@ Punkt wejścia testu to korzeń kompozycji `PaymentModule.PaymentService(termina
 
 ### Krok 1: Introduce Boundary Object
 
-**W IDE:** utwórz `sealed record PaymentConfirmation` z konstruktorem `(Outcome outcome, string code, Money authorized)` i enum `Outcome { Approved, Declined, Error }`. W konstruktorze walidacja: kod niepusty, kwota nieujemna, tylko `Approved` może autoryzować pieniądze. W `Pay` rozbierz odpowiedź raz, zaraz po wywołaniu terminala (⌥⌘M `Parse(raw)`); słownik przechowuje `PaymentConfirmation`, a `Receipt` i `TotalAuthorized` czytają właściwości obiektu.
+**Zmiany:**
+
+1. Utwórz nowy plik `PaymentConfirmation.cs`: enum `Outcome { Approved, Declined, Error }` i `sealed record PaymentConfirmation` z jawnym konstruktorem `(Outcome outcome, string code, Money authorized)`. W konstruktorze walidacja: kod niepusty, kwota nieujemna, tylko `Approved` może autoryzować pieniądze. Dodaj właściwość `Approved` i metodę `IsPartialFor(requested)`.
+2. W `PaymentService` wydziel prywatną metodę `Parse(raw)` (wyodrębnienie metody) wołaną raz, zaraz po wywołaniu terminala: sprawdza liczbę pól i znany status, kwotę parsuje przez `decimal.TryParse`, a dla błędnych danych rzuca `ArgumentException("malformed terminal response: ...")`.
+3. Słownik `_responses` zamień na `Dictionary<string, PaymentConfirmation> _confirmations`; `Receipt` i `TotalAuthorized` czytają właściwości obiektu zamiast parsować tekst.
+
+**Przed:**
+
+```csharp
+var grosze = decimal.ToInt64(amount.Amount * 100);
+var raw = _terminal.Authorize(bookingId, grosze);
+_responses[bookingId] = raw;
+var parts = raw.Split(';');
+if (parts[0] != "OK")
+{
+    return parts[0] + " " + parts[1];
+}
+var authorized = long.Parse(parts[2], CultureInfo.InvariantCulture);
+if (authorized < grosze)
+{
+    return "PARTIAL " + parts[1] + " brakuje "
+        + ((grosze - authorized) / 100m).ToString("0.00", CultureInfo.InvariantCulture);
+}
+return "PAID " + parts[1];
+```
+
 **Po:**
 
 ```csharp
@@ -2811,7 +4647,32 @@ if (confirmation.IsPartialFor(amount))
 
 ### Krok 2: mapper na granicy
 
-**W IDE:** F6 (Move) dla statycznej `Parse` do nowej klasy `TerminalResponseMapper` jako `ToConfirmation(raw)`; przeliczenie złotych na grosze też tam (`ToGrosze(amount)`). Serwis tworzy mapper i woła go po obu stronach wywołania terminala.
+**Zmiany:**
+
+1. Przenieś statyczną metodę `Parse` do nowej klasy `TerminalResponseMapper` jako `ToConfirmation(raw)` (przeniesienie metody); przeliczenie złotych na grosze wydziel tam jako `ToGrosze(amount)`.
+2. W serwisie dodaj pole `_mapper = new TerminalResponseMapper()`; `Pay` woła mapper po obu stronach wywołania terminala.
+
+**Przed:**
+
+```csharp
+private static PaymentConfirmation Parse(string raw)
+{
+    var parts = raw.Split(';');
+    if (parts.Length != 3)
+    {
+        throw new ArgumentException("malformed terminal response: " + raw);
+    }
+    var outcome = parts[0] switch
+    {
+        "OK" => Outcome.Approved,
+        "DECLINED" => Outcome.Declined,
+        "ERROR" => Outcome.Error,
+        _ => throw new ArgumentException("malformed terminal response: " + raw),
+    };
+    ...
+}
+```
+
 **Po:**
 
 ```csharp
@@ -2825,7 +4686,26 @@ var confirmation = _mapper.ToConfirmation(raw);
 
 ### Krok 3: port domeny i adapter
 
-**W IDE:** utwórz interfejs `IPaymentTerminal` z `PaymentConfirmation Authorize(string bookingId, Money amount)` i klasę `LegacyTerminalAdapter : IPaymentTerminal`, która łączy klienta z mapperem. Change Signature (⌘F6) konstruktora `PaymentService`: `LegacyTerminalClient` na `IPaymentTerminal`. W korzeniu kompozycji owiń klienta adapterem.
+**Zmiany:**
+
+1. Utwórz interfejs `IPaymentTerminal` z metodą `PaymentConfirmation Authorize(string bookingId, Money amount)` oraz klasę `LegacyTerminalAdapter : IPaymentTerminal`, która łączy `LegacyTerminalClient` z mapperem.
+2. W konstruktorze `PaymentService` zmień typ parametru z `LegacyTerminalClient` na `IPaymentTerminal` (zmiana sygnatury); `Pay` woła `_terminal.Authorize(bookingId, amount)` i nie widzi już groszy ani mappera.
+3. W korzeniu kompozycji `PaymentModule` owiń klienta adapterem.
+
+**Przed:**
+
+```csharp
+private readonly LegacyTerminalClient _terminal;
+private readonly TerminalResponseMapper _mapper = new();
+...
+public string Pay(string bookingId, Money amount)
+{
+    var raw = _terminal.Authorize(bookingId, _mapper.ToGrosze(amount));
+    var confirmation = _mapper.ToConfirmation(raw);
+    ...
+}
+```
+
 **Po:**
 
 ```csharp
@@ -2896,7 +4776,36 @@ if (!_payments.Charge(order.Card, total))
 
 ### Krok 1: Extract Facade ze sklepu
 
-**W IDE:** w `OnlineShop.Buy` zaznacz całą orkiestrację, ⌥⌘M `Book(order)`, potem Introduce Parameter (⌥⌘P) dla opłaty: `Book(order, feePerSeat)`. F6 (Move Instance Method) do nowej klasy `BookingFacade` z czterema podsystemami w konstruktorze. Sklep dostaje fasadę, a `Cinema` ją tworzy.
+**Zmiany:**
+
+1. W `OnlineShop.Buy` wydziel całą orkiestrację do metody `Book(order)` (wyodrębnienie metody), a potem zamień stałą opłaty na parametr (wprowadzenie parametru): `Book(order, feePerSeat)`.
+2. Przenieś `Book` do nowej klasy `BookingFacade` (przeniesienie metody) z czterema podsystemami w konstruktorze.
+3. W `OnlineShop` zostają pole `_booking` i stała `BookingFee`; `Cinema` tworzy fasadę i podaje ją sklepowi. Kasa bez zmian.
+
+**Przed:**
+
+```csharp
+public string Buy(TicketOrder order)
+{
+    var total = _prices.Price(order.TicketType).Plus(BookingFee).Times(order.Seats.Count);
+    try
+    {
+        _seats.Reserve(order.Screening, order.Seats);
+    }
+    catch (InvalidOperationException exception)
+    {
+        return "ERROR " + exception.Message;
+    }
+    if (!_payments.Charge(order.Card, total))
+    {
+        _seats.Release(order.Screening, order.Seats);
+        return "ERROR payment declined";
+    }
+    _mailer.Send(order.Email, "Bilety " + order.Screening + " " + string.Join(",", order.Seats) + " = " + total);
+    return "OK " + total;
+}
+```
+
 **Po:**
 
 ```csharp
@@ -2912,7 +4821,35 @@ public string Buy(TicketOrder order)
 
 ### Krok 2: kasa na fasadzie - świadoma zmiana zachowania
 
-**W IDE:** Change Signature (⌘F6) konstruktora `BoxOffice`: cztery podsystemy na `BookingFacade`. `Sell` woła `_booking.Book(order, Money.Zero)`, skopiowaną orkiestrację usuń. Popraw `Cinema`.
+**Zmiany:**
+
+1. W konstruktorze `BoxOffice` zamień cztery podsystemy na jedną zależność `BookingFacade` (zmiana sygnatury).
+2. `Sell` woła `_booking.Book(order, Money.Zero)`; skopiowaną orkiestrację usuń.
+3. Popraw składanie w `Cinema` - kasa też dostaje fasadę.
+
+**Przed:**
+
+```csharp
+public string Sell(TicketOrder order)
+{
+    var total = _prices.Price(order.TicketType).Times(order.Seats.Count);
+    try
+    {
+        _seats.Reserve(order.Screening, order.Seats);
+    }
+    catch (InvalidOperationException exception)
+    {
+        return "ERROR " + exception.Message;
+    }
+    if (!_payments.Charge(order.Card, total))
+    {
+        return "ERROR payment declined";
+    }
+    _mailer.Send(order.Email, "Bilety " + order.Screening + " " + string.Join(",", order.Seats) + " = " + total);
+    return "OK " + total;
+}
+```
+
 **Po:**
 
 ```csharp
@@ -2928,7 +4865,21 @@ public string Sell(TicketOrder order)
 
 ### Krok 3: ukryte podsystemy i niezmiennik w finally
 
-**W IDE:** zmień `public` na `internal` w `SeatRegistry`, `PriceList`, `PaymentClient`, `TicketMailer`, ich metodach i w konstruktorze fasady (⌥⏎ na modyfikatorze albo Change Signature ⌘F6 z widocznością). W `Book` otocz `Charge` blokiem `try/finally` (Surround With ⌥⌘T), który zwalnia miejsca, gdy płatność się nie udała.
+**Zmiany:**
+
+1. Zmień `public` na `internal` w `SeatRegistry`, `PriceList`, `PaymentClient` i `TicketMailer`, w ich metodach oraz w konstruktorze fasady - kanały sprzedaży dostają gotowy obiekt.
+2. W `Book` otocz `Charge` blokiem `try/finally`: lokalna flaga `paid`, a `finally` zwalnia miejsca, gdy płatność się nie powiodła - także gdy bramka rzuciła wyjątkiem.
+
+**Przed:**
+
+```csharp
+if (!_payments.Charge(order.Card, total))
+{
+    _seats.Release(order.Screening, order.Seats);
+    return "ERROR payment declined";
+}
+```
+
 **Po:**
 
 ```csharp
@@ -3004,7 +4955,29 @@ Reguła "wolno grać, gdy licencja jest aktywna i obejmuje dzień" jest zapisana
 
 ### Krok 1: model domeny i tłumaczenie w jednym miejscu
 
-**W IDE:** utwórz `sealed record FilmLicense` (`FilmCode`, `Title`, `Active`, `ValidFrom`, `ValidTo`, `SharePercent`, `MinimumGuarantee`) z niezmiennikami w konstruktorze i metodami `Covers(day)`, `AllowsScreeningOn(day)`, `DueFor(revenue)`. W serwisie zaznacz dekodowanie pól rekordu, ⌥⌘M `ToLicense(record)`, a reguły licz na licencji.
+**Zmiany:**
+
+1. Utwórz nowy plik `FilmLicense.cs`: `sealed record` z właściwościami `FilmCode`, `Title`, `Active`, `ValidFrom`, `ValidTo`, `SharePercent`, `MinimumGuarantee`, niezmiennikami w konstruktorze (koniec nie przed początkiem, udział 0-100) i metodami `Covers(day)`, `AllowsScreeningOn(day)`, `DueFor(revenue)`.
+2. W serwisie wydziel dekodowanie pól rekordu do prywatnej metody `ToLicense(record)` (wyodrębnienie metody): kod statusu, daty `yyyyMMdd`, grosze, procent i tytuł tłumaczone w jednym miejscu.
+3. Reguły w `Settle` i `CanScreen` licz na licencji: `license.Active`, `license.Covers(day)`, `license.DueFor(revenue)`.
+
+**Przed:**
+
+```csharp
+if (record.StatusCode != "A")
+{
+    return "LICENCJA ZAWIESZONA " + filmCode;
+}
+if (!CanScreen(filmCode, day))
+{
+    return "LICENCJA NIEWAZNA " + filmCode + " w dniu " + day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+}
+var percent = int.Parse(record.Share.Replace("%", "").Trim(), CultureInfo.InvariantCulture);
+var minimum = new Money(decimal.Parse(record.MinGuaranteeCents, CultureInfo.InvariantCulture) / 100);
+var due = revenue.Percent(percent).Max(minimum);
+var title = record.TitleUpper[0] + record.TitleUpper[1..].ToLowerInvariant();
+```
+
 **Po:**
 
 ```csharp
@@ -3025,7 +4998,29 @@ if (!license.Covers(day))
 
 ### Krok 2: tłumacz jako osobna klasa
 
-**W IDE:** F6 (Move) dla `ToLicense` do nowej klasy `DistributorTranslator`. Wydziel `Title(...)` i `Date(...)` (⌥⌘M), kod statusu jako stałą `Active` (⌥⌘C), a w `Date` zamień `FormatException` na `ArgumentException` z komunikatem granicy.
+**Zmiany:**
+
+1. Przenieś `ToLicense` do nowej klasy `DistributorTranslator` (przeniesienie metody); serwis dostaje pole `_translator = new DistributorTranslator()`.
+2. W tłumaczu wydziel metody pomocnicze `Title(...)` i `Date(...)` (wyodrębnienie metody), a kod statusu zapisz jako stałą `Active` (wprowadzenie stałej).
+3. W `Date` złap `FormatException` i rzuć `ArgumentException("invalid legacy date: ...")` z zachowaną przyczyną.
+
+**Przed:**
+
+```csharp
+private static FilmLicense ToLicense(DistributorRecord record)
+{
+    var title = record.TitleUpper[0] + record.TitleUpper[1..].ToLowerInvariant();
+    return new FilmLicense(
+        record.FilmCode,
+        title,
+        record.StatusCode == "A",
+        DateOnly.ParseExact(record.ValidFrom, "yyyyMMdd", CultureInfo.InvariantCulture),
+        DateOnly.ParseExact(record.ValidTo, "yyyyMMdd", CultureInfo.InvariantCulture),
+        int.Parse(record.Share.Replace("%", "").Trim(), CultureInfo.InvariantCulture),
+        new Money(decimal.Parse(record.MinGuaranteeCents, CultureInfo.InvariantCulture) / 100));
+}
+```
+
 **Po:**
 
 ```csharp
@@ -3048,7 +5043,25 @@ private static DateOnly Date(string legacy)
 
 ### Krok 3: port domenowy i warstwa antykorupcyjna
 
-**W IDE:** utwórz interfejs `IFilmLicenses` z `FilmLicense? Find(string filmCode)` i klasę `DistributorAcl : IFilmLicenses`, która łączy klienta dystrybutora z tłumaczem. Change Signature (⌘F6) konstruktora serwisu: `DistributorFeed` na `IFilmLicenses`. Tłumacz staje się `internal`, a `SettlementModule` owija klienta w ACL.
+**Zmiany:**
+
+1. Utwórz interfejs `IFilmLicenses` z metodą `FilmLicense? Find(string filmCode)` i klasę `DistributorAcl : IFilmLicenses`, która łączy `DistributorFeed` z tłumaczem i zamienia `null` obcego systemu na zadeklarowany typem `FilmLicense?`.
+2. W konstruktorze serwisu zmień typ zależności z `DistributorFeed` na `IFilmLicenses` (zmiana sygnatury); `Settle` i `CanScreen` wołają `Find` i nie widzą już `DistributorRecord`.
+3. Zmień widoczność tłumacza na `internal`, a w `SettlementModule` owiń klienta w `DistributorAcl`.
+
+**Przed:**
+
+```csharp
+private readonly DistributorFeed _feed;
+private readonly DistributorTranslator _translator = new();
+...
+public bool CanScreen(string filmCode, DateOnly day)
+{
+    var record = _feed.Fetch(filmCode);
+    return record != null && _translator.ToLicense(record).AllowsScreeningOn(day);
+}
+```
+
 **Po:**
 
 ```csharp
@@ -3117,7 +5130,28 @@ Ta sama para "przelicz sumę, odśwież przycisk" jest w `Basket.Remove`, `Baske
 
 ### Krok 1: interfejs mediatora i pierwsze zdarzenie
 
-**W IDE:** utwórz interfejs `ISelectionMediator` z metodą `SeatToggled(string seat, bool selected)`. `SeatSelectionScreen : ISelectionMediator` (jak "dialog" w GoF). Reakcję z `SeatMap.Click` wydziel (⌥⌘M) i przenieś (F6) do `SeatToggled` w ekranie. `SeatMap` dostaje mediatora w konstruktorze (`_seatMap = new SeatMap(this);` w konstruktorze ekranu), jej `Connect(...)` znika.
+**Zmiany:**
+
+1. Utwórz nowy plik `ISelectionMediator.cs`: interfejs z metodą `void SeatToggled(string seat, bool selected)`; `SeatSelectionScreen` implementuje go (jak "dialog" w GoF).
+2. Reakcję z `SeatMap.Click` (aktualizacja koszyka, przeliczenie sumy, odświeżenie przycisku) przenieś do metody `SeatToggled` w ekranie (wyodrębnienie i przeniesienie metody); `Click` wyznacza tylko `nowSelected` i zgłasza zdarzenie.
+3. `SeatMap` dostaje mediatora w konstruktorze - ekran tworzy ją w swoim konstruktorze przez `_seatMap = new SeatMap(this);`; metoda `Connect(...)` mapy i jej trzy pola komponentów znikają.
+
+**Przed:**
+
+```csharp
+if (_selected.Remove(seat))
+{
+    _basket.Drop(seat);
+}
+else
+{
+    _selected.Add(seat);
+    _basket.Add(seat);
+}
+_summary.Recalculate(_basket.Seats);
+_payButton.Refresh(_basket.Seats.Count, _summary.Total);
+```
+
 **Po:**
 
 ```csharp
@@ -3135,7 +5169,30 @@ _mediator.SeatToggled(seat, nowSelected);
 
 ### Krok 2: wszystkie zdarzenia i jedno Refresh()
 
-**W IDE:** dodaj do interfejsu `SeatRemoved`, `BasketCleared`, `VoucherApplied` i `SeatsPaid(IReadOnlyList<string>)`. `Basket`, `PriceSummary` i `PayButton` dostają mediatora w konstruktorze i zgłaszają zdarzenia zamiast odświeżać sąsiadów; przycisk zachowuje jeszcze `Connect(basket, summary)`. Powtórzoną parę odświeżeń wydziel w ekranie do `Refresh()` (⌥⌘M; Rider zaproponuje zastąpienie pozostałych duplikatów).
+**Zmiany:**
+
+1. Dodaj do interfejsu zdarzenia `SeatRemoved`, `BasketCleared`, `VoucherApplied` i `SeatsPaid(IReadOnlyList<string>)`; ekran obsługuje je metodami (np. `SeatRemoved` woła `_seatMap.Deselect(seat)`).
+2. `Basket`, `PriceSummary` i `PayButton` dostają mediatora w konstruktorze i zgłaszają zdarzenia zamiast odświeżać sąsiadów; przycisk zachowuje jeszcze `Connect(basket, summary)`, bo sam czyta dane do komunikatu.
+3. Powtórzoną parę "przelicz sumę, odśwież przycisk" wydziel w ekranie do prywatnej metody `Refresh()` (wyodrębnienie metody) i użyj jej we wszystkich obsługach zdarzeń.
+
+**Przed:**
+
+```csharp
+public void SeatToggled(string seat, bool selected)
+{
+    if (selected)
+    {
+        _basket.Add(seat);
+    }
+    else
+    {
+        _basket.Drop(seat);
+    }
+    _summary.Recalculate(_basket.Seats);
+    _payButton.Refresh(_basket.Seats.Count, _summary.Total);
+}
+```
+
 **Po:**
 
 ```csharp
@@ -3153,7 +5210,28 @@ private void Refresh()
 
 ### Krok 3: komponenty znają tylko mediatora
 
-**W IDE:** Change Signature (⌘F6) `SeatsPaid(IReadOnlyList<string>)` na `string PayRequested()`. Zbieranie miejsc i kwoty oraz składanie komunikatu z `PayButton.Press` przenieś do mediatora. Usuń `Connect` z przycisku i ostatnie wywołanie `Connect` z konstruktora ekranu - zostaje w nim tylko tworzenie czterech komponentów z `this`.
+**Zmiany:**
+
+1. Zamień w interfejsie `SeatsPaid(IReadOnlyList<string>)` na `string PayRequested()` (zmiana sygnatury).
+2. Zbieranie miejsc i kwoty oraz składanie komunikatu "Zaplacono ..." przenieś z `PayButton.Press` do `PayRequested` w mediatorze; przycisk tylko zgłasza chęć płatności.
+3. Usuń `Connect` i pola `_basket`/`_summary` z przycisku oraz ostatnie wywołanie `Connect` z konstruktora ekranu - zostaje w nim tylko tworzenie czterech komponentów z `this`.
+
+**Przed:**
+
+```csharp
+public string Press()
+{
+    if (!_enabled)
+    {
+        return "Nieaktywny: " + _label;
+    }
+    var paid = _basket.Seats;
+    var amount = _summary.Total;
+    _mediator.SeatsPaid(paid);
+    return "Zaplacono " + amount + " za " + string.Join(",", paid);
+}
+```
+
 **Po:**
 
 ```csharp

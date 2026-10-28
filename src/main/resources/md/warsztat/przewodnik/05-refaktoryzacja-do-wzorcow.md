@@ -119,7 +119,29 @@ Klientem jest `PriceBoard.priceFor(request)` - przez niego woła test. Test rów
 
 ### Krok 1: Extract Interface + strategia przejściowa
 
-**W IDE:** utwórz interfejs funkcyjny `DiscountPolicy` z metodą `Money discount(Money base, String ticketType)`. Zaznacz łańcuch `if`, ⌥⌘M, nazwa `legacyDiscount` (parametry `base`, `ticketType`, `program`, zwracane `Money`). W `price` utwórz lambdę `DiscountPolicy policy = (b, type) -> legacyDiscount(b, type, program);` i wywołaj ją.
+**Zmiany:**
+
+1. Powstaje nowy plik `DiscountPolicy.java`: interfejs funkcyjny z jedną metodą `Money discount(Money base, String ticketType)` (Extract Interface).
+2. W `TicketPricer` wydzielamy cały łańcuch `if` do nowej prywatnej metody statycznej `legacyDiscount(Money base, String ticketType, String program)` (Extract Method); gałęzie zamiast przypisywać zmienną `discount` zwracają wynik.
+3. W `price` tworzymy lambdę `DiscountPolicy policy = (b, type) -> legacyDiscount(b, type, program);` i liczymy cenę przez `policy.discount(base, ticketType)`.
+
+**Przed:**
+
+```java
+Money discount;
+if (program.equals("PREMIERE")) {
+    discount = Money.ZERO;
+} else if (program.equals("STUDENT_WEEK") && ticketType.equals("S")) {
+    discount = base.percent(50);
+} else if (program.equals("STANDARD") || program.equals("STUDENT_WEEK")) {
+    int percent = switch (ticketType) { ... };
+    discount = base.percent(percent);
+} else {
+    throw new IllegalArgumentException("unknown program: " + program);
+}
+return base.minus(discount);
+```
+
 **Po:**
 
 ```java
@@ -133,7 +155,29 @@ return base.minus(policy.discount(base, ticketType));
 
 ### Krok 2: przeniesienie gałęzi do strategii
 
-**W IDE:** dla każdej gałęzi osobno: nowa klasa implementująca `DiscountPolicy` (⌥⏎ na interfejsie - Implement interface), ciało skopiowane z gałęzi, test. Kolejno `StandardDiscount`, `PremiereDiscount`, `StudentWeekDiscount` (ta ostatnia deleguje nie-studentów do `StandardDiscount`). Na koniec `legacyDiscount` zastąp metodą `policyFor(program)` ze `switch`.
+**Zmiany:**
+
+1. Powstaje nowy plik `StandardDiscount.java`: klasa implementuje `DiscountPolicy`, a jej metoda `discount` dostaje ciało gałęzi STANDARD (`switch` po typie biletu). Po przeniesieniu gałęzi uruchamiamy test.
+2. Powstaje nowy plik `PremiereDiscount.java`: `discount` zwraca `Money.ZERO` i celowo nie sprawdza typu biletu, tak jak start. Test.
+3. Powstaje nowy plik `StudentWeekDiscount.java`: student dostaje 50%, pozostałe typy klasa deleguje do strategii `fallback` przekazanej w konstruktorze (będzie nią `StandardDiscount`). Test.
+4. W `TicketPricer` metoda `legacyDiscount` znika; w jej miejsce powstaje prywatna metoda `policyFor(String program)` ze `switch`, która zwraca strategię. `price` woła `policyFor(program).discount(base, ticketType)`.
+
+**Przed:**
+
+```java
+private static Money legacyDiscount(Money base, String ticketType, String program) {
+    if (program.equals("PREMIERE")) {
+        return Money.ZERO;
+    } else if (program.equals("STUDENT_WEEK") && ticketType.equals("S")) {
+        return base.percent(50);
+    } else if (program.equals("STANDARD") || program.equals("STUDENT_WEEK")) {
+        int percent = switch (ticketType) { ... };
+        return base.percent(percent);
+    }
+    throw new IllegalArgumentException("unknown program: " + program);
+}
+```
+
 **Po:**
 
 ```java
@@ -151,7 +195,30 @@ return switch (program) {
 
 ### Krok 3: wybór strategii w korzeniu kompozycji
 
-**W IDE:** Extract Class (lub Move Static Member F6) dla `policyFor` do `DiscountPrograms.forName`, instancje jako stałe (współdzielone). Change Signature (⌘F6) na `TicketPricer`: strategia w konstruktorze, `price(base, ticketType)` bez programu. Popraw klienta `PriceBoard`.
+**Zmiany:**
+
+1. Powstaje nowy plik `DiscountPrograms.java` (Extract Class): przenosimy tam `policyFor` jako publiczną metodę statyczną `forName(String program)`. Strategie są bezstanowe, więc trzymamy je jako współdzielone stałe `STANDARD`, `STUDENT_WEEK`, `PREMIERE`. Trafia tu też walidacja `program == null`.
+2. `TicketPricer` dostaje pole `DiscountPolicy policy` i konstruktor `TicketPricer(DiscountPolicy policy)`. Metoda `price` traci parametr `program` - nowa sygnatura to `price(Money base, String ticketType)` (Change Signature). Metoda `policyFor` znika z tej klasy.
+3. W `PriceBoard.priceFor` składamy kontekst na nowo: strategia z `DiscountPrograms.forName(request.program())` idzie do konstruktora `TicketPricer`. Pole `pricer` znika.
+
+**Przed:**
+
+```java
+public Money price(Money base, String ticketType, String program) {
+    ...
+    return base.minus(policyFor(program).discount(base, ticketType));
+}
+
+private static DiscountPolicy policyFor(String program) {
+    return switch (program) {
+        case "STANDARD" -> new StandardDiscount();
+        case "STUDENT_WEEK" -> new StudentWeekDiscount(new StandardDiscount());
+        case "PREMIERE" -> new PremiereDiscount();
+        default -> throw new IllegalArgumentException("unknown program: " + program);
+    };
+}
+```
+
 **Po:**
 
 ```java
@@ -210,7 +277,27 @@ Tworzenie jest w jednym miejscu: `Screening.fromRow(ScreeningRow)` (mapowanie wi
 
 ### Krok 1: Extract Subclass dla jednej gałęzi
 
-**W IDE:** usuń `final`, dodaj `sealed ... permits MarathonScreening`. Utwórz `MarathonScreening extends Screening` z polem `films`, nadpisz trzy metody (⌃O - Override Methods) i skopiuj do nich gałęzie MARATHON. W `fromRow` twórz podklasę dla "MARATHON". W bazie gałęzie MARATHON rzucają `IllegalStateException`.
+**Zmiany:**
+
+1. W `Screening` usuwamy `final` i deklarujemy klasę jako `sealed ... permits MarathonScreening`. Konstruktor przestaje być prywatny (dostęp pakietowy), dochodzi chroniony akcesor `title()`.
+2. Powstaje nowy plik `MarathonScreening.java` (Extract Subclass): podklasa `extends Screening` z własnym polem `films`, nadpisuje `label()`, `durationMinutes()` i `price()` ciałami gałęzi MARATHON.
+3. W `fromRow` gałąź `"MARATHON"` tworzy `new MarathonScreening(row.title(), row.value())` zamiast bazowego `Screening`.
+4. W klasie bazowej gałęzie MARATHON trzech switchy stają się martwe - rzucają `IllegalStateException("handled by MarathonScreening")`.
+
+**Przed:**
+
+```java
+public static Screening fromRow(ScreeningRow row) {
+    Kind kind = switch (row.kind()) {
+        case "REGULAR" -> Kind.REGULAR;
+        case "PREMIERE" -> Kind.PREMIERE;
+        case "MARATHON" -> Kind.MARATHON;
+        default -> throw new IllegalArgumentException("unknown screening kind: " + row.kind());
+    };
+    return new Screening(kind, row.title(), row.value());
+}
+```
+
 **Po:**
 
 ```java
@@ -223,7 +310,24 @@ case "MARATHON" -> new MarathonScreening(row.title(), row.value());
 
 ### Krok 2: pozostałe podklasy, baza abstrakcyjna
 
-**W IDE:** powtórz ruch dla REGULAR i PREMIERE. Potem metody bazy jako `abstract`, usuń pole `kind` i enum `Kind` (Safe Delete ⌘⌦). Jedynym `switch` zostaje `fromRow`.
+**Zmiany:**
+
+1. Powstają nowe pliki `RegularScreening.java` i `PremiereScreening.java` - ten sam ruch co dla maratonu: pole `runtime`, nadpisane trzy metody, a w `fromRow` gałęzie `"REGULAR"` i `"PREMIERE"` tworzą podklasy.
+2. Metody `label()`, `durationMinutes()` i `price()` w bazie stają się `abstract`; klasa to teraz `abstract sealed class Screening permits RegularScreening, PremiereScreening, MarathonScreening`.
+3. Pole `kind`, pole `value` i enum `Kind` znikają (bezpieczne usunięcie nieużywanych elementów). Konstruktor bazy przyjmuje tylko `title`, podklasy wołają `super(title)`. Jedynym `switch` zostaje `fromRow`.
+
+**Przed:**
+
+```java
+public int durationMinutes() {
+    return switch (kind) {
+        case REGULAR -> 20 + value;
+        case PREMIERE -> 30 + value;
+        case MARATHON -> throw new IllegalStateException("handled by MarathonScreening");
+    };
+}
+```
+
 **Po:**
 
 ```java
@@ -237,7 +341,29 @@ public abstract sealed class Screening permits RegularScreening, PremiereScreeni
 
 ### Krok 3: forma Java 25 - sealed interface i rekordy
 
-**W IDE:** zamień klasę bazową na `sealed interface` ze statycznym `fromRow`, a podklasy na rekordy (⌥⏎ Convert to record). `value` znika - każdy rekord ma nazwane dane (`runtime`, `films`).
+**Zmiany:**
+
+1. Klasę bazową `Screening` zamieniamy na `sealed interface` ze statyczną metodą `fromRow` i deklaracjami `title()`, `label()`, `durationMinutes()`, `price()`.
+2. Podklasy zamieniamy na rekordy: `RegularScreening(String title, int runtime)`, `PremiereScreening(String title, int runtime)`, `MarathonScreening(String title, int films)`.
+3. Pola prywatne i akcesor `title()` w bazie znikają - każdy rekord ma nazwane dane (`runtime`, `films`), a komponent `title` realizuje metodę interfejsu.
+
+**Przed:**
+
+```java
+public final class MarathonScreening extends Screening {
+    private final int films;
+
+    MarathonScreening(String title, int films) {
+        super(title);
+        this.films = films;
+    }
+
+    @Override
+    public int durationMinutes() { return films * 120 + (films - 1) * 15; }
+    ...
+}
+```
+
 **Po:**
 
 ```java
@@ -293,7 +419,22 @@ private Money basePrice(int formatCode) {
 
 ### Krok 1: nowy typ i konwersja na granicy
 
-**W IDE:** utwórz `enum Format { TWO_D(1), THREE_D(2), IMAX(3) }` z polem `code` i `fromCode(int)` rzucającym ten sam wyjątek co start. W `describe` zamień `int` na `Format` zaraz po odczycie; Change Signature (⌘F6) metod prywatnych na `Format`. Do CSV zapisuj `format.code()`.
+**Zmiany:**
+
+1. Powstaje nowy plik `Format.java`: enum `Format { TWO_D(1), THREE_D(2), IMAX(3) }` z polem `code`, akcesorem `code()` i statyczną metodą `fromCode(int)`, która dla nieznanego kodu rzuca ten sam wyjątek co start.
+2. W `ScreeningCsv.describe` zaraz po odczycie zamieniamy `int formatCode` na `Format format = Format.fromCode(...)`.
+3. Metody prywatne `label`, `basePrice`, `needsGlasses` i `toCsv` zmieniają sygnaturę: zamiast `int` przyjmują `Format` (Change Signature). Ich switche przechodzą na stałe enuma i tracą gałąź `default`. Stałe `FORMAT_2D`, `FORMAT_3D`, `FORMAT_IMAX` znikają.
+4. Do CSV nadal trafia ten sam int: `toCsv` zapisuje `format.code()`.
+
+**Przed:**
+
+```java
+int formatCode = Integer.parseInt(parts[1].trim());
+return title + "|" + label(formatCode) + "|" + basePrice(formatCode)
+        + "|okulary:" + (needsGlasses(formatCode) ? "tak" : "nie")
+        + "|csv=" + toCsv(title, formatCode);
+```
+
 **Po:**
 
 ```java
@@ -306,7 +447,27 @@ Format format = Format.fromCode(Integer.parseInt(parts[1].trim()));
 
 ### Krok 2: Move Method do typu
 
-**W IDE:** przenieś `label`, `basePrice`, `needsGlasses` do enuma (F6 Move albo ręcznie jako pola stałych). Klient pyta obiekt zamiast wykonywać `switch`.
+**Zmiany:**
+
+1. Zachowanie zależne od formatu przenosimy do enuma (Move Method): każda stała dostaje w konstruktorze `label`, `basePrice` i `requiresGlasses`, a `Format` publiczne akcesory `label()`, `basePrice()`, `requiresGlasses()`.
+2. Z `ScreeningCsv` znikają metody prywatne `label`, `basePrice`, `needsGlasses` i `toCsv` - `describe` pyta obiekt formatu: `format.label()`, `format.basePrice()`, `format.requiresGlasses()`, `format.code()`.
+
+**Przed:**
+
+```java
+private Money basePrice(Format format) {
+    return switch (format) {
+        case TWO_D -> Money.of("25.00");
+        case THREE_D -> Money.of("32.00");
+        case IMAX -> Money.of("40.00");
+    };
+}
+
+private boolean needsGlasses(Format format) {
+    return format == Format.THREE_D;
+}
+```
+
 **Po:**
 
 ```java
@@ -321,7 +482,34 @@ IMAX(3, "IMAX", "40.00", false);
 
 ### Krok 3: mapper migracyjny na granicy trwałości
 
-**W IDE:** Extract Class `FormatCodes` z `fromCode`/`toCode` (mapa `EnumMap`), usuń `code` z enuma. `ScreeningCsv` rozmawia z mapperem, reszta kodu wyłącznie z `Format`.
+**Zmiany:**
+
+1. Powstaje nowy plik `FormatCodes.java` (Extract Class): mapa `EnumMap<Format, Integer>` z kodami 1, 2, 3 oraz statyczne `fromCode(int)` i `toCode(Format)`. Wyjątek dla nieznanego kodu bez zmian.
+2. Z enuma `Format` znikają pole `code`, akcesor `code()` i metoda `fromCode` - typ domenowy nie wie już nic o kodach trwałych.
+3. `ScreeningCsv.describe` czyta przez `FormatCodes.fromCode(...)` i zapisuje przez `FormatCodes.toCode(format)`; reszta kodu rozmawia wyłącznie z `Format`.
+
+**Przed:**
+
+```java
+public enum Format {
+    TWO_D(1, "2D", "25.00", false),
+    ...
+
+    public int code() {
+        return code;
+    }
+
+    public static Format fromCode(int code) {
+        for (Format format : values()) {
+            if (format.code == code) {
+                return format;
+            }
+        }
+        throw new IllegalArgumentException("unknown format code: " + code);
+    }
+}
+```
+
 **Po:**
 
 ```java
@@ -373,7 +561,22 @@ tickets.add(row >= 10
 
 ### Krok 1: metody tworzące
 
-**W IDE:** w pakiecie `tickets` utwórz `Tickets` ze statycznymi `standard(...)` i `vip(...)` zwracającymi `Ticket`. Zastąp każde `new` w `BoxOffice` wywołaniem metody tworzącej (IntelliJ: Replace Constructor with Factory Method z menu Refactor robi to automatycznie).
+**Zmiany:**
+
+1. W pakiecie `tickets` powstaje nowy plik `Tickets.java`: klasa z prywatnym konstruktorem i statycznymi metodami tworzącymi `standard(title, base, row)` i `vip(title, base, row)`; obie zwracają typ `Ticket` (Replace Constructor with Factory Method).
+2. W `BoxOffice` każde `new StandardTicket(...)` i `new VipTicket(...)` zastępujemy wywołaniem `Tickets.standard(...)` / `Tickets.vip(...)` - w `sell` i w `sellAll`. Importy klas konkretnych znikają z klienta.
+
+**Przed:**
+
+```java
+public Ticket sell(String title, Money base, int row) {
+    if (row >= 10) {
+        return new VipTicket(title, base, row);
+    }
+    return new StandardTicket(title, base, row);
+}
+```
+
 **Po:**
 
 ```java
@@ -386,7 +589,22 @@ return Tickets.vip(title, base, row);
 
 ### Krok 2: decyzja do fabryki
 
-**W IDE:** Move Method - warunek `row >= 10` przenieś do `Tickets.forSeat(title, base, row)`, stałą nazwij (⌥⌘C `VIP_FROM_ROW`). `sellAll` woła `sell`.
+**Zmiany:**
+
+1. W `Tickets` metody `standard` i `vip` zastępujemy jedną metodą `forSeat(String title, Money base, int row)`, do której przenosimy warunek `row >= 10` (Move Method). Liczbę 10 zapisujemy jako stałą `VIP_FROM_ROW`.
+2. `BoxOffice.sell` woła tylko `Tickets.forSeat(title, base, row)`; `sellAll` przestaje powielać warunek i woła `sell`.
+
+**Przed:**
+
+```java
+public Ticket sell(String title, Money base, int row) {
+    if (row >= 10) {
+        return Tickets.vip(title, base, row);
+    }
+    return Tickets.standard(title, base, row);
+}
+```
+
 **Po:**
 
 ```java
@@ -401,7 +619,28 @@ public Ticket sell(String title, Money base, int row) {
 
 ### Krok 3: ograniczenie widoczności
 
-**W IDE:** usuń `public` z `StandardTicket` i `VipTicket` (przy okazji ⌥⏎ Convert to record). IntelliJ podkreśli każde użycie spoza pakietu - to inwentaryzacja, którą robi za nas kompilator.
+**Zmiany:**
+
+1. `StandardTicket` i `VipTicket` tracą modyfikator `public` - stają się pakietowe, więc poza pakietem `tickets` nie da się ich utworzyć ani zaimportować. Każde pozostałe użycie spoza pakietu zgłosi kompilator - to inwentaryzacja, którą robi za nas.
+2. Przy okazji obie klasy zamieniamy na rekordy pakietowe: `record StandardTicket(String title, Money base, int row) implements Ticket` i analogicznie `VipTicket`. Ręcznie pisane pola i konstruktory znikają.
+
+**Przed:**
+
+```java
+public final class VipTicket implements Ticket {
+    private final String title;
+    private final Money base;
+    private final int row;
+
+    public VipTicket(String title, Money base, int row) {
+        this.title = title;
+        this.base = base;
+        this.row = row;
+    }
+    ...
+}
+```
+
 **Po:**
 
 ```java
@@ -456,7 +695,32 @@ Test to scenariusz kilku rezerwacji na jednym serwisie: zajęte miejsce nie zuż
 
 ### Krok 1: Extract Method dla tworzenia
 
-**W IDE:** w `reserve` zaznacz blok od `sequence++` do `new Reservation(...)`, ⌥⌘M, nazwa `newReservation`. W `reserveGroup` zastąp duplikat wywołaniem `newReservation("ONLINE", email, seats)`. Pętlę zajętości wyciągnij do `requireFree`.
+**Zmiany:**
+
+1. W `ReservationService` wydzielamy pętlę sprawdzania zajętości miejsc do prywatnej metody `requireFree(List<String> seats)` (Extract Method).
+2. Blok tworzenia rezerwacji w `reserve` - od `sequence++` do `new Reservation(...)` - wydzielamy do prywatnej metody `newReservation(String channel, String email, List<String> seats)` (Extract Method). `takenSeats.addAll(seats)` zostaje w `reserve`.
+3. W `reserveGroup` usuwamy skopiowany blok: metoda woła teraz `requireFree(seats)` i `newReservation("ONLINE", email, seats)`.
+
+**Przed:**
+
+```java
+public Reservation reserve(String channel, String email, List<String> seats) {
+    for (String seat : seats) {
+        if (takenSeats.contains(seat)) {
+            throw new IllegalStateException("seat taken: " + seat);
+        }
+    }
+    sequence++;
+    String id = "R" + sequence;
+    if (!channel.equals("ONLINE") && !channel.equals("BOX_OFFICE")) {
+        throw new IllegalArgumentException("unknown channel: " + channel);
+    }
+    ...
+    takenSeats.addAll(seats);
+    return new Reservation(id, channel, email, List.copyOf(seats), fee, expiresAt);
+}
+```
+
 **Po:**
 
 ```java
@@ -471,7 +735,30 @@ takenSeats.addAll(seats);
 
 ### Krok 2: Extract Class - ReservationFactory
 
-**W IDE:** Refactor > Extract Delegate (albo Move Method F6 do nowej klasy) dla `newReservation` razem z polami `clock` i `sequence`. Serwis tworzy fabrykę w swoim konstruktorze - sygnatura konstruktora bez zmian.
+**Zmiany:**
+
+1. Powstaje nowy plik `ReservationFactory.java` (Extract Class): przenosimy do niego `newReservation` jako publiczną metodę `create(channel, email, seats)` razem z polami `clock` i `sequence`.
+2. Z `ReservationService` znikają pola `clock` i `sequence`; w ich miejsce pojawia się pole `factory`. Konstruktor `ReservationService(Clock clock)` sam tworzy fabrykę, więc jego sygnatura się nie zmienia.
+3. `reserve` i `reserveGroup` wołają `factory.create(...)` zamiast `newReservation(...)`.
+
+**Przed:**
+
+```java
+private final Clock clock;
+private final Set<String> takenSeats = new HashSet<>();
+private int sequence;
+
+public ReservationService(Clock clock) {
+    this.clock = clock;
+}
+...
+private Reservation newReservation(String channel, String email, List<String> seats) {
+    sequence++;
+    String id = "R" + sequence;
+    ...
+}
+```
+
 **Po:**
 
 ```java
@@ -486,7 +773,19 @@ public ReservationService(Clock clock) {
 
 ### Krok 3: fabryka jako zależność
 
-**W IDE:** dodaj konstruktor `ReservationService(ReservationFactory factory)`; dotychczasowy `ReservationService(Clock)` zamień na delegację `this(new ReservationFactory(clock))`, żeby nie ruszać klientów.
+**Zmiany:**
+
+1. `ReservationService` dostaje drugi konstruktor `ReservationService(ReservationFactory factory)`, który zapisuje fabrykę w polu (z `Objects.requireNonNull`).
+2. Dotychczasowy konstruktor `ReservationService(Clock clock)` zamieniamy na delegację `this(new ReservationFactory(clock))` - klienci serwisu nie muszą się zmieniać.
+
+**Przed:**
+
+```java
+public ReservationService(Clock clock) {
+    this.factory = new ReservationFactory(clock);
+}
+```
+
 **Po:**
 
 ```java
@@ -544,11 +843,28 @@ day.add(hall2);
 
 ### Krok 1: klasyczny Builder z bieżącym węzłem
 
-**W IDE:** utwórz `ScheduleBuilder` z metodami `hall(name)`, `screening(title, hour, minute)` i `build()`; builder pamięta bieżącą salę. Przepisz planera na wywołania buildera. Drzewo bez zmian.
+**Zmiany:**
+
+1. Powstaje nowy plik `ScheduleBuilder.java`: builder trzyma budowany `DaySchedule` i pole `current` z bieżącą salą. Metoda `hall(name)` tworzy salę, dodaje ją do dnia i zapamiętuje jako bieżącą; `screening(title, hour, minute)` dodaje seans do bieżącej sali, a bez sali rzuca `IllegalStateException("screening without hall")`; `build()` zwraca dzień. Metody zwracają `this`, więc wywołania można łączyć w łańcuch.
+2. `WeekendPlanner.plan` przepisujemy na wywołania buildera: znikają zmienne `hall1`-`hall3` oraz ręczne `new Hall`, `new Screening` i `day.add(...)`. Warunki `weekend` zostają jako zwykłe `if` wokół wywołań `screening`.
+3. Węzły drzewa (`DaySchedule`, `Hall`, `Screening`) na razie bez zmian.
+
+**Przed:**
+
+```java
+DaySchedule day = new DaySchedule(date);
+Hall hall1 = new Hall("Sala 1");
+hall1.add(new Screening("Diuna", LocalTime.of(18, 0)));
+hall1.add(new Screening("Diuna", LocalTime.of(21, 0)));
+day.add(hall1);
+Hall hall2 = new Hall("Sala 2");
+...
+```
+
 **Po:**
 
 ```java
-new ScheduleBuilder(date)
+ScheduleBuilder builder = new ScheduleBuilder(date)
         .hall("Sala 1")
         .screening("Diuna", 18, 0)
         .screening("Diuna", 21, 0)
@@ -561,7 +877,31 @@ new ScheduleBuilder(date)
 
 ### Krok 2: niemutowalne drzewo, builder jednorazowy
 
-**W IDE:** węzły zamień na rekordy z `List.copyOf` (⌥⏎ Convert to record, usuń `add`). Builder zbiera dane i tworzy rekordy w `build()`; drugi `build()` rzuca `IllegalStateException`.
+**Zmiany:**
+
+1. Węzły drzewa zamieniamy na rekordy: `Screening(String title, LocalTime start)`, `Hall(String name, List<Screening> screenings)`, `DaySchedule(LocalDate date, List<Hall> halls)`. Metody `add` znikają, a kompaktowe konstruktory kopiują listy przez `List.copyOf` - gotowego drzewa nie da się zmienić.
+2. `ScheduleBuilder` przestaje budować drzewo na bieżąco: zbiera dane w `LinkedHashMap<String, List<Screening>>`, a rekordy tworzy dopiero w `build()`.
+3. Builder staje się jednorazowy: pole `built` i pomocnicza metoda `requireNotBuilt()` sprawiają, że drugie `build()` (i każde wywołanie po nim) rzuca `IllegalStateException("builder already used")`.
+4. `hall(name)` odrzuca powtórzoną nazwę sali wyjątkiem `IllegalStateException("duplicate hall: ...")` - to świadomie dodany nowy niezmiennik.
+
+**Przed:**
+
+```java
+public final class Hall {
+    private final String name;
+    private final List<Screening> screenings = new ArrayList<>();
+
+    public Hall(String name) {
+        this.name = name;
+    }
+
+    public void add(Screening screening) {
+        screenings.add(screening);
+    }
+    ...
+}
+```
+
 **Po:**
 
 ```java
@@ -575,7 +915,27 @@ public record Hall(String name, List<Screening> screenings) {
 
 ### Krok 3: zagnieżdżony builder z lambdą
 
-**W IDE:** `hall(name, Consumer<HallBuilder>)` zamiast "bieżącej sali"; `HallBuilder` z `screening(...)`. Przepisz planera.
+**Zmiany:**
+
+1. W `ScheduleBuilder` metodę `hall(String name)` zastępujemy metodą `hall(String name, Consumer<HallBuilder> content)`: builder tworzy `HallBuilder`, wykonuje lambdę synchronicznie dokładnie raz i od razu dodaje gotową salę. Ukryty stan "bieżąca sala" znika.
+2. Powstaje zagnieżdżona klasa statyczna `HallBuilder` z prywatnym konstruktorem i metodą `screening(title, hour, minute)`.
+3. Konstruktor `ScheduleBuilder` staje się prywatny; wejściem jest statyczna metoda `ScheduleBuilder.day(date)`.
+4. `WeekendPlanner.plan` przepisujemy na zagnieżdżone lambdy - wcięcia kodu odpowiadają poziomom drzewa.
+
+**Przed:**
+
+```java
+public ScheduleBuilder hall(String name) {
+    requireNotBuilt();
+    if (halls.containsKey(name)) {
+        throw new IllegalStateException("duplicate hall: " + name);
+    }
+    current = new ArrayList<>();
+    halls.put(name, current);
+    return this;
+}
+```
+
 **Po:**
 
 ```java
@@ -632,7 +992,22 @@ return title + " " + format
 
 ### Krok 1: Extract Interface
 
-**W IDE:** Refactor > Extract Interface na `Ticket` - `PricedTicket` z `price()` i `description()`. `TicketAssembler.assemble` zwraca interfejs.
+**Zmiany:**
+
+1. Powstaje nowy plik `PricedTicket.java` (Extract Interface): interfejs z metodami `Money price()` i `String description()`.
+2. `Ticket` deklaruje `implements PricedTicket` - ciało bez zmian, flagi na razie zostają.
+3. `TicketAssembler.assemble` zmienia typ zwracany z `Ticket` na `PricedTicket`.
+
+**Przed:**
+
+```java
+public final class TicketAssembler {
+    public Ticket assemble(TicketOrder order) {
+        return new Ticket(order);
+    }
+}
+```
+
 **Po:**
 
 ```java
@@ -647,7 +1022,30 @@ public PricedTicket assemble(TicketOrder order) {
 
 ### Krok 2: pierwszy dodatek jako dekorator
 
-**W IDE:** rekord `Insurance(PricedTicket inner)` dodający 4.00 i " +ubezpieczenie". Usuń flagę z `Ticket` (Safe Delete), w assemblerze owiń, gdy `order.insurance()`.
+**Zmiany:**
+
+1. Powstaje nowy plik `Insurance.java`: rekord `Insurance(PricedTicket inner) implements PricedTicket` - `price()` dodaje 4.00 do `inner.price()`, a `description()` dokleja " +ubezpieczenie" do `inner.description()`.
+2. Z `Ticket` znika pole `insurance` razem z jego `if` w `price()` i członem w `description()` (bezpieczne usunięcie).
+3. W `TicketAssembler.assemble` rdzeń owijamy dekoratorem, gdy `order.insurance()`.
+
+**Przed:**
+
+```java
+public Money price() {
+    Money price = base;
+    if (vip) {
+        price = price.plus(Money.of("10.00"));
+    }
+    if (glasses) {
+        price = price.plus(Money.of("3.00"));
+    }
+    if (insurance) {
+        price = price.plus(Money.of("4.00"));
+    }
+    return price;
+}
+```
+
 **Po:**
 
 ```java
@@ -663,13 +1061,47 @@ if (order.insurance()) {
 
 ### Krok 3: pozostałe dodatki, czysty rdzeń
 
-**W IDE:** `VipSeat` i `Glasses3D` jako dekoratory, rdzeń jako rekord `Ticket(title, format, base)`. Decyzja "czy okulary potrzebne" (3D i brak własnych) zostaje w assemblerze.
+**Zmiany:**
+
+1. Powstają nowe pliki `VipSeat.java` i `Glasses3D.java`: dekoratory zbudowane tak samo jak `Insurance` (+10.00 i " +VIP"; +3.00 i " +okulary 3D").
+2. Rdzeń `Ticket` staje się rekordem `Ticket(String title, String format, Money base)`: `price()` zwraca `base`, a `description()` to `title + " " + format`. Flagi `vip` i `glasses` oraz konstruktor przyjmujący `TicketOrder` znikają.
+3. `TicketAssembler.assemble` składa cały łańcuch w ustalonej kolejności: rdzeń, potem `VipSeat`, `Glasses3D`, `Insurance`. Decyzja "czy okulary potrzebne" (format 3D i brak własnych) zostaje w assemblerze.
+
+**Przed:**
+
+```java
+public final class Ticket implements PricedTicket {
+    private final String title;
+    private final String format;
+    private final Money base;
+    private final boolean vip;
+    private final boolean glasses;
+    ...
+    public Money price() {
+        Money price = base;
+        if (vip) {
+            price = price.plus(Money.of("10.00"));
+        }
+        if (glasses) {
+            price = price.plus(Money.of("3.00"));
+        }
+        return price;
+    }
+```
+
 **Po:**
 
 ```java
-if (order.vip()) ticket = new VipSeat(ticket);
-if (order.format().equals("3D") && !order.ownGlasses()) ticket = new Glasses3D(ticket);
-if (order.insurance()) ticket = new Insurance(ticket);
+PricedTicket ticket = new Ticket(order.title(), order.format(), order.base());
+if (order.vip()) {
+    ticket = new VipSeat(ticket);
+}
+if (order.format().equals("3D") && !order.ownGlasses()) {
+    ticket = new Glasses3D(ticket);
+}
+if (order.insurance()) {
+    ticket = new Insurance(ticket);
+}
 ```
 
 **Uruchom:** test zielony; `S07SolutionTest` dokumentuje granice przezroczystości.
@@ -727,7 +1159,28 @@ public void cancel() {
 
 ### Krok 1: obiekt stanu zamiast pola status
 
-**W IDE:** utwórz prywatny `sealed interface ReservationState` z `status()` i stany jako enumy (`NewState.INSTANCE`, `PaidState.INSTANCE`, `ClosedState.USED/EXPIRED/CANCELLED`). Pole `status` zastąp polem `state`; warunki porównują `state.status()`. Efekty i zmianę stanu wyciągnij do `charge()`, `moveTo(...)`, `record(...)` (⌥⌘M).
+**Zmiany:**
+
+1. Wewnątrz `Reservation` powstaje prywatny `sealed interface ReservationState` z jedyną metodą `status()` oraz stany jako enumy: `NewState.INSTANCE`, `PaidState.INSTANCE` i wspólny `ClosedState` ze stałymi `USED`, `EXPIRED`, `CANCELLED`.
+2. Pole `Status status` zastępujemy polem `ReservationState state = NewState.INSTANCE`; warunki w operacjach porównują teraz `state.status()`.
+3. Powtarzalne fragmenty wydzielamy do prywatnych metod (Extract Method): `charge()` obciąża bramkę, `moveTo(next)` zmienia stan, `record(effect)` dopisuje efekt.
+
+**Przed:**
+
+```java
+private Status status = Status.NEW;
+
+@Override
+public void pay() {
+    if (status != Status.NEW) {
+        throw new IllegalStateException("cannot pay in " + status);
+    }
+    payments.charge(id);
+    status = Status.PAID;
+    effects.add("charged");
+}
+```
+
 **Po:**
 
 ```java
@@ -744,7 +1197,26 @@ record("charged");
 
 ### Krok 2: pay i use do stanów
 
-**W IDE:** w interfejsie stanu dodaj `default void pay(Reservation r) { throw invalid("pay"); }` (i `use`). W `NewState` nadpisz `pay`, w `PaidState` - `use`, przenosząc ciała gałęzi. Kontekst deleguje: `state.pay(this)`.
+**Zmiany:**
+
+1. Interfejs stanu dostaje metody domyślne `pay(Reservation reservation)` i `use(Reservation reservation)`, które rzucają wyjątek przez prywatną metodę `invalid(action)` - komunikat identyczny jak w start.
+2. `NewState` nadpisuje `pay`: obciążenie (`reservation.charge()`), przejście do `PaidState.INSTANCE`, efekt "charged". `PaidState` nadpisuje `use`: przejście do `ClosedState.USED`, efekt "gate opened".
+3. W kontekście metody `pay()` i `use()` tylko delegują: `state.pay(this)` i `state.use(this)`; ich warunki `if` znikają.
+
+**Przed:**
+
+```java
+@Override
+public void pay() {
+    if (state.status() != Status.NEW) {
+        throw new IllegalStateException("cannot pay in " + state.status());
+    }
+    charge();
+    moveTo(PaidState.INSTANCE);
+    record("charged");
+}
+```
+
 **Po:**
 
 ```java
@@ -761,7 +1233,30 @@ public void pay(Reservation reservation) {
 
 ### Krok 3: expire i cancel do stanów
 
-**W IDE:** ten sam ruch dla `expire` i `cancel`. Warunek `if/else if` w `cancel` rozkłada się na dwa stany: NEW (zwolnienie miejsc) i PAID (zwrot i zwolnienie).
+**Zmiany:**
+
+1. Interfejs stanu dostaje domyślne metody `expire(Reservation)` i `cancel(Reservation)` rzucające `invalid(...)`.
+2. `NewState` nadpisuje `expire` (przejście do `ClosedState.EXPIRED`, efekt "seats released") i `cancel` (przejście do `ClosedState.CANCELLED`, efekt "seats released"). `PaidState` nadpisuje `cancel` (CANCELLED, efekty "refund" i "seats released"). Warunek `if/else if` z kontekstu rozkłada się na dwa stany.
+3. W kontekście `expire()` i `cancel()` tylko delegują: `state.expire(this)` i `state.cancel(this)`.
+
+**Przed:**
+
+```java
+@Override
+public void cancel() {
+    if (state.status() == Status.NEW) {
+        moveTo(ClosedState.CANCELLED);
+        record("seats released");
+    } else if (state.status() == Status.PAID) {
+        moveTo(ClosedState.CANCELLED);
+        record("refund");
+        record("seats released");
+    } else {
+        throw new IllegalStateException("cannot cancel in " + state.status());
+    }
+}
+```
+
 **Po:**
 
 ```java
@@ -818,12 +1313,28 @@ Test używa fake'ów zapisujących do wspólnego logu i sprawdza kolejność ora
 
 ### Krok 1: zdarzenie i Extract Method
 
-**W IDE:** utwórz rekord `ReservationPaid`. Zaznacz trzy powiadomienia, ⌥⌘M `notifyPaid(event)`.
+**Zmiany:**
+
+1. Powstaje nowy plik `ReservationPaid.java`: rekord zdarzenia z danymi potrzebnymi odbiorcom (`reservationId`, `email`, `phone`, `amount`).
+2. Trzy powiadomienia z `confirm` wydzielamy do prywatnej metody `notifyPaid(ReservationPaid event)` (Extract Method); w jej ciele dane pochodzą ze zdarzenia (`event.email()` itd.), nie z `payment`.
+3. `confirm` po zapisaniu opłaty tworzy zdarzenie i woła `notifyPaid(...)`.
+
+**Przed:**
+
+```java
+paid.add(payment.reservationId());
+mailer.send(payment.email(),
+        "Potwierdzenie platnosci " + payment.reservationId() + ": " + payment.amount());
+sms.send(payment.phone(), "Oplacono " + payment.reservationId());
+loyalty.addPoints(payment.email(), payment.amount().amount().intValue() / 10);
+```
+
 **Po:**
 
 ```java
 paid.add(payment.reservationId());
-notifyPaid(new ReservationPaid(payment.reservationId(), payment.email(), payment.phone(), payment.amount()));
+notifyPaid(new ReservationPaid(
+        payment.reservationId(), payment.email(), payment.phone(), payment.amount()));
 ```
 
 **Uruchom:** `scripts/warsztat.sh test m5/s09` - zielone.
@@ -832,7 +1343,24 @@ notifyPaid(new ReservationPaid(payment.reservationId(), payment.email(), payment
 
 ### Krok 2: odbiorcy jako obserwatorzy
 
-**W IDE:** interfejs `PaymentListener.onPaid(event)` i trzy rekordy: `MailConfirmation`, `SmsConfirmation`, `LoyaltyPoints` (każdy z ciałem jednej linii z `notifyPaid`). Serwis tworzy `List.of(...)` w konstruktorze w starej kolejności; `notifyPaid` to pętla **bez** `try/catch`.
+**Zmiany:**
+
+1. Powstaje nowy plik `PaymentListener.java`: interfejs funkcyjny z metodą `onPaid(ReservationPaid event)`.
+2. Powstają trzy nowe pliki obserwatorów: rekordy `MailConfirmation(Mailer mailer)`, `SmsConfirmation(SmsGateway sms)` i `LoyaltyPoints(LoyaltyProgram loyalty)`; każdy przejmuje jedną linię z `notifyPaid`.
+3. `PaymentService` zamiast pól `mailer`, `sms`, `loyalty` trzyma pole `List<PaymentListener> listeners`; konstruktor (sygnatura bez zmian) buduje `List.of(...)` z trzech obserwatorów w starej kolejności.
+4. `notifyPaid` staje się pętlą po słuchaczach, celowo bez `try/catch` - fail-fast jak w start.
+
+**Przed:**
+
+```java
+private void notifyPaid(ReservationPaid event) {
+    mailer.send(event.email(),
+            "Potwierdzenie platnosci " + event.reservationId() + ": " + event.amount());
+    sms.send(event.phone(), "Oplacono " + event.reservationId());
+    loyalty.addPoints(event.email(), event.amount().amount().intValue() / 10);
+}
+```
+
 **Po:**
 
 ```java
@@ -847,7 +1375,22 @@ for (PaymentListener listener : listeners) {
 
 ### Krok 3: subscribe i korzeń kompozycji
 
-**W IDE:** `subscribe(listener)` zwracające `Subscription` (idempotentne `close()`), lista `CopyOnWriteArrayList` rejestracji. Konstruktor serwisu staje się bezargumentowy, a subskrypcje przenosimy do istniejącego `PaymentServices.standard(...)`.
+**Zmiany:**
+
+1. Powstaje nowy plik `Subscription.java`: interfejs funkcyjny rozszerzający `AutoCloseable`, z `close()` bez deklarowanych wyjątków.
+2. `PaymentService` dostaje metodę `subscribe(PaymentListener)`: opakowuje słuchacza w prywatną klasę `Registration`, dodaje go do listy `CopyOnWriteArrayList` i zwraca `Subscription`, którego `close()` wyrejestrowuje idempotentnie (flaga `AtomicBoolean`).
+3. Konstruktor serwisu staje się bezargumentowy - importy `Mailer`, `SmsGateway`, `LoyaltyProgram` znikają z serwisu. `confirm` publikuje zdarzenie pętlą po rejestracjach; prywatna metoda `notifyPaid` znika.
+4. Subskrypcje przenosimy do istniejącego `PaymentServices.standard(...)`: korzeń kompozycji tworzy serwis i rejestruje trzech odbiorców w starej kolejności.
+
+**Przed:**
+
+```java
+public PaymentService(Mailer mailer, SmsGateway sms, LoyaltyProgram loyalty) {
+    this.listeners = List.of(
+            new MailConfirmation(mailer), new SmsConfirmation(sms), new LoyaltyPoints(loyalty));
+}
+```
+
 **Po:**
 
 ```java
@@ -903,7 +1446,13 @@ Testy: `S10EquivalenceTest` (niezależne oczekiwania policzone ręcznie, także 
 
 ### Krok 1: Composite i mapper obok starego kodu
 
-**W IDE:** utwórz `sealed interface MenuItem` z rekordami `Product` i `Combo` oraz `MenuMapper.fromNested(List<?>)`. `BarMenu` bez zmian. Uruchom test różnicowy - porównuje stary kod z drzewem z mappera.
+**Zmiany:**
+
+1. Powstają nowe pliki `MenuItem.java`, `Product.java` i `Combo.java`: `sealed interface MenuItem` z metodami `name()`, `price()` i `render(depth, text)`, liść `Product(String name, Money price)` oraz niemutowalny węzeł `Combo(String name, List<MenuItem> items)`, którego cena to suma elementów.
+2. Powstaje nowy plik `MenuMapper.java`: statyczna metoda `fromNested(List<?>)` tłumaczy stary format na drzewo i zachowuje komunikaty błędów starego kodu ("combo needs a name", "product needs a price: ...", "unsupported element: ...").
+3. `BarMenu` zostaje bez zmian - obie reprezentacje żyją obok siebie, porównuje je test różnicowy.
+
+**Przed:** brak - nowe pliki `MenuItem.java`, `Product.java`, `Combo.java`, `MenuMapper.java`; stary kod nietknięty.
 **Po:**
 
 ```java
@@ -920,7 +1469,31 @@ items.add(switch (element) {
 
 ### Krok 2: price na Composite
 
-**W IDE:** ciało `BarMenu.price` zastąp `MenuMapper.fromNested(combo).price()`. Usuń nieużywane `requireName`.
+**Zmiany:**
+
+1. Ciało `BarMenu.price` zastępujemy jedną linią: mapujemy stary format i liczymy cenę na drzewie. Rekurencyjna pętla z `instanceof` znika z tej metody.
+2. Usuwamy nieużywaną już metodę `requireName` - walidację nazwy przejął mapper.
+3. `render` zostaje stare i nadal działa, bo woła nowe `price`.
+
+**Przed:**
+
+```java
+public Money price(List<?> combo) {
+    requireName(combo);
+    Money total = Money.ZERO;
+    for (Object element : combo.subList(1, combo.size())) {
+        if (element instanceof String product) {
+            total = total.plus(productPrice(product));
+        } else if (element instanceof List<?> nested) {
+            total = total.plus(price(nested));
+        } else {
+            throw new IllegalArgumentException("unsupported element: " + element);
+        }
+    }
+    return total;
+}
+```
+
 **Po:**
 
 ```java
@@ -935,7 +1508,30 @@ public Money price(List<?> combo) {
 
 ### Krok 3: render na Composite
 
-**W IDE:** `render` deleguje do `Combo.render(0, text)`; stara rekurencja z `instanceof` do usunięcia (Safe Delete).
+**Zmiany:**
+
+1. Publiczne `BarMenu.render` deleguje do drzewa: mapujemy combo i wołamy `render(0, text)` na wyniku.
+2. Prywatna rekurencyjna metoda `render(List<?>, int, StringBuilder)` i metoda `productPrice` znikają (bezpieczne usunięcie) - w `BarMenu` nie ma już `instanceof` ani rzutowań.
+
+**Przed:**
+
+```java
+private void render(List<?> combo, int depth, StringBuilder text) {
+    text.append("  ".repeat(depth)).append(combo.get(0))
+            .append(' ').append(price(combo)).append('\n');
+    for (Object element : combo.subList(1, combo.size())) {
+        if (element instanceof String product) {
+            text.append("  ".repeat(depth + 1)).append(product, 0, product.indexOf('='))
+                    .append(' ').append(productPrice(product)).append('\n');
+        } else if (element instanceof List<?> nested) {
+            render(nested, depth + 1, text);
+        } else {
+            throw new IllegalArgumentException("unsupported element: " + element);
+        }
+    }
+}
+```
+
 **Po:**
 
 ```java
@@ -988,7 +1584,31 @@ public void add(MenuComponent child) {
 
 ### Krok 1: Safe Composite - Push Members Down
 
-**W IDE:** Refactor > Push Members Down na `add` i `children` z `MenuComponent` do `Combo`. IntelliJ pokaże konflikty w `ComboCatalog` - zmień typ zmiennych z `MenuComponent` na `Combo` tam, gdzie dodajemy dzieci. `describe()` w `Combo` rozszerza opis o dzieci.
+**Zmiany:**
+
+1. Metody `add(MenuComponent)` i `children()` przenosimy z `MenuComponent` w dół, do `Combo` (Push Members Down). Bazowe `add()` rzucające `UnsupportedOperationException` i `children()` zwracające pustą listę znikają - `Product` nie ma już czego odziedziczyć.
+2. `describe()` w bazie opisuje odtąd tylko liścia (`name() + " " + price()`); `Combo` nadpisuje je i rozszerza opis o dzieci.
+3. W `ComboCatalog` zmieniamy typ zmiennych z `MenuComponent` na `Combo` tam, gdzie dodajemy dzieci - każde pozostałe wywołanie `add` na liściu zgłosi kompilator.
+
+**Przed:**
+
+```java
+public abstract class MenuComponent {
+    public abstract String name();
+
+    public abstract Money price();
+
+    public void add(MenuComponent child) {
+        throw new UnsupportedOperationException("cannot add to " + name());
+    }
+
+    public List<MenuComponent> children() {
+        return List.of();
+    }
+    ...
+}
+```
+
 **Po:**
 
 ```java
@@ -1002,7 +1622,25 @@ combo.add(new Product("Popcorn XL", "24.00"));
 
 ### Krok 2: niemutowalny Composite w Javie 25
 
-**W IDE:** `sealed interface MenuComponent`, rekordy `Product` i `Combo(name, children)` z `Combo.of(...)`. Katalog zapisany deklaratywnie.
+**Zmiany:**
+
+1. `MenuComponent` zamieniamy na `sealed interface ... permits Product, Combo` z metodami `name()`, `price()`, `describe()`.
+2. `Product` staje się rekordem `Product(String name, Money price)` z dodatkowym konstruktorem przyjmującym cenę jako `String`.
+3. `Combo` staje się rekordem `Combo(String name, List<MenuComponent> children)`: konstruktor kopiuje listę przez `List.copyOf`, dochodzi statyczna metoda `Combo.of(name, children...)`, a metoda `add` znika zupełnie.
+4. `ComboCatalog` zapisuje drzewa deklaratywnie zagnieżdżonymi wywołaniami `Combo.of(...)`; prywatne metody `family()` i `duo()` znikają.
+
+**Przed:**
+
+```java
+private MenuComponent duo() {
+    Combo combo = new Combo("Zestaw Duo");
+    combo.add(new Product("Popcorn L", "18.00"));
+    combo.add(new Product("Cola", "9.00"));
+    combo.add(new Product("Cola", "9.00"));
+    return combo;
+}
+```
+
 **Po:**
 
 ```java
@@ -1060,7 +1698,28 @@ Test obejmuje granicę dokładnie 24h, 23h59m, bilet po starcie, listę i pustą
 
 ### Krok 1: Extract Method na wspólnej regule
 
-**W IDE:** w `refund` zaznacz wyliczenie kwoty, ⌥⌘M `ticketShare(ticket, now)`. W `refundAll` zastąp ciało pętli wywołaniem `ticketShare`.
+**Zmiany:**
+
+1. Wyliczenie kwoty zwrotu jednego biletu z `refund` wydzielamy do prywatnej statycznej metody `ticketShare(TicketData ticket, LocalDateTime now)` (Extract Method): po starcie seansu 0, co najmniej 24h przed - pełna cena, inaczej 50%.
+2. W `refundAll` ciało pętli zastępujemy wywołaniem `ticketShare` - druga, nieco inaczej zapisana kopia reguły znika.
+3. Potrącenie `FEE` i `max(Money.ZERO)` zostają w obu metodach publicznych, naliczane raz na wywołanie.
+
+**Przed:**
+
+```java
+public Money refund(TicketData ticket, LocalDateTime now) {
+    Money amount;
+    if (!now.isBefore(ticket.showStart())) {
+        amount = Money.ZERO;
+    } else if (Duration.between(now, ticket.showStart()).toHours() >= 24) {
+        amount = ticket.price();
+    } else {
+        amount = ticket.price().percent(50);
+    }
+    return amount.minus(FEE).max(Money.ZERO);
+}
+```
+
 **Po:**
 
 ```java
@@ -1073,7 +1732,28 @@ total = total.plus(ticketShare(ticket, now));
 
 ### Krok 2: Composite i jeden kontrakt
 
-**W IDE:** `sealed interface Refundable` z `refundableAmount(now)`, liść `SingleTicket` (reguła z `ticketShare`), węzeł `TicketGroup` (suma). Nowa metoda `refund(Refundable, now)`; stare metody jako delegacje z `@Deprecated`. `CancellationDesk` przechodzi na nowy kontrakt (na razie wciąż wybiera `SingleTicket` albo `TicketGroup`).
+**Zmiany:**
+
+1. Powstają nowe pliki `Refundable.java`, `SingleTicket.java` i `TicketGroup.java`: `sealed interface Refundable` z metodą `refundableAmount(now)`, liść - rekord `SingleTicket(TicketData ticket)` z regułą przeniesioną z `ticketShare`, węzeł - rekord `TicketGroup(List<Refundable> items)` sumujący elementy, z pomocniczą metodą `TicketGroup.of(tickets)`.
+2. `RefundService` dostaje nową metodę `refund(Refundable, now)`. Stare `refund(TicketData, ...)` i `refundAll` zostają jako cienkie delegacje oznaczone `@Deprecated`; metoda `ticketShare` znika z serwisu.
+3. `CancellationDesk` przechodzi na nowy kontrakt - na razie nadal wybiera `SingleTicket` albo `TicketGroup` w zależności od rozmiaru listy.
+
+**Przed:**
+
+```java
+public Money refund(TicketData ticket, LocalDateTime now) {
+    return ticketShare(ticket, now).minus(FEE).max(Money.ZERO);
+}
+
+public Money refundAll(List<TicketData> tickets, LocalDateTime now) {
+    Money total = Money.ZERO;
+    for (TicketData ticket : tickets) {
+        total = total.plus(ticketShare(ticket, now));
+    }
+    return total.minus(FEE).max(Money.ZERO);
+}
+```
+
 **Po:**
 
 ```java
@@ -1088,11 +1768,26 @@ public Money refund(Refundable refundable, LocalDateTime now) {
 
 ### Krok 3: usunięcie starych metod
 
-**W IDE:** po migracji klientów Safe Delete (⌘⌦) na `refund(TicketData, ...)` i `refundAll`. W `CancellationDesk` usuń `if` - klient zawsze buduje `TicketGroup.of(tickets)`, także z jednego biletu.
+**Zmiany:**
+
+1. Po migracji klientów usuwamy z `RefundService` przestarzałe metody `refund(TicketData, ...)` i `refundAll` (bezpieczne usunięcie) - zostaje tylko `refund(Refundable, now)`.
+2. W `CancellationDesk` znika warunek `tickets.size() == 1` - klient zawsze buduje `TicketGroup.of(tickets)`, także z jednego biletu.
+
+**Przed:**
+
+```java
+public Money refund(List<TicketData> tickets, LocalDateTime now) {
+    Refundable refundable = tickets.size() == 1
+            ? new SingleTicket(tickets.getFirst())
+            : TicketGroup.of(tickets);
+    return service.refund(refundable, now);
+}
+```
+
 **Po:**
 
 ```java
-service.refund(TicketGroup.of(tickets), now);
+return service.refund(TicketGroup.of(tickets), now);
 ```
 
 **Uruchom:** test zielony; `S12SolutionTest` pokazuje zagnieżdżone grupy.
@@ -1137,7 +1832,28 @@ return children.isEmpty() ? 0 : total + 15 * (children.size() - 1);
 
 ### Krok 1: Extract Superclass
 
-**W IDE:** na `Marathon` Refactor > Extract Superclass: `CompositeProgramItem`, zaznacz pole `children`, `add`, `children()`. Potem `ShortsBlock extends CompositeProgramItem` i usuń jego kopie (Pull Members Up już nie trzeba - są w bazie).
+**Zmiany:**
+
+1. Powstaje nowy plik `CompositeProgramItem.java` (Extract Superclass): klasa abstrakcyjna implementująca `ProgramItem`, do której z `Marathon` przenosimy pole `children`, metodę `add` z kontrolą `null` i `children()` zwracające kopię listy. Obie metody są `final`.
+2. `Marathon` deklaruje `extends CompositeProgramItem`; jego własne kopie pola i obu metod znikają, a `minutes()` i `describe()` korzystają z odziedziczonego `children()`.
+3. `ShortsBlock` deklaruje `extends CompositeProgramItem` i również traci zduplikowaną obsługę dzieci.
+
+**Przed:**
+
+```java
+public final class Marathon implements ProgramItem {
+    private final String name;
+    private final List<ProgramItem> children = new ArrayList<>();
+    ...
+    public void add(ProgramItem child) {
+        children.add(Objects.requireNonNull(child, "child"));
+    }
+
+    public List<ProgramItem> children() {
+        return List.copyOf(children);
+    }
+```
+
 **Po:**
 
 ```java
@@ -1152,7 +1868,34 @@ public abstract class CompositeProgramItem implements ProgramItem {
 
 ### Krok 2: Pull Up sumy i opisu
 
-**W IDE:** Pull Members Up dla `childrenMinutes()` (`protected final`) i `describe()` jako szablon z hookiem `label()`. Podklasy zostają z regułą czasu i etykietą.
+**Zmiany:**
+
+1. Do nadklasy podciągamy to, co wspólne (Pull Up Method): pole `name` z chronionym konstruktorem, metodę `protected final childrenMinutes()` sumującą minuty dzieci oraz finalne `describe()` jako szkielet opisu z abstrakcyjnym hookiem `label()`.
+2. `Marathon` zostaje z `minutes()` (suma dzieci plus 15 minut przerwy między pozycjami) i `label()` zwracającym "Maraton"; `ShortsBlock` z `minutes()` bez przerw i `label()` zwracającym "Blok".
+
+**Przed:**
+
+```java
+public final class ShortsBlock extends CompositeProgramItem {
+    private final String name;
+    ...
+    @Override
+    public int minutes() {
+        int total = 0;
+        for (ProgramItem child : children()) {
+            total += child.minutes();
+        }
+        return total;
+    }
+
+    @Override
+    public String describe() {
+        return "Blok " + name + " (" + minutes() + " min) "
+                + children().stream().map(ProgramItem::describe).toList();
+    }
+}
+```
+
 **Po:**
 
 ```java
@@ -1204,7 +1947,31 @@ String request = "<charge ref='" + reservationId + "' amount='" + grosze + "'/>"
 
 ### Krok 1: Extract Method z jednolitą sygnaturą
 
-**W IDE:** każdą gałąź ⌥⌘M: `payWithXml(reservationId, amount)` i `payWithRest(reservationId, amount)`, obie zwracają `PaymentResult`.
+**Zmiany:**
+
+1. Gałąź XML wydzielamy do prywatnej metody `payWithXml(String reservationId, Money amount)` (Extract Method); zmienna `request` znika, bo złożony XML idzie wprost do `xml.submit(...)`.
+2. Gałąź REST wydzielamy do prywatnej metody `payWithRest(String reservationId, Money amount)` (Extract Method).
+3. Obie metody mają identyczną sygnaturę i zwracają `PaymentResult` - `pay` już tylko wybiera jedną z nich.
+
+**Przed:**
+
+```java
+public PaymentResult pay(String provider, String reservationId, Money amount) {
+    if (provider.equals("XML")) {
+        long grosze = amount.amount().movePointRight(2).longValueExact();
+        String request = "<charge ref='" + reservationId + "' amount='" + grosze + "'/>";
+        String response = xml.submit(request);
+        if (response.contains("status='OK'")) {
+            return PaymentResult.accepted(attribute(response, "id"));
+        }
+        return PaymentResult.declined(attribute(response, "code"));
+    } else if (provider.equals("REST")) {
+        ...
+    }
+    throw new IllegalArgumentException("unknown provider: " + provider);
+}
+```
+
 **Po:**
 
 ```java
@@ -1221,7 +1988,26 @@ if (provider.equals("XML")) {
 
 ### Krok 2: interfejs i dwa adaptery
 
-**W IDE:** interfejs `PaymentGateway.pay(reservationId, amount)`. Move Method (F6) `payWithXml` do `XmlPayAdapter` i `payWithRest` do `RestPayAdapter`. Konstruktor serwisu bez zmian - tworzy adaptery.
+**Zmiany:**
+
+1. Powstaje nowy plik `PaymentGateway.java`: interfejs z metodą `PaymentResult pay(String reservationId, Money amount)` - preferowany kontrakt kina.
+2. Powstaje nowy plik `XmlPayAdapter.java`: klasa implementuje `PaymentGateway`, dostaje `XmlPayGateway` w konstruktorze i przejmuje ciało `payWithXml` razem z pomocniczą metodą `attribute` (Move Method).
+3. Powstaje nowy plik `RestPayAdapter.java`: analogiczna implementacja dla `RestPayClient` z ciałem `payWithRest` - wyjątek odmowy staje się wynikiem `declined`.
+4. W `CheckoutService` pola `xml` i `rest` zmieniają typ na `PaymentGateway`; konstruktor (sygnatura bez zmian) tworzy adaptery. Metody `payWithXml`, `payWithRest` i `attribute` znikają z serwisu.
+
+**Przed:**
+
+```java
+private PaymentResult payWithXml(String reservationId, Money amount) {
+    long grosze = amount.amount().movePointRight(2).longValueExact();
+    String response = xml.submit("<charge ref='" + reservationId + "' amount='" + grosze + "'/>");
+    if (response.contains("status='OK'")) {
+        return PaymentResult.accepted(attribute(response, "id"));
+    }
+    return PaymentResult.declined(attribute(response, "code"));
+}
+```
+
 **Po:**
 
 ```java
@@ -1237,7 +2023,25 @@ public CheckoutService(XmlPayGateway xml, RestPayClient rest) {
 
 ### Krok 3: serwis zależy tylko od interfejsu
 
-**W IDE:** nowy konstruktor `CheckoutService(Map<String, PaymentGateway> gateways)` (kopia `Map.copyOf`); stary konstruktor deleguje do niego ze standardowym zestawem adapterów. `if` zastąp wyszukaniem w mapie; nieznany dostawca - ten sam wyjątek.
+**Zmiany:**
+
+1. `CheckoutService` dostaje konstruktor `CheckoutService(Map<String, PaymentGateway> gateways)` z kopią `Map.copyOf`; pola `xml` i `rest` zastępuje jedno pole `gateways`.
+2. Stary konstruktor `CheckoutService(XmlPayGateway, RestPayClient)` deleguje do nowego ze standardowym zestawem dwóch adapterów pod kluczami "XML" i "REST".
+3. W `pay` łańcuch `if` zastępujemy wyszukaniem w mapie; dla nieznanego dostawcy rzucamy ten sam wyjątek co start.
+
+**Przed:**
+
+```java
+public PaymentResult pay(String provider, String reservationId, Money amount) {
+    if (provider.equals("XML")) {
+        return xml.pay(reservationId, amount);
+    } else if (provider.equals("REST")) {
+        return rest.pay(reservationId, amount);
+    }
+    throw new IllegalArgumentException("unknown provider: " + provider);
+}
+```
+
 **Po:**
 
 ```java
@@ -1298,7 +2102,32 @@ Test to sesja poleceń: sprzedaż, zwrot, raport oraz błędne polecenia, które
 
 ### Krok 1: Extract Method dla gałęzi
 
-**W IDE:** ciało każdej gałęzi ⌥⌘M: `sell(args)`, `refund(args)`, `report(args)` - ta sama sygnatura, także gdy `args` nie jest używane.
+**Zmiany:**
+
+1. Ciało gałęzi SELL wydzielamy do prywatnej metody `sell(String args)` (Extract Method); tak samo REFUND do `refund(String args)` i REPORT do `report(String args)`.
+2. Wszystkie trzy metody dostają tę samą sygnaturę - także `report`, które z `args` nie korzysta. `handle` już tylko wybiera metodę.
+
+**Przed:**
+
+```java
+if (command.equals("SELL")) {
+    String[] sell = args.split(" ", 2);
+    if (sell.length < 2 || !sell[0].matches("\\d+")) {
+        return "Blad: SELL <liczba> <tytul>";
+    }
+    int quantity = Integer.parseInt(sell[0]);
+    Money price = PRICES.get(sell[1]);
+    if (price == null) {
+        return "Blad: nieznany film " + sell[1];
+    }
+    Money total = price.times(quantity);
+    cash = cash.plus(total);
+    tickets += quantity;
+    return "Sprzedano " + quantity + " x " + sell[1] + " = " + total;
+} else if (command.equals("REFUND")) {
+    ...
+```
+
 **Po:**
 
 ```java
@@ -1313,7 +2142,33 @@ if (command.equals("SELL")) {
 
 ### Krok 2: komendy jako obiekty, stan w Till
 
-**W IDE:** Extract Class `Till` (pola `cash`, `tickets` i cennik). Interfejs `ConsoleCommand.execute(args, till)`, klasy `SellCommand`, `RefundCommand`, `ReportCommand` z ciałami metod. Dyspozytor `if` jeszcze zostaje.
+**Zmiany:**
+
+1. Powstaje nowy plik `Till.java` (Extract Class): przejmuje stan kasy - pola `cash`, `tickets` i cennik `PRICES` - oraz operacje `priceOf`, `sold`, `refunded`, `cash()`, `tickets()`.
+2. Powstaje nowy plik `ConsoleCommand.java`: interfejs funkcyjny `String execute(String args, Till till)`.
+3. Powstają nowe pliki `SellCommand.java`, `RefundCommand.java`, `ReportCommand.java`: każda klasa dostaje ciało jednej z metod `sell`/`refund`/`report`, a na stanie operuje przez `Till`.
+4. `CashierConsole` trzyma pole `till` i trzy komendy; gałęzie `if` wołają `sell.execute(args, till)` itd. Prywatne metody `sell`, `refund`, `report` oraz stare pola stanu i cennik znikają z konsoli.
+
+**Przed:**
+
+```java
+private Money cash = Money.ZERO;
+private int tickets;
+...
+private String refund(String args) {
+    Money price = PRICES.get(args);
+    if (price == null) {
+        return "Blad: nieznany film " + args;
+    }
+    if (tickets == 0) {
+        return "Blad: brak biletow do zwrotu";
+    }
+    cash = cash.minus(price);
+    tickets--;
+    return "Zwrot 1 x " + args + " = " + price;
+}
+```
+
 **Po:**
 
 ```java
@@ -1328,7 +2183,24 @@ if (command.equals("SELL")) {
 
 ### Krok 3: rejestr zamiast warunku
 
-**W IDE:** `Map<String, ConsoleCommand>` w konstruktorze (domyślnym i wstrzykiwanym), `handle` wyszukuje komendę po znormalizowanym kluczu.
+**Zmiany:**
+
+1. `CashierConsole` trzyma pole `Map<String, ConsoleCommand> commands`: konstruktor domyślny rejestruje "SELL", "REFUND" i "REPORT", a drugi konstruktor przyjmuje mapę z zewnątrz (kopia `Map.copyOf`). Pola `sell`, `refund`, `report` znikają.
+2. W `handle` łańcuch `if` zastępujemy wyszukaniem w mapie po znormalizowanym kluczu (`toUpperCase(Locale.ROOT)` zostaje); brak komendy daje ten sam komunikat "Nieznana komenda: ...".
+
+**Przed:**
+
+```java
+if (command.equals("SELL")) {
+    return sell.execute(args, till);
+} else if (command.equals("REFUND")) {
+    return refund.execute(args, till);
+} else if (command.equals("REPORT")) {
+    return report.execute(args, till);
+}
+return "Nieznana komenda: " + parts[0];
+```
+
 **Po:**
 
 ```java
@@ -1376,7 +2248,29 @@ Jak dodalibyście `UNDO` dla ostatniej sprzedaży? Czego wymaga to od komend?
 
 ### Krok 1: Extract Method na różnicach
 
-**W IDE:** w obu klasach ⌥⌘M dla nagłówka, wiersza i stopki: `header()`, `row(Sale)`, `footer(int tickets, Money total)`. Przepisz `render` HTML na ten sam kształt co CSV (nazwy zmiennych, sortowanie).
+**Zmiany:**
+
+1. W `CsvSalesReport` wydzielamy różnice do prywatnych metod (Extract Method): `header()`, `row(Sale sale)` i `footer(int tickets, Money total)`.
+2. W `HtmlSalesReport` robimy to samo, z tymi samymi nazwami i sygnaturami; escapowanie `&` i `<` trafia do `row`.
+3. `render` w HTML przepisujemy na dokładnie ten sam kształt co w CSV: kopia listy i `sort` zamiast streama, te same nazwy zmiennych (`sorted`, `text`, `tickets`, `total`). Po tym kroku `render` obu klas jest identyczny znak w znak.
+
+**Przed:**
+
+```java
+StringBuilder html = new StringBuilder();
+html.append("<table>\n<tr><th>Godzina</th><th>Film</th><th>Bilety</th><th>Kwota</th></tr>\n");
+Money sum = Money.ZERO;
+int count = 0;
+for (Sale sale : sales.stream().sorted(Comparator.comparing(Sale::time)).toList()) {
+    String title = sale.title().replace("&", "&amp;").replace("<", "&lt;");
+    html.append("<tr><td>").append(sale.time()).append("</td><td>").append(title)
+            .append("</td><td>").append(sale.tickets()).append("</td><td>").append(sale.amount())
+            .append("</td></tr>\n");
+    sum = sum.plus(sale.amount());
+    count += sale.tickets();
+}
+```
+
 **Po:**
 
 ```java
@@ -1394,7 +2288,33 @@ return text.append(footer(tickets, total)).toString();
 
 ### Krok 2: Extract Superclass + Pull Up render
 
-**W IDE:** Extract Superclass `SalesReport` z CSV, zaznacz `render` i trzy metody jako abstrakcyjne. W HTML `extends SalesReport`, usuń kopię `render`. Dodaj `final` do `render`.
+**Zmiany:**
+
+1. Powstaje nowy plik `SalesReport.java` (Extract Superclass): klasa abstrakcyjna z podciągniętym z CSV `render(List<Sale>)` (Pull Up Method) oraz abstrakcyjnymi, chronionymi `header()`, `row(Sale)` i `footer(int, Money)`.
+2. `render` w bazie oznaczamy `final` - kolejność kroków i liczenie sumy należą do szkieletu.
+3. `CsvSalesReport` i `HtmlSalesReport` deklarują `extends SalesReport`: obie tracą własną kopię `render`, a ich metody formatujące dostają `@Override` i widoczność `protected`.
+
+**Przed:**
+
+```java
+public final class CsvSalesReport {
+    public String render(List<Sale> sales) {
+        List<Sale> sorted = new ArrayList<>(sales);
+        sorted.sort(Comparator.comparing(Sale::time));
+        StringBuilder text = new StringBuilder(header());
+        int tickets = 0;
+        Money total = Money.ZERO;
+        for (Sale sale : sorted) {
+            text.append(row(sale));
+            tickets += sale.tickets();
+            total = total.plus(sale.amount());
+        }
+        return text.append(footer(tickets, total)).toString();
+    }
+    ...
+}
+```
+
 **Po:**
 
 ```java
@@ -1446,7 +2366,30 @@ Money price = new PriceList().basePrice(format);
 
 ### Krok 1: klasyczny Singleton
 
-**W IDE:** prywatny konstruktor, `private static final PriceList INSTANCE = new PriceList()`, `getInstance()`. Licznik z pomiaru usuń. Klient woła `PriceList.getInstance()`.
+**Zmiany:**
+
+1. Konstruktor `PriceList` staje się prywatny; powstaje pole `private static final PriceList INSTANCE = new PriceList()` i statyczna metoda `getInstance()`, która je zwraca.
+2. Licznik pomiarowy `CREATED` (`AtomicInteger`) i metoda `created()` znikają z `PriceList`.
+3. W `TicketDesk.quote` zamieniamy `new PriceList()` na `PriceList.getInstance()`.
+
+**Przed:**
+
+```java
+public final class PriceList {
+    private static final String TARIFF = "2D=25.00;3D=32.00;IMAX=40.00";
+    private static final AtomicInteger CREATED = new AtomicInteger();
+
+    private final Map<String, Money> prices = new HashMap<>();
+
+    public PriceList() {
+        for (String entry : TARIFF.split(";")) {
+            String[] pair = entry.split("=");
+            prices.put(pair[0], Money.of(pair[1]));
+        }
+        CREATED.incrementAndGet();
+    }
+```
+
 **Po:**
 
 ```java
@@ -1459,7 +2402,30 @@ Money price = PriceList.getInstance().basePrice(format);
 
 ### Krok 2: Singleton jako enum
 
-**W IDE:** zamień klasę na `enum PriceList { INSTANCE; ... }`, mapa przez `Map.copyOf`.
+**Zmiany:**
+
+1. Klasa `PriceList` staje się enumem z jedyną wartością `INSTANCE`; pole `INSTANCE`, prywatny konstruktor klasy i metoda `getInstance()` znikają.
+2. Konstruktor enumu parsuje taryfę do lokalnej mapy i zapisuje ją w polu `prices` przez `Map.copyOf` - mapa jest niemodyfikowalna po zbudowaniu.
+3. W `TicketDesk.quote` zamieniamy `PriceList.getInstance()` na `PriceList.INSTANCE`.
+
+**Przed:**
+
+```java
+public final class PriceList {
+    private static final String TARIFF = "2D=25.00;3D=32.00;IMAX=40.00";
+    private static final PriceList INSTANCE = new PriceList();
+
+    private final Map<String, Money> prices = new HashMap<>();
+
+    private PriceList() {
+        ...
+    }
+
+    public static PriceList getInstance() {
+        return INSTANCE;
+    }
+```
+
 **Po:**
 
 ```java
@@ -1472,7 +2438,24 @@ Money price = PriceList.INSTANCE.basePrice(format);
 
 ### Krok 3: wstrzyknięcie zamiast globalnego dostępu
 
-**W IDE:** Extract Interface `Tariff` z enuma; `TicketDesk(Tariff)` plus konstruktor bezargumentowy `this(PriceList.INSTANCE)`.
+**Zmiany:**
+
+1. Powstaje nowy plik `Tariff.java`: interfejs funkcyjny z metodą `Money basePrice(String format)`, wydzielony z enumu (Extract Interface).
+2. `PriceList` implementuje `Tariff`; `basePrice` dostaje `@Override`, reszta enumu bez zmian.
+3. `TicketDesk` dostaje pole `private final Tariff tariff` i konstruktor `TicketDesk(Tariff tariff)`; `quote` woła `tariff.basePrice(format)`.
+4. Dochodzi konstruktor bezargumentowy delegujący `this(PriceList.INSTANCE)` - dotychczasowi klienci działają bez zmian.
+
+**Przed:**
+
+```java
+public final class TicketDesk {
+    public Money quote(String format, boolean online) {
+        Money price = PriceList.INSTANCE.basePrice(format);
+        return online ? price.plus(Money.of("2.00")) : price;
+    }
+}
+```
+
 **Po:**
 
 ```java
@@ -1528,7 +2511,26 @@ Test sprawdza treść, kolejność i separator, w tym duplikaty miejsc zgłaszan
 
 ### Krok 1: lista zamiast sklejania
 
-**W IDE:** metody pomocnicze zwracają `List<String>` bez separatora, `validate` robi `addAll` i `String.join("; ", ...)`.
+**Zmiany:**
+
+1. `checkEmail` i `checkSeats` zmieniają zwracany typ ze `String` na `List<String>`; fragmenty tracą separator `"; "` (`List.of("brak e-maila")` zamiast `"brak e-maila; "`), pusta lista zamiast pustego napisu.
+2. W `validate` zmienna `warnings` staje się `List<String>` (`ArrayList`); sklejanie `+=` zamieniamy na `addAll`, a ostrzeżenie o rozpoczętym seansie na `warnings.add(...)`.
+3. Wynik składa `String.join("; ", warnings)`; obcinanie dwóch ostatnich znaków znika.
+
+**Przed:**
+
+```java
+public String validate(ReservationDraft draft) {
+    String warnings = "";
+    warnings += checkEmail(draft.email());
+    warnings += checkSeats(draft.seats());
+    if (!draft.now().isBefore(draft.showStart())) {
+        warnings += "seans juz sie rozpoczal; ";
+    }
+    return warnings.isEmpty() ? "OK" : warnings.substring(0, warnings.length() - 2);
+}
+```
+
 **Po:**
 
 ```java
@@ -1542,7 +2544,29 @@ warnings.addAll(checkSeats(draft.seats()));
 
 ### Krok 2: Collecting Parameter
 
-**W IDE:** Change Signature (⌘F6) - dodaj parametr `List<String> warnings`, zmień zwracany typ na `void`, zamień `return List.of(x)` na `warnings.add(x)`. Warunek czasu seansu wyciągnij do `checkShowTime(draft, warnings)`.
+**Zmiany:**
+
+1. `checkEmail` i `checkSeats` dostają w sygnaturze dodatkowy parametr `List<String> warnings`, a zwracany typ zmienia się na `void`; każde `return List.of(x)` zamieniamy na `warnings.add(x)`.
+2. W `validate` wywołania `warnings.addAll(checkEmail(...))` stają się `checkEmail(draft.email(), warnings)` - metody dopisują do przekazanego akumulatora.
+3. Warunek czasu seansu wydzielamy do nowej metody `checkShowTime(ReservationDraft draft, List<String> warnings)`.
+
+**Przed:**
+
+```java
+warnings.addAll(checkEmail(draft.email()));
+warnings.addAll(checkSeats(draft.seats()));
+if (!draft.now().isBefore(draft.showStart())) {
+    warnings.add("seans juz sie rozpoczal");
+}
+...
+private List<String> checkEmail(String email) {
+    if (email == null || email.isBlank()) {
+        return List.of("brak e-maila");
+    }
+    ...
+}
+```
+
 **Po:**
 
 ```java
@@ -1557,7 +2581,24 @@ checkShowTime(draft, warnings);
 
 ### Krok 3: wąski typ parametru
 
-**W IDE:** klasa `Warnings` z `add` i `summary()`; Type Migration (⇧⌘F6) z `List<String>` na `Warnings`.
+**Zmiany:**
+
+1. Powstaje nowy plik `Warnings.java`: klasa z prywatną listą `items` i tylko dwiema metodami - `add(String warning)` i `summary()` (zwraca `"OK"` albo `String.join("; ", items)`).
+2. W `validate` i we wszystkich metodach `check...` typ parametru zbierającego zmieniamy z `List<String>` na `Warnings`.
+3. Składanie wyniku w `validate` zastępuje `return warnings.summary()` - format jest w jednym miejscu, w `Warnings`.
+
+**Przed:**
+
+```java
+public String validate(ReservationDraft draft) {
+    List<String> warnings = new ArrayList<>();
+    checkEmail(draft.email(), warnings);
+    checkSeats(draft.seats(), warnings);
+    checkShowTime(draft, warnings);
+    return warnings.isEmpty() ? "OK" : String.join("; ", warnings);
+}
+```
+
 **Po:**
 
 ```java
@@ -1615,7 +2656,28 @@ throw new IllegalArgumentException("unknown item: " + item);
 
 ### Krok 1: accept + pierwszy Visitor
 
-**W IDE:** interfejs `OrderItemVisitor<R>` z `visitTicket/visitSnack/visitVoucher`, metoda `accept` w `OrderItem` i rekordach. Operację "linia paragonu" przenieś do `ReceiptLineVisitor`.
+**Zmiany:**
+
+1. Powstaje nowy plik `OrderItemVisitor.java`: generyczny interfejs `OrderItemVisitor<R>` z metodami `visitTicket(TicketItem)`, `visitSnack(SnackItem)`, `visitVoucher(VoucherItem)`.
+2. `OrderItem` przestaje być pustym znacznikiem: dostaje metodę `<R> R accept(OrderItemVisitor<R> visitor)`; rekordy `TicketItem`, `SnackItem` i `VoucherItem` implementują ją wywołaniem swojej metody `visit...` (double dispatch).
+3. Powstaje nowy plik `ReceiptLineVisitor.java`: implementacja `OrderItemVisitor<String>`, do której trafiają trzy gałęzie z metody `line`.
+4. Metoda `line` znika z `ReceiptPrinter`; drukarka trzyma pole `lines = new ReceiptLineVisitor()` i w pętli woła `item.accept(lines)`.
+
+**Przed:**
+
+```java
+private String line(OrderItem item) {
+    if (item instanceof TicketItem ticket) {
+        return "Bilet " + ticket.title() + " " + ticket.format() + " " + ticket.price();
+    } else if (item instanceof SnackItem snack) {
+        return snack.name() + " " + snack.price();
+    } else if (item instanceof VoucherItem voucher) {
+        return "Voucher " + voucher.code() + " -" + voucher.value();
+    }
+    throw new IllegalArgumentException("unknown item: " + item);
+}
+```
+
 **Po:**
 
 ```java
@@ -1628,7 +2690,27 @@ text.append(item.accept(lines)).append('\n');
 
 ### Krok 2: pozostałe operacje jako Visitory
 
-**W IDE:** `AmountVisitor` i `VatVisitor`, usuń łańcuchy `instanceof`.
+**Zmiany:**
+
+1. Powstaje nowy plik `AmountVisitor.java`: implementacja `OrderItemVisitor<Money>`, która przejmuje gałęzie metody `amount` (cena biletu, cena produktu, voucher jako kwota ujemna).
+2. Powstaje nowy plik `VatVisitor.java`: implementacja `OrderItemVisitor<Money>`, która przejmuje gałęzie metody `vat` razem z pomocniczą metodą `vatOf`.
+3. Metody `amount`, `vat` i `vatOf` znikają z `ReceiptPrinter`; drukarka trzyma pola `amounts` i `vats`, a w pętli sumuje `item.accept(amounts)` i `item.accept(vats)`. Ostatnie łańcuchy `instanceof` znikają.
+
+**Przed:**
+
+```java
+private Money vat(OrderItem item) {
+    if (item instanceof TicketItem ticket) {
+        return vatOf(ticket.price(), 8);
+    } else if (item instanceof SnackItem snack) {
+        return vatOf(snack.price(), 23);
+    } else if (item instanceof VoucherItem) {
+        return Money.ZERO;
+    }
+    throw new IllegalArgumentException("unknown item: " + item);
+}
+```
+
 **Po:**
 
 ```java
@@ -1642,7 +2724,29 @@ vat = vat.plus(item.accept(vats));
 
 ### Krok 3: alternatywa Java 25 - sealed + switch
 
-**W IDE:** `sealed interface OrderItem permits ...`, usuń `accept` i Visitory, operacje jako `switch` po typach bez `default` (z record patterns w linii paragonu).
+**Zmiany:**
+
+1. `OrderItem` staje się `sealed interface OrderItem permits TicketItem, SnackItem, VoucherItem` i traci metodę `accept`; rekordy tracą swoje implementacje `accept`.
+2. Pliki `OrderItemVisitor.java`, `ReceiptLineVisitor.java`, `AmountVisitor.java` i `VatVisitor.java` znikają.
+3. Operacje wracają do `ReceiptPrinter` jako statyczne metody `line`, `amount` i `vat` - każda to wyczerpujący `switch` po typach bez `default` (w `line` z record patterns); `vatOf` też wraca do drukarki.
+
+**Przed:**
+
+```java
+public final class ReceiptPrinter {
+    private final ReceiptLineVisitor lines = new ReceiptLineVisitor();
+    private final AmountVisitor amounts = new AmountVisitor();
+    private final VatVisitor vats = new VatVisitor();
+
+    public String print(List<OrderItem> items) {
+        ...
+        for (OrderItem item : items) {
+            text.append(item.accept(lines)).append('\n');
+            total = total.plus(item.accept(amounts));
+            vat = vat.plus(item.accept(vats));
+        }
+```
+
 **Po:**
 
 ```java
@@ -1707,7 +2811,28 @@ Ta scena ma **dwie ścieżki**: krok 1 jest wspólny, krok 2 to ścieżka A (Str
 
 ### Krok 1: rozplecenie osi (wspólny)
 
-**W IDE:** zauważ, że tabela to dwie niezależne reguły. ⌥⌘M `basePrice(format)` ze `switch` po formacie i `adjustForDay(day, base)` ze `switch` po dniu. `price` = złożenie.
+**Zmiany:**
+
+1. Tabela to w rzeczywistości dwie niezależne reguły. Wydzielamy (Extract Method) prywatną statyczną metodę `basePrice(String format)`: `switch` po formacie zwraca 25.00 / 32.00 / 40.00, dla nieznanego formatu ten sam wyjątek co start.
+2. Wydzielamy drugą metodę `adjustForDay(DayOfWeek day, Money base)`: `switch` po dniu - wtorek to `base.minus(base.percent(30))`, weekend `base.plus(Money.of("2.00"))`, pozostałe dni `base`. Zmienna lokalna `weekend` znika.
+3. `price` staje się złożeniem obu metod.
+
+**Przed:**
+
+```java
+public Money price(DayOfWeek day, String format) {
+    boolean weekend = day == DayOfWeek.SATURDAY || day == DayOfWeek.SUNDAY;
+    if (format.equals("2D")) {
+        return Money.of(day == DayOfWeek.TUESDAY ? "17.50" : weekend ? "27.00" : "25.00");
+    } else if (format.equals("3D")) {
+        return Money.of(day == DayOfWeek.TUESDAY ? "22.40" : weekend ? "34.00" : "32.00");
+    } else if (format.equals("IMAX")) {
+        return Money.of(day == DayOfWeek.TUESDAY ? "28.00" : weekend ? "42.00" : "40.00");
+    }
+    throw new IllegalArgumentException("unknown format: " + format);
+}
+```
+
 **Po:**
 
 ```java
@@ -1722,7 +2847,28 @@ public Money price(DayOfWeek day, String format) {
 
 ### Krok 2: ścieżka A - zmienia się reguła dnia (Strategy)
 
-**W IDE:** interfejs `DayPolicy.apply(base)`, stałe `CHEAP_TUESDAY`, `WEEKEND`, `REGULAR` i kalendarz `DayPolicies.standard(day)`. `ShowPricing` dostaje kalendarz w konstruktorze (domyślnie standardowy). Format zostaje prostym `switch`.
+**Zmiany:**
+
+1. Powstaje nowy plik `DayPolicy.java`: interfejs funkcyjny z metodą `Money apply(Money base)` - korekta dnia jako wymienny algorytm (Strategy).
+2. Powstaje nowy plik `DayPolicies.java`: stałe `CHEAP_TUESDAY`, `WEEKEND`, `REGULAR` jako lambdy oraz kalendarz `standard(DayOfWeek day)`, który przejmuje `switch` z `adjustForDay`.
+3. `ShowPricing` dostaje pole `Function<DayOfWeek, DayPolicy> calendar` i dwa konstruktory: wstrzykujący kalendarz oraz bezargumentowy delegujący do `DayPolicies::standard`. Metoda `adjustForDay` znika, a format zostaje prostym `switch` w `basePrice`.
+
+**Przed:**
+
+```java
+public Money price(DayOfWeek day, String format) {
+    return adjustForDay(day, basePrice(format));
+}
+...
+private static Money adjustForDay(DayOfWeek day, Money base) {
+    return switch (day) {
+        case TUESDAY -> base.minus(base.percent(30));
+        case SATURDAY, SUNDAY -> base.plus(Money.of("2.00"));
+        default -> base;
+    };
+}
+```
+
 **Po:**
 
 ```java
@@ -1735,7 +2881,25 @@ return calendar.apply(day).apply(basePrice(format));
 
 ### Krok 3: ścieżka B - zmienia się zestaw formatów (typ z zachowaniem)
 
-**W IDE:** pokaż alternatywę od kroku 1: `enum Format` z ceną bazową i metodą `priceOn(day)`, `Format.of(code)` z tym samym wyjątkiem. `ShowPricing` deleguje. Reguła dnia zostaje zwykłym `switch` w typie.
+**Zmiany:**
+
+1. Ścieżka B jest alternatywą budowaną od kroku 1, nie kontynuacją kroku 2 - punktem wyjścia jest `step1`, bez `DayPolicy` i `DayPolicies`.
+2. Powstaje nowy plik `Format.java`: enum ze stałymi `TWO_D("2D", "25.00")`, `THREE_D("3D", "32.00")`, `IMAX("IMAX", "40.00")`, fabryką `Format.of(code)` rzucającą ten sam wyjątek `unknown format` oraz metodą `priceOn(DayOfWeek day)`, do której trafia `switch` reguły dnia.
+3. `ShowPricing` kurczy się do delegacji do typu; metody `basePrice` i `adjustForDay` znikają.
+
+**Przed:**
+
+```java
+private static Money basePrice(String format) {
+    return switch (format) {
+        case "2D" -> Money.of("25.00");
+        case "3D" -> Money.of("32.00");
+        case "IMAX" -> Money.of("40.00");
+        default -> throw new IllegalArgumentException("unknown format: " + format);
+    };
+}
+```
+
 **Po:**
 
 ```java
@@ -1797,7 +2961,33 @@ case "FESTIVAL" -> {
 
 ### Krok 1: Replace Conditional with Strategy (i Adapter dla obcego klienta)
 
-**W IDE:** utwórz interfejs `SettlementModel.payout(deal, week, ticketRevenue)`. Każdą gałąź `switch` przenieś (⌥⌘M, potem F6) do klasy: `PercentageModel` i `FestivalFeeAdapter` (opakowuje `FestivalTariffClient`, konwertuje grosze). `DistributorSettlement` wybiera model z mapy.
+**Zmiany:**
+
+1. Powstaje nowy plik `SettlementModel.java`: interfejs z metodą `BigDecimal payout(Deal deal, int week, BigDecimal ticketRevenue)` - wspólny kontrakt modeli rozliczeń.
+2. Powstaje nowy plik `PercentageModel.java`: gałąź `"PERCENT"` przenosimy do metody `payout` tej klasy, a kwota 500.00 staje się stałą `MINIMUM_GUARANTEE`.
+3. Powstaje nowy plik `FestivalFeeAdapter.java`: implementacja `SettlementModel`, która dostaje `FestivalTariffClient` w konstruktorze i przejmuje gałąź `"FESTIVAL"` razem z konwersją groszy (`BigDecimal.valueOf(cents, 2)`).
+4. W `DistributorSettlement` pole `festival` i cały `switch` znikają; serwis trzyma mapę `models` i wybiera z niej model, a dla nieznanego modelu rzuca ten sam wyjątek co start.
+
+**Przed:**
+
+```java
+public BigDecimal payout(Deal deal, int week, BigDecimal ticketRevenue) {
+    switch (deal.model()) {
+        case "PERCENT" -> {
+            int percent = week == 1 ? 50 : week == 2 ? 40 : 35;
+            BigDecimal share = ticketRevenue.multiply(BigDecimal.valueOf(percent))
+                    .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+            return share.max(new BigDecimal("500.00"));
+        }
+        case "FESTIVAL" -> {
+            long cents = festival.weeklyFeeInCents(deal.title(), week);
+            return BigDecimal.valueOf(cents, 2);
+        }
+        default -> throw new IllegalArgumentException("nieznany model: " + deal.model());
+    }
+}
+```
+
 **Po:**
 
 ```java
@@ -1812,7 +3002,20 @@ private final Map<String, SettlementModel> models = Map.of(
 
 ### Krok 2: Wariant znika - Safe Delete adaptera
 
-**W IDE:** umowy festiwalowe wygasły. Usuń wpis `"FESTIVAL"` z mapy, Safe Delete (⌘⌦) na `FestivalFeeAdapter`.
+**Zmiany:**
+
+1. Umowy festiwalowe wygasły: wpis `"FESTIVAL"` znika z mapy `models`.
+2. Plik `FestivalFeeAdapter.java` znika - przed usunięciem upewniamy się, że klasa nie ma już żadnych użyć (bezpieczne usunięcie).
+3. `SettlementModel` i `PercentageModel` zostają bez zmian - Strategy z jedną implementacją.
+
+**Przed:**
+
+```java
+private final Map<String, SettlementModel> models = Map.of(
+        "PERCENT", new PercentageModel(),
+        "FESTIVAL", new FestivalFeeAdapter(new FestivalTariffClient()));
+```
+
 **Po:**
 
 ```java
@@ -1826,7 +3029,27 @@ private final Map<String, SettlementModel> models = Map.of(
 
 ### Krok 3: Usunięcie wzorca
 
-**W IDE:** ⌥⌘N (Inline) na `PercentageModel.payout` w miejscu wywołania, usuń mapę, Safe Delete na `PercentageModel` i `SettlementModel`. Przenieś `MINIMUM_GUARANTEE` (F6 na stałej).
+**Zmiany:**
+
+1. Ciało `PercentageModel.payout` wstawiamy w miejsce wywołania w `DistributorSettlement.payout` (Inline Method); mapa `models` znika, a na jej miejsce wchodzi warunek odrzucający model inny niż `"PERCENT"` tym samym wyjątkiem.
+2. Stała `MINIMUM_GUARANTEE` przenosi się z `PercentageModel` do `DistributorSettlement`.
+3. Pliki `PercentageModel.java` i `SettlementModel.java` znikają (bezpieczne usunięcie po upewnieniu się, że nie mają użyć).
+
+**Przed:**
+
+```java
+private final Map<String, SettlementModel> models = Map.of(
+        "PERCENT", new PercentageModel());
+
+public BigDecimal payout(Deal deal, int week, BigDecimal ticketRevenue) {
+    SettlementModel model = models.get(deal.model());
+    if (model == null) {
+        throw new IllegalArgumentException("nieznany model: " + deal.model());
+    }
+    return model.payout(deal, week, ticketRevenue);
+}
+```
+
 **Po:**
 
 ```java
@@ -1885,7 +3108,24 @@ public int freeSeats(String id) {
 
 ### Krok 1: pośrednik staje się czystym forwarderem
 
-**W IDE:** przenieś `try/catch` do prywatnej metody `freeSeats` w `SeatBadge` (jedyny klient, który polega na tłumaczeniu). W fasadzie zostaje zwykłe delegowanie.
+**Zmiany:**
+
+1. `try/catch` z `CinemaFacade.freeSeats` przenosimy do nowej prywatnej metody `freeSeats(String id)` w `SeatBadge` - jedynym kliencie, który polega na tłumaczeniu "brak seansu" na 0; `badge` woła teraz własne `freeSeats(id)`.
+2. `CinemaFacade.freeSeats` staje się zwykłą delegacją `return catalog.freeSeats(id)` - pośrednik jest od teraz czystym forwarderem.
+
+**Przed:**
+
+```java
+// CinemaFacade
+public int freeSeats(String id) {
+    try {
+        return catalog.freeSeats(id);
+    } catch (NoSuchElementException e) {
+        return 0;
+    }
+}
+```
+
 **Po:**
 
 ```java
@@ -1905,7 +3145,23 @@ private int freeSeats(String id) {
 
 ### Krok 2: pierwszy klient rozmawia z katalogiem
 
-**W IDE:** w `SeatBadge` Change Signature (⌘F6) konstruktora: `CinemaFacade` na `ScreeningCatalog`, pole przez ⇧F6 na `catalog`.
+**Zmiany:**
+
+1. Konstruktor `SeatBadge` zmienia sygnaturę: zamiast `CinemaFacade` przyjmuje `ScreeningCatalog`; pole `cinema` zmienia typ i nazwę na `catalog`.
+2. Wywołania `cinema.freeSeats`, `cinema.title` i `cinema.format` stają się wywołaniami na `catalog` - plakietka rozmawia bezpośrednio z katalogiem.
+3. `DailyBoard` i `CinemaFacade` bez zmian - migrujemy po jednym kliencie.
+
+**Przed:**
+
+```java
+public final class SeatBadge {
+    private final CinemaFacade cinema;
+
+    public SeatBadge(CinemaFacade cinema) {
+        this.cinema = Objects.requireNonNull(cinema, "cinema");
+    }
+```
+
 **Po:**
 
 ```java
@@ -1920,7 +3176,23 @@ public SeatBadge(ScreeningCatalog catalog) {
 
 ### Krok 3: ostatni klient i Safe Delete fasady
 
-**W IDE:** ten sam ruch w `DailyBoard` (`cinema.screenings()` na `catalog.all()`), potem Safe Delete (⌘⌦) na `CinemaFacade`.
+**Zmiany:**
+
+1. Ten sam ruch w `DailyBoard`: konstruktor przyjmuje `ScreeningCatalog`, pole `cinema` staje się `catalog`, a wywołanie `cinema.screenings()` zamieniamy na `catalog.all()`.
+2. Plik `CinemaFacade.java` znika - po migracji obu klientów nie ma już żadnych użyć (bezpieczne usunięcie).
+
+**Przed:**
+
+```java
+private final CinemaFacade cinema;
+...
+public String render() {
+    return cinema.screenings().stream()
+            .map(screening -> screening.id() + " " + screening.title() + " " + screening.format())
+            .collect(Collectors.joining("\n"));
+}
+```
+
 **Po:**
 
 ```java
@@ -1939,7 +3211,7 @@ return catalog.all().stream()
 
 ### Pułapki
 
-- Inline wszystkich metod fasady naraz (IntelliJ: Refactor → Remove Middleman) bez sprawdzenia, że któraś tłumaczy błędy.
+- Wstawienie wszystkich metod pośrednika do klientów za jednym zamachem, bez sprawdzenia, że któraś tłumaczy błędy.
 - Usunięcie fasady, która jest granicą modułu (klienci z innych pakietów zaczną zależeć od szczegółów).
 - Utrwalenie dziwnego zachowania ("nieznany = wyprzedany") bez notatki - to kandydat na osobną decyzję.
 
@@ -1976,7 +3248,25 @@ return String.format(Locale.ROOT, "%.2f", refund);
 
 ### Krok 1: czysta refaktoryzacja
 
-**W IDE:** zaznacz łańcuch `if/else` wyboru udziału, ⌥⌘M, nazwa `share`, zwraca `double` (0, 1.0, 0.5). W `refund` jedno wyrażenie `ticketsPaid * share(minutes) - 3.00`.
+**Zmiany:**
+
+1. Łańcuch `if/else` wyboru udziału wydzielamy (Extract Method) do prywatnej statycznej metody `share(long minutesBeforeStart)` zwracającej `double`: 0, 1.0 albo 0.5.
+2. Początek `refund` zastępuje jedno wyrażenie `ticketsPaid * share(minutesBeforeStart) - 3.00`; zaokrąglenie i format zostają bez zmian.
+
+**Przed:**
+
+```java
+double refund;
+if (minutesBeforeStart <= 0) {
+    refund = 0;
+} else if (minutesBeforeStart >= 24 * 60) {
+    refund = ticketsPaid;
+} else {
+    refund = ticketsPaid * 0.5;
+}
+refund = refund - 3.00;
+```
+
 **Po:**
 
 ```java
@@ -1989,7 +3279,25 @@ double refund = ticketsPaid * share(minutesBeforeStart) - 3.00;
 
 ### Krok 2: "przy okazji" double na BigDecimal
 
-**W IDE:** pokaż naiwny ruch: `share` zwraca `BigDecimal`, liczymy `BigDecimal.valueOf(ticketsPaid).multiply(...).subtract(FEE).setScale(2, HALF_UP).max(BigDecimal.ZERO)`, zwracamy `toPlainString()`.
+**Zmiany:**
+
+1. Pokazujemy naiwny ruch: `share` zmienia zwracany typ na `BigDecimal` (`ZERO`, `ONE`, `new BigDecimal("0.5")`), a potrącenie staje się stałą `FEE = new BigDecimal("3.00")`.
+2. `refund` liczy całość na `BigDecimal`: `valueOf`, `multiply`, `subtract(FEE)`, `setScale(2, HALF_UP)`, `max(BigDecimal.ZERO)` i zwraca `toPlainString()`.
+3. `Math.round(...)` i `String.format("%.2f", ...)` znikają - to właśnie dwa zmienione "przy okazji" elementy kontraktu.
+
+**Przed:**
+
+```java
+public String refund(double ticketsPaid, long minutesBeforeStart) {
+    double refund = ticketsPaid * share(minutesBeforeStart) - 3.00;
+    if (refund < 0) {
+        refund = 0;
+    }
+    refund = Math.round(refund * 100) / 100.0;
+    return String.format(Locale.ROOT, "%.2f", refund);
+}
+```
+
 **Po:**
 
 ```java
@@ -2007,7 +3315,22 @@ return refund.toPlainString();
 
 ### Krok 3: świadoma decyzja
 
-**W IDE:** przestaw `max` przed `setScale(2, HALF_UP)` - format "0.00" wraca. Różnicę groszową zatwierdzamy jako zmianę kontraktu: Javadoc z decyzją, nowe oczekiwanie w teście, osobny commit.
+**Zmiany:**
+
+1. W łańcuchu wywołań przestawiamy kolejność: `max(BigDecimal.ZERO)` przed `setScale(2, RoundingMode.HALF_UP)` - zero znów drukuje się jako "0.00".
+2. Różnicę groszową (HALF_UP na `BigDecimal`) zatwierdzamy jako zmianę kontraktu: Javadoc z decyzją, nowe oczekiwanie w teście, osobny commit.
+
+**Przed:**
+
+```java
+BigDecimal refund = BigDecimal.valueOf(ticketsPaid)
+        .multiply(share(minutesBeforeStart))
+        .subtract(FEE)
+        .setScale(2, RoundingMode.HALF_UP)
+        .max(BigDecimal.ZERO);
+return refund.toPlainString();
+```
+
 **Po:**
 
 ```java
@@ -2047,7 +3370,7 @@ Kto zatwierdza zmianę kontraktu o 1 grosz: programista, księgowość czy klien
 
 **Co robimy:** W `SalesReport` nazwy `calc2`, `s`, `m`, `t` nic nie mówią, ale nazwa metody żyje w konfiguracji, a nazwy komponentów rekordu trafiają refleksją do nagłówka CSV. Zmieniamy nazwy od najbezpieczniejszych lokalnych do tych, które są kontraktem zewnętrznym.
 
-**Zasada:** Rename nadaje nazwę opisującą rolę w kontekście, a nie typ ani implementację. Dla zmiennych lokalnych IDE robi to bezpiecznie, ale nazwa użyta w konfiguracji, refleksji, JSON czy ORM jest częścią API i wymaga strategii migracji. IDE nie widzi takich użyć, więc nie mylić operacji ⇧F6 z bezpieczną zmianą kontraktu.
+**Zasada:** Rename nadaje nazwę opisującą rolę w kontekście, a nie typ ani implementację. Dla zmiennych lokalnych IDE robi to bezpiecznie, ale nazwa użyta w konfiguracji, refleksji, JSON czy ORM jest częścią API i wymaga strategii migracji. Automatyczna zmiana nazwy nie widzi takich użyć, więc nie mylić jej z bezpieczną zmianą kontraktu.
 
 **Efekt:** Kod czyta się po nazwach ról, a oba kontrakty zostają nietknięte: stara nazwa `calc2` jako przestarzały delegat, nagłówek CSV jako jawna stała. Koszt to delegat, którego nie wolno usunąć, dopóki ktoś nie zmieni konfiguracji na serwerach.
 
@@ -2070,7 +3393,27 @@ Arrays.stream(Line.class.getRecordComponents()).map(RecordComponent::getName)...
 
 ### Krok 1: Rename zmiennych lokalnych i parametrów
 
-**W IDE:** kursor na `s`, ⇧F6, `sales`. Tak samo `flag` -> `onlineOnly`, `m` -> `linesByTitle`, `x` -> `sale`, `l` -> `previous` / `line`, `b` -> `csv`, `v` -> `values`, `c` -> `component`.
+**Zmiany:**
+
+1. Zmieniamy nazwy parametrów (Rename): `s` na `sales`, `flag` na `onlineOnly`.
+2. Zmieniamy nazwy zmiennych lokalnych: `m` na `linesByTitle`, `x` na `sale`, `l` na `previous` (w pętli agregującej) i `line` (w pętli drukującej), `b` na `csv`, `v` na `values`, `c` na `component`.
+3. Nazwa metody `calc2` i komponenty rekordu `t`, `n`, `d` na razie zostają - żyją poza Javą.
+
+**Przed:**
+
+```java
+public String calc2(List<Sale> s, boolean flag) {
+    Map<String, Line> m = new TreeMap<>();
+    for (Sale x : s) {
+        if (flag && !x.online()) {
+            continue;
+        }
+        Line l = m.get(x.title());
+        ...
+    }
+    StringBuilder b = new StringBuilder(header()).append('\n');
+```
+
 **Po:**
 
 ```java
@@ -2086,7 +3429,22 @@ public String calc2(List<Sale> sales, boolean onlineOnly) {
 
 ### Krok 2: Rename metody z delegatem dla starej nazwy
 
-**W IDE:** najpierw na żywo naiwnie: ⇧F6 na `calc2`, nazwa `revenueCsv`, bez zaznaczania "Search in comments and strings". Uruchom test: `everyStepRunsTheConfiguredJob` jest czerwony (`NoSuchMethodException: calc2`). IDE nie wie, że tekst w konfiguracji to nazwa metody. Cofnij (⌘Z). Teraz poprawnie: skopiuj metodę, zmień nazwę kopii na `revenueCsv`, a ciało `calc2` zamień na delegowanie i oznacz `@Deprecated`.
+**Zmiany:**
+
+1. Najpierw na żywo naiwnie: zmieniamy nazwę metody `calc2` na `revenueCsv` w całym kodzie Javy. Test `everyStepRunsTheConfiguredJob` robi się czerwony (`NoSuchMethodException: calc2`) - zmiana nazwy poprawiła wywołania w Javie, ale tekst w konfiguracji nie jest dla niej nazwą metody. Wycofujemy zmianę.
+2. Teraz poprawnie: kopiujemy metodę, kopia dostaje nazwę `revenueCsv`, a ciało `calc2` zamieniamy na delegowanie `return revenueCsv(sales, onlineOnly)`.
+3. `calc2` dostaje `@Deprecated` i Javadoc z powodem: nazwa żyje w `report.properties`, usunąć wolno dopiero po zmianie konfiguracji na serwerach.
+
+**Przed:**
+
+```java
+/** Wywoływana także refleksyjnie przez ReportJob - nazwa metody jest w konfiguracji. */
+public String calc2(List<Sale> sales, boolean onlineOnly) {
+    Map<String, Line> linesByTitle = new TreeMap<>();
+    ...
+}
+```
+
 **Po:**
 
 ```java
@@ -2105,7 +3463,25 @@ public String revenueCsv(List<Sale> sales, boolean onlineOnly) {
 
 ### Krok 3: Rename komponentów rekordu po odcięciu kontraktu CSV
 
-**W IDE:** najpierw naiwnie: ⇧F6 na `t` w `Line`, `title`. Test pokaże nagłówek `title;n;d` zamiast `t;n;d`: plik dla dystrybutora właśnie się zmienił. Cofnij. Teraz poprawnie: najpierw zamień refleksyjne `header()` i `row()` na jawny `CSV_HEADER = "t;n;d"` i jawne składanie wiersza (test zielony), dopiero potem ⇧F6 na `t`, `n`, `d` -> `title`, `tickets`, `revenue`.
+**Zmiany:**
+
+1. Najpierw naiwnie: zmieniamy nazwę komponentu `t` w `Line` na `title`. Test pokaże nagłówek `title;n;d` zamiast `t;n;d` - plik dla dystrybutora właśnie się zmienił. Wycofujemy zmianę.
+2. Odcinamy kontrakt od refleksji: refleksyjne `header()` zastępuje jawna stała `CSV_HEADER = "t;n;d"`, a `row(Line line)` jawnie skleja trzy pola; metoda `header()` i importy refleksji znikają. Test zielony.
+3. Dopiero teraz zmieniamy nazwy komponentów rekordu (Rename): `t` na `title`, `n` na `tickets`, `d` na `revenue`.
+
+**Przed:**
+
+```java
+public record Line(String t, int n, BigDecimal d) {
+}
+...
+private static String header() {
+    return Arrays.stream(Line.class.getRecordComponents())
+            .map(RecordComponent::getName)
+            .collect(Collectors.joining(";"));
+}
+```
+
 **Po:**
 
 ```java
@@ -2130,9 +3506,9 @@ private static String row(Line line) {
 
 ### Pułapki
 
-- Poleganie na "Search in comments and strings" w IntelliJ. Czasem pomaga, ale nie widzi plików poza projektem ani nazw składanych dynamicznie (`"calc" + version`).
+- Poleganie na przeszukiwaniu komentarzy i tekstów przy zmianie nazwy. Czasem pomaga, ale nie widzi plików poza projektem ani nazw składanych dynamicznie (`"calc" + version`).
 - Inne miejsca, w których nazwa jest kontraktem: JSON (Jackson), kolumny ORM, szablony, `Serializable`, nazwy beanów, logi parsowane przez monitoring.
-- Usunięcie delegatu `calc2` "bo nikt go nie woła". Find Usages go nie znajdzie, bo wołają go tylko refleksja i konfiguracja.
+- Usunięcie delegatu `calc2` "bo nikt go nie woła". Wyszukiwanie użyć go nie znajdzie, bo wołają go tylko refleksja i konfiguracja.
 
 ### Pytanie do sali
 
@@ -2171,7 +3547,29 @@ for (int row : order.rows()) {
 
 ### Krok 1: Extract Method dla bloku z jednym wyjściem
 
-**W IDE:** zaznacz blok pod `// cena bazowa` (od `BigDecimal base;` do końca `if` z porankiem), ⌥⌘M, nazwa `basePrice`. IntelliJ sam wykryje jedno wejście (`order`) i jedno wyjście (`base`). Usuń zbędny komentarz.
+**Zmiany:**
+
+1. Blok pod komentarzem `// cena bazowa` (od deklaracji `BigDecimal base;` do końca `if` z porankiem) wydzielamy (Extract Method) do prywatnej metody `basePrice(Order order)`.
+2. Analiza przepływu danych: do bloku wchodzi tylko `order`, wychodzi tylko `base` - metoda przyjmuje `Order` i zwraca `BigDecimal`.
+3. Komentarz `// cena bazowa formatu` znika - zastąpiła go nazwa metody.
+
+**Przed:**
+
+```java
+// cena bazowa formatu
+BigDecimal base;
+if (order.format().equals("IMAX")) {
+    base = new BigDecimal("40.00");
+} else if (order.format().equals("3D")) {
+    base = new BigDecimal("32.00");
+} else {
+    base = new BigDecimal("25.00");
+}
+if (order.start().getHour() < 12) {
+    base = base.subtract(new BigDecimal("5.00"));
+}
+```
+
 **Po:**
 
 ```java
@@ -2184,7 +3582,28 @@ BigDecimal base = basePrice(order);
 
 ### Krok 2: Split Loop, potem dwa razy Extract Method
 
-**W IDE:** spróbuj ⌥⌘M na pętli. IntelliJ zgłosi, że fragment ma wiele wartości wyjściowych. To jest moment dydaktyczny. Ręcznie skopiuj pętlę (Split Loop) i z pierwszej kopii usuń `vipSeats`, a z drugiej `subtotal`. Uruchom test. Następnie na każdej pętli ⌥⌘M, nazwy `subtotal` i `vipSeats`.
+**Zmiany:**
+
+1. Próba wydzielenia całej pętli w jedną metodę kończy się odmową: fragment ma dwa wyjścia, `subtotal` i `vipSeats`. To jest moment dydaktyczny.
+2. Kopiujemy pętlę (Split Loop): z pierwszej kopii usuwamy wszystko, co dotyczy `vipSeats` (zostaje zliczanie `subtotal` z `setScale` na końcu), z drugiej wszystko, co dotyczy `subtotal` (zostaje licznik `vipSeats`). Uruchamiamy test.
+3. Każdą pętlę wydzielamy (Extract Method) do prywatnej metody: `subtotal(Order order, BigDecimal base)` i `vipSeats(Order order)` - każda ma już jedno wyjście.
+
+**Przed:**
+
+```java
+BigDecimal subtotal = BigDecimal.ZERO;
+int vipSeats = 0;
+for (int row : order.rows()) {
+    BigDecimal price = base;
+    if (row >= 10) {
+        price = price.add(new BigDecimal("10.00"));
+        vipSeats++;
+    }
+    subtotal = subtotal.add(price);
+}
+subtotal = subtotal.setScale(2, RoundingMode.HALF_UP);
+```
+
 **Po:**
 
 ```java
@@ -2198,7 +3617,26 @@ int vipSeats = vipSeats(order);
 
 ### Krok 3: Extract Method dla renderowania
 
-**W IDE:** zaznacz blok `// dokument` i wykonaj ⌥⌘M, nazwa `render`. Parametry: `order`, `subtotal`, `vipSeats`. Potem Inline Variable (⌥⌘N) dla `base`.
+**Zmiany:**
+
+1. Blok pod komentarzem `// dokument` wydzielamy (Extract Method) do prywatnej metody `render(Order order, BigDecimal subtotal, int vipSeats)`; komentarz znika.
+2. Zmienną `base` wstawiamy w miejsce jedynego użycia (Inline Variable): `subtotal(order, basePrice(order))`.
+3. `describe` to już tylko trzy linie: policz sumę, policz miejsca VIP, wyrenderuj dokument.
+
+**Przed:**
+
+```java
+BigDecimal base = basePrice(order);
+BigDecimal subtotal = subtotal(order, base);
+int vipSeats = vipSeats(order);
+
+// dokument
+StringBuilder text = new StringBuilder();
+text.append("BILETY: ").append(order.title()).append('\n');
+...
+return text.toString();
+```
+
 **Po:**
 
 ```java
@@ -2265,7 +3703,27 @@ Status next = switch (status) {
 
 ### Krok 1: Strategy dla ceny biletu
 
-**W IDE:** utwórz interfejs funkcyjny `TicketPricing` z metodą `Money price(Money formatBase)`. Utwórz `TicketPricings` z mapą kod typu - strategia (lambdy, wspólna metoda `discounted(percent)`) i `forType(code)`, które dla nieznanego kodu rzuca `unknown ticket type: X` jak start. W pętli `book` zastąp wewnętrzny `switch` wywołaniem strategii.
+**Zmiany:**
+
+1. Powstaje nowy plik `TicketPricing.java`: interfejs funkcyjny z metodą `Money price(Money formatBase)`.
+2. Powstaje nowy plik `TicketPricings.java`: mapa kod typu - strategia (lambdy, wspólna metoda pomocnicza `discounted(percent)`) oraz `forType(code)`, które dla nieznanego kodu rzuca `unknown ticket type: X` jak start.
+3. W pętli `book` wewnętrzny `switch` po typie biletu zastępuje wywołanie strategii.
+
+**Przed:**
+
+```java
+Money total = Money.ZERO;
+for (int i = 3; i < args.length; i++) {
+    total = total.plus(switch (args[i]) {
+        case "N" -> base;
+        case "S" -> base.minus(base.percent(25));
+        case "E" -> base.minus(base.percent(30));
+        case "C" -> base.minus(base.percent(40));
+        default -> throw new IllegalArgumentException("unknown ticket type: " + args[i]);
+    });
+}
+```
+
 **Po:**
 
 ```java
@@ -2280,7 +3738,34 @@ for (int i = 3; i < args.length; i++) {
 
 ### Krok 2: Command dla operacji kasjera
 
-**W IDE:** Refactor > Extract Delegate dla pól `statuses`, `amounts`, `till` - powstaje odbiorca `BookingLedger` z metodami `open`, `remove`, `status`, `pay`, `use`, `cancel`, `restore`, `deposit`, `withdraw`, `summary`. Utwórz interfejs `DeskCommand` (`execute(ledger)`, `undo(ledger)`, `journalEntry()`) i po jednej klasie na operację: `BookCommand`, `PayCommand`, `UseCommand`, `CancelCommand`, każda z fabryką `from(args)`. Pulpit dostaje rejestr `Map<String, Function<String[], DeskCommand>>` i historię `List<DeskCommand>` zamiast rekordów `Entry`; `undo()` woła `last.undo(ledger)`.
+**Zmiany:**
+
+1. Powstaje nowy plik `BookingLedger.java`: odbiorca poleceń, do którego przenosimy z pulpitu pola `statuses`, `amounts` i `till` (Extract Class) razem z operacjami na nich: `open`, `remove`, `status`, `pay`, `use`, `cancel`, `restore`, `deposit`, `withdraw`, `summary`.
+2. Powstaje nowy plik `DeskCommand.java`: interfejs z metodami `execute(ledger)`, `undo(ledger)`, `journalEntry()` i wspólną walidacją `idFrom(args, operation)`.
+3. Powstają nowe pliki `BookCommand.java`, `PayCommand.java`, `UseCommand.java`, `CancelCommand.java`: każda klasa ma fabrykę `from(args)`, wykonuje operację na odbiorcy i pamięta to, czego potrzebuje do cofnięcia (poprzedni status, przesuniętą kwotę).
+4. Pulpit dostaje rejestr `Map<String, Function<String[], DeskCommand>>` i historię `List<DeskCommand>`; rekord `Entry`, metody `book` i `change` oraz `switch` po nazwie operacji w `undo()` znikają - `undo()` woła `last.undo(ledger)`. UNDO i REPORT zostają w `switch` pulpitu.
+
+**Przed:**
+
+```java
+Entry last = journal.removeLast();
+switch (last.operation()) {
+    case "BOOK" -> {
+        statuses.remove(last.id());
+        amounts.remove(last.id());
+    }
+    case "PAY" -> {
+        till = till.minus(last.moved());
+        statuses.put(last.id(), last.previous());
+    }
+    case "CANCEL" -> {
+        till = till.plus(last.moved());
+        statuses.put(last.id(), last.previous());
+    }
+    default -> statuses.put(last.id(), last.previous());
+}
+```
+
 **Po:**
 
 ```java
@@ -2296,17 +3781,57 @@ return result;
 
 ### Krok 3: State dla cyklu życia rezerwacji
 
-**W IDE:** utwórz klasę `Booking` (kwota i pole `private State state`) z prywatnym enumem `State`. Warunki z `BookingLedger.pay/use/cancel` przenieś do stałych enumu: NEW nadpisuje `pay` i `cancel`, PAID nadpisuje `use` i `cancel`, USED i CANCELLED nie nadpisują niczego. Domyślne metody enumu rzucają `cannot <akcja> in <STATUS>`. `BookingLedger` trzyma `Map<String, Booking>` i tylko przesuwa pieniądze w kasie.
+**Zmiany:**
+
+1. Powstaje nowy plik `Booking.java`: klasa z kwotą i polem `private State state` oraz prywatnym enumem `State`. Warunki z `BookingLedger.pay/use/cancel` przenosimy do stałych enumu: NEW nadpisuje `pay` i `cancel`, PAID nadpisuje `use` i `cancel`, USED i CANCELLED nie nadpisują niczego; metody domyślne rzucają `cannot <akcja> in <STATUS>`.
+2. `Booking.restore(Status)` wraca do zapamiętanego stanu z pominięciem reguł przejść - kompensacja dla cofania poleceń.
+3. `BookingLedger` zamiast map `statuses` i `amounts` trzyma `Map<String, Booking>`; jego `pay` i `cancel` już tylko przesuwają pieniądze w kasie według kwot zwróconych przez `Booking`.
+
+**Przed:**
+
+```java
+// BookingLedger
+Money cancel(String id) {
+    Status status = status(id);
+    if (status == Status.NEW) {
+        statuses.put(id, Status.CANCELLED);
+        return Money.ZERO;
+    } else if (status == Status.PAID) {
+        till = till.minus(amounts.get(id));
+        statuses.put(id, Status.CANCELLED);
+        return amounts.get(id);
+    }
+    throw invalid("cancel", status);
+}
+```
+
 **Po:**
 
 ```java
 NEW {
-    Money pay(Booking booking) { booking.state = PAID; return booking.amount; }
-    Money cancel(Booking booking) { booking.state = CANCELLED; return Money.ZERO; }
+    @Override
+    Money pay(Booking booking) {
+        booking.state = PAID;
+        return booking.amount;
+    }
+
+    @Override
+    Money cancel(Booking booking) {
+        booking.state = CANCELLED;
+        return Money.ZERO;
+    }
 },
 PAID {
-    void use(Booking booking) { booking.state = USED; }
-    Money cancel(Booking booking) { booking.state = CANCELLED; return booking.amount; }
+    @Override
+    void use(Booking booking) {
+        booking.state = USED;
+    }
+
+    @Override
+    Money cancel(Booking booking) {
+        booking.state = CANCELLED;
+        return booking.amount;
+    }
 },
 USED,
 CANCELLED;
@@ -2366,7 +3891,28 @@ public final String render(LocalDate day, List<ScreeningSale> sales) {
 
 ### Krok 1: oś formatu jako strategia
 
-**W IDE:** utwórz interfejs `ReportFormat` z `header`, `row`, `footer` oraz klasy `CsvFormat` i `TextFormat` z ciałami skopiowanymi z `DailyCsvReport` i `DailyTextReport` (najpierw porównaj je z kopiami w `Weekly*`, ⌘D na dwóch plikach). Do `ScreeningReport` dodaj pole `format` i konstruktor `protected ScreeningReport(ReportFormat format)`, w `render` wołaj `format.header(...)`, `format.row(...)`, `format.footer(...)`. Usuń trzy haki formatu z bazy i podklas (Safe Delete ⌘⌦), podklasy wołają `super(new CsvFormat())` albo `super(new TextFormat())`.
+**Zmiany:**
+
+1. Powstaje nowy plik `ReportFormat.java`: interfejs z metodami `header(label)`, `row(title, tickets, revenue)` i `footer(tickets, revenue)` - trzy haki formatu wyjęte z hierarchii.
+2. Powstają nowe pliki `CsvFormat.java` i `TextFormat.java` z ciałami haków skopiowanymi z `DailyCsvReport` i `DailyTextReport`; najpierw porównujemy je z kopiami w `Weekly*`, żeby nie zostawić rozjechanej wersji.
+3. `ScreeningReport` dostaje pole `format` i konstruktor `protected ScreeningReport(ReportFormat format)`; w `render` wywołania `header(...)`, `row(...)` i `footer(...)` stają się `format.header(...)`, `format.row(...)`, `format.footer(...)`.
+4. Trzy abstrakcyjne haki formatu znikają z bazy, a ich implementacje z czterech podklas; każda podklasa woła `super(new CsvFormat())` albo `super(new TextFormat())`.
+
+**Przed:**
+
+```java
+StringBuilder text = new StringBuilder(header(label(day)));
+Line total = new Line(0, Money.ZERO);
+for (Map.Entry<String, Line> entry : byTitle.entrySet()) {
+    text.append(row(entry.getKey(), entry.getValue().tickets(), entry.getValue().revenue()));
+    total = total.plus(entry.getValue());
+}
+return text.append(footer(total.tickets(), total.revenue())).toString();
+...
+/** Hak formatu. */
+protected abstract String header(String label);
+```
+
 **Po:**
 
 ```java
@@ -2381,7 +3927,35 @@ public DailyCsvReport() {
 
 ### Krok 2: oś okresu jako strategia
 
-**W IDE:** ten sam ruch dla `includes` i `label`: interfejs `ReportPeriod`, klasy `DailyPeriod` i `WeeklyPeriod` (powtórzone wyliczanie poniedziałku wydziel ⌥⌘M do `monday(day)`), konstruktor bazy `ScreeningReport(ReportPeriod period, ReportFormat format)`.
+**Zmiany:**
+
+1. Ten sam ruch dla haków `includes` i `label`: powstaje nowy plik `ReportPeriod.java` - interfejs z tymi dwiema metodami.
+2. Powstają nowe pliki `DailyPeriod.java` i `WeeklyPeriod.java`; powtórzone wyliczanie poniedziałku wydzielamy w `WeeklyPeriod` do prywatnej metody `monday(day)` (Extract Method).
+3. Konstruktor bazy przyjmuje dwie strategie: `ScreeningReport(ReportPeriod period, ReportFormat format)`; w `render` haki okresu zamieniają się w `period.includes(...)` i `period.label(...)`.
+4. Haki `includes` i `label` znikają z bazy i podklas; podklasy to już tylko konfiguracja konstruktora.
+
+**Przed:**
+
+```java
+public final class WeeklyTextReport extends ScreeningReport {
+    public WeeklyTextReport() {
+        super(new TextFormat());
+    }
+
+    @Override
+    protected boolean includes(LocalDate day, LocalDate saleDay) {
+        LocalDate monday = day.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        return !saleDay.isBefore(monday) && !saleDay.isAfter(monday.plusDays(6));
+    }
+
+    @Override
+    protected String label(LocalDate day) {
+        LocalDate monday = day.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        return "tydzien " + monday + ".." + monday.plusDays(6);
+    }
+}
+```
+
 **Po:**
 
 ```java
@@ -2396,7 +3970,32 @@ public WeeklyTextReport() {
 
 ### Krok 3: zwinięcie podklas w jedną finalną klasę
 
-**W IDE:** w `ScreeningReport` usuń `abstract`, oznacz klasę `final`, konstruktor zrób publiczny, z `render` zdejmij zbędne już `final`. `Reports.of` składa `new ScreeningReport(period, format)` z dwóch map `PERIODS` i `FORMATS`, sprawdzając najpierw okres, potem format. Safe Delete (⌘⌦) czterech podklas.
+**Zmiany:**
+
+1. `ScreeningReport` przestaje być abstrakcyjna: klasa staje się `final`, konstruktor publiczny, a z `render` schodzi zbędne już `final`.
+2. `Reports` dostaje dwie mapy: `PERIODS` (DAILY, WEEKLY) i `FORMATS` (CSV, TEXT); `of` zamiast zagnieżdżonego `switch` sprawdza najpierw okres, potem format i składa `new ScreeningReport(chosenPeriod, chosenFormat)`.
+3. Pliki czterech podklas (`DailyCsvReport`, `DailyTextReport`, `WeeklyCsvReport`, `WeeklyTextReport`) znikają (bezpieczne usunięcie po migracji `Reports`).
+
+**Przed:**
+
+```java
+public static ScreeningReport of(String period, String format) {
+    return switch (period) {
+        case "DAILY" -> switch (format) {
+            case "CSV" -> new DailyCsvReport();
+            case "TEXT" -> new DailyTextReport();
+            default -> throw unknownFormat(format);
+        };
+        case "WEEKLY" -> switch (format) {
+            case "CSV" -> new WeeklyCsvReport();
+            case "TEXT" -> new WeeklyTextReport();
+            default -> throw unknownFormat(format);
+        };
+        default -> throw new IllegalArgumentException("unknown period: " + period);
+    };
+}
+```
+
 **Po:**
 
 ```java
@@ -2422,7 +4021,7 @@ return new ScreeningReport(chosenPeriod, chosenFormat);
 ### Pułapki
 
 - Zwinięcie podklas przed wyjęciem obu osi - zostaje klasa z warunkiem `if (weekly)` zamiast strategii.
-- Znika typ podklasy: kod z `instanceof WeeklyCsvReport`, rejestracja w DI po typie albo zapisana nazwa klasy przestają działać - poszukaj takich użyć przed Safe Delete.
+- Znika typ podklasy: kod z `instanceof WeeklyCsvReport`, rejestracja w DI po typie albo zapisana nazwa klasy przestają działać - poszukaj takich użyć, zanim usuniesz podklasy.
 - Osie, które tylko wyglądają na niezależne: gdyby format tekstowy inaczej opisywał tydzień niż dzień, format zależałby od okresu i podział 2 + 2 byłby fałszywy.
 - Kopie implementacji w podklasach mogły się już rozjechać (np. escapowanie tylko w jednym CSV) - porównaj je, zanim zostawisz jedną.
 
@@ -2463,7 +4062,22 @@ Zmiana kolejności, nowy poziom albo inna ścieżka dla festiwalu oznacza edycj�
 
 ### Krok 1: Extract Interface i pierwsze ogniwo
 
-**W IDE:** utwórz interfejs funkcyjny `RefundHandler` z metodą `Optional<RefundDecision> handle(RefundRequest request)` - pusty wynik znaczy "pytaj dalej". Pierwszą gałąź wydziel (⌥⌘M) i przenieś (F6) do klasy `AfterScreeningHandler`. W `decide` zostaje reszta `if/else`.
+**Zmiany:**
+
+1. Powstaje nowy plik `RefundHandler.java`: interfejs funkcyjny z metodą `Optional<RefundDecision> handle(RefundRequest request)` - pusty wynik znaczy "pytaj dalej".
+2. Powstaje nowy plik `AfterScreeningHandler.java`: pierwsza gałąź (seans już się rozpoczął) przenosi się do jego `handle`, opakowana w `Optional.of(...)` / `Optional.empty()` (Extract Method, potem przeniesienie do nowej klasy).
+3. `RefundApprover` dostaje pole `afterScreening = new AfterScreeningHandler()`; w `decide` pierwszą gałąź zastępuje pytanie ogniwa o decyzję, reszta `if/else` bez zmian. Walidacja kwoty zostaje przed ogniwem.
+
+**Przed:**
+
+```java
+if (!request.requestedAt().isBefore(request.screeningStart())) {
+    return RefundDecision.rejected("seans juz sie rozpoczal");
+} else if (Duration.between(request.requestedAt(), request.screeningStart()).toHours() >= 24) {
+    return RefundDecision.approvedBy("AUTO");
+}
+```
+
 **Po:**
 
 ```java
@@ -2480,7 +4094,28 @@ if (decision.isPresent()) {
 
 ### Krok 2: wszystkie gałęzie jako ogniwa w liście
 
-**W IDE:** ten sam ruch dla `AutoRefundHandler`, `CashierHandler` i `ManagerHandler`; limity trafiają do konstruktorów (Introduce Parameter ⌥⌘P). `decide` przegląda `List.of(...)` po kolei i zwraca pierwszą decyzję, a po liście - odmowę "brak uprawnionego zatwierdzajacego".
+**Zmiany:**
+
+1. Ten sam ruch dla pozostałych gałęzi: powstają nowe pliki `AutoRefundHandler.java`, `CashierHandler.java` i `ManagerHandler.java`; limity kwot trafiają do konstruktorów (Introduce Parameter): `new CashierHandler(CASHIER_LIMIT)`, `new ManagerHandler(MANAGER_LIMIT)`.
+2. Pole `afterScreening` zastępuje lista `handlers = List.of(...)` z czterema ogniwami w kolejności reguł.
+3. `decide` przegląda listę i zwraca pierwszą obecną decyzję, a po liście odmowę "brak uprawnionego zatwierdzajacego"; łańcuch `if/else` znika.
+
+**Przed:**
+
+```java
+Optional<RefundDecision> decision = afterScreening.handle(request);
+if (decision.isPresent()) {
+    return decision.get();
+} else if (Duration.between(request.requestedAt(), request.screeningStart()).toHours() >= 24) {
+    return RefundDecision.approvedBy("AUTO");
+} else if (!request.amount().isGreaterThan(CASHIER_LIMIT)) {
+    return RefundDecision.approvedBy("CASHIER");
+} else if (!request.amount().isGreaterThan(MANAGER_LIMIT)) {
+    return RefundDecision.approvedBy("MANAGER");
+}
+return RefundDecision.rejected("brak uprawnionego zatwierdzajacego");
+```
+
 **Po:**
 
 ```java
@@ -2499,7 +4134,31 @@ return RefundDecision.rejected("brak uprawnionego zatwierdzajacego");
 
 ### Krok 3: jawny łańcuch z następnikiem
 
-**W IDE:** Change Signature (⌘F6) na `RefundHandler.handle`: zwraca `RefundDecision` zamiast `Optional`. Każde ogniwo dostaje `next` w konstruktorze i woła `next.handle(request)`, gdy nie obsłuży żądania. Odmowę z końca listy przenieś do `NoApproverHandler`. `RefundApprover` dostaje dwa konstruktory: domyślny składa standardową ścieżkę, drugi przyjmuje dowolną głowę łańcucha.
+**Zmiany:**
+
+1. `RefundHandler.handle` zmienia sygnaturę: zwraca `RefundDecision` zamiast `Optional<RefundDecision>`.
+2. Każde ogniwo dostaje pole `final RefundHandler next` przez konstruktor i woła `next.handle(request)`, gdy samo nie obsłuży żądania.
+3. Powstaje nowy plik `NoApproverHandler.java`: ogniwo końcowe, które przejmuje odmowę "brak uprawnionego zatwierdzajacego" z końca listy.
+4. `RefundApprover` zamiast listy trzyma głowę łańcucha i dostaje dwa konstruktory: domyślny składa standardową ścieżkę, drugi przyjmuje dowolną głowę. Pętla w `decide` znika - zostaje walidacja kwoty i `chain.handle(request)`.
+
+**Przed:**
+
+```java
+private final List<RefundHandler> handlers = List.of(
+        new AfterScreeningHandler(),
+        new AutoRefundHandler(),
+        new CashierHandler(CASHIER_LIMIT),
+        new ManagerHandler(MANAGER_LIMIT));
+...
+for (RefundHandler handler : handlers) {
+    Optional<RefundDecision> decision = handler.handle(request);
+    if (decision.isPresent()) {
+        return decision.get();
+    }
+}
+return RefundDecision.rejected("brak uprawnionego zatwierdzajacego");
+```
+
 **Po:**
 
 ```java
@@ -2566,7 +4225,31 @@ Punkt wejścia testu to korzeń kompozycji `PaymentModule.paymentService(termina
 
 ### Krok 1: Introduce Boundary Object
 
-**W IDE:** utwórz rekord `PaymentConfirmation(Outcome outcome, String code, Money authorized)` z enumem `Outcome { APPROVED, DECLINED, ERROR }` i walidacją w konstruktorze kompaktowym: kod niepusty, kwota nieujemna, tylko APPROVED może autoryzować pieniądze. W `pay` rozbierz odpowiedź raz, zaraz po wywołaniu terminala (⌥⌘M `parse(raw)`); mapa przechowuje `PaymentConfirmation`, a `receipt` i `totalAuthorized` czytają pola obiektu.
+**Zmiany:**
+
+1. Powstaje nowy plik `PaymentConfirmation.java`: rekord `PaymentConfirmation(Outcome outcome, String code, Money authorized)` z enumem `Outcome { APPROVED, DECLINED, ERROR }`, walidacją w konstruktorze kompaktowym (kod niepusty, kwota nieujemna, tylko APPROVED może autoryzować pieniądze) i metodami `approved()` oraz `isPartialFor(requested)`.
+2. W `PaymentService` powstaje prywatna statyczna metoda `parse(raw)` (Extract Method): rozbiera odpowiedź raz, zaraz po wywołaniu terminala; sprawdza liczbę pól i znany status, dla złej odpowiedzi rzuca `malformed terminal response: ...`.
+3. Mapa `responses` typu `Map<String, String>` staje się mapą `confirmations` typu `Map<String, PaymentConfirmation>`; `pay`, `receipt` i `totalAuthorized` czytają pola obiektu zamiast rozbierać tekst.
+
+**Przed:**
+
+```java
+public String pay(String bookingId, Money amount) {
+    long grosze = amount.amount().movePointRight(2).longValueExact();
+    String raw = terminal.authorize(bookingId, grosze);
+    responses.put(bookingId, raw);
+    String[] parts = raw.split(";");
+    if (!parts[0].equals("OK")) {
+        return parts[0] + " " + parts[1];
+    }
+    long authorized = Long.parseLong(parts[2]);
+    if (authorized < grosze) {
+        return "PARTIAL " + parts[1] + " brakuje " + BigDecimal.valueOf(grosze - authorized).movePointLeft(2);
+    }
+    return "PAID " + parts[1];
+}
+```
+
 **Po:**
 
 ```java
@@ -2586,7 +4269,29 @@ if (confirmation.isPartialFor(amount)) {
 
 ### Krok 2: mapper na granicy
 
-**W IDE:** Move Static Member (F6) dla `parse` do nowej klasy `TerminalResponseMapper` jako `toConfirmation(raw)`; przeliczenie złotych na grosze też tam (`toGrosze(amount)`). Serwis tworzy mapper i woła go po obu stronach wywołania terminala.
+**Zmiany:**
+
+1. Powstaje nowy plik `TerminalResponseMapper.java`: metoda `parse` przenosi się tam z serwisu jako `toConfirmation(raw)` (Move Method), a przeliczenie złotych na grosze staje się metodą `toGrosze(amount)`.
+2. `PaymentService` dostaje pole `mapper = new TerminalResponseMapper()` i woła je po obu stronach wywołania terminala; prywatna metoda `parse` i zmienna `grosze` znikają z serwisu.
+
+**Przed:**
+
+```java
+public String pay(String bookingId, Money amount) {
+    long grosze = amount.amount().movePointRight(2).longValueExact();
+    PaymentConfirmation confirmation = parse(terminal.authorize(bookingId, grosze));
+    ...
+}
+
+private static PaymentConfirmation parse(String raw) {
+    String[] parts = raw.split(";", -1);
+    if (parts.length != 3) {
+        throw new IllegalArgumentException("malformed terminal response: " + raw);
+    }
+    ...
+}
+```
+
 **Po:**
 
 ```java
@@ -2600,7 +4305,27 @@ PaymentConfirmation confirmation = mapper.toConfirmation(raw);
 
 ### Krok 3: port domeny i adapter
 
-**W IDE:** utwórz interfejs `PaymentTerminal` z `PaymentConfirmation authorize(String bookingId, Money amount)` i klasę `LegacyTerminalAdapter implements PaymentTerminal`, która łączy klienta z mapperem. Change Signature (⌘F6) konstruktora `PaymentService`: `LegacyTerminalClient` na `PaymentTerminal`. W korzeniu kompozycji owiń klienta adapterem.
+**Zmiany:**
+
+1. Powstaje nowy plik `PaymentTerminal.java`: interfejs portu z metodą `PaymentConfirmation authorize(String bookingId, Money amount)`.
+2. Powstaje nowy plik `LegacyTerminalAdapter.java`: implementacja portu, która łączy `LegacyTerminalClient` z `TerminalResponseMapper`.
+3. Konstruktor `PaymentService` zmienia sygnaturę: zamiast `LegacyTerminalClient` przyjmuje `PaymentTerminal`; pole `mapper` znika z serwisu, a `pay` dostaje gotowe `PaymentConfirmation` z `terminal.authorize(bookingId, amount)`.
+4. W korzeniu kompozycji `PaymentModule.paymentService` owijamy klienta adapterem.
+
+**Przed:**
+
+```java
+public PaymentService(LegacyTerminalClient terminal) {
+    this.terminal = Objects.requireNonNull(terminal, "terminal");
+}
+
+public String pay(String bookingId, Money amount) {
+    String raw = terminal.authorize(bookingId, mapper.toGrosze(amount));
+    PaymentConfirmation confirmation = mapper.toConfirmation(raw);
+    ...
+}
+```
+
 **Po:**
 
 ```java
@@ -2664,7 +4389,31 @@ if (!payments.charge(order.card(), total)) {
 
 ### Krok 1: Extract Facade ze sklepu
 
-**W IDE:** w `OnlineShop.buy` zaznacz całą orkiestrację, ⌥⌘M `book(order)`, potem Introduce Parameter (⌥⌘P) dla opłaty: `book(order, feePerSeat)`. Move Method (F6) do nowej klasy `BookingFacade` z czterema podsystemami w konstruktorze. Sklep dostaje fasadę, a `Cinema` ją tworzy.
+**Zmiany:**
+
+1. Całą orkiestrację z `OnlineShop.buy` wydzielamy do metody `book(order)` (Extract Method), a opłatę rezerwacyjną zamieniamy na parametr (Introduce Parameter): `book(order, feePerSeat)`.
+2. Powstaje nowy plik `BookingFacade.java`: metoda `book` przenosi się tam (Move Method), a fasada dostaje cztery podsystemy w konstruktorze.
+3. `OnlineShop` zamiast czterech podsystemów dostaje w konstruktorze fasadę; zostaje mu tylko stała `BOOKING_FEE`. `Cinema` tworzy fasadę i podaje ją sklepowi.
+
+**Przed:**
+
+```java
+public String buy(TicketOrder order) {
+    Money total = prices.price(order.ticketType()).plus(BOOKING_FEE).times(order.seats().size());
+    try {
+        seats.reserve(order.screening(), order.seats());
+    } catch (IllegalStateException exception) {
+        return "ERROR " + exception.getMessage();
+    }
+    if (!payments.charge(order.card(), total)) {
+        seats.release(order.screening(), order.seats());
+        return "ERROR payment declined";
+    }
+    mailer.send(order.email(), "Bilety " + order.screening() + " " + String.join(",", order.seats()) + " = " + total);
+    return "OK " + total;
+}
+```
+
 **Po:**
 
 ```java
@@ -2679,7 +4428,30 @@ public String buy(TicketOrder order) {
 
 ### Krok 2: kasa na fasadzie - świadoma zmiana zachowania
 
-**W IDE:** Change Signature (⌘F6) konstruktora `BoxOffice`: cztery podsystemy na `BookingFacade`. `sell` woła `booking.book(order, Money.ZERO)`, skopiowaną orkiestrację usuń. Popraw `Cinema`.
+**Zmiany:**
+
+1. Konstruktor `BoxOffice` zmienia sygnaturę: zamiast czterech podsystemów przyjmuje `BookingFacade`.
+2. `sell` woła `booking.book(order, Money.ZERO)`; skopiowana orkiestracja znika razem ze swoim błędem (brak zwolnienia miejsc po odmowie).
+3. W `Cinema` kasa dostaje fasadę zamiast podsystemów.
+
+**Przed:**
+
+```java
+public String sell(TicketOrder order) {
+    Money total = prices.price(order.ticketType()).times(order.seats().size());
+    try {
+        seats.reserve(order.screening(), order.seats());
+    } catch (IllegalStateException exception) {
+        return "ERROR " + exception.getMessage();
+    }
+    if (!payments.charge(order.card(), total)) {
+        return "ERROR payment declined";
+    }
+    mailer.send(order.email(), "Bilety " + order.screening() + " " + String.join(",", order.seats()) + " = " + total);
+    return "OK " + total;
+}
+```
+
 **Po:**
 
 ```java
@@ -2694,7 +4466,20 @@ public String sell(TicketOrder order) {
 
 ### Krok 3: ukryte podsystemy i niezmiennik w finally
 
-**W IDE:** usuń `public` z `SeatRegistry`, `PriceList`, `PaymentClient`, `TicketMailer`, ich metod i z konstruktora fasady (⌥⏎ na modyfikatorze albo Change Signature ⌘F6 z widocznością). W `book` otocz `charge` blokiem `try/finally`, który zwalnia miejsca, gdy płatność się nie udała.
+**Zmiany:**
+
+1. Klasy `SeatRegistry`, `PriceList`, `PaymentClient` i `TicketMailer` oraz ich metody tracą modyfikator `public` i stają się pakietowe; konstruktor fasady też przestaje być publiczny - kanały sprzedaży dostają gotowy obiekt.
+2. W `book` wywołanie `charge` otaczamy blokiem `try/finally`: flaga `paid`, a w `finally` zwolnienie miejsc, gdy płatność się nie udała (odmowa albo wyjątek bramki). Dopiero po bloku zwracamy `ERROR payment declined`.
+
+**Przed:**
+
+```java
+if (!payments.charge(order.card(), total)) {
+    seats.release(order.screening(), order.seats());
+    return "ERROR payment declined";
+}
+```
+
 **Po:**
 
 ```java
@@ -2761,7 +4546,27 @@ Reguła "wolno grać, gdy licencja jest aktywna i obejmuje dzień" jest zapisana
 
 ### Krok 1: model domeny i tłumaczenie w jednym miejscu
 
-**W IDE:** utwórz rekord `FilmLicense(filmCode, title, active, validFrom, validTo, sharePercent, minimumGuarantee)` z niezmiennikami w konstruktorze i metodami `covers(day)`, `allowsScreeningOn(day)`, `dueFor(revenue)`. W serwisie zaznacz dekodowanie pól rekordu, ⌥⌘M `toLicense(record)`, a reguły licz na licencji.
+**Zmiany:**
+
+1. Powstaje nowy plik `FilmLicense.java`: rekord `FilmLicense(filmCode, title, active, validFrom, validTo, sharePercent, minimumGuarantee)` z niezmiennikami w konstruktorze kompaktowym (koniec nie przed początkiem, udział 0-100, gwarancja nieujemna) i metodami `covers(day)`, `allowsScreeningOn(day)`, `dueFor(revenue)`.
+2. W serwisie dekodowanie pól rekordu wydzielamy (Extract Method) do prywatnej metody `toLicense(record)`: status na `boolean`, daty z `BASIC_ISO_DATE` na `LocalDate`, procent z tekstu na `int`, grosze na `Money`, normalizacja tytułu.
+3. `canScreen` i `settle` liczą reguły na licencji (`allowsScreeningOn`, `covers`, `dueFor`); parsowanie znika z reguł.
+
+**Przed:**
+
+```java
+if (!record.statusCode().equals("A")) {
+    return "LICENCJA ZAWIESZONA " + filmCode;
+}
+if (!canScreen(filmCode, day)) {
+    return "LICENCJA NIEWAZNA " + filmCode + " w dniu " + day;
+}
+int percent = Integer.parseInt(record.share().replace("%", "").strip());
+Money minimum = new Money(new BigDecimal(record.minGuaranteeCents()).movePointLeft(2));
+Money due = revenue.percent(percent).max(minimum);
+String title = record.titleUpper().charAt(0) + record.titleUpper().substring(1).toLowerCase(Locale.ROOT);
+```
+
 **Po:**
 
 ```java
@@ -2780,7 +4585,28 @@ if (!license.covers(day)) {
 
 ### Krok 2: tłumacz jako osobna klasa
 
-**W IDE:** Move Static Member (F6) dla `toLicense` do nowej klasy `DistributorTranslator`. Wydziel `title(...)` i `date(...)` (⌥⌘M), kod statusu jako stałą `ACTIVE` (⌥⌘C), a w `date` zamień `DateTimeParseException` na `IllegalArgumentException` z komunikatem granicy.
+**Zmiany:**
+
+1. Powstaje nowy plik `DistributorTranslator.java`: metoda `toLicense` przenosi się tam z serwisu (Move Method); serwis dostaje pole `translator = new DistributorTranslator()`.
+2. W translatorze wydzielamy metody pomocnicze `title(upper)` i `date(legacy)` (Extract Method), a kod statusu staje się stałą `ACTIVE` (Introduce Constant).
+3. W `date` łapiemy `DateTimeParseException` i rzucamy `IllegalArgumentException("invalid legacy date: ...")` z zachowaną przyczyną - błąd zgłasza się w języku granicy.
+
+**Przed:**
+
+```java
+private static FilmLicense toLicense(DistributorRecord record) {
+    String title = record.titleUpper().charAt(0) + record.titleUpper().substring(1).toLowerCase(Locale.ROOT);
+    return new FilmLicense(
+            record.filmCode(),
+            title,
+            record.statusCode().equals("A"),
+            LocalDate.parse(record.validFrom(), DateTimeFormatter.BASIC_ISO_DATE),
+            LocalDate.parse(record.validTo(), DateTimeFormatter.BASIC_ISO_DATE),
+            Integer.parseInt(record.share().replace("%", "").strip()),
+            new Money(new BigDecimal(record.minGuaranteeCents()).movePointLeft(2)));
+}
+```
+
 **Po:**
 
 ```java
@@ -2799,7 +4625,30 @@ private static LocalDate date(String legacy) {
 
 ### Krok 3: port domenowy i warstwa antykorupcyjna
 
-**W IDE:** utwórz interfejs `FilmLicenses` z `Optional<FilmLicense> find(String filmCode)` i klasę `DistributorAcl implements FilmLicenses`, która łączy klienta dystrybutora z tłumaczem. Change Signature (⌘F6) konstruktora serwisu: `DistributorFeed` na `FilmLicenses`. Tłumacz staje się pakietowo-prywatny, a `SettlementModule` owija klienta w ACL.
+**Zmiany:**
+
+1. Powstaje nowy plik `FilmLicenses.java`: interfejs portu z metodą `Optional<FilmLicense> find(String filmCode)`.
+2. Powstaje nowy plik `DistributorAcl.java`: implementacja portu łącząca `DistributorFeed` z tłumaczem; `null` z obcego systemu staje się `Optional.empty()`.
+3. Konstruktor `SettlementService` zmienia sygnaturę: zamiast `DistributorFeed` przyjmuje `FilmLicenses`; pole `translator` znika z serwisu, a `canScreen` i `settle` pracują na `Optional<FilmLicense>`.
+4. `DistributorTranslator` traci `public` i staje się pakietowo-prywatny, a `SettlementModule.settlementService` owija klienta w `DistributorAcl`.
+
+**Przed:**
+
+```java
+public final class SettlementService {
+    private final DistributorFeed feed;
+    private final DistributorTranslator translator = new DistributorTranslator();
+
+    public SettlementService(DistributorFeed feed) {
+        this.feed = Objects.requireNonNull(feed, "feed");
+    }
+
+    public boolean canScreen(String filmCode, LocalDate day) {
+        DistributorRecord record = feed.fetch(filmCode);
+        return record != null && translator.toLicense(record).allowsScreeningOn(day);
+    }
+```
+
 **Po:**
 
 ```java
@@ -2862,7 +4711,31 @@ Ta sama para "przelicz sumę, odśwież przycisk" jest w `Basket.remove`, `Baske
 
 ### Krok 1: interfejs mediatora i pierwsze zdarzenie
 
-**W IDE:** utwórz interfejs `SelectionMediator` z metodą `seatToggled(String seat, boolean selected)`. `SeatSelectionScreen implements SelectionMediator` (jak "dialog" w GoF). Reakcję z `SeatMap.click` wydziel (⌥⌘M) i przenieś (F6) do `seatToggled` w ekranie. `SeatMap` dostaje mediatora w konstruktorze, jej `connect(...)` znika.
+**Zmiany:**
+
+1. Powstaje nowy plik `SelectionMediator.java`: interfejs z metodą `seatToggled(String seat, boolean selected)`.
+2. `SeatSelectionScreen` implementuje `SelectionMediator` (jak "dialog" w GoF): reakcja na kliknięcie z `SeatMap.click` (aktualizacja koszyka, przeliczenie sumy, odświeżenie przycisku) przenosi się do metody `seatToggled` ekranu.
+3. `SeatMap` dostaje mediatora w konstruktorze; jej pola `basket`, `summary`, `payButton` i metoda `connect(...)` znikają, a `click` ustala `nowSelected` i zgłasza `mediator.seatToggled(seat, nowSelected)`.
+4. Pozostałe komponenty wciąż łączą się wprost przez `connect(...)` w konstruktorze ekranu - jeden komponent naraz.
+
+**Przed:**
+
+```java
+public void click(String seat) {
+    if (!hall.contains(seat) || sold.contains(seat)) {
+        return;
+    }
+    if (selected.remove(seat)) {
+        basket.drop(seat);
+    } else {
+        selected.add(seat);
+        basket.add(seat);
+    }
+    summary.recalculate(basket.seats());
+    payButton.refresh(basket.seats().size(), summary.total());
+}
+```
+
 **Po:**
 
 ```java
@@ -2879,7 +4752,27 @@ mediator.seatToggled(seat, nowSelected);
 
 ### Krok 2: wszystkie zdarzenia i jedno refresh()
 
-**W IDE:** dodaj do interfejsu `seatRemoved`, `basketCleared`, `voucherApplied` i `seatsPaid(List<String>)`. `Basket`, `PriceSummary` i `PayButton` dostają mediatora w konstruktorze i zgłaszają zdarzenia zamiast odświeżać sąsiadów; przycisk zachowuje jeszcze `connect(basket, summary)`. Powtórzoną parę odświeżeń wydziel w ekranie do `refresh()` (⌥⌘M, IntelliJ zaproponuje zastąpienie duplikatów).
+**Zmiany:**
+
+1. Interfejs mediatora dostaje zdarzenia `seatRemoved`, `basketCleared`, `voucherApplied` i `seatsPaid(List<String>)`.
+2. `Basket`, `PriceSummary` i `PayButton` dostają mediatora w konstruktorze i zgłaszają zdarzenia zamiast odświeżać sąsiadów; ich metody `connect(...)` znikają - poza przyciskiem, który zachowuje `connect(basket, summary)`, bo jeszcze sam zbiera dane do płatności.
+3. W ekranie powtórzoną parę "przelicz sumę, odśwież przycisk" wydzielamy (Extract Method) do prywatnej metody `refresh()`, zastępując wszystkie duplikaty; `seatsPaid` oznacza miejsca jako sprzedane i czyści koszyk.
+
+**Przed:**
+
+```java
+@Override
+public void seatToggled(String seat, boolean selected) {
+    if (selected) {
+        basket.add(seat);
+    } else {
+        basket.drop(seat);
+    }
+    summary.recalculate(basket.seats());
+    payButton.refresh(basket.seats().size(), summary.total());
+}
+```
+
 **Po:**
 
 ```java
@@ -2896,7 +4789,27 @@ private void refresh() {
 
 ### Krok 3: komponenty znają tylko mediatora
 
-**W IDE:** Change Signature (⌘F6) `seatsPaid(List<String>)` na `String payRequested()`. Zbieranie miejsc i kwoty oraz składanie komunikatu z `PayButton.press` przenieś do mediatora. Usuń `connect` z przycisku i pusty już konstruktor ekranu.
+**Zmiany:**
+
+1. W interfejsie mediatora `seatsPaid(List<String>)` zmienia sygnaturę na `String payRequested()`.
+2. Zbieranie miejsc i kwoty oraz składanie komunikatu "Zaplacono ..." przenosi się z `PayButton.press` do `payRequested()` w ekranie; tam też zostaje oznaczenie miejsc jako sprzedanych i czyszczenie koszyka.
+3. `PayButton` traci pola `basket` i `summary` oraz metodę `connect(...)`; zostaje mu reguła aktywności (1-4 miejsca) i zgłoszenie `mediator.payRequested()`.
+4. Pusty już konstruktor ekranu znika - komponenty znają wyłącznie mediatora.
+
+**Przed:**
+
+```java
+public String press() {
+    if (!enabled) {
+        return "Nieaktywny: " + label;
+    }
+    List<String> paid = basket.seats();
+    Money amount = summary.total();
+    mediator.seatsPaid(paid);
+    return "Zaplacono " + amount + " za " + String.join(",", paid);
+}
+```
+
 **Po:**
 
 ```java
