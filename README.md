@@ -10,6 +10,7 @@ Materiały szkoleniowe: prezentacja, warsztat CineLegacy (Java, C#, TypeScript) 
 | warsztat w Javie | `src/main/java/pl/training/workshop`, testy: `src/test/java/pl/training/workshop` |
 | warsztat w C# | `csharp/` |
 | warsztat w TypeScripcie | `typescript/` |
+| ćwiczenia utrwalające (10 zadań, 23 wzorce GoF, Java) | `src/main/java/pl/training/workshop/exercises`, treść: `src/main/resources/md/warsztat/zadania/06-cwiczenia.md`, rozwiązania: `src/main/resources/md/warsztat/przewodnik/06-cwiczenia.md` |
 | przykłady wzorców GoF | `src/main/java/pl/training/examples` |
 
 ## Wymagania
@@ -32,6 +33,8 @@ scripts/warsztat.sh diff m5/s08 1 2    # co zmienia krok 2 względem kroku 1 (0 
 scripts/warsztat.sh status m5/s08      # który krok jest teraz w start
 scripts/warsztat.sh reset m5/s08       # przywrócenie start do wersji z repozytorium
 ```
+
+Ćwiczenia utrwalające mają ten sam układ (`start`, `step1`, ...) i te same komendy, ale moduł nazywa się `exercises`, a sceny `e01`..`e10` (np. `scripts/warsztat.sh test exercises/e03`). Treść zadania nie zdradza wzorca: uczestnik rozpoznaje go sam, a kroki `stepN` i przewodnik są rozwiązaniem.
 
 Język wybiera się opcją `--lang java|cs|ts` przed komendą, np. `scripts/warsztat.sh --lang cs test m5/s08`. Bez niej skrypt używa ostatnio wybranego języka (na początku Javy).
 

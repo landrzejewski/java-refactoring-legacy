@@ -1,0 +1,71 @@
+package pl.training.workshop.exercises.e01_import.step1;
+
+import java.time.LocalTime;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+import pl.training.workshop.exercises.e01_import.ScreeningEntry;
+import pl.training.workshop.shared.Money;
+
+/**
+ * Krok 1: wspólny szkielet importu (pętla, numeracja wierszy, pomijanie komentarzy, walidacja,
+ * sortowanie) jest w jednym miejscu i jest final. Podklasa dostarcza tylko to, co zależy od formatu:
+ * rozpoznanie komentarza i rozbiór jednego wiersza na surowe pola. Wybór importera po rozszerzeniu
+ * nadal jest tutaj - i nadal powtarza się u klienta.
+ */
+public abstract class RepertoireImporter {
+    private static final Money MORNING_DISCOUNT = Money.of("5.00");
+
+    public static List<ScreeningEntry> importFile(String fileName, List<String> lines) {
+        if (fileName.endsWith(".csv")) {
+            return new CsvRepertoireImporter().importLines(lines);
+        } else if (fileName.endsWith(".jsonl")) {
+            return new JsonLinesRepertoireImporter().importLines(lines);
+        }
+        throw new IllegalArgumentException("unsupported file: " + fileName);
+    }
+
+    public final List<ScreeningEntry> importLines(List<String> lines) {
+        List<ScreeningEntry> entries = new ArrayList<>();
+        int number = 0;
+        for (String raw : lines) {
+            number++;
+            String line = raw.strip();
+            if (line.isEmpty() || isComment(line)) {
+                continue;
+            }
+            entries.add(toEntry(number, parseLine(line, number)));
+        }
+        entries.sort(Comparator.comparing(ScreeningEntry::start).thenComparing(ScreeningEntry::title));
+        return List.copyOf(entries);
+    }
+
+    protected abstract boolean isComment(String line);
+
+    protected abstract RawScreening parseLine(String line, int number);
+
+    private static ScreeningEntry toEntry(int number, RawScreening raw) {
+        if (raw.title().isEmpty()) {
+            throw new IllegalArgumentException("line " + number + ": empty title");
+        }
+        Money base = switch (raw.format()) {
+            case "2D" -> Money.of("25.00");
+            case "3D" -> Money.of("32.00");
+            case "IMAX" -> Money.of("40.00");
+            default -> throw new IllegalArgumentException("line " + number + ": unknown format: " + raw.format());
+        };
+        if (raw.hall().isEmpty()) {
+            throw new IllegalArgumentException("line " + number + ": empty hall");
+        }
+        LocalTime time;
+        try {
+            time = LocalTime.parse(raw.start());
+        } catch (DateTimeParseException exception) {
+            throw new IllegalArgumentException("line " + number + ": bad start time: " + raw.start());
+        }
+        Money price = time.isBefore(LocalTime.NOON) ? base.minus(MORNING_DISCOUNT) : base;
+        return new ScreeningEntry(time, raw.title(), raw.format(), raw.hall(), price);
+    }
+}

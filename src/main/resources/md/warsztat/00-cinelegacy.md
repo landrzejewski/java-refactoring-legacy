@@ -96,8 +96,9 @@ mvn -q test -Dtest=CinemaManagerGoldenMasterTest
 | 2. Prewencja | [przewodnik](przewodnik/02-prewencja.html) | `pl.training.workshop.m2` |
 | 3. Testowanie a bezpieczeństwo | [przewodnik](przewodnik/03-testowanie-a-bezpieczenstwo.html) | `pl.training.workshop.m3` |
 | 5. Refaktoryzacja do wzorców | [przewodnik](przewodnik/05-refaktoryzacja-do-wzorcow.html) | `pl.training.workshop.m5` |
+| 6. Ćwiczenia: gdzie i jaki wzorzec | [rozwiązania](przewodnik/06-cwiczenia.html), zadania: `md/warsztat/zadania/06-cwiczenia.md` | `pl.training.workshop.exercises` (tylko Java) |
 
-Numery modułów warsztatu (2, 3, 5) odpowiadają pakietom i komendom `scripts/warsztat.sh`. Tematy ze slajdów bez osobnej sceny (np. definicja refaktoryzacji, wzorce w pigułce) omawia sama [prezentacja](../slajdy/refaktoryzacja-do-wzorcow-slajdy.html).
+Numery modułów warsztatu (2, 3, 5) odpowiadają pakietom i komendom `scripts/warsztat.sh`. Moduł 6 to zestaw dziesięciu ćwiczeń utrwalających (`scripts/warsztat.sh test exercises/e01`), w których treść zadania nie zdradza wzorca: uczestnik sam rozpoznaje w kodzie rodzaj zmienności i dobiera wzorzec, a rozwiązanie w przewodniku pokazuje wszystkie 23 wzorce GoF. Tematy ze slajdów bez osobnej sceny (np. definicja refaktoryzacji, wzorce w pigułce) omawia sama [prezentacja](../slajdy/refaktoryzacja-do-wzorcow-slajdy.html).
 
 ## Macierz pokrycia tematów
 

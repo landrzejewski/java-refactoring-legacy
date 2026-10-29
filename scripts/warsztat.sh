@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# Narzędzie prowadzącego do pokazów na żywo - warsztat CineLegacy (moduły 2, 3 i 5).
+# Narzędzie prowadzącego do pokazów na żywo - warsztat CineLegacy (moduły 2, 3 i 5
+# oraz ćwiczenia utrwalające exercises/e01..e10, tylko Java).
 #
-#   scripts/warsztat.sh list [m5]              lista scen i kroków
+#   scripts/warsztat.sh list [m5]              lista scen i kroków (także: list exercises)
 #   scripts/warsztat.sh test m5/s08            testy jednej sceny (albo całego modułu: m5)
 #   scripts/warsztat.sh reset m5/s08           przywraca pakiet start do wersji z repozytorium
 #   scripts/warsztat.sh jump m5/s08 2          kopiuje step2 do start (przeskok w pokazie)
@@ -14,7 +15,7 @@
 #
 # Język: --lang java|cs|ts przed komendą (np. scripts/warsztat.sh --lang cs test m5/s08)
 # albo zmienna WARSZTAT_LANG. Bez nich: ostatnio używany język, a na początku java.
-# Scenę można podać krótko (m5/s08) albo pełną nazwą pakietu (m5/s08_state).
+# Scenę można podać krótko (m5/s08, exercises/e03) albo pełną nazwą pakietu (m5/s08_state).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -202,8 +203,10 @@ cmd_status() {
 
 cmd_list() {
     local filter="${1:-}"
-    for module in "$MAIN"/[mM][0-9]*/; do
+    for module in "$MAIN"/*/; do
         local m; m=$(basename "$module")
+        # moduły warsztatu: m2, m3, m5 (C#: M2...) oraz ćwiczenia utrwalające exercises/eNN
+        case "$m" in [mM][0-9]*|exercises) ;; *) continue ;; esac
         [ -z "$filter" ] || [ "$(module_name "$filter")" = "$m" ] || continue
         echo "$m"
         for scene in "$module"*/; do
@@ -312,9 +315,9 @@ case "${1:-}" in
     next | prev) cmd_move "$1" "${2:-}" ;;
     status) cmd_status "${2:-}" ;;
     diff) cmd_diff "${2:?scena}" "${3:?krok A}" "${4:?krok B}" "${5:-}" ;;
-    "") sed -n '2,17p' "$0" | sed 's/^# \{0,1\}//' ;;
+    "") sed -n '2,18p' "$0" | sed 's/^# \{0,1\}//' ;;
     *)
         echo "warsztat: nieznana komenda '$1'" >&2
-        sed -n '2,17p' "$0" | sed 's/^# \{0,1\}//' >&2
+        sed -n '2,18p' "$0" | sed 's/^# \{0,1\}//' >&2
         exit 1 ;;
 esac

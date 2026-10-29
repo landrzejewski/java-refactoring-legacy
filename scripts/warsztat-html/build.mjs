@@ -29,6 +29,7 @@ const WORKSHOP_MODULES = [
     '02-prewencja',
     '03-testowanie-a-bezpieczenstwo',
     '05-refaktoryzacja-do-wzorcow',
+    '06-cwiczenia',
 ];
 const css = fs.readFileSync(path.join(HERE, 'style.css'), 'utf8')
     + '.langs{margin-left:auto}.langs+.pager{margin-left:0}';
@@ -90,7 +91,7 @@ function pager(modules, module) {
         + '</div>';
 }
 
-function workshopTopbar(kind, module, variant) {
+function workshopTopbar(kind, module, variant, modules = WORKSHOP_MODULES) {
     const up = kind === 'intro' ? '..' : '../..';
     const file = kind === 'intro' ? '00-cinelegacy.html' : `${kind}/${module}.html`;
     const langs = '<div class="tabs langs" aria-label="Język">' + VARIANTS.map((v) =>
@@ -106,7 +107,7 @@ function workshopTopbar(kind, module, variant) {
         + `<div class="tabs"><a class="tab" href="${up}/slajdy/${DECK}.html">Slajdy</a>`
         + `<a class="tab${kind === 'intro' ? ' active' : ''}" href="${intro}">Warsztat CineLegacy</a>`
         + link('przewodnik', 'Przewodnik') + '</div>'
-        + langs + (module ? pager(WORKSHOP_MODULES, module) : '') + '</header>';
+        + langs + (module ? pager(modules, module) : '') + '</header>';
 }
 
 function render({ source, target, title, bodyClass, topbar }) {
@@ -173,6 +174,8 @@ for (const variant of VARIANTS) {
         topbar: workshopTopbar('intro', undefined, variant),
     });
     for (const kind of ['przewodnik']) {
+        // pager łączy tylko moduły, które istnieją w tej wersji językowej (moduł 6 jest tylko w Javie)
+        const present = WORKSHOP_MODULES.filter((m) => fs.existsSync(path.join(MD, kind, `${m}.md`)));
         for (const module of WORKSHOP_MODULES) {
             const source = path.join(MD, kind, `${module}.md`);
             if (missing(source)) continue;
@@ -181,7 +184,7 @@ for (const variant of VARIANTS) {
                 target: path.join(HTML, kind, `${module}.html`),
                 title: (h1) => (kind === 'przewodnik' ? 'Przewodnik: ' : 'Zadania: ') + h1 + suffix,
                 bodyClass: kind === 'zadania' ? 'warsztat-zadania' : 'warsztat',
-                topbar: workshopTopbar(kind, module, variant),
+                topbar: workshopTopbar(kind, module, variant, present),
             });
         }
     }

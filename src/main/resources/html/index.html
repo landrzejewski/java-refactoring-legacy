@@ -175,6 +175,12 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 <td><a href="warsztat/przewodnik/05-refaktoryzacja-do-wzorcow.html">Java</a>, <a href="warsztat-csharp/przewodnik/05-refaktoryzacja-do-wzorcow.html">C#</a>, <a href="warsztat-typescript/przewodnik/05-refaktoryzacja-do-wzorcow.html">TS</a></td>
 <td><code>pl.training.workshop.m5</code>, <code>Training.Workshop.M5</code>, <code>typescript/<wbr>src/<wbr>workshop/<wbr>m5</code></td>
 </tr>
+<tr>
+<td>6. Ćwiczenia: gdzie i jaki wzorzec (23 wzorce GoF w 10 zadaniach)</td>
+<td>4, 6-18</td>
+<td><a href="warsztat/przewodnik/06-cwiczenia.html">Java</a> (rozwiązania; treść zadań bez nazw wzorców: <code>md/<wbr>warsztat/<wbr>zadania/<wbr>06-cwiczenia.md</code>)</td>
+<td><code>pl.training.workshop.exercises</code> (tylko Java)</td>
+</tr>
 </tbody>
 </table></div>
 <p>Sceny to menu pokazów, z którego prowadzący wybiera tematy pasujące do grupy. Proponowany rdzeń warsztatu m5 jest opisany w przewodniku prowadzącego.</p>
@@ -184,6 +190,7 @@ pre.code,.table-wrap,blockquote{break-inside:avoid}body{background:#fff;color:#0
 mvn <span class="hljs-built_in">test</span>                                        <span class="hljs-comment"># wszystkie testy warsztatu</span>
 scripts/warsztat.sh list m5                     <span class="hljs-comment"># sceny i kroki</span>
 scripts/warsztat.sh <span class="hljs-built_in">test</span> m5/s08                 <span class="hljs-comment"># testy jednej sceny</span>
+scripts/warsztat.sh <span class="hljs-built_in">test</span> exercises/e03          <span class="hljs-comment"># testy jednego ćwiczenia utrwalającego</span>
 mvn verify                                      <span class="hljs-comment"># testy + raport JaCoCo (target/site/jacoco)</span>
 </code></pre>
 <p>Kod: <code>src/<wbr>main/<wbr>java/<wbr>pl/<wbr>training/<wbr>workshop</code>, testy: <code>src/<wbr>test/<wbr>java/<wbr>pl/<wbr>training/<wbr>workshop</code>.</p>

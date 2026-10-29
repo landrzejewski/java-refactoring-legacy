@@ -31,6 +31,7 @@ Start (wprowadzenie, reguły domeny, macierz pokrycia tematów): [Java](warsztat
 | 2. Prewencja | 2 | [Java](warsztat/przewodnik/02-prewencja.html), [C#](warsztat-csharp/przewodnik/02-prewencja.html), [TS](warsztat-typescript/przewodnik/02-prewencja.html) | `pl.training.workshop.m2`, `Training.Workshop.M2`, `typescript/src/workshop/m2` |
 | 3. Testowanie a bezpieczeństwo | 1.2, 3 | [Java](warsztat/przewodnik/03-testowanie-a-bezpieczenstwo.html), [C#](warsztat-csharp/przewodnik/03-testowanie-a-bezpieczenstwo.html), [TS](warsztat-typescript/przewodnik/03-testowanie-a-bezpieczenstwo.html) | `pl.training.workshop.m3`, `Training.Workshop.M3`, `typescript/src/workshop/m3` |
 | 5. Refaktoryzacja do wzorców | 3-17 | [Java](warsztat/przewodnik/05-refaktoryzacja-do-wzorcow.html), [C#](warsztat-csharp/przewodnik/05-refaktoryzacja-do-wzorcow.html), [TS](warsztat-typescript/przewodnik/05-refaktoryzacja-do-wzorcow.html) | `pl.training.workshop.m5`, `Training.Workshop.M5`, `typescript/src/workshop/m5` |
+| 6. Ćwiczenia: gdzie i jaki wzorzec (23 wzorce GoF w 10 zadaniach) | 4, 6-18 | [Java](warsztat/przewodnik/06-cwiczenia.html) (rozwiązania; treść zadań bez nazw wzorców: `md/warsztat/zadania/06-cwiczenia.md`) | `pl.training.workshop.exercises` (tylko Java) |
 
 Sceny to menu pokazów, z którego prowadzący wybiera tematy pasujące do grupy. Proponowany rdzeń warsztatu m5 jest opisany w przewodniku prowadzącego.
 
@@ -43,6 +44,7 @@ mvn -q compile
 mvn test                                        # wszystkie testy warsztatu
 scripts/warsztat.sh list m5                     # sceny i kroki
 scripts/warsztat.sh test m5/s08                 # testy jednej sceny
+scripts/warsztat.sh test exercises/e03          # testy jednego ćwiczenia utrwalającego
 mvn verify                                      # testy + raport JaCoCo (target/site/jacoco)
 ```
 
