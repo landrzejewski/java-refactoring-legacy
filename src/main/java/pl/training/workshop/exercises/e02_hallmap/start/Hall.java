@@ -7,11 +7,13 @@ import pl.training.workshop.exercises.e02_hallmap.HallSpec;
 import pl.training.workshop.exercises.e02_hallmap.SectionSpec;
 
 /** Start: sala to nazwa i lista sektorów. Sama nic nie liczy - liczy klient, który zna cały układ. */
-public final class Hall {
+public final class Hall extends HallGroup {
+
     private final String name;
     private final List<Section> sections;
 
     private Hall(String name, List<Section> sections) {
+        super(sections);
         this.name = name;
         this.sections = List.copyOf(sections);
     }

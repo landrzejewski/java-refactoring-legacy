@@ -6,7 +6,7 @@ import pl.training.workshop.shared.Money;
  * Start: miejsce niesie własną kopię wszystkiego, co opisuje jego kategorię. Dwa fotele VIP
  * w tym samym rzędzie mają dwie osobne kopie nazwy, dopłaty, ikony i opisu.
  */
-public final class Seat {
+public final class Seat implements HallElement {
     private final String label;
     private final char code;
     private final String categoryName;
@@ -35,7 +35,13 @@ public final class Seat {
         return categoryName;
     }
 
-    Money surcharge() {
+    @Override
+    public int capacity() {
+        return 1;
+    }
+
+    @Override
+    public Money surcharges() {
         return surcharge;
     }
 

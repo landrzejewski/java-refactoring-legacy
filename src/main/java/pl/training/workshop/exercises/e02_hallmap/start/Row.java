@@ -3,36 +3,38 @@ package pl.training.workshop.exercises.e02_hallmap.start;
 import pl.training.workshop.exercises.e02_hallmap.RowSpec;
 import pl.training.workshop.shared.Money;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Start: rząd trzyma tablicę miejsc, w której przejście (luka) to {@code null}. Każdy, kto
  * przechodzi po rzędzie, musi o tym pamiętać. Dane kategorii (nazwa, dopłata, ikona, opis)
  * są kopiowane do każdego miejsca z osobna - w sali IMAX na 400 miejsc to 400 kopii.
  */
-public final class Row {
+public final class Row extends HallGroup{
     private final String label;
-    private final Seat[] places;
+    private final List<Seat> seats;
 
-    private Row(String label, Seat[] places) {
+    private Row(String label, List<Seat> seats) {
+        super(seats);
         this.label = label;
-        this.places = places;
+        this.seats = seats;
     }
 
     static Row of(RowSpec spec) {
         String layout = spec.layout();
-        Seat[] places = new Seat[layout.length()];
-        int seats = 0;
+        List<Seat> seats = new ArrayList<>();
         for (int i = 0; i < layout.length(); i++) {
             char code = layout.charAt(i);
             if (code == '_') {
                 continue;
             }
-            places[i] = seatFor(code, spec.label() + (i + 1));
-            seats++;
+            seats.add(seatFor(code, spec.label() + (i + 1)));
         }
-        if (seats == 0) {
+        if (seats.isEmpty()) {
             throw new IllegalArgumentException("row " + spec.label() + " has no seats");
         }
-        return new Row(spec.label(), places);
+        return new Row(spec.label(), seats);
     }
 
     private static Seat seatFor(char code, String label) {
@@ -50,7 +52,7 @@ public final class Row {
     }
 
     /** Tablica z lukami: {@code null} oznacza przejście. */
-    Seat[] places() {
-        return places;
+    List<Seat> seats() {
+        return seats;
     }
 }

@@ -16,34 +16,10 @@ public final class HallMaps {
     public String describe(HallSpec spec) {
         Hall hall = Hall.of(spec);
 
-        int capacity = 0;
-        for (Section section : hall.sections()) {
-            for (Row row : section.rows()) {
-                for (Seat seat : row.places()) {
-                    if (seat == null) {
-                        continue;
-                    }
-                    capacity++;
-                }
-            }
-        }
-
-        Money surcharges = Money.ZERO;
-        for (Section section : hall.sections()) {
-            for (Row row : section.rows()) {
-                for (Seat seat : row.places()) {
-                    if (seat == null) {
-                        continue;
-                    }
-                    surcharges = surcharges.plus(seat.surcharge());
-                }
-            }
-        }
-
         Map<String, Integer> counts = new LinkedHashMap<>();
         for (Section section : hall.sections()) {
             for (Row row : section.rows()) {
-                for (Seat seat : row.places()) {
+                for (Seat seat : row.seats()) {
                     if (seat == null) {
                         continue;
                     }
@@ -55,7 +31,7 @@ public final class HallMaps {
         StringJoiner seats = new StringJoiner(", ");
         for (Section section : hall.sections()) {
             for (Row row : section.rows()) {
-                for (Seat seat : row.places()) {
+                for (Seat seat : row.seats()) {
                     if (seat == null) {
                         continue;
                     }
@@ -66,7 +42,7 @@ public final class HallMaps {
 
         StringJoiner categories = new StringJoiner(" ");
         counts.forEach((name, count) -> categories.add(name + "=" + count));
-        return "Sala " + hall.name() + ": pojemnosc " + capacity + ", doplaty " + surcharges + "\n"
+        return "Sala " + hall.name() + ": pojemnosc " + hall.capacity() + ", doplaty " + hall.surcharges() + "\n"
                 + "Kategorie: " + categories + "\n"
                 + "Miejsca: " + seats;
     }
