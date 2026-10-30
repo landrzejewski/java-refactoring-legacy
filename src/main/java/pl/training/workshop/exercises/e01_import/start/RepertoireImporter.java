@@ -20,67 +20,33 @@ import pl.training.workshop.shared.Money;
  * wspólna walidacja i sortowanie są w dwóch egzemplarzach. Różni się tylko sposób rozbioru wiersza.
  * Gdy dystrybutor doda trzeci format (XML), powstanie trzecia kopia.
  */
-public final class RepertoireImporter {
-    private static final Pattern JSON_FIELD = Pattern.compile("\"(\\w+)\"\\s*:\\s*\"([^\"]*)\"");
+public abstract class RepertoireImporter {
+
     private static final Money MORNING_DISCOUNT = Money.of("5.00");
 
     public List<ScreeningEntry> importFile(String fileName, List<String> lines) {
-        if (fileName.endsWith(".csv")) {
-            return importCsv(lines);
-        } else if (fileName.endsWith(".jsonl")) {
-            return importJsonLines(lines);
-        }
-        throw new IllegalArgumentException("unsupported file: " + fileName);
+       if (!fileName.endsWith(".jsonl") &&  !fileName.endsWith(".csv")) {
+           throw new IllegalArgumentException("unsupported file: " + fileName);
+       }
+       return importLines(lines);
     }
 
-    public List<ScreeningEntry> importCsv(List<String> lines) {
+    public List<ScreeningEntry> importLines(List<String> lines) {
         List<ScreeningEntry> entries = new ArrayList<>();
         int number = 0;
         for (String raw : lines) {
             number++;
             String line = raw.strip();
-            if (line.isEmpty() || line.startsWith("#")) {
+            if (line.isEmpty() || isComment(line)) {
                 continue;
             }
-            String[] fields = line.split(";", -1);
-            if (fields.length != 4) {
-                throw new IllegalArgumentException("line " + number + ": expected 4 fields, got " + fields.length);
-            }
-            entries.add(toEntry(number, fields[0].strip(), fields[1].strip(), fields[2].strip(), fields[3].strip()));
+            entries.add(parse(line, number));
         }
         entries.sort(Comparator.comparing(ScreeningEntry::start).thenComparing(ScreeningEntry::title));
         return List.copyOf(entries);
     }
 
-    public List<ScreeningEntry> importJsonLines(List<String> lines) {
-        List<ScreeningEntry> entries = new ArrayList<>();
-        int number = 0;
-        for (String raw : lines) {
-            number++;
-            String line = raw.strip();
-            if (line.isEmpty() || line.startsWith("//")) {
-                continue;
-            }
-            if (!line.startsWith("{") || !line.endsWith("}")) {
-                throw new IllegalArgumentException("line " + number + ": not a JSON object");
-            }
-            Map<String, String> fields = new LinkedHashMap<>();
-            Matcher matcher = JSON_FIELD.matcher(line);
-            while (matcher.find()) {
-                fields.put(matcher.group(1), matcher.group(2));
-            }
-            for (String required : List.of("title", "format", "hall", "start")) {
-                if (!fields.containsKey(required)) {
-                    throw new IllegalArgumentException("line " + number + ": missing field: " + required);
-                }
-            }
-            entries.add(toEntry(number, fields.get("title"), fields.get("format"), fields.get("hall"), fields.get("start")));
-        }
-        entries.sort(Comparator.comparing(ScreeningEntry::start).thenComparing(ScreeningEntry::title));
-        return List.copyOf(entries);
-    }
-
-    private static ScreeningEntry toEntry(int number, String title, String format, String hall, String start) {
+    protected static ScreeningEntry toEntry(int number, String title, String format, String hall, String start) {
         if (title.isEmpty()) {
             throw new IllegalArgumentException("line " + number + ": empty title");
         }
@@ -102,4 +68,9 @@ public final class RepertoireImporter {
         Money price = time.isBefore(LocalTime.NOON) ? base.minus(MORNING_DISCOUNT) : base;
         return new ScreeningEntry(time, title, format, hall, price);
     }
+
+    protected abstract boolean isComment(String line);
+
+    protected abstract ScreeningEntry parse(String line, int number);
+
 }

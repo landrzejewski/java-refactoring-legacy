@@ -11,14 +11,17 @@ import pl.training.workshop.exercises.e01_import.ScreeningEntry;
  * robi jeszcze raz importer.
  */
 public final class RepertoireImport {
-    private final RepertoireImporter importer = new RepertoireImporter();
 
     public String load(ImportRequest request) {
+        RepertoireImporter importer;
+
         String label;
         if (request.fileName().endsWith(".csv")) {
             label = "CSV";
+            importer = new CsvRepertoireImporter();
         } else if (request.fileName().endsWith(".jsonl")) {
             label = "JSONL";
+            importer = new JsonRepertoireImporter();
         } else {
             throw new IllegalArgumentException("unsupported file: " + request.fileName());
         }
