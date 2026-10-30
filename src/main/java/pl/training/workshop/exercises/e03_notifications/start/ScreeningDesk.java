@@ -10,6 +10,7 @@ public final class ScreeningDesk {
     public String run(Scenario scenario) {
         Journal journal = new Journal();
         ScreeningScheduler scheduler = new ScreeningScheduler(journal);
+        scheduler.addListener(new CustomerNotifier(journal));
         scheduler.addListener(new Waitlist(journal, scenario.waiting()));
         scheduler.addListener(new ChangeStats(journal));
         scheduler.register(scenario.screening());

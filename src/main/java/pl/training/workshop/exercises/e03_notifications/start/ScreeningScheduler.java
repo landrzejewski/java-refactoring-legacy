@@ -40,19 +40,7 @@ public final class ScreeningScheduler {
         Screening after = new Screening(before.id(), before.title(), newStart, newHall);
         current.put(screeningId, after);
         journal.note("SCHEDULE " + before.title() + " " + before.start() + " -> " + newStart + " sala " + newHall);
-        for (Customer customer : ticketHolders) {
-            if (customer.pushToken() != null && !customer.pushToken().isBlank()
-                    && !customer.pushToken().startsWith("expired-")) {
-                new PushMovedNotice(journal, before, after).send(customer);
-            } else if (customer.phone() != null && !customer.phone().isBlank()) {
-                new SmsMovedNotice(journal, before, after).send(customer);
-            } else if (customer.email() != null && !customer.email().isBlank()) {
-                new EmailMovedNotice(journal, before, after).send(customer);
-            } else {
-                journal.note("UNDELIVERED " + customer.name() + " (brak kanalu)");
-            }
-        }
-        var movedEvent = new ScreeningMoved();
+        var movedEvent = new ScreeningMoved(before, after, ticketHolders);
         listeners.forEach(listener -> listener.onMoved(movedEvent));
     }
 
@@ -63,18 +51,6 @@ public final class ScreeningScheduler {
         Screening screening = live(screeningId);
         cancelled.add(screeningId);
         journal.note("SCHEDULE " + screening.title() + " " + screening.start() + " odwolany: " + reason);
-        for (Customer customer : ticketHolders) {
-            if (customer.pushToken() != null && !customer.pushToken().isBlank()
-                    && !customer.pushToken().startsWith("expired-")) {
-                new PushCancelledNotice(journal, screening, reason).send(customer);
-            } else if (customer.phone() != null && !customer.phone().isBlank()) {
-                new SmsCancelledNotice(journal, screening, reason).send(customer);
-            } else if (customer.email() != null && !customer.email().isBlank()) {
-                new EmailCancelledNotice(journal, screening, reason).send(customer);
-            } else {
-                journal.note("UNDELIVERED " + customer.name() + " (brak kanalu)");
-            }
-        }
         var cancelledEvent = new ScreeningCancelled(screening, reason, ticketHolders);
         listeners.forEach(listener -> listener.onCanceled(cancelledEvent));
     }
