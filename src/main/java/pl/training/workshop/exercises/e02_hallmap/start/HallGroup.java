@@ -30,4 +30,8 @@ public abstract class HallGroup implements HallElement {
         return surcharges;
     }
 
+    public List<? extends HallElement> getChildren() {
+        return children;
+    }
+
 }

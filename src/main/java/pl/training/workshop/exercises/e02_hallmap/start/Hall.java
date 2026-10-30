@@ -1,13 +1,14 @@
 package pl.training.workshop.exercises.e02_hallmap.start;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import pl.training.workshop.exercises.e02_hallmap.HallSpec;
 import pl.training.workshop.exercises.e02_hallmap.SectionSpec;
 
 /** Start: sala to nazwa i lista sektorów. Sama nic nie liczy - liczy klient, który zna cały układ. */
-public final class Hall extends HallGroup {
+public final class Hall extends HallGroup implements Iterable<Seat> {
 
     private final String name;
     private final List<Section> sections;
@@ -36,4 +37,11 @@ public final class Hall extends HallGroup {
     List<Section> sections() {
         return sections;
     }
+
+    @Override
+    public Iterator<Seat> iterator() {
+        return new SeatIterator(this);
+    }
+
 }
+

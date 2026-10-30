@@ -1,11 +1,10 @@
 package pl.training.workshop.exercises.e02_hallmap.start;
 
+import pl.training.workshop.exercises.e02_hallmap.HallSpec;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.StringJoiner;
-
-import pl.training.workshop.exercises.e02_hallmap.HallSpec;
-import pl.training.workshop.shared.Money;
 
 /**
  * Start: klient mapy sali. Cztery razy wykonuje tę samą wędrówkę sala, sektor, rząd, miejsce
@@ -17,27 +16,10 @@ public final class HallMaps {
         Hall hall = Hall.of(spec);
 
         Map<String, Integer> counts = new LinkedHashMap<>();
-        for (Section section : hall.sections()) {
-            for (Row row : section.rows()) {
-                for (Seat seat : row.seats()) {
-                    if (seat == null) {
-                        continue;
-                    }
-                    counts.merge(seat.categoryName(), 1, Integer::sum);
-                }
-            }
-        }
-
         StringJoiner seats = new StringJoiner(", ");
-        for (Section section : hall.sections()) {
-            for (Row row : section.rows()) {
-                for (Seat seat : row.seats()) {
-                    if (seat == null) {
-                        continue;
-                    }
-                    seats.add(seat.label() + " " + seat.icon());
-                }
-            }
+        for (Seat seat : hall) {
+            counts.merge(seat.categoryName(), 1, Integer::sum);
+            seats.add(seat.label() + " " + seat.icon());
         }
 
         StringJoiner categories = new StringJoiner(" ");
