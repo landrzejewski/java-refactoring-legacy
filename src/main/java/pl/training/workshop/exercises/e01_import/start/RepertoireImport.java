@@ -18,10 +18,10 @@ public final class RepertoireImport {
         String label;
         if (request.fileName().endsWith(".csv")) {
             label = "CSV";
-            importer = new CsvRepertoireImporter();
+            importer = new CsvRepertoireImporter(new CsvLineParser());
         } else if (request.fileName().endsWith(".jsonl")) {
             label = "JSONL";
-            importer = new JsonRepertoireImporter();
+            importer = new JsonRepertoireImporter(JsonLineParser::new);
         } else {
             throw new IllegalArgumentException("unsupported file: " + request.fileName());
         }

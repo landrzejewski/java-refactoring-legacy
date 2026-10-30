@@ -1,8 +1,14 @@
 package pl.training.workshop.exercises.e01_import.start;
 
+import java.util.function.Supplier;
+
 public class JsonRepertoireImporter extends RepertoireImporter {
 
-    private final JsonLineParser parser = new JsonLineParser();
+    private final Supplier<LineParser> parserSupplier;
+
+    public JsonRepertoireImporter(Supplier<LineParser> parserSupplier) {
+        this.parserSupplier = parserSupplier;
+    }
 
     @Override
     protected boolean isComment(String line) {
@@ -11,8 +17,7 @@ public class JsonRepertoireImporter extends RepertoireImporter {
 
     @Override
     protected LineParser getParser() {
-        return parser;
+        return parserSupplier.get() ;
     }
-
 
 }
