@@ -12,24 +12,23 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Test;
 
-import pl.training.workshop.exercises.e03_notifications.step3.CancelledNotice;
-import pl.training.workshop.exercises.e03_notifications.step3.ChangeStats;
-import pl.training.workshop.exercises.e03_notifications.step3.Channel;
-import pl.training.workshop.exercises.e03_notifications.step3.CustomerNotifier;
-import pl.training.workshop.exercises.e03_notifications.step3.EmailChannel;
-import pl.training.workshop.exercises.e03_notifications.step3.EmailLink;
-import pl.training.workshop.exercises.e03_notifications.step3.Journal;
-import pl.training.workshop.exercises.e03_notifications.step3.MovedNotice;
-import pl.training.workshop.exercises.e03_notifications.step3.PushChannel;
-import pl.training.workshop.exercises.e03_notifications.step3.PushLink;
-import pl.training.workshop.exercises.e03_notifications.step3.ScreeningMoved;
-import pl.training.workshop.exercises.e03_notifications.step3.ScreeningScheduler;
-import pl.training.workshop.exercises.e03_notifications.step3.SmsLink;
-import pl.training.workshop.exercises.e03_notifications.step3.UndeliveredLink;
-import pl.training.workshop.exercises.e03_notifications.step3.Waitlist;
+import pl.training.workshop.exercises.e03_notifications.step2.ChangeStats;
+import pl.training.workshop.exercises.e03_notifications.step2.Channel;
+import pl.training.workshop.exercises.e03_notifications.step2.CustomerNotifier;
+import pl.training.workshop.exercises.e03_notifications.step2.EmailChannel;
+import pl.training.workshop.exercises.e03_notifications.step2.EmailLink;
+import pl.training.workshop.exercises.e03_notifications.step2.Journal;
+import pl.training.workshop.exercises.e03_notifications.step2.PushChannel;
+import pl.training.workshop.exercises.e03_notifications.step2.PushLink;
+import pl.training.workshop.exercises.e03_notifications.step2.ScreeningCancelled;
+import pl.training.workshop.exercises.e03_notifications.step2.ScreeningMoved;
+import pl.training.workshop.exercises.e03_notifications.step2.ScreeningScheduler;
+import pl.training.workshop.exercises.e03_notifications.step2.SmsLink;
+import pl.training.workshop.exercises.e03_notifications.step2.UndeliveredLink;
+import pl.training.workshop.exercises.e03_notifications.step2.Waitlist;
 
 /**
- * Kontrakt rozwiazania: nadawca zna tylko interfejs odbiorcow, rodzaj wiadomosci i kanal sa niezalezne,
+ * Kontrakt rozwiazania: nadawca zna tylko interfejs odbiorcow, nowy kanal dziala z kazdym rodzajem wiadomosci,
  * a ogniwo dostarczania przekazuje dalej tylko to, czego samo nie obsluzylo.
  */
 final class E03SolutionTest {
@@ -83,9 +82,10 @@ final class E03SolutionTest {
     void newChannelIsOneClassWorkingWithEveryKindOfNotice() {
         List<String> faxes = new ArrayList<>();
         Channel fax = (customer, subject, body) -> faxes.add("FAX " + customer.name() + " | " + subject);
+        CustomerNotifier notifier = new CustomerNotifier(fax);
 
-        new MovedNotice(fax, DIUNA, MOVED).send(ANNA);
-        new CancelledNotice(fax, DIUNA, "awaria projektora").send(CELINA);
+        notifier.screeningMoved(new ScreeningMoved(DIUNA, MOVED, List.of(ANNA)));
+        notifier.screeningCancelled(new ScreeningCancelled(DIUNA, "awaria projektora", List.of(CELINA)));
 
         assertEquals(List.of("FAX Anna | Zmiana seansu: Diuna", "FAX Celina | Odwolany seans: Diuna"), faxes);
     }

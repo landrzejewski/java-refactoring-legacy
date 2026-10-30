@@ -1,6 +1,6 @@
 # Refaktoryzacja do wzorców
 
-Materiały szkoleniowe: prezentacja, warsztat CineLegacy (Java, C#, TypeScript) i przykłady wzorców projektowych GoF (Java).
+Materiały szkoleniowe: prezentacja, warsztat CineLegacy (Java, C#, TypeScript), ćwiczenia utrwalające (Java, Kotlin, PHP) i przykłady wzorców projektowych GoF (Java).
 
 | Co | Gdzie |
 | --- | --- |
@@ -10,14 +10,19 @@ Materiały szkoleniowe: prezentacja, warsztat CineLegacy (Java, C#, TypeScript) 
 | warsztat w Javie | `src/main/java/pl/training/workshop`, testy: `src/test/java/pl/training/workshop` |
 | warsztat w C# | `csharp/` |
 | warsztat w TypeScripcie | `typescript/` |
-| ćwiczenia utrwalające (10 zadań, 23 wzorce GoF, Java) | `src/main/java/pl/training/workshop/exercises`, treść: `src/main/resources/md/warsztat/zadania/06-cwiczenia.md`, rozwiązania: `src/main/resources/md/warsztat/przewodnik/06-cwiczenia.md` |
+| ćwiczenia utrwalające (10 zadań, 22 wzorce GoF, Java) | `src/main/java/pl/training/workshop/exercises`, treść: `src/main/resources/md/warsztat/zadania/06-cwiczenia.md`, rozwiązania: `src/main/resources/md/warsztat/przewodnik/06-cwiczenia.md` |
+| opis wzorców w ćwiczeniach: które, dlaczego i w jakich klasach (dla prowadzącego) | `CWICZENIA-WZORCE.md` |
+| ćwiczenia utrwalające w Kotlinie | `kotlin/` |
+| ćwiczenia utrwalające w PHP | `php/` |
 | przykłady wzorców GoF | `src/main/java/pl/training/examples` |
 
 ## Wymagania
 
 - Java 25 i Maven (wersja główna),
 - .NET SDK 10 (wersja C#),
-- Node.js 22 lub nowszy (wersja TypeScript i generowanie stron HTML).
+- Node.js 22 lub nowszy (wersja TypeScript i generowanie stron HTML),
+- Kotlin: ten sam JDK i Maven co Java (Kotlin pobiera się jako plugin Mavena),
+- PHP 8.4 lub nowszy z rozszerzeniem `bcmath` i Composer (wersja PHP).
 
 ## Warsztat CineLegacy
 
@@ -36,7 +41,9 @@ scripts/warsztat.sh reset m5/s08       # przywrócenie start do wersji z repozyt
 
 Ćwiczenia utrwalające mają ten sam układ (`start`, `step1`, ...) i te same komendy, ale moduł nazywa się `exercises`, a sceny `e01`..`e10` (np. `scripts/warsztat.sh test exercises/e03`). Treść zadania nie zdradza wzorca: uczestnik rozpoznaje go sam, a kroki `stepN` i przewodnik są rozwiązaniem.
 
-Język wybiera się opcją `--lang java|cs|ts` przed komendą, np. `scripts/warsztat.sh --lang cs test m5/s08`. Bez niej skrypt używa ostatnio wybranego języka (na początku Javy).
+Ćwiczenia utrwalające mają też wersje w Kotlinie (`kotlin/`) i PHP (`php/`), np. `scripts/warsztat.sh --lang kt test exercises/e03`, `scripts/warsztat.sh --lang php next exercises/e03`. Moduły m2, m3 i m5 są tylko w Javie, C# i TypeScripcie.
+
+Język wybiera się opcją `--lang java|cs|ts|kt|php` przed komendą, np. `scripts/warsztat.sh --lang cs test m5/s08`. Bez niej skrypt używa ostatnio wybranego języka (na początku Javy).
 
 Wszystkie testy naraz:
 
@@ -44,6 +51,8 @@ Wszystkie testy naraz:
 mvn test                                     # Java
 cd csharp && dotnet test                     # C#
 cd typescript && npm ci && npm test          # TypeScript
+cd kotlin && mvn test                        # Kotlin (ćwiczenia)
+cd php && composer install && vendor/bin/phpunit   # PHP (ćwiczenia)
 ```
 
 ## Przykłady wzorców GoF

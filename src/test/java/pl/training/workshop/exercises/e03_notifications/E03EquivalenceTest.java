@@ -42,7 +42,6 @@ final class E03EquivalenceTest {
                 .variant("start", s -> new pl.training.workshop.exercises.e03_notifications.start.ScreeningDesk().run(s))
                 .variant("step1", s -> new pl.training.workshop.exercises.e03_notifications.step1.ScreeningDesk().run(s))
                 .variant("step2", s -> new pl.training.workshop.exercises.e03_notifications.step2.ScreeningDesk().run(s))
-                .variant("step3", s -> new pl.training.workshop.exercises.e03_notifications.step3.ScreeningDesk().run(s))
                 .expect("przeniesienie, klient z push", scenario(List.of(ANNA), MOVE), lines(
                         MOVED_SCHEDULE,
                         "PUSH tok-anna | Zmiana seansu: Diuna | " + MOVED_BODY,

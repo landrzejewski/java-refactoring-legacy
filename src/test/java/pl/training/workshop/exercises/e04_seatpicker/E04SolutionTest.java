@@ -2,6 +2,7 @@ package pl.training.workshop.exercises.e04_seatpicker;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumingThat;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -79,7 +80,8 @@ final class E04SolutionTest {
         PickerRun run = PickerRun.almostFull("VOUCHER KINO10", "SELECT 1-1", "AUTO 2");
         String lost = "ERROR: brak 2 miejsc obok siebie @ miejsca: 1-1 | okulary: wypozyczone | voucher: - | suma: 35.00";
         String kept = "ERROR: brak 2 miejsc obok siebie @ miejsca: 1-1 | okulary: wypozyczone | voucher: KINO10 | suma: 31.50";
-        assertEquals(lost, new pl.training.workshop.exercises.e04_seatpicker.start.SeatPickerSession(run.plan()).run(run.script()));
+        assumingThat(startHasNoMemento(),
+                () -> assertEquals(lost, new pl.training.workshop.exercises.e04_seatpicker.start.SeatPickerSession(run.plan()).run(run.script())));
         assertEquals(lost, new pl.training.workshop.exercises.e04_seatpicker.step1.SeatPickerSession(run.plan()).run(run.script()));
         assertEquals(kept, new pl.training.workshop.exercises.e04_seatpicker.step2.SeatPickerSession(run.plan()).run(run.script()));
     }
@@ -89,7 +91,18 @@ final class E04SolutionTest {
         PickerRun run = PickerRun.standard("VOUCHER KINO10", "SELECT 6-4", "AUTO 2", "UNDO");
         String lost = "miejsca: 6-4 | okulary: wypozyczone | voucher: - | suma: 35.00";
         String kept = "miejsca: 6-4 | okulary: wypozyczone | voucher: KINO10 | suma: 31.50";
-        assertEquals(lost, new pl.training.workshop.exercises.e04_seatpicker.start.SeatPickerSession(run.plan()).run(run.script()));
+        assumingThat(startHasNoMemento(),
+                () -> assertEquals(lost, new pl.training.workshop.exercises.e04_seatpicker.start.SeatPickerSession(run.plan()).run(run.script())));
         assertEquals(kept, new pl.training.workshop.exercises.e04_seatpicker.step2.SeatPickerSession(run.plan()).run(run.script()));
+    }
+
+    /** Pułapka start (zgubiony voucher) jest sprawdzana tylko, dopóki w start nie ma pełnej migawki (po "warsztat.sh jump 2"). */
+    private static boolean startHasNoMemento() {
+        try {
+            Class.forName("pl.training.workshop.exercises.e04_seatpicker.start.Cart$Memento");
+            return false;
+        } catch (ClassNotFoundException exception) {
+            return true;
+        }
     }
 }

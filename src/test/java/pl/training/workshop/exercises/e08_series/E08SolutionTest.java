@@ -4,8 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -24,8 +26,12 @@ final class E08SolutionTest {
     private static final SeriesRequest PREMIERE_SERIES =
             new SeriesRequest("Diuna", "IMAX", null, FRIDAY_EVENING, 3, null, null, null, true, null);
 
+    /** Pomiar w start: kopie współdzielą mapę dopłat. Po "warsztat.sh jump 1" (start ma już kopie) test jest pomijany. */
     @Test
     void startLeaksThePremiereSurchargeIntoEveryWeekBecauseCopiesShareTheMap() {
+        boolean startCopies = Arrays.stream(pl.training.workshop.exercises.e08_series.start.Screening.class.getMethods())
+                .anyMatch(method -> method.getName().equals("withSurcharge"));
+        assumeTrue(!startCopies, "start ma już niezależne kopie");
         var weeks = new pl.training.workshop.exercises.e08_series.start.SeriesPlanner().plan(PREMIERE_SERIES);
         assertEquals(List.of(true, true, true),
                 weeks.stream().map(week -> week.surcharges().containsKey("PREMIERA")).toList(),

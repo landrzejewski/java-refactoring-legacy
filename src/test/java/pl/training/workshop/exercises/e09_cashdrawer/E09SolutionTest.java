@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumingThat;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -99,12 +100,24 @@ final class E09SolutionTest {
     @Test
     void choosingTheSplitUpFrontMovesTheUnknownModeErrorToSmallGroupsToo() {
         DrawerDay smallGroup = new DrawerDay(List.of(), E09EquivalenceTest.tickets(3, "25.00"), "RANDOM");
-        String before = new pl.training.workshop.exercises.e09_cashdrawer.start.CashDrawerReport().render(smallGroup);
-        assertTrue(before.endsWith("Rabat grupowy: brak (3 biletow)\n"), "start nie sprawdza trybu dla malej grupy");
+        assumingThat(startHasNoSplits(), () -> {
+            String before = new pl.training.workshop.exercises.e09_cashdrawer.start.CashDrawerReport().render(smallGroup);
+            assertTrue(before.endsWith("Rabat grupowy: brak (3 biletow)\n"), "start nie sprawdza trybu dla malej grupy");
+        });
 
         var error = assertThrows(IllegalArgumentException.class,
                 () -> new pl.training.workshop.exercises.e09_cashdrawer.step2.CashDrawerReport().render(smallGroup));
         assertEquals("unknown split mode: RANDOM", error.getMessage());
+    }
+
+    /** Pułapka start (tryb sprawdzany dopiero dla dużej grupy) - tylko dopóki w start nie ma wariantów podziału (po "warsztat.sh jump 2"). */
+    private static boolean startHasNoSplits() {
+        try {
+            Class.forName("pl.training.workshop.exercises.e09_cashdrawer.start.DiscountSplit");
+            return false;
+        } catch (ClassNotFoundException exception) {
+            return true;
+        }
     }
 
     private static List<Money> randomTickets(Random random) {

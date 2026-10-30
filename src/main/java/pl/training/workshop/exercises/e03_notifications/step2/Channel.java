@@ -3,7 +3,7 @@ package pl.training.workshop.exercises.e03_notifications.step2;
 import pl.training.workshop.exercises.e03_notifications.Customer;
 
 /**
- * Krok 2: kanal dostarczania - druga os zmiennosci (e-mail, SMS, push), oddzielona od rodzaju wiadomosci.
+ * Krok 2: kanal dostarczania (e-mail, SMS, push) i zarazem ogniwo lancucha dostarczania.
  * Zna tylko adresata, tytul i tresc; formatowanie pod ograniczenia kanalu jest po jego stronie.
  */
 @FunctionalInterface

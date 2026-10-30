@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Narzędzie prowadzącego do pokazów na żywo - warsztat CineLegacy (moduły 2, 3 i 5
-# oraz ćwiczenia utrwalające exercises/e01..e10, tylko Java).
+# oraz ćwiczenia utrwalające exercises/e01..e10: Java, Kotlin i PHP).
 #
 #   scripts/warsztat.sh list [m5]              lista scen i kroków (także: list exercises)
 #   scripts/warsztat.sh test m5/s08            testy jednej sceny (albo całego modułu: m5)
@@ -13,7 +13,7 @@
 #   scripts/warsztat.sh diff m5/s08 1 2 --word ten sam diff, ale zmiany podświetlone w obrębie linii
 #   scripts/warsztat.sh html                   generuje HTML wszystkich materiałów z md (wymaga Node.js)
 #
-# Język: --lang java|cs|ts przed komendą (np. scripts/warsztat.sh --lang cs test m5/s08)
+# Język: --lang java|cs|ts|kt|php przed komendą (np. scripts/warsztat.sh --lang cs test m5/s08)
 # albo zmienna WARSZTAT_LANG. Bez nich: ostatnio używany język, a na początku java.
 # Scenę można podać krótko (m5/s08, exercises/e03) albo pełną nazwą pakietu (m5/s08_state).
 set -euo pipefail
@@ -33,7 +33,7 @@ capitalize() {
 
 LANG_ARG=""
 if [ "${1:-}" = "--lang" ]; then
-    LANG_ARG="${2:?podaj język: java, cs albo ts}"
+    LANG_ARG="${2:?podaj język: java, cs, ts, kt albo php}"
     shift 2
 fi
 LANGUAGE="${LANG_ARG:-${WARSZTAT_LANG:-$(state_value lang)}}"
@@ -52,16 +52,27 @@ case "$LANGUAGE" in
         LANGUAGE=ts
         MAIN="$ROOT/typescript/src/workshop"
         EXT=ts START=start STEP=step ;;
-    *) die "nieznany język $LANGUAGE (java, cs, ts)" ;;
+    kt | kotlin)
+        LANGUAGE=kt
+        MAIN="$ROOT/kotlin/src/main/kotlin/pl/training/workshop"
+        EXT=kt START=start STEP=step ;;
+    php)
+        MAIN="$ROOT/php/src"
+        EXT=php START=Start STEP=Step ;;
+    *) die "nieznany język $LANGUAGE (java, cs, ts, kt, php)" ;;
 esac
 
-# Katalog modułu i wzorzec sceny: java/ts m5/s08*, C# M5/S08* (s08_state -> S08State).
+# Katalog modułu i wzorzec sceny: java/ts/kt m5/s08*, C# i PHP M5/S08* (s08_state -> S08State).
+pascal_case() {
+    [ "$LANGUAGE" = cs ] || [ "$LANGUAGE" = php ]
+}
+
 module_name() {
-    if [ "$LANGUAGE" = cs ]; then capitalize "$1"; else echo "$1"; fi
+    if pascal_case; then capitalize "$1"; else echo "$1"; fi
 }
 
 scene_pattern() {
-    if [ "$LANGUAGE" = cs ]; then echo "$(capitalize "${1%%_*}")*"; else echo "$1*"; fi
+    if pascal_case; then echo "$(capitalize "${1%%_*}")*"; else echo "$1*"; fi
 }
 
 scene_dir() {
@@ -78,19 +89,24 @@ variant_dir() {
     if [ "$2" = "0" ] || [ "$2" = "start" ]; then echo "$1/$START"; else echo "$1/$STEP$2"; fi
 }
 
-# Przestrzeń nazw wariantu: pakiet Javy, namespace C#; TypeScript ma importy względne (brak).
+# Przestrzeń nazw wariantu: pakiet Javy/Kotlina, namespace C# i PHP; TypeScript ma importy względne (brak).
 namespace_of() {
     case "$LANGUAGE" in
-        java) echo "pl.training.workshop.${1#"$MAIN"/}" | tr '/' '.' ;;
+        java | kt) echo "pl.training.workshop.${1#"$MAIN"/}" | tr '/' '.' ;;
         cs) echo "Training.Workshop.${1#"$MAIN"/}" | tr '/' '.' ;;
+        php) echo "Training\\Workshop\\${1#"$MAIN"/}" | tr '/' '\\' ;;
         ts) echo "${1#"$ROOT"/}" ;;
     esac
 }
 
-# Zamienia przestrzeń nazw $2 na $3 we wszystkich plikach źródłowych katalogu $1.
+# Zamienia przestrzeń nazw $2 na $3 we wszystkich plikach źródłowych katalogu $1
+# (kropki i odwrotne ukośniki - separatory PHP - są dla sed zwykłymi znakami).
 rewrite_namespace() {
     [ "$LANGUAGE" = ts ] && return
-    find "$1" -name "*.$EXT" -exec sed -i '' "s/${2//./\\.}/$3/g" {} +
+    local from to
+    from=$(printf '%s' "$2" | sed -e 's/[\\.]/\\&/g')
+    to=$(printf '%s' "$3" | sed -e 's/\\/\\\\/g')
+    find "$1" -name "*.$EXT" -exec sed -i '' "s/$from/$to/g" {} +
 }
 
 # Stan pokazu: język, ostatnio używana scena i krok, który jest w start (plik poza gitem).
@@ -206,7 +222,7 @@ cmd_list() {
     for module in "$MAIN"/*/; do
         local m; m=$(basename "$module")
         # moduły warsztatu: m2, m3, m5 (C#: M2...) oraz ćwiczenia utrwalające exercises/eNN
-        case "$m" in [mM][0-9]*|exercises) ;; *) continue ;; esac
+        case "$m" in [mM][0-9]*|exercises|Exercises) ;; *) continue ;; esac
         [ -z "$filter" ] || [ "$(module_name "$filter")" = "$m" ] || continue
         echo "$m"
         for scene in "$module"*/; do
@@ -228,12 +244,13 @@ cmd_test() {
         [ -d "$dir" ] || die "nie ma modułu $target ($LANGUAGE)"
     fi
     case "$LANGUAGE" in
-        java)
-            local pkg; pkg=$(namespace_of "$dir")
-            (cd "$ROOT" && mvn -q test -Dtest="${pkg}.**" -Dsurefire.failIfNoSpecifiedTests=false)
+        java | kt)
+            local pkg base="$ROOT"; pkg=$(namespace_of "$dir")
+            [ "$LANGUAGE" = kt ] && base="$ROOT/kotlin"
+            (cd "$base" && mvn -q test -Dtest="${pkg}.**" -Dsurefire.failIfNoSpecifiedTests=false)
             # mvn -q nie pokazuje raportu, więc nazwy zaliczonych testów czytamy z plików surefire
             local report cls
-            for report in "$ROOT"/target/surefire-reports/TEST-"$pkg".*.xml; do
+            for report in "$base"/target/surefire-reports/TEST-"$pkg".*.xml; do
                 [ -f "$report" ] || continue
                 cls=$(basename "$report" .xml); cls=${cls##*.}
                 echo "$cls"
@@ -252,6 +269,11 @@ cmd_test() {
         ts)
             local tests="test/workshop/${dir#"$MAIN"/}/"
             (cd "$ROOT/typescript" && npx vitest run --reporter=verbose "$tests")
+            echo "OK: $tests" ;;
+        php)
+            local tests="tests/${dir#"$MAIN"/}"
+            [ -d "$ROOT/php/vendor" ] || (cd "$ROOT/php" && composer install --no-interaction --quiet)
+            (cd "$ROOT/php" && vendor/bin/phpunit --testdox "$tests")
             echo "OK: $tests" ;;
     esac
 }
