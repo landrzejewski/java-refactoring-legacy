@@ -1,13 +1,9 @@
 package pl.training.workshop.exercises.e03_notifications.start;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import pl.training.workshop.exercises.e03_notifications.Customer;
 import pl.training.workshop.exercises.e03_notifications.Screening;
+
+import java.util.*;
 
 /**
  * Start: zmiana repertuaru sama wie, kogo i jak powiadomic. Po kazdej zmianie scheduler na sztywno
@@ -17,15 +13,16 @@ import pl.training.workshop.exercises.e03_notifications.Screening;
  */
 public final class ScreeningScheduler {
     private final Journal journal;
-    private final Waitlist waitlist;
-    private final ChangeStats stats;
     private final Map<String, Screening> current = new HashMap<>();
     private final Set<String> cancelled = new HashSet<>();
+    private final List<ScreeningListener> listeners = new ArrayList<>();
 
-    public ScreeningScheduler(Journal journal, Waitlist waitlist, ChangeStats stats) {
+    public ScreeningScheduler(Journal journal) {
         this.journal = journal;
-        this.waitlist = waitlist;
-        this.stats = stats;
+    }
+
+    public void addListener(ScreeningListener listener) {
+        listeners.add(listener);
     }
 
     public void register(Screening screening) {
@@ -55,8 +52,8 @@ public final class ScreeningScheduler {
                 journal.note("UNDELIVERED " + customer.name() + " (brak kanalu)");
             }
         }
-        waitlist.screeningMoved(after);
-        stats.moved();
+        var movedEvent = new MovedEvent(before, after, ticketHolders);
+        listeners.forEach(listener -> listener.onMoved(movedEvent));
     }
 
     public void cancel(String screeningId, String reason, List<Customer> ticketHolders) {
@@ -78,8 +75,8 @@ public final class ScreeningScheduler {
                 journal.note("UNDELIVERED " + customer.name() + " (brak kanalu)");
             }
         }
-        waitlist.screeningCancelled(screening);
-        stats.cancelled();
+        var cancelledEvent = new CancelledEvent(screening, reason, ticketHolders);
+        listeners.forEach(listener -> listener.onCanceled(cancelledEvent));
     }
 
     private Screening live(String screeningId) {

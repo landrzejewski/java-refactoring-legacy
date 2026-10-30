@@ -1,7 +1,7 @@
 package pl.training.workshop.exercises.e03_notifications.start;
 
 /** Start: statystyki zmian repertuaru - licznik przeniesien i odwolan wypisywany po kazdej zmianie. */
-public final class ChangeStats {
+public final class ChangeStats implements ScreeningListener {
     private final Journal journal;
     private int moved;
     private int cancelled;
@@ -10,13 +10,16 @@ public final class ChangeStats {
         this.journal = journal;
     }
 
-    public void moved() {
+    @Override
+    public void onMoved(MovedEvent event) {
         moved++;
         journal.note("STATS przeniesione=" + moved + " odwolane=" + cancelled);
     }
 
-    public void cancelled() {
+    @Override
+    public void onCanceled(CancelledEvent event) {
         cancelled++;
         journal.note("STATS przeniesione=" + moved + " odwolane=" + cancelled);
     }
+
 }

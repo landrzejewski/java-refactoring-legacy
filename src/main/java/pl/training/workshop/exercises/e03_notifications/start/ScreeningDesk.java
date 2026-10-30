@@ -9,8 +9,9 @@ import pl.training.workshop.exercises.e03_notifications.Scenario;
 public final class ScreeningDesk {
     public String run(Scenario scenario) {
         Journal journal = new Journal();
-        ScreeningScheduler scheduler = new ScreeningScheduler(
-                journal, new Waitlist(journal, scenario.waiting()), new ChangeStats(journal));
+        ScreeningScheduler scheduler = new ScreeningScheduler(journal);
+        scheduler.addListener(new Waitlist(journal, scenario.waiting()));
+        scheduler.addListener(new ChangeStats(journal));
         scheduler.register(scenario.screening());
         String id = scenario.screening().id();
         try {
