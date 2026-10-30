@@ -40,7 +40,9 @@ public abstract class RepertoireImporter {
             if (line.isEmpty() || isComment(line)) {
                 continue;
             }
-            entries.add(parse(line, number));
+            var fields = getParser().parse(line, number);
+            var entry = toEntry(number, fields[0].strip(), fields[1].strip(), fields[2].strip(), fields[3].strip());
+            entries.add(entry);
         }
         entries.sort(Comparator.comparing(ScreeningEntry::start).thenComparing(ScreeningEntry::title));
         return List.copyOf(entries);
@@ -71,6 +73,6 @@ public abstract class RepertoireImporter {
 
     protected abstract boolean isComment(String line);
 
-    protected abstract ScreeningEntry parse(String line, int number);
+    protected abstract LineParser getParser();
 
 }
