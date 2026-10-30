@@ -23,6 +23,15 @@ public final class Seat implements HallElement {
         this.description = description;
     }
 
+    Seat(String label, SeatData seatData) {
+        this.label = label;
+        this.code = seatData.code;
+        this.categoryName = seatData.categoryName;
+        this.surcharge = seatData.surcharge;
+        this.icon = seatData.icon;
+        this.description = seatData.description;
+    }
+
     String label() {
         return label;
     }
@@ -52,4 +61,8 @@ public final class Seat implements HallElement {
     String description() {
         return description;
     }
+
+    record SeatData(char code, String categoryName, Money surcharge, String icon, String description) {
+    }
+
 }

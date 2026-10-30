@@ -1,10 +1,13 @@
 package pl.training.workshop.exercises.e02_hallmap.start;
 
 import pl.training.workshop.exercises.e02_hallmap.RowSpec;
+import pl.training.workshop.exercises.e02_hallmap.start.Seat.SeatData;
 import pl.training.workshop.shared.Money;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Start: rząd trzyma tablicę miejsc, w której przejście (luka) to {@code null}. Każdy, kto
@@ -12,6 +15,16 @@ import java.util.List;
  * są kopiowane do każdego miejsca z osobna - w sali IMAX na 400 miejsc to 400 kopii.
  */
 public final class Row extends HallGroup{
+
+    private static final Set<Character> CODES = Set.of('N', 'V', 'W', 'D');
+
+    private static final Map<Character, SeatData> seatsData = Map.of(
+            'N', new SeatData('N', "Normalne", Money.ZERO, "o", "Miejsce standardowe"),
+            'V', new SeatData('V', "VIP", Money.of("10.00"), "*", "Fotel skorzany z szerszym rozstawem"),
+            'W', new SeatData('W', "Wozek", Money.ZERO, "&", "Miejsce dla osoby na wozku"),
+            'D', new SeatData('D', "Dwuosobowe", Money.of("6.00"), "=", "Sofa dla dwojga")
+    );
+
     private final String label;
     private final List<Seat> seats;
 
@@ -38,13 +51,10 @@ public final class Row extends HallGroup{
     }
 
     private static Seat seatFor(char code, String label) {
-        return switch (code) {
-            case 'N' -> new Seat(label, 'N', "Normalne", Money.ZERO, "o", "Miejsce standardowe");
-            case 'V' -> new Seat(label, 'V', "VIP", Money.of("10.00"), "*", "Fotel skorzany z szerszym rozstawem");
-            case 'W' -> new Seat(label, 'W', "Wozek", Money.ZERO, "&", "Miejsce dla osoby na wozku");
-            case 'D' -> new Seat(label, 'D', "Dwuosobowe", Money.of("6.00"), "=", "Sofa dla dwojga");
-            default -> throw new IllegalArgumentException("unknown seat category: " + code);
-        };
+        if (!CODES.contains(code)) {
+            throw new IllegalArgumentException("unknown seat category: " + code);
+        }
+        return new Seat(label, seatsData.get(code));
     }
 
     String label() {
