@@ -2,8 +2,8 @@ package pl.training.workshop.exercises.e03_notifications.start;
 
 public interface ScreeningListener {
 
-    void onMoved(MovedEvent event);
+    void onMoved(ScreeningMoved event);
 
-    void onCanceled(CancelledEvent event);
+    void onCanceled(ScreeningCancelled event);
 
 }

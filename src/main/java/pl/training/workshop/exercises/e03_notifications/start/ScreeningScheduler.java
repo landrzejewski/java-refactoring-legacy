@@ -52,7 +52,7 @@ public final class ScreeningScheduler {
                 journal.note("UNDELIVERED " + customer.name() + " (brak kanalu)");
             }
         }
-        var movedEvent = new MovedEvent(before, after, ticketHolders);
+        var movedEvent = new ScreeningMoved();
         listeners.forEach(listener -> listener.onMoved(movedEvent));
     }
 
@@ -75,7 +75,7 @@ public final class ScreeningScheduler {
                 journal.note("UNDELIVERED " + customer.name() + " (brak kanalu)");
             }
         }
-        var cancelledEvent = new CancelledEvent(screening, reason, ticketHolders);
+        var cancelledEvent = new ScreeningCancelled(screening, reason, ticketHolders);
         listeners.forEach(listener -> listener.onCanceled(cancelledEvent));
     }
 

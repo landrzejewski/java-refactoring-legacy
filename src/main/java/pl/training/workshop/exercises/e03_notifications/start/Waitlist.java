@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import pl.training.workshop.exercises.e03_notifications.Customer;
-import pl.training.workshop.exercises.e03_notifications.Screening;
 
 /** Start: lista oczekujacych na bilety - po przeniesieniu zachowuje kolejnosc, po odwolaniu jest czyszczona. */
 public final class Waitlist implements ScreeningListener {
@@ -17,12 +16,12 @@ public final class Waitlist implements ScreeningListener {
     }
 
     @Override
-    public void onMoved(MovedEvent event) {
+    public void onMoved(ScreeningMoved event) {
         journal.note("WAITLIST " + event.after().title() + ": " + waiting.size() + " oczekujacych zachowuje kolejnosc");
     }
 
     @Override
-    public void onCanceled(CancelledEvent event) {
+    public void onCanceled(ScreeningCancelled event) {
         journal.note("WAITLIST " + event.screening().title() + ": lista wyczyszczona (" + waiting.size() + ")");
         waiting.clear();
     }

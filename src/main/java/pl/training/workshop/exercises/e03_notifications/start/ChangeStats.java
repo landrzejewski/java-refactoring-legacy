@@ -11,13 +11,13 @@ public final class ChangeStats implements ScreeningListener {
     }
 
     @Override
-    public void onMoved(MovedEvent event) {
+    public void onMoved(ScreeningMoved event) {
         moved++;
         journal.note("STATS przeniesione=" + moved + " odwolane=" + cancelled);
     }
 
     @Override
-    public void onCanceled(CancelledEvent event) {
+    public void onCanceled(ScreeningCancelled event) {
         cancelled++;
         journal.note("STATS przeniesione=" + moved + " odwolane=" + cancelled);
     }
